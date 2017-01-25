@@ -10,20 +10,9 @@ import math
 import numpy as np
 
 # import characterSim
-from env.BallGame2D import BallGame2D
+# from env.BallGame2D import BallGame2D
 from ModelEvaluation import *
 
-from model.RLDeepNet import RLDeepNet
-from model.DeepRLNet3 import DeepRLNet3  
-from model.DeepCACLA import DeepCACLA
-from model.DeepCACLADQ import DeepCACLADQ
-from model.DeepCACLADV import DeepCACLADV
-from model.DeepCACLADropout import DeepCACLADropout
-from model.DeepDPG import DeepDPG
-from model.DeepDPG2 import DeepDPG2
-from model.DeepDPGDQ import DeepDPGDQ
-from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
-from model.LearningAgent import *
 from util.ExperienceMemory import ExperienceMemory
 from RLVisualize import RLVisualize
 from NNVisualize import NNVisualize

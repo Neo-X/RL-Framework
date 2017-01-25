@@ -5,6 +5,7 @@ import os
 import json
 from numpy import dtype
 sys.path.append("../")
+sys.path.append("../env")
 sys.path.append("../characterSimAdapter/")
 sys.path.append("../simbiconAdapter/")
 import math
