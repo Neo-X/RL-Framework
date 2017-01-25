@@ -1,0 +1,647 @@
+
+
+from model.ModelUtil import *
+# import cPickle
+import dill
+import sys
+from theano.compile.io import Out
+sys.setrecursionlimit(50000)
+from sim.PendulumEnvState import PendulumEnvState
+from sim.PendulumEnv import PendulumEnv
+from multiprocessing import Process, Queue
+# from pathos.multiprocessing import Pool
+import threading
+import time
+
+from actor.ActorInterface import *
+from util.SimulationUtil import *
+
+# class SimWorker(threading.Thread):
+class SimWorker(Process):
+    
+    def __init__(self, input_queue, output_queue, actor, exp, model, discount_factor, action_space_continuous, 
+                 settings, print_data, p, validation):
+        super(SimWorker, self).__init__()
+        self._input_queue= input_queue
+        self._output_queue = output_queue
+        self._actor = actor
+        self._exp = exp
+        self._model = model
+        self._discount_factor = discount_factor
+        self._action_space_continuous= action_space_continuous
+        self._settings= settings
+        self._print_data=print_data
+        self._p= p
+        self._validation=validation
+        self._max_iterations = settings['rounds'] + settings['epochs'] * 32
+        self._iteration = 0
+    
+    def setP(self, p):
+        self._p= p
+        
+    def run(self):
+        """
+        self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'])
+        self._exp.getActor().init()   
+        self._exp.getEnvironment().init()
+        """
+        print ('Worker started')
+        # do some initialization here
+        while True:
+            anchors_ = self._input_queue.get()
+            if anchors_ == None:
+                break
+            p = (self._max_iterations - self._iteration) / float(self._max_iterations)
+            # print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+            if p < 0.1:
+                p = 0.1
+            self._p = p
+            # print ("sim worker p: " + str(self._p))
+            out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, anchors=anchors_, action_space_continuous=self._action_space_continuous, settings=self._settings, print_data=self._print_data, p=self._p, validation=self._validation)
+            self._iteration += 1
+            # if self._p <= 0.0:
+            #    self._output_queue.put(out)
+            (tuples, discounted_sum, q_value, evalData) = out
+            (states, actions, rewards, result_states, falls) = tuples
+            # print ("Actions: " + str(actions))
+        print ("Simulation Worker Complete: ")
+        
+    def simEpochParallel(self, actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, p=0.0, validation=False, epoch=0, evaluation=False):
+        out = simEpoch(actor, exp, model, discount_factor, anchors=anchors, action_space_continuous=action_space_continuous, settings=settings, 
+                       print_data=print_data, p=p, validation=validation, epoch=epoch, evaluation=evaluation, _output_queue=self._output_queue )
+        return out
+    
+    
+
+def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, 
+             p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstraping=False, visualizeEvaluation=None):
+    if action_space_continuous:
+        action_bounds = np.array(settings["action_bounds"], dtype=float)
+        omega = settings["omega"]
+    
+    action_selection = range(settings["num_actions"])   
+    reward_bounds = np.array(settings['reward_bounds'] )
+    
+    pa=None
+    epsilon = settings["epsilon"]
+    # Actor should be FIRST here
+    exp.getActor().initEpoch()
+    if validation:
+        exp.generateValidation(anchors, epoch)
+    else:
+        exp.generateEnvironmentSample()
+        
+    exp.getEnvironment().initEpoch()
+    actor.init()
+    state_ = exp.getState()
+    # pa = model.predict(state_)
+    if (not bootstraping):
+        q_values_ = [model.q_value(state_)]
+    else:
+        q_values_ = []
+    viz_q_values_ = []
+    # q_value = model.q_value(state_)
+    # print ("Updated parameters: " + str(model._pol.getNetworkParameters()[3]))
+    # print ("q_values_: " + str(q_value) + " Action: " + str(action_))
+    # original_val = q_value
+    discounted_sum = 0;
+    discounted_sums = [];
+    state_num=0
+    i_=0
+    reward_=0
+    states = [] 
+    actions = []
+    rewards = []
+    falls = []
+    result_states = []
+    evalDatas=[]
+    
+    # while not exp.getEnvironment().endOfEpoch():
+    for i_ in range(settings['max_epoch_length']):
+        
+        # if (exp.getEnvironment().endOfEpoch() or (reward_ < settings['reward_lower_bound'])):
+        if (exp.getEnvironment().endOfEpoch() or ((reward_ < settings['reward_lower_bound']) 
+                                                  and
+                                                  (not evaluation))):
+            evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
+            discounted_sums.append(discounted_sum)
+            discounted_sum=0
+            state_num=0
+            exp.getActor().initEpoch()
+            if validation:
+                exp.generateValidation(anchors, (epoch * settings['max_epoch_length']) + i_)
+            else:
+                exp.generateEnvironmentSample()
+                
+            exp.getEnvironment().initEpoch()
+            actor.init()
+            state_ = exp.getState()
+            if (not bootstraping):
+                q_values_.append(model.q_value(state_))
+        # state = exp.getEnvironment().getState()
+        state_ = exp.getState()
+        if (not (visualizeEvaluation == None)):
+            viz_q_values_.append(model.q_value(state_)[0])
+            if (len(viz_q_values_)>30):
+                 viz_q_values_.pop(0)
+            # print ("viz_q_values_: ", viz_q_values_ )
+            # print ("np.zeros(len(viz_q_values_)): ", np.zeros(len(viz_q_values_)))
+            visualizeEvaluation.updateLoss(viz_q_values_, np.zeros(len(viz_q_values_)))
+            visualizeEvaluation.redraw()
+            # visualizeEvaluation.setInteractiveOff()
+            # visualizeEvaluation.saveVisual(directory+"criticLossGraph")
+            # visualizeEvaluation.setInteractive()
+        # print ("Initial State: " + str(state_))
+        # print ("State: " + str(state.getParams()))
+        # val_act = exp.getActor().getModel().maxExpectedActionForState(state)
+        # action_ = model.predict(state_)
+            # print ("Get best action: ")
+        # pa = model.predict(state_)
+        action=None
+        if action_space_continuous:
+            """
+                epsilon greedy action select
+                pa1 is best action from policy
+                ra1 is the noisy policy action action
+                ra2 is the random action
+                e is proabilty to select random action
+                0 <= e < omega < 1.0
+            """
+            r = np.random.rand(1)[0]
+            if r < (epsilon * p): # exploit hand crafted actions
+                # return ra2
+                # randomAction = randomUniformExporation(action_bounds) # Completely random action
+                # action = randomAction
+                action = np.random.choice(action_selection)
+                action__ = actor.getActionParams(action)
+                action = action__
+                # print ("Discrete action choice: ", action, " epsilon * p: ", epsilon * p)
+            elif r < (omega * p): # add noise to current policy
+                # return ra1
+                pa = model.predict(state_)
+                if (settings['exploration_method'] == 'uniform_random'):
+                    # action = randomExporation(settings["exploration_rate"], pa)
+                    action = randomExporation(settings["exploration_rate"], pa, action_bounds)
+                elif ((settings['exploration_method'] == 'thompson')):
+                    # print ('Using Thompson sampling')
+                    action = thompsonExploration(model, settings["exploration_rate"], state_)
+                else:
+                    print ("Exploration method unknown: " + str(settings['exploration_method']))
+                    sys.exit(1)
+                # randomAction = randomUniformExporation(action_bounds) # Completely random action
+                # randomAction = random.choice(action_selection)
+                if (settings["use_model_based_action_optimization"] and (np.random.rand(1)[0] > 0.5)):
+                    # Need to be using a forward dynamics deep network for this
+                    action = getOptimalAction(actor.getForwardDynamicsModel(), actor.getPolicy(), state_)
+            else: # exploit policy
+                # return pa1
+                pa = model.predict(state_)
+                action = pa
+            outside_bounds=False
+            action_=None
+            if (settings["clamp_actions_to_stay_inside_bounds"] or (settings['penalize_actions_outside_bounds'])):
+                (action_, outside_bounds) = clampActionWarn(action, action_bounds)
+                if (settings['clamp_actions_to_stay_inside_bounds']):
+                    action = action_
+            if (settings["visualize_forward_dynamics"]):
+                predicted_next_state = actor.getForwardDynamicsModel().predict(np.array(state_), action)
+                # exp.visualizeNextState(state_, action) # visualize current state
+                exp.visualizeNextState(predicted_next_state, action)
+            
+            if (not settings["train_actor"]): # hack to use debug critic only
+                """
+                    action = np.random.choice(action_selection)
+                    action__ = actor.getActionParams(action)
+                    action = action__
+                    
+                    pa = model.predict(state_)
+                    action = pa
+                """
+                action=[0.2]
+            reward_ = actor.actContinuous(exp,action)
+            agent_not_fell = actor.hasNotFallen(exp)
+            if (outside_bounds and settings['penalize_actions_outside_bounds']):
+                reward_ = reward_ + reward_bounds[0] # TODO: this penalty should really be a function of the distance the action was outside the bounds 
+            # print ("Action: ", action, " reward: ", reward_, " p: ", p)
+        elif not action_space_continuous:
+            """
+            action = random.choice(action_selection)
+            action = eGreedy(pa, action, epsilon * p)
+            reward_ = actor.act(exp, action)
+            """
+            pa = model.predict(state_)
+            action = random.choice(action_selection)
+            action = eGreedy(pa, action, epsilon * p)
+            # print("Action selection:", action_selection, " action: ", action)
+            action__ = actor.getActionParams(action)
+            action = [action]
+            # print ("Action selected: " + str(action__))
+            # reward = act(action)
+            # print ("performing action: ", action)
+            reward_ = actor.actContinuous(exp, action__, bootstrapping=True)
+            agent_not_fell = actor.hasNotFallen(exp)
+            # print ("performed action: ", reward)
+        
+        if (agent_not_fell == 0):
+            print ("Agent fell ", agent_not_fell, " with reward: ", reward_, " from action: ", action)
+            # reward_=0 
+        discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * reward_))) # *(1.0-discount_factor))
+        # print ("discounted_sum: ", discounted_sum)
+        resultState = exp.getState()
+        # print ("Result State: " + str(resultState))
+        # _val_act = exp.getActor().getModel().maxExpectedActionForState(resultState)
+        # bellman_error.append(val_act[0] - (reward + _val_act[0]))
+        # For testing remove later
+        if (settings["use_back_on_track_forcing"] and (not evaluation)):
+            exp.getControllerBackOnTrack()
+            
+        # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) )
+        if print_data:
+            # print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward_))
+            print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) ) 
+            pass     
+            # print ("Python Reward: " + str(reward(state_, resultState)))
+            
+        if ( (reward_ >= settings['reward_lower_bound'] ) or evaluation):
+            states.append(state_)
+            actions.append(action)
+            rewards.append([reward_])
+            result_states.append(resultState)
+            falls.append([agent_not_fell])
+            # print ("falls: ", falls)
+            # values.append(value)
+            if (_output_queue != None and (not evaluation)): # for multi-threading
+                # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
+                _output_queue.put((state_, action, [reward_], resultState, [agent_not_fell]))
+            state_num += 1
+        pa = None
+        i_ += 1
+        
+    evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
+    evalData = [np.mean(evalDatas)]
+    discounted_sums.append(discounted_sum)
+    discounted_sum = np.mean(discounted_sums)
+    q_value = np.mean(q_values_)
+    if print_data:
+        print ("Evaluation: ", str(evalData)) 
+    # print ("Evaluation Data: ", evalData)
+        # print ("Current Tuple: " + str(experience.current()))
+    tuples = (states, actions, rewards, result_states, falls)
+    return (tuples, discounted_sum, q_value, evalData)
+    
+
+# @profile(precision=5)
+def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, p=0.0, evaluation=False, visualizeEvaluation=None):
+    print ("Evaluating model:")
+    j=0
+    discounted_values = []
+    bellman_errors = []
+    reward_over_epocs = []
+    values = []
+    evalDatas = []
+    epoch_=0
+    for anchs in anchors: # half the anchors
+        (tuples, discounted_sum, value, evalData) = simEpoch(actor, exp, 
+                model, discount_factor, anchors=anchs, action_space_continuous=action_space_continuous, 
+                settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
+                visualizeEvaluation=visualizeEvaluation)
+        epoch_ = epoch_ + 1
+        (states, actions, rewards, result_states, falls) = tuples
+        # print (states, actions, rewards, result_states, discounted_sum, value)
+        # print ("Evaluated Actions: ", actions)
+        # print ("Evaluated Rewards: ", rewards)
+        if actor.getExperience().samples() > settings['batch_size']:
+            _states, _actions, _result_states, _rewards, falls = actor.getExperience().get_batch(settings['batch_size'])
+            error = model.bellman_error(np.array(_states), np.array(_actions), 
+                                        np.array(_rewards), np.array(_result_states), np.array(falls))
+        else :
+            error = [[0]]
+            print ("Error: not enough samples")
+        # states, actions, result_states, rewards = experience.get_batch(64)
+        # error = model.bellman_error(states, actions, rewards, result_states)
+        # print (states, actions, rewards, result_states, discounted_sum, value)
+        error = np.mean(np.fabs(error))
+        # print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With reward_sum: " + str(np.sum(rewards)) + " bellman error: " + str(error))
+        discounted_values.append(discounted_sum)
+        values.append(value)
+        # print ("Rewards over eval epoch: ", rewards)
+        # This works better because epochs can terminate early, which is bad.
+        reward_over_epocs.append(np.mean(np.array(rewards)))
+        bellman_errors.append(error)
+        evalDatas.append(evalData)
+        
+    print ("Reward for min epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
+    print ("reward_over_epocs" + str(reward_over_epocs))
+    print ("Discounted sum: ", discounted_values)
+    print ("Initial values: ", values)
+    mean_reward = np.mean(reward_over_epocs)
+    std_reward = np.std(reward_over_epocs)
+    mean_bellman_error = np.mean(bellman_errors)
+    std_bellman_error = np.std(bellman_errors)
+    mean_discount_error = np.mean(np.array(discounted_values) - np.array(values))
+    std_discount_error = np.std(np.array(discounted_values) - np.array(values))
+    mean_eval = np.mean(evalDatas)
+    std_eval = np.std(evalDatas)
+    
+    discounted_values = []
+    reward_over_epocs = []
+    bellman_errors = []
+        
+    return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
+            mean_eval, std_eval)
+
+# @profile(precision=5)
+def evalModelParrallel(input_queue, output_queue, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False):
+    print ("Evaluating model:")
+    
+    j=0
+    discounted_values = []
+    bellman_errors = []
+    reward_over_epocs = []
+    values = []
+    
+    for anchs in anchors: # half the anchors
+        input_queue.put(anchs)
+        # (states, actions, rewards, result_states, discounted_sum, value) = output_queue.get()
+    print ("Done simulating")
+    
+    # for w in workers:
+    #     w.join()
+        
+    for anchs in anchors: # half the anchors
+        (states, actions, rewards, result_states, discounted_sum, value) = output_queue.get()
+        print ("Got data to output")
+
+        
+        # error = model.bellman_error(np.array(states), np.array(actions), 
+         #                            np.array(rewards), np.array(result_states))
+        # states, actions, result_states, rewards = experience.get_batch(64)
+        # error = model.bellman_error(states, actions, rewards, result_states)
+        # print (states, actions, rewards, result_states, discounted_sum, value)
+        error = 0 # np.mean(np.fabs(error))
+        # print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With reward_sum: " + str(np.sum(rewards)) + " bellman error: " + str(error))
+        discounted_values.append(discounted_sum)
+        values.append(value)
+        reward_over_epocs.append(np.mean(np.array(rewards)))
+        bellman_errors.append(error)
+        
+    print ("Reward for min epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
+    print ("reward_over_epocs" + str(reward_over_epocs))
+    mean_reward = np.mean(reward_over_epocs)
+    std_reward = np.std(reward_over_epocs)
+    mean_bellman_error = np.mean(bellman_errors)
+    std_bellman_error = np.std(bellman_errors)
+    mean_discount_error = np.mean(np.array(discounted_values) - np.array(values))
+    std_discount_error = np.std(np.array(discounted_values) - np.array(values))
+    
+    discounted_values = []
+    reward_over_epocs = []
+    bellman_errors = []
+    
+    return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
+
+def collectExperience(actor, exp_val, model, settings):
+    
+    action_selection = range(settings["num_actions"])
+    print ("Action selection: " + str(action_selection))
+    # state_bounds = np.array(settings['state_bounds'])
+    # state_bounds = np.array([[0],[0]])
+    reward_bounds=np.array(settings["reward_bounds"])
+    action_bounds = np.array(settings["action_bounds"], dtype=float)
+    
+    if (settings["bootsrap_with_discrete_policy"]) and (settings['bootsrap_samples'] > 0):
+        (states, actions, resultStates, rewards_, falls_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootsrap_samples'], settings=settings, action_selection=action_selection)
+        # states = np.array(states)
+        # states = np.append(states, state_bounds,0) # Adding that already specified bounds will ensure the final calculated is beyond these
+        state_bounds = np.ones((2,states.shape[1]))
+        
+        state_avg = states[:settings['bootsrap_samples']].mean(0)
+        state_stddev = states[:settings['bootsrap_samples']].std(0)*2
+        reward_avg = rewards_[:settings['bootsrap_samples']].mean(0)
+        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0)*2
+        action_avg = actions[:settings['bootsrap_samples']].mean(0)
+        action_stddev = actions[:settings['bootsrap_samples']].std(0)*2
+        if (settings['state_normalization'] == "minmax"):
+            state_bounds[0] = states[:settings['bootsrap_samples']].min(0)
+            state_bounds[1] = states[:settings['bootsrap_samples']].max(0)
+            # reward_bounds[0] = rewards_[:settings['bootsrap_samples']].min(0)
+            # reward_bounds[1] = rewards_[:settings['bootsrap_samples']].max(0)
+            # action_bounds[0] = actions[:settings['bootsrap_samples']].min(0)
+            # action_bounds[1] = actions[:settings['bootsrap_samples']].max(0)
+        elif (settings['state_normalization'] == "variance"):
+            state_bounds[0] = state_avg - state_stddev
+            state_bounds[1] = state_avg + state_stddev
+            # reward_bounds[0] = reward_avg - reward_stddev
+            # reward_bounds[1] = reward_avg + reward_stddev
+            # action_bounds[0] = action_avg - action_stddev
+            # action_bounds[1] = action_avg + action_stddev
+        elif (settings['state_normalization'] == "given"):
+            pass # Use bound specified in file
+        else:
+            print ("State scaling strategy unknown: ", (settings['state_normalization']))
+            
+        if settings['action_space_continuous']:
+            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True)
+        else:
+            experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+        
+        
+        
+        print ("State Mean:" + str(state_avg))
+        print ("State Variance: " + str(state_stddev))
+        print ("Reward Mean:" + str(reward_avg))
+        print ("Reward Variance: " + str(reward_stddev))
+        print ("Action Mean:" + str(action_avg))
+        print ("Action Variance: " + str(action_stddev))
+        print ("Max State:" + str(state_bounds[1]))
+        print ("Min State:" + str(state_bounds[0]))
+        print ("Max Reward:" + str(reward_bounds[1]))
+        print ("Min Reward:" + str(reward_bounds[0]))
+        print ("Max Action:" + str(action_bounds[1]))
+        print ("Min Action:" + str(action_bounds[0]))
+        
+        experience.setStateBounds(state_bounds)
+        experience.setRewardBounds(reward_bounds)
+        experience.setActionBounds(action_bounds)
+        
+        for state, action, resultState, reward_, fall_ in zip(states, actions, resultStates, rewards_, falls_):
+            if reward_ > settings['reward_lower_bound']: # Skip is reward gets too bad
+                if settings['action_space_continuous']:
+                    # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
+                    experience.insert(state, action, resultState, [reward_], [fall_])
+                else:
+                    experience.insert(state, [action], resultState, [reward_], [falls_])
+            else:
+                print ("Tuple with reward: " + str(reward_) + " skipped")
+        # sys.exit()
+    else:
+        pass
+        """
+        (states, actions, resultStates, rewards_) = collectExperienceActionsContinuous(exp, settings['expereince_length'], settings=settings, action_selection=action_selection)
+        # states = np.array(states)
+        state_bounds[0] = states.min(0)
+        state_bounds[1] = states.max(0)
+        reward_bounds[0][0] = rewards_.min(0)
+        print ("Max State:" + str(state_bounds[1]))
+        print ("Min State:" + str(state_bounds[0]))
+        print ("Min Reward:" + str(reward_bounds[0]))
+        """
+        
+        
+    return  experience, state_bounds, reward_bounds, action_bounds
+
+
+def collectExperienceActionsContinuous(actor, exp, model, samples, settings, action_selection):
+    i = 0
+    states = []
+    actions = []
+    resultStates = []
+    rewards = []
+    falls = []
+    anchor_data_file = open(settings["anchor_file"])
+    _anchors = getAnchors(anchor_data_file)
+    print ("Length of anchors epochs: " + str(len(_anchors)))
+    anchor_data_file.close()
+    while i < samples:
+        # Actor should be FIRST here
+        out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=_anchors[0], 
+                               action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
+                                p=100.0, validation=settings['train_on_validation_set'], bootstraping=True)
+        # if self._p <= 0.0:
+        #    self._output_queue.put(out)
+        (tuples, discounted_sum_, q_value_, evalData) = out
+        (states_, actions_, rewards_, result_states_, falls_) = tuples
+        states.extend(states_)
+        actions.extend(actions_)
+        rewards.extend(rewards_)
+        resultStates.extend(result_states_)
+        falls.extend(falls_)
+        
+        i=i+len(states_)
+        print("Number of Experience samples so far: ", i)
+        # print ("States: ", states)
+        # print ("Actions: ", actions)
+        # print ("Rewards: ", rewards)
+        # print ("ResultStates: ", resultStates)
+        
+
+    print ("Done collecting experience.")
+    return (np.array(states), np.array(actions), np.array(resultStates), np.array(rewards), np.array(falls_))  
+
+
+if __name__ == "__main__":
+    
+    
+    settings = getSettings(sys.argv[1])
+    
+    anchor_data_file = open(settings["anchor_file"])
+    _anchors = getAnchors(anchor_data_file)
+    anchor_data_file.close()
+    model_type= settings["model_type"]
+    directory= getDataDirectory(settings)
+    num_actions= settings["num_actions"]
+    rounds = settings["rounds"]
+    epochs = settings["epochs"]
+    num_states=settings["num_states"]
+    epsilon = settings["epsilon"]
+    discount_factor=settings["discount_factor"]
+    # max_reward=settings["max_reward"]
+    batch_size=settings["batch_size"]
+    state_bounds = np.array(settings['state_bounds'])
+    action_space_continuous=settings["action_space_continuous"]  
+    discrete_actions = np.array(settings['discrete_actions'])
+    action_space_continuous=settings['action_space_continuous']
+    if action_space_continuous:
+        action_bounds = np.array(settings["action_bounds"], dtype=float)
+    
+    print ("Sim config file name: " + str(settings["sim_config_file"]))
+    
+    ### Using a wrapper for the type of actor now
+    if action_space_continuous:
+        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True)
+    else:
+        experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+    # actor = ActorInterface(discrete_actions)
+    actor = createActor(str(settings['environment_type']),settings, experience)
+    
+    # c = characterSim.Configuration("../data/epsilon0Config.ini")
+    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+    f = open(file_name, 'r')
+    model = dill.load(f)
+    f.close()
+    
+    if (settings['train_forward_dynamics']):
+        file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
+        # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+        f = open(file_name_dynamics, 'r')
+        forwardDynamicsModel = dill.load(f)
+        f.close()
+    
+    if ( settings["use_transfer_task_network"] ):
+        task_directory = getTaskDataDirectory(settings)
+        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        f = open(file_name, 'r')
+        taskModel = dill.load(f)
+        f.close()
+        # copy the task part from taskModel to model
+        print ("Transferring task portion of model.")
+        model.setTaskNetworkParameters(taskModel)
+
+    # this is the process that selects which game to play
+    
+    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']))
+
+    if (settings['train_forward_dynamics']):
+        actor.setForwardDynamicsModel(forwardDynamicsModel)
+        forwardDynamicsModel.setActor(actor)
+        # forwardDynamicsModel.setEnvironment(exp)
+    actor.setPolicy(model)
+    
+    exp.getActor().init()   
+    exp.getEnvironment().init()
+    expected_value_viz=None
+    if (settings['visualize_expected_value']):
+        expected_value_viz = NNVisualize(title=str("Expected Value") + " with " + str(settings["model_type"]))
+        expected_value_viz.setInteractive()
+        expected_value_viz.init()
+        criticLosses = []
+    
+    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, model, discount_factor, anchors=_anchors[:settings['eval_epochs']], 
+                                                                                                                        action_space_continuous=action_space_continuous, settings=settings, print_data=True, evaluation=True,
+                                                                                                                        visualizeEvaluation=expected_value_viz)
+        # simEpoch(exp, model, discount_factor=discount_factor, anchors=_anchors[:settings['eval_epochs']][9], action_space_continuous=True, settings=settings, print_data=True, p=0.0, validation=True)
+    
+    """
+    workers = []
+    input_anchor_queue = Queue(settings['queue_size_limit'])
+    output_experience_queue = Queue(settings['queue_size_limit'])
+    for process in range(settings['num_available_threads']):
+         # this is the process that selects which game to play
+        exp = characterSim.Experiment(c)
+        if settings['environment_type'] == 'pendulum_env_state':
+            print ("Using Environment Type: " + str(settings['environment_type']))
+            exp = PendulumEnvState(exp)
+        elif settings['environment_type'] == 'pendulum_env':
+            print ("Using Environment Type: " + str(settings['environment_type']))
+            exp = PendulumEnv(exp)
+        else:
+            print ("Invalid environment type: " + str(settings['environment_type']))
+            sys.exit()
+                
+        
+        exp.getActor().init()   
+        exp.getEnvironment().init()
+        
+        w = SimWorker(input_anchor_queue, output_experience_queue, exp, model, discount_factor, action_space_continuous=action_space_continuous, 
+                settings=settings, print_data=False, p=0.0, validation=True)
+        w.start()
+        workers.append(w)
+        
+    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error = evalModelParrallel(
+        input_anchor_queue, output_experience_queue, discount_factor, anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings)
+    
+    for w in workers:
+        input_anchor_queue.put(None)
+       """ 
+    print ("Average Reward: " + str(mean_reward))
