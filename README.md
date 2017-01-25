@@ -34,7 +34,7 @@ As a temporary workaround, I use the following hack:
     Add cmd.append('-D_FORCE_INLINES') just before p = subprocess.Popen( in the file nvcc_compiler.py
 
 
-## Using THe system
+## Using The system
 
 	$ python trainModel.py DeepNeuralNet2.json
 
