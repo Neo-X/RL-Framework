@@ -8,6 +8,7 @@ sys.path.append("../")
 sys.path.append("../env")
 sys.path.append("../characterSimAdapter/")
 sys.path.append("../simbiconAdapter/")
+sys.path.append("../simAdapter/")
 import math
 import numpy as np
 
@@ -51,6 +52,7 @@ from actor.SimbiconActor import SimbiconActor
 from sim.PendulumEnvState import PendulumEnvState
 from sim.PendulumEnv import PendulumEnv
 from sim.SimbiconEnv import SimbiconEnv
+from sim.ParkourEnv import ParkourEnv
 from sim.BallGame2DEnv import BallGame2DEnv
 from sim.BallGame1DEnv import BallGame1DEnv
 
@@ -228,7 +230,17 @@ def createEnvironment(config_file, env_type):
         exp = SimbiconEnv(sim)
         exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
-        
+    elif env_type == 'parkourBiped2D':
+        import terrainRLAdapter
+        sim = terrainRLAdapter.cSimAdapter()
+        sim.init(['train', '-arg_file=', config_file])
+        # print ("Num state: ", c._NUMBER_OF_STATES)
+        # sim = simbiconAdapter.SimbiconWrapper(c)
+        print ("Using Environment Type: " + str(env_type))
+        exp = ParkourEnv(sim)
+        # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
+        return exp
+    
     import characterSim
     c = characterSim.Configuration(config_file)
     # print ("Num state: ", c._NUMBER_OF_STATES)
