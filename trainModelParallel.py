@@ -56,7 +56,7 @@ from util.SimulationUtil import *
 
 # @profile(precision=5)
 # @memprof(plot = True)
-def train(settingsFileName):
+def trainModelParallel(settingsFileName):
         
     # pr = cProfile.Profile()
     # pr.enable()
@@ -531,4 +531,4 @@ def train(settingsFileName):
     
 if (__name__ == "__main__"):
     
-    train(sys.argv[1])
+    trainModelParallel(sys.argv[1])
