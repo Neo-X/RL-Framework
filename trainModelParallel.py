@@ -54,6 +54,7 @@ import multiprocessing
 from model.ModelUtil import *
 from util.SimulationUtil import *
 
+
 # @profile(precision=5)
 # @memprof(plot = True)
 def train(settingsFileName):
