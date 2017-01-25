@@ -36,7 +36,7 @@ As a temporary workaround, I use the following hack:
 
 ## Using The system
 
-	$ python trainModel.py DeepNeuralNet2.json
+	$ python trainModelParallel.py settings/biped2d/CACLA_DeepNN.json
 
 ## References
 
