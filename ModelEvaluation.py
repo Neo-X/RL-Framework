@@ -245,7 +245,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (agent_not_fell == 0):
             print ("Agent fell ", agent_not_fell, " with reward: ", reward_, " from action: ", action)
             # reward_=0 
-        discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * reward_))) # *(1.0-discount_factor))
+        if ((reward_ >= settings['reward_lower_bound'] )):
+            discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * reward_))) # *(1.0-discount_factor))
         # print ("discounted_sum: ", discounted_sum)
         resultState = exp.getState()
         # print ("Result State: " + str(resultState))
