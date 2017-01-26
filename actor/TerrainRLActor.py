@@ -21,7 +21,7 @@ class TerrainRLActor(ActorInterface):
         # Actor should be FIRST here
         # print "Action: " + str(action_)
         # reward = exp.getEnvironment().act(action_)
-        sim.act(walk)
+        sim.getEnvironment().act(action_)
         updates_=0
         while (not sim.endOfAction() and (updates_ < 20)):
             sim.update()

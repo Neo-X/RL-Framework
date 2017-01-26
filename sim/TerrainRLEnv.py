@@ -4,20 +4,22 @@ import numpy as np
 import math
 from sim.SimInterface import SimInterface
 import sys
+from actor.DoNothingActor import DoNothingActor
 # sys.path.append("../simbiconAdapter/")
 
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
 
-class ParkourEnv(SimInterface):
+class TerrainRLEnv(SimInterface):
 
     def __init__(self, exp):
         #------------------------------------------------------------
         # set up initial state
-        super(ParkourEnv,self).__init__(exp)
+        super(TerrainRLEnv,self).__init__(exp)
         self._action_dimension=3
         self._range = 5.0
+        self._actor = DoNothingActor()
 
     def getEnvironment(self):
         return self._exp
@@ -44,7 +46,7 @@ class ParkourEnv(SimInterface):
         self._exp.getEnvironment().generateEnvironmentSample()
             
     def getActor(self):
-        return self.getEnvironment().getActor()
+        return self._actor
     
     def finish(self):
         self._exp.finish()

@@ -37,7 +37,7 @@
 		             [0.1, 0.2, -0.500000, -0.266476, -0.093272, 0.292735, 1.180385, 0.080433]], 		  
 "action_space_continuous":true,
 "train_on_validation_set":true,
-"environment_type": "parkourBiped2D",
+"environment_type": "terrainRLBiped2D",
 "forward_dynamics_predictor": "network",
 "sampling_method": "SequentialMC",
 "use_actor_policy_action_suggestion": true,
