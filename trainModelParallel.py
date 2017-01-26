@@ -63,7 +63,6 @@ def trainModelParallel(settingsFileName):
         train_forward_dynamics=True
         model_type= settings["model_type"]
         directory= getDataDirectory(settings)
-        num_actions= settings["num_actions"]
         rounds = settings["rounds"]
         epochs = settings["epochs"]
         num_states=settings["num_states"]
@@ -75,6 +74,7 @@ def trainModelParallel(settingsFileName):
         train_on_validation_set=settings["train_on_validation_set"]
         state_bounds = np.array(settings['state_bounds'])
         discrete_actions = np.array(settings['discrete_actions'])
+        num_actions= discrete_actions.shape[0] # number of rows
         print ("Sim config file name: " + str(settings["sim_config_file"]))
         # c = characterSim.Configuration(str(settings["sim_config_file"]))
         # c = characterSim.Configuration("../data/epsilon0Config.ini")

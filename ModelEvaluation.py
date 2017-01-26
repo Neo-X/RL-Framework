@@ -79,7 +79,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         action_bounds = np.array(settings["action_bounds"], dtype=float)
         omega = settings["omega"]
     
-    action_selection = range(settings["num_actions"])   
+    action_selection = range(len(settings["discrete_actions"]))   
     reward_bounds = np.array(settings['reward_bounds'] )
     
     pa=None
@@ -402,7 +402,7 @@ def evalModelParrallel(input_queue, output_queue, discount_factor, anchors=None,
 
 def collectExperience(actor, exp_val, model, settings):
     
-    action_selection = range(settings["num_actions"])
+    action_selection = range(len(settings["discrete_actions"]))
     print ("Action selection: " + str(action_selection))
     # state_bounds = np.array(settings['state_bounds'])
     # state_bounds = np.array([[0],[0]])
