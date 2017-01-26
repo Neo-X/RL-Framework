@@ -30,6 +30,7 @@ class TerrainRLActor(ActorInterface):
         # mask some parameters
         action_idx=0
         action__=[]
+        vel_sum=0
         for i in range(len(self._default_action)): # because the use of parameters can be switched on and off.
             if (self._param_mask[i] == True):
                 action__.append(action_[action_idx] )
@@ -38,14 +39,19 @@ class TerrainRLActor(ActorInterface):
                 action__.append(self._default_action[i])
         action_=action__
         sim.getEnvironment().act(action_)
-        updates_=0
+        updates_=1
         while (not sim.getEnvironment().endOfAction() and (updates_ < 20)):
             sim.getEnvironment().update()
+            vel_sum += sim.getEnvironment().calcVelocity()
             updates_+=1
-        reward_ = sim.getEnvironment().calcReward()   
+            
+        averageSpeed = vel_sum / float(updates_)
+        vel_diff = self._target_vel - averageSpeed
+        reward_ = math.exp((vel_diff*vel_diff)*self._target_vel_weight) # optimal is 0
+        # reward_ = sim.getEnvironment().calcReward()   
         # print ("averageSpeed: ", averageSpeed)
         self._reward_sum = self._reward_sum + reward_
-        print ("Reward: ", reward_)
+        # print ("Reward: ", reward_)
 
         return reward_
     

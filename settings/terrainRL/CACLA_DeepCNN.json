@@ -80,6 +80,6 @@
 "critic_learning_rate": 0.01,
 "visualize_expected_value": true,
 "target_velocity_decay":-0.75,
-"target_velocity":1.5,
+"target_velocity":3.0,
 "num_terrain_features": 200
 }
