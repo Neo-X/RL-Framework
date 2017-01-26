@@ -98,6 +98,18 @@ def trainModelParallel(settingsFileName):
         
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings)
+        
+        if (not validBounds(action_bounds)):
+            # Check that the action bounds are spcified correctly
+            print("Action bounds invalid: ", action_bounds)
+            sys.exit()
+        if (not validBounds(state_bounds)):
+            # Probably did not collect enough bootstrapping samples to get good state bounds.
+            print("State bounds invalid: ", state_bounds)
+            sys.exit()
+        if (not validBounds(reward_bounds)):
+            print("Reward bounds invalid: ", reward_bounds)
+            sys.exit()
         """
         if settings['action_space_continuous']:
             experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True)

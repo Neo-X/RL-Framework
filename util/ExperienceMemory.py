@@ -62,8 +62,8 @@ class ExperienceMemory(object):
         
         if ((not np.all(np.isfinite(state))) or (not np.all(np.isfinite(action))) or
             (not np.all(np.isfinite(nextState))) or (not np.all(np.isfinite(reward))) or
-            (np.any(np.less(state, -10000.0))) or (np.any(np.greater(state, 10000.0))) or
-            (np.any(np.less(nextState, -10000.0))) or (np.any(np.greater(nextState, 10000.0)))):
+            (np.any(np.less(state, -1000.0))) or (np.any(np.greater(state, 1000.0))) or
+            (np.any(np.less(nextState, -1000.0))) or (np.any(np.greater(nextState, 1000.0)))):
             print "Failed inserting: "
             print state, action, nextState, reward
             return

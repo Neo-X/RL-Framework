@@ -274,6 +274,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
                 _output_queue.put((state_, action, [reward_], resultState, [agent_not_fell]))
             state_num += 1
+        else:
+            print ("****Reward was to bad: ", reward_)
         pa = None
         i_ += 1
         
@@ -465,7 +467,7 @@ def collectExperience(actor, exp_val, model, settings):
         experience.setActionBounds(action_bounds)
         
         for state, action, resultState, reward_, fall_ in zip(states, actions, resultStates, rewards_, falls_):
-            if reward_ > settings['reward_lower_bound']: # Skip is reward gets too bad
+            if reward_ > settings['reward_lower_bound']: # Skip is reward gets too bad, skips nan too?u
                 if settings['action_space_continuous']:
                     # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
                     experience.insert(state, action, resultState, [reward_], [fall_])

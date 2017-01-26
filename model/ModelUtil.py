@@ -297,6 +297,18 @@ def getModelValueUncertanty(model, state, length=4.1, num_samples=32):
     # print "Predictions: " + str(predictions_)
     variance__ = (modelPrecsionInv) + np.var(predictions_, axis=0)
     return variance__
+
+
+def validBounds(bounds):
+    """
+        Checks to make sure bounds are valid
+        max is > min
+    """
+    valid = np.all(np.less(bounds[0], bounds[1]))
+    if (not valid):
+        print ("Valid bounds: ", np.less(bounds[0], bounds[1]))
+        
+    return valid
     
 
 if __name__ == '__main__':
