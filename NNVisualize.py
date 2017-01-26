@@ -8,7 +8,7 @@ import json
 
 class NNVisualize(object):
     
-    def __init__(self, title):
+    def __init__(self, title, settings):
         """
             Three plots
             bellman error
@@ -17,6 +17,9 @@ class NNVisualize(object):
         """
         
         self._title=title
+        self._iteration_scale = ((settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'] * 
+                          settings['training_updates_per_sim_action']) / 
+                         settings['sim_action_per_training_update'])
         
         """
         self._fig, (self._bellman_error_ax, self._reward_ax, self._discount_error_ax) = plt.subplots(3, 1, sharey=False, sharex=True)
@@ -64,6 +67,7 @@ class NNVisualize(object):
         self._fig.suptitle(self._title, fontsize=18)
         plt.grid(b=True, which='major', color='black', linestyle='--')
         plt.grid(b=True, which='minor', color='g', linestyle='--')
+        plt.xlabel("Iteration x" + str(self._iteration_scale))
         
         self._fig.set_size_inches(8.0, 4.5, forward=True)
         

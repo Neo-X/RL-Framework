@@ -10,7 +10,7 @@
 "sim_config_file": "./args/biped2D/test_biped_args.txt",
 "forwardDynamics_config_file": "./args/biped2D/test_biped_args.txt",
 "exploration_rate": 0.1,
-"rounds": 1000,
+"rounds": 4000,
 "epochs": 5,
 "eval_epochs": 5,
 "num_states": 50,

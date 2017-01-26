@@ -8,13 +8,16 @@ import json
 
 class RLVisualize(object):
     
-    def __init__(self, title):
+    def __init__(self, title, settings):
         """
             Three plots
             bellman error
             average reward
             discounted reward error
         """
+        self._iteration_scale = ((settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'] * 
+                                  settings['training_updates_per_sim_action']) / 
+                                 settings['sim_action_per_training_update'])
         self._title=title
         self._fig, (self._bellman_error_ax, self._reward_ax, self._discount_error_ax) = plt.subplots(3, 1, sharey=False, sharex=True)
         self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
@@ -32,7 +35,7 @@ class RLVisualize(object):
         self._discount_error_ax.set_title('Discount Error')
         self._discount_error_ax.set_ylabel("Absolute Error")
         self._discount_error_ax.grid(b=True, which='major', color='black', linestyle='--')
-        plt.xlabel("Iteration")
+        plt.xlabel("Iteration x" + str(self._iteration_scale))
         
         self._fig.set_size_inches(8.0, 12.5, forward=True)
         
@@ -59,7 +62,7 @@ class RLVisualize(object):
         self._discount_error_ax.set_title('Discount Error')
         self._discount_error_ax.set_ylabel("Absolute Error")
         self._discount_error_ax.grid(b=True, which='major', color='black', linestyle='--')
-        plt.xlabel("Iteration")
+        plt.xlabel("Iteration x" + str(self._iteration_scale))
         self._fig.suptitle(self._title, fontsize=18)
         
         # plt.grid(b=True, which='major', color='black', linestyle='--')
@@ -87,7 +90,7 @@ class RLVisualize(object):
         self._reward_ax.autoscale()  # auto-scale
         
     def updateDiscountError(self, error, std):
-        self._discount_error.set_xdata(np.arange(len(error)))
+        self._discount_error.set_xdata(np.arange(len(error)) )
         self._discount_error.set_ydata(error)
         self._discount_error_ax.collections.remove(self._discount_error_std)
         self._discount_error_std = self._discount_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor='blue', alpha=0.5)

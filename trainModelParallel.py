@@ -123,12 +123,12 @@ def trainModelParallel(settingsFileName):
         print ("Action Mean: ", np.mean(experience._action_history))
             
         if settings['visualize_learning']:    
-            rlv = RLVisualize(directory+str(settings['agent_name']))
+            rlv = RLVisualize(directory+str(settings['agent_name']), settings)
             rlv.setInteractive()
             rlv.init()
         if (settings['train_forward_dynamics']):
             if settings['visulaize_forward_dynamics']:
-                nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(settings["model_type"]))
+                nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(settings["model_type"]), settings=settings)
                 nlv.setInteractive()
                 nlv.init()
                 
