@@ -1,5 +1,5 @@
 {
-"model_type": "Deep_NN",
+"model_type": "Deep_CNN",
 "agent_name": "CACLA",
 "data_folder": "Simple_Walk/",
 "epsilon": 0.45, 
@@ -57,7 +57,7 @@
 "load_saved_model": false,
 "critic_updates_per_actor_update": 5,
 "clamp_actions_to_stay_inside_bounds": true,
-"bootsrap_samples": 1000,
+"bootsrap_samples": 40,
 "bootsrap_with_discrete_policy": true,
 "max_epoch_length": 50,
 "reward_lower_bound": -0.5,
@@ -68,7 +68,7 @@
 "use_transfer_task_network": false,
 "penalize_actions_outside_bounds": false,
 "use_transfer_task_network": false,
-"forward_dynamics_model_type": "Deep_NN",
+"forward_dynamics_model_type": "Deep_CNN",
 "save_experience_memory": false,
 "train_rl_learning": true,
 "use_back_on_track_forcing": false,
@@ -80,5 +80,6 @@
 "critic_learning_rate": 0.01,
 "visualize_expected_value": true,
 "target_velocity_decay":-0.75,
-"target_velocity":1.5
+"target_velocity":1.5,
+"num_terrain_features": 200
 }
