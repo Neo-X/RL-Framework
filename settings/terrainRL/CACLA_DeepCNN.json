@@ -2,8 +2,10 @@
 "model_type": "Deep_CNN",
 "agent_name": "CACLA",
 "data_folder": "Simple_Walk/",
-"epsilon": 0.45, 
-"omega": 0.75,
+"comment": "initial probability of selecting a random action",
+"epsilon": 0.75, 
+"comment": "initial probability of selecting a discrete random action",
+"omega": 0.0,
 "batch_size": 32,
 "learning_rate": 0.001,
 "anchor_file": "./learn/data/paperGibbonAnchors.json",
@@ -81,5 +83,7 @@
 "visualize_expected_value": true,
 "target_velocity_decay":-0.75,
 "target_velocity":3.0,
-"num_terrain_features": 200
+"num_terrain_features": 200,
+"initial_temperature": 20.0,
+"min_epsilon": 0.15
 }

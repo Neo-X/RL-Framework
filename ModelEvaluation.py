@@ -65,6 +65,7 @@ class SimWorker(Process):
             (states, actions, rewards, result_states, falls) = tuples
             # print ("Actions: " + str(actions))
         print ("Simulation Worker Complete: ")
+        self._exp.finish()
         
     def simEpochParallel(self, actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, p=0.0, validation=False, epoch=0, evaluation=False):
         out = simEpoch(actor, exp, model, discount_factor, anchors=anchors, action_space_continuous=action_space_continuous, settings=settings, 
@@ -168,31 +169,34 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 0 <= e < omega < 1.0
             """
             r = np.random.rand(1)[0]
-            if r < (epsilon * p): # exploit hand crafted actions
-                # return ra2
-                # randomAction = randomUniformExporation(action_bounds) # Completely random action
-                # action = randomAction
-                action = np.random.choice(action_selection)
-                action__ = actor.getActionParams(action)
-                action = action__
-                # print ("Discrete action choice: ", action, " epsilon * p: ", epsilon * p)
-            elif r < (omega * p): # add noise to current policy
-                # return ra1
-                pa = model.predict(state_)
-                if (settings['exploration_method'] == 'uniform_random'):
-                    # action = randomExporation(settings["exploration_rate"], pa)
-                    action = randomExporation(settings["exploration_rate"], pa, action_bounds)
-                elif ((settings['exploration_method'] == 'thompson')):
-                    # print ('Using Thompson sampling')
-                    action = thompsonExploration(model, settings["exploration_rate"], state_)
-                else:
-                    print ("Exploration method unknown: " + str(settings['exploration_method']))
-                    sys.exit(1)
-                # randomAction = randomUniformExporation(action_bounds) # Completely random action
-                # randomAction = random.choice(action_selection)
-                if (settings["use_model_based_action_optimization"] and (np.random.rand(1)[0] > 0.5)):
-                    # Need to be using a forward dynamics deep network for this
-                    action = getOptimalAction(actor.getForwardDynamicsModel(), actor.getPolicy(), state_)
+            if r < (epsilon * p): # explore random actions
+                
+                r2 = np.random.rand(1)[0]
+                if (r2 < omega) or bootstraping:# explore hand crafted actions
+                    # return ra2
+                    # randomAction = randomUniformExporation(action_bounds) # Completely random action
+                    # action = randomAction
+                    action = np.random.choice(action_selection)
+                    action__ = actor.getActionParams(action)
+                    action = action__
+                    # print ("Discrete action choice: ", action, " epsilon * p: ", epsilon * p)
+                else : # add noise to current policy
+                    # return ra1
+                    pa = model.predict(state_)
+                    if (settings['exploration_method'] == 'uniform_random'):
+                        # action = randomExporation(settings["exploration_rate"], pa)
+                        action = randomExporation(settings["exploration_rate"], pa, action_bounds)
+                    elif ((settings['exploration_method'] == 'thompson')):
+                        # print ('Using Thompson sampling')
+                        action = thompsonExploration(model, settings["exploration_rate"], state_)
+                    else:
+                        print ("Exploration method unknown: " + str(settings['exploration_method']))
+                        sys.exit(1)
+                    # randomAction = randomUniformExporation(action_bounds) # Completely random action
+                    # randomAction = random.choice(action_selection)
+                    if (settings["use_model_based_action_optimization"] and (np.random.rand(1)[0] > 0.5)):
+                        # Need to be using a forward dynamics deep network for this
+                        action = getOptimalAction(actor.getForwardDynamicsModel(), actor.getPolicy(), state_)
             else: # exploit policy
                 # return pa1
                 pa = model.predict(state_)

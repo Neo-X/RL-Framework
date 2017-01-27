@@ -294,8 +294,10 @@ def trainModelParallel(settingsFileName):
         bellman_errors=[]
         
         print ("Starting first round")
-        for round_ in range(rounds):
-            p = (rounds - round_) / float(rounds)
+        for round_ in range(2,rounds+2):
+            p = (settings['initial_temperature'] / math.log(round_) - round_) / float(settings['initial_temperature'])
+            p = max(settings['min_epsilon'], min(1.0, p)) # Keeps it between 1.0 and 0.2
+            
             for sm in sim_workers:
                 sm.setP(p)
             # pr = cProfile.Profile()
