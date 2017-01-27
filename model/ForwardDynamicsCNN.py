@@ -667,6 +667,9 @@ class ForwardDynamicsCNN(ModelInterface):
             nonlinearity=lasagne.nonlinearities.rectify)
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         # networkAct = lasagne.layers.ReshapeLayer(networkAct, (-1, 1, 1, 74))
+        networkAct = lasagne.layers.DenseLayer(
+                networkAct, num_units=self._settings['num_terrain_features'],
+                nonlinearity=lasagne.nonlinearities.linear)
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         
         networkActChar = lasagne.layers.DenseLayer(
@@ -676,10 +679,10 @@ class ForwardDynamicsCNN(ModelInterface):
                 networkActChar, num_units=64,
                 nonlinearity=lasagne.nonlinearities.rectify)
         networkActChar = lasagne.layers.DenseLayer(
-                networkActChar, num_units=((self._state_length + self._action_length) - self._settings['num_terrain_features']),
+                networkActChar, num_units=((self._state_length) - self._settings['num_terrain_features']),
                 nonlinearity=lasagne.nonlinearities.linear)
         
-        networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
+        # networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
         # this should have dimensions (1,self._state_length + self._action_length)...
         networkAct = lasagne.layers.ConcatLayer([networkAct, networkActChar], axis=1) 
         """

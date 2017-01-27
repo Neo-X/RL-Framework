@@ -220,7 +220,7 @@ def getOptimalAction(forwardDynamicsModel, model, state):
     learning_rate=0.1
     num_updates=1
     state_length = model.getStateSize()
-    print ("state_length ", state_length)
+    # print ("state_length ", state_length)
     action = model.predict(state)
     # init_value = model.q_value(state)
     # init_action = copy.deepcopy(action)
@@ -245,20 +245,21 @@ def getOptimalAction(forwardDynamicsModel, model, state):
         # uncertanty = getModelValueUncertanty(model, next_state[0])
         # print ("Uncertanty: ", uncertanty)
         action_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_state, (1, model.getStateSize())))[0]
-        print ("action_grad1: ", action_grads)
-        print ("action_grad1 size: ", action_grads.shape)
+        # print ("action_grad1: ", action_grads)
+        # print ("action_grad1 size: ", action_grads.shape)
         action_grads = action_grads[:, state_length:] * learning_rate # Get the segment of the input state that was the action
         # action_grads = action_grads * learning_rate
-        print ("action_grad2: ", action_grads)
+        # print ("action_grad2: ", action_grads)
         # Use grad to update action parameters
         action = action - action_grads
-        print ("action_grad: ", action_grads, " new action: ", action)
+        # print ("action_grad: ", action_grads, " new action: ", action)
+        # print ( "Action shape: ", action.shape)
         # print (" Action diff: ", (action - init_action))
         
         # repeat
     # init_value = model.q_value(state)
     # print ("New action: ", action, " action diff: ", (action - init_action))
-    action = clampAction(action, model._action_bounds)
+    action = clampAction(action[0], model._action_bounds)
     return action
 
 def getModelPredictionUncertanty(model, state, length=4.1, num_samples=32):
