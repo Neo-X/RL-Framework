@@ -51,7 +51,7 @@ class ForwardDynamics(AlgorithmInterface):
                                                 self._model.getActionSymbolicVariable(): self._model.getActions()})
         self._bellman_error = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         # self._diffs = theano.function(input=[State])
-        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss, [lasagne.layers.get_all_layers(self._l_out)[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
+        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss, [lasagne.layers.get_all_layers(self._model.getActorNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
 
     def getNetworkParameters(self):
         params = []

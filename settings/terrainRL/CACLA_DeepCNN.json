@@ -64,7 +64,7 @@
 "use_guided_policy_search" : false,
 "training_updates_per_sim_action": 10,
 "use_sampling_exploration": false,
-"use_model_based_action_optimization": false,
+"use_model_based_action_optimization": true,
 "use_transfer_task_network": false,
 "penalize_actions_outside_bounds": false,
 "use_transfer_task_network": false,
