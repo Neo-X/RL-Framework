@@ -53,6 +53,10 @@ if __name__ == '__main__':
     model = NeuralNetwork(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, settings)
     
     experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True)
+    
+    experience.setStateBounds(state_bounds)
+    experience.setRewardBounds(reward_bounds)
+    experience.setActionBounds(action_bounds)
     for i in range(experience_length):
         action_ = np.array([actions[i]])
         state_ = np.array([states[i]])
@@ -62,7 +66,7 @@ if __name__ == '__main__':
     
     errors=[]
     for i in range(10000):
-        _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
+        _states, _actions, _result_states, _rewards, _falls = experience.get_batch(batch_size)
         # print _actions 
         error = model.train(_states, _actions)
         errors.append(error)
@@ -121,9 +125,9 @@ if __name__ == '__main__':
     _training_error_ax.grid(b=True, which='major', color='black', linestyle='-')
     _training_error_ax.grid(b=True, which='minor', color='g', linestyle='--')
     
-    grad_ = model.getGrads([[states[0]]], [[actions[0]]])
+    grads_ = model.getGrads([[states[0]]], [[actions[0]]])
     print ("Grads : ", len(grad_))
-    print ("Grad: ", grad_)
+    print ("Grad: ", grads_)
     print ("Grad sum: ", np.sum(grad_[0], axis=1))
     grad_dirs=[]
     old_states_=[]
@@ -134,11 +138,11 @@ if __name__ == '__main__':
         if (s % space) == 0:
             action_ = np.reshape(norm_action(np.array([predicted_actions[s]+0.01]), action_bounds), (1,1))
             state_ = np.reshape(norm_state(np.array([states[s]]), state_bounds), (1,1))
-            grad_ = model.getGrads(state_, action_)
-            print ("Grad: ", grad_[0])
+            grads_ = model.getGrads(state_, action_)
+            print ("Grad: ", grads_[0])
             diff = model.bellman_error(state_, action_)
             print ("Diff, ", diff)
-            grad_dir = np.sum(grad_[0], axis=1)
+            grad_dir = np.sum(grads_[0], axis=1)
             if (grad_dir > 0.0):
                 grad_dir = 1.0
             else:
