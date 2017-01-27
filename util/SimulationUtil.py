@@ -54,6 +54,7 @@ from sim.PendulumEnvState import PendulumEnvState
 from sim.PendulumEnv import PendulumEnv
 from sim.SimbiconEnv import SimbiconEnv
 from sim.TerrainRLEnv import TerrainRLEnv
+from sim.TerrainRLFlatEnv import TerrainRLFlatEnv
 from sim.BallGame2DEnv import BallGame2DEnv
 from sim.BallGame1DEnv import BallGame1DEnv
 
@@ -241,6 +242,16 @@ def createEnvironment(config_file, env_type):
         exp = TerrainRLEnv(sim)
         # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
+    elif env_type == 'terrainRLFlatBiped2D':
+        import terrainRLAdapter
+        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
+        # sim.init(['train', '-arg_file=', config_file])
+        # print ("Num state: ", c._NUMBER_OF_STATES)
+        # sim = simbiconAdapter.SimbiconWrapper(c)
+        print ("Using Environment Type: " + str(env_type))
+        exp = TerrainRLFlatEnv(sim)
+        # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
+        return exp
     
     import characterSim
     c = characterSim.Configuration(config_file)
@@ -274,7 +285,7 @@ def createActor(env_type, settings, experience):
         actor = BallGame1DActor(settings, experience)
     elif env_type == 'simbiconBiped2D':
         actor = SimbiconActor(settings, experience)
-    elif env_type == 'terrainRLBiped2D':
+    elif env_type == 'terrainRLBiped2D' or (env_type == 'terrainRLFlatBiped2D'):
         actor = TerrainRLActor(settings, experience)
     else:
         actor = ActorInterface(settings, experience)
