@@ -26,11 +26,14 @@ class ForwardDynamicsNetwork(ModelInterface):
         self._Action = T.dmatrix("Action")
         self._Action.tag.test_value = np.random.rand(batch_size, self._action_length)
         # create a small convolutional neural network
-        inputLayerState = lasagne.layers.InputLayer((None, self._state_length), self._State)
-        inputLayerAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
-        concatLayer = lasagne.layers.ConcatLayer([inputLayerState, inputLayerAction])
+        new_state = theano.tensor.concatenate([self._State, self._Action], axis=1)
+        network = lasagne.layers.InputLayer((None, self._state_length + self._action_length), new_state)
+        
+        # inputLayerState = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        # inputLayerAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
+        # concatLayer = lasagne.layers.ConcatLayer([inputLayerState, inputLayerAction])
         l_hid2ActA = lasagne.layers.DenseLayer(
-                concatLayer, num_units=128,
+                network, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid3ActA = lasagne.layers.DenseLayer(
