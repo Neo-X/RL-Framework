@@ -591,12 +591,23 @@ class ForwardDynamicsCNN(ModelInterface):
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         
         # self._b_o = init_b_weights((n_out,))
+                # create a small convolutional neural network
+        # networkAct = lasagne.layers.ConcatLayer([networkAct, inputLayerAction], axis=1)
+        new_state = theano.tensor.concatenate([self._State, self._Action], axis=1)
+        network = lasagne.layers.InputLayer((None, self._state_length + self._action_length), new_state)
+        
+        taskFeatures = lasagne.layers.SliceLayer(network, indices=slice(0, self._settings['num_terrain_features']), axis=1)
+        # characterFeatures = lasagne.layers.SliceLayer(network, indices=slice(-(self._state_length-self._settings['num_terrain_features']), None), axis=1)
+        characterFeatures = lasagne.layers.SliceLayer(network, indices=slice(self._settings['num_terrain_features']+1, self._state_length + self._action_length), axis=1)
+        print ("taskFeatures Shape:", lasagne.layers.get_output_shape(taskFeatures))
+        print ("characterFeatures Shape:", lasagne.layers.get_output_shape(characterFeatures))
+        networkTask = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, 1, self._settings['num_terrain_features']))
         # networkAct = lasagne.layers.InputLayer((None, 1, 1, self._state_length), self._State)
-        inputLayerState = lasagne.layers.InputLayer((None, self._state_length), self._State)
-        inputLayerState = lasagne.layers.ReshapeLayer(inputLayerState, (-1, 1, 1, self._state_length))
-        inputLayerAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
+        # inputLayerState = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        # inputLayerState = lasagne.layers.ReshapeLayer(inputLayerState, (-1, 1, 1, self._state_length))
+        # inputLayerAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
         networkAct = lasagne.layers.Conv2DLayer(
-            inputLayerState, num_filters=32, filter_size=(1,8),
+            networkTask, num_filters=32, filter_size=(1,8),
             stride=(1,1),
             nonlinearity=lasagne.nonlinearities.rectify,
             W=lasagne.init.GlorotUniform())
@@ -623,22 +634,25 @@ class ForwardDynamicsCNN(ModelInterface):
                 networkAct, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
-        networkAct = lasagne.layers.DenseLayer(
+        networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
+        networkAct = lasagne.layers.ConcatLayer([networkAct, characterFeatures], axis=1)
+        
+        networkActMiddle = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
                 nonlinearity=lasagne.nonlinearities.rectify)
         # networkAct = lasagne.layers.ReshapeLayer(networkAct, (-1, 99))
         # networkAct = lasagne.layers.FlattenLayer(networkAct, 2)
-        print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
-        print ("Action Network Shape:", lasagne.layers.get_output_shape(inputLayerAction))
-        networkAct = lasagne.layers.ConcatLayer([networkAct, inputLayerAction], axis=1)
-        print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
+        print ("Network Shape:", lasagne.layers.get_output_shape(networkActMiddle))
+        # networkAct = lasagne.layers.ConcatLayer([networkAct, inputLayerAction], axis=1)
         
+        """
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
                 nonlinearity=lasagne.nonlinearities.rectify)
                 
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
-        networkAct = lasagne.layers.ReshapeLayer(networkAct, (-1, 1, 1, 64))
+        """
+        networkAct = lasagne.layers.ReshapeLayer(networkActMiddle, (-1, 1, 1, 64))
         
         networkAct = Deconv2DLayer(
             networkAct, num_filters=16, filter_size=(1,4),
@@ -654,10 +668,27 @@ class ForwardDynamicsCNN(ModelInterface):
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         # networkAct = lasagne.layers.ReshapeLayer(networkAct, (-1, 1, 1, 74))
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
+        
+        networkActChar = lasagne.layers.DenseLayer(
+                networkActMiddle, num_units=128,
+                nonlinearity=lasagne.nonlinearities.rectify)
+        networkActChar = lasagne.layers.DenseLayer(
+                networkActChar, num_units=64,
+                nonlinearity=lasagne.nonlinearities.rectify)
+        networkActChar = lasagne.layers.DenseLayer(
+                networkActChar, num_units=((self._state_length + self._action_length) - self._settings['num_terrain_features']),
+                nonlinearity=lasagne.nonlinearities.linear)
+        
+        networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
+        # this should have dimensions (1,self._state_length + self._action_length)...
+        networkAct = lasagne.layers.ConcatLayer([networkAct, networkActChar], axis=1) 
+        """
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._state_length,
                 nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
+        """
+        self._actor = networkAct
         print ("Network Shape:", lasagne.layers.get_output_shape(self._actor))
         
         # self._actor = lasagne.layers.ReshapeLayer(self._actor, (-1, 1, 1, 208))
