@@ -231,7 +231,7 @@ def getOptimalAction(forwardDynamicsModel, model, state):
         # print ("Next State: ", next_state.shape)
         next_state_grads = model.getGrads(np.reshape(next_state, (1, model.getStateSize())))[0] * learning_rate
         # print ("Next State Grad: ", next_state_grads.shape)
-        next_state_grads = np.sum(next_state_grads, axis=1)
+        # next_state_grads = np.sum(next_state_grads, axis=1)
         # print ("Next State Grad: ", next_state_grads.shape)
         # modify next state wrt increasing grad
         next_state = np.reshape(next_state, (1, model.getStateSize())) + next_state_grads
@@ -245,7 +245,8 @@ def getOptimalAction(forwardDynamicsModel, model, state):
         # uncertanty = getModelValueUncertanty(model, next_state[0])
         # print ("Uncertanty: ", uncertanty)
         action_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_state, (1, model.getStateSize())))[0]
-        action_grads = np.sum(action_grads[state_length:,:], 1) * learning_rate
+        # action_grads = np.sum(action_grads[state_length:,:], 1) * learning_rate
+        action_grads = action_grads * learning_rate
         # print ("action_grad: ", action_grads)
         # Use grad to update action parameters
         action = action - action_grads
