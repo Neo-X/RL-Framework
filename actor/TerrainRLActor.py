@@ -40,10 +40,19 @@ class TerrainRLActor(ActorInterface):
         action_=action__
         sim.getEnvironment().act(action_)
         updates_=1
-        while (not sim.getEnvironment().endOfAction() and (updates_ < 20)):
+        while (not sim.getEnvironment().endOfAction() and (updates_ < 50)
+               and (not sim.getEnvironment().agentHasFallen())
+               ):
             sim.getEnvironment().update()
             vel_sum += sim.getEnvironment().calcVelocity()
             updates_+=1
+            # print("Update #: ", updates_)
+        """    
+        if (updates_ == 1):
+            print("Action update did not go well....")
+        else:
+            print("Action update Okay!")
+        """    
             
         averageSpeed = vel_sum / float(updates_)
         vel_diff = self._target_vel - averageSpeed
