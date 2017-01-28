@@ -1,7 +1,7 @@
 {
 "model_type": "Deep_NN",
 "agent_name": "CACLA",
-"data_folder": "Simple_Walk_Flat_FD_PlusActionGrad/",
+"data_folder": "Simple_Walk_Flat_FD/",
 "comment": "initial probability of selecting a random action",
 "epsilon": 0.75, 
 "comment": "initial probability of selecting a discrete random action",
