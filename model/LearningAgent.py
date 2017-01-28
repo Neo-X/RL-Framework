@@ -10,6 +10,7 @@ from model.AgentInterface import AgentInterface
 from model.ModelUtil import *
 import os
 import numpy
+import copy
 # numpy.set_printoptions(threshold=numpy.nan)
 
 class LearningAgent(AgentInterface):
@@ -17,6 +18,7 @@ class LearningAgent(AgentInterface):
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
         super(LearningAgent,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         self._accesLock = threading.Lock()
+        self._pol = None
         
     def getPolicy(self):
         self._accesLock.acquire()
@@ -147,10 +149,14 @@ class LearningWorker(Process):
                 self._namespace.agentPoly = copy.deepcopy(self._agent.getPolicy().getNetworkParameters())
                 if (self._agent._settings['train_forward_dynamics']):
                     self._namespace.forwardNN = copy.deepcopy(self._agent.getForwardDynamics().getNetworkParameters())
-                self._namespace.experience = self._agent._expBuff
+                self._namespace.experience = copy.deepcopy(self._agent._expBuff)
                 step_=0
             iterations_+=1
         print ("Learning Worker Complete:")
         
     def updateExperience(self):
         self._agent._expBuff = self._namespace.experience
+        
+    def updateModel(self):
+        print ("Updating model to: ", self._namespace.model)
+        self._agent.setPolicy(copy.deepcopy(self._namespace.model))

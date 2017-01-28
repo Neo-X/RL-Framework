@@ -90,15 +90,6 @@ def trainModelParallel(settingsFileName):
         ### Using a wrapper for the type of actor now
         actor = createActor(settings['environment_type'], settings, None)
         exp_val = None
-        
-        exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings)
-
-        exp_val.getActor().init()
-        exp_val.getEnvironment().init()
-        
-        model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
-        experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings)
-        
         if (not validBounds(action_bounds)):
             # Check that the action bounds are spcified correctly
             print("Action bounds invalid: ", action_bounds)
@@ -110,18 +101,14 @@ def trainModelParallel(settingsFileName):
         if (not validBounds(reward_bounds)):
             print("Reward bounds invalid: ", reward_bounds)
             sys.exit()
-        """
+        
         if settings['action_space_continuous']:
             experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True)
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
-        """
+        
         actor.setExperience(experience)
         
-        print ("Reward History: ", experience._reward_history)
-        print ("Action History: ", experience._action_history)
-        print ("Action Mean: ", np.mean(experience._action_history))
-            
         if settings['visualize_learning']:    
             rlv = RLVisualize(directory+str(settings['agent_name']), settings)
             rlv.setInteractive()
@@ -153,7 +140,7 @@ def trainModelParallel(settingsFileName):
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
             
             agent.setSettings(settings)
-            
+            """
             if action_space_continuous:
                 model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
             else:
@@ -161,7 +148,8 @@ def trainModelParallel(settingsFileName):
             model.setStateBounds(state_bounds)
             model.setActionBounds(action_bounds)
             model.setRewardBounds(reward_bounds)
-            agent.setPolicy(model)
+            """
+            # agent.setPolicy(model)
             if (settings['train_forward_dynamics']):
                 print ("Created forward dynamics network")
                 # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
@@ -172,10 +160,10 @@ def trainModelParallel(settingsFileName):
                 forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
                 namespace.forwardNN = agent.getForwardDynamics().getNetworkParameters()
                 actor.setForwardDynamicsModel(forwardDynamicsModel)
-            actor.setPolicy(model)
+            # actor.setPolicy(model)
             agent.setExperience(experience)
-            namespace.agentPoly = agent.getPolicy().getNetworkParameters()
-            namespace.experience = experience
+            # namespace.agentPoly = agent.getPolicy().getNetworkParameters()
+            # namespace.experience = experience
             
             lw = LearningWorker(output_experience_queue, agent, namespace)
             lw.start()
@@ -189,7 +177,7 @@ def trainModelParallel(settingsFileName):
         for process in range(settings['num_available_threads']):
             # this is the process that selects which game to play
             exp_=None
-            
+            """
             if ((settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
                 exp_ = exp_val # This should not work properly for many simulations running at the same time. It could try and evalModel a simulation while it is still running samples 
             else:
@@ -199,7 +187,7 @@ def trainModelParallel(settingsFileName):
                 exp_.getActor().init()   
                 exp_.getEnvironment().init()
                 print ("Done starting worker ", process)
-            
+            """
             agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
             
@@ -210,11 +198,13 @@ def trainModelParallel(settingsFileName):
             else:
                 model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
             """
+            """
             model_ = copy.deepcopy(model)
             model_.setStateBounds(state_bounds)
             model_.setActionBounds(action_bounds)
             model_.setRewardBounds(reward_bounds)
-            agent.setPolicy(model_)
+            """
+            # agent.setPolicy(model_)
             if (settings['train_forward_dynamics']):
                 print ("Created forward dynamics network")
                 # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
@@ -225,7 +215,7 @@ def trainModelParallel(settingsFileName):
                 # forwardDynamicsModel.setEnvironment(exp_)
                 forwardDynamicsModel_.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, exp_, settings)
             
-            w = SimWorker(input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
+            w = SimWorker(namespace, input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
                     settings=settings, print_data=False, p=0.0, validation=True)
             w.start()
             sim_workers.append(w)
@@ -257,24 +247,17 @@ def trainModelParallel(settingsFileName):
         trainData["mean_critic_regularization_cost"]=[]
         trainData["std_critic_regularization_cost"]=[]
         
-        namespace.experience = experience
-        
         for lw in learning_workers:
             print ("Learning worker" )
             print (lw)
-            lw.updateExperience()
             
         for sw in sim_workers:
             print ("Sim worker")
-            print (sw  )
+            print (sw)
         
         if not os.path.exists(directory):
             os.makedirs(directory)
             
-        if (settings["save_experience_memory"]):
-            file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"expBufferInit.hdf5"
-            experience.saveToFile(file_name)
-            # experience.loadFromFile(file_name)
             
         # copy settings file
         file = open(settingsFileName, 'r')
@@ -284,14 +267,50 @@ def trainModelParallel(settingsFileName):
         out_file.write(file.read())
         file.close()
         out_file.close()
-        
-        """
-        exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'])
+        ## This needs to be done after the simulatino work processes are created
+        exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings)
 
         exp_val.getActor().init()
         exp_val.getEnvironment().init()
-        """
+        
+        model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+        experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings)
+        namespace.experience = experience
+        masterAgent.setExperience(experience)
+        
+        print ("Reward History: ", experience._reward_history)
+        print ("Action History: ", experience._action_history)
+        print ("Action Mean: ", np.mean(experience._action_history))
+        
+        if (settings["save_experience_memory"]):
+            file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"expBufferInit.hdf5"
+            experience.saveToFile(file_name)
+            
+        if action_space_continuous:
+            model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
+        else:
+            model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+        model.setStateBounds(state_bounds)
+        model.setActionBounds(action_bounds)
+        model.setRewardBounds(reward_bounds)
+        
+        ## NOw everything related to the exp memory needs to be updated
         bellman_errors=[]
+        masterAgent.setPolicy(model)
+        namespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
+        namespace.model = model 
+        print("Master agent state bounds: ",  masterAgent.getPolicy().getStateBounds())
+        # sys.exit()
+        for sw in sim_workers: # Need to update parameter bounds for models
+            # sw._model.setPolicy(copy.deepcopy(model))
+            sw.updateModel()
+            print ("sw modle: ", sw._model.getPolicy()) 
+            
+        for lw in learning_workers:
+            lw._agent.setPolicy(copy.deepcopy(model))
+            print ("ls policy: ", lw._agent.getPolicy())
+            lw.updateExperience()
+            lw.updateModel()
         
         print ("Starting first round")
         for round_ in range(2,rounds+2):
@@ -342,7 +361,7 @@ def trainModelParallel(settingsFileName):
                 masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
                 if (settings['train_forward_dynamics']):
                     masterAgent.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
-                for sw in sim_workers: # Should update these more offten
+                for sw in sim_workers: # Should update these more often?
                     sw._model.getPolicy().setNetworkParameters(namespace.agentPoly)
                     if (settings['train_forward_dynamics']):
                         sw._model.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
@@ -362,7 +381,7 @@ def trainModelParallel(settingsFileName):
                 # Sync up sim actors
                 
                  
-                mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp_val, model, discount_factor, 
+                mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp_val, masterAgent, discount_factor, 
                                                     anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings)
                 """
                 for sm in sim_workers:

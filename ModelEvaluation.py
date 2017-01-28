@@ -12,6 +12,7 @@ from multiprocessing import Process, Queue
 # from pathos.multiprocessing import Pool
 import threading
 import time
+import copy
 
 from actor.ActorInterface import *
 from util.SimulationUtil import *
@@ -19,7 +20,7 @@ from util.SimulationUtil import *
 # class SimWorker(threading.Thread):
 class SimWorker(Process):
     
-    def __init__(self, input_queue, output_queue, actor, exp, model, discount_factor, action_space_continuous, 
+    def __init__(self, namespace, input_queue, output_queue, actor, exp, model, discount_factor, action_space_continuous, 
                  settings, print_data, p, validation):
         super(SimWorker, self).__init__()
         self._input_queue= input_queue
@@ -35,22 +36,32 @@ class SimWorker(Process):
         self._validation=validation
         self._max_iterations = settings['rounds'] + settings['epochs'] * 32
         self._iteration = 0
+        self._namespace = namespace # A way to pass messages between processes
+        
+    def updateModel(self):
+        self._model.setPolicy(copy.deepcopy(self._namespace.model))
+        print ("Updating sw model to: ", self._model.getPolicy())
     
     def setP(self, p):
         self._p= p
         
     def run(self):
-        """
-        self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], settings)
+        
+        # print ("SW model: ", self._model.getPolicy())
+        
+        self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings)
         self._exp.getActor().init()   
         self._exp.getEnvironment().init()
-        """
+        
         print ('Worker started')
         # do some initialization here
         while True:
             anchors_ = self._input_queue.get()
             if anchors_ == None:
                 break
+            if (self._model.getPolicy() == None): # cheap hack for now
+                self._model.setPolicy(copy.deepcopy(self._namespace.model))
+                
             p = (self._max_iterations - self._iteration) / float(self._max_iterations)
             # print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
             if p < 0.1:
