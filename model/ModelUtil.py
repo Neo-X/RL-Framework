@@ -251,7 +251,7 @@ def getOptimalAction(forwardDynamicsModel, model, state):
         # action_grads = action_grads * learning_rate
         # print ("action_grad2: ", action_grads)
         # Use grad to update action parameters
-        action = action - action_grads
+        action = action + action_grads
         # print ("action_grad: ", action_grads, " new action: ", action)
         # print ( "Action shape: ", action.shape)
         # print (" Action diff: ", (action - init_action))

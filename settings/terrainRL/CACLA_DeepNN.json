@@ -57,14 +57,14 @@
 "epsilon_annealing": 0.8,
 "state_normalization": "variance",
 "load_saved_model": false,
-"critic_updates_per_actor_update": 5,
+"critic_updates_per_actor_update": 1,
 "clamp_actions_to_stay_inside_bounds": true,
 "bootsrap_samples": 500,
 "bootsrap_with_discrete_policy": true,
 "max_epoch_length": 50,
 "reward_lower_bound": -0.5,
 "use_guided_policy_search" : false,
-"training_updates_per_sim_action": 10,
+"training_updates_per_sim_action": 1,
 "use_sampling_exploration": false,
 "use_model_based_action_optimization": false,
 "use_transfer_task_network": false,
@@ -86,5 +86,5 @@
 "num_terrain_features": 0,
 "initial_temperature": 20.0,
 "min_epsilon": 0.15,
-"shouldRender": true
+"shouldRender": false
 }

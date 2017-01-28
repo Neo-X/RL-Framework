@@ -1,7 +1,7 @@
 {
 "model_type": "Deep_NN",
 "agent_name": "CACLA",
-"data_folder": "Simple_Walk_Flat_FD/",
+"data_folder": "Simple_Walk_Flat_FD_PlusActionGrad/",
 "comment": "initial probability of selecting a random action",
 "epsilon": 0.75, 
 "comment": "initial probability of selecting a discrete random action",
@@ -78,12 +78,13 @@
 "fd_learning_rate": 0.01,
 "train_actor": true,
 "debug_critic": false,
-"critic_regularization_weight": 0.000001,
+"critic_regularization_weight": 0.0001,
 "critic_learning_rate": 0.01,
 "visualize_expected_value": true,
 "target_velocity_decay":-0.75,
 "target_velocity":3.0,
 "num_terrain_features": 0,
 "initial_temperature": 20.0,
-"min_epsilon": 0.15
+"min_epsilon": 0.15,
+"shouldRender": false
 }
