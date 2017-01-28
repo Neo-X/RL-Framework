@@ -74,6 +74,10 @@ class SimWorker(Process):
             #    self._output_queue.put(out)
             (tuples, discounted_sum, q_value, evalData) = out
             (states, actions, rewards, result_states, falls) = tuples
+            ## Hack for now just update after ever series of anchors
+            self._model.getPolicy().setNetworkParameters(copy.deepcopy(self._namespace.agentPoly))
+            if (self._settings['train_forward_dynamics']):
+                self._model.getForwardDynamics().setNetworkParameters(copy.deepcopy(self._namespace.forwardNN))
             # print ("Actions: " + str(actions))
         print ("Simulation Worker Complete: ")
         self._exp.finish()

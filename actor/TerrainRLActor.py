@@ -40,12 +40,17 @@ class TerrainRLActor(ActorInterface):
         action_=action__
         sim.getEnvironment().act(action_)
         updates_=1
+        stumble_count=0
+        torque_sum=0
         while (not sim.getEnvironment().endOfAction() and (updates_ < 50)
                and (not sim.getEnvironment().agentHasFallen())
                ):
             sim.getEnvironment().update()
             vel_sum += sim.getEnvironment().calcVelocity()
             updates_+=1
+            if ( sim.getEnvironment().hasStumbled() ):
+                stumble_count+=1
+            torque_sum += sim.getEnvironment().jointTorque()
             # print("Update #: ", updates_)
         """    
         if (updates_ == 1):
@@ -53,12 +58,22 @@ class TerrainRLActor(ActorInterface):
         else:
             print("Action update Okay!")
         """    
+        
+        torque_reward = torque_sum/float(updates_)
+        
+        avg_stumble = float(stumble_count) / float(updates_);
+        stumble_gamma = 10.0;
+        stumble_reward = 1.0 / (1 + stumble_gamma * avg_stumble);
             
         averageSpeed = vel_sum / float(updates_)
         vel_diff = self._target_vel - averageSpeed
-        reward_ = math.exp((vel_diff*vel_diff)*self._target_vel_weight) # optimal is 0
+        vel_reward_ = math.exp((vel_diff*vel_diff)*self._target_vel_weight) # optimal is 0
         # reward_ = sim.getEnvironment().calcReward()   
         # print ("averageSpeed: ", averageSpeed)
+        reward_ = ((vel_reward_ * 0.73) +
+                   stumble_reward * 0.17 +
+                   torque_reward * 0.1
+                   )
         self._reward_sum = self._reward_sum + reward_
         # print ("Reward: ", reward_)
 
