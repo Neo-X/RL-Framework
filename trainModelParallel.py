@@ -363,10 +363,12 @@ def trainModelParallel(settingsFileName):
                 masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
                 if (settings['train_forward_dynamics']):
                     masterAgent.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
+                """
                 for sw in sim_workers: # Should update these more often?
                     sw._model.getPolicy().setNetworkParameters(namespace.agentPoly)
                     if (settings['train_forward_dynamics']):
                         sw._model.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
+                        """
                 experience = namespace.experience
                 actor.setExperience(experience)
                 """
