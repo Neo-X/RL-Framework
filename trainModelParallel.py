@@ -91,7 +91,7 @@ def trainModelParallel(settingsFileName):
         actor = createActor(settings['environment_type'], settings, None)
         exp_val = None
         
-        exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'])
+        exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings)
 
         exp_val.getActor().init()
         exp_val.getEnvironment().init()
@@ -195,7 +195,7 @@ def trainModelParallel(settingsFileName):
             else:
                
                 print ("Starting another worker ", process)
-                exp_ = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'])
+                exp_ = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'], settings)
                 exp_.getActor().init()   
                 exp_.getEnvironment().init()
                 print ("Done starting worker ", process)

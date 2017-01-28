@@ -41,7 +41,7 @@ class SimWorker(Process):
         
     def run(self):
         """
-        self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'])
+        self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], settings)
         self._exp.getActor().init()   
         self._exp.getEnvironment().init()
         """
@@ -537,17 +537,16 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
     return (np.array(states), np.array(actions), np.array(resultStates), np.array(rewards), np.array(falls_))  
 
 
-if __name__ == "__main__":
+def modelEvaluation(settings_file_name):
     
     
-    settings = getSettings(sys.argv[1])
+    settings = getSettings(settings_file_name)
     
     anchor_data_file = open(settings["anchor_file"])
     _anchors = getAnchors(anchor_data_file)
     anchor_data_file.close()
     model_type= settings["model_type"]
     directory= getDataDirectory(settings)
-    num_actions= settings["num_actions"]
     rounds = settings["rounds"]
     epochs = settings["epochs"]
     num_states=settings["num_states"]
@@ -558,6 +557,7 @@ if __name__ == "__main__":
     state_bounds = np.array(settings['state_bounds'])
     action_space_continuous=settings["action_space_continuous"]  
     discrete_actions = np.array(settings['discrete_actions'])
+    num_actions= discrete_actions.shape[0]
     action_space_continuous=settings['action_space_continuous']
     if action_space_continuous:
         action_bounds = np.array(settings["action_bounds"], dtype=float)
@@ -573,8 +573,8 @@ if __name__ == "__main__":
     actor = createActor(str(settings['environment_type']),settings, experience)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
-    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
     f = open(file_name, 'r')
     model = dill.load(f)
     f.close()
@@ -598,7 +598,7 @@ if __name__ == "__main__":
 
     # this is the process that selects which game to play
     
-    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']))
+    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings)
 
     if (settings['train_forward_dynamics']):
         actor.setForwardDynamicsModel(forwardDynamicsModel)
@@ -610,7 +610,7 @@ if __name__ == "__main__":
     exp.getEnvironment().init()
     expected_value_viz=None
     if (settings['visualize_expected_value']):
-        expected_value_viz = NNVisualize(title=str("Expected Value") + " with " + str(settings["model_type"]))
+        expected_value_viz = NNVisualize(title=str("Expected Value") + " with " + str(settings["model_type"]), settings=settings)
         expected_value_viz.setInteractive()
         expected_value_viz.init()
         criticLosses = []
@@ -653,3 +653,8 @@ if __name__ == "__main__":
         input_anchor_queue.put(None)
        """ 
     print ("Average Reward: " + str(mean_reward))
+    
+    
+if __name__ == "__main__":
+    
+    modelEvaluation(sys.argv[1])

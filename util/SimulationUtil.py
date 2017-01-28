@@ -205,7 +205,7 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
     return model
 
 
-def createEnvironment(config_file, env_type):
+def createEnvironment(config_file, env_type, settings):
     
     if env_type == 'ballgame_2d':
         file = open(config_file)
@@ -235,6 +235,7 @@ def createEnvironment(config_file, env_type):
     elif env_type == 'terrainRLBiped2D':
         import terrainRLAdapter
         sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
+        sim.setRender(settings['shouldRender'])
         # sim.init(['train', '-arg_file=', config_file])
         # print ("Num state: ", c._NUMBER_OF_STATES)
         # sim = simbiconAdapter.SimbiconWrapper(c)
@@ -245,6 +246,7 @@ def createEnvironment(config_file, env_type):
     elif env_type == 'terrainRLFlatBiped2D':
         import terrainRLAdapter
         sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
+        sim.setRender(settings['shouldRender'])
         # sim.init(['train', '-arg_file=', config_file])
         # print ("Num state: ", c._NUMBER_OF_STATES)
         # sim = simbiconAdapter.SimbiconWrapper(c)
