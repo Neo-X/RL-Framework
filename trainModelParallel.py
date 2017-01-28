@@ -166,7 +166,7 @@ def trainModelParallel(settingsFileName):
             # namespace.experience = experience
             
             lw = LearningWorker(output_experience_queue, agent, namespace)
-            lw.start()
+            # lw.start()
             learning_workers.append(lw)  
         masterAgent = agent
         # print ("NameSpace: " + str(namespace))
@@ -217,7 +217,7 @@ def trainModelParallel(settingsFileName):
             
             w = SimWorker(namespace, input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
                     settings=settings, print_data=False, p=0.0, validation=True)
-            w.start()
+            # w.start()
             sim_workers.append(w)
         
         
@@ -254,6 +254,7 @@ def trainModelParallel(settingsFileName):
         for sw in sim_workers:
             print ("Sim worker")
             print (sw)
+            sw.start()
         
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -311,6 +312,7 @@ def trainModelParallel(settingsFileName):
             print ("ls policy: ", lw._agent.getPolicy())
             lw.updateExperience()
             lw.updateModel()
+            lw.start()
         
         print ("Starting first round")
         for round_ in range(2,rounds+2):
