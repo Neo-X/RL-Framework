@@ -8,7 +8,7 @@ import json
 
 class NNVisualize(object):
     
-    def __init__(self, title, settings):
+    def __init__(self, title, settings=None):
         """
             Three plots
             bellman error
@@ -17,10 +17,12 @@ class NNVisualize(object):
         """
         
         self._title=title
-        self._iteration_scale = ((settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'] * 
-                          settings['training_updates_per_sim_action']) / 
-                         settings['sim_action_per_training_update'])
-        
+        if (settings != None):
+            self._iteration_scale = ((settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'] * 
+                                      settings['training_updates_per_sim_action']) / 
+                                     settings['sim_action_per_training_update'])
+        else:
+            self._iteration_scale = 1
         """
         self._fig, (self._bellman_error_ax, self._reward_ax, self._discount_error_ax) = plt.subplots(3, 1, sharey=False, sharex=True)
         self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
@@ -106,6 +108,11 @@ if __name__ == "__main__":
     # print "Training data: " + str(trainingData)
     file.close()
     
+    length = len(trainData["mean_bellman_error"])
+    if (len(sys.argv) == 3):
+        length = int(sys.argv[2])
+    
+    
     """
     trainData["mean_reward"]=[]
     trainData["std_reward"]=[]
@@ -118,5 +125,6 @@ if __name__ == "__main__":
     
     nlv = NNVisualize(datafile)
     nlv.init()
-    nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
+    nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"][:length]), np.array(trainData["std_forward_dynamics_loss"][:length]))
+    nlv.saveVisual("pendulum_agent_FD")
     nlv.show()

@@ -8,16 +8,19 @@ import json
 
 class RLVisualize(object):
     
-    def __init__(self, title, settings):
+    def __init__(self, title, settings=None):
         """
             Three plots
             bellman error
             average reward
             discounted reward error
         """
-        self._iteration_scale = ((settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'] * 
-                                  settings['training_updates_per_sim_action']) / 
-                                 settings['sim_action_per_training_update'])
+        if (settings != None):
+            self._iteration_scale = ((settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'] * 
+                                      settings['training_updates_per_sim_action']) / 
+                                     settings['sim_action_per_training_update'])
+        else:
+            self._iteration_scale = 1
         self._title=title
         self._fig, (self._bellman_error_ax, self._reward_ax, self._discount_error_ax) = plt.subplots(3, 1, sharey=False, sharex=True)
         self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
@@ -123,6 +126,10 @@ if __name__ == "__main__":
     # print "Training data: " + str(trainingData)
     file.close()
     
+    length = len(trainData["mean_bellman_error"])
+    if (len(sys.argv) == 3):
+        length = int(sys.argv[2])
+    
     """
     trainData["mean_reward"]=[]
     trainData["std_reward"]=[]
@@ -134,8 +141,8 @@ if __name__ == "__main__":
     """
     
     rlv = RLVisualize(datafile)
-    rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
-    rlv.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
-    rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
+    rlv.updateBellmanError(np.array(trainData["mean_bellman_error"][:length]), np.array(trainData["std_bellman_error"][:length]))
+    rlv.updateReward(np.array(trainData["mean_eval"][:length]), np.array(trainData["std_eval"][:length]))
+    rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"][:length]), np.array(trainData["std_discount_error"][:length]))
     rlv.saveVisual("pendulum_agent")
     rlv.show()
