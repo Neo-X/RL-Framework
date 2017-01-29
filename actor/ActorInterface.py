@@ -21,8 +21,6 @@ class ActorInterface(object):
         self._actions = np.array(self._settings["discrete_actions"])
         self._experience = experience
         self._reward_sum=0
-        self._poli = None
-        self._fd = None
         
     def init(self):
         self._reward_sum=0
@@ -32,12 +30,6 @@ class ActorInterface(object):
         
     def getActionParams(self, index):
         return self._actions[index]
-    
-    def getExperience(self):
-        return self._experience
-    
-    def setExperience(self, experience):
-        self._experience = experience
     
     # @profile(precision=5)
     def act(self, exp, action_, bootstrapping=False):
@@ -61,18 +53,6 @@ class ActorInterface(object):
         reward = exp.getEnvironment().act(action)
         self._reward_sum = self._reward_sum + reward
         return reward
-    
-    def setPolicy(self, model):
-        self._poli = model
-
-    def setForwardDynamicsModel(self, fd):
-        self._fd = fd
-        
-    def getPolicy(self):
-        return self._poli
-
-    def getForwardDynamicsModel(self):
-        return self._fd
     
     def getEvaluationData(self):
         pass

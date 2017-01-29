@@ -17,8 +17,8 @@ from util.ExperienceMemory import ExperienceMemory
 from RLVisualize import RLVisualize
 from NNVisualize import NNVisualize
 
-from actor.ActorInterface import ActorInterface
-from actor.BallGame2DActor import BallGame2DActor
+# from actor.ActorInterface import ActorInterface
+# from actor.BallGame2DActor import BallGame2DActor
 
 from sim.PendulumEnvState import PendulumEnvState
 from sim.PendulumEnv import PendulumEnv
@@ -107,8 +107,6 @@ def trainModelParallel(settingsFileName):
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
         
-        actor.setExperience(experience)
-        
         if settings['visualize_learning']:    
             rlv = RLVisualize(directory+str(settings['agent_name']), settings)
             rlv.setInteractive()
@@ -151,7 +149,7 @@ def trainModelParallel(settingsFileName):
             """
             # agent.setPolicy(model)
             # actor.setPolicy(model)
-            agent.setExperience(experience)
+            # agent.setExperience(experience)
             # namespace.agentPoly = agent.getPolicy().getNetworkParameters()
             # namespace.experience = experience
             
@@ -294,7 +292,7 @@ def trainModelParallel(settingsFileName):
             # forwardDynamicsModel.setEnvironment(exp)
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
             namespace.forwardNN = masterAgent.getForwardDynamics().getNetworkParameters()
-            actor.setForwardDynamicsModel(forwardDynamicsModel)
+            # actor.setForwardDynamicsModel(forwardDynamicsModel)
         
         ## NOw everything related to the exp memory needs to be updated
         bellman_errors=[]
@@ -316,6 +314,7 @@ def trainModelParallel(settingsFileName):
             print ("ls policy: ", lw._agent.getPolicy())
             lw.updateExperience()
             lw.updateModel()
+            
             lw.start()
         
         print ("Starting first round")
@@ -374,7 +373,7 @@ def trainModelParallel(settingsFileName):
                         sw._model.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
                         """
                 experience = namespace.experience
-                actor.setExperience(experience)
+                # actor.setExperience(experience)
                 """
                 pr.disable()
                 f = open('x.prof', 'a')

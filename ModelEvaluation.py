@@ -225,7 +225,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 if (settings['clamp_actions_to_stay_inside_bounds']):
                     action = action_
             if (settings["visualize_forward_dynamics"]):
-                predicted_next_state = actor.getForwardDynamicsModel().predict(np.array(state_), action)
+                predicted_next_state = model.getForwardDynamics().predict(np.array(state_), action)
                 # exp.visualizeNextState(state_, action) # visualize current state
                 exp.visualizeNextState(predicted_next_state, action)
             
@@ -238,7 +238,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     pa = model.predict(state_)
                     action = pa
                 """
-                action=[0.2]
+                pass
+                # action=[0.2]
             reward_ = actor.actContinuous(exp,action)
             agent_not_fell = actor.hasNotFallen(exp)
             if (outside_bounds and settings['penalize_actions_outside_bounds']):
@@ -335,8 +336,8 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         # print (states, actions, rewards, result_states, discounted_sum, value)
         # print ("Evaluated Actions: ", actions)
         # print ("Evaluated Rewards: ", rewards)
-        if actor.getExperience().samples() > settings['batch_size']:
-            _states, _actions, _result_states, _rewards, falls = actor.getExperience().get_batch(settings['batch_size'])
+        if model.getExperience().samples() > settings['batch_size']:
+            _states, _actions, _result_states, _rewards, falls = model.getExperience().get_batch(settings['batch_size'])
             error = model.bellman_error(np.array(_states), np.array(_actions), 
                                         np.array(_rewards), np.array(_result_states), np.array(falls))
         else :
@@ -588,6 +589,8 @@ def modelEvaluation(settings_file_name):
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
     # actor = ActorInterface(discrete_actions)
     actor = createActor(str(settings['environment_type']),settings, experience)
+    masterAgent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
@@ -618,10 +621,11 @@ def modelEvaluation(settings_file_name):
     exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings)
 
     if (settings['train_forward_dynamics']):
-        actor.setForwardDynamicsModel(forwardDynamicsModel)
+        # actor.setForwardDynamicsModel(forwardDynamicsModel)
         forwardDynamicsModel.setActor(actor)
+        masterAgent.setForwardDynamics(forwardDynamicsModel)
         # forwardDynamicsModel.setEnvironment(exp)
-    actor.setPolicy(model)
+    # actor.setPolicy(model)
     
     exp.getActor().init()   
     exp.getEnvironment().init()
@@ -631,8 +635,13 @@ def modelEvaluation(settings_file_name):
         expected_value_viz.setInteractive()
         expected_value_viz.init()
         criticLosses = []
+        
+    masterAgent.setSettings(settings)
+    masterAgent.setExperience(experience)
+    masterAgent.setPolicy(model)
     
-    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, model, discount_factor, anchors=_anchors[:settings['eval_epochs']], 
+    
+    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, masterAgent, discount_factor, anchors=_anchors[:settings['eval_epochs']], 
                                                                                                                         action_space_continuous=action_space_continuous, settings=settings, print_data=True, evaluation=True,
                                                                                                                         visualizeEvaluation=expected_value_viz)
         # simEpoch(exp, model, discount_factor=discount_factor, anchors=_anchors[:settings['eval_epochs']][9], action_space_continuous=True, settings=settings, print_data=True, p=0.0, validation=True)
