@@ -293,6 +293,7 @@ def trainModelParallel(settingsFileName):
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
             namespace.forwardNN = masterAgent.getForwardDynamics().getNetworkParameters()
             # actor.setForwardDynamicsModel(forwardDynamicsModel)
+            namespace.forwardDynamicsModel = forwardDynamicsModel
         
         ## NOw everything related to the exp memory needs to be updated
         bellman_errors=[]
@@ -300,7 +301,6 @@ def trainModelParallel(settingsFileName):
         # masterAgent.setForwardDynamics(forwardDynamicsModel)
         namespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
         namespace.model = model
-        namespace.forwardDynamicsModel = forwardDynamicsModel 
         print("Master agent state bounds: ",  masterAgent.getPolicy().getStateBounds())
         # sys.exit()
         for sw in sim_workers: # Need to update parameter bounds for models

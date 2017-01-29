@@ -61,7 +61,7 @@ class SimWorker(Process):
                 break
             if (self._model.getPolicy() == None): # cheap hack for now
                 self._model.setPolicy(copy.deepcopy(self._namespace.model))
-            if (self._model.getForwardDynamics() == None ):
+            if ( (self._settings["train_forward_dynamics"]) and ( self._model.getForwardDynamics() == None ) ):
                 self._model.setForwardDynamics(copy.deepcopy(self._namespace.forwardDynamicsModel))
                 
             p = (self._max_iterations - self._iteration) / float(self._max_iterations)
