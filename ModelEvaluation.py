@@ -64,7 +64,8 @@ class SimWorker(Process):
             if ( (self._settings["train_forward_dynamics"]) and ( self._model.getForwardDynamics() == None ) ):
                 self._model.setForwardDynamics(copy.deepcopy(self._namespace.forwardDynamicsModel))
                 
-            p = (self._max_iterations - self._iteration) / float(self._max_iterations)
+            # 
+            p = self._namespace.p
             # print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
             if p < 0.1:
                 p = 0.1
@@ -576,6 +577,7 @@ def modelEvaluation(settings_file_name):
     action_space_continuous=settings["action_space_continuous"]  
     discrete_actions = np.array(settings['discrete_actions'])
     num_actions= discrete_actions.shape[0]
+    reward_bounds=np.array(settings["reward_bounds"])
     action_space_continuous=settings['action_space_continuous']
     if action_space_continuous:
         action_bounds = np.array(settings["action_bounds"], dtype=float)

@@ -70,9 +70,10 @@ class TerrainRLActor(ActorInterface):
         vel_reward_ = math.exp((vel_diff*vel_diff)*self._target_vel_weight) # optimal is 0
         # reward_ = sim.getEnvironment().calcReward()   
         # print ("averageSpeed: ", averageSpeed)
-        reward_ = ((vel_reward_ * 0.73) +
-                   stumble_reward * 0.17 +
-                   torque_reward * 0.1
+        # print ("vel_reward_: ", vel_reward_, " stumble: ", stumble_reward, " torque: ", torque_reward)
+        reward_ = ((vel_reward_ * 0.8) +
+                   (stumble_reward * 0.2 )+
+                   (torque_reward * -0.1)
                    )
         self._reward_sum = self._reward_sum + reward_
         # print ("Reward: ", reward_)
