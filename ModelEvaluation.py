@@ -48,10 +48,10 @@ class SimWorker(Process):
     def run(self):
         
         # print ("SW model: ", self._model.getPolicy())
-        
-        self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings)
-        self._exp.getActor().init()   
-        self._exp.getEnvironment().init()
+        if ((self._settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
+            self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings)
+            self._exp.getActor().init()   
+            self._exp.getEnvironment().init()
         
         print ('Worker started')
         # do some initialization here

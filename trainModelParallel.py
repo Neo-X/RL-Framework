@@ -165,9 +165,10 @@ def trainModelParallel(settingsFileName):
         for process in range(settings['num_available_threads']):
             # this is the process that selects which game to play
             exp_=None
-            """
+            
             if ((settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
                 exp_ = exp_val # This should not work properly for many simulations running at the same time. It could try and evalModel a simulation while it is still running samples 
+            """
             else:
                
                 print ("Starting another worker ", process)
