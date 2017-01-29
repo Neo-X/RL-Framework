@@ -61,6 +61,8 @@ class SimWorker(Process):
                 break
             if (self._model.getPolicy() == None): # cheap hack for now
                 self._model.setPolicy(copy.deepcopy(self._namespace.model))
+            if (self._model.getForwardDynamics() == None ):
+                self._model.setForwardDynamics(copy.deepcopy(self._namespace.forwardDynamicsModel))
                 
             p = (self._max_iterations - self._iteration) / float(self._max_iterations)
             # print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
@@ -211,7 +213,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # randomAction = random.choice(action_selection)
                     if (settings["use_model_based_action_optimization"] and (np.random.rand(1)[0] > 0.5)):
                         # Need to be using a forward dynamics deep network for this
-                        action = getOptimalAction(actor.getForwardDynamicsModel(), actor.getPolicy(), state_)
+                        action = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_)
             else: # exploit policy
                 # return pa1
                 pa = model.predict(state_)

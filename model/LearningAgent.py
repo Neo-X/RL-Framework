@@ -19,6 +19,7 @@ class LearningAgent(AgentInterface):
         super(LearningAgent,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         self._accesLock = threading.Lock()
         self._pol = None
+        self._fd = None
         
     def getPolicy(self):
         self._accesLock.acquire()

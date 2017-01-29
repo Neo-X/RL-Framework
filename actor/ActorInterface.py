@@ -21,6 +21,8 @@ class ActorInterface(object):
         self._actions = np.array(self._settings["discrete_actions"])
         self._experience = experience
         self._reward_sum=0
+        self._poli = None
+        self._fd = None
         
     def init(self):
         self._reward_sum=0

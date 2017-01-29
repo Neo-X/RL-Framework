@@ -150,16 +150,6 @@ def trainModelParallel(settingsFileName):
             model.setRewardBounds(reward_bounds)
             """
             # agent.setPolicy(model)
-            if (settings['train_forward_dynamics']):
-                print ("Created forward dynamics network")
-                # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
-                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None)
-                agent.setForwardDynamics(forwardDynamicsModel)
-                forwardDynamicsModel.setActor(actor)
-                # forwardDynamicsModel.setEnvironment(exp)
-                forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
-                namespace.forwardNN = agent.getForwardDynamics().getNetworkParameters()
-                actor.setForwardDynamicsModel(forwardDynamicsModel)
             # actor.setPolicy(model)
             agent.setExperience(experience)
             # namespace.agentPoly = agent.getPolicy().getNetworkParameters()
@@ -205,8 +195,8 @@ def trainModelParallel(settingsFileName):
             model_.setRewardBounds(reward_bounds)
             """
             # agent.setPolicy(model_)
+            """
             if (settings['train_forward_dynamics']):
-                print ("Created forward dynamics network")
                 # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
                 # forwardDynamicsModel_ = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None)
                 forwardDynamicsModel_ = copy.deepcopy(forwardDynamicsModel)
@@ -214,7 +204,7 @@ def trainModelParallel(settingsFileName):
                 forwardDynamicsModel_.setActor(actor)
                 # forwardDynamicsModel.setEnvironment(exp_)
                 forwardDynamicsModel_.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, exp_, settings)
-            
+            """
             w = SimWorker(namespace, input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
                     settings=settings, print_data=False, p=0.0, validation=True)
             # w.start()
@@ -295,16 +285,30 @@ def trainModelParallel(settingsFileName):
         model.setActionBounds(action_bounds)
         model.setRewardBounds(reward_bounds)
         
+        if (settings['train_forward_dynamics']):
+            print ("Created forward dynamics network")
+            # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None)
+            masterAgent.setForwardDynamics(forwardDynamicsModel)
+            forwardDynamicsModel.setActor(actor)
+            # forwardDynamicsModel.setEnvironment(exp)
+            forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
+            namespace.forwardNN = masterAgent.getForwardDynamics().getNetworkParameters()
+            actor.setForwardDynamicsModel(forwardDynamicsModel)
+        
         ## NOw everything related to the exp memory needs to be updated
         bellman_errors=[]
         masterAgent.setPolicy(model)
+        # masterAgent.setForwardDynamics(forwardDynamicsModel)
         namespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
-        namespace.model = model 
+        namespace.model = model
+        namespace.forwardDynamicsModel = forwardDynamicsModel 
         print("Master agent state bounds: ",  masterAgent.getPolicy().getStateBounds())
         # sys.exit()
         for sw in sim_workers: # Need to update parameter bounds for models
             # sw._model.setPolicy(copy.deepcopy(model))
-            sw.updateModel()
+            # sw.updateModel()
+            # sw.updateForwardDynamicsModel()
             print ("sw modle: ", sw._model.getPolicy()) 
             
         for lw in learning_workers:
