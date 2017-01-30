@@ -165,6 +165,35 @@ _training_error_ax.set_title("Training Error")
 _training_error_ax.grid(b=True, which='major', color='black', linestyle='-')
 _training_error_ax.grid(b=True, which='minor', color='g', linestyle='--')
 
+
+grads_ = model.getGrads([[states[0]]], [[actions[0]]])
+print ("Grads : ", len(grad_))
+print ("Grad: ", grads_)
+print ("Grad sum: ", np.sum(grad_[0], axis=1))
+grad_dirs=[]
+old_states_=[]
+predicted_actions_=[]
+space=1
+spaces_=0
+for s in range(len(states)):
+    if (s % space) == 0:
+        action_ = np.reshape(norm_action(np.array([predicted_actions[s]+0.01]), action_bounds), (1,1))
+        state_ = np.reshape(norm_state(np.array([states[s]]), state_bounds), (1,1))
+        grads_ = model.getGrads(state_, action_)
+        print ("Grad: ", grads_[0])
+        diff = model.bellman_error(state_, action_)
+        print ("Diff, ", diff)
+        grad_dir = np.sum(grads_[0], axis=1)
+        if (grad_dir > 0.0):
+            grad_dir = 1.0
+        else:
+            grad_dir = -1.0
+        grad_dirs.append(grad_dir * -1.0)
+        old_states_.append(states[s])
+        predicted_actions_.append(predicted_actions[s])
+
+_bellman_error_ax.quiver(old_states_, predicted_actions_, grad_dirs, np.zeros((len(grad_dirs))), linewidth=0.5, pivot='tail', edgecolor='k', headaxislength=4, alpha=.5, angles='xy', linestyles='-', scale=10.0, label="gradient direction")
+
 # _fig.show()
 # er.show()
 plt.show()
