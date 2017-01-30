@@ -61,8 +61,7 @@ if __name__ == '__main__':
         action_ = np.array([actions[i]])
         state_ = np.array([states[i]])
         # print "Action: " + str([actions[i]])
-        experience.insert(norm_state(state_, state_bounds), norm_action(action_, action_bounds),
-                           norm_state(state_, state_bounds), norm_reward(np.array([0]), reward_bounds))
+        experience.insert(state_, action_, state_, np.array([0]))
     
     errors=[]
     for i in range(10000):
@@ -126,9 +125,9 @@ if __name__ == '__main__':
     _training_error_ax.grid(b=True, which='minor', color='g', linestyle='--')
     
     grads_ = model.getGrads([[states[0]]], [[actions[0]]])
-    print ("Grads : ", len(grad_))
+    print ("Grads : ", len(grads_))
     print ("Grad: ", grads_)
-    print ("Grad sum: ", np.sum(grad_[0], axis=1))
+    print ("Grad sum: ", np.sum(grads_[0], axis=1))
     grad_dirs=[]
     old_states_=[]
     predicted_actions_=[]

@@ -6,7 +6,7 @@ import sys
 sys.path.append('../')
 from model.ModelUtil import *
 from model.DropoutNetwork import DropoutNetwork
-from ExperienceMemory import ExperienceMemory
+from util.ExperienceMemory import ExperienceMemory
 import matplotlib.pyplot as plt
 import math
 import random
@@ -48,6 +48,9 @@ if __name__ == '__main__':
     model = DropoutNetwork(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, settings)
     
     experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True)
+    experience.setStateBounds(state_bounds)
+    experience.setRewardBounds(reward_bounds)
+    experience.setActionBounds(action_bounds)
     arr = range(experience_length)
     random.shuffle(arr)
     num_samples_to_keep=300
@@ -59,12 +62,11 @@ if __name__ == '__main__':
         state_ = np.array([states[arr[i]]])
         given_states.append(state_)
         # print "Action: " + str([actions[i]])
-        experience.insert(norm_state(state_, state_bounds), norm_action(action_, action_bounds),
-                           norm_state(state_, state_bounds), norm_reward(np.array([0]), reward_bounds))
+        experience.insert(state_, action_, state_, np.array([0]))
     
     errors=[]
     for i in range(50000):
-        _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
+        _states, _actions, _result_states, _rewards, fals_ = experience.get_batch(batch_size)
         # print _actions 
         error = model.train(_states, _actions)
         errors.append(error)
