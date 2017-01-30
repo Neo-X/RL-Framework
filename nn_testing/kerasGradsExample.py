@@ -72,7 +72,10 @@ for i in range(experience_length):
 # model = Sequential()
 # 2 inputs, 10 neurons in 1 hidden layer, with tanh activation and dropout
 input = Input(shape=[1])
-network = Dense(128, init='uniform')(input) 
+input.trainable = True
+print ("Input ",  input)
+network = Dense(128, init='uniform')(input)
+print ("Network: ", network) 
 network = Activation('relu')(network)
 network = Dense(64, init='uniform')(network) 
 network = Activation('relu')(network)
@@ -84,7 +87,7 @@ sgd = SGD(lr=0.01, momentum=0.9)
 print ("Clipping: ", sgd.decay)
 model.compile(loss='mse', optimizer=sgd)
 print ("Loss ", model.total_loss)
-weights = model.trainable_weights # weight tensors
+weights = [input] + model.trainable_weights # weight tensors
 # weights = [weight for weight in weights if model.get_layer(weight.name[:-2]).trainable] # filter down weights tensors to only ones which are trainable
 gradients = model.optimizer.get_gradients(model.total_loss, weights) # gradient tensors
 
@@ -107,14 +110,14 @@ inputs = [np.random.randn(nb_sample, 1), # X
 
 print ( zip(weights, get_gradients(inputs)) )
 
-sys.exit()
+# sys.exit()
 
 
 from keras.callbacks import EarlyStopping
 # early_stopping = EarlyStopping(monitor='val_loss', patience=2)
 
 errors=[]
-for i in range(5000):
+for i in range(500):
     _states, _actions, _result_states, _rewards, fals_ = experience.get_batch(batch_size)
     # scale_states = np.array(map(scale_state, _states, itertools.repeat(state_bounds, len(_states))))
     # tmp_actions = np.transpose(np.array([map(f, scale_states)]))
@@ -198,11 +201,16 @@ _training_error_ax.set_title("Training Error")
 _training_error_ax.grid(b=True, which='major', color='black', linestyle='-')
 _training_error_ax.grid(b=True, which='minor', color='g', linestyle='--')
 
-
-grads_ = model.getGrads([[states[0]]], [[actions[0]]])
-print ("Grads : ", len(grad_))
+input = [
+          [[states[0]]], # X
+          np.ones(1), # sample weights
+          [actions[0]], # y
+          0 # learning phase in TEST mode
+]
+grads_ = get_gradients(input)
+print ("Grads : ", len(grads_))
 print ("Grad: ", grads_)
-print ("Grad sum: ", np.sum(grad_[0], axis=1))
+print ("Grad sum: ", np.sum(grads_[0], axis=1))
 grad_dirs=[]
 old_states_=[]
 predicted_actions_=[]
@@ -212,10 +220,17 @@ for s in range(len(states)):
     if (s % space) == 0:
         action_ = np.reshape(norm_action(np.array([predicted_actions[s]+0.01]), action_bounds), (1,1))
         state_ = np.reshape(norm_state(np.array([states[s]]), state_bounds), (1,1))
-        grads_ = model.getGrads(state_, action_)
+        input = [
+              state_, # X
+              np.ones(1), # sample weights
+              action_, # y
+              0 # learning phase in TEST mode
+        ]
+        grads_ = get_gradients(input)
+        # grads_ = model.getGrads(state_, action_)
         print ("Grad: ", grads_[0])
-        diff = model.bellman_error(state_, action_)
-        print ("Diff, ", diff)
+        # diff = model.bellman_error(state_, action_)
+        # print ("Diff, ", diff)
         grad_dir = np.sum(grads_[0], axis=1)
         if (grad_dir > 0.0):
             grad_dir = 1.0
