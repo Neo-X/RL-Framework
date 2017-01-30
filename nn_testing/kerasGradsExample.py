@@ -85,7 +85,7 @@ print ("Clipping: ", sgd.decay)
 model.compile(loss='mse', optimizer=sgd)
 print ("Loss ", model.total_loss)
 weights = model.trainable_weights # weight tensors
-weights = [weight for weight in weights if model.get_layer(weight.name[:-2]).trainable] # filter down weights tensors to only ones which are trainable
+# weights = [weight for weight in weights if model.get_layer(weight.name[:-2]).trainable] # filter down weights tensors to only ones which are trainable
 gradients = model.optimizer.get_gradients(model.total_loss, weights) # gradient tensors
 
 input_tensors = [model.inputs[0], # input data
