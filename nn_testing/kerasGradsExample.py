@@ -27,13 +27,27 @@ np.random.seed(1337)  # for reproducibility
 def f(x):
     return (math.cos(x)-0.75)*(math.sin(x)+0.75)
 
-state_bounds = np.array([[0.0],[5.0]])
+def fcos(x):
+    return (math.cos(x))
+
+def fNoise(x):
+    out = f(x)
+    if (x > 1.0) and (x < 2.0):
+        # print "Adding noise"
+        r = random.choice([0,1])
+        if r == 1:
+            out = x
+        else:
+            out = out
+    return out
+
+state_bounds = np.array([[-5.0],[8.0]])
 action_bounds = np.array([[-4.0],[2.0]])
 reward_bounds = np.array([[-3.0],[1.0]])
 experience_length = 200
 batch_size=32
 # states = np.repeat(np.linspace(0.0, 5.0, experience_length),2, axis=0)
-states = np.linspace(0.0, 5.0, experience_length)
+states = np.linspace(state_bounds[0], state_bounds[1], experience_length)
 # shuffle = range(experience_length)
 # states = states[shuffle]
 # random.shuffle(shuffle)
@@ -117,7 +131,7 @@ from keras.callbacks import EarlyStopping
 # early_stopping = EarlyStopping(monitor='val_loss', patience=2)
 
 errors=[]
-for i in range(500):
+for i in range(5000):
     _states, _actions, _result_states, _rewards, fals_ = experience.get_batch(batch_size)
     # scale_states = np.array(map(scale_state, _states, itertools.repeat(state_bounds, len(_states))))
     # tmp_actions = np.transpose(np.array([map(f, scale_states)]))
@@ -140,7 +154,7 @@ for i in range(500):
 # print ("Score: " , errors)
 
 
-states = (np.linspace(-1.0, 6.0, experience_length))
+states = np.linspace(state_bounds[0], state_bounds[1], experience_length)
 norm_states = np.array(map(norm_state, states, itertools.repeat(state_bounds, len(states))))
 # norm_states = ((states  - 2.5)/3.5)
 # predicted_actions = np.array(map(model.predict, states))
