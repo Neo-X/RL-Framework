@@ -13,9 +13,13 @@ sys.path.append('../')
 from model.ModelUtil import *
 from util.ExperienceMemory import ExperienceMemory
 import itertools
-from keras.models import Sequential
+from keras.models import Sequential, Model
 from keras.optimizers import SGD
+from keras.layers import Input
 from keras.layers.core import Dense, Dropout, Activation
+from keras.utils.np_utils import to_categorical
+import keras.backend as K
+
 import random
 
 np.random.seed(1337)  # for reproducibility
@@ -65,19 +69,46 @@ for i in range(experience_length):
     # print ("Ation diff2: " , tmp_action, action_)
 
 
-model = Sequential()
+# model = Sequential()
 # 2 inputs, 10 neurons in 1 hidden layer, with tanh activation and dropout
-model.add(Dense(128, init='uniform', input_shape=(1,))) 
-model.add(Activation('relu'))
-model.add(Dense(64, init='uniform')) 
-model.add(Activation('relu'))
+input = Input(shape=[1])
+network = Dense(128, init='uniform')(input) 
+network = Activation('relu')(network)
+network = Dense(64, init='uniform')(network) 
+network = Activation('relu')(network)
 # 1 output, linear activation
-model.add(Dense(1, init='uniform'))
-model.add(Activation('linear'))
-
+network = Dense(1, init='uniform')(network)
+network = Activation('linear')(network)
+model = Model(input=input, output=network)
 sgd = SGD(lr=0.01, momentum=0.9)
 print ("Clipping: ", sgd.decay)
 model.compile(loss='mse', optimizer=sgd)
+print ("Loss ", model.total_loss)
+weights = model.trainable_weights # weight tensors
+weights = [weight for weight in weights if model.get_layer(weight.name[:-2]).trainable] # filter down weights tensors to only ones which are trainable
+gradients = model.optimizer.get_gradients(model.total_loss, weights) # gradient tensors
+
+input_tensors = [model.inputs[0], # input data
+                 model.sample_weights[0], # how much to weight each sample by
+                 model.targets[0], # labels
+                 K.learning_phase(), # train or test mode
+]
+
+get_gradients = K.function(inputs=input_tensors, outputs=gradients)
+
+nb_sample = 32
+
+inputs = [np.random.randn(nb_sample, 1), # X
+          np.ones(nb_sample), # sample weights
+          np.random.randint(1, size=[nb_sample, 1]), # y
+          0 # learning phase in TEST mode
+]
+
+
+print ( zip(weights, get_gradients(inputs)) )
+
+sys.exit()
+
 
 from keras.callbacks import EarlyStopping
 # early_stopping = EarlyStopping(monitor='val_loss', patience=2)
@@ -98,6 +129,8 @@ for i in range(5000):
               validation_data=(_states, _actions)
               # callbacks=[early_stopping],
               )
+    
+    # print (zip(weights, get_gradients(_states)))
 
     errors.extend(score.history['loss'])
 
