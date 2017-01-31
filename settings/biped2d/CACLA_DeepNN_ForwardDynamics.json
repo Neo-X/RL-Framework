@@ -7,7 +7,7 @@
 "batch_size": 32,
 "learning_rate": 0.001,
 "anchor_file": "../data/anchorData/paperGibbonAnchors.json",
-"sim_config_file": "../data/simbiconBiped2D/trainContinuousActions.ini",
+"sim_config_file": "../data/simbiconBiped2D/evalContinuousActions.ini",
 "forwardDynamics_config_file": "../data/simbiconBiped2D/trainContinuousActions.ini",
 "num_actions": 9,
 "exploration_rate": 0.1,
