@@ -5,7 +5,7 @@ import math
 from sim.SimInterface import SimInterface
 import sys
 sys.path.append("../simbiconAdapter/")
-
+from actor.DoNothingActor import DoNothingActor
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
