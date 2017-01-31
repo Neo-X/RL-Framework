@@ -18,6 +18,7 @@ class SimbiconEnv(SimInterface):
         super(SimbiconEnv,self).__init__(exp)
         self._action_dimension=3
         self._range = 5.0
+        self._actor = DoNothingActor()
 
     def getEnvironment(self):
         return self._exp
@@ -44,7 +45,7 @@ class SimbiconEnv(SimInterface):
         self._exp.getEnvironment().generateEnvironmentSample()
             
     def getActor(self):
-        return self.getEnvironment().getActor()
+        return self._actor
     
     def finish(self):
         self._exp.finish()
