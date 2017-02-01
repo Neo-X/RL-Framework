@@ -166,7 +166,8 @@ def trainModelParallel(settingsFileName):
             # this is the process that selects which game to play
             exp_=None
             
-            if ((settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
+            if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
+                print ("Assigning same EXP")
                 exp_ = exp_val # This should not work properly for many simulations running at the same time. It could try and evalModel a simulation while it is still running samples 
             """
             else:
@@ -239,11 +240,12 @@ def trainModelParallel(settingsFileName):
         for lw in learning_workers:
             print ("Learning worker" )
             print (lw)
-            
-        for sw in sim_workers:
-            print ("Sim worker")
-            print (sw)
-            sw.start()
+        
+        if (int(settings["num_available_threads"]) != 1): # This is okay if there is one thread only...
+            for sw in sim_workers:
+                print ("Sim worker")
+                print (sw)
+                sw.start()
         
         if not os.path.exists(directory):
             os.makedirs(directory)
@@ -259,7 +261,7 @@ def trainModelParallel(settingsFileName):
         out_file.close()
         ## This needs to be done after the simulatino work processes are created
         exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings)
-
+        
         exp_val.getActor().init()
         exp_val.getEnvironment().init()
         
@@ -267,6 +269,10 @@ def trainModelParallel(settingsFileName):
         experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings)
         namespace.experience = experience
         masterAgent.setExperience(experience)
+        
+        if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
+            sim_workers[0]._exp = exp_val
+            sim_workers[0].start()
         
         print ("Reward History: ", experience._reward_history)
         print ("Action History: ", experience._action_history)
@@ -308,6 +314,7 @@ def trainModelParallel(settingsFileName):
             # sw._model.setPolicy(copy.deepcopy(model))
             # sw.updateModel()
             # sw.updateForwardDynamicsModel()
+            print ("exp: ", sw._exp)
             print ("sw modle: ", sw._model.getPolicy()) 
             
         for lw in learning_workers:

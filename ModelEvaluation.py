@@ -48,7 +48,7 @@ class SimWorker(Process):
     def run(self):
         
         # print ("SW model: ", self._model.getPolicy())
-        if ((self._settings["num_available_threads"]) > 1): # This is okay if there is one thread only...
+        if (int(self._settings["num_available_threads"]) > 1): # This is okay if there is one thread only...
             self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings)
             self._exp.getActor().init()   
             self._exp.getEnvironment().init()
@@ -66,7 +66,7 @@ class SimWorker(Process):
                 
             # 
             p = self._namespace.p
-            # print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+            print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
             if p < 0.1:
                 p = 0.1
             self._p = p
@@ -295,7 +295,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             falls.append([agent_not_fell])
             # print ("falls: ", falls)
             # values.append(value)
-            if (_output_queue != None and (not evaluation)): # for multi-threading
+            if (_output_queue != None and ((not evaluation) or (not bootstraping))): # for multi-threading
                 # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
                 _output_queue.put((state_, action, [reward_], resultState, [agent_not_fell]))
             state_num += 1
