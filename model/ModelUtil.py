@@ -218,7 +218,7 @@ def getOptimalAction(forwardDynamicsModel, model, state):
         the value function (model) v
     """
     learning_rate=model.getSettings()['action_learning_rate']
-    num_updates=10
+    num_updates=1
     state_length = model.getStateSize()
     # print ("state_length ", state_length)
     # print ("State shape: ", state.shape)
