@@ -224,11 +224,12 @@ def getOptimalAction(forwardDynamicsModel, model, state):
     # print ("State shape: ", state.shape)
     action = model.predict(state)
     init_value = model.q_value(state)
+    """
     fake_state_ = copy.deepcopy(state)
     for i in range(num_updates):
         fake_state_ = fake_state_ + ( model.getGrads(fake_state_)[0] * learning_rate )
         print ("Fake state Value: ", model.q_value(fake_state_))
-    
+    """
     print ("Initial value: ", init_value)
     # init_action = copy.deepcopy(action)
     for i in range(num_updates):
