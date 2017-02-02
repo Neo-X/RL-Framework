@@ -212,7 +212,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         sys.exit(1)
                     # randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # randomAction = random.choice(action_selection)
-                    if (settings["use_model_based_action_optimization"] and (np.random.rand(1)[0] > 0.5)):
+                    if (settings["use_model_based_action_optimization"] and (np.random.rand(1)[0] > settings["model_based_action_omega"])):
                         # Need to be using a forward dynamics deep network for this
                         action = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_)
             else: # exploit policy
@@ -288,7 +288,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print ("Python Reward: " + str(reward(state_, resultState)))
             
         if ( (reward_ >= settings['reward_lower_bound'] ) or evaluation):
-            states.append(state_)
+            states.extend(state_)
             actions.append(action)
             rewards.append([reward_])
             result_states.append(resultState)
@@ -440,6 +440,7 @@ def collectExperience(actor, exp_val, model, settings):
         (states, actions, resultStates, rewards_, falls_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootsrap_samples'], settings=settings, action_selection=action_selection)
         # states = np.array(states)
         # states = np.append(states, state_bounds,0) # Adding that already specified bounds will ensure the final calculated is beyond these
+        print (" Shape states: ", states.shape)
         state_bounds = np.ones((2,states.shape[1]))
         
         state_avg = states[:settings['bootsrap_samples']].mean(0)
@@ -538,6 +539,8 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out
         (states_, actions_, rewards_, result_states_, falls_) = tuples
+        print ("Shape other states_: ", np.array(states_).shape)
+        print ("Shape other action_: ", np.array(actions_).shape)
         states.extend(states_)
         actions.extend(actions_)
         rewards.extend(rewards_)

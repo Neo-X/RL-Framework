@@ -241,7 +241,7 @@ class CACLA(AlgorithmInterface):
     def predict(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = [norm_state(state, self._state_bounds)]
+        state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -255,7 +255,7 @@ class CACLA(AlgorithmInterface):
     def predictWithDropout(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = [norm_state(state, self._state_bounds)]
+        state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -269,7 +269,7 @@ class CACLA(AlgorithmInterface):
     def q_value(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = [norm_state(state, self._state_bounds)]
+        state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
@@ -287,7 +287,7 @@ class CACLA(AlgorithmInterface):
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = [norm_state(state, self._state_bounds)]
+        state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         return scale_reward(self._q_val_drop(), self.getRewardBounds())[0]
     

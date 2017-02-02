@@ -218,48 +218,65 @@ def getOptimalAction(forwardDynamicsModel, model, state):
         the value function (model) v
     """
     learning_rate=model.getSettings()['action_learning_rate']
-    num_updates=1
+    num_updates=10
     state_length = model.getStateSize()
     # print ("state_length ", state_length)
+    # print ("State shape: ", state.shape)
     action = model.predict(state)
-    # init_value = model.q_value(state)
+    init_value = model.q_value(state)
+    fake_state_ = copy.deepcopy(state)
+    for i in range(num_updates):
+        fake_state_ = fake_state_ + ( model.getGrads(fake_state_)[0] * learning_rate )
+        print ("Fake state Value: ", model.q_value(fake_state_))
+    
+    print ("Initial value: ", init_value)
     # init_action = copy.deepcopy(action)
     for i in range(num_updates):
-        # find next state with dynamics model
-        next_state = forwardDynamicsModel.predict(state, action)
-        # compute grad for next state wrt model
+        ## find next state with dynamics model
+        next_state = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
+        value_ = model.q_value(next_state)
+        print ("next state q value: ", value_)
         # print ("Next State: ", next_state.shape)
-        next_state_grads = model.getGrads(np.reshape(next_state, (1, model.getStateSize())))[0] * learning_rate
-        # print ("Next State Grad: ", next_state_grads.shape)
+        ## compute grad for next state wrt model, i.e. how to change the state to improve the value
+        next_state_grads = model.getGrads(next_state)[0] * (learning_rate * 0.1) # this uses the value function
+        # print ("Next State Grad: ", next_state_grads)
         # next_state_grads = np.sum(next_state_grads, axis=1)
-        # print ("Next State Grad: ", next_state_grads.shape)
-        # modify next state wrt increasing grad
-        next_state = np.reshape(next_state, (1, model.getStateSize())) + next_state_grads
+        # print ("Next State Grad shape: ", next_state_grads.shape)
+        ## modify next state wrt increasing grad, this is the direction we want the next state to go towards 
+        next_state = next_state + next_state_grads
         # print ("Next State: ", next_state)
-        value_ = model.q_value(next_state[0])
-        # print ("Updated q value: ", value_)
+        value_ = model.q_value(next_state)
+        print ("Updated next state q value: ", value_)
         # Set modified next state as output for dynamicsModel
         # print ("Next State2: ", next_state)
         # compute grad to find
         # next_state = np.reshape(next_state, (model.getStateSize(), 1))
         # uncertanty = getModelValueUncertanty(model, next_state[0])
         # print ("Uncertanty: ", uncertanty)
-        action_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_state, (1, model.getStateSize())))[0]
+        ## Compute the grad to change the input to produce the new target next state
+        ## We will want to use the negative o this grad because the cost funtion is L2, the grad will make thid bigger, user - to pull action towards target action using this loss function 
+        dynamics_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_state, (1, model.getStateSize())))[0]
         # print ("action_grad1: ", action_grads)
-        # print ("action_grad1 size: ", action_grads.shape)
-        action_grads = action_grads[:, state_length:] * learning_rate # Get the segment of the input state that was the action
+        # print ("dynamics_grads size: ", dynamics_grads.shape)
+        ## Grab the part of the grads that is the action
+        action_grads = dynamics_grads[:, state_length:] * learning_rate 
         # action_grads = action_grads * learning_rate
-        print ("action_grad2: ", action_grads)
-        # Use grad to update action parameters
-        action = action + action_grads
+        # print ("action_grad2: ", action_grads)
+        ## Use grad to update action parameters
+        action = action - action_grads
+        action = action[0]
         # print ("action_grad: ", action_grads, " new action: ", action)
         # print ( "Action shape: ", action.shape)
         # print (" Action diff: ", (action - init_action))
+        next_state_ = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
+        
+        # print ("Next_state: ", next_state_.shape, " values ", next_state_)
+        final_value = model.q_value(next_state_)
+        print ("Final Estimated Value: ", final_value)
         
         # repeat
-    # init_value = model.q_value(state)
     # print ("New action: ", action, " action diff: ", (action - init_action))
-    action = clampAction(action[0], model._action_bounds)
+    action = clampAction(action, model._action_bounds)
     return action
 
 def getModelPredictionUncertanty(model, state, length=4.1, num_samples=32):

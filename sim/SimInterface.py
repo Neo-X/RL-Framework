@@ -34,7 +34,12 @@ class SimInterface(object):
         self._exp.finish()
     
     def getState(self):
-        state = np.array(self._exp.getState())
+        """
+            I like the state in this shape (1, state_length)
+        """
+        state_ = self._exp.getState()
+        state = np.array(state_)
+        state = np.reshape(state, (1, len(state_)))
         return state
     
     def setState(self, st):

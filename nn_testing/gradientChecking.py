@@ -33,7 +33,7 @@ if __name__ == '__main__':
     State is the input state and Action is the desired output (y).
     """
     
-    state_bounds = np.array([[-5.0],[8.0]])
+    state_bounds = np.array([[1.8],[3.0]])
     action_bounds = np.array([[-4.0],[2.0]])
     reward_bounds = np.array([[-3.0],[1.0]])
     experience_length = 200
@@ -135,18 +135,20 @@ if __name__ == '__main__':
     spaces_=0
     for s in range(len(states)):
         if (s % space) == 0:
-            action_ = np.reshape(norm_action(np.array([predicted_actions[s]+0.01]), action_bounds), (1,1))
+            action_ = np.reshape(norm_action(np.array([predicted_actions[s]-0.01]), action_bounds), (1,1))
             state_ = np.reshape(norm_state(np.array([states[s]]), state_bounds), (1,1))
             grads_ = model.getGrads(state_, action_)
             print ("Grad: ", grads_[0])
             diff = model.bellman_error(state_, action_)
             print ("Diff, ", diff)
             grad_dir = np.sum(grads_[0], axis=1)
+            """
             if (grad_dir > 0.0):
                 grad_dir = 1.0
             else:
                 grad_dir = -1.0
-            grad_dirs.append(grad_dir * -1.0)
+                """
+            grad_dirs.append(grad_dir * 1000.0)
             old_states_.append(states[s])
             predicted_actions_.append(predicted_actions[s])
     

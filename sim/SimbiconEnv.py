@@ -51,7 +51,12 @@ class SimbiconEnv(SimInterface):
         self._exp.finish()
     
     def getState(self):
-        state = np.array(self.getEnvironment().getState())
+        """
+            I like the state in this shape
+        """
+        state_ = self.getEnvironment().getState()
+        state = np.array(state_)
+        state = np.reshape(state, (-1, len(state_)))
         return state
     
     def setState(self, st):
