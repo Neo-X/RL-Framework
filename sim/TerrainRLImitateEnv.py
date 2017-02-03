@@ -24,7 +24,7 @@ class TerrainRLImitateEnv(TerrainRLEnv):
             Want just the character state at the end.
         """
         state_ = self.getEnvironment().getState()
-        print ("state_: ", state_)
+        # print ("state_: ", state_)
         # state = np.array(state_)[200:]
         # state = np.reshape(state, (-1, len(state_)-200))
         state = np.array(state_)
