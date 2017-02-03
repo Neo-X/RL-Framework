@@ -11,12 +11,12 @@ from actor.DoNothingActor import DoNothingActor
 # import matplotlib.animation as animation
 
 
-class TerrainRLFlatEnv(TerrainRLEnv):
+class TerrainRLImitateEnv(TerrainRLEnv):
 
     def __init__(self, exp):
         #------------------------------------------------------------
         # set up initial state
-        super(TerrainRLFlatEnv,self).__init__(exp)
+        super(TerrainRLImitateEnv,self).__init__(exp)
 
     
     def getState(self):
@@ -25,9 +25,9 @@ class TerrainRLFlatEnv(TerrainRLEnv):
         """
         state_ = self.getEnvironment().getState()
         print ("state_: ", state_)
-        state = np.array(state_)[200:]
-        state = np.reshape(state, (-1, len(state_)-200))
-        # state = np.array(state_)
-        # state = np.reshape(state, (-1, len(state_)))
+        # state = np.array(state_)[200:]
+        # state = np.reshape(state, (-1, len(state_)-200))
+        state = np.array(state_)
+        state = np.reshape(state, (-1, len(state_)))
         return state
     

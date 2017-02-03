@@ -34,7 +34,7 @@
 		             [0.289427, 1.994835, -0.254906, -1.167773, 0.275834, -0.197735, 2.298369, -3.272985, -0.179217, -0.530879, -0.362771, -0.690035, -0.558768, 1.806804, -1.341557, -0.688935, 0.337809, -1.773089,   -1.025832, -0.472297, -0.766728, 0.358616, -0.481754, -1.328176, 0.498767, -0.236538, -0.471444, 1.154247]],
 "action_space_continuous":true,
 "train_on_validation_set":true,
-"environment_type": "terrainRLFlatBiped2D",
+"environment_type": "terrainRLImitateBiped2D",
 "forward_dynamics_predictor": "network",
 "sampling_method": "SequentialMC",
 "use_actor_policy_action_suggestion": true,
