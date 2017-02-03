@@ -23,6 +23,8 @@ class TerrainRLFlatEnv(TerrainRLEnv):
         """
             Want just the character state at the end.
         """
-        state = np.array(self.getEnvironment().getState())[200:]
+        state_ = self.getEnvironment().getState()
+        state = np.array(state_)[200:]
+        state = np.reshape(state, (-1, len(state_)-200))
         return state
     

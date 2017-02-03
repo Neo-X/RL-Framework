@@ -52,7 +52,9 @@ class TerrainRLEnv(SimInterface):
         self._exp.finish()
     
     def getState(self):
-        state = np.array(self.getEnvironment().getState())
+        state_ = self.getEnvironment().getState()
+        state = np.array(state_)
+        state = np.reshape(state, (-1, len(state_)))
         return state
     
     def setState(self, st):
