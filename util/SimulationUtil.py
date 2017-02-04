@@ -49,6 +49,7 @@ from actor.BallGame2DActor import BallGame2DActor
 from actor.BallGame1DActor import BallGame1DActor
 from actor.SimbiconActor import SimbiconActor
 from actor.TerrainRLActor import TerrainRLActor
+from actor.TerrainRLImitationActor import TerrainRLImitationActor
 
 from sim.PendulumEnvState import PendulumEnvState
 from sim.PendulumEnv import PendulumEnv
@@ -301,6 +302,8 @@ def createActor(env_type, settings, experience):
         actor = SimbiconActor(settings, experience)
     elif env_type == 'terrainRLBiped2D' or (env_type == 'terrainRLFlatBiped2D'):
         actor = TerrainRLActor(settings, experience)
+    elif (env_type == 'terrainRLImitateBiped2D'):
+        actor = TerrainRLImitationActor(settings, experience)
     else:
         actor = ActorInterface(settings, experience)
     
