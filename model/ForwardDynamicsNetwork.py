@@ -33,15 +33,15 @@ class ForwardDynamicsNetwork(ModelInterface):
         # inputLayerAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
         # concatLayer = lasagne.layers.ConcatLayer([inputLayerState, inputLayerAction])
         l_hid2ActA = lasagne.layers.DenseLayer(
-                network, num_units=128,
+                network, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid3ActA = lasagne.layers.DenseLayer(
-                l_hid2ActA, num_units=64,
+                l_hid2ActA, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid4ActA = lasagne.layers.DenseLayer(
-                l_hid3ActA, num_units=32,
+                l_hid3ActA, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
         self._actor = lasagne.layers.DenseLayer(
