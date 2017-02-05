@@ -572,7 +572,7 @@ def modelEvaluation(settings_file_name):
     directory= getDataDirectory(settings)
     rounds = settings["rounds"]
     epochs = settings["epochs"]
-    num_states=settings["num_states"]
+    # num_states=settings["num_states"]
     epsilon = settings["epsilon"]
     discount_factor=settings["discount_factor"]
     # max_reward=settings["max_reward"]
@@ -599,8 +599,8 @@ def modelEvaluation(settings_file_name):
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
-    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
     f = open(file_name, 'r')
     model = dill.load(f)
     f.close()
