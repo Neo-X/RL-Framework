@@ -328,7 +328,13 @@ def validBounds(bounds):
     """
     valid = np.all(np.less(bounds[0], bounds[1]))
     if (not valid):
-        print ("Valid bounds: ", np.less(bounds[0], bounds[1]))
+        print ("Invalid bounds: ", np.less(bounds[0], bounds[1]))
+        
+    # bounds not too close to each other
+    epsilon = 0.01
+    bounds = np.array(bounds)
+    diff = bounds[1]-bounds[0]
+    valid = valid and np.all(np.greater(diff, epsilon))
         
     return valid
     

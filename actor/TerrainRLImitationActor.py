@@ -55,6 +55,8 @@ class TerrainRLImitationActor(ActorInterface):
                 stumble_count+=1
             torque_sum += sim.getEnvironment().jointTorque()
             # print("Update #: ", updates_)
+            if ( sim.getEnvironment().agentHasFallen() ):
+                print ("Agent has fallen")
         """    
         if (updates_ == 1):
             print("Action update did not go well....")
@@ -83,7 +85,7 @@ class TerrainRLImitationActor(ActorInterface):
                    )
                    """
         self._reward_sum = self._reward_sum + reward_
-        print ("Reward: ", reward_)
+        # print ("Reward: ", reward_)
 
         return reward_
     

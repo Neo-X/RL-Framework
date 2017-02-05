@@ -65,7 +65,7 @@ def trainModelParallel(settingsFileName):
         directory= getDataDirectory(settings)
         rounds = settings["rounds"]
         epochs = settings["epochs"]
-        num_states=settings["num_states"]
+        # num_states=settings["num_states"]
         epsilon = settings["epsilon"]
         discount_factor=settings["discount_factor"]
         reward_bounds=np.array(settings["reward_bounds"])
@@ -270,6 +270,18 @@ def trainModelParallel(settingsFileName):
         namespace.experience = experience
         masterAgent.setExperience(experience)
         
+        if (not validBounds(action_bounds)):
+            # Check that the action bounds are spcified correctly
+            print("Action bounds invalid: ", action_bounds)
+            sys.exit()
+        if (not validBounds(state_bounds)):
+            # Probably did not collect enough bootstrapping samples to get good state bounds.
+            print("State bounds invalid: ", state_bounds)
+            sys.exit()
+        if (not validBounds(reward_bounds)):
+            print("Reward bounds invalid: ", reward_bounds)
+            sys.exit()
+        
         if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
             sim_workers[0]._exp = exp_val
             sim_workers[0].start()
@@ -351,7 +363,7 @@ def trainModelParallel(settingsFileName):
                         criticRegularizationCosts.append(regularizationCost__)
                     
                     if not all(np.isfinite(error)):
-                        print ("States: " + str(states) + " ResultsStates: " + str(result_states) + " Rewards: " + str(rewards) + " Actions: " + str(actions))
+                        print ("States: " + str(states) + " ResultsStates: " + str(result_states) + " Rewards: " + str(rewards) + " Actions: " + str(actions) + " Falls: ", str(falls))
                         print ("Bellman Error is Nan: " + str(error) + str(np.isfinite(error)))
                         sys.exit()
                     
