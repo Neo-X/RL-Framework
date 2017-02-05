@@ -201,7 +201,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 else : # add noise to current policy
                     # return ra1
                     pa = model.predict(state_)
-                    if (settings['exploration_method'] == 'uniform_random'):
+                    if (settings['exploration_method'] == 'gaussian_random'):
                         # action = randomExporation(settings["exploration_rate"], pa)
                         action = randomExporation(settings["exploration_rate"], pa, action_bounds)
                     elif ((settings['exploration_method'] == 'thompson')):

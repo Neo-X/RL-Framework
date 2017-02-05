@@ -48,7 +48,7 @@
 "adaptive_samples": 5,
 "num_adaptive_samples_to_keep": 50,
 "use_actor_policy_action_variance_suggestion": false,
-"exploration_method": "uniform_random",
+"exploration_method": "gaussian_random",
 "dropout_p": 0.1,
 "regularization_weight": 0.0001,
 "rho": 0.95,
