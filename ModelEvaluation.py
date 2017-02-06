@@ -21,10 +21,11 @@ from util.SimulationUtil import *
 class SimWorker(Process):
     
     def __init__(self, namespace, input_queue, output_queue, actor, exp, model, discount_factor, action_space_continuous, 
-                 settings, print_data, p, validation):
+                 settings, print_data, p, validation, eval_episode_data_queue):
         super(SimWorker, self).__init__()
         self._input_queue= input_queue
         self._output_queue = output_queue
+        self._eval_episode_data_queue = eval_episode_data_queue
         self._actor = actor
         self._exp = exp
         self._model = model
@@ -56,9 +57,16 @@ class SimWorker(Process):
         print ('Worker started')
         # do some initialization here
         while True:
-            anchors_ = self._input_queue.get()
-            if anchors_ == None:
+            eval=False
+            episodeData = self._input_queue.get()
+            if episodeData == None:
                 break
+            if episodeData['type'] == "eval":
+                eval=True
+                episodeData = episodeData['data']
+                "Sim worker evaluating episode"
+            else:
+                episodeData = episodeData['data']
             if (self._model.getPolicy() == None): # cheap hack for now
                 self._model.setPolicy(copy.deepcopy(self._namespace.model))
             if ( (self._settings["train_forward_dynamics"]) and ( self._model.getForwardDynamics() == None ) ):
@@ -71,16 +79,27 @@ class SimWorker(Process):
                 p = 0.1
             self._p = p
             # print ("sim worker p: " + str(self._p))
-            out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, anchors=anchors_, action_space_continuous=self._action_space_continuous, settings=self._settings, print_data=self._print_data, p=self._p, validation=self._validation)
+            if (eval):
+                out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
+                        anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                        print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
+            else:    
+                out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
+                        anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                        print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
             self._iteration += 1
             # if self._p <= 0.0:
+            
             #    self._output_queue.put(out)
             (tuples, discounted_sum, q_value, evalData) = out
             (states, actions, rewards, result_states, falls) = tuples
-            ## Hack for now just update after ever series of anchors
-            self._model.getPolicy().setNetworkParameters(copy.deepcopy(self._namespace.agentPoly))
-            if (self._settings['train_forward_dynamics']):
-                self._model.getForwardDynamics().setNetworkParameters(copy.deepcopy(self._namespace.forwardNN))
+            ## Hack for now just update after ever episode
+            if (eval):
+                self._eval_episode_data_queue.put(out)
+            else:
+                self._model.getPolicy().setNetworkParameters(copy.deepcopy(self._namespace.agentPoly))
+                if (self._settings['train_forward_dynamics']):
+                    self._model.getForwardDynamics().setNetworkParameters(copy.deepcopy(self._namespace.forwardNN))
             # print ("Actions: " + str(actions))
         print ("Simulation Worker Complete: ")
         self._exp.finish()
@@ -94,6 +113,15 @@ class SimWorker(Process):
 
 def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, 
              p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstraping=False, visualizeEvaluation=None):
+    """
+        
+        evaluation: If Ture than the simulation is being evaluated and the episodes will not terminate early.
+        bootstraping: is used to collect initial random actions for the state bounds to be calculated and to init the expBuffer
+        epoch: is an integer that can be used to help create repeatable episodes to evaluation
+        _output_queue: is the queue exp tuples should be put in so the learning agents can pull them out
+        p:  is the probability of selecting a random action
+        actor: 
+    """
     if action_space_continuous:
         action_bounds = np.array(settings["action_bounds"], dtype=float)
         omega = settings["omega"]
@@ -378,54 +406,73 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
             mean_eval, std_eval)
 
 # @profile(precision=5)
-def evalModelParrallel(input_queue, output_queue, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False):
-    print ("Evaluating model:")
-    
+def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, settings, anchors=None):
+    print ("Evaluating model Parrallel:")
     j=0
     discounted_values = []
     bellman_errors = []
     reward_over_epocs = []
     values = []
-    
+    evalDatas = []
+    epoch_=0
     for anchs in anchors: # half the anchors
-        input_queue.put(anchs)
-        # (states, actions, rewards, result_states, discounted_sum, value) = output_queue.get()
-    print ("Done simulating")
-    
-    # for w in workers:
-    #     w.join()
+        episodeData = {}
+        episodeData['data'] = anchs
+        episodeData['type'] = 'eval'
+        input_anchor_queue.put(episodeData)
         
-    for anchs in anchors: # half the anchors
-        (states, actions, rewards, result_states, discounted_sum, value) = output_queue.get()
-        print ("Got data to output")
-
-        
-        # error = model.bellman_error(np.array(states), np.array(actions), 
-         #                            np.array(rewards), np.array(result_states))
+    # for anchs in anchors: # half the anchors
+        (tuples, discounted_sum, value, evalData) =  eval_episode_data_queue.get()
+        """
+        simEpoch(actor, exp, 
+                model, discount_factor, anchors=anchs, action_space_continuous=action_space_continuous, 
+                settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
+                visualizeEvaluation=visualizeEvaluation)
+        """
+        epoch_ = epoch_ + 1
+        (states, actions, rewards, result_states, falls) = tuples
+        # print (states, actions, rewards, result_states, discounted_sum, value)
+        # print ("Evaluated Actions: ", actions)
+        # print ("Evaluated Rewards: ", rewards)
+        if model.getExperience().samples() > settings['batch_size']:
+            _states, _actions, _result_states, _rewards, falls = model.getExperience().get_batch(settings['batch_size'])
+            error = model.bellman_error(np.array(_states), np.array(_actions), 
+                                        np.array(_rewards), np.array(_result_states), np.array(falls))
+        else :
+            error = [[0]]
+            print ("Error: not enough samples")
         # states, actions, result_states, rewards = experience.get_batch(64)
         # error = model.bellman_error(states, actions, rewards, result_states)
         # print (states, actions, rewards, result_states, discounted_sum, value)
-        error = 0 # np.mean(np.fabs(error))
+        error = np.mean(np.fabs(error))
         # print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With reward_sum: " + str(np.sum(rewards)) + " bellman error: " + str(error))
         discounted_values.append(discounted_sum)
         values.append(value)
+        # print ("Rewards over eval epoch: ", rewards)
+        # This works better because epochs can terminate early, which is bad.
         reward_over_epocs.append(np.mean(np.array(rewards)))
         bellman_errors.append(error)
+        evalDatas.append(evalData)
         
     print ("Reward for min epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
     print ("reward_over_epocs" + str(reward_over_epocs))
+    print ("Discounted sum: ", discounted_values)
+    print ("Initial values: ", values)
     mean_reward = np.mean(reward_over_epocs)
     std_reward = np.std(reward_over_epocs)
     mean_bellman_error = np.mean(bellman_errors)
     std_bellman_error = np.std(bellman_errors)
     mean_discount_error = np.mean(np.array(discounted_values) - np.array(values))
     std_discount_error = np.std(np.array(discounted_values) - np.array(values))
+    mean_eval = np.mean(evalDatas)
+    std_eval = np.std(evalDatas)
     
     discounted_values = []
     reward_over_epocs = []
     bellman_errors = []
-    
-    return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
+        
+    return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
+            mean_eval, std_eval)
 
 def collectExperience(actor, exp_val, model, settings):
     

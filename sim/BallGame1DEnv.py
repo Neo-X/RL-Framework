@@ -31,7 +31,10 @@ class BallGame1DEnv(SimInterface):
         self._exp.finish()
     
     def getState(self):
-        state = np.array(self._exp.getState())
+        # state = np.array(self._exp.getState())
+        state_ = np.array(self._exp.getState())
+        state = np.array(state_)
+        state = np.reshape(state, (-1, len(state_)))
         
         return state
     
