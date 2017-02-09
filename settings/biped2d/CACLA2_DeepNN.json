@@ -1,6 +1,6 @@
 {
 "model_type": "Deep_NN",
-"agent_name": "CACLA",
+"agent_name": "CACLA2",
 "data_folder": "Simple_Walk/",
 "epsilon": 0.45, 
 "omega": 0.75,
@@ -79,7 +79,7 @@
 "visualize_forward_dynamics": false,
 "fd_learning_rate": 0.01,
 "train_actor": true,
-"debug_critic": false,
+"debug_critic": true,
 "critic_regularization_weight": 0.000001,
 "critic_learning_rate": 0.001,
 "visualize_expected_value": true,

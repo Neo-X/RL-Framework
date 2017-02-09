@@ -36,6 +36,7 @@ from model.DeepCNNDropout import DeepCNNDropout
 from algorithm.DeepQNetwork import DeepQNetwork
 from algorithm.DoubleDeepQNetwork import DoubleDeepQNetwork
 from algorithm.CACLA import CACLA
+from algorithm.CACLA2 import CACLA2
 from algorithm.CACLADV import CACLADV
 from algorithm.CACLADVTarget import CACLADVTarget
 from algorithm.ForwardDynamics import ForwardDynamics
@@ -185,6 +186,9 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "CACLA" ):
         model = CACLA(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+    elif (algorihtm_type == "CACLA2" ):
+        model = CACLA2(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "CACLADV" ):
         model = CACLADV(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
