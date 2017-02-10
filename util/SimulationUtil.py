@@ -229,7 +229,7 @@ def createEnvironment(config_file, env_type, settings):
         exp = BallGame1D(conf)
         exp = BallGame1DEnv(exp)
         return exp
-    elif env_type == 'simbiconBiped2D':
+    elif (env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D'):
         import simbiconAdapter
         c = simbiconAdapter.Configuration(config_file)
         print ("Num state: ", c._NUMBER_OF_STATES)
@@ -302,7 +302,7 @@ def createActor(env_type, settings, experience):
         actor = BallGame2DActor(settings)
     elif env_type == 'ballgame_1d':
         actor = BallGame1DActor(settings, experience)
-    elif env_type == 'simbiconBiped2D':
+    elif (env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D'):
         actor = SimbiconActor(settings, experience)
     elif env_type == 'terrainRLBiped2D' or (env_type == 'terrainRLFlatBiped2D'):
         actor = TerrainRLActor(settings, experience)
