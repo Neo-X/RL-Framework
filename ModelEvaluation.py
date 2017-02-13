@@ -651,6 +651,7 @@ def modelEvaluation(settings_file_name):
     f = open(file_name, 'r')
     model = dill.load(f)
     f.close()
+    print ("State Length: ", len(model.getStateBounds()[0]) )
     
     if (settings['train_forward_dynamics']):
         file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
