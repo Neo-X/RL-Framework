@@ -39,13 +39,6 @@ class SimWorker(Process):
         self._iteration = 0
         self._namespace = namespace # A way to pass messages between processes
         
-    def updateModel(self):
-        self._model.setPolicy(copy.deepcopy(self._namespace.model))
-        print ("Updating sw model to: ", self._model.getPolicy())
-    
-    def setP(self, p):
-        self._p= p
-        
     def run(self):
         
         # print ("SW model: ", self._model.getPolicy())
