@@ -63,11 +63,32 @@ class SimContainer(object):
         glutPostRedisplay()
         """
         glutTimerFunc(1000/fps, self.animate, 0) # 30 fps?
+        """
         if (self._exp.getEnvironment().needUpdatedAction()):
             state_ = self._exp.getState()
             action_ = self._agent.predict(state_)
             self._exp.getEnvironment().updateAction(action_)
+        """
         self._exp.update()
+        
+    def onKey(self, c, x, y):
+        """GLUT keyboard callback."""
+    
+        global SloMo, Paused
+    
+        # set simulation speed
+        if c >= '0' and c <= '9':
+            SloMo = 4 * int(c) + 1
+        # pause/unpause simulation
+        elif c == 'p' or c == 'P':
+            Paused = not Paused
+        # quit
+        elif c == 'q' or c == 'Q':
+            sys.exit(0)
+        elif c == 'r':
+            print("Resetting Epoch")
+            self._exp.getActor().initEpoch()   
+            self._exp.getEnvironment().initEpoch()
 
 def evaluateModelRender(settings_file_name):
 
@@ -193,11 +214,15 @@ def evaluateModelRender(settings_file_name):
        """ 
     # print ("Average Reward: " + str(mean_reward))
     
+    exp.getActor().initEpoch()   
+    exp.getEnvironment().initEpoch()
     fps=30
     sim = SimContainer(exp, masterAgent)
     # glutInitWindowPosition(x, y);
     # glutInitWindowSize(width, height);
     # glutCreateWindow("PyODE Ragdoll Simulation")
+    # set GLUT callbacks
+    glutKeyboardFunc(sim.onKey)
     ## This works because GLUT in C++ uses the same global context (singleton) as the one in python 
     glutTimerFunc(1000/fps, sim.animate, 0) # 30 fps?
     # glutIdleFunc(animate)
