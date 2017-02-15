@@ -113,7 +113,7 @@ def scale_action(normed_action_, action_bounds_):
 def getSettings(settingsFileName):
     file = open(settingsFileName)
     settings = json.load(file)
-    print ("Settings: " + str(settings))
+    # print ("Settings: " + str(json.dumps(settings)))
     file.close()
     
     return settings

@@ -32,7 +32,7 @@ class SimContainer(object):
         self._agent = agent
         
     def animate(self, callBackVal=-1):
-        print ("Animating: ", callBackVal)
+        # print ("Animating: ", callBackVal)
         """
         glClearColor(0.8, 0.8, 0.9, 0.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
