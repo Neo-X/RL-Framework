@@ -26,7 +26,11 @@ class CACLA(AlgorithmInterface):
         self._fallen_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype='int32'),
             broadcastable=(False, True))
-        
+        """
+        self._target_shared = theano.shared(
+            np.zeros((self._batch_size, 1), dtype='float64'),
+            broadcastable=(False, True))
+        """
         self._critic_regularization_weight = self.getSettings()["critic_regularization_weight"]
         self._critic_learning_rate = self.getSettings()["critic_learning_rate"]
         # primary network
@@ -112,6 +116,9 @@ class CACLA(AlgorithmInterface):
             # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         }
+        
+        ## Bellman error
+        self._bellman = self._target - self._q_funcTarget
         CACLA.compile(self)
         
     def compile(self):
@@ -141,11 +148,14 @@ class CACLA(AlgorithmInterface):
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._q_action = theano.function([], self._q_valsActA,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+        self._q_action_target = theano.function([], self._q_valsActTarget,
+                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         # self._bellman_error_drop = theano.function(inputs=[self._model.getStateSymbolicVariable(), self._model.getRewardSymbolicVariable(), self._model.getResultStateSymbolicVariable()], outputs=self._diff_drop, allow_input_downcast=True)
         self._bellman_error_drop2 = theano.function(inputs=[], outputs=self._diff_drop, allow_input_downcast=True, givens=self._givens_)
         
         # self._bellman_error = theano.function(inputs=[self._model.getStateSymbolicVariable(), self._model.getResultStateSymbolicVariable(), self._model.getRewardSymbolicVariable()], outputs=self._diff, allow_input_downcast=True)
         self._bellman_error2 = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
+        self._bellman_errorTarget = theano.function(inputs=[], outputs=self._bellman, allow_input_downcast=True, givens=self._givens_)
         # self._diffs = theano.function(input=[self._model.getStateSymbolicVariable()])
         self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         # self._get_grad2 = theano.gof.graph.inputs(lasagne.updates.rmsprop(loss, params, self._learning_rate, self._rho, self._rms_epsilon))
@@ -246,7 +256,8 @@ class CACLA(AlgorithmInterface):
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
-        action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        action_ = scale_action(self._q_action_target()[0], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
@@ -273,8 +284,8 @@ class CACLA(AlgorithmInterface):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        # return self._q_valTarget()[0]
-        return self._q_val()[0]
+        return self._q_valTarget()[0]
+        # return self._q_val()[0]
     
     def q_values(self, state):
         """
@@ -293,4 +304,5 @@ class CACLA(AlgorithmInterface):
     
     def bellman_error(self, states, actions, rewards, result_states, falls):
         self.setData(states, actions, rewards, result_states, falls)
-        return self._bellman_error2()
+        # return self._bellman_error2()
+        return self._bellman_errorTarget()
