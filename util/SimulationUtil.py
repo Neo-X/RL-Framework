@@ -36,6 +36,7 @@ from model.DeepCNNDropout import DeepCNNDropout
 from algorithm.DeepQNetwork import DeepQNetwork
 from algorithm.DoubleDeepQNetwork import DoubleDeepQNetwork
 from algorithm.CACLA import CACLA
+from algorithm.CACLA2 import CACLA2
 from algorithm.CACLADV import CACLADV
 from algorithm.CACLADVTarget import CACLADVTarget
 from algorithm.ForwardDynamics import ForwardDynamics
@@ -48,6 +49,7 @@ from actor.ActorInterface import ActorInterface
 from actor.BallGame2DActor import BallGame2DActor
 from actor.BallGame1DActor import BallGame1DActor
 from actor.SimbiconActor import SimbiconActor
+from actor.ImitationActor import ImitationActor
 from actor.TerrainRLActor import TerrainRLActor
 from actor.TerrainRLImitationActor import TerrainRLImitationActor
 
@@ -186,6 +188,9 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
     elif (algorihtm_type == "CACLA" ):
         model = CACLA(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+    elif (algorihtm_type == "CACLA2" ):
+        model = CACLA2(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "CACLADV" ):
         model = CACLADV(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
@@ -225,7 +230,7 @@ def createEnvironment(config_file, env_type, settings):
         exp = BallGame1D(conf)
         exp = BallGame1DEnv(exp)
         return exp
-    elif env_type == 'simbiconBiped2D':
+    elif (env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D'):
         import simbiconAdapter
         c = simbiconAdapter.Configuration(config_file)
         print ("Num state: ", c._NUMBER_OF_STATES)
@@ -298,8 +303,10 @@ def createActor(env_type, settings, experience):
         actor = BallGame2DActor(settings)
     elif env_type == 'ballgame_1d':
         actor = BallGame1DActor(settings, experience)
-    elif env_type == 'simbiconBiped2D':
+    elif (env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D'):
         actor = SimbiconActor(settings, experience)
+    elif (env_type == 'Imitate3D') :
+        actor = ImitationActor(settings, experience)
     elif env_type == 'terrainRLBiped2D' or (env_type == 'terrainRLFlatBiped2D'):
         actor = TerrainRLActor(settings, experience)
     elif (env_type == 'terrainRLImitateBiped2D'):

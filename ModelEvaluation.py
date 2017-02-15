@@ -39,13 +39,6 @@ class SimWorker(Process):
         self._iteration = 0
         self._namespace = namespace # A way to pass messages between processes
         
-    def updateModel(self):
-        self._model.setPolicy(copy.deepcopy(self._namespace.model))
-        print ("Updating sw model to: ", self._model.getPolicy())
-    
-    def setP(self, p):
-        self._p= p
-        
     def run(self):
         
         # print ("SW model: ", self._model.getPolicy())
@@ -651,6 +644,7 @@ def modelEvaluation(settings_file_name):
     f = open(file_name, 'r')
     model = dill.load(f)
     f.close()
+    print ("State Length: ", len(model.getStateBounds()[0]) )
     
     if (settings['train_forward_dynamics']):
         file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"

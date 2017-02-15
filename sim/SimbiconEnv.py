@@ -43,6 +43,9 @@ class SimbiconEnv(SimInterface):
 
     def generateEnvironmentSample(self):
         self._exp.getEnvironment().generateEnvironmentSample()
+        
+    def update(self):
+        self.getEnvironment().update()
             
     def getActor(self):
         return self._actor
