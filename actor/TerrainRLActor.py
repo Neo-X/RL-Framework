@@ -42,7 +42,7 @@ class TerrainRLActor(ActorInterface):
         updates_=0
         stumble_count=0
         torque_sum=0
-        while (not sim.getEnvironment().endOfAction() and (updates_ < 50)
+        while (not sim.getEnvironment().endOfAction() and (updates_ < 500)
                and (not sim.getEnvironment().agentHasFallen())
                ):
             sim.getEnvironment().update()
