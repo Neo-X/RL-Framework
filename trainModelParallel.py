@@ -344,8 +344,8 @@ def trainModelParallel(settingsFileName):
             p = max(settings['min_epsilon'], min(1.0, p)) # Keeps it between 1.0 and 0.2
             namespace.p=p
             
-            for sm in sim_workers:
-                sm.setP(p)
+            # for sm in sim_workers:
+                # sm.setP(p)
             # pr = cProfile.Profile()
             for epoch in range(epochs):
                 episodeData = {}
