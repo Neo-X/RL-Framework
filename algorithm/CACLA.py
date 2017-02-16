@@ -205,7 +205,7 @@ class CACLA(AlgorithmInterface):
         # print ("Rewards, Falls, Targets:", [rewards, falls, self._get_target()])
         # print ("Actions: ", actions)
         loss, _ = self._train()
-        print(" Critic loss: ", loss)
+        # print(" Critic loss: ", loss)
         
         return loss
     
@@ -237,7 +237,7 @@ class CACLA(AlgorithmInterface):
         if (len(tmp_actions) > 0):
             self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
             lossActor, _ = self._trainActor()
-            print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
+            # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
             # return np.sqrt(lossActor);
         else:
             print ("Length of BAD positive actions: ", len(tmp_actions))

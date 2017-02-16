@@ -56,10 +56,10 @@ def trainModelParallel(settingsFileName):
         print ("Settings: " + str(json.dumps(settings)))
         file.close()
         settings = validateSettings(settings)
-        anchor_data_file = open(settings["anchor_file"])
-        _anchors = getAnchors(anchor_data_file)
-        print ("Length of anchors epochs: " + str(len(_anchors)))
-        anchor_data_file.close()
+        # anchor_data_file = open(settings["anchor_file"])
+        # _anchors = getAnchors(anchor_data_file)
+        # print ("Length of anchors epochs: " + str(len(_anchors)))
+        # anchor_data_file.close()
         train_forward_dynamics=True
         model_type= settings["model_type"]
         directory= getDataDirectory(settings)
@@ -349,7 +349,7 @@ def trainModelParallel(settingsFileName):
             # pr = cProfile.Profile()
             for epoch in range(epochs):
                 episodeData = {}
-                episodeData['data'] = _anchors[epoch]
+                episodeData['data'] = epoch
                 episodeData['type'] = 'sim'
                 input_anchor_queue.put(episodeData)
                     
@@ -407,6 +407,9 @@ def trainModelParallel(settingsFileName):
                 """
             
                 # this->_actor->iterate();
+            ## This will let me know which part of learning is going slower training updates or simulation
+            print ("sim queue size: ", input_anchor_queue.qsize() )
+            print ("exp tuple queue size: ", output_experience_queue.qsize())
                 
             if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
                 # Running less often helps speed learning up.
@@ -417,7 +420,7 @@ def trainModelParallel(settingsFileName):
                                                     anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings)
                                                     """
                 mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue,
-                                                           model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=_anchors[:settings['eval_epochs']])
+                                                           model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                 """
                 for sm in sim_workers:
                     sm.setP(0.0)

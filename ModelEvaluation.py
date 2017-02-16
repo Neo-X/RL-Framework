@@ -211,7 +211,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if r < (epsilon * p): # explore random actions
                 
                 r2 = np.random.rand(1)[0]
-                if (r2 < omega) or bootstraping:# explore hand crafted actions
+                if (r2 < (omega * p)) or bootstraping:# explore hand crafted actions
                     # return ra2
                     # randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # action = randomAction
@@ -348,9 +348,9 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
     values = []
     evalDatas = []
     epoch_=0
-    for anchs in anchors: # half the anchors
+    for i in range(anchors): # half the anchors
         (tuples, discounted_sum, value, evalData) = simEpoch(actor, exp, 
-                model, discount_factor, anchors=anchs, action_space_continuous=action_space_continuous, 
+                model, discount_factor, anchors=i, action_space_continuous=action_space_continuous, 
                 settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
                 visualizeEvaluation=visualizeEvaluation)
         epoch_ = epoch_ + 1
@@ -408,9 +408,9 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
     values = []
     evalDatas = []
     epoch_=0
-    for anchs in anchors: # half the anchors
+    for i in range(anchors): # half the anchors
         episodeData = {}
-        episodeData['data'] = anchs
+        episodeData['data'] = i
         episodeData['type'] = 'eval'
         input_anchor_queue.put(episodeData)
         
@@ -568,12 +568,12 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
     rewards = []
     falls = []
     anchor_data_file = open(settings["anchor_file"])
-    _anchors = getAnchors(anchor_data_file)
-    print ("Length of anchors epochs: " + str(len(_anchors)))
+    # _anchors = getAnchors(anchor_data_file)
+    # print ("Length of anchors epochs: " + str(len(_anchors)))
     anchor_data_file.close()
     while i < samples:
         # Actor should be FIRST here
-        out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=_anchors[0], 
+        out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=i, 
                                action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
                                 p=100.0, validation=settings['train_on_validation_set'], bootstraping=True)
         # if self._p <= 0.0:
@@ -606,7 +606,7 @@ def modelEvaluation(settings_file_name):
     settings = getSettings(settings_file_name)
     
     anchor_data_file = open(settings["anchor_file"])
-    _anchors = getAnchors(anchor_data_file)
+    # _anchors = getAnchors(anchor_data_file)
     anchor_data_file.close()
     model_type= settings["model_type"]
     directory= getDataDirectory(settings)
@@ -688,7 +688,7 @@ def modelEvaluation(settings_file_name):
     masterAgent.setPolicy(model)
     
     
-    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, masterAgent, discount_factor, anchors=_anchors[:settings['eval_epochs']], 
+    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, masterAgent, discount_factor, anchors=settings['eval_epochs'], 
                                                                                                                         action_space_continuous=action_space_continuous, settings=settings, print_data=True, evaluation=True,
                                                                                                                         visualizeEvaluation=expected_value_viz)
         # simEpoch(exp, model, discount_factor=discount_factor, anchors=_anchors[:settings['eval_epochs']][9], action_space_continuous=True, settings=settings, print_data=True, p=0.0, validation=True)
