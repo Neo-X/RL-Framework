@@ -278,9 +278,9 @@ def rand_rotation_matrix(deflection=1.0, randnums=None):
 def draw_body(body):
     """Draw an ODE body."""
     glColor3f(0.8, 0.3, 0.3)
-    rot = makeOpenGLMatrix(body.getRotation(), body.getPosition())
+    # rot = makeOpenGLMatrix(body.getRotation(), body.getPosition())
     glPushMatrix()
-    glMultMatrixd(rot)
+    # glMultMatrixd(rot)
     if body.shape == "capsule":
         cylHalfHeight = body.length / 2.0
         glBegin(GL_QUAD_STRIP)
@@ -460,30 +460,15 @@ class GapGame1D(object):
         self._state_num_max=10
         self._num_points=self._game_settings['num_terrain_samples']
         
-        # create an obstacle (world, space, density, height, radius)
-        self._obstacle_properties = self._game_settings['body_shape_parameters']
-        if self._game_settings['body_shape'] == "rectangle":
-            print ("Creating " + self._game_settings['body_shape'] +  " obstacle")
-            self._obstacle, self._obsgeom = createBox(self._world, self._space, 100, self._obstacle_properties['width_x'], 
-                                                      self._obstacle_properties['height_y'], self._obstacle_properties['depth_z'])
-            self._ballRadius=math.sqrt((self._obstacle_properties['width_x']/2.0)*(self._obstacle_properties['width_x']/2.0) +
-                              (self._obstacle_properties['height_y']/2.0)*(self._obstacle_properties['height_y']/2.0) +
-                              (self._obstacle_properties['depth_z']/2.0)*(self._obstacle_properties['depth_z']/2.0)) 
-        elif self._game_settings['body_shape'] == "capsule":
-            print ("Creating " + self._game_settings['body_shape'] +  " obstacle")
-            self._obstacle, self._obsgeom = createCapsule(self._world, self._space, 100, self._obstacle_properties['length'], 
-                                                      self._obstacle_properties['radius'])
-            self._ballRadius=self._obstacle_properties['radius']
-        elif self._game_settings['body_shape'] == "sphere":
-            print ("Creating " + self._game_settings['body_shape'] +  " obstacle")
-            self._obstacle, self._obsgeom = createSphere(self._world, self._space, 100, self._obstacle_properties['radius'])
-            self._ballRadius=self._obstacle_properties['radius']
+
         self._obstacle = Obstacle()
+        self._obstacle.shape = "sphere"
+        self._obstacle.radius = self._ballRadius
         pos = (0.0, 0.0, 0.0)
         #pos = (0.27396178783269359, 0.20000000000000001, 0.17531818795388002)
         self._obstacle.setPosition(pos)
         # self._obstacle.setRotation(rightRot)
-        # self._bodies.append(self._obstacle)
+        self._bodies.append(self._obstacle)
         print ("obstacle created at %s" % (str(pos)))
         # print ("total mass is %.4f kg" % (self._obstacle.getMass().mass))
         
@@ -595,10 +580,11 @@ class GapGame1D(object):
         pos = self._obstacle.getPosition()
         dist = action[0]
         if dist > self._game_settings["jump_bounds"][1]:
-            new_vel = self._game_settings["jump_bounds"][1]
-        elif new_vel < self._game_settings["jump_bounds"][0]:
-            new_vel = self._game_settings["jump_bounds"][0]
+            dist = self._game_settings["jump_bounds"][1]
+        elif dist < self._game_settings["jump_bounds"][0]:
+            dist = self._game_settings["jump_bounds"][0]
         ## Move forward along X
+        self.simulateAction(action)
         self._obstacle.setPosition(pos + np.array([dist, 0.0, 0.0]))
 
         # print (pos)
@@ -672,8 +658,12 @@ class GapGame1D(object):
     
         glutSwapBuffers()
     
-        
-    def simulateAction(self):
+    def _computeHeight(self, action_):
+        init_v_squared = (action_*action_)
+        # seconds_ = 2 * (-self._box.G)
+        return (-init_v_squared)/1.0    
+    
+    def simulateAction(self, action):
         """
             Returns True if a contact was detected
         
@@ -684,38 +674,23 @@ class GapGame1D(object):
         if self._game_settings['render']:
             if (t > 0):
                 time.sleep(t)
-            
-        for i in range(self._stepsPerFrame):
-            # Detect collisions and create contact joints
-            self._space.collide((self._world, self._contactgroup), near_callback)
-    
-            # Simulation step (with slow motion)
-            self._world.step(self._dt / self._stepsPerFrame / self._SloMo)
-    
-            self._numiter += 1
-    
-            # apply internal ragdoll forces
-            # ragdoll.update()
-            # pos = self._obstacle.getPosition()
-            # print ("Ball pos: ", pos)
-            # self._obstacle.addTorque((0.0,0.0,0.2));
-                
-            contacts = ode.collide(self._floor, self._obsgeom)
-            # print ("Num contacts: " + str(len(contacts)))
-            if (len(contacts)> 0):
-                # print ("Num contacts: " + str(len(contacts)))
-                # print ("Constact info: ", contacts[0].getContactGeomParams())
-                return True
-            
-            # Remove all contact joints
-            # for joint_ in self._contactgroup:
-            #     print ("Joint: " + str(joint_))
-            self._contactgroup.empty()
-            
+        ## 
         if self._game_settings['render']:
-            glutPostRedisplay()
-            self.onDraw()
-        return False
+            pos = self._obstacle.getPosition()
+            steps=100
+            hopTime=1.0
+            x = np.linspace(0, 1.0, steps)
+            y = map(self._computeHeight, x)
+            x_ = x + pos[0]
+            for i in range(steps):
+                ## Draw the ball arch
+                self._obstacle.setPosition([x[i], y[i], 0.0] )
+                pos_ = self._obstacle.getPosition()
+                print ("New obstacle position: ", pos_)
+                
+                glutPostRedisplay()
+                self.onDraw()
+            return False
         
         
     def visualizeNextState(self, terrain, action, terrain_dx):
@@ -843,7 +818,7 @@ class GapGame1D(object):
     def getState(self):
         """ get the next self._num_points points"""
         pos = self._obstacle.getPosition()
-        charState = self.getCharacterState()
+        charState = []
         num_extra_feature=1
         ## Get the index of the next terrain sample
         start = self.getTerrainIndex()
@@ -882,10 +857,10 @@ if __name__ == '__main__':
     if (len(sys.argv)) > 1:
         _settings=json.load(open(sys.argv[1]))
         print (_settings)
-        game = BallGame1D(_settings)
+        game = GapGame1D(_settings)
     else:
         settings['render']=True
-        game = BallGame1D(settings)
+        game = GapGame1D(settings)
     game.init()
     for j in range(100):
         # game.generateEnvironmentSample()
@@ -898,8 +873,7 @@ if __name__ == '__main__':
             # state = game.getState()
             
             # action = model.predict(state)
-            _action = ( (np.random.random([1]) * (1- -1))
-                    + -1)[0]
+            _action = ( (np.random.random([1])))[0]
             action = [_action,4.0]
             state = game.getState()
             pos = game._obstacle.getPosition()
@@ -915,15 +889,11 @@ if __name__ == '__main__':
             
             if (game.agentHasFallen()):
                 print (" *****Agent fell in a hole")
-            if (game.hitWall()):
-                print ("******Agent has hit a wall")
+            
             if ( reward < 0.00001 ):
                 print("******Agent has 0 reward?")
             
-            if ( (not (game.agentHasFallen() or game.hitWall())) and (reward < 0.00001) ):
-                print ("*** This bounce game is wrong...")
-            
-            print ("Reward: " + str(reward) + " on action: " + str(i))
+            print ("Reward: " + str(reward) + " on action: ", action, " actions: ", i)
             # print ("Number of geoms in space: ", game._space.getNumGeoms())
             # print ("Random rotation matrix", list(np.reshape(rand_rotation_matrix(), (1,9))[0]))
             i=i+1
