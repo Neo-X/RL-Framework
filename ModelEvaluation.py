@@ -236,10 +236,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     if (settings["use_model_based_action_optimization"] and (np.random.rand(1)[0] > settings["model_based_action_omega"])):
                         # Need to be using a forward dynamics deep network for this
                         action = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_)
+                    print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
             else: # exploit policy
                 # return pa1
                 pa = model.predict(state_)
+                
                 action = pa
+                print ("Exploitation: ", action , " epsilon: ", epsilon * p)
             outside_bounds=False
             action_=None
             if (settings["clamp_actions_to_stay_inside_bounds"] or (settings['penalize_actions_outside_bounds'])):

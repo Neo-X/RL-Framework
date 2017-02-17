@@ -121,7 +121,7 @@ def getSettings(settingsFileName):
 def randomExporation(explorationRate, actionV):
     out = []
     for i in range(len(actionV)):
-        out.append(actionV[i] + random.gauss(actionV[i], explorationRate))
+        out.append(actionV[i] + random.gauss(0, explorationRate))
     return out
 
 def randomExporation(explorationRate, actionV, bounds):
@@ -131,7 +131,7 @@ def randomExporation(explorationRate, actionV, bounds):
     
     out = []
     for i in range(len(actionV)):
-        out.append(actionV[i] + random.gauss(actionV[i], explorationRate * (bounds[1][i]-bounds[0][i])))
+        out.append(actionV[i] + random.gauss(0, explorationRate * (bounds[1][i]-bounds[0][i])))
     return out
 
 def randomUniformExporation(bounds):
@@ -341,20 +341,30 @@ def validBounds(bounds):
 
 if __name__ == '__main__':
     import sys
+    import matplotlib.pyplot as plt
     
     settingsFileName = sys.argv[1]
     file = open(settingsFileName)
     settings = json.load(file)
+    file.close()
     
     action_bounds = np.array(settings["action_bounds"], dtype=float)
+    action_bounds[0][0] = 0
     reward_bounds = np.array([[-10.1],[0.0]])
-    action = np.array([0,0,0.0])
+    action = np.array([0.20])
     print ("Action bounds: " + str(action_bounds))
     print ("Action: " + str(action))
-    print ("Scaled Action: " + str(scale_action(action, action_bounds)) + " norm action: " + str(norm_action(scale_action(action, action_bounds), action_bounds)))
-    print ("Scaled Action: " + str(scale_action(action+0.5, action_bounds)) + " norm action: " + str(norm_action(scale_action(action+0.5, action_bounds), action_bounds)))
-    print ("Scaled Action: " + str(scale_action(action+-0.5, action_bounds)) + " norm action: " + str(norm_action(scale_action(action+-0.5, action_bounds), action_bounds)))
-    
+    print ("Normalized Action: " + str(norm_action(action, action_bounds)) + " same action: " + str(scale_action(norm_action(action, action_bounds), action_bounds)))
+    print ("Normalized Action: " + str(norm_action(action+0.5, action_bounds)) + " same action: " + str(scale_action(norm_action(action+0.5, action_bounds), action_bounds)))
+    print ("Normalized Action: " + str(norm_action(action+-0.5, action_bounds)) + " same action: " + str(scale_action(norm_action(action+-0.5, action_bounds), action_bounds)))
+    actions_=[]
+    for i in range(50):
+        action_ = randomExporation(settings["exploration_rate"], action, action_bounds)
+        print (" Exploration action: ", action_)
+        actions_.append(action_[0])
+    data = actions_
+    plt.hist(data, bins=20)
+    plt.show()
     reward=np.array([-9.0])
     print ("Norm Reward: " + str(norm_reward(reward, reward_bounds)) )
     print ("Norm Reward: " + str(norm_reward(reward+-0.5, reward_bounds)))
