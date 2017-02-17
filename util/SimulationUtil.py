@@ -14,6 +14,7 @@ import numpy as np
 
 from env.BallGame2D import BallGame2D
 from env.BallGame1D import BallGame1D
+from env.GapGame1D import GapGame1D
 from ModelEvaluation import *
 
 from model.RLDeepNet import RLDeepNet
@@ -48,6 +49,7 @@ from NNVisualize import NNVisualize
 from actor.ActorInterface import ActorInterface
 from actor.BallGame2DActor import BallGame2DActor
 from actor.BallGame1DActor import BallGame1DActor
+from actor.GapGame1DActor import GapGame1DActor
 from actor.SimbiconActor import SimbiconActor
 from actor.ImitationActor import ImitationActor
 from actor.TerrainRLActor import TerrainRLActor
@@ -61,6 +63,7 @@ from sim.TerrainRLFlatEnv import TerrainRLFlatEnv
 from sim.TerrainRLImitateEnv import TerrainRLImitateEnv
 from sim.BallGame2DEnv import BallGame2DEnv
 from sim.BallGame1DEnv import BallGame1DEnv
+from sim.GapGame1DEnv import GapGame1DEnv
 
 #Sampler types
 from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
@@ -230,6 +233,14 @@ def createEnvironment(config_file, env_type, settings):
         exp = BallGame1D(conf)
         exp = BallGame1DEnv(exp)
         return exp
+    elif env_type == 'gapgame_1d':
+        file = open(config_file)
+        conf = json.load(file)
+        # print ("Settings: " + str(json.dumps(conf)))
+        file.close()
+        exp = GapGame1D(conf)
+        exp = GapGame1DEnv(exp)
+        return exp
     elif (env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D'):
         import simbiconAdapter
         c = simbiconAdapter.Configuration(config_file)
@@ -303,6 +314,8 @@ def createActor(env_type, settings, experience):
         actor = BallGame2DActor(settings)
     elif env_type == 'ballgame_1d':
         actor = BallGame1DActor(settings, experience)
+    elif env_type == 'gapgame_1d':
+        actor = GapGame1DActor(settings, experience)
     elif (env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D'):
         actor = SimbiconActor(settings, experience)
     elif (env_type == 'Imitate3D') :

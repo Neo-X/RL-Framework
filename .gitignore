@@ -90,3 +90,7 @@ ENV/
 
 .gitmodules
 simbiconBiped2D/
+Imitate3D/
+ballgame_1d/
+gapgame_1d/
+simbiconBiped3D/

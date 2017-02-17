@@ -297,6 +297,8 @@ def draw_body(body):
         glTranslated(0, 0, -2.0 * cylHalfHeight)
         glutSolidSphere(body.radius, CAPSULE_SLICES, CAPSULE_STACKS)
     elif body.shape == "sphere":
+        pos = body.getPosition()
+        glTranslated(pos[0], pos[1], pos[2])
         glutSolidSphere(body.radius, CAPSULE_SLICES, CAPSULE_STACKS)
     elif body.shape == "rectangle":
         sx,sy,sz = body.boxsize
@@ -536,6 +538,7 @@ class GapGame1D(object):
         
     def endOfEpoch(self):
         pos = self._obstacle.getPosition()
+        self.agentHasFallen()
         # start = (pos[0]/self._terrainScale)+1 
         # assert start+self._num_points+1 < (len(self._terrainData)), "Ball is exceeding terrain length %r after %r actions" % (start+self._num_points+1, self._state_num)
         if (self._end_of_Epoch_Flag):
@@ -578,14 +581,16 @@ class GapGame1D(object):
     def actContinuous(self, action, bootstrapping=False):
         # print ("Action: ", action)
         pos = self._obstacle.getPosition()
+        # print ("Position Before action: ", pos)
         dist = action[0]
         if dist > self._game_settings["jump_bounds"][1]:
             dist = self._game_settings["jump_bounds"][1]
         elif dist < self._game_settings["jump_bounds"][0]:
             dist = self._game_settings["jump_bounds"][0]
         ## Move forward along X
-        self.simulateAction(action)
+        self.simulateAction([dist])
         self._obstacle.setPosition(pos + np.array([dist, 0.0, 0.0]))
+        # print ("Position After action: ", pos + np.array([dist, 0.0, 0.0]))
 
         # print (pos)
 
@@ -599,9 +604,11 @@ class GapGame1D(object):
         
     def agentHasFallen(self):
         start = self.getTerrainIndex()
-        
-        if ( (self._terrainData[start-1] < 0.0) or 
-             (self._terrainData[start] < 0.0 )):
+        # print ("Terrain start index: ", start)
+        # print ("Terrain Data: ", self._terrainData)
+        if ( (self._terrainData[start-1] < -0.1) or 
+             (self._terrainData[start] < -0.1 )):
+            self._end_of_Epoch_Flag=True # kind of hacky to end Epoch after the ball falls in a hole.
             return True
     
         return False
@@ -677,20 +684,23 @@ class GapGame1D(object):
         ## 
         if self._game_settings['render']:
             pos = self._obstacle.getPosition()
-            steps=100
+            steps=50
             hopTime=1.0
-            x = np.linspace(0, 1.0, steps)
-            y = map(self._computeHeight, x)
-            x_ = x + pos[0]
+            x = np.array(np.linspace(-0.5, 0.5, steps))
+            y = np.array(map(self._computeHeight, x))
+            y = (y + math.fabs(np.min(y))) * 2.0
+            x = np.array(np.linspace(0.0, 1.0, steps)) * action[0]
+            # x = (x + 0.5) * action[0]
+            x_ = (x + pos[0])
             for i in range(steps):
                 ## Draw the ball arch
-                self._obstacle.setPosition([x[i], y[i], 0.0] )
+                self._obstacle.setPosition([x_[i], y[i], 0.0] )
                 pos_ = self._obstacle.getPosition()
-                print ("New obstacle position: ", pos_)
+                # print ("New obstacle position: ", pos_)
                 
                 glutPostRedisplay()
                 self.onDraw()
-            return False
+        return True
         
         
     def visualizeNextState(self, terrain, action, terrain_dx):
@@ -813,7 +823,7 @@ class GapGame1D(object):
     
     def getTerrainIndex(self):
         pos = self._obstacle.getPosition()
-        return math.floor((pos[0]-(self._terrainStartX) )/self._terrainScale)+1
+        return int(math.floor( (pos[0]-(self._terrainStartX) )/self._terrainScale)+1)
     
     def getState(self):
         """ get the next self._num_points points"""
@@ -873,7 +883,7 @@ if __name__ == '__main__':
             # state = game.getState()
             
             # action = model.predict(state)
-            _action = ( (np.random.random([1])))[0]
+            _action =  np.random.random([1])[0] * 2 + 0.5
             action = [_action,4.0]
             state = game.getState()
             pos = game._obstacle.getPosition()
