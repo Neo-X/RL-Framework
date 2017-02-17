@@ -100,8 +100,10 @@ class CACLA(AlgorithmInterface):
         self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
         self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
         self._actLoss = 0.5 * self._actDiff ** 2 
-        self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
-        self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
+        # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
+        self._actLoss = T.mean(self._actLoss)
+        # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
+        self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         
         self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization, self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
@@ -205,7 +207,7 @@ class CACLA(AlgorithmInterface):
         # print ("Rewards, Falls, Targets:", [rewards, falls, self._get_target()])
         # print ("Actions: ", actions)
         loss, _ = self._train()
-        # print(" Critic loss: ", loss)
+        print(" Critic loss: ", loss)
         
         return loss
     
@@ -237,7 +239,7 @@ class CACLA(AlgorithmInterface):
         if (len(tmp_actions) > 0):
             self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
             lossActor, _ = self._trainActor()
-            # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
+            print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
             # return np.sqrt(lossActor);
         else:
             print ("Length of BAD positive actions: ", len(tmp_actions))
