@@ -517,7 +517,7 @@ def collectExperience(actor, exp_val, model, settings):
             experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True)
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
-        
+        experience.setSettings(settings)
         
         
         print ("State Mean:" + str(state_avg))
