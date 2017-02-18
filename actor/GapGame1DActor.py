@@ -35,7 +35,7 @@ class GapGame1DActor(ActorInterface):
     def hasNotFallen(self, exp):
         # if ( (not ( exp.getEnvironment().agentHasFallen() or exp.getEnvironment().hitWall())) and () ):
         # if ( exp.getEnvironment().agentHasFallen() or exp.getEnvironment().hitWall()) :
-        if ( exp.getEnvironment()._end_of_Epoch_Flag ):
+        if ( exp.getEnvironment().agentHasFallen() ):
             return 0
         else:
             return 1

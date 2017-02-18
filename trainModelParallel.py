@@ -107,6 +107,8 @@ def trainModelParallel(settingsFileName):
             experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True)
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+            
+        experience.setSettings(settings)
         
         if settings['visualize_learning']:    
             rlv = RLVisualize(directory+str(settings['agent_name']), settings)

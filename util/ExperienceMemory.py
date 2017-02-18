@@ -108,7 +108,7 @@ class ExperienceMemory(object):
             state.append(norm_state(self._state_history[i], self._state_bounds))
             action.append(norm_action(self._action_history[i], self._action_bounds)) # won't work for discrete actions...
             resultState.append(norm_state(self._nextState_history[i], self._state_bounds))
-            reward.append(self._reward_history[i])
+            reward.append(self._reward_history[i] * ((1.0-self._settings['discount_factor']))) # scale rewards
             fall.append(self._fall_history[i])
             
         # print c
@@ -130,6 +130,8 @@ class ExperienceMemory(object):
         self._reward_bounds = _reward_bounds
     def setActionBounds(self, _action_bounds):
         self._action_bounds = _action_bounds
+    def setSettings(self, settings):
+        self._settings = settings
     
     def saveToFile(self, filename):
         hf = h5py.File(filename, "w")

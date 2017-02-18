@@ -711,6 +711,15 @@ class GapGame1D(object):
         self._nextTerrainStartX = pos[0] + (time * action[0]) + terrain_dx
         # self._nextTerrainStartX = pos[0] + terrain_dx
         # drawTerrain(terrain, translateX, translateY=0.0, colour=(0.4, 0.4, 0.8, 0.0), wirefame=False):
+        
+    def visualizeState(self, terrain, action, terrain_dx):
+        self._nextTerrainData = terrain
+        pos = self._obstacle.getPosition() 
+        # self._obstacle.setLinearVel((action[0],4.0,0.0))
+        time = 0
+        self._nextTerrainStartX = pos[0] + (time * action[0]) + terrain_dx
+        # self._nextTerrainStartX = pos[0] + terrain_dx
+        # drawTerrain(terrain, translateX, translateY=0.0, colour=(0.4, 0.4, 0.8, 0.0), wirefame=False):
     
     def generateTerrain(self):
         """
@@ -894,7 +903,7 @@ if __name__ == '__main__':
             
             # print (state)
             
-        
+            # game.visualizeState(state[:len(state)-1], action, state[-1])
             reward = game.actContinuous(action)
             
             if (game.agentHasFallen()):
