@@ -10,7 +10,6 @@ import numpy as np
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import ode
 # from twisted.protocols import stateful
 import copy
 import math
@@ -142,91 +141,6 @@ upAxis = (0.0, 1.0, 0.0)
 downAxis = (0.0, -1.0, 0.0)
 bkwdAxis = (0.0, 0.0, 1.0)
 fwdAxis = (0.0, 0.0, -1.0)
-
-def createCapsule(world, space, density, length, radius):
-    """Creates a capsule body and corresponding geom."""
-
-    # create capsule body (aligned along the z-axis so that it matches the
-    #   GeomCCylinder created below, which is aligned along the z-axis by
-    #   default)
-    body = ode.Body(world)
-    M = ode.Mass()
-    M.setCappedCylinder(density, 3, radius, length)
-    body.setMass(M)
-
-    # set parameters for drawing the body
-    body.shape = "capsule"
-    body.length = length
-    body.radius = radius
-
-    # create a capsule geom for collision detection
-    geom = ode.GeomCCylinder(space, radius, length)
-    geom.setBody(body)
-
-    return body, geom
-
-# create_box
-def createBox(world, space, density, lx, ly, lz):
-    """Create a box body and its corresponding geom."""
-
-    # Create body
-    body = ode.Body(world)
-    M = ode.Mass()
-    M.setBox(density, lx, ly, lz)
-    body.setMass(M)
-
-    # Set parameters for drawing the body
-    body.shape = "rectangle"
-    body.boxsize = (lx, ly, lz)
-
-    # Create a box geom for collision detection
-    geom = ode.GeomBox(space, lengths=body.boxsize)
-    geom.setBody(body)
-
-    return body, geom
-
-def createSphere(world, space, density, radius):
-    """Creates a capsule body and corresponding geom."""
-
-    # create capsule body (aligned along the z-axis so that it matches the
-    #   GeomCCylinder created below, which is aligned along the z-axis by
-    #   default)
-    body = ode.Body(world)
-    M = ode.Mass()
-    M.setSphere(density, radius)
-    body.setMass(M)
-
-    # set parameters for drawing the body
-    body.shape = "sphere"
-    body.radius = radius
-
-    # create a capsule geom for collision detection
-    geom = ode.GeomSphere(space, radius)
-    geom.setBody(body)
-
-    return body, geom
-
-def near_callback(args, geom1, geom2):
-    """
-    Callback function for the collide() method.
-
-    This function checks if the given geoms do collide and creates contact
-    joints if they do.
-    """
-
-    if (ode.areConnected(geom1.getBody(), geom2.getBody())):
-        return
-
-    # check if the objects collide
-    contacts = ode.collide(geom1, geom2)
-
-    # create contact joints
-    world, contactgroup = args
-    for c in contacts:
-        c.setBounce(0.2)
-        c.setMu(500) # 0-5 = very slippery, 50-500 = normal, 5000 = very sticky
-        j = ode.ContactJoint(world, contactgroup, c)
-        j.attach(geom1.getBody(), geom2.getBody())
 
 
 # polygon resolution for capsule bodies
@@ -399,19 +313,9 @@ class GapGame1D(object):
             self._window_height = 400
             glutInitWindowPosition(x, y);
             glutInitWindowSize(self._window_width, self._window_height);
-            glutCreateWindow("PyODE BallGame1D Simulation")
-        
-        # create an ODE world object
-        self._world = ode.World()
-        self._world.setGravity((0.0, -9.81, 0.0))
-        self._world.setERP(0.1)
-        self._world.setCFM(1E-4)
-        
-        # create an ODE space object
-        self._space = ode.Space()
+            glutCreateWindow(None)
         
         # create an infinite plane geom to simulate a floor
-        # self._floor = ode.GeomPlane(self._space, (0, 1, 0), 0)
         """
         self._terrainStartX=0.0
         self._terrainStripIndex=-1
@@ -431,7 +335,6 @@ class GapGame1D(object):
         
         # create a joint group for the contact joints generated during collisions
         #   between two bodies collide
-        self._contactgroup = ode.JointGroup()
         
         # set the initial simulation loop parameters
         self._fps = 60
@@ -688,7 +591,7 @@ class GapGame1D(object):
             hopTime=1.0
             x = np.array(np.linspace(-0.5, 0.5, steps))
             y = np.array(map(self._computeHeight, x))
-            y = (y + math.fabs(np.min(y))) * 2.0
+            y = (y + math.fabs(float(np.amin(y)))) * 2.0
             x = np.array(np.linspace(0.0, 1.0, steps)) * action[0]
             # x = (x + 0.5) * action[0]
             x_ = (x + pos[0])
@@ -802,7 +705,7 @@ class GapGame1D(object):
         # gap_start=random.randint(2,7)
         gap_start=self._terrainParameters['gap_start']
         next_gap=self._terrainParameters['distance_till_next_gap']
-        for i in range(terrainLength/next_gap):
+        for i in range(int(terrainLength/next_gap)):
             gap_start= gap_start+random.randint(self._terrainParameters['random_gap_start_range'][0],
                                                 self._terrainParameters['random_gap_start_range'][1])
             gap_size=random.randint(self._terrainParameters['random_gap_width_range'][0],
@@ -813,12 +716,12 @@ class GapGame1D(object):
     
     def setTerrainData(self, data_):
         self._terrainData = data_
-        verts, faces = generateTerrainVerts(self._terrainData, translateX=self._terrainStartX)
-        del self._terrainMeshData
-        self._terrainMeshData = ode.TriMeshData()
-        self._terrainMeshData.build(verts, faces)
-        del self._floor
-        self._floor = ode.GeomTriMesh(self._terrainMeshData, self._space)
+        # verts, faces = generateTerrainVerts(self._terrainData, translateX=self._terrainStartX)
+        # del self._terrainMeshData
+        # self._terrainMeshData = ode.TriMeshData()
+        # self._terrainMeshData.build(verts, faces)
+        # del self._floor
+        # self._floor = ode.GeomTriMesh(self._terrainMeshData, self._space)
         
     def getCharacterState(self):
         # add angular velocity
