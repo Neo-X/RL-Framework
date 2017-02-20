@@ -917,8 +917,7 @@ if __name__ == '__main__':
             # state = game.getState()
             
             # action = model.predict(state)
-            _action = ( (np.random.random([1]) * (1- -1))
-                    + -1)[0]
+            _action = ((np.random.random([1]))[0] * 3.0) + 0.5
             action = [_action,4.0]
             state = game.getState()
             pos = game._obstacle.getPosition()
@@ -942,7 +941,8 @@ if __name__ == '__main__':
             if ( (not (game.agentHasFallen() or game.hitWall())) and (reward < 0.00001) ):
                 print ("*** This bounce game is wrong...")
             
-            print ("Reward: " + str(reward) + " on action: " + str(i))
+            print ("Reward: " + str(reward) + " on action: " + str(i) + " Enof of episode: ", game.endOfEpoch())
+            
             # print ("Number of geoms in space: ", game._space.getNumGeoms())
             # print ("Random rotation matrix", list(np.reshape(rand_rotation_matrix(), (1,9))[0]))
             i=i+1
