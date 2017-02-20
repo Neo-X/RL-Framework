@@ -14,11 +14,7 @@ class BallGame1DActor(ActorInterface):
     def act(self, exp, action_, bootstrapping=False):
         samp = self.getActionParams(action_)
         
-        averageSpeed = exp.getEnvironment().actContinuous(samp, bootstrapping=bootstrapping)
-        
-        vel_dif = self._target_vel - averageSpeed
-        reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight) # optimal is 0
-        self._reward_sum = self._reward_sum + reward
+        reward = self.actContinuous(exp, action_, bootstrapping)
         return reward
     
     # @profile(precision=5)

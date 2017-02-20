@@ -579,7 +579,8 @@ class BallGame1D(object):
         # print ("Action: ", action)
         pos = self._obstacle.getPosition()
         vel = self._obstacle.getLinearVel()
-        new_vel = vel[0] + action[0]
+        # new_vel = vel[0] + action[0]
+        new_vel = action[0]
         if new_vel > self._game_settings["velocity_bounds"][1]:
             new_vel = self._game_settings["velocity_bounds"][1]
         elif new_vel < self._game_settings["velocity_bounds"][0]:

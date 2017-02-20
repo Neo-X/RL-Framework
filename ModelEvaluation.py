@@ -412,44 +412,53 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
     values = []
     evalDatas = []
     epoch_=0
-    for i in range(anchors): # half the anchors
-        episodeData = {}
-        episodeData['data'] = i
-        episodeData['type'] = 'eval'
-        input_anchor_queue.put(episodeData)
+    i = 0 
+    while i < anchors: # half the anchors
         
-    # for anchs in anchors: # half the anchors
-        (tuples, discounted_sum, value, evalData) =  eval_episode_data_queue.get()
-        """
-        simEpoch(actor, exp, 
-                model, discount_factor, anchors=anchs, action_space_continuous=action_space_continuous, 
-                settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
-                visualizeEvaluation=visualizeEvaluation)
-        """
-        epoch_ = epoch_ + 1
-        (states, actions, rewards, result_states, falls) = tuples
-        # print (states, actions, rewards, result_states, discounted_sum, value)
-        # print ("Evaluated Actions: ", actions)
-        # print ("Evaluated Rewards: ", rewards)
-        if model.getExperience().samples() > settings['batch_size']:
-            _states, _actions, _result_states, _rewards, falls = model.getExperience().get_batch(settings['batch_size'])
-            error = model.bellman_error(np.array(_states), np.array(_actions), 
-                                        np.array(_rewards), np.array(_result_states), np.array(falls))
-        else :
-            error = [[0]]
-            print ("Error: not enough samples")
-        # states, actions, result_states, rewards = experience.get_batch(64)
-        # error = model.bellman_error(states, actions, rewards, result_states)
-        # print (states, actions, rewards, result_states, discounted_sum, value)
-        error = np.mean(np.fabs(error))
-        # print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With reward_sum: " + str(np.sum(rewards)) + " bellman error: " + str(error))
-        discounted_values.append(discounted_sum)
-        values.append(value)
-        # print ("Rewards over eval epoch: ", rewards)
-        # This works better because epochs can terminate early, which is bad.
-        reward_over_epocs.append(np.mean(np.array(rewards)))
-        bellman_errors.append(error)
-        evalDatas.append(evalData)
+        j = 0
+        while (j < settings['num_available_threads']) and ( (i + j) < anchors):
+            episodeData = {}
+            episodeData['data'] = i
+            episodeData['type'] = 'eval'
+            input_anchor_queue.put(episodeData)
+            j += 1
+            
+        # for anchs in anchors: # half the anchors
+        j = 0
+        while (j < settings['num_available_threads']) and ( (i + j) < anchors):
+            (tuples, discounted_sum, value, evalData) =  eval_episode_data_queue.get()
+            j += 1
+            """
+            simEpoch(actor, exp, 
+                    model, discount_factor, anchors=anchs, action_space_continuous=action_space_continuous, 
+                    settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
+                    visualizeEvaluation=visualizeEvaluation)
+            """
+            epoch_ = epoch_ + 1
+            (states, actions, rewards, result_states, falls) = tuples
+            # print (states, actions, rewards, result_states, discounted_sum, value)
+            # print ("Evaluated Actions: ", actions)
+            # print ("Evaluated Rewards: ", rewards)
+            if model.getExperience().samples() > settings['batch_size']:
+                _states, _actions, _result_states, _rewards, falls = model.getExperience().get_batch(settings['batch_size'])
+                error = model.bellman_error(np.array(_states), np.array(_actions), 
+                                            np.array(_rewards), np.array(_result_states), np.array(falls))
+            else :
+                error = [[0]]
+                print ("Error: not enough samples")
+            # states, actions, result_states, rewards = experience.get_batch(64)
+            # error = model.bellman_error(states, actions, rewards, result_states)
+            # print (states, actions, rewards, result_states, discounted_sum, value)
+            error = np.mean(np.fabs(error))
+            # print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With reward_sum: " + str(np.sum(rewards)) + " bellman error: " + str(error))
+            discounted_values.append(discounted_sum)
+            values.append(value)
+            # print ("Rewards over eval epoch: ", rewards)
+            # This works better because epochs can terminate early, which is bad.
+            reward_over_epocs.append(np.mean(np.array(rewards)))
+            bellman_errors.append(error)
+            evalDatas.append(evalData)
+        i += j
         
     print ("Reward for min epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
     print ("reward_over_epocs" + str(reward_over_epocs))
