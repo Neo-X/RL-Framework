@@ -34,7 +34,7 @@ class BallGame1DActor(ActorInterface):
     def hasNotFallen(self, exp):
         # if ( (not ( exp.getEnvironment().agentHasFallen() or exp.getEnvironment().hitWall())) and () ):
         # if ( exp.getEnvironment().agentHasFallen() or exp.getEnvironment().hitWall()) :
-        if ( exp.getEnvironment().endOfEpoch() ):
+        if ( exp.getEnvironment().agentHasFallen() ):
             return 0
         else:
             return 1

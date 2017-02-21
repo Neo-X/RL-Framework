@@ -617,17 +617,14 @@ class BallGame1D(object):
             return True
 
     def agentHasFallen(self):
-        pos = self._obstacle.getPosition()
-        vel = self._obstacle.getLinearVel()
-        if ((pos[1] <= (self._ballRadius - (self._ballRadius*0.5))) ): # fell in a hole
-        # if (pos[1] < (0.0)): # fell in a hole
-            # print ("Ball Fell in hole: ", pos[1])
-            # if (not bootstrapping):
-            # self._end_of_Epoch_Flag=True # kind of hacky to end Epoch after the ball falls in a hole.
+        start = self.getTerrainIndex()
+        # print ("Terrain start index: ", start)
+        # print ("Terrain Data: ", self._terrainData)
+        if ( (self._terrainData[start-1] < -0.1) or 
+             (self._terrainData[start] < -0.1 )):
+            self._end_of_Epoch_Flag=True # kind of hacky to end Epoch after the ball falls in a hole.
             return True
-        if ((vel[0] < 0) or (pos[0] < 0.0)):# still falling?
-            # print ("Really fell in hole odd ", pos[1], " vel ", vel[0])
-            return True
+    
         return False
         
     def calcVelocity(self, bootstrapping=False):
@@ -650,10 +647,6 @@ class BallGame1D(object):
         # if (pos[1] < (0.0)): # fell in a hole
             # print ("Ball Fell in hole: ", pos[1])
             # if (not bootstrapping):
-            self._end_of_Epoch_Flag=True # kind of hacky to end Epoch after the ball falls in a hole.
-            # return 0
-        if (self.hitWall()):
-            # print ("Hit a wall", pos[1], " vel: ", vel[1])
             self._end_of_Epoch_Flag=True # kind of hacky to end Epoch after the ball falls in a hole.
             # return 0
         
@@ -861,19 +854,25 @@ class BallGame1D(object):
         angularVel.append(vel[0])
         return angularVel
     
+    def getTerrainIndex(self):
+        pos = self._obstacle.getPosition()
+        return int(math.floor( (pos[0]-(self._terrainStartX) )/self._terrainScale)+1)
+    
     def getState(self):
         """ get the next self._num_points points"""
         pos = self._obstacle.getPosition()
         charState = self.getCharacterState()
         num_extra_feature=1
-        start = math.floor((pos[0]-(self._terrainStartX) )/self._terrainScale)+1
+        ## Get the index of the next terrain sample
+        start = self.getTerrainIndex()
+        ## Is that sample + terrain_state_size beyond the current terrain extent
         if (start+self._num_points+num_extra_feature >= (len(self._terrainData))):
             # print ("State not big enough ", len(self._terrainData))
             if (self._validating):
                 self.generateValidationTerrain(0)
             else:
                 self.generateTerrain()
-        start = math.floor((pos[0]-(self._terrainStartX) )/self._terrainScale)+1
+        start = self.getTerrainIndex()
         assert start+self._num_points+num_extra_feature < (len(self._terrainData)), "Ball is exceeding terrain length %r after %r actions" % (start+self._num_points+num_extra_feature-1, self._state_num)
         # print ("Terrain Data: ", self._terrainData)
         state=np.zeros((self._num_points+num_extra_feature+len(charState)))
@@ -892,7 +891,7 @@ class BallGame1D(object):
             state[self._num_points+num_extra_feature:self._num_points+num_extra_feature+len(charState)] = charState
         
         return state
-    
+ 
 
 if __name__ == '__main__':
     import json
