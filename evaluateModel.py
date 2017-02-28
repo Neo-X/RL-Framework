@@ -63,12 +63,12 @@ class SimContainer(object):
         glutPostRedisplay()
         """
         glutTimerFunc(1000/fps, self.animate, 0) # 30 fps?
-        """
+        
         if (self._exp.getEnvironment().needUpdatedAction()):
             state_ = self._exp.getState()
             action_ = self._agent.predict(state_)
             self._exp.getEnvironment().updateAction(action_)
-        """
+        
         self._exp.update()
         
     def onKey(self, c, x, y):
@@ -217,6 +217,9 @@ def evaluateModelRender(settings_file_name):
     exp.getActor().initEpoch()   
     exp.getEnvironment().initEpoch()
     fps=30
+    state_ = exp.getState()
+    action_ = masterAgent.predict(state_)
+    exp.getEnvironment().updateAction(action_)
     sim = SimContainer(exp, masterAgent)
     # glutInitWindowPosition(x, y);
     # glutInitWindowSize(width, height);
