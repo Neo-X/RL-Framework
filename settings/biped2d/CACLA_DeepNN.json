@@ -45,7 +45,7 @@
 "look_ahead_planning_steps": 2,
 "plotting_update_freq_num_rounds": 2,
 "saving_update_freq_num_rounds": 2,
-"num_available_threads": 8,
+"num_available_threads": 12,
 "queue_size_limit": 100,
 "sim_action_per_training_update": 8,
 "adaptive_samples": 5,
@@ -53,7 +53,7 @@
 "use_actor_policy_action_variance_suggestion": false,
 "exploration_method": "gaussian_random",
 "dropout_p": 0.1,
-"regularization_weight": 0.0001,
+"regularization_weight": 0.00001,
 "rho": 0.95,
 "rms_epsilon": 0.001,
 "steps_until_target_network_update": 100,
@@ -81,7 +81,7 @@
 "fd_learning_rate": 0.01,
 "train_actor": true,
 "debug_critic": false,
-"critic_regularization_weight": 0.0001,
+"critic_regularization_weight": 0.000001,
 "critic_learning_rate": 0.002,
 "visualize_expected_value": true,
 "target_velocity_decay":-0.75,
@@ -93,5 +93,7 @@
     "comment__": "Learning rate use for model based action exploration",
 "action_learning_rate": 10.0,
     "comment__": "During model-based action exploration, Probability of random policy action",
-"model_based_action_omega": 0.0
+"model_based_action_omega": 0.0,
+	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
+"debug_actor": true
 }
