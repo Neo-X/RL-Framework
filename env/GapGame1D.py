@@ -806,7 +806,7 @@ if __name__ == '__main__':
             
             # print (state)
             
-            # game.visualizeState(state[:len(state)-1], action, state[-1])
+            game.visualizeState(state[:len(state)-1], action, state[-1])
             reward = game.actContinuous(action)
             
             if (game.agentHasFallen()):
