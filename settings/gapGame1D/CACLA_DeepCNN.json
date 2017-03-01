@@ -84,7 +84,7 @@
     "comment__": "Is action space continuous or discrete?",
 "action_space_continuous":true,
     "comment__": "Should the method train on the validation set only",
-"train_on_validation_set":true,
+"train_on_validation_set":false,
     "comment__": "Name of the type of simulator to use",
 "environment_type": "gapgame_1d",
     "comment__": "Model type to use for the forward dynamics model",
