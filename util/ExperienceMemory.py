@@ -42,6 +42,9 @@ class ExperienceMemory(object):
         self._fall_history = (np.zeros((self._history_size, 1), dtype='int32'))
         self._continuous_actions = continuous_actions
         
+        self._settings = {}
+        self._settings['discount_factor'] = 0.0
+        
         
     def insertTuple(self, tuple):
         
