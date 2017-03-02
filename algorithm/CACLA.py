@@ -244,8 +244,8 @@ class CACLA(AlgorithmInterface):
             self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
             lossActor, _ = self._trainActor()
             print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
-            print ( " Actions: ", tmp_actions)
-            print ( "Actor diff: " , self._get_actDiff())
+            # print ( " Actions: ", tmp_actions)
+            # print ( "Actor diff: " , self._get_actDiff())
             # return np.sqrt(lossActor);
         else:
             print ("Length of BAD positive actions: ", len(tmp_actions))
