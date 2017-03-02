@@ -31,7 +31,10 @@ class BallGame2DEnv(SimInterface):
         self._exp.finish()
     
     def getState(self):
-        state = np.array(self._exp.getState())
+        # state = np.array(self._exp.getState())
+        state_ = np.array(self._exp.getState())
+        state = np.array(state_)
+        state = np.reshape(state, (-1, len(state_)))
         
         return state
     
@@ -53,6 +56,14 @@ class BallGame2DEnv(SimInterface):
                 min_dist = _tmp_dist
         self._target_choice = i
         self._target = self._targets[0][i]
+        
+    def visualizeNextState(self, next_state_, action):
+        _t_length = self.getEnvironment()._game_settings['num_terrain_samples']
+        terrain = next_state_[:_t_length]
+        terrain_dx = next_state_[_t_length]
+        terrain_dy = next_state_[_t_length+1]
+        character_features = next_state_[_t_length+2:]
+        self.getEnvironment().visualizeNextState(terrain, action, terrain_dx)
         
         
 #ani = animation.FuncAnimation(fig, animate, frames=600,

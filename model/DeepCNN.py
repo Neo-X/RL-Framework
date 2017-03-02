@@ -36,6 +36,7 @@ class DeepCNN(ModelInterface):
         characterFeatures = lasagne.layers.SliceLayer(network, indices=slice(self._settings['num_terrain_features']+1, self._state_length), axis=1)
         print ("taskFeatures Shape:", lasagne.layers.get_output_shape(taskFeatures))
         print ("characterFeatures Shape:", lasagne.layers.get_output_shape(characterFeatures))
+        print ("State length: ", self._state_length)
         
         network = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['num_terrain_features']))
         

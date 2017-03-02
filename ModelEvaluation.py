@@ -580,10 +580,10 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
     resultStates = []
     rewards = []
     falls = []
-    anchor_data_file = open(settings["anchor_file"])
+    # anchor_data_file = open(settings["anchor_file"])
     # _anchors = getAnchors(anchor_data_file)
     # print ("Length of anchors epochs: " + str(len(_anchors)))
-    anchor_data_file.close()
+    # anchor_data_file.close()
     while i < samples:
         # Actor should be FIRST here
         out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=i, 

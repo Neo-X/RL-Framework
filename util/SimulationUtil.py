@@ -311,7 +311,7 @@ def createEnvironment(config_file, env_type, settings):
 def createActor(env_type, settings, experience):
     actor=None
     if env_type == 'ballgame_2d':
-        actor = BallGame2DActor(settings)
+        actor = BallGame2DActor(settings, experience)
     elif env_type == 'ballgame_1d':
         actor = BallGame1DActor(settings, experience)
     elif env_type == 'gapgame_1d':

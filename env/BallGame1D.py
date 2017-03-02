@@ -491,12 +491,13 @@ class BallGame1D(object):
         # self._terrainData = []
         # self._terrainStartX=0.0
         # self._terrainStripIndex=0
-        
-        tmp_vel = ( (np.random.random([1]) * (self._game_settings["velocity_bounds"][1]- self._game_settings["velocity_bounds"][0]))
+        """
+        tmp_vel = ( (np.random.random([1])[0] * (self._game_settings["velocity_bounds"][1]- self._game_settings["velocity_bounds"][0]))
                     + self._game_settings["velocity_bounds"][0])[0]
+                    """
         # print ("New Initial Velocity is: ", tmp_vel)
         # vel = self._obstacle.getLinearVel() 
-        self._obstacle.setLinearVel((tmp_vel,4.0,0.0))
+        self._obstacle.setLinearVel((2.5,4.0,0.0))
         
         
         self._state_num=0
@@ -536,7 +537,8 @@ class BallGame1D(object):
         
     def endOfEpoch(self):
         pos = self._obstacle.getPosition()
-        start = (pos[0]/self._terrainScale)+1 
+        start = (pos[0]/self._terrainScale)+1
+        self.agentHasFallen() 
         # assert start+self._num_points+1 < (len(self._terrainData)), "Ball is exceeding terrain length %r after %r actions" % (start+self._num_points+1, self._state_num)
         if (self._end_of_Epoch_Flag):
             return True 
@@ -741,6 +743,15 @@ class BallGame1D(object):
         pos = self._obstacle.getPosition() 
         # self._obstacle.setLinearVel((action[0],4.0,0.0))
         time = (4.0/9.81)*2 # time for rise and fall
+        self._nextTerrainStartX = pos[0] + (time * action[0]) + terrain_dx
+        # self._nextTerrainStartX = pos[0] + terrain_dx
+        # drawTerrain(terrain, translateX, translateY=0.0, colour=(0.4, 0.4, 0.8, 0.0), wirefame=False):
+        
+    def visualizeState(self, terrain, action, terrain_dx):
+        self._nextTerrainData = terrain
+        pos = self._obstacle.getPosition() 
+        # self._obstacle.setLinearVel((action[0],4.0,0.0))
+        time = 0
         self._nextTerrainStartX = pos[0] + (time * action[0]) + terrain_dx
         # self._nextTerrainStartX = pos[0] + terrain_dx
         # drawTerrain(terrain, translateX, translateY=0.0, colour=(0.4, 0.4, 0.8, 0.0), wirefame=False):
