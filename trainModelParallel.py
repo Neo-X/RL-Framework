@@ -545,7 +545,7 @@ def trainModelParallel(settingsFileName):
             
                 if (settings['train_forward_dynamics']):
                     file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
-                    f = open(file_name_dynamics, 'w')
+                    f = open(file_name_dynamics, 'wb')
                     dill.dump(masterAgent.getForwardDynamics(), f)
                     f.close()
                     if mean_dynamicsLosses < best_dynamicsLosses:
@@ -575,7 +575,7 @@ def trainModelParallel(settingsFileName):
                 print ("Saving current masterAgent")
                 
                 file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
-                f = open(file_name, 'w')
+                f = open(file_name, 'wb')
                 dill.dump(agent, f)
                 f.close()
                 
@@ -623,7 +623,7 @@ def trainModelParallel(settingsFileName):
         
         if (settings['train_forward_dynamics']):
             file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
-            f = open(file_name_dynamics, 'w')
+            f = open(file_name_dynamics, 'wb')
             dill.dump(masterAgent.getForwardDynamics(), f)
             f.close()
         

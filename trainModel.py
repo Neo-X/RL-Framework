@@ -50,17 +50,16 @@ def train(settingsFileName):
         print ("Settings: " , str(json.dumps(settings)))
         file.close()
         settings = validateSettings(settings)
-        anchor_data_file = open(settings["anchor_file"])
-        _anchors = getAnchors(anchor_data_file)
-        print ("Length of anchors epochs: ", str(len(_anchors)))
-        anchor_data_file.close()
-        train_forward_dynamics=True
+        # anchor_data_file = open(settings["anchor_file"])
+        # _anchors = getAnchors(anchor_data_file)
+        # print ("Length of anchors epochs: ", str(len(_anchors)))
+        # anchor_data_file.close()
         model_type= settings["model_type"]
         directory= getDataDirectory(settings)
-        num_actions= settings["num_actions"]
+        discrete_actions = np.array(settings['discrete_actions'])
+        num_actions= discrete_actions.shape[0] # number of rows
         rounds = settings["rounds"]
         epochs = settings["epochs"]
-        num_states=settings["num_states"]
         epsilon = settings["epsilon"]
         discount_factor=settings["discount_factor"]
         # max_reward=settings["max_reward"]
@@ -100,7 +99,7 @@ def train(settingsFileName):
         ### Using a wrapper for the type of actor now
         actor = createActor(settings['environment_type'], settings, experience)
         # this is the process that selects which game to play
-        exp = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'])
+        exp = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'], settings)
         # Create the model that will be used for learning
         if action_space_continuous:
             model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
@@ -167,7 +166,7 @@ def train(settingsFileName):
             agent.setForwardDynamics(forwardDynamicsModel)
             # forwardDynamicsModel.setEnvironment(exp)
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, exp, settings)
-        actor.setPolicy(model)
+        # actor.setPolicy(model)
         agent.setPolicy(model)
         
         if not os.path.exists(directory):
@@ -192,11 +191,11 @@ def train(settingsFileName):
             p = max((((rounds * settings['epsilon_annealing']) - round_) / float(rounds)), 0.1)
             for epoch in range(epochs):
                 if settings['use_guided_policy_search']:
-                    out = simEpoch(actor=actor, exp=exp, model=sampler, discount_factor=settings['discount_factor'], anchors=_anchors[epoch], 
+                    out = simEpoch(actor=actor, exp=exp, model=sampler, discount_factor=settings['discount_factor'], anchors=epoch, 
                                    action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
                                     p=p, validation=settings['train_on_validation_set'])
                 else:
-                    out = simEpoch(actor=actor, exp=exp, model=agent.getPolicy(), discount_factor=settings['discount_factor'], anchors=_anchors[epoch], 
+                    out = simEpoch(actor=actor, exp=exp, model=agent.getPolicy(), discount_factor=settings['discount_factor'], anchors=epoch, 
                                    action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
                                     p=p, validation=settings['train_on_validation_set'])
                 # if self._p <= 0.0:
@@ -210,15 +209,15 @@ def train(settingsFileName):
                         action= actions[k]
                         resultState = result_states[k]
                         reward= rewards[k]
-                        fall= fall[k]
+                        fall= falls[k]
                         
                         if action_space_continuous:
-                            # actor.getExperience().insert(norm_state(state_, state_bounds), [norm_action(action, action_bounds)], norm_state(resultState, state_bounds), norm_reward([reward], reward_bounds))
-                            actor.getExperience().insert(state_, action, resultState, [reward], [fall])
+                            # agent.getExperience().insert(norm_state(state_, state_bounds), [norm_action(action, action_bounds)], norm_state(resultState, state_bounds), norm_reward([reward], reward_bounds))
+                            agent.getExperience().insert(state_, action, resultState, [reward], [fall])
                         else:
-                            actor.getExperience().insert(state_, [action], resultState, [reward], [fall])
-                        if actor.getExperience().samples() > batch_size and ( (steps_ % settings['sim_action_per_training_update']) == 0 ):
-                            _states, _actions, _result_states, _rewards, _falls = actor.getExperience().get_batch(batch_size)
+                            agent.getExperience().insert(state_, [action], resultState, [reward], [fall])
+                        if agent.getExperience().samples() > batch_size and ( (steps_ % settings['sim_action_per_training_update']) == 0 ):
+                            _states, _actions, _result_states, _rewards, _falls = agent.getExperience().get_batch(batch_size)
                             # print ("Q values:", agent.getPolicy().q_values(_states[0]))
                             # print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                             cost=0
@@ -236,10 +235,10 @@ def train(settingsFileName):
                             # grads = forwardDynamicsModel.getGrads(_states, _actions, _result_states)
                             # print ("Dynamics Grads: ", len(grads[0]), " values ", grads[0])
                         steps_ = steps_ + 1
-                        # print ("Current Tuple: " + str(actor.getExperience().current()))
+                        # print ("Current Tuple: " + str(agent.getExperience().current()))
                         # rewards.append([reward])
-                if actor.getExperience().samples() > batch_size:
-                    states, actions, result_states, rewards, falls = actor.getExperience().get_batch(batch_size)
+                if agent.getExperience().samples() > batch_size:
+                    states, actions, result_states, rewards, falls = agent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
                     error = agent.getPolicy().bellman_error(states, actions, rewards, result_states, falls)
                     # rewards = map(scale_reward, rewards, [reward_bounds]* len(rewards)) # scales the rewards back to env space
@@ -269,8 +268,8 @@ def train(settingsFileName):
             if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
                 # Running less often helps speed learning up.
                 print (" Evaluating model") 
-                mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, agent.getPolicy(), discount_factor, 
-                                                    anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings, evaluation=True)
+                mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, agent, discount_factor, 
+                                                    anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings, evaluation=True)
                 print (" Done Evaluating model")
                 # print (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
                 if mean_bellman_error > 10000:
@@ -337,7 +336,7 @@ def train(settingsFileName):
                 print ("Saving current model")
                 
                 file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
-                f = open(file_name, 'w')
+                f = open(file_name, 'wb')
                 dill.dump(agent.getPolicy(), f)
                 f.close()
                 
@@ -347,8 +346,8 @@ def train(settingsFileName):
                 
                 if (settings["save_experience_memory"]):
                     file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"expBuffer.pkl"
-                    f = open(file_name, 'w')
-                    dill.dump(actor.getExperience(), f)
+                    f = open(file_name, 'wb')
+                    dill.dump(agent.getExperience(), f)
                     f.close()
                 
             # gc.collect()    
