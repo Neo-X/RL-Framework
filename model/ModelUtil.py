@@ -230,16 +230,16 @@ def getOptimalAction(forwardDynamicsModel, model, state):
         fake_state_ = fake_state_ + ( model.getGrads(fake_state_)[0] * learning_rate )
         print ("Fake state Value: ", model.q_value(fake_state_))
     """
-    print ("Initial value: ", init_value)
-    # init_action = copy.deepcopy(action)
+    # print ("Initial value: ", init_value)
+    init_action = copy.deepcopy(action)
     for i in range(num_updates):
         ## find next state with dynamics model
         next_state = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
         value_ = model.q_value(next_state)
-        print ("next state q value: ", value_)
+        # print ("next state q value: ", value_)
         # print ("Next State: ", next_state.shape)
         ## compute grad for next state wrt model, i.e. how to change the state to improve the value
-        next_state_grads = model.getGrads(next_state)[0] * (learning_rate * 0.1) # this uses the value function
+        next_state_grads = model.getGrads(next_state)[0] * (learning_rate) # this uses the value function
         # print ("Next State Grad: ", next_state_grads)
         # next_state_grads = np.sum(next_state_grads, axis=1)
         # print ("Next State Grad shape: ", next_state_grads.shape)
@@ -247,7 +247,7 @@ def getOptimalAction(forwardDynamicsModel, model, state):
         next_state = next_state + next_state_grads
         # print ("Next State: ", next_state)
         value_ = model.q_value(next_state)
-        print ("Updated next state q value: ", value_)
+        # print ("Updated next state q value: ", value_)
         # Set modified next state as output for dynamicsModel
         # print ("Next State2: ", next_state)
         # compute grad to find
@@ -273,10 +273,10 @@ def getOptimalAction(forwardDynamicsModel, model, state):
         
         # print ("Next_state: ", next_state_.shape, " values ", next_state_)
         final_value = model.q_value(next_state_)
-        print ("Final Estimated Value: ", final_value)
+        # print ("Final Estimated Value: ", final_value)
         
         # repeat
-    # print ("New action: ", action, " action diff: ", (action - init_action))
+    print ("New action: ", action, " action diff: ", (action - init_action))
     action = clampAction(action, model._action_bounds)
     return action
 

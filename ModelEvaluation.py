@@ -618,9 +618,9 @@ def modelEvaluation(settings_file_name):
     
     settings = getSettings(settings_file_name)
     
-    anchor_data_file = open(settings["anchor_file"])
+    # anchor_data_file = open(settings["anchor_file"])
     # _anchors = getAnchors(anchor_data_file)
-    anchor_data_file.close()
+    # anchor_data_file.close()
     model_type= settings["model_type"]
     directory= getDataDirectory(settings)
     rounds = settings["rounds"]

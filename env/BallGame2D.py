@@ -51,10 +51,7 @@ class BallGame2D(BallGame1D):
             pos = self._obstacle.getPosition()
             pos = (pos[0], pos[1], 0.0)
             self._obstacle.setPosition(pos)
-            
-        vel = self.calcVelocity(bootstrapping=bootstrapping)
-        # print (pos)
-
+        
         # self._terrainData = self.generateTerrain()
         self._state_num=self._state_num+1
         # state = self.getState()
@@ -63,6 +60,9 @@ class BallGame2D(BallGame1D):
         pos = self._obstacle.getPosition()
         pos = (pos[0], self._ballRadius+self._ballEpsilon, 0.0)
         self._obstacle.setPosition(pos)
+        ## The contact seems to be reducing the velocity
+        # self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0.0))
+        vel = self.calcVelocity(bootstrapping=bootstrapping)
         return vel
         # obstacle.addForce((0.0,100.0,0.0))
 
