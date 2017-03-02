@@ -99,7 +99,7 @@ class CACLA(AlgorithmInterface):
         # actDiff = (actDiff1 - (self._model.getActionSymbolicVariable() - self._q_valsActA))
         self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
         self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
-        self._actLoss = 0.5 * self._actDiff ** 2 
+        self._actLoss = 0.5 * (self._actDiff ** 2) 
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
         self._actLoss = T.mean(self._actLoss)
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
@@ -127,6 +127,7 @@ class CACLA(AlgorithmInterface):
         
         #### Stuff for Debugging #####
         self._get_diff = theano.function([], [self._diff], givens=self._givens_)
+        self._get_actDiff = theano.function([], [self._actDiff], givens=self._actGivens)
         self._get_target = theano.function([], [self._target], givens={
             # self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
@@ -243,6 +244,8 @@ class CACLA(AlgorithmInterface):
             self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
             lossActor, _ = self._trainActor()
             print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
+            print ( " Actions: ", tmp_actions)
+            print ( "Actor diff: " , self._get_actDiff())
             # return np.sqrt(lossActor);
         else:
             print ("Length of BAD positive actions: ", len(tmp_actions))

@@ -356,8 +356,11 @@ def trainModelParallel(settingsFileName):
         
         print ("Starting first round")
         for round_ in range(2,rounds+2):
-            p = (settings['initial_temperature'] / math.log(round_) - round_) / float(settings['initial_temperature'])
-            p = max(settings['min_epsilon'], min(1.0, p)) # Keeps it between 1.0 and 0.2
+            # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
+            # p = (settings['initial_temperature'] / (math.log(round_))) 
+            p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds)) 
+            # p = ((rounds - round_)/rounds) ** 2
+            p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
             namespace.p=p
             
             # for sm in sim_workers:
@@ -403,9 +406,9 @@ def trainModelParallel(settingsFileName):
                         dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
                         dynamicsLosses.append(dynamicsLoss)
                     if (settings['train_forward_dynamics']):
-                        print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
+                        print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
                     else:
-                        print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
+                        print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
                     # discounted_values.append(discounted_sum)
 
                 print ("Master agent experience size: " + str(experience.samples()))
