@@ -108,13 +108,13 @@ def getTaskDataDirectory(settings):
 def validateSettings(settings):
     """
         This method is used to check and overwrite any settings that are not going to work properly
-        for example, geck is there is a display screen
+        for example, check if there is a display screen
     """
-    
+    """
     if ( not ( "DISPLAY" in os.environ)): # No screen on this computer
         settings['visulaize_forward_dynamics'] = False
         settings['visualize_learning'] = False
-    
+    """
     return settings
 
 def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, settings):

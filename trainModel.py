@@ -47,7 +47,7 @@ def train(settingsFileName):
         np.random.seed(23)
         file = open(settingsFileName)
         settings = json.load(file)
-        print ("Settings: " , str(json.dumps(settings)))
+        print ("Settings: " , str(json.dumps(settings, sort_keys=True)))
         file.close()
         settings = validateSettings(settings)
         # anchor_data_file = open(settings["anchor_file"])
@@ -80,12 +80,13 @@ def train(settingsFileName):
             experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True)
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
-            
+        print ("Settings, visualize learning: ", settings['visualize_learning'])
         if settings['visualize_learning']:  
             from RLVisualize import RLVisualize
             rlv = RLVisualize(directory+str(settings['agent_name']))
             rlv.setInteractive()
             rlv.init()
+            print ("Visualizing learning")
         if (settings['train_forward_dynamics']):
             print ("Created forward dynamics network")
             # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
