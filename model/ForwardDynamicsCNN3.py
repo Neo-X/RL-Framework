@@ -15,11 +15,11 @@ from model.ModelUtil import *
 # theano.config.mode='FAST_COMPILE'
 from model.ModelInterface import ModelInterface
 from model.ForwardDynamicsCNN import *
+# from lasagne.layers.dnn import *
 
 class ForwardDynamicsCNN3(ModelInterface):
     
     def __init__(self, state_length, action_length, state_bounds, action_bounds, settings_):
-        from lasagne.layers.dnn import *
         super(ForwardDynamicsCNN3,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
         
                 # data types for model

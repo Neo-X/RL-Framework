@@ -129,6 +129,16 @@ def trainModelParallel(settingsFileName):
             critic_regularization_viz.setInteractive()
             critic_regularization_viz.init()
             criticRegularizationCosts = []
+            
+        if (settings['debug_actor']):
+            actor_loss_viz = NNVisualize(title=str("Actor Loss") + " with " + str(settings["model_type"]))
+            actor_loss_viz.setInteractive()
+            actor_loss_viz.init()
+            actorLosses = []
+            actor_regularization_viz = NNVisualize(title=str("Actor Regularization Cost") + " with " + str(settings["model_type"]))
+            actor_regularization_viz.setInteractive()
+            actor_regularization_viz.init()
+            actorRegularizationCosts = []
 
         mgr = multiprocessing.Manager()
         namespace = mgr.Namespace()
@@ -239,6 +249,10 @@ def trainModelParallel(settingsFileName):
         trainData["std_critic_loss"]=[]
         trainData["mean_critic_regularization_cost"]=[]
         trainData["std_critic_regularization_cost"]=[]
+        trainData["mean_actor_loss"]=[]
+        trainData["std_actor_loss"]=[]
+        trainData["mean_actor_regularization_cost"]=[]
+        trainData["std_actor_regularization_cost"]=[]
         
         for lw in learning_workers:
             print ("Learning worker" )
@@ -367,6 +381,12 @@ def trainModelParallel(settingsFileName):
                         criticLosses.append(loss__)
                         regularizationCost__ = masterAgent.getPolicy()._get_critic_regularization()
                         criticRegularizationCosts.append(regularizationCost__)
+                        
+                    if (settings['debug_actor']):
+                        loss__ = masterAgent.getPolicy()._get_actor_loss() # uses previous call batch data
+                        actorLosses.append(loss__)
+                        regularizationCost__ = masterAgent.getPolicy()._get_actor_regularization()
+                        actorRegularizationCosts.append(regularizationCost__)
                     
                     if not all(np.isfinite(error)):
                         print ("States: " + str(states) + " ResultsStates: " + str(result_states) + " Rewards: " + str(rewards) + " Actions: " + str(actions) + " Falls: ", str(falls))
@@ -494,6 +514,30 @@ def trainModelParallel(settingsFileName):
                         critic_regularization_viz.setInteractiveOff()
                         critic_regularization_viz.saveVisual(directory+"criticRegularizationGraph")
                         critic_regularization_viz.setInteractive()
+                        
+                    if (settings['debug_actor']):
+                        
+                        mean_actorLosses = np.mean(actorLosses)
+                        std_actorLosses = np.std(actorLosses)
+                        trainData["mean_actor_loss"].append(mean_actorLosses)
+                        trainData["std_actor_loss"].append(std_actorLosses)
+                        actorLosses = []
+                        actor_loss_viz.updateLoss(np.array(trainData["mean_actor_loss"]), np.array(trainData["std_actor_loss"]))
+                        actor_loss_viz.redraw()
+                        actor_loss_viz.setInteractiveOff()
+                        actor_loss_viz.saveVisual(directory+"actorLossGraph")
+                        actor_loss_viz.setInteractive()
+                        
+                        mean_actorRegularizationCosts = np.mean(actorRegularizationCosts)
+                        std_actorRegularizationCosts = np.std(actorRegularizationCosts)
+                        trainData["mean_actor_regularization_cost"].append(mean_actorRegularizationCosts)
+                        trainData["std_actor_regularization_cost"].append(std_actorRegularizationCosts)
+                        actorRegularizationCosts = []
+                        actor_regularization_viz.updateLoss(np.array(trainData["mean_actor_regularization_cost"]), np.array(trainData["std_actor_regularization_cost"]))
+                        actor_regularization_viz.redraw()
+                        actor_regularization_viz.setInteractiveOff()
+                        actor_regularization_viz.saveVisual(directory+"actorRegularizationGraph")
+                        actor_regularization_viz.setInteractive()
                 """for lw in learning_workers:
                     lw.start()
                    """     

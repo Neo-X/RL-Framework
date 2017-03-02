@@ -137,6 +137,9 @@ class CACLA(AlgorithmInterface):
         self._get_critic_regularization = theano.function([], [self._critic_regularization])
         self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         
+        self._get_actor_regularization = theano.function([], [self._actor_regularization])
+        self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
+        
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         self._trainActor = theano.function([], [self._actLoss, self._q_func_drop], updates=self._actionUpdates, givens=self._actGivens)
