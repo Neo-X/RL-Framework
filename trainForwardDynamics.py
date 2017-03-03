@@ -1,44 +1,46 @@
-import theano
-from theano import tensor as T
+
+"""
+theano.config.device='gpu'
+theano.config.mode='FAST_RUN'
+theano.config.floatX='float32'
+"""
+
 import numpy as np
-import lasagne
 import sys
+import json
 sys.path.append('../')
-from model.ModelUtil import *
-from model.NeuralNetwork import NeuralNetwork
-from util.ExperienceMemory import ExperienceMemory
-import matplotlib.pyplot as plt
-import math
-from ModelEvaluation import *
-from util.SimulationUtil import *
-import time
+import dill
 
-
-def f(x):
-    return (math.cos(x)-0.75)*(math.sin(x)+0.75)
-
-def fNoise(x):
-    out = f(x)
-    if (x > 1.0) and (x < 2.0):
-        # print "Adding noise"
-        r = random.choice([0,1])
-        if r == 1:
-            out = x
-        else:
-            out = out
-    return out
-
-if __name__ == '__main__':
+def trainForwardDynamics(settingsFileName):
     """
     State is the input state and Action is the desired output (y).
     """
+    # from model.ModelUtil import *
+    
     np.random.seed(23)
-    settingsFileName = sys.argv[1]
     file = open(settingsFileName)
     settings = json.load(file)
     print ("Settings: " , str(json.dumps(settings)))
     file.close()
+    import os    
+    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+    
+    # import theano
+    # from theano import tensor as T
+    # import lasagne
+    from util.SimulationUtil import validateSettings
+    from util.SimulationUtil import getDataDirectory
+    from util.SimulationUtil import createForwardDynamicsModel
+    from model.NeuralNetwork import NeuralNetwork
+    from util.ExperienceMemory import ExperienceMemory
+    import matplotlib.pyplot as plt
+    import math
+    # from ModelEvaluation import *
+    # from util.SimulationUtil import *
+    import time  
+    
     settings = validateSettings(settings)
+    
     # anchor_data_file = open(settings["anchor_file"])
     # _anchors = getAnchors(anchor_data_file)
     # print ("Length of anchors epochs: ", str(len(_anchors)))
@@ -120,13 +122,14 @@ if __name__ == '__main__':
     for round_ in range(rounds):
         t0 = time.time()
         for epoch in range(epochs):
-            # _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
+            _states, _actions, _result_states, _rewards, _falls = experience.get_batch(batch_size)
             # print _actions 
             # dynamicsLoss = model.train(states=_states, actions=_actions, result_states=_result_states)
+            model.setData(_states, _actions, _result_states)
             dynamicsLoss = model._train()
         t1 = time.time()
         if (settings['train_forward_dynamics']):
-            dynamicsLoss_ = model.bellman_error(np.array(_states), np.array(_actions), np.array(_result_states))
+            dynamicsLoss_ = model.bellman_error(_states, _actions, _result_states)
             # dynamicsLoss_ = model.bellman_error((_states), (_actions), (_result_states))
             dynamicsLoss = np.mean(np.fabs(dynamicsLoss_))
             # dynamicsLosses.append(dynamicsLoss)
@@ -151,5 +154,8 @@ if __name__ == '__main__':
             nlv.setInteractive()
         # print "Error: " + str(error)
     
+
+if __name__ == '__main__':
     
+    trainForwardDynamics(sys.argv[1])
     

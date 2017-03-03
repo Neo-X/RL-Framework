@@ -169,7 +169,7 @@
 "fd_learning_rate": 0.01,
     "comment__": "Whether or not to train the policy. Used for debugging",
 "train_actor": true,
-    "comment__": "Plot the terms for the critic as well (regularization and td error)",
+    "comment__": "Plot the terms for the critic as well (regularization and td error), Warning: might use a lot of memory",
 "debug_critic": true,
     "comment__": "critic regularization weight",
 "critic_regularization_weight": 0.000001,
@@ -194,5 +194,9 @@
     "comment__": "During model-based action exploration, Probability of random policy action",
 "model_based_action_omega": 0.5,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
-"debug_actor": true
+"debug_actor": true,
+	"comment__": "float type to use, if for example you want to train on the GPU use float32",
+"float_type": "float32",
+	"comment__": "What processor type to perform the training on [cpu|gpu]",
+"training_processor_type": "gpu"
 }

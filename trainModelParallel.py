@@ -3,26 +3,10 @@ import sys
 sys.setrecursionlimit(50000)
 import os
 import json
-from numpy import dtype
 sys.path.append("../")
 sys.path.append("../characterSimAdapter/")
 import math
 import numpy as np
-
-# import characterSim
-# from env.BallGame2D import BallGame2D
-from ModelEvaluation import *
-
-from util.ExperienceMemory import ExperienceMemory
-from RLVisualize import RLVisualize
-from NNVisualize import NNVisualize
-
-# from actor.ActorInterface import ActorInterface
-# from actor.BallGame2DActor import BallGame2DActor
-
-from sim.PendulumEnvState import PendulumEnvState
-from sim.PendulumEnv import PendulumEnv
-from sim.BallGame2DEnv import BallGame2DEnv
 
 import random
 # import cPickle
@@ -40,10 +24,6 @@ import gc
 # import pathos.multiprocessing
 import multiprocessing
 
-from model.ModelUtil import *
-from util.SimulationUtil import *
-
-
 # @profile(precision=5)
 # @memprof(plot = True)
 def trainModelParallel(settingsFileName):
@@ -55,12 +35,23 @@ def trainModelParallel(settingsFileName):
         settings = json.load(file)
         print ("Settings: " + str(json.dumps(settings)))
         file.close()
+        import os    
+        os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+        
+        ## Theano needs to be imported after the flags are set.
+        from ModelEvaluation import *
+        from model.ModelUtil import *
+        from util.SimulationUtil import *
+        
+        from util.ExperienceMemory import ExperienceMemory
+        from RLVisualize import RLVisualize
+        from NNVisualize import NNVisualize
+        
+        from sim.PendulumEnvState import PendulumEnvState
+        from sim.PendulumEnv import PendulumEnv
+        from sim.BallGame2DEnv import BallGame2DEnv
         settings = validateSettings(settings)
-        # anchor_data_file = open(settings["anchor_file"])
-        # _anchors = getAnchors(anchor_data_file)
-        # print ("Length of anchors epochs: " + str(len(_anchors)))
-        # anchor_data_file.close()
-        train_forward_dynamics=True
+        
         model_type= settings["model_type"]
         directory= getDataDirectory(settings)
         rounds = settings["rounds"]
