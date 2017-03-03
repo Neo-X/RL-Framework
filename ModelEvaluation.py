@@ -364,8 +364,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         # print ("Evaluated Rewards: ", rewards)
         if model.getExperience().samples() > settings['batch_size']:
             _states, _actions, _result_states, _rewards, falls = model.getExperience().get_batch(settings['batch_size'])
-            error = model.bellman_error(np.array(_states), np.array(_actions), 
-                                        np.array(_rewards), np.array(_result_states), np.array(falls))
+            error = model.bellman_error(_states, _actions, _rewards, _result_states, falls)
         else :
             error = [[0]]
             print ("Error: not enough samples")
@@ -441,8 +440,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             # print ("Evaluated Rewards: ", rewards)
             if model.getExperience().samples() > settings['batch_size']:
                 _states, _actions, _result_states, _rewards, falls = model.getExperience().get_batch(settings['batch_size'])
-                error = model.bellman_error(np.array(_states), np.array(_actions), 
-                                            np.array(_rewards), np.array(_result_states), np.array(falls))
+                error = model.bellman_error(_states, _actions, _rewards, _result_states, falls)
             else :
                 error = [[0]]
                 print ("Error: not enough samples")
