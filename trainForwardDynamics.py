@@ -39,17 +39,18 @@ if __name__ == '__main__':
     print ("Settings: " , str(json.dumps(settings)))
     file.close()
     settings = validateSettings(settings)
-    anchor_data_file = open(settings["anchor_file"])
-    _anchors = getAnchors(anchor_data_file)
-    print ("Length of anchors epochs: ", str(len(_anchors)))
-    anchor_data_file.close()
+    # anchor_data_file = open(settings["anchor_file"])
+    # _anchors = getAnchors(anchor_data_file)
+    # print ("Length of anchors epochs: ", str(len(_anchors)))
+    # anchor_data_file.close()
     train_forward_dynamics=True
     model_type= settings["model_type"]
     directory= getDataDirectory(settings)
-    num_actions= settings["num_actions"]
+    discrete_actions = np.array(settings['discrete_actions'])
+    num_actions= discrete_actions.shape[0] # number of rows
     rounds = settings["rounds"]
     epochs = settings["epochs"]
-    num_states=settings["num_states"]
+    # num_states=settings["num_states"]
     epsilon = settings["epsilon"]
     discount_factor=settings["discount_factor"]
     # max_reward=settings["max_reward"]
@@ -108,7 +109,7 @@ if __name__ == '__main__':
     trainData["std_eval"]=[]
     # dynamicsLosses=[]
     best_dynamicsLosses=1000000
-    _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
+    _states, _actions, _result_states, _rewards, _falls = experience.get_batch(batch_size)
     """
     _states = theano.shared(np.array(_states, dtype=theano.config.floatX))
     _actions = theano.shared(np.array(_actions, dtype=theano.config.floatX))

@@ -30,7 +30,7 @@ class ForwardDynamics(AlgorithmInterface):
         
         # self._target = (Reward + self._discount_factor * self._q_valsB)
         self._diff = self._model.getResultStateSymbolicVariable() - self._forward
-        self._loss = 0.5 * self._diff ** 2 
+        self._loss = 0.5 * (self._diff ** 2) 
         self._loss = T.mean(self._loss)
         
         self._params = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
@@ -39,7 +39,7 @@ class ForwardDynamics(AlgorithmInterface):
             self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
         }
-        
+
         # SGD update
         self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getActorNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
