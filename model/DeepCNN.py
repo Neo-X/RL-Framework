@@ -17,15 +17,15 @@ class DeepCNN(ModelInterface):
         super(DeepCNN,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
         # data types for model
-        self._State = T.dmatrix("State")
+        self._State = T.matrix("State")
         self._State.tag.test_value = np.random.rand(self._batch_size, self._state_length)
-        self._ResultState = T.dmatrix("ResultState")
+        self._ResultState = T.matrix("ResultState")
         self._ResultState.tag.test_value = np.random.rand(self._batch_size, self._state_length)
         self._Reward = T.col("Reward")
         self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
         self._Target = T.col("Target")
         self._Target.tag.test_value = np.random.rand(self._batch_size,1)
-        self._Action = T.dmatrix("Action")
+        self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         
         # create a small convolutional neural network

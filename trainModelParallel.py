@@ -24,6 +24,7 @@ import gc
 # import pathos.multiprocessing
 import multiprocessing
 
+
 # @profile(precision=5)
 # @memprof(plot = True)
 def trainModelParallel(settingsFileName):
@@ -39,9 +40,14 @@ def trainModelParallel(settingsFileName):
         os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
         
         ## Theano needs to be imported after the flags are set.
-        from ModelEvaluation import *
-        from model.ModelUtil import *
-        from util.SimulationUtil import *
+        # from ModelEvaluation import *
+        # from model.ModelUtil import *
+        from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience
+        from model.ModelUtil import validBounds
+        from model.LearningAgent import LearningAgent, LearningWorker
+        from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
+        from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel
+        
         
         from util.ExperienceMemory import ExperienceMemory
         from RLVisualize import RLVisualize
@@ -71,9 +77,9 @@ def trainModelParallel(settingsFileName):
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
         action_space_continuous=settings['action_space_continuous']
         
-        input_anchor_queue = Queue(settings['queue_size_limit'])
-        output_experience_queue = Queue(settings['queue_size_limit'])
-        eval_episode_data_queue = Queue(settings['num_available_threads'])
+        input_anchor_queue = multiprocessing.Queue(settings['queue_size_limit'])
+        output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
+        eval_episode_data_queue = multiprocessing.Queue(settings['num_available_threads'])
         
         action_space_continuous=settings['action_space_continuous']
         if action_space_continuous:
