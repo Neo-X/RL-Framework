@@ -566,6 +566,7 @@ def trainModelParallel(settingsFileName):
                     
                 if settings['save_trainData']:
                     fp = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", 'w')
+                    # print ("Train data: ", trainData)
                     json.dump(trainData, fp)
                     fp.close()
                     # draw data
