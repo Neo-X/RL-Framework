@@ -222,6 +222,7 @@ def getOptimalAction(forwardDynamicsModel, model, state):
     state_length = model.getStateSize()
     # print ("state_length ", state_length)
     # print ("State shape: ", state.shape)
+    # state = np.array(state, dtype=)
     action = model.predict(state)
     init_value = model.q_value(state)
     """

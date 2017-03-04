@@ -520,8 +520,13 @@ def collectExperience(actor, exp_val, model, settings):
         else:
             print ("State scaling strategy unknown: ", (settings['state_normalization']))
             
+        ## Cast data to the proper type
+        state_bounds = np.array(state_bounds, dtype=settings['float_type'])
+        reward_bounds = np.array(reward_bounds, dtype=settings['float_type'])
+        action_bounds = np.array(action_bounds, dtype=settings['float_type'])
+            
         if settings['action_space_continuous']:
-            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True)
+            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
         experience.setSettings(settings)
@@ -641,7 +646,7 @@ def modelEvaluation(settings_file_name):
     
     ### Using a wrapper for the type of actor now
     if action_space_continuous:
-        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True)
+        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
     else:
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
     # actor = ActorInterface(discrete_actions)

@@ -87,12 +87,11 @@ class CACLA(AlgorithmInterface):
         self._actor_regularization = (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getActorNetwork(), lasagne.regularization.l2))
         # SGD update
-        # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-        # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
-        #                                    self._rms_epsilon)
+        self._updates_ = lasagne.updates.rmsprop(self._loss + self._critic_regularization, self._params, 
+                                self._learning_rate, self._rho, self._rms_epsilon)
         # TD update
-        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
-                    self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
+        # self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
+        #             self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
         
         
         # actDiff1 = (self._model.getActionSymbolicVariable() - self._q_valsActTarget) #TODO is this correct?
@@ -257,7 +256,8 @@ class CACLA(AlgorithmInterface):
         return loss
     
     def predict(self, state, deterministic_=True):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # print ("dtype: ", theano.config.floatX)
+        state = np.array(state, dtype=theano.config.floatX)
         # states[0, ...] = state
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
@@ -286,9 +286,15 @@ class CACLA(AlgorithmInterface):
         return action_
     
     def q_value(self, state):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        """
+            This input states for this function can come right from the env so that should be cleaned
+        """
+        # print ("dtype: ", theano.config.floatX)
+        state = np.array(state, dtype=theano.config.floatX)
+        # print ("dtype: ", state.dtype)
         # states[0, ...] = state
         state = norm_state(state, self._state_bounds)
+        # print ("dtype: ", state.dtype)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]

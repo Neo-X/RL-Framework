@@ -18,11 +18,14 @@ class ExperienceMemory(object):
         when performing training updates.
     """
     
-    def __init__(self, state_length, action_length, memory_length, continuous_actions=False, settings={}):
+    def __init__(self, state_length, action_length, memory_length, continuous_actions=False, settings=None):
         
-        self._settings = {}
-        self._settings['discount_factor'] = 0.0
-        self._settings['float_type'] = 'float32'
+        if (settings == None):
+            self._settings = {}
+            self._settings['discount_factor'] = 0.0
+            # self._settings['float_type'] = 'float32'
+        else:
+            self._settings = settings
         
         self._history_size=memory_length
         self._history_update_index=0 # where the next experience should write
@@ -139,13 +142,13 @@ class ExperienceMemory(object):
             reward = np.array(reward, dtype='float32')
             # fall = np.array(fall, dtype='int32')
         else:
-            state = np.array(state)
+            state = np.array(state, dtype='float64')
             if (self._continuous_actions):
-                action = np.array(action)
+                action = np.array(action, dtype='float64')
             else:
                 action = np.array(action, dtype='int32')
-            resultState = np.array(resultState)
-            reward = np.array(reward)
+            resultState = np.array(resultState, dtype='float64')
+            reward = np.array(reward, dtype='float64')
         
         fall = np.array(fall, dtype='int32')
          

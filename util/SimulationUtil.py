@@ -143,7 +143,7 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
         print ("Unknown network model type: ", str(model_type), " I hope you know what you are doing....")
         # sys.exit(2)
         return
-    
+    print (" network type: ", model_type, " : ", model)
     print ("Number of Critic network parameters", lasagne.layers.count_params(model.getCriticNetwork()))
     print ("Number of Actor network parameters", lasagne.layers.count_params(model.getActorNetwork()))
     return model
@@ -211,6 +211,8 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
     else:
         print ("Unknown learning algorithm type: " + str(algorihtm_type))
         sys.exit(2)
+        
+    print ("Using model type ", algorihtm_type , " : ", model)
     
     return model
 

@@ -18,7 +18,7 @@ class ForwardDynamics(AlgorithmInterface):
         super(ForwardDynamics,self).__init__(model, state_length, action_length, state_bounds, action_bounds, 0, settings_)
         self._model = model
         batch_size=32
-        self._learning_rate = settings_["fd_learning_rate"]
+        self._learning_rate = self.getSettings()["fd_learning_rate"]
         # data types for model
         # create a small convolutional neural network
         
@@ -67,6 +67,9 @@ class ForwardDynamics(AlgorithmInterface):
         self._model.setActions(actions)
         
     def getGrads(self, states, actions, result_states):
+        states = np.array(states, dtype=self.getSettings()['float_type'])
+        actions = np.array(actions, dtype=self.getSettings()['float_type'])
+        result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
         self.setData(states, actions, result_states)
         return self._get_grad()
                 
@@ -85,8 +88,8 @@ class ForwardDynamics(AlgorithmInterface):
     def predict(self, state, action):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(norm_state(state, self._state_bounds))
-        action = np.array([norm_action(action, self._action_bounds)])
+        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        action = np.array([norm_action(action, self._action_bounds)], dtype=self.getSettings()['float_type'])
         self._model.setStates(state)
         self._model.setActions(action)
         state_ = scale_state(self._forwardDynamics()[0], self._state_bounds)
