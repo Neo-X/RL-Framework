@@ -41,6 +41,7 @@ class SimWorker(Process):
         
         # print ("SW model: ", self._model.getPolicy())
         if (int(self._settings["num_available_threads"]) > 1): # This is okay if there is one thread only...
+            from util.SimulationUtil import createEnvironment
             self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings)
             self._exp.getActor().init()   
             self._exp.getEnvironment().init()
