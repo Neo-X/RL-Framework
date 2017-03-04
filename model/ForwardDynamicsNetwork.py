@@ -19,11 +19,11 @@ class ForwardDynamicsNetwork(ModelInterface):
         
         batch_size=32
         # data types for model
-        self._State = T.dmatrix("State")
+        self._State = T.matrix("State")
         self._State.tag.test_value = np.random.rand(batch_size,self._state_length)
-        self._ResultState = T.dmatrix("ResultState")
+        self._ResultState = T.matrix("ResultState")
         self._ResultState.tag.test_value = np.random.rand(batch_size,self._state_length)
-        self._Action = T.dmatrix("Action")
+        self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(batch_size, self._action_length)
         # create a small convolutional neural network
         new_state = theano.tensor.concatenate([self._State, self._Action], axis=1)

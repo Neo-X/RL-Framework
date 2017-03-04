@@ -1,6 +1,7 @@
 import sys
 import math
 from actor.ActorInterface import ActorInterface
+import numpy as np
 
 class SimbiconActor(ActorInterface):
     
@@ -13,13 +14,7 @@ class SimbiconActor(ActorInterface):
     def act(self, exp, action_, bootstrapping=False):
         samp = self.getActionParams(action_)
         
-        averageSpeed = exp.getEnvironment().act(samp)
-        # print ("averageSpeed: ", averageSpeed)
-        if (averageSpeed < 0.0):
-            return 0.0
-        
-        vel_dif = self._target_vel - averageSpeed
-        reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight) # optimal is 0
+        reward = self.actContinuous(exp, samp, bootstrapping)
         self._reward_sum = self._reward_sum + reward
         return reward
     
@@ -27,6 +22,8 @@ class SimbiconActor(ActorInterface):
     def actContinuous(self, exp, action_, bootstrapping=False):
         # Actor should be FIRST here
         # print "Action: " + str(action_)
+        ## Need to make sure this is an array of doubles
+        action_ = np.array(action_, dtype='float64')
         averageSpeed = exp.getEnvironment().act(action_)
         # print ("averageSpeed: ", averageSpeed)
         if (averageSpeed < 0.0):
