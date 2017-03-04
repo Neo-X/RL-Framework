@@ -477,7 +477,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             mean_eval, std_eval)
 
 def collectExperience(actor, exp_val, model, settings):
-    
+    from util.ExperienceMemory import ExperienceMemory
     action_selection = range(len(settings["discrete_actions"]))
     print ("Action selection: " + str(action_selection))
     # state_bounds = np.array(settings['state_bounds'])
