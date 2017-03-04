@@ -4,7 +4,7 @@ from model.ModelUtil import *
 # import cPickle
 import dill
 import sys
-from theano.compile.io import Out
+# from theano.compile.io import Out
 sys.setrecursionlimit(50000)
 from sim.PendulumEnvState import PendulumEnvState
 from sim.PendulumEnv import PendulumEnv
@@ -15,7 +15,6 @@ import time
 import copy
 
 from actor.ActorInterface import *
-from util.SimulationUtil import *
 
 import OpenGL
 from OpenGL.GL import *
@@ -66,7 +65,7 @@ class SimContainer(object):
         
         if (self._exp.getEnvironment().needUpdatedAction()):
             state_ = self._exp.getState()
-            action_ = self._agent.predict(state_)
+            action_ = np.array(self._agent.predict(state_), dtype='float64')
             self._exp.getEnvironment().updateAction(action_)
         
         self._exp.update()
@@ -93,6 +92,17 @@ class SimContainer(object):
 def evaluateModelRender(settings_file_name):
 
     settings = getSettings(settings_file_name)
+    settings['shouldRender'] = True
+    import os    
+    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+    
+    from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
+    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel
+    from util.ExperienceMemory import ExperienceMemory
+    from model.LearningAgent import LearningAgent, LearningWorker
+    from RLVisualize import RLVisualize
+    from NNVisualize import NNVisualize
+    
     anchor_data_file = open(settings["anchor_file"])
     _anchors = getAnchors(anchor_data_file)
     anchor_data_file.close()
@@ -118,7 +128,7 @@ def evaluateModelRender(settings_file_name):
     
     ### Using a wrapper for the type of actor now
     if action_space_continuous:
-        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True)
+        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
     else:
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
     # actor = ActorInterface(discrete_actions)
@@ -218,7 +228,7 @@ def evaluateModelRender(settings_file_name):
     exp.getEnvironment().initEpoch()
     fps=30
     state_ = exp.getState()
-    action_ = masterAgent.predict(state_)
+    action_ = np.array(masterAgent.predict(state_), dtype='float64')
     exp.getEnvironment().updateAction(action_)
     sim = SimContainer(exp, masterAgent)
     # glutInitWindowPosition(x, y);
