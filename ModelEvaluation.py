@@ -1,21 +1,19 @@
 
 
-from model.ModelUtil import *
 # import cPickle
 import dill
 import sys
-from theano.compile.io import Out
+# from theano.compile.io import Out
 sys.setrecursionlimit(50000)
-from sim.PendulumEnvState import PendulumEnvState
-from sim.PendulumEnv import PendulumEnv
+# from sim.PendulumEnvState import PendulumEnvState
+# from sim.PendulumEnv import PendulumEnv
 from multiprocessing import Process, Queue
 # from pathos.multiprocessing import Pool
 import threading
 import time
 import copy
-
-from actor.ActorInterface import *
-from util.SimulationUtil import *
+import numpy as np
+from model.ModelUtil import *
 
 # class SimWorker(threading.Thread):
 class SimWorker(Process):
@@ -43,6 +41,7 @@ class SimWorker(Process):
         
         # print ("SW model: ", self._model.getPolicy())
         if (int(self._settings["num_available_threads"]) > 1): # This is okay if there is one thread only...
+            from util.SimulationUtil import createEnvironment
             self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings)
             self._exp.getActor().init()   
             self._exp.getEnvironment().init()
@@ -479,7 +478,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             mean_eval, std_eval)
 
 def collectExperience(actor, exp_val, model, settings):
-    
+    from util.ExperienceMemory import ExperienceMemory
     action_selection = range(len(settings["discrete_actions"]))
     print ("Action selection: " + str(action_selection))
     # state_bounds = np.array(settings['state_bounds'])
@@ -618,8 +617,29 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
 
 def modelEvaluation(settings_file_name):
     
-    
+    from model.ModelUtil import getSettings
     settings = getSettings(settings_file_name)
+    settings['shouldRender'] = True
+    import os    
+    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+    
+    ## Theano needs to be imported after the flags are set.
+    # from ModelEvaluation import *
+    # from model.ModelUtil import *
+    from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience
+    # from model.ModelUtil import validBounds
+    from model.LearningAgent import LearningAgent, LearningWorker
+    from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
+    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel
+    
+    
+    from util.ExperienceMemory import ExperienceMemory
+    from RLVisualize import RLVisualize
+    from NNVisualize import NNVisualize
+    
+    # from model.ModelUtil import *
+    # from actor.ActorInterface import *
+    # from util.SimulationUtil import *
     
     # anchor_data_file = open(settings["anchor_file"])
     # _anchors = getAnchors(anchor_data_file)

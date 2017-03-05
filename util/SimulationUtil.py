@@ -247,6 +247,7 @@ def createEnvironment(config_file, env_type, settings):
         import simbiconAdapter
         c = simbiconAdapter.Configuration(config_file)
         print ("Num state: ", c._NUMBER_OF_STATES)
+        c._RENDER = settings['shouldRender']
         sim = simbiconAdapter.SimbiconWrapper(c)
         print ("Using Environment Type: " + str(env_type))
         exp = SimbiconEnv(sim)
