@@ -213,30 +213,9 @@ class A3C(AlgorithmInterface):
         # self._updates += 1
         # loss, _ = self._train()
         lossActor = 0
-        
-        diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        # print ("Diff")
-        # print (diff_)
-        tmp_states=[]
-        tmp_result_states=[]
-        tmp_actions=[]
-        tmp_rewards=[]
-        tmp_falls=[]
-        for i in range(len(diff_)):
-            if ( diff_[i] > 0.0):
-                tmp_states.append(states[i])
-                tmp_result_states.append(result_states[i])
-                tmp_actions.append(actions[i])
-                tmp_rewards.append(rewards[i])
-                tmp_falls.append(falls[i])
-                
-        if (len(tmp_actions) > 0):
-            self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
-            lossActor, _ = self._trainActor()
-            print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
+        lossActor, _ = self._trainActor()
+        print( " Actor loss: ", lossActor)
             # return np.sqrt(lossActor);
-        else:
-            print ("Length of BAD positive actions: ", len(tmp_actions))
         return lossActor
     
     def train(self, states, actions, rewards, result_states, falls):
