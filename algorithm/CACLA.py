@@ -87,11 +87,11 @@ class CACLA(AlgorithmInterface):
         self._actor_regularization = (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getActorNetwork(), lasagne.regularization.l2))
         # SGD update
-        self._updates_ = lasagne.updates.rmsprop(self._loss + self._critic_regularization, self._params, 
-                                self._learning_rate, self._rho, self._rms_epsilon)
+        # self._updates_ = lasagne.updates.rmsprop(self._loss + self._critic_regularization, self._params, 
+        #                         self._learning_rate, self._rho, self._rms_epsilon)
         # TD update
-        # self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
-        #             self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
+        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
+                    self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
         
         
         # actDiff1 = (self._model.getActionSymbolicVariable() - self._q_valsActTarget) #TODO is this correct?
