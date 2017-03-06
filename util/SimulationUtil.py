@@ -41,6 +41,7 @@ from algorithm.CACLA2 import CACLA2
 from algorithm.CACLADV import CACLADV
 from algorithm.CACLADVTarget import CACLADVTarget
 from algorithm.ForwardDynamics import ForwardDynamics
+from algorithm.A3C import A3C
 
 from util.ExperienceMemory import ExperienceMemory
 from RLVisualize import RLVisualize
@@ -207,6 +208,9 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
     elif (algorihtm_type == "DoubleDeepQNetwork" ):
         print ("Using model type ", algorihtm_type , " with ", len(action_bounds), " actions")
         model = DoubleDeepQNetwork(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds), state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+    elif (algorihtm_type == "A3C" ):
+        model = A3C(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     else:
         print ("Unknown learning algorithm type: " + str(algorihtm_type))

@@ -73,9 +73,10 @@ class A3C(AlgorithmInterface):
         }
         self._actGivens = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getResultStateSymbolicVariable(): self._next_states_shared,
-            self._model.getRewardSymbolicVariable(): self._rewards_shared,
-            self._model.getActionSymbolicVariable(): self._model.getActions()
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            self._Fallen: self._fallen_shared
         }
         
         self._critic_regularization = (self._critic_regularization_weight * lasagne.regularization.regularize_network_params(
@@ -90,12 +91,13 @@ class A3C(AlgorithmInterface):
         self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
                     self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
         
-        
-        self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) * self._diff # Target network does not work well here?
+        ## Need to perform an element wise operation or replicate _diff for this to work properly.
+        self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), theano.tensor.tile(self._diff, self._action_length)) # Target network does not work well here?
+        # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
         self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
-        self._actLoss = 0.5 * self._actDiff ** 2 
+        self._actLoss = ( 0.5 * (self._actDiff ** 2 ))
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
-        self._actLoss = T.mean(self._actLoss)
+        self._actLoss = T.mean(self._actLoss) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         
@@ -115,7 +117,7 @@ class A3C(AlgorithmInterface):
         
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
-        CACLA.compile(self)
+        A3C.compile(self)
         
     def compile(self):
         
@@ -130,6 +132,10 @@ class A3C(AlgorithmInterface):
         })
         self._get_critic_regularization = theano.function([], [self._critic_regularization])
         self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
+        
+        self._get_actor_regularization = theano.function([], [self._actor_regularization])
+        self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
+        self._get_action_diff = theano.function([], [self._actDiff], givens=self._actGivens)
         
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
@@ -213,30 +219,10 @@ class A3C(AlgorithmInterface):
         # self._updates += 1
         # loss, _ = self._train()
         lossActor = 0
-        
-        diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        # print ("Diff")
-        # print (diff_)
-        tmp_states=[]
-        tmp_result_states=[]
-        tmp_actions=[]
-        tmp_rewards=[]
-        tmp_falls=[]
-        for i in range(len(diff_)):
-            if ( diff_[i] > 0.0):
-                tmp_states.append(states[i])
-                tmp_result_states.append(result_states[i])
-                tmp_actions.append(actions[i])
-                tmp_rewards.append(rewards[i])
-                tmp_falls.append(falls[i])
-                
-        if (len(tmp_actions) > 0):
-            self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
-            lossActor, _ = self._trainActor()
-            print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
+        lossActor, _ = self._trainActor()
+        print( " Actor loss: ", lossActor)
+        # print( "Action diff: ", self._get_action_diff())
             # return np.sqrt(lossActor);
-        else:
-            print ("Length of BAD positive actions: ", len(tmp_actions))
         return lossActor
     
     def train(self, states, actions, rewards, result_states, falls):
