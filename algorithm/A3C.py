@@ -91,10 +91,11 @@ class A3C(AlgorithmInterface):
         self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
                     self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
         
-        
-        self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
+        ## Need to perform an element wise operation or replicate _diff for this to work properly.
+        self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), theano.tensor.tile(self._diff, self._action_length)) # Target network does not work well here?
+        # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
         self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
-        self._actLoss = ( 0.5 * (self._actDiff ** 2 )) * self._diff
+        self._actLoss = ( 0.5 * (self._actDiff ** 2 ))
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
         self._actLoss = T.mean(self._actLoss) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
@@ -134,6 +135,7 @@ class A3C(AlgorithmInterface):
         
         self._get_actor_regularization = theano.function([], [self._actor_regularization])
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
+        self._get_action_diff = theano.function([], [self._actDiff], givens=self._actGivens)
         
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
@@ -219,6 +221,7 @@ class A3C(AlgorithmInterface):
         lossActor = 0
         lossActor, _ = self._trainActor()
         print( " Actor loss: ", lossActor)
+        # print( "Action diff: ", self._get_action_diff())
             # return np.sqrt(lossActor);
         return lossActor
     
