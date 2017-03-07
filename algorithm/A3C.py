@@ -238,8 +238,8 @@ class A3C(AlgorithmInterface):
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
-        action_ = scale_action(self._q_action_target()[0], self._action_bounds)
+        action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
