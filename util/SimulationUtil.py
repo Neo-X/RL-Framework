@@ -102,6 +102,9 @@ import lasagne
 def getDataDirectory(settings):
     return settings["environment_type"]+"/"+settings["agent_name"]+"/"+settings["data_folder"]+"/"+settings["model_type"]+"/"
 
+def getAgentName(settings):
+    return 'pendulum_agent'
+
 def getTaskDataDirectory(settings):
     return settings["environment_type"]+"/"+settings["agent_name"]+"/"+settings["task_data_folder"]+"/"+settings["model_type"]+"/"
 
