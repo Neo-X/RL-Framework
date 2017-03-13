@@ -386,8 +386,9 @@ class BallGame1D(object):
             glutCreateWindow("PyODE BallGame1D Simulation")
         
         # create an ODE world object
+        self._gravity = -9.81
         self._world = ode.World()
-        self._world.setGravity((0.0, -9.81, 0.0))
+        self._world.setGravity((0.0, self._gravity, 0.0))
         self._world.setERP(0.1)
         self._world.setCFM(1E-4)
         
@@ -692,6 +693,17 @@ class BallGame1D(object):
     
         glutSwapBuffers()
     
+    def _computeHeight(self, action_):
+        init_v_squared = (action_*action_)
+        # seconds_ = 2 * (-self._box.G)
+        return (-init_v_squared)/1.0  
+    
+    def _computeTime(self, velocity_y):
+        """
+        
+        """
+        seconds_ = velocity_y/self._gravity
+        return seconds_
         
     def simulateAction(self):
         """

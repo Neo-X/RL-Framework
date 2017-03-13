@@ -65,6 +65,16 @@ class BallGame2D(BallGame1D):
         vel = self.calcVelocity(bootstrapping=bootstrapping)
         return vel
         # obstacle.addForce((0.0,100.0,0.0))
+        
+    def visualizeAction(self, action):
+                # print ("Action: ", action)
+        pos = self._obstacle.getPosition()
+        vel = self._obstacle.getLinearVel()
+        new_vel = np.array([vel[0] + action[0], action[1]])
+        # new_vel = action[0]
+        ## compute new location for landing.
+        time__ = _computeTime(action[1]) * 2.0
+        new_pos = pos[0] + (new_vel[0] * time__)
 
     def simulateAction(self):
         """
