@@ -92,10 +92,12 @@ class A3C(AlgorithmInterface):
                     self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
         
         ## Need to perform an element wise operation or replicate _diff for this to work properly.
-        self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), theano.tensor.tile((self._diff * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
+        # self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), theano.tensor.tile((self._diff * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
+        self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)
         # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
         self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
-        self._actLoss = ( 0.5 * (self._actDiff ** 2 ))
+        ## This should be a single column vector
+        self._actLoss = ( (T.sum(T.pow(self._actDiff, 2),axis=1) )) * (self._diff * (1.0/(1.0-self._discount_factor)))
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
         self._actLoss = T.mean(self._actLoss) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink

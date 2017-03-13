@@ -98,9 +98,11 @@ class CACLA(AlgorithmInterface):
         # actDiff = (actDiff1 - (self._model.getActionSymbolicVariable() - self._q_valsActA))
         self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
         self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
-        self._actLoss = 0.5 * (self._actDiff ** 2) 
+        # self._actLoss = 0.5 * (self._actDiff ** 2) 
+        ## Should produce a single column vector or costs for each sample in the batch
+        self._actLoss_ = T.sum(T.pow(self._actDiff, 2),axis=1) 
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
-        self._actLoss = T.mean(self._actLoss)
+        self._actLoss = T.mean(self._actLoss_)
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         
@@ -139,6 +141,7 @@ class CACLA(AlgorithmInterface):
         
         self._get_actor_regularization = theano.function([], [self._actor_regularization])
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
+        self._get_actor_batch_loss = theano.function([], [self._actLoss_], givens=self._actGivens)
         
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
@@ -246,6 +249,7 @@ class CACLA(AlgorithmInterface):
             # print ( " Actions: ", tmp_actions)
             # print ( "Actor diff: " , self._get_actDiff())
             # return np.sqrt(lossActor);
+            # print ("batch loss: ", self._get_actor_batch_loss())
         else:
             print ("Length of BAD positive actions: ", len(tmp_actions))
         return lossActor
