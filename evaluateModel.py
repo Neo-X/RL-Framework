@@ -29,6 +29,7 @@ class SimContainer(object):
     def __init__(self, exp, agent):
         self._exp = exp
         self._agent = agent
+        self._episode=0
         
     def animate(self, callBackVal=-1):
         # print ("Animating: ", callBackVal)
@@ -60,7 +61,17 @@ class SimContainer(object):
         gluLookAt(1.5, 4.0, 3.0, 0.5, 1.0, 0.0, 0.0, 1.0, 0.0)
         
         glutPostRedisplay()
+        
         """
+        
+        print ("End of Epoch: ", self._exp.getEnvironment().endOfEpoch())
+        if (self._exp.getEnvironment().endOfEpoch() and 
+               self._exp.getEnvironment().needUpdatedAction()):
+            self._exp.getActor().initEpoch()
+            self._exp.generateValidation(10, self._episode)
+            self._exp.getEnvironment().initEpoch()
+            self._episode += 1
+            
         glutTimerFunc(1000/fps, self.animate, 0) # 30 fps?
         
         if (self._exp.getEnvironment().needUpdatedAction()):
@@ -103,9 +114,6 @@ def evaluateModelRender(settings_file_name):
     from RLVisualize import RLVisualize
     from NNVisualize import NNVisualize
     
-    anchor_data_file = open(settings["anchor_file"])
-    _anchors = getAnchors(anchor_data_file)
-    anchor_data_file.close()
     model_type= settings["model_type"]
     directory= getDataDirectory(settings)
     rounds = settings["rounds"]
@@ -173,6 +181,7 @@ def evaluateModelRender(settings_file_name):
     
     exp.getActor().init()   
     exp.getEnvironment().init()
+    exp.getEnvironment().generateValidationEnvironmentSample(0)
     expected_value_viz=None
     if (settings['visualize_expected_value']):
         expected_value_viz = NNVisualize(title=str("Expected Value") + " with " + str(settings["model_type"]), settings=settings)

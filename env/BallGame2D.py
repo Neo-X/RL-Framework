@@ -44,6 +44,16 @@ class BallGame2D(BallGame1D):
         self._obstacle2.setRotation(rightRot)
         self._bodies.append(self._obstacle2)
         
+    def updateAction(self, action_):
+        # print ("Action: ", action)
+        pos = self._obstacle.getPosition()
+        vel = self._obstacle.getLinearVel()
+        new_vel = np.array([vel[0] + action_[0], action_[1]])
+        # new_vel = action[0]
+        new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+        self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0.0))
+        contact = False
+        
     def actContinuous(self, action, bootstrapping=False):
         # print ("Action: ", action)
         pos = self._obstacle.getPosition()
@@ -80,10 +90,24 @@ class BallGame2D(BallGame1D):
         vel = self._obstacle.getLinearVel()
         new_vel = np.array([vel[0] + action[0], action[1]])
         # new_vel = action[0]
+        new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
         ## compute new location for landing.
         time__ = self._computeTime(action[1]) * 2.0
         new_pos = pos[0] + (new_vel[0] * time__)
         self._obstacle2.setPosition((new_pos, 0,0))
+        
+    def visualizeNextState(self, terrain, action, terrain_dx):
+        self._nextTerrainData = terrain
+        pos = self._obstacle.getPosition() 
+        vel = self._obstacle.getLinearVel()
+        new_vel = np.array([vel[0] + action[0], action[1]])
+        # new_vel = action[0]
+        new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+        # self._obstacle.setLinearVel((action[0],4.0,0.0))
+        time = (action[1]/9.81)*2 # time for rise and fall
+        self._nextTerrainStartX = pos[0] + (time * new_vel[0]) + terrain_dx
+        # self._nextTerrainStartX = pos[0] + terrain_dx
+        # drawTerrain(terrain, translateX, translateY=0.0, colour=(0.4, 0.4, 0.8, 0.0), wirefame=False):
 
     def simulateAction(self):
         """

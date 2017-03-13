@@ -29,6 +29,9 @@ class BallGame2DEnv(SimInterface):
     
     def finish(self):
         self._exp.finish()
+        
+    def update(self):
+        self._exp.simulateAction()
     
     def getState(self):
         # state = np.array(self._exp.getState())

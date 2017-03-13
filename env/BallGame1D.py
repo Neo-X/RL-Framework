@@ -598,6 +598,45 @@ class BallGame1D(object):
         x_adjust=4.5
         gluLookAt(pos[0]+x_adjust, 0.0, 8.0, pos[0]+x_adjust, 0.0, -10.0, 0.0, 1.0, 0.0)
         
+        
+    def updateAction(self, action_):
+        # print ("Action: ", action)
+        pos = self._obstacle.getPosition()
+        vel = self._obstacle.getLinearVel()
+        # new_vel = vel[0] + action[0]
+        new_vel = action_[0]
+        if new_vel > self._game_settings["velocity_bounds"][1]:
+            new_vel = self._game_settings["velocity_bounds"][1]
+        elif new_vel < self._game_settings["velocity_bounds"][0]:
+            new_vel = self._game_settings["velocity_bounds"][0]
+        self._obstacle.setLinearVel((new_vel,4.0,0.0))
+        contact = False
+        
+    def needUpdatedAction(self):
+        self._space.collide((self._world, self._contactgroup), near_callback)
+    
+        ## Simulation step (with slow motion)
+        self._world.step(self._dt / self._stepsPerFrame / self._SloMo)
+
+        self._numiter += 1
+
+        # apply internal ragdoll forces
+        # ragdoll.update()
+        # pos = self._obstacle.getPosition()
+        # print ("Ball pos: ", pos)
+        # self._obstacle.addTorque((0.0,0.0,0.2));
+            
+        contacts = ode.collide(self._floor, self._obsgeom)
+        # print ("Num contacts: " + str(len(contacts)))
+        if (len(contacts)> 0):
+            # print ("Num contacts: " + str(len(contacts)))
+            # print ("Constact info: ", contacts[0].getContactGeomParams())
+            return True
+        return False
+    
+    def update(self):
+        return self.simulateAction()
+        
     def actContinuous(self, action, bootstrapping=False):
         # print ("Action: ", action)
         pos = self._obstacle.getPosition()
@@ -773,6 +812,14 @@ class BallGame1D(object):
     def visualizeNextState(self, terrain, action, terrain_dx):
         self._nextTerrainData = terrain
         pos = self._obstacle.getPosition() 
+        vel = self._obstacle.getLinearVel()
+        # new_vel = vel[0] + action[0]
+        new_vel = action[0]
+        if new_vel > self._game_settings["velocity_bounds"][1]:
+            new_vel = self._game_settings["velocity_bounds"][1]
+        elif new_vel < self._game_settings["velocity_bounds"][0]:
+            new_vel = self._game_settings["velocity_bounds"][0]
+            
         # self._obstacle.setLinearVel((action[0],4.0,0.0))
         time = (4.0/9.81)*2 # time for rise and fall
         self._nextTerrainStartX = pos[0] + (time * action[0]) + terrain_dx
