@@ -63,12 +63,16 @@ class BallGame2D(BallGame1D):
         new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
         self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0.0))
         contact = False
+        vel_sum=0
+        updates=0
         while ( ( pos[1] >= (-5)) and (not contact)): # object does not fall off map..
         # while ( ( True ) and (not contact)):
             contact = self.simulateAction()
             pos = self._obstacle.getPosition()
             pos = (pos[0], pos[1], 0.0)
             self._obstacle.setPosition(pos)
+            updates+=1
+            vel_sum += self.calcVelocity(bootstrapping=bootstrapping)
         
         # self._terrainData = self.generateTerrain()
         self._state_num=self._state_num+1
@@ -80,8 +84,9 @@ class BallGame2D(BallGame1D):
         self._obstacle.setPosition(pos)
         ## The contact seems to be reducing the velocity
         # self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0.0))
-        vel = self.calcVelocity(bootstrapping=bootstrapping)
-        return vel
+        avg_vel = vel_sum/updates
+        print("avg_vel: ", avg_vel)
+        return avg_vel
         # obstacle.addForce((0.0,100.0,0.0))
         
     def visualizeAction(self, action):

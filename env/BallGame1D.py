@@ -564,7 +564,22 @@ class BallGame1D(object):
         if (self._end_of_Epoch_Flag):
             return True 
         else:
-            return False  
+            return False
+        
+    def glut_print(self, x,  y,  font,  text, r,  g , b , a):
+
+        blending = False 
+        if glIsEnabled(GL_BLEND) :
+            blending = True
+    
+        #glEnable(GL_BLEND)
+        glColor3f(r,g,b)
+        glWindowPos2f(x,y)
+        for ch in text :
+            glutBitmapCharacter( font , ctypes.c_int( ord(ch) ) )
+    
+        if not blending :
+            glDisable(GL_BLEND)  
                     
     def prepare_GL(self):
         """Setup basic OpenGL rendering with smooth shading and a single light."""
@@ -597,6 +612,9 @@ class BallGame1D(object):
         pos = self._obstacle.getPosition()
         x_adjust=4.5
         gluLookAt(pos[0]+x_adjust, 0.0, 8.0, pos[0]+x_adjust, 0.0, -10.0, 0.0, 1.0, 0.0)
+        
+        vel = self._obstacle.getLinearVel()
+        self.glut_print( 5 , 5 , GLUT_BITMAP_9_BY_15 , "Vel: " + str(vel) , 0.0 , 0.0 , 0.0 , 1.0 )
         
         
     def updateAction(self, action_):
@@ -704,14 +722,6 @@ class BallGame1D(object):
                 print ("Contact normal ", contactNormal[1])
                 return 0
                 """
-        # print ("Ball velocity:", vel, " Ball position: ", pos)
-        if (self.agentHasFallen() ): # fell in a hole
-        # if (pos[1] < (0.0)): # fell in a hole
-            # print ("Ball Fell in hole: ", pos[1])
-            # if (not bootstrapping):
-            self._end_of_Epoch_Flag=True # kind of hacky to end Epoch after the ball falls in a hole.
-            # return 0
-        
         vel = vel[0] 
         
         # reward = 1.0 - (fabs(vel[0] - targetVel)/targetVel)
