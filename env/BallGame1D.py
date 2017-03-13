@@ -362,6 +362,26 @@ def drawTerrain(terrainData, translateX, translateY=0.0, translateZ=0.0, colour=
     
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     
+class Obstacle(object):
+    
+    def __init__(self):
+        self._pos = np.array([0,0,0])
+        self.shape = "sphere"
+        self.radius = 0.1
+    
+        
+    def setPosition(self, pos):
+        self._pos = pos
+        
+    def getPosition(self):
+        return copy.deepcopy(self._pos)
+
+    def setRotation(self, balh):
+        pass
+    
+    def getRotation(self):
+        return (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+    
 
 class BallGame1D(object):
     def __init__(self, settings):
@@ -702,7 +722,7 @@ class BallGame1D(object):
         """
         
         """
-        seconds_ = velocity_y/self._gravity
+        seconds_ = velocity_y/-self._gravity
         return seconds_
         
     def simulateAction(self):
