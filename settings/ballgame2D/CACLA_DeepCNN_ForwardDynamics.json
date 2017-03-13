@@ -190,7 +190,7 @@
     "comment__": "Whether or not to draw/render the simulation",
 "shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
-"action_learning_rate": 1.25,
+"action_learning_rate": 10.25,
     "comment__": "During model-based action exploration, Probability of random policy action",
 "model_based_action_omega": 1.0,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
