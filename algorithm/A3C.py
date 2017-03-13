@@ -97,7 +97,10 @@ class A3C(AlgorithmInterface):
         # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
         self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
         ## This should be a single column vector
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( T.transpose(T.sum(T.pow(self._actDiff, 2),axis=1) )), (self._diff * (1.0/(1.0-self._discount_factor))))
+        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( T.transpose(T.sum(T.pow(self._actDiff, 2),axis=1) )), (self._diff * (1.0/(1.0-self._discount_factor))))
+        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( T.reshape(T.sum(T.pow(self._actDiff, 2),axis=1), (self._batch_size, 1) )), 
+                                                                                (self._diff * (1.0/(1.0-self._discount_factor)))
+                                                                            )
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
         self._actLoss = T.mean(self._actLoss_) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
@@ -220,6 +223,7 @@ class A3C(AlgorithmInterface):
         #     self.updateTargetModel()
         # self._updates += 1
         # loss, _ = self._train()
+        # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
         lossActor, _ = self._trainActor()
         print( " Actor loss: ", lossActor)
