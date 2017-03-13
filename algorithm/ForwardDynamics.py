@@ -30,7 +30,7 @@ class ForwardDynamics(AlgorithmInterface):
         
         # self._target = (Reward + self._discount_factor * self._q_valsB)
         self._diff = self._model.getResultStateSymbolicVariable() - self._forward
-        self._loss = 0.5 * (self._diff ** 2) 
+        self._loss = T.sum(T.pow(self._diff, 2),axis=1)
         self._loss = T.mean(self._loss)
         
         self._params = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
