@@ -231,6 +231,7 @@ def createEnvironment(config_file, env_type, settings):
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
         file.close()
+        conf['render'] = settings['shouldRender']
         exp = BallGame2D(conf)
         exp = BallGame2DEnv(exp)
         return exp
@@ -239,6 +240,7 @@ def createEnvironment(config_file, env_type, settings):
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
         file.close()
+        conf['render'] = settings['shouldRender']
         exp = BallGame1D(conf)
         exp = BallGame1DEnv(exp)
         return exp
@@ -247,6 +249,7 @@ def createEnvironment(config_file, env_type, settings):
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
         file.close()
+        conf['render'] = settings['shouldRender']
         exp = GapGame1D(conf)
         exp = GapGame1DEnv(exp)
         return exp

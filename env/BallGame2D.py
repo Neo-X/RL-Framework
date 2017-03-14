@@ -36,6 +36,24 @@ class BallGame2D(BallGame1D):
         """Creates a ragdoll of standard size at the given offset."""
         super(BallGame2D,self).__init__(settings)
         
+        self._obstacle2 = Obstacle()
+
+        pos = (0.0, self._ballRadius+self._ballEpsilon, 0.0)
+        #pos = (0.27396178783269359, 0.20000000000000001, 0.17531818795388002)
+        self._obstacle2.setPosition(pos)
+        self._obstacle2.setRotation(rightRot)
+        self._bodies.append(self._obstacle2)
+        
+    def updateAction(self, action_):
+        # print ("Action: ", action)
+        pos = self._obstacle.getPosition()
+        vel = self._obstacle.getLinearVel()
+        new_vel = np.array([vel[0] + action_[0], action_[1]])
+        # new_vel = action[0]
+        new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+        self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0.0))
+        contact = False
+        
     def actContinuous(self, action, bootstrapping=False):
         # print ("Action: ", action)
         pos = self._obstacle.getPosition()
@@ -45,12 +63,17 @@ class BallGame2D(BallGame1D):
         new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
         self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0.0))
         contact = False
+        vel_sum=0
+        updates=0
         while ( ( pos[1] >= (-5)) and (not contact)): # object does not fall off map..
         # while ( ( True ) and (not contact)):
+            # print ("Before vel:, ", self.calcVelocity(bootstrapping=bootstrapping))
             contact = self.simulateAction()
             pos = self._obstacle.getPosition()
             pos = (pos[0], pos[1], 0.0)
             self._obstacle.setPosition(pos)
+            updates+=1
+            vel_sum += self.calcVelocity(bootstrapping=bootstrapping)
         
         # self._terrainData = self.generateTerrain()
         self._state_num=self._state_num+1
@@ -62,9 +85,36 @@ class BallGame2D(BallGame1D):
         self._obstacle.setPosition(pos)
         ## The contact seems to be reducing the velocity
         # self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0.0))
-        vel = self.calcVelocity(bootstrapping=bootstrapping)
-        return vel
+        # print ("Before vel:, ", self.calcVelocity(bootstrapping=bootstrapping))
+        avg_vel = vel_sum/updates
+        print("avg_vel: ", avg_vel)
+        return avg_vel
         # obstacle.addForce((0.0,100.0,0.0))
+        
+    def visualizeAction(self, action):
+                # print ("Action: ", action)
+        pos = self._obstacle.getPosition()
+        vel = self._obstacle.getLinearVel()
+        new_vel = np.array([vel[0] + action[0], action[1]])
+        # new_vel = action[0]
+        new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+        ## compute new location for landing.
+        time__ = self._computeTime(action[1]) * 2.0
+        new_pos = pos[0] + (new_vel[0] * time__)
+        self._obstacle2.setPosition((new_pos, 0,0))
+        
+    def visualizeNextState(self, terrain, action, terrain_dx):
+        self._nextTerrainData = terrain
+        pos = self._obstacle.getPosition() 
+        vel = self._obstacle.getLinearVel()
+        new_vel = np.array([vel[0] + action[0], action[1]])
+        # new_vel = action[0]
+        new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+        # self._obstacle.setLinearVel((action[0],4.0,0.0))
+        time = (action[1]/9.81)*2 # time for rise and fall
+        self._nextTerrainStartX = pos[0] + (time * new_vel[0]) + terrain_dx
+        # self._nextTerrainStartX = pos[0] + terrain_dx
+        # drawTerrain(terrain, translateX, translateY=0.0, colour=(0.4, 0.4, 0.8, 0.0), wirefame=False):
 
     def simulateAction(self):
         """
@@ -194,6 +244,7 @@ if __name__ == '__main__':
             # print (state)
             
             game.visualizeState(state[:len(state)-1], action, 0)
+            game.visualizeAction(action)
             reward = game.actContinuous(action)
             
             if (game.agentHasFallen()):

@@ -1,5 +1,4 @@
 {
-"render": false,
 "terrain_type": "gaps",
 "terrain_scale": 0.1,
 "body_shape": "sphere",
@@ -16,5 +15,5 @@
 						"terrain_change": -1.0,
 						"terrain_length": 500
 					},
-"velocity_bounds": [[0.5, 2.5], [2.5, 5.0]]
+"velocity_bounds": [[0.5, 3.5], [2.5, 5.0]]
 }

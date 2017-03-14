@@ -1,5 +1,4 @@
 {
-"render": false,
 "terrain_type": "walls",
 "terrain_scale": 0.1,
 "num_terrain_samples": 200,

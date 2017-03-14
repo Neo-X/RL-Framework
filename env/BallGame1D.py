@@ -362,6 +362,26 @@ def drawTerrain(terrainData, translateX, translateY=0.0, translateZ=0.0, colour=
     
     glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
     
+class Obstacle(object):
+    
+    def __init__(self):
+        self._pos = np.array([0,0,0])
+        self.shape = "sphere"
+        self.radius = 0.1
+    
+        
+    def setPosition(self, pos):
+        self._pos = pos
+        
+    def getPosition(self):
+        return copy.deepcopy(self._pos)
+
+    def setRotation(self, balh):
+        pass
+    
+    def getRotation(self):
+        return (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+    
 
 class BallGame1D(object):
     def __init__(self, settings):
@@ -386,8 +406,9 @@ class BallGame1D(object):
             glutCreateWindow("PyODE BallGame1D Simulation")
         
         # create an ODE world object
+        self._gravity = -9.81
         self._world = ode.World()
-        self._world.setGravity((0.0, -9.81, 0.0))
+        self._world.setGravity((0.0, self._gravity, 0.0))
         self._world.setERP(0.1)
         self._world.setCFM(1E-4)
         
@@ -543,7 +564,22 @@ class BallGame1D(object):
         if (self._end_of_Epoch_Flag):
             return True 
         else:
-            return False  
+            return False
+        
+    def glut_print(self, x,  y,  font,  text, r,  g , b , a):
+
+        blending = False 
+        if glIsEnabled(GL_BLEND) :
+            blending = True
+    
+        #glEnable(GL_BLEND)
+        glColor3f(r,g,b)
+        glWindowPos2f(x,y)
+        for ch in text :
+            glutBitmapCharacter( font , ctypes.c_int( ord(ch) ) )
+    
+        if not blending :
+            glDisable(GL_BLEND)  
                     
     def prepare_GL(self):
         """Setup basic OpenGL rendering with smooth shading and a single light."""
@@ -576,6 +612,48 @@ class BallGame1D(object):
         pos = self._obstacle.getPosition()
         x_adjust=4.5
         gluLookAt(pos[0]+x_adjust, 0.0, 8.0, pos[0]+x_adjust, 0.0, -10.0, 0.0, 1.0, 0.0)
+        
+        vel = self._obstacle.getLinearVel()
+        self.glut_print( 5 , 5 , GLUT_BITMAP_9_BY_15 , "Vel: " + str(vel) , 0.0 , 0.0 , 0.0 , 1.0 )
+        
+        
+    def updateAction(self, action_):
+        # print ("Action: ", action)
+        pos = self._obstacle.getPosition()
+        vel = self._obstacle.getLinearVel()
+        # new_vel = vel[0] + action[0]
+        new_vel = action_[0]
+        if new_vel > self._game_settings["velocity_bounds"][1]:
+            new_vel = self._game_settings["velocity_bounds"][1]
+        elif new_vel < self._game_settings["velocity_bounds"][0]:
+            new_vel = self._game_settings["velocity_bounds"][0]
+        self._obstacle.setLinearVel((new_vel,4.0,0.0))
+        contact = False
+        
+    def needUpdatedAction(self):
+        self._space.collide((self._world, self._contactgroup), near_callback)
+    
+        ## Simulation step (with slow motion)
+        self._world.step(self._dt / self._stepsPerFrame / self._SloMo)
+
+        self._numiter += 1
+
+        # apply internal ragdoll forces
+        # ragdoll.update()
+        # pos = self._obstacle.getPosition()
+        # print ("Ball pos: ", pos)
+        # self._obstacle.addTorque((0.0,0.0,0.2));
+            
+        contacts = ode.collide(self._floor, self._obsgeom)
+        # print ("Num contacts: " + str(len(contacts)))
+        if (len(contacts)> 0):
+            # print ("Num contacts: " + str(len(contacts)))
+            # print ("Constact info: ", contacts[0].getContactGeomParams())
+            return True
+        return False
+    
+    def update(self):
+        return self.simulateAction()
         
     def actContinuous(self, action, bootstrapping=False):
         # print ("Action: ", action)
@@ -644,14 +722,6 @@ class BallGame1D(object):
                 print ("Contact normal ", contactNormal[1])
                 return 0
                 """
-        # print ("Ball velocity:", vel, " Ball position: ", pos)
-        if (self.agentHasFallen() ): # fell in a hole
-        # if (pos[1] < (0.0)): # fell in a hole
-            # print ("Ball Fell in hole: ", pos[1])
-            # if (not bootstrapping):
-            self._end_of_Epoch_Flag=True # kind of hacky to end Epoch after the ball falls in a hole.
-            # return 0
-        
         vel = vel[0] 
         
         # reward = 1.0 - (fabs(vel[0] - targetVel)/targetVel)
@@ -692,6 +762,17 @@ class BallGame1D(object):
     
         glutSwapBuffers()
     
+    def _computeHeight(self, action_):
+        init_v_squared = (action_*action_)
+        # seconds_ = 2 * (-self._box.G)
+        return (-init_v_squared)/1.0  
+    
+    def _computeTime(self, velocity_y):
+        """
+        
+        """
+        seconds_ = velocity_y/-self._gravity
+        return seconds_
         
     def simulateAction(self):
         """
@@ -741,6 +822,14 @@ class BallGame1D(object):
     def visualizeNextState(self, terrain, action, terrain_dx):
         self._nextTerrainData = terrain
         pos = self._obstacle.getPosition() 
+        vel = self._obstacle.getLinearVel()
+        # new_vel = vel[0] + action[0]
+        new_vel = action[0]
+        if new_vel > self._game_settings["velocity_bounds"][1]:
+            new_vel = self._game_settings["velocity_bounds"][1]
+        elif new_vel < self._game_settings["velocity_bounds"][0]:
+            new_vel = self._game_settings["velocity_bounds"][0]
+            
         # self._obstacle.setLinearVel((action[0],4.0,0.0))
         time = (4.0/9.81)*2 # time for rise and fall
         self._nextTerrainStartX = pos[0] + (time * action[0]) + terrain_dx
