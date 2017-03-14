@@ -87,7 +87,7 @@ class BallGame2D(BallGame1D):
         # self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0.0))
         # print ("Before vel:, ", self.calcVelocity(bootstrapping=bootstrapping))
         avg_vel = vel_sum/updates
-        print("avg_vel: ", avg_vel)
+        # print("avg_vel: ", avg_vel)
         return avg_vel
         # obstacle.addForce((0.0,100.0,0.0))
         
