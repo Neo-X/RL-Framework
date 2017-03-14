@@ -164,7 +164,7 @@
     "comment__": "Force the character to start each new action in a good state, close to a good solution",
 "use_back_on_track_forcing": false,
     "comment__": "draw/render the next state suggested by the forward dynamics model",
-"visualize_forward_dynamics": false,
+"visualize_forward_dynamics": true,
     "comment__": "Learning rate for the forward dynamics model",
 "fd_learning_rate": 0.001,
     "comment__": "Whether or not to train the policy. Used for debugging",

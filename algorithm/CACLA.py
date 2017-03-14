@@ -100,7 +100,7 @@ class CACLA(AlgorithmInterface):
         self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
         # self._actLoss = 0.5 * (self._actDiff ** 2) 
         ## Should produce a single column vector or costs for each sample in the batch
-        self._actLoss_ = T.sum(T.pow(self._actDiff, 2),axis=1) 
+        self._actLoss_ = T.mean(T.pow(self._actDiff, 2),axis=1) 
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
         self._actLoss = T.mean(self._actLoss_)
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
