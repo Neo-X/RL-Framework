@@ -82,11 +82,11 @@ class A3C(AlgorithmInterface):
         }
         self._actGivens = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._Fallen: self._fallen_shared,
-            self._tmp_diff: self._tmp_diff_shared
+            self._Fallen: self._fallen_shared
+            # self._tmp_diff: self._tmp_diff_shared
         }
         
         self._critic_regularization = (self._critic_regularization_weight * lasagne.regularization.regularize_network_params(
@@ -102,18 +102,19 @@ class A3C(AlgorithmInterface):
                     self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
         
         ## Need to perform an element wise operation or replicate _diff for this to work properly.
-        # self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), theano.tensor.tile((self._diff * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
-        self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)
+        self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), theano.tensor.tile((self._diff * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
+        # self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)
         # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
         self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
         ## This should be a single column vector
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( T.transpose(T.sum(T.pow(self._actDiff, 2),axis=1) )), (self._diff * (1.0/(1.0-self._discount_factor))))
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( T.reshape(T.sum(T.pow(self._actDiff, 2),axis=1), (self._batch_size, 1) )), 
         #                                                                        (self._tmp_diff * (1.0/(1.0-self._discount_factor)))
+        self._actLoss_ = (T.mean(T.pow(self._actDiff, 2),axis=1))
                                                                                 
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( (T.mean(T.pow(self._actDiff, 2),axis=1))), 
-                                                                                (self._tmp_diff * (1.0/(1.0-self._discount_factor)))
-                                                                            )
+        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( (T.mean(T.pow(self._actDiff, 2),axis=1))), 
+        #                                                                         (self._tmp_diff * (1.0/(1.0-self._discount_factor)))
+        #                                                                     )
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
         self._actLoss = T.mean(self._actLoss_) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
@@ -155,10 +156,10 @@ class A3C(AlgorithmInterface):
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
         self._get_actor_diff_ = theano.function([], [self._actDiff], givens={
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._model.getActionSymbolicVariable(): self._model.getActions()
-            # self._Fallen: self._fallen_shared
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            self._Fallen: self._fallen_shared
         }) 
         
         self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
@@ -246,7 +247,7 @@ class A3C(AlgorithmInterface):
         # loss, _ = self._train()
         # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
-        
+        """
         diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print ("Diff")
         # print (diff_)
@@ -268,9 +269,10 @@ class A3C(AlgorithmInterface):
         if (len(tmp_actions) > 0):
             self._tmp_diff_shared.set_value(tmp_diff)
             self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
-            lossActor, _ = self._trainActor()
-            print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
-            # print( " Actor loss: ", lossActor)
+        """
+        lossActor, _ = self._trainActor()
+        # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
+        print( " Actor loss: ", lossActor)
             # print("Diff for actor: ", self._get_diff())
             # print ( "Action before diff: ", self._get_actor_diff_())
             # print( "Action diff: ", self._get_action_diff())
