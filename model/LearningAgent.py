@@ -102,11 +102,12 @@ class LearningAgent(AgentInterface):
 import copy
 # class LearningWorker(threading.Thread):
 class LearningWorker(Process):
-    def __init__(self, input_exp_queue, agent, namespace):
+    def __init__(self, input_exp_queue, agent, namespace, learningNamespace):
         super(LearningWorker, self).__init__()
         self._input_queue= input_exp_queue
         self._namespace = namespace
         self._agent = agent
+        self._learningNamespace = learningNamespace
         
         
     def run(self):
@@ -150,13 +151,13 @@ class LearningWorker(Process):
                 self._namespace.agentPoly = copy.deepcopy(self._agent.getPolicy().getNetworkParameters())
                 if (self._agent._settings['train_forward_dynamics']):
                     self._namespace.forwardNN = copy.deepcopy(self._agent.getForwardDynamics().getNetworkParameters())
-                self._namespace.experience = copy.deepcopy(self._agent._expBuff)
+                self._learningNamespace.experience = copy.deepcopy(self._agent._expBuff)
                 step_=0
             iterations_+=1
         print ("Learning Worker Complete:")
         
     def updateExperience(self):
-        self._agent._expBuff = self._namespace.experience
+        self._agent._expBuff = self._learningNamespace.experience
         
     def updateModel(self):
         print ("Updating model to: ", self._namespace.model)
