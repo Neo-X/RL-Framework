@@ -29,7 +29,7 @@ def clampAction(actionV, bounds):
             actionV[i] = bounds[1][i]
     return actionV 
 
-from BallGame1D import *
+from env.BallGame1D import *
 
 class BallGame2D(BallGame1D):
     def __init__(self, settings):
