@@ -139,6 +139,9 @@ def trainModelParallel(settingsFileName):
 
         mgr = multiprocessing.Manager()
         namespace = mgr.Namespace()
+        
+        mgr2 = multiprocessing.Manager()
+        learningNamespace = mgr2.Namespace()
                         
         learning_workers = []
         # for process in range(settings['num_available_threads']):
@@ -163,7 +166,7 @@ def trainModelParallel(settingsFileName):
             # namespace.agentPoly = agent.getPolicy().getNetworkParameters()
             # namespace.experience = experience
             
-            lw = LearningWorker(output_experience_queue, agent, namespace)
+            lw = LearningWorker(output_experience_queue, agent, namespace, learningNamespace)
             # lw.start()
             learning_workers.append(lw)  
         masterAgent = agent
@@ -215,7 +218,7 @@ def trainModelParallel(settingsFileName):
                 # forwardDynamicsModel.setEnvironment(exp_)
                 forwardDynamicsModel_.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, exp_, settings)
             """
-            w = SimWorker(namespace, input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
+            w = SimWorker(namespace, input_anchor_queue, output_experience_queue, actor, exp_, copy.deepcopy(agent), discount_factor, action_space_continuous=action_space_continuous, 
                     settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue)
             # w.start()
             sim_workers.append(w)
@@ -281,7 +284,7 @@ def trainModelParallel(settingsFileName):
         
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings)
-        namespace.experience = experience
+        learningNamespace.experience = experience
         masterAgent.setExperience(experience)
         
         if (not validBounds(action_bounds)):
@@ -371,8 +374,8 @@ def trainModelParallel(settingsFileName):
                     
                 # pr.enable()
                 # print ("Current Tuple: " + str(namespace.experience.current()))
-                if experience.samples() > batch_size:
-                    states, actions, result_states, rewards, falls = experience.get_batch(batch_size)
+                if masterAgent.getExperience().samples() > batch_size:
+                    states, actions, result_states, rewards, falls = masterAgent.getExperience().get_batch(batch_size)
                     print ("Batch size: " + str(batch_size))
                     error = masterAgent.bellman_error(states, actions, rewards, result_states, falls)
                     bellman_errors.append(error)
@@ -408,9 +411,10 @@ def trainModelParallel(settingsFileName):
                         print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
                     # discounted_values.append(discounted_sum)
 
-                print ("Master agent experience size: " + str(experience.samples()))
+                print ("Master agent experience size: " + str(masterAgent.getExperience().samples()))
                 # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
                 masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
+                masterAgent.setExperience(learningNamespace.experience)
                 if (settings['train_forward_dynamics']):
                     masterAgent.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
                 """
@@ -419,7 +423,7 @@ def trainModelParallel(settingsFileName):
                     if (settings['train_forward_dynamics']):
                         sw._model.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
                         """
-                experience = namespace.experience
+                # experience = learningNamespace.experience
                 # actor.setExperience(experience)
                 """
                 pr.disable()

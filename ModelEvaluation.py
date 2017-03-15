@@ -14,6 +14,7 @@ import time
 import copy
 import numpy as np
 from model.ModelUtil import *
+# import memory_profiler
 
 # class SimWorker(threading.Thread):
 class SimWorker(Process):
@@ -36,7 +37,8 @@ class SimWorker(Process):
         self._max_iterations = settings['rounds'] + settings['epochs'] * 32
         self._iteration = 0
         self._namespace = namespace # A way to pass messages between processes
-        
+    
+    # @profile(precision=5)
     def run(self):
         
         # print ("SW model: ", self._model.getPolicy())
@@ -64,7 +66,7 @@ class SimWorker(Process):
             if ( (self._settings["train_forward_dynamics"]) and ( self._model.getForwardDynamics() == None ) ):
                 self._model.setForwardDynamics(copy.deepcopy(self._namespace.forwardDynamicsModel))
                 
-            # 
+            # print ("Nums samples in worker: ", self._namespace.experience.samples())
             p = self._namespace.p
             print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
             if p < 0.1:
@@ -232,7 +234,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         sys.exit(1)
                     # randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # randomAction = random.choice(action_selection)
-                    if (settings["use_model_based_action_optimization"] and (np.random.rand(1)[0] > settings["model_based_action_omega"])):
+                    if (settings["use_model_based_action_optimization"] and (np.random.rand(1)[0] < settings["model_based_action_omega"])):
                         # Need to be using a forward dynamics deep network for this
                         action = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_)
                     # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )

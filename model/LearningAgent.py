@@ -17,31 +17,41 @@ class LearningAgent(AgentInterface):
     
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
         super(LearningAgent,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
-        self._accesLock = threading.Lock()
+        self._useLock = False
+        if self._useLock:
+            self._accesLock = threading.Lock()
         self._pol = None
         self._fd = None
         
     def getPolicy(self):
-        self._accesLock.acquire()
+        if self._useLock:
+            self._accesLock.acquire()
         pol = self._pol
-        self._accesLock.release()
+        if self._useLock:
+            self._accesLock.release()
         return pol
         
     def setPolicy(self, pol):
-        self._accesLock.acquire()
+        if self._useLock:
+            self._accesLock.acquire()
         self._pol = pol
-        self._accesLock.release()
+        if self._useLock:
+            self._accesLock.release()
         
     def getForwardDynamics(self):
-        self._accesLock.acquire()
+        if self._useLock:
+            self._accesLock.acquire()
         fd = self._fd
-        self._accesLock.release()
+        if self._useLock:
+            self._accesLock.release()
         return fd
                 
     def setForwardDynamics(self, fd):
-        self._accesLock.acquire()
+        if self._useLock:
+            self._accesLock.acquire()
         self._fd = fd
-        self._accesLock.release()
+        if self._useLock:
+            self._accesLock.release()
         
     def setSettings(self, settings):
         self._settings = settings
@@ -52,7 +62,8 @@ class LearningAgent(AgentInterface):
         return self._expBuff 
     
     def train(self, _states, _actions, _rewards, _result_states, _falls):
-        self._accesLock.acquire()
+        if self._useLock:
+            self._accesLock.acquire()
         cost = 0
         for i in range(self._settings['critic_updates_per_actor_update']):
             _states, _actions, _result_states, _rewards, _falls = self._expBuff.get_batch(self._settings["batch_size"])
@@ -66,34 +77,43 @@ class LearningAgent(AgentInterface):
         dynamicsLoss = 0 
         if (self._settings['train_forward_dynamics']):
             dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states)
-        self._accesLock.release()
+        if self._useLock:
+            self._accesLock.release()
         return (cost, dynamicsLoss) 
     
     def predict(self, state):
-        self._accesLock.acquire()
+        if self._useLock:
+            self._accesLock.acquire()
         act = self._pol.predict(state)
-        self._accesLock.release()
+        if self._useLock:
+            self._accesLock.release()
         return act
     
     def predictWithDropout(self, state):
-        self._accesLock.acquire()
+        if self._useLock:
+            self._accesLock.acquire()
         act = self._pol.predictWithDropout(state)
-        self._accesLock.release()
+        if self._useLock:
+            self._accesLock.release()
         return act
     
     def predictNextState(self, state, action):
         return self._fd.predict(state, action)
     
     def q_value(self, state):
-        self._accesLock.acquire()
+        if self._useLock:
+            self._accesLock.acquire()
         q = self._pol.q_value(state)
-        self._accesLock.release()
+        if self._useLock:
+            self._accesLock.release()
         return q
     
     def bellman_error(self, state, action, reward, result_state, fall):
-        self._accesLock.acquire()
+        if self._useLock:
+            self._accesLock.acquire()
         err = self._pol.bellman_error(state, action, reward, result_state, fall)
-        self._accesLock.release()
+        if self._useLock:
+            self._accesLock.release()
         return err
         
     def initEpoch(self, exp):
@@ -102,11 +122,12 @@ class LearningAgent(AgentInterface):
 import copy
 # class LearningWorker(threading.Thread):
 class LearningWorker(Process):
-    def __init__(self, input_exp_queue, agent, namespace):
+    def __init__(self, input_exp_queue, agent, namespace, learningNamespace):
         super(LearningWorker, self).__init__()
         self._input_queue= input_exp_queue
         self._namespace = namespace
         self._agent = agent
+        self._learningNamespace = learningNamespace
         
         
     def run(self):
@@ -150,13 +171,13 @@ class LearningWorker(Process):
                 self._namespace.agentPoly = copy.deepcopy(self._agent.getPolicy().getNetworkParameters())
                 if (self._agent._settings['train_forward_dynamics']):
                     self._namespace.forwardNN = copy.deepcopy(self._agent.getForwardDynamics().getNetworkParameters())
-                self._namespace.experience = copy.deepcopy(self._agent._expBuff)
+                self._learningNamespace.experience = copy.deepcopy(self._agent._expBuff)
                 step_=0
             iterations_+=1
         print ("Learning Worker Complete:")
         
     def updateExperience(self):
-        self._agent._expBuff = self._namespace.experience
+        self._agent._expBuff = self._learningNamespace.experience
         
     def updateModel(self):
         print ("Updating model to: ", self._namespace.model)
