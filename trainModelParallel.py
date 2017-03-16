@@ -15,7 +15,7 @@ import dill as pickle
 import dill as cPickle
 
 import cProfile, pstats, io
-import memory_profiler
+# import memory_profiler
 # import psutil
 import gc
 # from guppy import hpy; h=hpy()
