@@ -37,12 +37,23 @@ class BallGame2D(BallGame1D):
         super(BallGame2D,self).__init__(settings)
         
         self._obstacle2 = Obstacle()
-
         pos = (0.0, self._ballRadius+self._ballEpsilon, 0.0)
-        #pos = (0.27396178783269359, 0.20000000000000001, 0.17531818795388002)
+            #pos = (0.27396178783269359, 0.20000000000000001, 0.17531818795388002)
         self._obstacle2.setPosition(pos)
         self._obstacle2.setRotation(rightRot)
         self._bodies.append(self._obstacle2)
+        
+        self._obstacles = []
+        num_obstacles = 10
+        for n in range(num_obstacles):
+            obs_ = Obstacle()
+
+            pos = (0.0, self._ballRadius+self._ballEpsilon, 0.0)
+            #pos = (0.27396178783269359, 0.20000000000000001, 0.17531818795388002)
+            obs_.setPosition(pos)
+            obs_.setRotation(rightRot)
+            self._bodies.append(obs_)
+            self._obstacles.append(obs_)
         
     def updateAction(self, action_):
         # print ("Action: ", action)
@@ -102,6 +113,21 @@ class BallGame2D(BallGame1D):
         time__ = self._computeTime(action[1]) * 2.0
         new_pos = pos[0] + (new_vel[0] * time__)
         self._obstacle2.setPosition((new_pos, 0,0))
+        
+    def visualizeActions(self, actions, dirs):
+                # print ("Action: ", action)
+        pos = self._obstacle.getPosition()
+        vel = self._obstacle.getLinearVel()
+        for a in range(len(actions)):
+            new_vel = np.array([vel[0] + actions[a][0], actions[a][1]])
+            # new_vel = action[0]
+            new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+            ## compute new location for landing.
+            time__ = self._computeTime(actions[a][1]) * 2.0
+            new_pos = pos[0] + (new_vel[0] * time__)
+            # self._obstacle2.setPosition((new_pos, 0,0))   
+            self._obstacles[a].setPosition((new_pos, 0,0)) 
+            self._obstacles[a].setDir(dirs[a])  
         
     def visualizeNextState(self, terrain, action, terrain_dx):
         self._nextTerrainData = terrain

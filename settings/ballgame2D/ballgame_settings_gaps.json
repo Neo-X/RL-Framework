@@ -16,5 +16,5 @@
 						"terrain_change": -1.0,
 						"terrain_length": 500
 					},
-"velocity_bounds": [[0.5, 2.5], [3.5, 5.0]]
+"velocity_bounds": [[0.5, 2.5], [2.5, 5.0]]
 }

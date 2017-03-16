@@ -268,8 +268,26 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 predicted_next_state = model.getForwardDynamics().predict(np.array(state_), action)
                 # exp.visualizeNextState(state_, action) # visualize current state
                 exp.visualizeNextState(predicted_next_state, action)
-                action_ = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_)
-                exp.getEnvironment().visualizeAction(action_)
+                
+                action = model.predict(state_)
+                actions = []
+                dirs = []
+                deltas = np.linspace(-0.3,0.3,10)
+                for d in range(len(deltas)):
+                    action_ = np.zeros_like(action)
+                    action_[0] = action[0] + deltas[d] 
+                    action_[1] = action[1]
+                    action_new_ = getOptimalAction2(model.getForwardDynamics(), model.getPolicy(), action_, state_)
+                    actions.append(action_new_)
+                    if ( (action_new_[0] - action_[0]) > 0 ):
+                        dirs.append(1.0)
+                    else:
+                        dirs.append(-1.0)
+                    
+                # return _getOptimalAction(forwardDynamicsModel, model, action, state)
+                
+                # action_ = _getOptimalAction(model.getForwardDynamics(), model.getPolicy(), action, state_)
+                exp.getEnvironment().visualizeActions(actions, dirs)
                 
             
             if (not settings["train_actor"]): # hack to use debug critic only

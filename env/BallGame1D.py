@@ -298,6 +298,10 @@ def draw_body(body):
         glutSolidSphere(body.radius, CAPSULE_SLICES, CAPSULE_STACKS)
     elif body.shape == "sphere":
         glutSolidSphere(body.radius, CAPSULE_SLICES, CAPSULE_STACKS)
+    elif body.shape == "arrow":
+        glTranslatef(0, -0.1, 1.1)
+        glRotatef(90 * body.getDir(), 0, 1, 0)
+        glutSolidCone(body.radius, body.radius, CAPSULE_SLICES, CAPSULE_STACKS )
     elif body.shape == "rectangle":
         sx,sy,sz = body.boxsize
         glScalef(sx, sy, sz)
@@ -366,8 +370,9 @@ class Obstacle(object):
     
     def __init__(self):
         self._pos = np.array([0,0,0])
-        self.shape = "sphere"
+        self.shape = "arrow"
         self.radius = 0.1
+        self._dir = 1.0
     
         
     def setPosition(self, pos):
@@ -381,6 +386,12 @@ class Obstacle(object):
     
     def getRotation(self):
         return (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+    
+    def getDir(self):
+        return self._dir
+    
+    def setDir(self, dir):
+        self._dir = dir
     
 
 class BallGame1D(object):
@@ -659,24 +670,27 @@ class BallGame1D(object):
         # print ("Action: ", action)
         pos = self._obstacle.getPosition()
         vel = self._obstacle.getLinearVel()
-        # new_vel = vel[0] + action[0]
         new_vel = action[0]
+        # new_vel = action[0]
+        # new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
         if new_vel > self._game_settings["velocity_bounds"][1]:
             new_vel = self._game_settings["velocity_bounds"][1]
         elif new_vel < self._game_settings["velocity_bounds"][0]:
             new_vel = self._game_settings["velocity_bounds"][0]
-        self._obstacle.setLinearVel((new_vel,4.0,0.0))
+        self._obstacle.setLinearVel((new_vel, 4.0, 0.0))
         contact = False
+        vel_sum=0
+        updates=0
         while ( ( pos[1] >= (-5)) and (not contact)): # object does not fall off map..
         # while ( ( True ) and (not contact)):
+            # print ("Before vel:, ", self.calcVelocity(bootstrapping=bootstrapping))
             contact = self.simulateAction()
             pos = self._obstacle.getPosition()
             pos = (pos[0], pos[1], 0.0)
             self._obstacle.setPosition(pos)
-            
-        vel = self.calcVelocity(bootstrapping=bootstrapping)
-        # print (pos)
-
+            updates+=1
+            vel_sum += self.calcVelocity(bootstrapping=bootstrapping)
+        
         # self._terrainData = self.generateTerrain()
         self._state_num=self._state_num+1
         # state = self.getState()
@@ -685,7 +699,12 @@ class BallGame1D(object):
         pos = self._obstacle.getPosition()
         pos = (pos[0], self._ballRadius+self._ballEpsilon, 0.0)
         self._obstacle.setPosition(pos)
-        return vel
+        ## The contact seems to be reducing the velocity
+        # self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0.0))
+        # print ("Before vel:, ", self.calcVelocity(bootstrapping=bootstrapping))
+        avg_vel = vel_sum/updates
+        # print("avg_vel: ", avg_vel)
+        return avg_vel
         # obstacle.addForce((0.0,100.0,0.0))
         
     def hitWall(self):
@@ -1000,6 +1019,7 @@ if __name__ == '__main__':
     if (len(sys.argv)) > 1:
         _settings=json.load(open(sys.argv[1]))
         print (_settings)
+        _settings['render']=True
         game = BallGame1D(_settings)
     else:
         settings['render']=True
