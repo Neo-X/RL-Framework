@@ -45,8 +45,8 @@ class SimWorker(Process):
 
     # @profile(precision=5)
     def run(self):
-        from pympler import summary
-        from pympler import muppy
+        # from pympler import summary
+        # from pympler import muppy
         
         # print ("SW model: ", self._model.getPolicy())
         if (int(self._settings["num_available_threads"]) > 1): # This is okay if there is one thread only...
