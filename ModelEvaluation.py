@@ -272,11 +272,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 action = model.predict(state_)
                 actions = []
                 dirs = []
-                deltas = np.linspace(-0.3,0.3,10)
+                deltas = np.linspace(-0.5,0.5,10)
                 for d in range(len(deltas)):
                     action_ = np.zeros_like(action)
+                    for i in range(len(action_)):
+                        action_[i] = action[i]
                     action_[0] = action[0] + deltas[d] 
-                    action_[1] = action[1]
                     action_new_ = getOptimalAction2(model.getForwardDynamics(), model.getPolicy(), action_, state_)
                     # actions.append(action_new_)
                     actions.append(action_)
@@ -289,6 +290,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 
                 # action_ = _getOptimalAction(model.getForwardDynamics(), model.getPolicy(), action, state_)
                 exp.getEnvironment().visualizeActions(actions, dirs)
+                ## The perfect action?
+                exp.getEnvironment().visualizeAction([2.25])
                 
             
             if (not settings["train_actor"]): # hack to use debug critic only

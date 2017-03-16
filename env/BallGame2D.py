@@ -36,24 +36,6 @@ class BallGame2D(BallGame1D):
         """Creates a ragdoll of standard size at the given offset."""
         super(BallGame2D,self).__init__(settings)
         
-        self._obstacle2 = Obstacle()
-        pos = (0.0, self._ballRadius+self._ballEpsilon, 0.0)
-            #pos = (0.27396178783269359, 0.20000000000000001, 0.17531818795388002)
-        self._obstacle2.setPosition(pos)
-        self._obstacle2.setRotation(rightRot)
-        self._bodies.append(self._obstacle2)
-        
-        self._obstacles = []
-        num_obstacles = 10
-        for n in range(num_obstacles):
-            obs_ = Obstacle()
-
-            pos = (0.0, self._ballRadius+self._ballEpsilon, 0.0)
-            #pos = (0.27396178783269359, 0.20000000000000001, 0.17531818795388002)
-            obs_.setPosition(pos)
-            obs_.setRotation(rightRot)
-            self._bodies.append(obs_)
-            self._obstacles.append(obs_)
         
     def updateAction(self, action_):
         # print ("Action: ", action)
