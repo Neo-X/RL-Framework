@@ -1,7 +1,7 @@
 {
 "model_type": "Deep_NN",
 "agent_name": "A3C",
-"data_folder": "Simple_Run/",
+"data_folder": "Simple_Run",
 "epsilon": 0.45, 
 "omega": 0.25,
 "batch_size": 32,

@@ -210,8 +210,13 @@ def initSimulation(settings):
     
     return output
 """
-
 def getOptimalAction(forwardDynamicsModel, model, state):
+    action = model.predict(state)
+    return getOptimalAction2(forwardDynamicsModel, model, action, state)
+    
+
+
+def getOptimalAction2(forwardDynamicsModel, model, action, state):
     """
         Computes the optimal action to be taken given
         the forwardDynamicsModel f and
@@ -223,7 +228,6 @@ def getOptimalAction(forwardDynamicsModel, model, state):
     # print ("state_length ", state_length)
     # print ("State shape: ", state.shape)
     # state = np.array(state, dtype=)
-    action = model.predict(state)
     init_value = model.q_value(state)
     """
     fake_state_ = copy.deepcopy(state)
