@@ -33,6 +33,7 @@ from model.DeepNN import DeepNN
 from model.DeepNNSingleNet import DeepNNSingleNet
 from model.DeepCNN import DeepCNN
 from model.DeepCNNDropout import DeepCNNDropout
+from model.DumbModel import DumbModel
 
 from algorithm.DeepQNetwork import DeepQNetwork
 from algorithm.DoubleDeepQNetwork import DoubleDeepQNetwork
@@ -142,6 +143,9 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (model_type == "Deep_NN_SingleNet" ):
         model = DeepNNSingleNet(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+    elif (model_type == "DumbModel" ):
+        model = DumbModel(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     else:
         print ("Unknown network model type: ", str(model_type), " I hope you know what you are doing....")

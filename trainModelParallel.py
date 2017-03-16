@@ -15,7 +15,7 @@ import dill as pickle
 import dill as cPickle
 
 import cProfile, pstats, io
-# import memory_profiler
+import memory_profiler
 # import psutil
 import gc
 # from guppy import hpy; h=hpy()
@@ -26,7 +26,6 @@ import multiprocessing
 
 
 # @profile(precision=5)
-# @memprof(plot = True)
 def trainModelParallel(settingsFileName):
         
     # pr = cProfile.Profile()
@@ -140,9 +139,6 @@ def trainModelParallel(settingsFileName):
         mgr = multiprocessing.Manager()
         namespace = mgr.Namespace()
         
-        mgr2 = multiprocessing.Manager()
-        learningNamespace = mgr2.Namespace()
-                        
         learning_workers = []
         # for process in range(settings['num_available_threads']):
         for process in range(1):
@@ -166,7 +162,7 @@ def trainModelParallel(settingsFileName):
             # namespace.agentPoly = agent.getPolicy().getNetworkParameters()
             # namespace.experience = experience
             
-            lw = LearningWorker(output_experience_queue, agent, namespace, learningNamespace)
+            lw = LearningWorker(output_experience_queue, agent, namespace)
             # lw.start()
             learning_workers.append(lw)  
         masterAgent = agent
@@ -234,26 +230,6 @@ def trainModelParallel(settingsFileName):
         reward_over_epoc = []
         dynamicsLosses = []
         
-        trainData = {}
-        trainData["mean_reward"]=[]
-        trainData["std_reward"]=[]
-        trainData["mean_bellman_error"]=[]
-        trainData["std_bellman_error"]=[]
-        trainData["mean_discount_error"]=[]
-        trainData["std_discount_error"]=[]
-        trainData["mean_forward_dynamics_loss"]=[]
-        trainData["std_forward_dynamics_loss"]=[]
-        trainData["mean_eval"]=[]
-        trainData["std_eval"]=[]
-        trainData["mean_critic_loss"]=[]
-        trainData["std_critic_loss"]=[]
-        trainData["mean_critic_regularization_cost"]=[]
-        trainData["std_critic_regularization_cost"]=[]
-        trainData["mean_actor_loss"]=[]
-        trainData["std_actor_loss"]=[]
-        trainData["mean_actor_regularization_cost"]=[]
-        trainData["std_actor_regularization_cost"]=[]
-        
         for lw in learning_workers:
             print ("Learning worker" )
             print (lw)
@@ -284,7 +260,6 @@ def trainModelParallel(settingsFileName):
         
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings)
-        learningNamespace.experience = experience
         masterAgent.setExperience(experience)
         
         if (not validBounds(action_bounds)):
@@ -346,13 +321,39 @@ def trainModelParallel(settingsFileName):
             print ("exp: ", sw._exp)
             print ("sw modle: ", sw._model.getPolicy()) 
             
+            
+        mgr2 = multiprocessing.Manager()
+        learningNamespace = mgr2.Namespace()
+        learningNamespace.experience = experience
+            
         for lw in learning_workers:
             lw._agent.setPolicy(copy.deepcopy(model))
             print ("ls policy: ", lw._agent.getPolicy())
+            lw.setLearningNamespace(learningNamespace)
             lw.updateExperience()
             lw.updateModel()
             
             lw.start()
+            
+        trainData = {}
+        trainData["mean_reward"]=[]
+        trainData["std_reward"]=[]
+        trainData["mean_bellman_error"]=[]
+        trainData["std_bellman_error"]=[]
+        trainData["mean_discount_error"]=[]
+        trainData["std_discount_error"]=[]
+        trainData["mean_forward_dynamics_loss"]=[]
+        trainData["std_forward_dynamics_loss"]=[]
+        trainData["mean_eval"]=[]
+        trainData["std_eval"]=[]
+        trainData["mean_critic_loss"]=[]
+        trainData["std_critic_loss"]=[]
+        trainData["mean_critic_regularization_cost"]=[]
+        trainData["std_critic_regularization_cost"]=[]
+        trainData["mean_actor_loss"]=[]
+        trainData["std_actor_loss"]=[]
+        trainData["mean_actor_regularization_cost"]=[]
+        trainData["std_actor_regularization_cost"]=[]
         
         print ("Starting first round")
         for round_ in range(2,rounds+2):
@@ -402,7 +403,7 @@ def trainModelParallel(settingsFileName):
                         print (states, actions, rewards, result_states)
                         
                     if (settings['train_forward_dynamics']):
-                        dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(np.array(states), np.array(actions), np.array(result_states))
+                        dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states)
                         dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
                         dynamicsLosses.append(dynamicsLoss)
                     if (settings['train_forward_dynamics']):

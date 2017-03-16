@@ -122,13 +122,14 @@ class LearningAgent(AgentInterface):
 import copy
 # class LearningWorker(threading.Thread):
 class LearningWorker(Process):
-    def __init__(self, input_exp_queue, agent, namespace, learningNamespace):
+    def __init__(self, input_exp_queue, agent, namespace):
         super(LearningWorker, self).__init__()
         self._input_queue= input_exp_queue
         self._namespace = namespace
         self._agent = agent
-        self._learningNamespace = learningNamespace
         
+    def setLearningNamespace(self, learningNamespace):    
+        self._learningNamespace = learningNamespace
         
     def run(self):
         print ('Worker started')
@@ -178,7 +179,10 @@ class LearningWorker(Process):
         
     def updateExperience(self):
         self._agent._expBuff = self._learningNamespace.experience
-        
+       
     def updateModel(self):
         print ("Updating model to: ", self._namespace.model)
+        old_poli = self._agent.getPolicy()
         self._agent.setPolicy(copy.deepcopy(self._namespace.model))
+        del old_poli
+        

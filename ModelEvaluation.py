@@ -3,6 +3,7 @@
 # import cPickle
 import dill
 import sys
+import gc
 # from theano.compile.io import Out
 sys.setrecursionlimit(50000)
 # from sim.PendulumEnvState import PendulumEnvState
@@ -15,6 +16,7 @@ import copy
 import numpy as np
 from model.ModelUtil import *
 # import memory_profiler
+# import resource
 
 # class SimWorker(threading.Thread):
 class SimWorker(Process):
@@ -38,8 +40,13 @@ class SimWorker(Process):
         self._iteration = 0
         self._namespace = namespace # A way to pass messages between processes
     
+    def current_mem_usage(self):
+        return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
+
     # @profile(precision=5)
     def run(self):
+        from pympler import summary
+        from pympler import muppy
         
         # print ("SW model: ", self._model.getPolicy())
         if (int(self._settings["num_available_threads"]) > 1): # This is okay if there is one thread only...
@@ -65,7 +72,7 @@ class SimWorker(Process):
                 self._model.setPolicy(copy.deepcopy(self._namespace.model))
             if ( (self._settings["train_forward_dynamics"]) and ( self._model.getForwardDynamics() == None ) ):
                 self._model.setForwardDynamics(copy.deepcopy(self._namespace.forwardDynamicsModel))
-                
+            # print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
             # print ("Nums samples in worker: ", self._namespace.experience.samples())
             p = self._namespace.p
             print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
@@ -91,10 +98,17 @@ class SimWorker(Process):
             if (eval):
                 self._eval_episode_data_queue.put(out)
             else:
+                print("Updating sim policies:")
+                """
                 self._model.getPolicy().setNetworkParameters(copy.deepcopy(self._namespace.agentPoly))
                 if (self._settings['train_forward_dynamics']):
                     self._model.getForwardDynamics().setNetworkParameters(copy.deepcopy(self._namespace.forwardNN))
+                gc.collect()
+                """
             # print ("Actions: " + str(actions))
+            # all_objects = muppy.get_objects()
+            # sum1 = summary.summarize(all_objects)
+            # summary.print_(sum1)
         print ("Simulation Worker Complete: ")
         self._exp.finish()
         
@@ -481,7 +495,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
         
     return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
             mean_eval, std_eval)
-
+# @profile(precision=5)
 def collectExperience(actor, exp_val, model, settings):
     from util.ExperienceMemory import ExperienceMemory
     action_selection = range(len(settings["discrete_actions"]))
@@ -579,7 +593,7 @@ def collectExperience(actor, exp_val, model, settings):
         
     return  experience, state_bounds, reward_bounds, action_bounds
 
-
+# @profile(precision=5)
 def collectExperienceActionsContinuous(actor, exp, model, samples, settings, action_selection):
     i = 0
     states = []
