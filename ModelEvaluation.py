@@ -278,7 +278,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     action_[0] = action[0] + deltas[d] 
                     action_[1] = action[1]
                     action_new_ = getOptimalAction2(model.getForwardDynamics(), model.getPolicy(), action_, state_)
-                    actions.append(action_new_)
+                    # actions.append(action_new_)
+                    actions.append(action_)
                     if ( (action_new_[0] - action_[0]) > 0 ):
                         dirs.append(1.0)
                     else:
