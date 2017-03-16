@@ -99,12 +99,12 @@ class SimWorker(Process):
                 self._eval_episode_data_queue.put(out)
             else:
                 print("Updating sim policies:")
-                """
+                
                 self._model.getPolicy().setNetworkParameters(copy.deepcopy(self._namespace.agentPoly))
                 if (self._settings['train_forward_dynamics']):
                     self._model.getForwardDynamics().setNetworkParameters(copy.deepcopy(self._namespace.forwardNN))
-                gc.collect()
-                """
+                # gc.collect()
+                
             # print ("Actions: " + str(actions))
             # all_objects = muppy.get_objects()
             # sum1 = summary.summarize(all_objects)
