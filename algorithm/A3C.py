@@ -20,14 +20,15 @@ class A3C(AlgorithmInterface):
         
         # create a small convolutional neural network
         
-        self._Fallen = T.icol("Action")
-        self._Fallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int32'))
+        self._Fallen = T.bcol("Fallen")
+        ## because float64 <= float32 * int32, need to use int16 or int8
+        self._Fallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int8'))
         
         self._fallen_shared = theano.shared(
-            np.zeros((self._batch_size, 1), dtype='int32'),
+            np.zeros((self._batch_size, 1), dtype='int8'),
             broadcastable=(False, True))
         
-        self._tmp_diff = T.col("Action")
+        self._tmp_diff = T.col("Tmp_Diff")
         self._tmp_diff.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
         
         self._tmp_diff_shared = theano.shared(
@@ -63,7 +64,8 @@ class A3C(AlgorithmInterface):
         self._q_funcAct = self._q_valsActA
         self._q_funcAct_drop = self._q_valsActA_drop
         
-        self._target = (self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState )) * self._Fallen
+        # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._Fallen
+        self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsTargetNextState )), self._Fallen)
         self._diff = self._target - self._q_func
         self._diff_drop = self._target - self._q_func_drop 
         # loss = 0.5 * self._diff ** 2 
@@ -293,6 +295,7 @@ class A3C(AlgorithmInterface):
     def predict(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
@@ -308,6 +311,7 @@ class A3C(AlgorithmInterface):
     def predictWithDropout(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
@@ -322,6 +326,7 @@ class A3C(AlgorithmInterface):
     def q_value(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
@@ -333,6 +338,7 @@ class A3C(AlgorithmInterface):
         """
             For returning a vector of q values, state should already be normalized
         """
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         return self._q_valTarget()
@@ -340,6 +346,7 @@ class A3C(AlgorithmInterface):
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         return scale_reward(self._q_val_drop(), self.getRewardBounds())[0]

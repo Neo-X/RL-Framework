@@ -21,10 +21,10 @@ class CACLA(AlgorithmInterface):
         # create a small convolutional neural network
         
         self._Fallen = T.icol("Fallen")
-        self._Fallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int32'))
+        self._Fallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int8'))
         
         self._fallen_shared = theano.shared(
-            np.zeros((self._batch_size, 1), dtype='int32'),
+            np.zeros((self._batch_size, 1), dtype='int8'),
             broadcastable=(False, True))
         self._usingDropout = True
         """
@@ -281,6 +281,7 @@ class CACLA(AlgorithmInterface):
     def predictWithDropout(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
@@ -312,6 +313,7 @@ class CACLA(AlgorithmInterface):
         """
             For returning a vector of q values, state should already be normalized
         """
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         return self._q_valTarget()

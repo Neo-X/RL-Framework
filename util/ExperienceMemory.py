@@ -44,20 +44,20 @@ class ExperienceMemory(object):
             if continuous_actions:
                 self._action_history = (np.zeros((self._history_size, action_length), dtype='float32'))
             else:
-                self._action_history = (np.zeros((self._history_size, action_length), dtype='int32'))
+                self._action_history = (np.zeros((self._history_size, action_length), dtype='int8'))
             self._nextState_history = (np.zeros((self._history_size, state_length), dtype='float32'))
             self._reward_history = (np.zeros((self._history_size, 1), dtype='float32'))
-            self._fall_history = (np.zeros((self._history_size, 1), dtype='int32'))
+            self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
             self._continuous_actions = continuous_actions
         else:
             self._state_history = (np.zeros((self._history_size, state_length), dtype='float64'))
             if continuous_actions:
                 self._action_history = (np.zeros((self._history_size, action_length), dtype='float64'))
             else:
-                self._action_history = (np.zeros((self._history_size, action_length), dtype='int32'))
+                self._action_history = (np.zeros((self._history_size, action_length), dtype='int8'))
             self._nextState_history = (np.zeros((self._history_size, state_length), dtype='float64'))
             self._reward_history = (np.zeros((self._history_size, 1), dtype='float64'))
-            self._fall_history = (np.zeros((self._history_size, 1), dtype='int32'))
+            self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
             self._continuous_actions = continuous_actions
         
         
@@ -137,20 +137,20 @@ class ExperienceMemory(object):
             if (self._continuous_actions):
                 action = np.array(action, dtype='float32')
             else:
-                action = np.array(action, dtype='int32')
+                action = np.array(action, dtype='int8')
             resultState = np.array(resultState, dtype='float32')
             reward = np.array(reward, dtype='float32')
-            # fall = np.array(fall, dtype='int32')
+            # fall = np.array(fall, dtype='int8')
         else:
             state = np.array(state, dtype='float64')
             if (self._continuous_actions):
                 action = np.array(action, dtype='float64')
             else:
-                action = np.array(action, dtype='int32')
+                action = np.array(action, dtype='int8')
             resultState = np.array(resultState, dtype='float64')
             reward = np.array(reward, dtype='float64')
         
-        fall = np.array(fall, dtype='int32')
+        fall = np.array(fall, dtype='int8')
          
         return (state, action, resultState, reward, fall)
     
