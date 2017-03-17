@@ -181,7 +181,7 @@ def evaluateModelRender(settings_file_name):
     
     exp.getActor().init()   
     exp.getEnvironment().init()
-    exp.getEnvironment().generateValidationEnvironmentSample(0)
+    exp.generateValidationEnvironmentSample(0)
     expected_value_viz=None
     if (settings['visualize_expected_value']):
         expected_value_viz = NNVisualize(title=str("Expected Value") + " with " + str(settings["model_type"]), settings=settings)

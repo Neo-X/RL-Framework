@@ -41,8 +41,11 @@ class SimbiconEnv(SimInterface):
             
         # print (("Done adding anchors"))
 
+    def generateValidationEnvironmentSample(self, epoch):
+        pass
     def generateEnvironmentSample(self):
-        self._exp.getEnvironment().generateEnvironmentSample()
+        pass
+        # self._exp.getEnvironment().generateEnvironmentSample()
         
     def update(self):
         self.getEnvironment().update()

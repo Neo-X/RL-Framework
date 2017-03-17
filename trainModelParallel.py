@@ -359,7 +359,8 @@ def trainModelParallel(settingsFileName):
         for round_ in range(2,rounds+2):
             # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
             # p = (settings['initial_temperature'] / (math.log(round_))) 
-            p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds)) 
+            # p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds))
+            p = ((settings['initial_temperature']/math.log(round_))) 
             # p = ((rounds - round_)/rounds) ** 2
             p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
             namespace.p=p
