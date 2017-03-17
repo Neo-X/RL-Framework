@@ -210,6 +210,10 @@ class A3C(AlgorithmInterface):
         self._modelTarget.setRewards(rewards)
         # print ("Falls: ", fallen)
         self._fallen_shared.set_value(fallen)
+        # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
+        ## Easy fix for computing actor loss
+        diff = self._bellman_error2()
+        self._tmp_diff_shared.set_value(diff)
         
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
@@ -275,6 +279,7 @@ class A3C(AlgorithmInterface):
             print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
             # print( " Actor loss: ", lossActor)
             # print("Diff for actor: ", self._get_diff())
+            # print ("Tmp_diff: ", tmp_diff)
             # print ( "Action before diff: ", self._get_actor_diff_())
             # print( "Action diff: ", self._get_action_diff())
             # return np.sqrt(lossActor);
