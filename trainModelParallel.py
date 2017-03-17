@@ -575,7 +575,7 @@ def trainModelParallel(settingsFileName):
                     # print ("Train data: ", trainData)
                     ## because json does not serialize np.float32 
                     for key in trainData:
-                        trainData[key] = float(trainData[key])
+                        trainData[key] = [float(i) for i in trainData[key]]
                     json.dump(trainData, fp)
                     fp.close()
                     # draw data
