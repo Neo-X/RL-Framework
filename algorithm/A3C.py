@@ -100,9 +100,15 @@ class A3C(AlgorithmInterface):
         # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
         #                                    self._rms_epsilon)
         # TD update
-        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
-                    self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
-        
+        if (self.getSettings()['optimizer'] == 'rmsprop'):
+            self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
+                        self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
+        elif (self.getSettings()['optimizer'] == 'momentum'):
+            self._updates_ = lasagne.updates.momentum(T.mean(self._q_func) + self._critic_regularization, self._params, 
+                        self._critic_learning_rate * -T.mean(self._diff), momentum=self._rho)
+        else:
+            print ("Unknown optimization method: ", self.getSettings()['optimizer'])
+            sys.exit(-1)
         ## Need to perform an element wise operation or replicate _diff for this to work properly.
         # self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), theano.tensor.tile((self._diff * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
         self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)

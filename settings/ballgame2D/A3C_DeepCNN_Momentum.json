@@ -200,5 +200,5 @@
 	"comment__": "What processor type to perform the training on [cpu|gpu]",
 "training_processor_type": "cpu",
 	"comment__": "optimizer is the type of optimization algorithm to use",
-"optimizer": "rmsprop"
+"optimizer": "momentum"
 }
