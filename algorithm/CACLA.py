@@ -20,12 +20,13 @@ class CACLA(AlgorithmInterface):
         
         # create a small convolutional neural network
         
-        self._Fallen = T.icol("Action")
+        self._Fallen = T.icol("Fallen")
         self._Fallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int32'))
         
         self._fallen_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype='int32'),
             broadcastable=(False, True))
+        self._usingDropout = True
         """
         self._target_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype='float64'),
@@ -58,13 +59,15 @@ class CACLA(AlgorithmInterface):
         
         # self._target = (self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState )) * theano.tensor.maximum(1.0, theano.tensor.ceil(self._model.getRewardSymbolicVariable())) # Did not understand how the maximum was working
         # self._target = (self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState )) * theano.tensor.ceil(self._model.getRewardSymbolicVariable())
+        ## Don't need to use dropout for the target network
         self._target = (self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState )) * self._Fallen
         # self._target = self._model.getTargetSymbolicVariable()
-        self._diff = self._target - self._q_func
-        self._diff_drop = self._target - self._q_func_drop 
+        ## When there is no dropout in the network it will have no affect here
+        self._diff = self._target - self._q_func_drop
+        # self._diff_drop = self._target - self._q_func_drop 
         loss = 0.5 * self._diff ** 2 
         self._loss = T.mean(loss)
-        self._loss_drop = T.mean(0.5 * self._diff_drop ** 2)
+        # self._loss_drop = T.mean(0.5 * (self._diff_drop ** 2))
         
         self._params = lasagne.layers.helper.get_all_params(self._model.getCriticNetwork())
         self._actionParams = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
@@ -90,21 +93,21 @@ class CACLA(AlgorithmInterface):
         # self._updates_ = lasagne.updates.rmsprop(self._loss + self._critic_regularization, self._params, 
         #                         self._learning_rate, self._rho, self._rms_epsilon)
         # TD update
-        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
+        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func_drop) + self._critic_regularization, self._params, 
                     self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
         
         
         # actDiff1 = (self._model.getActionSymbolicVariable() - self._q_valsActTarget) #TODO is this correct?
         # actDiff = (actDiff1 - (self._model.getActionSymbolicVariable() - self._q_valsActA))
-        self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
-        self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
+        # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
+        self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
         # self._actLoss = 0.5 * (self._actDiff ** 2) 
         ## Should produce a single column vector or costs for each sample in the batch
         self._actLoss_ = T.mean(T.pow(self._actDiff, 2),axis=1) 
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
         self._actLoss = T.mean(self._actLoss_)
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
-        self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
+        # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         
         self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization, self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
@@ -159,7 +162,7 @@ class CACLA(AlgorithmInterface):
         self._q_action_target = theano.function([], self._q_valsActTarget,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         # self._bellman_error_drop = theano.function(inputs=[self._model.getStateSymbolicVariable(), self._model.getRewardSymbolicVariable(), self._model.getResultStateSymbolicVariable()], outputs=self._diff_drop, allow_input_downcast=True)
-        self._bellman_error_drop2 = theano.function(inputs=[], outputs=self._diff_drop, allow_input_downcast=True, givens=self._givens_)
+        # self._bellman_error_drop2 = theano.function(inputs=[], outputs=self._diff_drop, allow_input_downcast=True, givens=self._givens_)
         
         # self._bellman_error = theano.function(inputs=[self._model.getStateSymbolicVariable(), self._model.getResultStateSymbolicVariable(), self._model.getRewardSymbolicVariable()], outputs=self._diff, allow_input_downcast=True)
         self._bellman_error2 = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
@@ -269,7 +272,7 @@ class CACLA(AlgorithmInterface):
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
-        action_ = scale_action(self._q_action_target()[0], self._action_bounds)
+        action_ = scale_action(self._q_action()[0], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
@@ -302,8 +305,8 @@ class CACLA(AlgorithmInterface):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        return self._q_valTarget()[0]
-        # return self._q_val()[0]
+        # return self._q_valTarget()[0]
+        return self._q_val()[0]
     
     def q_values(self, state):
         """
@@ -316,9 +319,10 @@ class CACLA(AlgorithmInterface):
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
-        return scale_reward(self._q_val_drop(), self.getRewardBounds())[0]
+        return self._q_val_drop()[0]
     
     def bellman_error(self, states, actions, rewards, result_states, falls):
         self.setData(states, actions, rewards, result_states, falls)
