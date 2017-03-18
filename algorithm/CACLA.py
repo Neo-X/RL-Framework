@@ -20,7 +20,7 @@ class CACLA(AlgorithmInterface):
         
         # create a small convolutional neural network
         
-        self._Fallen = T.icol("Fallen")
+        self._Fallen = T.bcol("Fallen")
         self._Fallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int8'))
         
         self._fallen_shared = theano.shared(

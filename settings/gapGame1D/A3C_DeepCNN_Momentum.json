@@ -2,7 +2,7 @@
     "comment__": "Type of model/network to use for the actor and critic",
 "model_type": "Deep_CNN",
     "comment__": "Learning algorithm to use",
-"agent_name": "CACLA",
+"agent_name": "A3C",
     "comment__": "Folder to store the training data in.",
 "data_folder": "Gaps_Rectangle/",
 "comment": "initial probability of selecting a random action",
@@ -198,5 +198,5 @@
 	"comment__": "What processor type to perform the training on [cpu|gpu]",
 "training_processor_type": "cpu",
 	"comment__": "optimizer is the type of optimization algorithm to use",
-"optimizer": "rmsprop"
+"optimizer": "momentum"
 }

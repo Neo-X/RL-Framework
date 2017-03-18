@@ -106,6 +106,9 @@ class A3C(AlgorithmInterface):
         elif (self.getSettings()['optimizer'] == 'momentum'):
             self._updates_ = lasagne.updates.momentum(T.mean(self._q_func) + self._critic_regularization, self._params, 
                         self._critic_learning_rate * -T.mean(self._diff), momentum=self._rho)
+        elif ( self.getSettings()['optimizer'] == 'adam'):
+            lasagne.updates.adam(T.mean(self._q_func) + self._critic_regularization, self._params, 
+                        self._critic_learning_rate * -T.mean(self._diff), beta1=0.9, beta2=0.999, epsilon=1e-08)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
             sys.exit(-1)
