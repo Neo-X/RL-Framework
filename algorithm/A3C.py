@@ -107,7 +107,7 @@ class A3C(AlgorithmInterface):
             self._updates_ = lasagne.updates.momentum(T.mean(self._q_func) + self._critic_regularization, self._params, 
                         self._critic_learning_rate * -T.mean(self._diff), momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
-            lasagne.updates.adam(T.mean(self._q_func) + self._critic_regularization, self._params, 
+            self._updates_ = lasagne.updates.adam(T.mean(self._q_func) + self._critic_regularization, self._params, 
                         self._critic_learning_rate * -T.mean(self._diff), beta1=0.9, beta2=0.999, epsilon=1e-08)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
@@ -131,8 +131,18 @@ class A3C(AlgorithmInterface):
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         
-        self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization, self._actionParams, 
+        if (self.getSettings()['optimizer'] == 'rmsprop'):
+            self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization, self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
+        elif (self.getSettings()['optimizer'] == 'momentum'):
+            self._actionUpdates = lasagne.updates.momentum(self._actLoss + self._actor_regularization, self._actionParams, 
+                    self._learning_rate , momentum=self._rho)
+        elif ( self.getSettings()['optimizer'] == 'adam'):
+            self._actionUpdates = lasagne.updates.adam(self._actLoss + self._actor_regularization, self._actionParams, 
+                    self._learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
+        else:
+            print ("Unknown optimization method: ", self.getSettings()['optimizer'])
+            
         
         # actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct_drop) + 
         #   (self._regularization_weight * lasagne.regularization.regularize_network_params(
