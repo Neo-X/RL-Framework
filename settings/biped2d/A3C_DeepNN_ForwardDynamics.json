@@ -53,7 +53,7 @@
 "use_actor_policy_action_variance_suggestion": false,
 "exploration_method": "gaussian_random",
 "dropout_p": 0.1,
-"regularization_weight": 0.0000001,
+"regularization_weight": 0.00001,
 "rho": 0.95,
 "rms_epsilon": 0.001,
 "steps_until_target_network_update": 1000,
@@ -91,13 +91,15 @@
 "min_epsilon": 0.15,
 "shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
-"action_learning_rate": 0.01,
+"action_learning_rate": 0.05,
     "comment__": "During model-based action exploration, Probability of random policy action",
 "model_based_action_omega": 0.25,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
 "debug_actor": true,
 	"comment__": "float type to use, if for example you want to train on the GPU use float32",
-"float_type": "float64",
+"float_type": "float32",
 	"comment__": "What processor type to perform the training on [cpu|gpu]",
-"training_processor_type": "cpu"
+"training_processor_type": "gpu",
+	"comment__": "optimizer is the type of optimization algorithm to use",
+"optimizer": "rmsprop"
 }
