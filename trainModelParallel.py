@@ -592,7 +592,7 @@ def trainModelParallel(settingsFileName):
                 
                 file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
                 f = open(file_name, 'wb')
-                dill.dump(agent, f)
+                dill.dump(masterAgent.getPolicy(), f)
                 f.close()
                 
                 f = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", "w")
