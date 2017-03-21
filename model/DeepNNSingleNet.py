@@ -32,39 +32,36 @@ class DeepNNSingleNet(ModelInterface):
                 inputLayerA, num_units=256,
                 nonlinearity=lasagne.nonlinearities.rectify)
         
-        l_hid1A = lasagne.layers.DenseLayer(
+        network = lasagne.layers.DenseLayer(
                 network, num_units=128,
                 nonlinearity=lasagne.nonlinearities.rectify)
         
-        l_hid2A = lasagne.layers.DenseLayer(
-                l_hid1A, num_units=64,
+        network = lasagne.layers.DenseLayer(
+                network, num_units=64,
                 nonlinearity=lasagne.nonlinearities.rectify)
         
-        l_hid3A = lasagne.layers.DenseLayer(
-                l_hid2A, num_units=32,
+        network = lasagne.layers.DenseLayer(
+                network, num_units=32,
                 nonlinearity=lasagne.nonlinearities.rectify)
         
-        l_hid4A = lasagne.layers.DenseLayer(
-                l_hid3A, num_units=16,
+        self._actor = lasagne.layers.DenseLayer(
+                network, num_units=self._action_length,
+                nonlinearity=lasagne.nonlinearities.linear)
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=16,
                 nonlinearity=lasagne.nonlinearities.rectify)
         
-        l_hid5A = lasagne.layers.DenseLayer(
-                l_hid4A, num_units=16,
+        network = lasagne.layers.DenseLayer(
+                network, num_units=16,
                 nonlinearity=lasagne.nonlinearities.rectify)
     
         self._critic = lasagne.layers.DenseLayer(
-                l_hid4A, num_units=1,
+                network, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
-        inputLayerActA = lasagne.layers.InputLayer((None, self._state_length), self._State)
     
-        self._actor = lasagne.layers.DenseLayer(
-                l_hid3A, num_units=self._action_length,
-                nonlinearity=lasagne.nonlinearities.linear)
-        # self._b_o = init_b_weights((n_out,))
-        
-        
-          # print "Initial W " + str(self._w_o.get_value()) 
+        # print "Initial W " + str(self._w_o.get_value()) 
         
         self._states_shared = theano.shared(
             np.zeros((self._batch_size, self._state_length),
