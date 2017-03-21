@@ -526,6 +526,7 @@ def collectExperience(actor, exp_val, model, settings):
     # state_bounds = np.array([[0],[0]])
     reward_bounds=np.array(settings["reward_bounds"])
     action_bounds = np.array(settings["action_bounds"], dtype=float)
+    state_bounds = np.array(settings['state_bounds'], dtype=float)
     
     if (settings["bootsrap_with_discrete_policy"]) and (settings['bootsrap_samples'] > 0):
         (states, actions, resultStates, rewards_, falls_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootsrap_samples'], settings=settings, action_selection=action_selection)
@@ -599,8 +600,15 @@ def collectExperience(actor, exp_val, model, settings):
             else:
                 print ("Tuple with reward: " + str(reward_) + " skipped")
         # sys.exit()
-    else:
-        pass
+    else: ## Most like performing continuation learning
+        if settings['action_space_continuous']:
+            experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
+        else:
+            experience = ExperienceMemory(len(model.getStateBounds()[0]), 1, settings['expereince_length'])
+            experience.setSettings(settings)
+            experience.setStateBounds(model.getStateBounds())
+            experience.setRewardBounds(model.getRewardBounds())
+            experience.setActionBounds(model.getActionBounds())
         """
         (states, actions, resultStates, rewards_) = collectExperienceActionsContinuous(exp, settings['expereince_length'], settings=settings, action_selection=action_selection)
         # states = np.array(states)

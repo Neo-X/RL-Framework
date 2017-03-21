@@ -294,6 +294,11 @@ def trainModelParallel(settingsFileName):
             model.setStateBounds(state_bounds)
             model.setActionBounds(action_bounds)
             model.setRewardBounds(reward_bounds)
+        else: # continuation learning
+            experience.setStateBounds(model.getStateBounds())
+            experience.setRewardBounds(model.getRewardBounds())
+            experience.setActionBounds(model.getActionBounds())
+            
         
         if (settings['train_forward_dynamics']):
             print ("Created forward dynamics network")
