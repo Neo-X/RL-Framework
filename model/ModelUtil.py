@@ -96,9 +96,15 @@ def norm_action(action_, action_bounds_):
         Where the middle of the action bounds are mapped to 0
         upper bound will correspond to 1 and -1 to the lower
         from environment space to normalized space
+        
+        norm_action = ( action - mean ) / var
     """
+    
+    
     avg = (action_bounds_[0] + action_bounds_[1])/2.0
-    return (action_ - (avg)) / (action_bounds_[1]-avg)
+    var = (action_bounds_[1] - action_bounds_[0])/2.0
+    # return (action_ - (avg)) / (action_bounds_[1]-avg)
+    return (action_ - (avg)) / (var)
 
 def scale_action(normed_action_, action_bounds_):
     """
@@ -108,7 +114,9 @@ def scale_action(normed_action_, action_bounds_):
         1 will correspond to the upper bound and -1 to the lower
     """
     avg = (action_bounds_[0] + action_bounds_[1])/2.0
-    return normed_action_ * (action_bounds_[1] - avg) + avg
+    var = (action_bounds_[1] - action_bounds_[0])/2.0
+    # return normed_action_ * (action_bounds_[1] - avg) + avg
+    return (normed_action_ * (var)) + avg
 
 def getSettings(settingsFileName):
     file = open(settingsFileName)
@@ -356,22 +364,31 @@ if __name__ == '__main__':
     file.close()
     
     action_bounds = np.array(settings["action_bounds"], dtype=float)
-    action_bounds[0][0] = 0
+    # action_bounds[0][0] = 0
     reward_bounds = np.array([[-10.1],[0.0]])
-    action = np.array([0.20])
+    action = np.array((action_bounds[1]+action_bounds[0])/2.0)
     print ("Action bounds: " + str(action_bounds))
     print ("Action: " + str(action))
+    print ("Action length: " + str(action.shape[0]))
     print ("Normalized Action: " + str(norm_action(action, action_bounds)) + " same action: " + str(scale_action(norm_action(action, action_bounds), action_bounds)))
-    print ("Normalized Action: " + str(norm_action(action+0.5, action_bounds)) + " same action: " + str(scale_action(norm_action(action+0.5, action_bounds), action_bounds)))
-    print ("Normalized Action: " + str(norm_action(action+-0.5, action_bounds)) + " same action: " + str(scale_action(norm_action(action+-0.5, action_bounds), action_bounds)))
+    print ("Normalized Action: " + str(norm_action(action+0.5, action_bounds)) + " same action: " + str(action+0.5) + " as " + str(scale_action(norm_action(action+0.5, action_bounds), action_bounds)))
+    print ("Normalized Action: " + str(norm_action(action+-0.5, action_bounds)) + " same action: " + str(action+-0.5) + " as "  + str(scale_action(norm_action(action+-0.5, action_bounds), action_bounds)))
     actions_=[]
-    for i in range(50):
+    for i in range(action.shape[0] ):
+        actions_.append([])
+    print ("Actions Data: ", actions_)
+    for i in range(500):
         action_ = randomExporation(settings["exploration_rate"], action, action_bounds)
         print (" Exploration action: ", action_)
-        actions_.append(action_[0])
-    data = actions_
-    plt.hist(data, bins=20)
-    plt.show()
+        for j in range(action.shape[0]):
+            act_ = action_[j]
+            actions_[j].append(act_)
+    # data = actions_
+    for k in range(len(actions_)):
+        plt.hist(actions_[k], bins=20)
+        plt.show()
+    
+    
     reward=np.array([-9.0])
     print ("Norm Reward: " + str(norm_reward(reward, reward_bounds)) )
     print ("Norm Reward: " + str(norm_reward(reward+-0.5, reward_bounds)))
