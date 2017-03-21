@@ -169,6 +169,7 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
     networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings)
     
     if (settings['load_saved_model'] == True):
+        directory= getDataDirectory(settings)
         print ("Loading pre compiled network")
         file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
         f = open(file_name, 'rb')
@@ -391,9 +392,17 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
         forwardDynamicsModel = dill.load(open(file_name_dynamics))
     elif settings["forward_dynamics_predictor"] == "network":
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
-        fd_net = createForwardDynamicsNetwork(state_bounds, action_bounds, settings)
-        forwardDynamicsModel = ForwardDynamics(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 
-                                               state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+        if (settings['load_saved_model'] == True):
+            print ("Loading pre compiled network")
+            directory= getDataDirectory(settings)
+            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
+            f = open(file_name, 'rb')
+            forwardDynamicsModel = dill.load(f)
+            f.close()
+        else:
+            fd_net = createForwardDynamicsNetwork(state_bounds, action_bounds, settings)
+            forwardDynamicsModel = ForwardDynamics(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 
+                                                   state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
     else:
         print ("Unrecognized forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
         sys.exit()

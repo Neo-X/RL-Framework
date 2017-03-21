@@ -111,7 +111,7 @@ def trainModelParallel(settingsFileName):
             rlv.setInteractive()
             rlv.init()
         if (settings['train_forward_dynamics']):
-            if settings['visulaize_forward_dynamics']:
+            if settings['visualize_learning']:
                 nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(settings["model_type"]), settings=settings)
                 nlv.setInteractive()
                 nlv.init()
@@ -290,9 +290,10 @@ def trainModelParallel(settingsFileName):
             model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
         else:
             model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
-        model.setStateBounds(state_bounds)
-        model.setActionBounds(action_bounds)
-        model.setRewardBounds(reward_bounds)
+        if ( not settings['load_saved_model'] ):
+            model.setStateBounds(state_bounds)
+            model.setActionBounds(action_bounds)
+            model.setRewardBounds(reward_bounds)
         
         if (settings['train_forward_dynamics']):
             print ("Created forward dynamics network")
@@ -491,7 +492,7 @@ def trainModelParallel(settingsFileName):
                         rlv.saveVisual(directory+"pendulum_agent_"+str(settings['agent_name']))
                         rlv.setInteractive()
                         # rlv.redraw()
-                    if (settings['visulaize_forward_dynamics']):
+                    if (settings['train_forward_dynamics'] and settings['visualize_learning']):
                         nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
                         nlv.redraw()
                         nlv.setInteractiveOff()
