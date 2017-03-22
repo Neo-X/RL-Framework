@@ -1,7 +1,7 @@
 {
-"model_type": "Deep_NN_SingleNet",
+"model_type": "Deep_NN",
 "agent_name": "A3C",
-"data_folder": "Simple_Walk/",
+"data_folder": "Simple_Walk_ADAM/",
 "epsilon": 0.5, 
 "omega": 0.01,
 "batch_size": 32,
@@ -100,5 +100,5 @@
 	"comment__": "What processor type to perform the training on [cpu|gpu]",
 "training_processor_type": "cpu",
 	"comment__": "optimizer is the type of optimization algorithm to use",
-"optimizer": "rmsprop"
+"optimizer": "adam"
 }
