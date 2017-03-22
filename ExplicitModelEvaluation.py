@@ -7,38 +7,30 @@ import os
 import sys
 
 
-# Networks
-from model.RLDeepNet import RLDeepNet 
-from model.DeepCACLA import DeepCACLA
-# from model.DeepDPG import DeepDPG 
-from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
-from model.ForwardDynamicsSimulator import ForwardDynamicsSimulator
-from model.ForwardDynamicsSimulatorParallel import ForwardDynamicsSimulatorParallel
-from model.Sampler import Sampler
-from model.BruteForceSampler import BruteForceSampler
-from model.SequentialMCSampler import SequentialMCSampler
-from model.ForwardPlanner import ForwardPlanner
-
-# Games
-from sim.PendulumEnvState import PendulumEnvState
-from sim.PendulumEnv import PendulumEnv
-
-from actor.ActorInterface import ActorInterface
-
-from model.ModelUtil import *
-from ModelEvaluation import *
-from util.SimulationUtil import *
-
-from RLVisualize import RLVisualize
-from NNVisualize import NNVisualize
-from util.ExperienceMemory import ExperienceMemory
-
-
 def modelSampling(settings):
     # make a color map of fixed colors
     #try: 
         # Normalization constants for data
         
+        from model.ModelUtil import getSettings
+        # settings = getSettings(settings_file_name)
+        settings['shouldRender'] = True
+        import os    
+        os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+        
+        ## Theano needs to be imported after the flags are set.
+        # from ModelEvaluation import *
+        # from model.ModelUtil import *
+        from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience, evalModel
+        # from model.ModelUtil import validBounds
+        from model.LearningAgent import LearningAgent, LearningWorker
+        from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
+        from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
+        
+        
+        from util.ExperienceMemory import ExperienceMemory
+        from RLVisualize import RLVisualize
+        from NNVisualize import NNVisualize
                 
         print "Sim config file name: " + str(settings["sim_config_file"])
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
@@ -70,17 +62,6 @@ def modelSampling(settings):
         file_name=data_folder+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
         model = dill.load(open(file_name))
         
-        if settings["forward_dynamics_predictor"] == "simulator":
-            print "Using forward dynamics method: " + str(settings["forward_dynamics_predictor"])
-            forwardDynamicsModel = ForwardDynamicsSimulator(len(model._state_bounds[0]), len(model._action_bounds[0]), 
-                                                            model._state_bounds, model._action_bounds, actor, exp, settings)
-            sampler.setForwardDynamics(forwardDynamicsModel)
-        elif settings["forward_dynamics_predictor"] == "simulator_parallel":
-            print "Using forward dynamics method: " + str(settings["forward_dynamics_predictor"])
-            forwardDynamicsModel = ForwardDynamicsSimulatorParallel(len(model._state_bounds[0]), len(model._action_bounds[0]), 
-                                                            model._state_bounds, model._action_bounds, actor, exp, settings)
-            sampler.setForwardDynamics(forwardDynamicsModel)
-            
         if (settings['train_forward_dynamics']):
             file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
             # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
@@ -88,6 +69,11 @@ def modelSampling(settings):
             forwardDynamicsModel = dill.load(f)
             f.close()
             sampler.setForwardDynamics(forwardDynamicsModel)
+        else:
+            
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
+            sampler.setForwardDynamics(forwardDynamicsModel)
+            
                 
         sampler.setPolicy(model)
         sampler.setSettings(settings)

@@ -55,6 +55,9 @@ class ForwardDynamicsSimulator(AgentInterface):
         self._sim.getEnvironment().initEpoch()
 
     def predict(self, state, action):
+        """
+            This is the normal prediction using the reduced state
+        """
         # state = norm_state(state, self._state_bounds)
         # action = norm_action(action, self._action_bounds)
         # print ("Action: " + str(action))
@@ -73,19 +76,24 @@ class ForwardDynamicsSimulator(AgentInterface):
         return state_
     
     def _predict(self, state__c, action):
+        """
+            This particular prediction sets the internal state of the simulator before executing the action
+            state__c: is some kind of global state of the simulator
+        """
         # state = norm_state(state, self._state_bounds)
         # action = norm_action(action, self._action_bounds)
         # print ("Action: " + str(action))
         # print ("State: " + str(state._id))
-        self._sim.getEnvironment().setState(state__c)
+        self._sim.getEnvironment().setSimState(state__c)
         # current_state = self._exp._exp.getEnvironment().getSimInterface().getController().getControllerStateVector()
         # c_state = self._sim.getEnvironment().getState()
         reward = self._actor.actContinuous(self._sim,action)
+        print("_Predict reward: ", reward)
         # print ("State: " + str(state.getParams()))
-        state__ = self._sim.getEnvironment().getState()
+        state__ = self._sim.getEnvironment().getSimState()
         # print ("State: " + str(state))
         # restore previous state
         # self._exp._exp.getEnvironment().getSimInterface().getController().setControllerStateVector(current_state)
-        self._sim.getEnvironment().setState(state__c)
+        self._sim.getEnvironment().setSimState(state__c)
         # print ("State: " + str(state))
-        return state__
+        return (state__, reward)

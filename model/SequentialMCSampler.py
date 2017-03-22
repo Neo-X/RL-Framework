@@ -67,19 +67,21 @@ class SequentialMCSampler(Sampler):
             for i in range(look_ahead):
                 if isinstance(forwardDynamics, ForwardDynamicsSimulator):
                     current_state_copy3 = copy.deepcopy(current_state_copy2)
-                    pa = model.predict(np.array(current_state_copy.getParams()))
+                    current_state_copy__ = self._exp.getEnvironment().getStateFromSimState(current_state_copy)
+                    pa = model.predict(np.array([current_state_copy__]))
                     if self.getSettings()["use_actor_policy_action_variance_suggestion"]:
                         
                         lSquared =(4.1**2)
                         ## This uses the learned model so in the case the state given must be that used by the model
-                        variance__ = getModelPredictionUncertanty(model, current_state_copy3, 
+                        current_state_copy3__ = self._exp.getEnvironment().getStateFromSimState(current_state_copy3)
+                        variance__ = getModelPredictionUncertanty(model, current_state_copy3__, 
                                                         length=4.1, num_samples=32, settings=self.getSettings())
                         
                         variance__ = list(variance__) * look_ahead # extends the list for the number of states to look ahead
                         # print (var_)
                         if not all(np.isfinite(variance__)): # lots of nan values for some reason...
                             print ("Problem computing variance from model: ", )
-                            print ("State: ", current_state_copy3, " action: ", pa)
+                            print ("State: ", current_state_copy3__, " action: ", pa)
                             for fg in range(len(samp_)):
                                 print ("Sample ", fg, ": ", samp_[fg], " Predictions: ", predictions_[fg])
                                 
@@ -118,15 +120,17 @@ class SequentialMCSampler(Sampler):
                 current_state_ = copy.deepcopy(current_state_copy)
                 # actions = chunks(sample, self._pol._action_length)
                 for act_ in actions:
-                    init_states.append(current_state_.getParams())
-                    prediction = forwardDynamics._predict(state__c=current_state_, action=act_)
-                    
-                    predictions.append(prediction.getParams())
+                    current_state__ = self._exp.getEnvironment().getStateFromSimState(current_state_)
+                    init_states.append(current_state__)
+                    (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=act_)
+                    prediction_ = self._exp.getEnvironment().getStateFromSimState(prediction)
+                    predictions.append(prediction_)
                     # print ("Current State: ", current_state_.getParams(), " Num: ", current_state_.getID())
                     # print ("Prediction: ", prediction.getParams(), " Num: ", prediction.getID())
                     # print ("Executed Action: ", act_)
-                    y.append(reward(np.array(current_state_.getParams()), np.array(prediction.getParams())))
-                    current_state_ = characterSim.State(prediction.getID(), prediction.getParams())
+                    ## This reward function is not going to work anymore
+                    y.append(reward__)
+                    current_state_ = copy.deepcopy(prediction)
                     # goalDistance(np.array(current_state_.getParams()), )
                     # print ("Y : " + str(y))
                     
@@ -182,24 +186,33 @@ class SequentialMCSampler(Sampler):
             init_states=[]
             predictions=[]
             if isinstance(forwardDynamics, ForwardDynamicsSimulator):
-                current_state_ = characterSim.State(current_state_copy.getID(), current_state_copy.getParams())
-                actions = chunks(sample, self._pol._action_length)
+                current_state_ = copy.deepcopy(current_state_copy)
+                # actions = chunks(sample, self._pol._action_length)
                 for act_ in actions:
-                    init_states.append(current_state_.getParams())
-                    prediction = forwardDynamics._predict(state__c=current_state_, action=act_)
-                    predictions.append(prediction.getParams())
-                    y.append(reward(np.array(current_state_.getParams()), np.array(prediction.getParams())))
-                    current_state_ = characterSim.State(prediction.getID(), prediction.getParams())
-                    # print ("Action: " + str(act_))
+                    current_state__ = self._exp.getEnvironment().getStateFromSimState(current_state_)
+                    init_states.append(current_state__)
+                    (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=act_)
+                    prediction_ = self._exp.getEnvironment().getStateFromSimState(prediction)
+                    predictions.append(prediction_)
+                    # print ("Current State: ", current_state_.getParams(), " Num: ", current_state_.getID())
+                    # print ("Prediction: ", prediction.getParams(), " Num: ", prediction.getID())
+                    # print ("Executed Action: ", act_)
+                    ## This reward function is not going to work anymore
+                    y.append(reward__)
+                    current_state_ = copy.deepcopy(prediction)
+                    # goalDistance(np.array(current_state_.getParams()), )
+                    # print ("Y : " + str(y))
                     
             else:
                 current_state_=current_state_copy
+                # actions = chunks(sample, self._pol._action_length)
                 for act_ in actions:
                     init_states.append(current_state_)
                     prediction = forwardDynamics.predict(state=current_state_, action=act_)
                     predictions.append(prediction)
                     y.append(reward(current_state_, prediction))
                     current_state_ = prediction
+                    
             # print (pa, y)
             if ( np.all(np.isfinite(y)) and (np.all(np.greater(y, -10000.0))) and (np.all(np.less(y, 10000.0))) ): # lots of nan values for some reason...
                 # print ("Good sample:")
@@ -227,12 +240,13 @@ class SequentialMCSampler(Sampler):
     
     def predict(self, state):
         """
-        Returns the best action
+            Returns the best action
         """
-        # hacky for now
+        ## hacky for now
         if isinstance(self._fd, ForwardDynamicsSimulator):
             self._fd.initEpoch(self._exp)
-            state = self._exp.getEnvironment().getState()
+            # state = self._exp.getEnvironment().getState()
+            state = self._exp.getEnvironment().getSimState()
         
         self.sampleModel(model=self._pol, forwardDynamics=self._fd, current_state=state)
         action = self.getBestSample()

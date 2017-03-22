@@ -197,12 +197,22 @@ class BallGame2D(BallGame1D):
         ##add rotation
         self._obstacle.setQuaternion(rot)
         self._obstacle.setLinearVel(vel)
+        
+    def getStateFromSimState(self, state_):
+        """
+            Takes the global simulation state and returns the less discriptive 
+            state used for learning
+        """
+        (charState, terrain_, x) = state_
+        # print( "Terrain: ", terrain_)
+        state__out = self.getState(terrainData_=terrain_, startX_=x, charState_=charState)
+        return state__out
     
     def getCharacterState(self, charState=None):
         if ( charState == None ):
             charState=self.getCharacterSimState()
         # add angular velocity
-        (pos, vel, rot, angularVel) = charState_
+        (pos, vel, rot, angularVel) = charState
         angularVel = list(angularVel)
         #add rotation
         rot = list(rot)
@@ -255,7 +265,7 @@ class BallGame2D(BallGame1D):
 
 if __name__ == '__main__':
     import json
-    settings={}
+    _settings={}
     # game = BallGame2D(settings)
     if (len(sys.argv)) > 1:
         _settings=json.load(open(sys.argv[1]))
@@ -263,8 +273,8 @@ if __name__ == '__main__':
         _settings['render']=True
         game = BallGame2D(_settings)
     else:
-        settings['render']=True
-        game = BallGame2D(settings)
+        _settings['render']=True
+        game = BallGame2D(_settings)
     game.init()
     for j in range(100):
         # game.generateEnvironmentSample()
@@ -290,7 +300,7 @@ if __name__ == '__main__':
             
             # print (state)
             
-            game.visualizeState(state[:len(state)-1], action, 0)
+            game.visualizeState(state[:len(state)-1], action, state[_settings['num_terrain_samples']])
             game.visualizeAction(action)
             reward = game.actContinuous(action)
             
