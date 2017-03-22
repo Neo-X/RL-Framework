@@ -159,8 +159,6 @@ def train(settingsFileName):
             sampler.setForwardDynamics(forwardDynamicsModel)
             sampler.setSettings(settings)
             
-            # sampler.setSimulator(exp)
-        
         if (settings['train_forward_dynamics']):
             actor.setForwardDynamicsModel(forwardDynamicsModel)
             forwardDynamicsModel.setActor(actor)

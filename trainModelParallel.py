@@ -45,7 +45,7 @@ def trainModelParallel(settingsFileName):
         from model.ModelUtil import validBounds
         from model.LearningAgent import LearningAgent, LearningWorker
         from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
-        from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel
+        from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
         
         
         from util.ExperienceMemory import ExperienceMemory
@@ -187,8 +187,20 @@ def trainModelParallel(settingsFileName):
                 exp_.getEnvironment().init()
                 print ("Done starting worker ", process)
             """
-            agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+            print ("original exp: ", exp_)
+            if ( settings['use_simulation_sampling'] ):
+                
+                sampler = createSampler(settings, exp_)
+                ## This should be some kind of copy of the simulator not a network
+                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp_)
+                sampler.setForwardDynamics(forwardDynamicsModel)
+                # sampler.setPolicy(model)
+                agent = sampler
+                print ("thread together exp: ", agent._exp)
+                # sys.exit()
+            else:
+                agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                                  action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
             
             agent.setSettings(settings)
             """
@@ -214,7 +226,7 @@ def trainModelParallel(settingsFileName):
                 # forwardDynamicsModel.setEnvironment(exp_)
                 forwardDynamicsModel_.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, exp_, settings)
             """
-            w = SimWorker(namespace, input_anchor_queue, output_experience_queue, actor, exp_, copy.deepcopy(agent), discount_factor, action_space_continuous=action_space_continuous, 
+            w = SimWorker(namespace, input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
                     settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue)
             # w.start()
             sim_workers.append(w)
@@ -275,7 +287,7 @@ def trainModelParallel(settingsFileName):
             sys.exit()
         
         if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
-            sim_workers[0]._exp = exp_val
+            sim_workers[0].setEnvironment(exp_val)
             sim_workers[0].start()
         
         print ("Reward History: ", experience._reward_history)

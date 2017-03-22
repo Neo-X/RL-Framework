@@ -42,3 +42,6 @@ class AgentInterface(object):
     
     def getSettings(self):
         return self._settings
+    
+    def setEnvironment(self, exp):
+        pass

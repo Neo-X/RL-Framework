@@ -15,9 +15,6 @@ class Sampler(LearningAgent):
         self._bestSample=[[0],[-10000000]]
         self._settings = settings
         
-    def setSimulator(self, exp_):
-        self._exp=exp_
-    
     def generateSamplesFromNormal(self, mean, num_samples=25, repeate=1, variance_=[0.03]):
         if np.isscalar(variance_):
             variance_ = [variance_]*len(mean)
@@ -68,15 +65,19 @@ class Sampler(LearningAgent):
     def setBestSample(self, samp): 
         self._bestSample = samp
     
-    def predict(self, state):
+    def predict(self, state, evaluation_=False):
         """
-        Returns the best action
+            Returns the best action
         """
-        self.sampleModel(model=self._pol, forwardDynamics=self._fd, current_state=state)
-        action = self.getBestSample()
-        print ("Action: " + str(action))
-        action = action[0]
-        return action
+        if ( not evaluation_ ):
+            self.sampleModel(model=self._pol, forwardDynamics=self._fd, current_state=state)
+            action = self.getBestSample()
+            print ("Action: " + str(action))
+            action = action[0]
+            return action
+        else:
+            return super(Sampler, self).predict(state, evaluation_=evaluation_)
+            
 
     def q_value(self, state):
         """

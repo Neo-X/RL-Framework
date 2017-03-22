@@ -13,19 +13,18 @@ class ForwardDynamicsSimulator(AgentInterface):
     
     def __init__(self, state_length, action_length, state_bounds, action_bounds, actor, exp, settings):
         # import characterSim
-        from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
         super(ForwardDynamicsSimulator,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings)
-        self._exp = exp # Only used to pull some data from
+        self._exp = exp ## Only used to pull some data from
         self._reward=0
         
-        sim = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings)
-        # c = characterSim.Configuration(str(settings['forwardDynamics_config_file']))
-        # c = characterSim.Configuration("../data/epsilon0Config.ini")
-        
-        # this is the process that selects which game to play
-        # sim = characterSim.Experiment(c)
         self._actor = actor
-        self._sim = sim # The real simulator that is used for predictions
+        self.initSim(settings) 
+        
+    def initSim(self, settings):
+        from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
+        sim = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings)
+        ## The real simulator that is used for predictions
+        self._sim = sim
         
     def setActor(self, actor):
         self._actor = actor
@@ -88,7 +87,7 @@ class ForwardDynamicsSimulator(AgentInterface):
         # current_state = self._exp._exp.getEnvironment().getSimInterface().getController().getControllerStateVector()
         # c_state = self._sim.getEnvironment().getState()
         reward = self._actor.actContinuous(self._sim,action)
-        print("_Predict reward: ", reward)
+        # print("_Predict reward: ", reward)
         # print ("State: " + str(state.getParams()))
         state__ = self._sim.getEnvironment().getSimState()
         # print ("State: " + str(state))

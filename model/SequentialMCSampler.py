@@ -35,7 +35,10 @@ class SequentialMCSampler(Sampler):
         self._look_ahead=look_ahead
         self._exp=exp
         
-        
+    def setEnvironment(self, exp):
+        self._exp = exp
+        self._fd.setEnvironment(exp)
+    
     def sampleModel(self, model, forwardDynamics, current_state):
         print ("Starting SMC sampling")
         _bestSample = self._sampleModel(model, forwardDynamics, current_state, self._look_ahead)
@@ -238,23 +241,27 @@ class SequentialMCSampler(Sampler):
             discounted_sum += (math.pow(discount_factor,state_num) * rewards[state_num])
         return discounted_sum
     
-    def predict(self, state):
+    def predict(self, state, evaluation_=False):
         """
             Returns the best action
         """
         ## hacky for now
-        if isinstance(self._fd, ForwardDynamicsSimulator):
-            self._fd.initEpoch(self._exp)
-            # state = self._exp.getEnvironment().getState()
-            state = self._exp.getEnvironment().getSimState()
-        
-        self.sampleModel(model=self._pol, forwardDynamics=self._fd, current_state=state)
-        action = self.getBestSample()
-        # if isinstance(self._fd, ForwardDynamicsSimulator):
-        #     self._fd._sim.getEnvironment().setState(state)
-        print ("Best Action SMC: " + str(action))
-        action = action[0]
-        return action
+        if ( not evaluation_ ):
+            if isinstance(self._fd, ForwardDynamicsSimulator):
+                print ( "SMC exp: ", self._exp)
+                self._fd.initEpoch(self._exp)
+                # state = self._exp.getEnvironment().getState()
+                state = self._exp.getEnvironment().getSimState()
+            
+            self.sampleModel(model=self._pol, forwardDynamics=self._fd, current_state=state)
+            action = self.getBestSample()
+            # if isinstance(self._fd, ForwardDynamicsSimulator):
+            #     self._fd._sim.getEnvironment().setState(state)
+            # print ("Best Action SMC: " + str(action))
+            action = action[0]
+            return action
+        else:
+            return super(SequentialMCSampler, self).predict(state, evaluation_=evaluation_)
     
     def pushSample(self, action, val):
         # print ("Val: " + str(val))

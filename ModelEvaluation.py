@@ -43,18 +43,28 @@ class SimWorker(Process):
     def current_mem_usage(self):
         return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
 
+    def setEnvironment(self, exp_):
+        """
+            Set the environment instance to use
+        """
+        self._exp = exp_
+        self._model.setEnvironment(self._exp)
+        
     # @profile(precision=5)
     def run(self):
         # from pympler import summary
         # from pympler import muppy
         
         # print ("SW model: ", self._model.getPolicy())
-        ## This is okay if there is one thread only...
+        print ("Thread: ", self._model._exp)
+        ## This is no needed if there is one thread only...
         if (int(self._settings["num_available_threads"]) > 1): 
             from util.SimulationUtil import createEnvironment
             self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings)
             self._exp.getActor().init()   
             self._exp.getEnvironment().init()
+            ## The sampler might need this new model is threads > 1
+            self._model.setEnvironment(self._exp)
         
         print ('Worker started')
         # do some initialization here
@@ -255,7 +265,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
             else: # exploit policy
                 # return pa1
-                pa = model.predict(state_)
+                ## For sampling method to skip sampling during evaluation.
+                pa = model.predict(state_, evaluation_=evaluation)
                 
                 action = pa
                 # print ("Exploitation: ", action , " epsilon: ", epsilon * p)
