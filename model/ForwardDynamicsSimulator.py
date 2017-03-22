@@ -12,16 +12,18 @@ from model.AgentInterface import AgentInterface
 class ForwardDynamicsSimulator(AgentInterface):
     
     def __init__(self, state_length, action_length, state_bounds, action_bounds, actor, exp, settings):
-        import characterSim
+        # import characterSim
+        from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
         super(ForwardDynamicsSimulator,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings)
         self._exp = exp # Only used to pull some data from
         self._reward=0
         
-        c = characterSim.Configuration(str(settings['forwardDynamics_config_file']))
+        sim = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings)
+        # c = characterSim.Configuration(str(settings['forwardDynamics_config_file']))
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
         
         # this is the process that selects which game to play
-        sim = characterSim.Experiment(c)
+        # sim = characterSim.Experiment(c)
         self._actor = actor
         self._sim = sim # The real simulator that is used for predictions
         
@@ -42,10 +44,14 @@ class ForwardDynamicsSimulator(AgentInterface):
     def initEpoch(self, exp):
         self._sim.getActor().initEpoch()
         self._sim.getEnvironment().clear()
-        for anchor in range(self._exp.getEnvironment().numAnchors()):
+        """
+        for anchor in range(self.getSettings()['max_epoch_length']):
             # print (_anchor)
             anchor_ = self._exp.getEnvironment().getAnchor(anchor)
             self._sim.getEnvironment().addAnchor(anchor_.getX(), anchor_.getY(), anchor_.getZ())
+        """
+        simState = self._exp.getEnvironment().getSimState()
+        self._sim.getEnvironment().setSimState(simState)
         self._sim.getEnvironment().initEpoch()
 
     def predict(self, state, action):

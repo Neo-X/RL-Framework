@@ -385,7 +385,6 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
         forwardDynamicsModel = ForwardDynamicsSimulatorParallel(len(state_bounds[0]), len(action_bounds[0]), 
                                                         state_bounds, action_bounds, actor, exp, settings)
-        
     elif settings["forward_dynamics_predictor"] == "saved_network":
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
         file_name_dynamics=data_folder+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"

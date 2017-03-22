@@ -29,7 +29,7 @@ def clampAction(actionV, bounds):
             actionV[i] = bounds[1][i]
     return actionV 
 
-from env.BallGame1D import *
+from BallGame1D import *
 
 class BallGame2D(BallGame1D):
     def __init__(self, settings):
@@ -167,44 +167,83 @@ class BallGame2D(BallGame1D):
             glutPostRedisplay()
             self.onDraw()
         return False
+    
+    def getSimState(self):
+        charState = self.getCharacterSimState()
+        x = self._terrainStartX
+        terrain = copy.deepcopy(self._terrainData)
+        return (charState, terrain, x)
+    
+    def setSimState(self, state_):
+        (charState, terrain, x) = state_
+        self.setCharacterSimState(charState)
+        self._terrainStartX = x
+        self.setTerrainData(terrain)
         
-    def getCharacterState(self):
+    def getCharacterSimState(self):
         # add angular velocity
-        angularVel = list(self._obstacle.getAngularVel())
+        pos = self._obstacle.getPosition()
+        angularVel = self._obstacle.getAngularVel()
         #add rotation
         rot = list(self._obstacle.getQuaternion())
-        angularVel.extend(rot)
         vel = self._obstacle.getLinearVel()
+        return (pos, vel, rot, angularVel)
+    
+    def setCharacterSimState(self, state_):
+        # add angular velocity
+        (pos, vel, rot, angularVel) = state_
+        self._obstacle.setPosition(pos)
+        self._obstacle.setAngularVel(angularVel)
+        ##add rotation
+        self._obstacle.setQuaternion(rot)
+        self._obstacle.setLinearVel(vel)
+    
+    def getCharacterState(self, charState=None):
+        if ( charState == None ):
+            charState=self.getCharacterSimState()
+        # add angular velocity
+        (pos, vel, rot, angularVel) = charState_
+        angularVel = list(angularVel)
+        #add rotation
+        rot = list(rot)
+        angularVel.extend(rot)
+        # vel = self._obstacle.getLinearVel()
         angularVel.append(vel[0])
         return angularVel
     
     
-    def getState(self):
+    def getState(self, terrainData_=None, startX_=None, charState_=None):
+        if ( terrainData_ == None ):
+            terrainData_ = self._terrainData
+        if ( startX_ == None ):
+            startX_ = self._terrainStartX
+        if ( charState_ == None ):
+            charState_ = self.getCharacterSimState()
         """ get the next self._num_points points"""
-        pos = self._obstacle.getPosition()
-        charState = self.getCharacterState()
+        (pos, vel, rot, angularVel) = charState_
+        charState = self.getCharacterState(charState=charState_)
         num_extra_feature=1
         ## Get the index of the next terrain sample
         start = self.getTerrainIndex()
         ## Is that sample + terrain_state_size beyond the current terrain extent
-        if (start+self._num_points+num_extra_feature >= (len(self._terrainData))):
-            # print ("State not big enough ", len(self._terrainData))
+        if (start+self._num_points+num_extra_feature >= (len(terrainData_))):
+            # print ("State not big enough ", len(terrainData_))
             if (self._validating):
                 self.generateValidationTerrain(0)
             else:
                 self.generateTerrain()
         start = self.getTerrainIndex()
-        assert start+self._num_points+num_extra_feature < (len(self._terrainData)), "Ball is exceeding terrain length %r after %r actions" % (start+self._num_points+num_extra_feature-1, self._state_num)
-        # print ("Terrain Data: ", self._terrainData)
+        assert start+self._num_points+num_extra_feature < (len(terrainData_)), "Ball is exceeding terrain length %r after %r actions" % (start+self._num_points+num_extra_feature-1, self._state_num)
+        # print ("Terrain Data: ", terrainData_)
         state=np.zeros((self._num_points+num_extra_feature+len(charState)))
         if pos[0] < 0: #something bad happened...
             return state
         else: # good things are going on...
-            # state[0:self._num_points] = copy.deepcopy(pos[1]-self._terrainData[start:start+self._num_points])
-            state[0:self._num_points] = copy.deepcopy(self._terrainData[start:start+self._num_points])
-            # state = copy.deepcopy(self._terrainData[start:start+self._num_points+1])
+            # state[0:self._num_points] = copy.deepcopy(pos[1]-terrainData_[start:start+self._num_points])
+            state[0:self._num_points] = copy.deepcopy(terrainData_[start:start+self._num_points])
+            # state = copy.deepcopy(terrainData_[start:start+self._num_points+1])
             # print ("Start: ", start, " State Data: ", state)
-            state[self._num_points] = fabs(float(math.floor(start)*self._terrainScale)-(pos[0]-self._terrainStartX)) # X distance to first sample
+            state[self._num_points] = fabs(float(math.floor(start)*self._terrainScale)-(pos[0]-startX_)) # X distance to first sample
             # state[self._num_points+1] = (pos[1]) # current height of character, This was returning huge nagative values... -1.5x+14
             # print ("Dist to next point: ", state[len(state)-1])
             
