@@ -65,18 +65,19 @@ class LearningAgent(AgentInterface):
         if self._useLock:
             self._accesLock.acquire()
         cost = 0
-        for i in range(self._settings['critic_updates_per_actor_update']):
-            _states, _actions, _result_states, _rewards, _falls = self._expBuff.get_batch(self._settings["batch_size"])
-            # print ("Updating Critic")
-            cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
-            if not np.isfinite(cost) or (cost > 500) :
-                print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
-                print ("Training cost is Odd: ", cost)
-        if (self._settings['train_actor']):
-            cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
-        dynamicsLoss = 0 
-        if (self._settings['train_forward_dynamics']):
-            dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states)
+        for update in range(self._settings['training_updates_per_sim_action']): ## Even more training options...
+            for i in range(self._settings['critic_updates_per_actor_update']):
+                _states, _actions, _result_states, _rewards, _falls = self._expBuff.get_batch(self._settings["batch_size"])
+                # print ("Updating Critic")
+                cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                if not np.isfinite(cost) or (cost > 500) :
+                    print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
+                    print ("Training cost is Odd: ", cost)
+            if (self._settings['train_actor']):
+                cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+            dynamicsLoss = 0 
+            if (self._settings['train_forward_dynamics']):
+                dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states)
         if self._useLock:
             self._accesLock.release()
         return (cost, dynamicsLoss) 

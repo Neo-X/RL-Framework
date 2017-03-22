@@ -248,7 +248,7 @@ class SequentialMCSampler(Sampler):
         ## hacky for now
         if ( not evaluation_ ):
             if isinstance(self._fd, ForwardDynamicsSimulator):
-                print ( "SMC exp: ", self._exp)
+                # print ( "SMC exp: ", self._exp)
                 self._fd.initEpoch(self._exp)
                 # state = self._exp.getEnvironment().getState()
                 state = self._exp.getEnvironment().getSimState()

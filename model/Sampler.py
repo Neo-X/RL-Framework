@@ -78,13 +78,12 @@ class Sampler(LearningAgent):
         else:
             return super(Sampler, self).predict(state, evaluation_=evaluation_)
             
-
+    """
+    Not sure if this should come from the sampling or the model
     def q_value(self, state):
-        """
-        Returns the expected value of the state
-        """
+        ##Returns the expected value of the state
         return self.getBestSample()[1]
-    
+    """
     
 if __name__ == '__main__':
     
