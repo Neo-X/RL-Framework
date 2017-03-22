@@ -1,26 +1,18 @@
 import numpy as np
+from model.LearningAgent import LearningAgent
 
-class Sampler(object):
+class Sampler(LearningAgent):
     """
         A simple method to sample the space of actions.
     """    
     def __init__(self, settings):
+
+        super(Sampler,self).__init__(None, None, None, None, None, settings)
+        
         self._x=[]
         self._samples=[]
         # action, value
         self._bestSample=[[0],[-10000000]]
-        self._settings = settings
-        
-    def getSettings(self):
-        return self._settings
-        
-    def setPolicy(self, pol):
-        self._pol = pol
-        
-    def setForwardDynamics(self, fd):
-        self._fd = fd
-        
-    def setSettings(self, settings):
         self._settings = settings
         
     def setSimulator(self, exp_):
@@ -91,9 +83,6 @@ class Sampler(object):
         Returns the expected value of the state
         """
         return self.getBestSample()[1]
-    
-    def bellman_error(self, state, action, reward, result_state):
-        return self._pol.bellman_error(state, action, reward, result_state)
     
     
 if __name__ == '__main__':

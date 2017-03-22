@@ -49,7 +49,8 @@ class SimWorker(Process):
         # from pympler import muppy
         
         # print ("SW model: ", self._model.getPolicy())
-        if (int(self._settings["num_available_threads"]) > 1): # This is okay if there is one thread only...
+        ## This is okay if there is one thread only...
+        if (int(self._settings["num_available_threads"]) > 1): 
             from util.SimulationUtil import createEnvironment
             self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings)
             self._exp.getActor().init()   
@@ -80,7 +81,7 @@ class SimWorker(Process):
                 p = 0.1
             self._p = p
             # print ("sim worker p: " + str(self._p))
-            if (eval):
+            if (eval): ## No action exploration
                 out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                         anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                         print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
