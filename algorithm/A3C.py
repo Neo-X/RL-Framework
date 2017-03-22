@@ -123,7 +123,7 @@ class A3C(AlgorithmInterface):
         #                                                                        (self._tmp_diff * (1.0/(1.0-self._discount_factor)))
         # self._actLoss_ = (T.mean(T.pow(self._actDiff, 2),axis=1))
                                                                                 
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( (T.mean(T.pow(self._actDiff, 2),axis=1))), 
+        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)( (T.mean(T.pow(self._actDiff, 2),axis=1)), 
                                                                                 (self._tmp_diff * (1.0/(1.0-self._discount_factor)))
                                                                             )
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
