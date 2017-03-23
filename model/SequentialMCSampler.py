@@ -299,7 +299,7 @@ class SequentialMCSampler(Sampler):
             print ("Diff contains zero: " + str(diff))
             print ("Data, largets N: " + str(data[:,1]))
             ## JUst make everything uniform then...
-            weights = np.ones(len(diff))/float(len(diff))
+            weights = np.ones(len(data[:,1]))/float(len(data[:,1]))
         else:    
             data_ = (data[:,1]-min)/(diff)
             # data_ = data[:,1]-min
