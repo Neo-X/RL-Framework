@@ -35,6 +35,7 @@ class ForwardDynamicsSimulator(AgentInterface):
         self._actor = actor
     def setEnvironment(self, exp):
         self._exp = exp
+        self._sim = exp
     """    
     def setEnvironment(self, sim):
         self._sim = sim # The real simulator that is used for predictions

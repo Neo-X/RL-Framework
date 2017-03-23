@@ -73,6 +73,7 @@ class SequentialMCSampler(Sampler):
                 if isinstance(forwardDynamics, ForwardDynamicsSimulator):
                     current_state_copy3 = copy.deepcopy(current_state_copy2)
                     current_state_copy__ = self._exp.getEnvironment().getStateFromSimState(current_state_copy)
+                    # print ("current_state_copy__: ", current_state_copy__)
                     pa = model.predict(np.array([current_state_copy__]))
                     if self.getSettings()["use_actor_policy_action_variance_suggestion"]:
                         
@@ -103,7 +104,10 @@ class SequentialMCSampler(Sampler):
                 current_state_copy3 = forwardDynamics._predict(state__c=current_state_copy2, action=pa)
                 # samples = self.generateSamples(self._pol._action_bounds,  num_samples=5)
                 # samples = self.generateSamples(bounds,  num_samples=self._settings["num_uniform_action_samples"])
-            samples = self.generateSamplesFromNormal(mean=_action_params, num_samples=pow(self.getSettings()["num_uniform_action_samples"], self._pol._action_length), variance_=variance__)
+            # num_samples_ = pow(self.getSettings()["num_uniform_action_samples"], self._pol._action_length)
+            num_samples_ = self.getSettings()["num_uniform_action_samples"] * self._pol._action_length
+            # print ("Number of initial random samples: ", num_samples_)
+            samples = self.generateSamplesFromNormal(mean=_action_params, num_samples=num_samples_, variance_=variance__)
         else:
             samples = self.generateSamples(self._pol._action_bounds,  num_samples=self.getSettings()["num_uniform_action_samples"], repeate=look_ahead)
         # print ("Current state sample: " + str(current_state_copy.getParams()))
