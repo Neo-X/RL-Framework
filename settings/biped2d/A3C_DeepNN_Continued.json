@@ -1,7 +1,7 @@
 {
 "model_type": "Deep_NN",
 "agent_name": "A3C",
-"data_folder": "Simple_Walk/",
+"data_folder": "Simple_Walk_Continued/",
 "epsilon": 0.25, 
 "omega": 0.15,
 "batch_size": 32,

@@ -56,7 +56,7 @@ class SimWorker(Process):
         # from pympler import muppy
         
         # print ("SW model: ", self._model.getPolicy())
-        print ("Thread: ", self._model._exp)
+        # print ("Thread: ", self._model._exp)
         ## This is no needed if there is one thread only...
         if (int(self._settings["num_available_threads"]) > 1): 
             from util.SimulationUtil import createEnvironment
