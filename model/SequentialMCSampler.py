@@ -41,7 +41,9 @@ class SequentialMCSampler(Sampler):
     
     def sampleModel(self, model, forwardDynamics, current_state):
         print ("Starting SMC sampling")
+        state__ = self._exp.getEnvironment().getSimState()
         _bestSample = self._sampleModel(model, forwardDynamics, current_state, self._look_ahead)
+        self._exp.getEnvironment().setSimState(state__)
         self._bestSample = _bestSample
         return _bestSample
     
@@ -249,12 +251,13 @@ class SequentialMCSampler(Sampler):
         if ( not evaluation_ ):
             if isinstance(self._fd, ForwardDynamicsSimulator):
                 # print ( "SMC exp: ", self._exp)
-                self._fd.initEpoch(self._exp)
+                # self._fd.initEpoch(self._exp)
                 # state = self._exp.getEnvironment().getState()
-                state = self._exp.getEnvironment().getSimState()
+                state_ = self._exp.getEnvironment().getSimState()
             
-            self.sampleModel(model=self._pol, forwardDynamics=self._fd, current_state=state)
+            self.sampleModel(model=self._pol, forwardDynamics=self._fd, current_state=state_)
             action = self.getBestSample()
+            self._exp.getEnvironment().setSimState(state_)
             # if isinstance(self._fd, ForwardDynamicsSimulator):
             #     self._fd._sim.getEnvironment().setState(state)
             # print ("Best Action SMC: " + str(action))
@@ -291,9 +294,9 @@ class SequentialMCSampler(Sampler):
         if 0.0 == diff:
             print ("Diff contains zero: " + str(diff))
             print ("Data, largets N: " + str(data[:,1]))
-        # data_ = (data[:,1]-min)/(diff)
-        data_ = data[:,1]-min
-        sum = np.sum(data_, 0)
+        data_ = (data[:,1]-min)/(diff)
+        # data_ = data[:,1]-min
+        sum = np.sum(data_, 0) ## To prevent division by 0
         weights = data_ / sum
         self._data = copy.deepcopy(data)
         # print ("Weights: " + str(weights))

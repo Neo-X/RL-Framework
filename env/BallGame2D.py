@@ -74,8 +74,8 @@ class BallGame2D(BallGame1D):
         # print ("state length: " + str(len(state)))
         # print (state)
         pos = self._obstacle.getPosition()
-        if ( not self.agentHasFallen() ):
-            pos = (pos[0], self._ballRadius+self._ballEpsilon, 0.0)
+        # if ( not self.agentHasFallen() ):
+        pos = (pos[0], self._ballRadius+self._ballEpsilon, 0.0)
         self._obstacle.setPosition(pos)
         ## The contact seems to be reducing the velocity
         # self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0.0))
@@ -283,8 +283,8 @@ if __name__ == '__main__':
         print ("Starting new epoch")
         game.initEpoch()
         i=0
-        # while not game.endOfEpoch():
-        for i in range(50):
+        while not game.endOfEpoch():
+        # for i in range(50):
             # state = game.getState()
             
             # action = model.predict(state)

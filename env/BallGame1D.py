@@ -601,7 +601,8 @@ class BallGame1D(object):
         start = (pos[0]/self._terrainScale)+1
         self.agentHasFallen() 
         # assert start+self._num_points+1 < (len(self._terrainData)), "Ball is exceeding terrain length %r after %r actions" % (start+self._num_points+1, self._state_num)
-        if (self._end_of_Epoch_Flag):
+        # if (self._end_of_Epoch_Flag):
+        if ( self.agentHasFallen() ):
             return True 
         else:
             return False

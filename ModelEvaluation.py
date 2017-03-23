@@ -372,7 +372,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             falls.append([agent_not_fell])
             # print ("falls: ", falls)
             # values.append(value)
-            if (_output_queue != None and ((not evaluation) or (not bootstraping))): # for multi-threading
+            if ((_output_queue != None) and (not evaluation) and (not bootstraping)): # for multi-threading
                 # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
                 _output_queue.put((state_, action, [reward_], resultState, [agent_not_fell]))
             state_num += 1

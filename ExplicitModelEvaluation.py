@@ -44,7 +44,6 @@ def modelSampling(settings):
         if action_space_continuous:
             action_bounds = np.array(settings["action_bounds"], dtype=float)
             
-    ### Using a wrapper for the type of actor now
         if action_space_continuous:
             experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
         else:
@@ -74,12 +73,15 @@ def modelSampling(settings):
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
             sampler.setForwardDynamics(forwardDynamicsModel)
             
-                
+        
         sampler.setPolicy(model)
         sampler.setSettings(settings)
         
         if not os.path.exists(data_folder):
             os.makedirs(data_folder)
+            
+        exp.getActor().init()   
+        exp.getEnvironment().init()
 
         mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error = evalModel(actor, exp, sampler, settings["discount_factor"], 
                                                 anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings, print_data=True)

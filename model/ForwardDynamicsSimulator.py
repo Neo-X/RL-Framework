@@ -18,13 +18,18 @@ class ForwardDynamicsSimulator(AgentInterface):
         self._reward=0
         
         self._actor = actor
-        self.initSim(settings) 
+        # self.initSim(settings)
+        self._sim = exp 
         
     def initSim(self, settings):
         from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
-        sim = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings)
+        sim = createEnvironment(str(settings["forwardDynamics_config_file"]), str(settings['environment_type']), settings)
         ## The real simulator that is used for predictions
+        
         self._sim = sim
+        
+        self._sim.getActor().init()   
+        self._sim.getEnvironment().init()
         
     def setActor(self, actor):
         self._actor = actor
@@ -41,6 +46,7 @@ class ForwardDynamicsSimulator(AgentInterface):
         return 0
 
     def initEpoch(self, exp):
+        print ("Init FD epoch: ")
         self._sim.getActor().initEpoch()
         self._sim.getEnvironment().clear()
         """
@@ -83,16 +89,18 @@ class ForwardDynamicsSimulator(AgentInterface):
         # action = norm_action(action, self._action_bounds)
         # print ("Action: " + str(action))
         # print ("State: " + str(state._id))
+        state__ = self._sim.getEnvironment().getSimState()
+        
         self._sim.getEnvironment().setSimState(state__c)
         # current_state = self._exp._exp.getEnvironment().getSimInterface().getController().getControllerStateVector()
         # c_state = self._sim.getEnvironment().getState()
         reward = self._actor.actContinuous(self._sim,action)
         # print("_Predict reward: ", reward)
         # print ("State: " + str(state.getParams()))
-        state__ = self._sim.getEnvironment().getSimState()
+        state___ = self._sim.getEnvironment().getSimState()
         # print ("State: " + str(state))
         # restore previous state
         # self._exp._exp.getEnvironment().getSimInterface().getController().setControllerStateVector(current_state)
-        self._sim.getEnvironment().setSimState(state__c)
+        self._sim.getEnvironment().setSimState(state__)
         # print ("State: " + str(state))
-        return (state__, reward)
+        return (state___, reward)
