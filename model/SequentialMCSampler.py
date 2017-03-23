@@ -291,7 +291,8 @@ class SequentialMCSampler(Sampler):
         if 0.0 == diff:
             print ("Diff contains zero: " + str(diff))
             print ("Data, largets N: " + str(data[:,1]))
-        data_ = (data[:,1]-min)/(diff)
+        # data_ = (data[:,1]-min)/(diff)
+        data_ = data[:,1]-min
         sum = np.sum(data_, 0)
         weights = data_ / sum
         self._data = copy.deepcopy(data)
