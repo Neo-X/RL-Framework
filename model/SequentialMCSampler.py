@@ -295,13 +295,16 @@ class SequentialMCSampler(Sampler):
         min = np.min(data[:,1], 0)
         max = np.max(data[:,1], 0)
         diff = max-min
-        if 0.0 == diff:
+        if 0.0 == diff: ## To prevent division by 0
             print ("Diff contains zero: " + str(diff))
             print ("Data, largets N: " + str(data[:,1]))
-        data_ = (data[:,1]-min)/(diff)
-        # data_ = data[:,1]-min
-        sum = np.sum(data_, 0) ## To prevent division by 0
-        weights = data_ / sum
+            ## JUst make everything uniform then...
+            weights = numpy.ones(len(diff))/float(len(diff))
+        else:    
+            data_ = (data[:,1]-min)/(diff)
+            # data_ = data[:,1]-min
+            sum = np.sum(data_, 0) 
+            weights = data_ / sum
         self._data = copy.deepcopy(data)
         # print ("Weights: " + str(weights))
         # print ("Data: " + str(self._data))
