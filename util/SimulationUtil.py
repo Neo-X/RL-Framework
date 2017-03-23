@@ -237,7 +237,7 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
     return model
 
 
-def createEnvironment(config_file, env_type, settings):
+def createEnvironment(config_file, env_type, settings, render=False):
     
     if env_type == 'ballgame_2d':
         file = open(config_file)
@@ -270,7 +270,7 @@ def createEnvironment(config_file, env_type, settings):
         import simbiconAdapter
         c = simbiconAdapter.Configuration(config_file)
         print ("Num state: ", c._NUMBER_OF_STATES)
-        c._RENDER = settings['shouldRender']
+        c._RENDER = render
         sim = simbiconAdapter.SimbiconWrapper(c)
         print ("Using Environment Type: " + str(env_type))
         exp = SimbiconEnv(sim)
@@ -385,6 +385,7 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
         forwardDynamicsModel = ForwardDynamicsSimulatorParallel(len(state_bounds[0]), len(action_bounds[0]), 
                                                         state_bounds, action_bounds, actor, exp, settings)
+        forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, exp, settings)
     elif settings["forward_dynamics_predictor"] == "saved_network":
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
         file_name_dynamics=data_folder+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"

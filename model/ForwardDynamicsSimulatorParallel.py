@@ -10,22 +10,24 @@ from model.ModelUtil import *
 from model.AgentInterface import AgentInterface
 from model.ForwardDynamicsSimulator import ForwardDynamicsSimulator
 from multiprocessing import Queue, Process
+# from util.SimulationUtil import createEnvironment
 
 class ForwardDynamicsSimulatorProcess(Process):
 
     def __init__(self, state_length, action_length, state_bounds, action_bounds, actor, exp, settings, input_state_queue,
                  outpout_state_queue):
-        import characterSim
+        # import characterSim
         super(ForwardDynamicsSimulatorProcess, self).__init__()
         # super(ForwardDynamicsSimulatorProcess,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings)
         self._input_queue= input_state_queue
         self._output_state_queue = outpout_state_queue
         # self._exp = exp # Only used to pull some data from
-        self._c = characterSim.Configuration(str(settings['forwardDynamics_config_file']))
+        # self._c = characterSim.Configuration(str(settings['forwardDynamics_config_file']))
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
         
         # this is the process that selects which game to play
         # sim = characterSim.Experiment(self._c)
+        self._settings = settings
         
         self._actor = actor
         
@@ -37,8 +39,12 @@ class ForwardDynamicsSimulatorProcess(Process):
         self._sim = sim # The real simulator that is used for predictions
         
     def run(self):
-        import characterSim
-        sim = characterSim.Experiment(self._c)
+        from util.SimulationUtil import createEnvironment
+        # import characterSim
+        # sim = characterSim.Experiment(self._c)
+        sim = createEnvironment(str(self._settings["forwardDynamics_config_file"]), str(self._settings['environment_type']), self._settings, render=False)
+        sim.getActor().init()   
+        sim.getEnvironment().init()
         self._sim = sim # The real simulator that is used for predictions
         print ('ForwardDynamicsSimulatorProcess started')
         # do some initialization here
@@ -51,27 +57,34 @@ class ForwardDynamicsSimulatorProcess(Process):
                 print ("Initilizing environment")
                 self._sim.getActor().initEpoch()
                 self._sim.getEnvironment().clear()
-                for anchor_ in tmp[1]:
+                # for anchor_ in tmp[1]:
                     # print (_anchor)
                     # anchor_ = self._exp.getEnvironment().getAnchor(anchor)
-                    self._sim.getEnvironment().addAnchor(anchor_[0], anchor_[1], anchor_[2])
+                    # self._sim.getEnvironment().addAnchor(anchor_[0], anchor_[1], anchor_[2])
+                simState = self._exp.getEnvironment().getSimState()
+                self._sim.getEnvironment().setSimState(simState)
                 self._sim.getEnvironment().initEpoch()
-                print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
+                # print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
                 
             else:
-                state_c = tmp
-                action = state_c[2]
-                # print ("Sampling State:" + str(state_c))
-                state_c = characterSim.State(state_c[0], state_c[1])
+                (state__c, action) = tmp
+                ## get current state of sim
+                state__ = self._sim.getEnvironment().getSimState()
+                # print ("Sampling State:" + str(state__c))
                 # print ("State: " + str(state_c) + " sim " + str(self._sim.getEnvironment()))
-                self._sim.getEnvironment().setState(state_c)
+                ## Set sim to given state
+                self._sim.getEnvironment().setSimState(state__c)
                 # print ("State: " + str(state_c) + " Action: " + str(action))
                 reward = self._actor.actContinuous(self._sim,action)
+                # print ("Reward: ", reward)
                 # print ("State: " + str(state.getParams()))
-                state_ = self._sim.getEnvironment().getState()
-                self._sim.getEnvironment().setState(state_c)
+                ## Get new state after action
+                state_ = self._sim.getEnvironment().getSimState()
+                ## Set back to original state (maybe not needed)...
+                self._sim.getEnvironment().setSimState(state__)
                 # characterSim.State(current_state_copy.getID(), current_state_copy.getParams())
-                self._output_state_queue.put([state_.getID(), state_.getParams()])
+                
+                self._output_state_queue.put((reward, state_))
             
 
 class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
@@ -94,36 +107,53 @@ class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
         
    
     def initEpoch(self, exp):
-        anchors=[]
-        for anchor in range(self._exp.getEnvironment().numAnchors()):
+        print ("Init FD epoch: ")
+        self._sim.getActor().initEpoch()
+        self._sim.getEnvironment().clear()
+        """
+        for anchor in range(self.getSettings()['max_epoch_length']):
             # print (_anchor)
             anchor_ = self._exp.getEnvironment().getAnchor(anchor)
-            anchors.append([anchor_.getX(), anchor_.getY(), anchor_.getZ()])
-        # print (anchors)
-        self._output_state_queue.put(['init',anchors]) 
+            self._sim.getEnvironment().addAnchor(anchor_.getX(), anchor_.getY(), anchor_.getZ())
+        """
+        simState = self._exp.getEnvironment().getSimState()
+        self._sim.getEnvironment().setSimState(simState)
+        self._sim.getEnvironment().initEpoch()
+        self._output_state_queue.put(('init',self.getSettings()['max_epoch_length'])) 
 
-    def predict(self, state, action):
+    def _predict(self, state__c, action):
+        """
+            This particular prediction sets the internal state of the simulator before executing the action
+            state__c: is some kind of global state of the simulator
+        """
         # state = norm_state(state, self._state_bounds)
         # action = norm_action(action, self._action_bounds)
         # print ("Action: " + str(action))
         # print ("State: " + str(state._id))
-        # self._exp.getEnvironment().setState(state)
+        # state__ = self._sim.getEnvironment().getSimState()
+        
+        # self._sim.getEnvironment().setSimState(state__c)
         # current_state = self._exp._exp.getEnvironment().getSimInterface().getController().getControllerStateVector()
-        c_state = self._sim.getEnvironment().getState()
-        reward = self._actor.actContinuous(self._sim,action)
+        # c_state = self._sim.getEnvironment().getState()
+        # reward = self._actor.actContinuous(self._sim,action)
+        ## Send in current state
+        self._output_state_queue.put((state__c, action))
+        ## get back out next state
+        (reward, state___) = self._input_state_queue.get()
+        # print("_Predict reward: ", reward)
         # print ("State: " + str(state.getParams()))
-        state_ = self._sim.getState()
-        # print ("State: " + str.(state))
+        # state___ = self._sim.getEnvironment().getSimState()
+        # print ("State: " + str(state))
         # restore previous state
         # self._exp._exp.getEnvironment().getSimInterface().getController().setControllerStateVector(current_state)
-        self._sim.getEnvironment().setState(c_state)
+        # self._sim.getEnvironment().setSimState(state__)
         # print ("State: " + str(state))
-        return state_
-
-    def _predict(self, state__c, action):
-        import characterSim
+        return (state___, reward)
+        """
+        ## Send in current state
         self._output_state_queue.put([state__c.getID(), state__c.getParams(), action])
+        ## get back out next state
         state__ = self._input_state_queue.get()
         state__ = characterSim.State(state__[0], state__[1])
         return state__
-    
+        """

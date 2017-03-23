@@ -20,7 +20,17 @@ class Sampler(LearningAgent):
             variance_ = [variance_]*len(mean)
         # print ("input Var: " + str(variance_))
         samples = np.random.multivariate_normal(mean, np.diag(variance_), num_samples)
-        return samples    
+        return samples  
+    
+    def generateSamplesUniform(self, action_bounds, num_samples=25, repeate=1):
+            
+        samples = np.random.uniform(0,1,(num_samples,len(action_bounds[0])*repeate))
+        ## 1 row 
+        scale = np.array([list(action_bounds[1]-action_bounds[0])*repeate])
+        lower = np.array([list(action_bounds[0])*repeate])
+        samples = (samples * scale) + lower
+        return samples
+          
         
     def generateSamples(self, action_bounds, num_samples=5, repeate=1):
         spaces =[]

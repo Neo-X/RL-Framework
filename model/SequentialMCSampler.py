@@ -65,7 +65,7 @@ class SequentialMCSampler(Sampler):
         _action_params = []
         samples = []
         if self.getSettings()["use_actor_policy_action_suggestion"]:
-            variance____=0.03
+            variance____=self.getSettings()['variance_scalling']
             variance__=[variance____]
             current_state_copy2 = copy.deepcopy(current_state_copy)
             ## Get first action
@@ -109,7 +109,10 @@ class SequentialMCSampler(Sampler):
             # print ("Number of initial random samples: ", num_samples_)
             samples = self.generateSamplesFromNormal(mean=_action_params, num_samples=num_samples_, variance_=variance__)
         else:
-            samples = self.generateSamples(self._pol._action_bounds,  num_samples=self.getSettings()["num_uniform_action_samples"], repeate=look_ahead)
+            num_samples_ = self.getSettings()["num_uniform_action_samples"] * self._pol._action_length
+            # samples = self.generateSamples(self._pol._action_bounds,  num_samples=self.getSettings()["num_uniform_action_samples"], repeate=look_ahead)
+            samples = self.generateSamplesUniform(self._pol._action_bounds,  num_samples=num_samples_, repeate=look_ahead)
+            # print ("Samples: ", samples)
         # print ("Current state sample: " + str(current_state_copy.getParams()))
         for sample in samples:
             pa = sample
@@ -319,6 +322,6 @@ class SequentialMCSampler(Sampler):
         # samp = np.random.choice(self._data[:,0])
         # print ("Sample: " + str(samp))
         # print ("Sample type: " + str(samp[0].dtype))
-        samples = self.generateSamplesFromNormal(samp, 1, variance_=0.005)
+        samples = self.generateSamplesFromNormal(samp, 1, variance_=self.getSettings()['variance_scalling'])
         return samples[0]
     

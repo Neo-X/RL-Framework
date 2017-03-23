@@ -41,16 +41,26 @@ class SimbiconActor(ActorInterface):
              
         # averageSpeed = exp.getEnvironment().act(action_)
         # print ("averageSpeed: ", averageSpeed)
-        if (averageSpeed < 0.0):
-            return 0.0
+        # if (averageSpeed < 0.0):
+        #     return 0.0
+        if (exp.getEnvironment().agentHasFallen()):
+            return 0
         
+        orientation = exp.getEnvironment().getActor().getStateEuler()[3:][:3]
+        position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
+        # print ("Pos: ", position_root)
+        # print ("Orientation: ", orientation)
+        lean_diff = orientation[1] - 0
         vel_dif = self._target_vel - averageSpeed
         vel_reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight)
         torque_reward = math.exp((averageTorque*averageTorque)*self._target_vel_weight)
+        lean_reward = math.exp((lean_diff*lean_diff)*self._target_vel_weight)
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 
-                  (vel_reward * 0.9) +
-                  (torque_reward * 0.1) 
+                  (vel_reward * 0.8) +
+                  (torque_reward * 0.1) +
+                  (lean_reward * 0.1) + 
+                  ((position_root[1] - 1.0) )
                   )# optimal is 0
         
         self._reward_sum = self._reward_sum + reward

@@ -680,7 +680,7 @@ def modelEvaluation(settings_file_name):
     
     from model.ModelUtil import getSettings
     settings = getSettings(settings_file_name)
-    settings['shouldRender'] = True
+    # settings['shouldRender'] = True
     import os    
     os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
     
@@ -762,7 +762,7 @@ def modelEvaluation(settings_file_name):
 
     # this is the process that selects which game to play
     
-    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings)
+    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
 
     if (settings['train_forward_dynamics']):
         # actor.setForwardDynamicsModel(forwardDynamicsModel)
