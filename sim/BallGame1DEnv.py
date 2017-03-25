@@ -10,10 +10,10 @@ from sim.SimInterface import SimInterface
 
 class BallGame1DEnv(SimInterface):
 
-    def __init__(self, exp):
+    def __init__(self, exp, settings):
         #------------------------------------------------------------
         # set up initial state
-        super(BallGame1DEnv,self).__init__(exp)
+        super(BallGame1DEnv,self).__init__(exp, settings)
 
     def generateValidation(self, data, epoch):
         self.getEnvironment().generateValidationEnvironmentSample(epoch)

@@ -246,7 +246,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         file.close()
         conf['render'] = settings['shouldRender']
         exp = BallGame2D(conf)
-        exp = BallGame2DEnv(exp)
+        exp = BallGame2DEnv(exp, settings)
         return exp
     elif env_type == 'ballgame_1d':
         file = open(config_file)
@@ -255,7 +255,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         file.close()
         conf['render'] = settings['shouldRender']
         exp = BallGame1D(conf)
-        exp = BallGame1DEnv(exp)
+        exp = BallGame1DEnv(exp, settings)
         return exp
     elif env_type == 'gapgame_1d':
         file = open(config_file)
@@ -264,7 +264,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         file.close()
         conf['render'] = settings['shouldRender']
         exp = GapGame1D(conf)
-        exp = GapGame1DEnv(exp)
+        exp = GapGame1DEnv(exp, settings)
         return exp
     elif (env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D'):
         import simbiconAdapter
@@ -273,7 +273,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         c._RENDER = render
         sim = simbiconAdapter.SimbiconWrapper(c)
         print ("Using Environment Type: " + str(env_type))
-        exp = SimbiconEnv(sim)
+        exp = SimbiconEnv(sim, settings)
         exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
     elif env_type == 'terrainRLBiped2D':
@@ -284,7 +284,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         # print ("Num state: ", c._NUMBER_OF_STATES)
         # sim = simbiconAdapter.SimbiconWrapper(c)
         print ("Using Environment Type: " + str(env_type))
-        exp = TerrainRLEnv(sim)
+        exp = TerrainRLEnv(sim, settings)
         # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
     elif env_type == 'terrainRLFlatBiped2D':
@@ -295,7 +295,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         # print ("Num state: ", c._NUMBER_OF_STATES)
         # sim = simbiconAdapter.SimbiconWrapper(c)
         print ("Using Environment Type: " + str(env_type))
-        exp = TerrainRLFlatEnv(sim)
+        exp = TerrainRLFlatEnv(sim, settings)
         # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
     elif env_type == 'terrainRLImitateBiped2D':
@@ -306,7 +306,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         # print ("Num state: ", c._NUMBER_OF_STATES)
         # sim = simbiconAdapter.SimbiconWrapper(c)
         print ("Using Environment Type: " + str(env_type))
-        exp = TerrainRLImitateEnv(sim)
+        exp = TerrainRLImitateEnv(sim, settings)
         # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
     
@@ -317,16 +317,16 @@ def createEnvironment(config_file, env_type, settings, render=False):
     # print ("Num state: ", exp._config._NUMBER_OF_STATES)
     if env_type == 'pendulum_env_state':
         print ("Using Environment Type: " + str(env_type))
-        exp = PendulumEnvState(exp)
+        exp = PendulumEnvState(exp, settings)
     elif env_type == 'pendulum_env':
         print ("Using Environment Type: " + str(env_type))
-        exp = PendulumEnv(exp)
+        exp = PendulumEnv(exp, settings)
     elif env_type == 'pendulum3D_env':
         print ("Using Environment Type: " + str(env_type))
-        exp = PendulumEnv(exp)
+        exp = PendulumEnv(exp, settings)
     elif env_type == 'paperGibbon':
         print ("Using Environment Type: " + str(env_type))
-        exp = PendulumEnv(exp)
+        exp = PendulumEnv(exp, settings)
     else:
         print ("Invalid environment type: " + str(env_type))
         sys.exit()

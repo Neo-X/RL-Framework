@@ -266,7 +266,7 @@ def trainModelParallel(settingsFileName):
         out_file.close()
         ## This needs to be done after the simulatino work processes are created
         exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings)
-        
+        exp_val.setActor(actor)
         exp_val.getActor().init()
         exp_val.getEnvironment().init()
         

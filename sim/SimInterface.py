@@ -3,20 +3,26 @@
 import numpy as np
 import math
 
+from actor.DoNothingActor import DoNothingActor
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
 
 class SimInterface(object):
 
-    def __init__(self, exp):
+    def __init__(self, exp, settings_):
         #------------------------------------------------------------
         # set up initial state
         # super(BallGame1DChoiceState,self).__init__()
         self._exp = exp
+        self._settings = settings_
+        self._actor = DoNothingActor()
 
     def getEnvironment(self):
         return self._exp
+    
+    def initEpoch(self):
+        self.getEnvironment().initEpoch()
     
     def generateValidation(self, data, epoch):
         pass
@@ -28,7 +34,9 @@ class SimInterface(object):
         pass
     
     def getActor(self):
-        return self._exp
+        return self._actor
+    def setActor(self, actor):
+        self._actor = actor
     
     def finish(self):
         self._exp.finish()

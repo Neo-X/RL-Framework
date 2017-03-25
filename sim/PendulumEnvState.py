@@ -11,10 +11,10 @@ from sim.PendulumEnv import PendulumEnv
 
 class PendulumEnvState(PendulumEnv):
 
-    def __init__(self, exp):
+    def __init__(self, exp, settings):
         #------------------------------------------------------------
         # set up initial state
-        super(PendulumEnvState,self).__init__(exp)
+        super(PendulumEnvState,self).__init__(exp, settings)
         self._granularity = 50 # This should be an even number
         self._range = 5.0
     
