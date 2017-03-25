@@ -52,7 +52,7 @@ class SimbiconActor(ActorInterface):
         orientation = exp.getEnvironment().getActor().getStateEuler()[3:][:3]
         position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
         # print ("Pos: ", position_root)
-        print ("Orientation: ", orientation)
+        # print ("Orientation: ", orientation)
         lean_diff = orientation[1] - self._target_lean
         vel_dif = self._target_vel - averageSpeed
         vel_reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight)
