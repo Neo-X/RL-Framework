@@ -88,7 +88,7 @@
 "num_terrain_features": 0,
 "initial_temperature": 5.0,
 "min_epsilon": 0.15,
-"shouldRender": false,
+"shouldRender": true,
     "comment__": "Learning rate use for model based action exploration",
 "action_learning_rate": 10.0,
     "comment__": "During model-based action exploration, Probability of random policy action",
