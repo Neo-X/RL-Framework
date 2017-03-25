@@ -96,7 +96,7 @@ class CACLA(AlgorithmInterface):
         #                         self._learning_rate, self._rho, self._rms_epsilon)
         # TD update
         self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func_drop) + self._critic_regularization, self._params, 
-                    self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
+                    self._critic_learning_rate * -T.mean(self._diff_drop), self._rho, self._rms_epsilon)
         
         
         # actDiff1 = (self._model.getActionSymbolicVariable() - self._q_valsActTarget) #TODO is this correct?
