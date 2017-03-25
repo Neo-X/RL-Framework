@@ -24,7 +24,7 @@ import gc
 # import pathos.multiprocessing
 import multiprocessing
 
-
+# python -m memory_profiler example.py
 # @profile(precision=5)
 def trainModelParallel(settingsFileName):
         

@@ -12,8 +12,10 @@ from algorithm.AlgorithmInterface import AlgorithmInterface
 # theano.config.mode='FAST_COMPILE'
 # from DeepCACLA import DeepCACLA
 
+# @profile(precision=5)
 class CACLA(AlgorithmInterface):
     
+    # @profile(precision=5)
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
         super(CACLA,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
@@ -126,8 +128,12 @@ class CACLA(AlgorithmInterface):
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
         CACLA.compile(self)
-        
+    
+    # @profile(precision=5)   
     def compile(self):
+        """
+            Theano uses a lot of memory to compile functions...
+        """
         
         #### Stuff for Debugging #####
         self._get_diff = theano.function([], [self._diff], givens=self._givens_)

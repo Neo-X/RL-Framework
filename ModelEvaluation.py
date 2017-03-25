@@ -16,7 +16,7 @@ import copy
 import numpy as np
 from model.ModelUtil import *
 # import memory_profiler
-# import resource
+import resource
 
 # class SimWorker(threading.Thread):
 class SimWorker(Process):
@@ -80,10 +80,10 @@ class SimWorker(Process):
             else:
                 episodeData = episodeData['data']
             if (self._model.getPolicy() == None): # cheap hack for now
-                self._model.setPolicy(copy.deepcopy(self._namespace.model))
+                self._model.setPolicy(self._namespace.model)
             if ( (self._settings["train_forward_dynamics"]) and ( self._model.getForwardDynamics() == None ) ):
-                self._model.setForwardDynamics(copy.deepcopy(self._namespace.forwardDynamicsModel))
-            # print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
+                self._model.setForwardDynamics(self._namespace.forwardDynamicsModel)
+            print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
             # print ("Nums samples in worker: ", self._namespace.experience.samples())
             p = self._namespace.p
             print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
@@ -111,9 +111,9 @@ class SimWorker(Process):
             else:
                 print("Updating sim policies:")
                 
-                self._model.getPolicy().setNetworkParameters(copy.deepcopy(self._namespace.agentPoly))
+                self._model.getPolicy().setNetworkParameters(self._namespace.agentPoly)
                 if (self._settings['train_forward_dynamics']):
-                    self._model.getForwardDynamics().setNetworkParameters(copy.deepcopy(self._namespace.forwardNN))
+                    self._model.getForwardDynamics().setNetworkParameters(self._namespace.forwardNN)
                 # gc.collect()
                 
             # print ("Actions: " + str(actions))
@@ -129,7 +129,7 @@ class SimWorker(Process):
         return out
     
     
-
+# @profile(precision=5)
 def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, 
              p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstraping=False, visualizeEvaluation=None):
     """
@@ -529,6 +529,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
         
     return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
             mean_eval, std_eval)
+
 # @profile(precision=5)
 def collectExperience(actor, exp_val, model, settings):
     from util.ExperienceMemory import ExperienceMemory

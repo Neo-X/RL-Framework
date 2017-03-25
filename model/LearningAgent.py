@@ -131,7 +131,8 @@ class LearningWorker(Process):
         
     def setLearningNamespace(self, learningNamespace):    
         self._learningNamespace = learningNamespace
-        
+    
+    # @profile(precision=5)    
     def run(self):
         print ('Worker started')
         # do some initialization here
@@ -170,20 +171,21 @@ class LearningWorker(Process):
                     print ("Training cost is Nan: ", cost)
                     sys.exit()
                 # if (step_ % 10) == 0: # to help speed things up
-                self._namespace.agentPoly = copy.deepcopy(self._agent.getPolicy().getNetworkParameters())
+                self._namespace.agentPoly = self._agent.getPolicy().getNetworkParameters()
                 if (self._agent._settings['train_forward_dynamics']):
-                    self._namespace.forwardNN = copy.deepcopy(self._agent.getForwardDynamics().getNetworkParameters())
-                self._learningNamespace.experience = copy.deepcopy(self._agent._expBuff)
+                    self._namespace.forwardNN = self._agent.getForwardDynamics().getNetworkParameters()
+                self._learningNamespace.experience = self._agent._expBuff
                 step_=0
             iterations_+=1
         print ("Learning Worker Complete:")
         
     def updateExperience(self):
         self._agent._expBuff = self._learningNamespace.experience
-       
+        
+    # @profile(precision=5)  
     def updateModel(self):
         print ("Updating model to: ", self._namespace.model)
         old_poli = self._agent.getPolicy()
-        self._agent.setPolicy(copy.deepcopy(self._namespace.model))
+        self._agent.setPolicy(self._namespace.model)
         del old_poli
         
