@@ -253,7 +253,7 @@ def evaluateModelRender(settings_file_name):
     # glutInitWindowSize(width, height);
     # glutCreateWindow("PyODE Ragdoll Simulation")
     # set GLUT callbacks
-    glutKeyboardFunc(sim.onKey)
+    # glutKeyboardFunc(sim.onKey)
     ## This works because GLUT in C++ uses the same global context (singleton) as the one in python 
     glutTimerFunc(1000/fps, sim.animate, 0) # 30 fps?
     # glutIdleFunc(animate)
