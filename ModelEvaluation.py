@@ -61,6 +61,7 @@ class SimWorker(Process):
         if (int(self._settings["num_available_threads"]) > 1): 
             from util.SimulationUtil import createEnvironment
             self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings)
+            self._exp.setActor(self._actor)
             self._exp.getActor().init()   
             self._exp.getEnvironment().init()
             ## The sampler might need this new model is threads > 1
@@ -659,6 +660,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         (states_, actions_, rewards_, result_states_, falls_) = tuples
         print ("Shape other states_: ", np.array(states_).shape)
         print ("Shape other action_: ", np.array(actions_).shape)
+        # print ("States: ", states_)
         states.extend(states_)
         actions.extend(actions_)
         rewards.extend(rewards_)
@@ -764,7 +766,7 @@ def modelEvaluation(settings_file_name):
     # this is the process that selects which game to play
     
     exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
-
+    exp.setActor(actor)
     if (settings['train_forward_dynamics']):
         # actor.setForwardDynamicsModel(forwardDynamicsModel)
         forwardDynamicsModel.setActor(actor)

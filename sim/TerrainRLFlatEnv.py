@@ -13,10 +13,10 @@ from actor.DoNothingActor import DoNothingActor
 
 class TerrainRLFlatEnv(TerrainRLEnv):
 
-    def __init__(self, exp):
+    def __init__(self, exp, settings):
         #------------------------------------------------------------
         # set up initial state
-        super(TerrainRLFlatEnv,self).__init__(exp)
+        super(TerrainRLFlatEnv,self).__init__(exp, settings)
 
     
     def getState(self):

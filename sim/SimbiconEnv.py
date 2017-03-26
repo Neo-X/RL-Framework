@@ -12,13 +12,12 @@ from actor.DoNothingActor import DoNothingActor
 
 class SimbiconEnv(SimInterface):
 
-    def __init__(self, exp):
+    def __init__(self, exp, settings):
         #------------------------------------------------------------
         # set up initial state
-        super(SimbiconEnv,self).__init__(exp)
+        super(SimbiconEnv,self).__init__(exp, settings)
         self._action_dimension=3
         self._range = 5.0
-        self._actor = DoNothingActor()
 
     def getEnvironment(self):
         return self._exp
@@ -58,46 +57,25 @@ class SimbiconEnv(SimInterface):
     
     def getState(self):
         """
-            I like the state in this shape
+            I like the state in this shape, a row
         """
         state_ = self.getEnvironment().getState()
         state = np.array(state_)
         state = np.reshape(state, (-1, len(state_)))
+        if ( self._settings["use_parameterized_control"] ):
+            state = np.append(state, [self.getActor().getControlParameters()], axis=1)
         return state
     
-    def setState(self, st):
-        self._agent = st
-        self._box.state[0,0] = st[0]
-        self._box.state[0,1] = st[1]
-        
     def getControllerBackOnTrack(self):
         import characterSim
         """
             Push controller back into a good state space
         """
-        state_ = self.getEnvironment().getState()
-        state_params = list(state_.getParams())
-        # move the body such that the current grab position will overlap the anchor
-        # print (("Sim State: ", state_params))
-        state_params[5] = 1.0* state_params[3]
-        state_params[6] = 1.0* state_params[4]
-        # print (("New Sim State: ", state_params)  )
-        state__c = characterSim.State(state_.getID(), state_params)
-        self._exp.getEnvironment().setState(state__c)
+        pass
         
     def setTargetChoice(self, i):
         # need to find which target corresponds to this bin.
-        _loc = np.linspace(-self._range, self._range, self._granularity)[i]
-        min_dist = 100000000.0
-        _choice = -1
-        for i in range(int(self._choices)):
-            _target_loc = self._targets[0][i][1]
-            _tmp_dist = math.fabs(_target_loc - _loc)
-            if ( _tmp_dist < min_dist):
-                _choice = i
-                min_dist = _tmp_dist
-        self._target_choice = i
-        self._target = self._targets[0][i]
+        pass
         
         
 #ani = animation.FuncAnimation(fig, animate, frames=600,

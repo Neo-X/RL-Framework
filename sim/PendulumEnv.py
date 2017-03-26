@@ -12,10 +12,10 @@ sys.path.append("../characterSimAdapter/")
 
 class PendulumEnv(SimInterface):
 
-    def __init__(self, exp):
+    def __init__(self, exp, settings):
         #------------------------------------------------------------
         # set up initial state
-        super(PendulumEnv,self).__init__(exp)
+        super(PendulumEnv,self).__init__(exp, settings)
         self._action_dimension=3
         self._range = 5.0
 

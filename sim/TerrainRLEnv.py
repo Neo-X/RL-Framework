@@ -13,10 +13,10 @@ from actor.DoNothingActor import DoNothingActor
 
 class TerrainRLEnv(SimInterface):
 
-    def __init__(self, exp):
+    def __init__(self, exp, settings):
         #------------------------------------------------------------
         # set up initial state
-        super(TerrainRLEnv,self).__init__(exp)
+        super(TerrainRLEnv,self).__init__(exp, settings)
         self._action_dimension=3
         self._range = 5.0
         self._actor = DoNothingActor()

@@ -25,6 +25,9 @@ class ActorInterface(object):
     def init(self):
         self._reward_sum=0
         
+    def initEpoch(self):
+        self._reward_sum=0
+        
     def hasNotFallen(self, exp):
         return 1
         

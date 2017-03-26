@@ -9,7 +9,10 @@ class SimbiconActor(ActorInterface):
         super(SimbiconActor,self).__init__(settings_, experience)
         self._target_vel_weight=self._settings["target_velocity_decay"]
         self._target_vel = self._settings["target_velocity"]
+        self._target_lean = 0
+        self._target_torque = 0
         
+    
     # @profile(precision=5)
     def act(self, exp, action_, bootstrapping=False):
         samp = self.getActionParams(action_)
@@ -50,10 +53,11 @@ class SimbiconActor(ActorInterface):
         position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
         # print ("Pos: ", position_root)
         # print ("Orientation: ", orientation)
-        lean_diff = orientation[1] - 0
+        lean_diff = orientation[1] - self._target_lean
         vel_dif = self._target_vel - averageSpeed
         vel_reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight)
-        torque_reward = math.exp((averageTorque*averageTorque)*self._target_vel_weight)
+        torque_diff = averageTorque - self._target_torque
+        torque_reward = math.exp((torque_diff*torque_diff)*self._target_vel_weight)
         lean_reward = math.exp((lean_diff*lean_diff)*self._target_vel_weight)
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 
@@ -64,7 +68,28 @@ class SimbiconActor(ActorInterface):
                   )# optimal is 0
         
         self._reward_sum = self._reward_sum + reward
+        if ( self._settings["use_parameterized_control"] ):
+            self.changeParameters()
         return reward
+    
+    def changeParameters(self):
+        """
+            Slowly modifies the parameters during training
+        """
+        r = np.random.random(1)[0]
+        ## Can change at most by +-move_scale between each action
+        move_scale = 0.2 
+        r = ((r - 0.5) * 2.0) * move_scale
+        vel_bounds = [0.5, 1.5]
+        self._target_vel += r
+        if ( self._target_vel < vel_bounds[0] ):
+            self._target_vel = vel_bounds[0]
+        if ( self._target_vel > vel_bounds[1] ):
+            self._target_vel = vel_bounds[1]
+            
+    def getControlParameters(self):
+        return [self._target_vel]
+        
     
     def getEvaluationData(self):
         return self._reward_sum
@@ -75,3 +100,4 @@ class SimbiconActor(ActorInterface):
         else:
             return 1
         # return not exp.getEnvironment().agentHasFallen()
+        

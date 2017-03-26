@@ -64,7 +64,7 @@ class SimContainer(object):
         
         """
         
-        print ("End of Epoch: ", self._exp.getEnvironment().endOfEpoch())
+        # print ("End of Epoch: ", self._exp.getEnvironment().endOfEpoch())
         if (self._exp.getEnvironment().endOfEpoch() and 
                self._exp.getEnvironment().needUpdatedAction()):
             self._exp.getActor().initEpoch()
@@ -77,6 +77,7 @@ class SimContainer(object):
         if (self._exp.getEnvironment().needUpdatedAction()):
             state_ = self._exp.getState()
             action_ = np.array(self._agent.predict(state_), dtype='float64')
+            print( "New action: ", action_)
             self._exp.getEnvironment().updateAction(action_)
         
         self._exp.update()
@@ -171,7 +172,6 @@ def evaluateModelRender(settings_file_name):
     # this is the process that selects which game to play
     
     exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
-
     if (settings['train_forward_dynamics']):
         # actor.setForwardDynamicsModel(forwardDynamicsModel)
         forwardDynamicsModel.setActor(actor)
