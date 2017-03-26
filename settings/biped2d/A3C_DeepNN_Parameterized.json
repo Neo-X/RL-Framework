@@ -106,5 +106,9 @@
 	"comment__": "Variance scaling used for sampling",
 "variance_scalling": 0.1,
 	"comment__": "Whether or not to parameterize the control via the reward function, also adds parameters to input state",
-"use_parameterized_control": true
+"use_parameterized_control": true,
+	"comment__": "parameter bounds for parameterized controller",
+"controller_parameter_settings": {
+		"velocity_bounds": [[0.5],[2.5]]
+		}
 }

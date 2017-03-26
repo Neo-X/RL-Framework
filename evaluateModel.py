@@ -26,10 +26,11 @@ exp=None
 fps=30
 class SimContainer(object):
     
-    def __init__(self, exp, agent):
+    def __init__(self, exp, agent, settings):
         self._exp = exp
         self._agent = agent
         self._episode=0
+        self._settings = settings
         
     def animate(self, callBackVal=-1):
         # print ("Animating: ", callBackVal)
@@ -100,6 +101,14 @@ class SimContainer(object):
             print("Resetting Epoch")
             self._exp.getActor().initEpoch()   
             self._exp.getEnvironment().initEpoch()
+        elif c == 'M':
+            if ( self._settings["use_parameterized_control"] ):
+                self._exp.getActor()._target_vel += 0.2
+                print ("Target Velocity: ", self._exp.getActor()._target_vel)
+        elif c == 'm':
+            if ( self._settings["use_parameterized_control"] ):
+                self._exp.getActor()._target_vel -= 0.2 
+                print ("Target Velocity: ", self._exp.getActor()._target_vel)
 
 def evaluateModelRender(settings_file_name):
 
@@ -178,7 +187,7 @@ def evaluateModelRender(settings_file_name):
         masterAgent.setForwardDynamics(forwardDynamicsModel)
         # forwardDynamicsModel.setEnvironment(exp)
     # actor.setPolicy(model)
-    
+    exp.setActor(actor)
     exp.getActor().init()   
     exp.getEnvironment().init()
     exp.generateValidationEnvironmentSample(0)
@@ -239,7 +248,7 @@ def evaluateModelRender(settings_file_name):
     state_ = exp.getState()
     action_ = np.array(masterAgent.predict(state_), dtype='float64')
     exp.getEnvironment().updateAction(action_)
-    sim = SimContainer(exp, masterAgent)
+    sim = SimContainer(exp, masterAgent, settings)
     # glutInitWindowPosition(x, y);
     # glutInitWindowSize(width, height);
     # glutCreateWindow("PyODE Ragdoll Simulation")

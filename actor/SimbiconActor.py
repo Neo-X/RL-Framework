@@ -2,6 +2,7 @@ import sys
 import math
 from actor.ActorInterface import ActorInterface
 import numpy as np
+from model.ModelUtil import clampAction 
 
 class SimbiconActor(ActorInterface):
     
@@ -82,10 +83,11 @@ class SimbiconActor(ActorInterface):
         r = ((r - 0.5) * 2.0) * move_scale
         vel_bounds = [0.5, 1.5]
         self._target_vel += r
-        if ( self._target_vel < vel_bounds[0] ):
-            self._target_vel = vel_bounds[0]
-        if ( self._target_vel > vel_bounds[1] ):
-            self._target_vel = vel_bounds[1]
+        vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
+        self._target_vel = clampAction([self._target_vel], vel_bounds)[0]
+        
+        # print("New target Velocity: ", self._target_vel)
+        # if ( self._settings["use_parameterized_control"] )
             
     def getControlParameters(self):
         return [self._target_vel]
