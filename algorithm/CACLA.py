@@ -43,12 +43,12 @@ class CACLA(AlgorithmInterface):
         
         self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsA_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
-        self._q_valsTargetNextState = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getResultStateSymbolicVariable())
-        self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable())
+        self._q_valsTargetNextState = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
+        self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsTarget_drop = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_valsActA = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
-        self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())
+        self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -67,7 +67,7 @@ class CACLA(AlgorithmInterface):
         ## When there is no dropout in the network it will have no affect here
         self._diff = self._target - self._q_func
         self._diff_drop = self._target - self._q_func_drop 
-        loss = 0.5 * self._diff_drop ** 2 
+        loss = 0.5 * self._diff ** 2 
         self._loss = T.mean(loss)
         # self._loss_drop = T.mean(0.5 * (self._diff_drop ** 2))
         
@@ -95,8 +95,8 @@ class CACLA(AlgorithmInterface):
         # self._updates_ = lasagne.updates.rmsprop(self._loss + self._critic_regularization, self._params, 
         #                         self._learning_rate, self._rho, self._rms_epsilon)
         # TD update
-        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func_drop) + self._critic_regularization, self._params, 
-                    self._critic_learning_rate * -T.mean(self._diff_drop), self._rho, self._rms_epsilon)
+        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
+                    self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
         
         
         # actDiff1 = (self._model.getActionSymbolicVariable() - self._q_valsActTarget) #TODO is this correct?
