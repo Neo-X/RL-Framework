@@ -109,6 +109,7 @@
 "use_parameterized_control": true,
 	"comment__": "parameter bounds for parameterized controller",
 "controller_parameter_settings": {
-		"velocity_bounds": [[0.5],[2.5]]
+		"velocity_bounds": [[0.5],[2.5]],
+		"root_height_bounds": [[0.7],[1.1]]
 		}
 }

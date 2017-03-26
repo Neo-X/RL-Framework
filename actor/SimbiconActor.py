@@ -12,6 +12,7 @@ class SimbiconActor(ActorInterface):
         self._target_vel = self._settings["target_velocity"]
         self._target_lean = 0
         self._target_torque = 0
+        self._target_root_height = 1.02
         
     
     # @profile(precision=5)
@@ -60,12 +61,15 @@ class SimbiconActor(ActorInterface):
         torque_diff = averageTorque - self._target_torque
         torque_reward = math.exp((torque_diff*torque_diff)*self._target_vel_weight)
         lean_reward = math.exp((lean_diff*lean_diff)*self._target_vel_weight)
+        
+        root_height_diff = (self._target_root_height - position_root[1])
+        root_height_reward = math.exp((root_height_diff * root_height_diff) * self._target_vel_weight)
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 
                   (vel_reward * 0.8) +
                   (torque_reward * 0.1) +
                   (lean_reward * 0.1) + 
-                  ((position_root[1] - 1.0) )
+                  ((root_height_reward) * 0.1)
                   )# optimal is 0
         
         self._reward_sum = self._reward_sum + reward
@@ -79,18 +83,24 @@ class SimbiconActor(ActorInterface):
         """
         r = np.random.random(1)[0]
         ## Can change at most by +-move_scale between each action
-        move_scale = 0.2 
+        move_scale = 0.1 
         r = ((r - 0.5) * 2.0) * move_scale
-        vel_bounds = [0.5, 1.5]
         self._target_vel += r
         vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
         self._target_vel = clampAction([self._target_vel], vel_bounds)[0]
+        
+        r = np.random.random(1)[0]
+        ## Can change at most by +-move_scale between each action
+        r = ((r - 0.5) * 2.0) * move_scale
+        self._target_root_height += r
+        root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
+        self._target_root_height = clampAction([self._target_root_height], root_height_bounds)[0]
         
         # print("New target Velocity: ", self._target_vel)
         # if ( self._settings["use_parameterized_control"] )
             
     def getControlParameters(self):
-        return [self._target_vel]
+        return [self._target_vel, self._target_root_height]
         
     
     def getEvaluationData(self):
