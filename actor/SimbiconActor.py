@@ -67,7 +67,7 @@ class SimbiconActor(ActorInterface):
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 
                   (vel_reward * 0.8) +
-                  (torque_reward * 0.1) +
+                  (torque_reward * 0.05) +
                   (lean_reward * 0.1) + 
                   ((root_height_reward) * 0.1)
                   )# optimal is 0
