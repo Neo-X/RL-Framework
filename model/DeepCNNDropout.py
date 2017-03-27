@@ -78,7 +78,7 @@ class DeepCNNDropout(ModelInterface):
         """
         network = lasagne.layers.FlattenLayer(network, outdim=2)
         network = lasagne.layers.ConcatLayer([network, characterFeatures], axis=1)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=64,
@@ -141,7 +141,7 @@ class DeepCNNDropout(ModelInterface):
         """
         networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
         networkAct = lasagne.layers.ConcatLayer([networkAct, characterFeaturesAct], axis=1)
-        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        # networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
