@@ -61,7 +61,6 @@ class DeepCNNDropout(ModelInterface):
             network, num_filters=32, filter_size=4,
             nonlinearity=lasagne.nonlinearities.rectify,
             W=lasagne.init.GlorotUniform())
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         self._critic_task_part = network 
         
@@ -79,6 +78,7 @@ class DeepCNNDropout(ModelInterface):
         """
         network = lasagne.layers.FlattenLayer(network, outdim=2)
         network = lasagne.layers.ConcatLayer([network, characterFeatures], axis=1)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=64,
@@ -93,7 +93,7 @@ class DeepCNNDropout(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
                 nonlinearity=lasagne.nonlinearities.rectify)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
@@ -124,7 +124,6 @@ class DeepCNNDropout(ModelInterface):
             networkAct, num_filters=32, filter_size=4,
             nonlinearity=lasagne.nonlinearities.rectify,
             W=lasagne.init.GlorotUniform())
-        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
         
@@ -142,6 +141,7 @@ class DeepCNNDropout(ModelInterface):
         """
         networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
         networkAct = lasagne.layers.ConcatLayer([networkAct, characterFeaturesAct], axis=1)
+        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
@@ -151,7 +151,7 @@ class DeepCNNDropout(ModelInterface):
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,
                 nonlinearity=lasagne.nonlinearities.rectify)
-        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        # networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
     
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
