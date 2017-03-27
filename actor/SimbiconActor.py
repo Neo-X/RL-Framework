@@ -55,13 +55,16 @@ class SimbiconActor(ActorInterface):
         position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
         # print ("Pos: ", position_root)
         # print ("Orientation: ", orientation)
-        lean_diff = orientation[0] - self._target_lean
+        ## Reward for going the desired velocity
         vel_dif = self._target_vel - averageSpeed
         vel_reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight)
+        ## Rewarded for using less torque
         torque_diff = averageTorque - self._target_torque
         torque_reward = math.exp((torque_diff*torque_diff)*self._target_vel_weight)
+        ## Rewarded for keeping the characters torso upright
+        lean_diff = orientation[0] - self._target_lean
         lean_reward = math.exp((lean_diff*lean_diff)*self._target_vel_weight)
-        
+        ## Rewarded for keeping the y height of the root at a specific height 
         root_height_diff = (self._target_root_height - position_root[1])
         root_height_reward = math.exp((root_height_diff * root_height_diff) * self._target_vel_weight)
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
