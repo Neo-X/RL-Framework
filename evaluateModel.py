@@ -87,10 +87,11 @@ class SimContainer(object):
         """GLUT keyboard callback."""
     
         global SloMo, Paused
-    
+        print ("onKey type: ", type(list(c)[0]))
         # set simulation speed
         if c >= '0' and c <= '9':
             SloMo = 4 * int(c) + 1
+            print ("SLowmo")
         # pause/unpause simulation
         elif c == 'p' or c == 'P':
             Paused = not Paused
@@ -103,12 +104,23 @@ class SimContainer(object):
             self._exp.getEnvironment().initEpoch()
         elif c == 'M':
             if ( self._settings["use_parameterized_control"] ):
-                self._exp.getActor()._target_vel += 0.2
+                self._exp.getActor()._target_vel += 0.1
                 print ("Target Velocity: ", self._exp.getActor()._target_vel)
         elif c == 'm':
             if ( self._settings["use_parameterized_control"] ):
-                self._exp.getActor()._target_vel -= 0.2 
+                self._exp.getActor()._target_vel -= 0.1 
                 print ("Target Velocity: ", self._exp.getActor()._target_vel)
+        elif c == 'H':
+            if ( self._settings["use_parameterized_control"] ):
+                self._exp.getActor()._target_root_height += 0.1
+                print ("Target Height: ", self._exp.getActor()._target_root_height)
+        elif c == 'h':
+            if ( self._settings["use_parameterized_control"] ):
+                self._exp.getActor()._target_root_height -= 0.1 
+                print ("Target Height: ", self._exp.getActor()._target_root_height)    
+                
+        ## ord converts the string to the corresponding integer value for the character...
+        self._exp.getEnvironment().onKeyEvent(ord(c), x, y)
 
 def evaluateModelRender(settings_file_name):
 
@@ -253,7 +265,7 @@ def evaluateModelRender(settings_file_name):
     # glutInitWindowSize(width, height);
     # glutCreateWindow("PyODE Ragdoll Simulation")
     # set GLUT callbacks
-    # glutKeyboardFunc(sim.onKey)
+    glutKeyboardFunc(sim.onKey)
     ## This works because GLUT in C++ uses the same global context (singleton) as the one in python 
     glutTimerFunc(1000/fps, sim.animate, 0) # 30 fps?
     # glutIdleFunc(animate)
