@@ -102,7 +102,7 @@ class CACLA(AlgorithmInterface):
         # actDiff1 = (self._model.getActionSymbolicVariable() - self._q_valsActTarget) #TODO is this correct?
         # actDiff = (actDiff1 - (self._model.getActionSymbolicVariable() - self._q_valsActA))
         # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
-        self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
+        self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
         # self._actLoss = 0.5 * (self._actDiff ** 2) 
         ## Should produce a single column vector or costs for each sample in the batch
         self._actLoss_ = T.mean(T.pow(self._actDiff, 2),axis=1) 
