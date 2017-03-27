@@ -78,6 +78,7 @@ class SimContainer(object):
         if (self._exp.getEnvironment().needUpdatedAction()):
             state_ = self._exp.getState()
             action_ = np.array(self._agent.predict(state_), dtype='float64')
+            # action_[1] = 1.0
             print( "New action: ", action_)
             self._exp.getEnvironment().updateAction(action_)
         
