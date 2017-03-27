@@ -74,12 +74,16 @@ class SimContainer(object):
             self._episode += 1
             
         glutTimerFunc(1000/fps, self.animate, 0) # 30 fps?
+        simData = self._exp.getEnvironment().getActor().getSimData()
+        # print("Average Speed: ", simData.avgSpeed)
+        vel_sum = simData.avgSpeed
+        torque_sum = simData.avgTorque
         
         if (self._exp.getEnvironment().needUpdatedAction()):
             state_ = self._exp.getState()
             action_ = np.array(self._agent.predict(state_), dtype='float64')
             # action_[1] = 1.0
-            print( "New action: ", action_)
+            # print( "New action: ", action_)
             self._exp.getEnvironment().updateAction(action_)
         
         self._exp.update()
