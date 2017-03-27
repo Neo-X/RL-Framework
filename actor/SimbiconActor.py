@@ -82,8 +82,8 @@ class SimbiconActor(ActorInterface):
             Slowly modifies the parameters during training
         """
         r = np.random.random(1)[0]
-        ## Can change at most by +-move_scale between each action
-        move_scale = 0.1 
+        ## Can change at most by +-move_scale between each action This does not seem to work as well = 0.1
+        move_scale = 0.2 
         r = ((r - 0.5) * 2.0) * move_scale
         self._target_vel += r
         vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
