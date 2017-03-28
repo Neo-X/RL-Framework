@@ -244,7 +244,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
         file.close()
-        conf['render'] = settings['shouldRender']
+        conf['render'] = render
         exp = BallGame2D(conf)
         exp = BallGame2DEnv(exp, settings)
         return exp
@@ -253,7 +253,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
         file.close()
-        conf['render'] = settings['shouldRender']
+        conf['render'] = render
         exp = BallGame1D(conf)
         exp = BallGame1DEnv(exp, settings)
         return exp
@@ -262,7 +262,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
         file.close()
-        conf['render'] = settings['shouldRender']
+        conf['render'] = render
         exp = GapGame1D(conf)
         exp = GapGame1DEnv(exp, settings)
         return exp
@@ -279,7 +279,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
     elif env_type == 'terrainRLBiped2D':
         import terrainRLAdapter
         sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
-        sim.setRender(settings['shouldRender'])
+        sim.setRender(render)
         # sim.init(['train', '-arg_file=', config_file])
         # print ("Num state: ", c._NUMBER_OF_STATES)
         # sim = simbiconAdapter.SimbiconWrapper(c)
@@ -290,7 +290,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
     elif env_type == 'terrainRLFlatBiped2D':
         import terrainRLAdapter
         sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
-        sim.setRender(settings['shouldRender'])
+        sim.setRender(render)
         # sim.init(['train', '-arg_file=', config_file])
         # print ("Num state: ", c._NUMBER_OF_STATES)
         # sim = simbiconAdapter.SimbiconWrapper(c)
@@ -301,7 +301,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
     elif env_type == 'terrainRLImitateBiped2D':
         import terrainRLAdapter
         sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
-        sim.setRender(settings['shouldRender'])
+        sim.setRender(render)
         # sim.init(['train', '-arg_file=', config_file])
         # print ("Num state: ", c._NUMBER_OF_STATES)
         # sim = simbiconAdapter.SimbiconWrapper(c)
