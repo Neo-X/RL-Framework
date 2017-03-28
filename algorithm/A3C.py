@@ -240,6 +240,7 @@ class A3C(AlgorithmInterface):
         
     def getGrads(self, states):
         # self.setData(states, actions, rewards, result_states)
+        states = np.array(states, dtype=theano.config.floatX)
         self._model.setStates(states)
         return self._get_grad()
 

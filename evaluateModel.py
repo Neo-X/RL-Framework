@@ -31,6 +31,8 @@ class SimContainer(object):
         self._agent = agent
         self._episode=0
         self._settings = settings
+        self._grad_sum=0
+        self._num_actions=0
         
     def animate(self, callBackVal=-1):
         # print ("Animating: ", callBackVal)
@@ -84,8 +86,13 @@ class SimContainer(object):
             position_root = self._exp.getEnvironment().getActor().getStateEuler()[0:][:3]
             print("Root position: ", position_root)
             action_ = np.array(self._agent.predict(state_), dtype='float64')
+            grad_ = self._agent.getPolicy().getGrads(state_)[0]
+            self._grad_sum += np.abs(grad_)
+            self._num_actions +=1
+            print ("Input grad: ", self._grad_sum/self._num_actions)
+            
             # action_[1] = 1.0
-            print( "New action: ", action_)
+            # print( "New action: ", action_)
             self._exp.getEnvironment().updateAction(action_)
         
         self._exp.update()
@@ -268,6 +275,7 @@ def evaluateModelRender(settings_file_name):
     action_ = np.array(masterAgent.predict(state_), dtype='float64')
     exp.getEnvironment().updateAction(action_)
     sim = SimContainer(exp, masterAgent, settings)
+    sim._grad_sum = np.zeros_like(state_)
     # glutInitWindowPosition(x, y);
     # glutInitWindowSize(width, height);
     # glutCreateWindow("PyODE Ragdoll Simulation")
