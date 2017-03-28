@@ -50,13 +50,13 @@ class DeepCNNDropout(ModelInterface):
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
-        
+        """
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=32, filter_size=4,
             nonlinearity=lasagne.nonlinearities.rectify,
             W=lasagne.init.GlorotUniform())
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        
+        """
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=32, filter_size=4,
             nonlinearity=lasagne.nonlinearities.rectify,
@@ -113,13 +113,13 @@ class DeepCNNDropout(ModelInterface):
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
-        
+        """
         networkAct = lasagne.layers.Conv1DLayer(
             networkAct, num_filters=32, filter_size=4,
             nonlinearity=lasagne.nonlinearities.rectify,
             W=lasagne.init.GlorotUniform())
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
-        
+        """
         networkAct = lasagne.layers.Conv1DLayer(
             networkAct, num_filters=32, filter_size=4,
             nonlinearity=lasagne.nonlinearities.rectify,

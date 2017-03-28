@@ -27,11 +27,11 @@ class DeepNNSingleNet(ModelInterface):
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         # create a small convolutional neural network
         inputLayerA = lasagne.layers.InputLayer((None, self._state_length), self._State)
-        
+        """
         network = lasagne.layers.DenseLayer(
                 inputLayerA, num_units=256,
                 nonlinearity=lasagne.nonlinearities.rectify)
-        
+        """
         network = lasagne.layers.DenseLayer(
                 network, num_units=128,
                 nonlinearity=lasagne.nonlinearities.rectify)
