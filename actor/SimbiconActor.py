@@ -69,7 +69,7 @@ class SimbiconActor(ActorInterface):
         root_height_reward = math.exp((root_height_diff * root_height_diff) * self._target_vel_weight)
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 
-                  (vel_reward * 0.8) +
+                  (vel_reward * 0.6) +
                   (torque_reward * 0.05) +
                   (lean_reward * 0.1) + 
                   ((root_height_reward) * 0.1)
@@ -98,6 +98,10 @@ class SimbiconActor(ActorInterface):
         self._target_root_height += r
         root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
         self._target_root_height = clampAction([self._target_root_height], root_height_bounds)[0]
+        
+        self._target_lean += r
+        root_pitch_bounds = self._settings['controller_parameter_settings']['root_pitch_bounds']
+        self._target_lean = clampAction([self._target_lean], root_pitch_bounds)[0]
         
         # print("New target Velocity: ", self._target_vel)
         # if ( self._settings["use_parameterized_control"] )
