@@ -39,11 +39,11 @@ def thompsonExploration(model, exploration_rate, state_):
         a = mean + var.sample()
          
     """
-    pa = model.predict(state_)
+    # pa = model.predict(state_)
     pa_var = model.predictWithDropout(state_)
-    diff = pa_var - pa
-    out = pa + (diff * exploration_rate)
-    return out
+    # diff = pa_var - pa
+    # out = pa + (diff * exploration_rate)
+    return pa_var
     
 
 def eGreedy(pa1, ra2, e):
