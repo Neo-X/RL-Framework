@@ -129,7 +129,7 @@ def getSettings(settingsFileName):
 def randomExporation(explorationRate, actionV):
     out = []
     for i in range(len(actionV)):
-        out.append(actionV[i] + random.gauss(0, explorationRate))
+        out.append(actionV[i] + np.random.normal(0, explorationRate, 1)[0])
     return out
 
 def randomExporation(explorationRate, actionV, bounds):
@@ -139,7 +139,7 @@ def randomExporation(explorationRate, actionV, bounds):
     
     out = []
     for i in range(len(actionV)):
-        out.append(actionV[i] + random.gauss(0, explorationRate * (bounds[1][i]-bounds[0][i])))
+        out.append(actionV[i] + np.random.normal(0, explorationRate * (bounds[1][i]-bounds[0][i]), 1)[0])
     return out
 
 def randomUniformExporation(bounds):
