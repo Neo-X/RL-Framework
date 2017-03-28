@@ -1,7 +1,7 @@
 {
 "model_type": "Deep_NN_Dropout",
 "agent_name": "CACLA",
-"data_folder": "Simple_Walk_Dropout/",
+"data_folder": "Simple_Walk_Dropout_Thompson/",
 "epsilon": 0.5, 
 "omega": 0.15,
 "batch_size": 32,
