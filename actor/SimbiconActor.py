@@ -107,7 +107,7 @@ class SimbiconActor(ActorInterface):
         # if ( self._settings["use_parameterized_control"] )
             
     def getControlParameters(self):
-        return [self._target_vel, self._target_root_height]
+        return [self._target_vel, self._target_root_height, self._target_lean]
         
     
     def getEvaluationData(self):
