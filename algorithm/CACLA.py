@@ -110,10 +110,20 @@ class CACLA(AlgorithmInterface):
         self._actLoss = T.mean(self._actLoss_)
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
-        ## Entropy from A3C, make sure network is not producing same action for everything..
-        self.entropy = -T.mean(T.sum(self._q_valsActA_drop, axis=0))
+        ## Computes the distance between actions weighted by the distances between the states that result in those actions
+        state_sum = T.sum(T.pow(self._model.getStateSymbolicVariable(),2), axis=1)
+        Distance = ((((state_sum + T.reshape(state_sum, (1,-1)).T) - 2*T.dot(self._model.getStateSymbolicVariable(), self._model.getStateSymbolicVariable().T))))
+        action_sum = T.sum(T.pow(self._q_valsActA_drop,2), axis=1)
+        Distance_action = ((((action_sum + T.reshape(action_sum, (1,-1)).T) - 2*T.dot(self._q_valsActA_drop, self._q_valsActA_drop.T))))
+        weighted_dist = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(Distance, Distance_action)
+        self._weighted_mean_dist = T.mean(weighted_dist, axis=1)
         
-        self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization + (0.01 * self.entropy), 
+        ## Entropy from A3C, make sure network is not producing same action for everything..
+        # self.entropy = -T.mean(T.sum(self._q_valsActA_drop, axis=0))
+        self._weighted_entropy = -T.mean(self._weighted_mean_dist)
+        
+        
+        self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization + (0.0001 * self._weighted_entropy), 
                                 self._actionParams, self._learning_rate , self._rho, self._rms_epsilon)
         
         # actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct_drop) + 
@@ -145,6 +155,14 @@ class CACLA(AlgorithmInterface):
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._Fallen: self._fallen_shared
+            # self._model.getActionSymbolicVariable(): self._actions_shared,
+        })
+        
+        self._get_weighted_mean_dist = theano.function([], [self._weighted_mean_dist], givens={
+            self._model.getStateSymbolicVariable(): self._model.getStates()
+            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            # self._Fallen: self._fallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         })
         self._get_critic_regularization = theano.function([], [self._critic_regularization])
@@ -255,6 +273,8 @@ class CACLA(AlgorithmInterface):
                 
         if (len(tmp_actions) > 0):
             self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
+            # print ("Actions: ", self._q_action_drop())
+            # print ("weighted dist: ", self._get_weighted_mean_dist())
             lossActor, _ = self._trainActor()
             print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
             # print ( " Actions: ", tmp_actions)
