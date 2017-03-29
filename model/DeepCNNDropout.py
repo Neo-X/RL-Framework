@@ -40,7 +40,7 @@ class DeepCNNDropout(ModelInterface):
         print ("taskFeatures Shape:", lasagne.layers.get_output_shape(taskFeatures))
         print ("characterFeatures Shape:", lasagne.layers.get_output_shape(characterFeatures))
         print ("State length: ", self._state_length)
-        
+        taskFeatures = lasagne.layers.DropoutLayer(taskFeatures, p=self._dropout_p, rescale=True)
         network = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['num_terrain_features']))
         
         network = lasagne.layers.Conv1DLayer(
@@ -78,7 +78,7 @@ class DeepCNNDropout(ModelInterface):
         """
         network = lasagne.layers.FlattenLayer(network, outdim=2)
         network = lasagne.layers.ConcatLayer([network, characterFeatures], axis=1)
-        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=64,
@@ -93,7 +93,7 @@ class DeepCNNDropout(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
                 nonlinearity=lasagne.nonlinearities.rectify)
-        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
@@ -103,7 +103,8 @@ class DeepCNNDropout(ModelInterface):
         
         taskFeaturesAct = lasagne.layers.SliceLayer(networkAct, indices=slice(0, self._settings['num_terrain_features']), axis=1)
         characterFeaturesAct = lasagne.layers.SliceLayer(networkAct, indices=slice(self._settings['num_terrain_features']+1,self._state_length), axis=1)
-        
+       
+        taskFeaturesAct = lasagne.layers.DropoutLayer(taskFeaturesAct, p=self._dropout_p, rescale=True)
         networkAct = lasagne.layers.ReshapeLayer(taskFeaturesAct, (-1, 1, self._settings['num_terrain_features']))
         
         networkAct = lasagne.layers.Conv1DLayer(
@@ -141,7 +142,7 @@ class DeepCNNDropout(ModelInterface):
         """
         networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
         networkAct = lasagne.layers.ConcatLayer([networkAct, characterFeaturesAct], axis=1)
-        # networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
@@ -151,7 +152,7 @@ class DeepCNNDropout(ModelInterface):
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,
                 nonlinearity=lasagne.nonlinearities.rectify)
-        # networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
     
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
