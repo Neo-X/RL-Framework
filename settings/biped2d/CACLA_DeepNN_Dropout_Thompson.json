@@ -112,7 +112,7 @@
 "num_adaptive_samples_to_keep": 50,
 "use_actor_policy_action_variance_suggestion": false,
 "exploration_method": "thompson",
-"dropout_p": 0.1,
+"dropout_p": 0.5,
 "regularization_weight": 0.00001,
 "rho": 0.95,
 "rms_epsilon": 0.001,
