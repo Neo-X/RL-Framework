@@ -69,10 +69,10 @@ class SimbiconActor(ActorInterface):
         root_height_reward = math.exp((root_height_diff * root_height_diff) * self._target_vel_weight)
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 
-                  (vel_reward * 0.6) +
+                  (vel_reward * 0.3) +
                   (torque_reward * 0.05) +
-                  (lean_reward * 0.1) + 
-                  ((root_height_reward) * 0.1)
+                  (lean_reward * 0.3) + 
+                  ((root_height_reward) * 0.3)
                   )# optimal is 0
         
         self._reward_sum = self._reward_sum + reward
