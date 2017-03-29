@@ -107,8 +107,14 @@ class SimContainer(object):
             SloMo = 4 * int(c) + 1
             print ("SLowmo")
         # pause/unpause simulation
-        elif c == 'p' or c == 'P':
-            Paused = not Paused
+        elif c == 'P':
+            if ( self._settings["use_parameterized_control"] ):
+                self._exp.getActor()._target_lean += 0.025
+                print ("Target Height: ", self._exp.getActor()._target_lean)
+        elif c == 'p':
+            if ( self._settings["use_parameterized_control"] ):
+                self._exp.getActor()._target_lean -= 0.025 
+                print ("Target Height: ", self._exp.getActor()._target_lean)  
         # quit
         elif c == 'q' or c == 'Q':
             sys.exit(0)
@@ -126,11 +132,11 @@ class SimContainer(object):
                 print ("Target Velocity: ", self._exp.getActor()._target_vel)
         elif c == 'H':
             if ( self._settings["use_parameterized_control"] ):
-                self._exp.getActor()._target_root_height += 0.1
+                self._exp.getActor()._target_root_height += 0.02
                 print ("Target Height: ", self._exp.getActor()._target_root_height)
         elif c == 'h':
             if ( self._settings["use_parameterized_control"] ):
-                self._exp.getActor()._target_root_height -= 0.1 
+                self._exp.getActor()._target_root_height -= 0.02
                 print ("Target Height: ", self._exp.getActor()._target_root_height)    
                 
         ## ord converts the string to the corresponding integer value for the character...
