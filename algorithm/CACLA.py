@@ -110,9 +110,11 @@ class CACLA(AlgorithmInterface):
         self._actLoss = T.mean(self._actLoss_)
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
+        ## Entropy from A3C, make sure network is not producing same action for everything..
+        self.entropy = -T.mean(T.sum(self._q_valsActA_drop, axis=0))
         
-        self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization, self._actionParams, 
-                    self._learning_rate , self._rho, self._rms_epsilon)
+        self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization + (0.01 * self.entropy), 
+                                self._actionParams, self._learning_rate , self._rho, self._rms_epsilon)
         
         # actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct_drop) + 
         #   (self._regularization_weight * lasagne.regularization.regularize_network_params(
