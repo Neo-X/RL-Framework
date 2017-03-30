@@ -111,9 +111,9 @@ class CACLA(AlgorithmInterface):
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         ## Computes the distance between actions weighted by the distances between the states that result in those actions
-        state_sum = T.sum(T.pow(self._model.getStateSymbolicVariable(),2), axis=1)
+        state_sum = T.mean(T.pow(self._model.getStateSymbolicVariable(),2), axis=1)
         Distance = ((((state_sum + T.reshape(state_sum, (1,-1)).T) - 2*T.dot(self._model.getStateSymbolicVariable(), self._model.getStateSymbolicVariable().T))))
-        action_sum = T.sum(T.pow(self._q_valsActA_drop,2), axis=1)
+        action_sum = T.mean(T.pow(self._q_valsActA_drop,2), axis=1)
         Distance_action = ((((action_sum + T.reshape(action_sum, (1,-1)).T) - 2*T.dot(self._q_valsActA_drop, self._q_valsActA_drop.T))))
         weighted_dist = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(Distance, Distance_action)
         self._weighted_mean_dist = T.mean(weighted_dist, axis=1)
