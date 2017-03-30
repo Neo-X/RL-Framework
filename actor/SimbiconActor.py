@@ -58,21 +58,24 @@ class SimbiconActor(ActorInterface):
         # print ("Orientation: ", orientation)
         ## Reward for going the desired velocity
         vel_diff = self._target_vel - averageSpeed
-        vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
-        vel_dif = _scale_reward([vel_diff], vel_bounds)[0]
+        if ( self._settings["use_parameterized_control"] ):
+            vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
+            vel_dif = _scale_reward([vel_diff], vel_bounds)[0]
         vel_reward = math.exp((vel_diff*vel_diff)*self._target_vel_weight)
         ## Rewarded for using less torque
         torque_diff = averageTorque - self._target_torque
         torque_reward = math.exp((torque_diff*torque_diff)*self._target_vel_weight)
         ## Rewarded for keeping the characters torso upright
         lean_diff = orientation[0] - self._target_lean
-        root_pitch_bounds = self._settings['controller_parameter_settings']['root_pitch_bounds']
-        lean_diff = _scale_reward([lean_diff], root_pitch_bounds)[0]
+        if ( self._settings["use_parameterized_control"] ):
+            root_pitch_bounds = self._settings['controller_parameter_settings']['root_pitch_bounds']
+            lean_diff = _scale_reward([lean_diff], root_pitch_bounds)[0]
         lean_reward = math.exp((lean_diff*lean_diff)*self._target_vel_weight)
         ## Rewarded for keeping the y height of the root at a specific height 
         root_height_diff = (self._target_root_height - position_root[1])
-        root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
-        root_height_diff = _scale_reward([root_height_diff], root_height_bounds)[0]
+        if ( self._settings["use_parameterized_control"] ):
+            root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
+            root_height_diff = _scale_reward([root_height_diff], root_height_bounds)[0]
         root_height_reward = math.exp((root_height_diff * root_height_diff) * self._target_vel_weight)
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 
