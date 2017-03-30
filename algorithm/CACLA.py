@@ -159,7 +159,7 @@ class CACLA(AlgorithmInterface):
             self._Fallen: self._fallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         })
-        
+        """
         self._get_weighted_mean_dist = theano.function([], [self._weighted_mean_dist], givens={
             self._model.getStateSymbolicVariable(): self._model.getStates()
             # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
@@ -167,6 +167,7 @@ class CACLA(AlgorithmInterface):
             # self._Fallen: self._fallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         })
+        """
         self._get_critic_regularization = theano.function([], [self._critic_regularization])
         self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         
