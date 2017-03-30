@@ -4,6 +4,7 @@ from actor.ActorInterface import ActorInterface
 import numpy as np
 from model.ModelUtil import clampAction 
 from model.ModelUtil import _scale_reward 
+from model.ModelUtil import randomExporation
 
 class SimbiconActor(ActorInterface):
     
@@ -106,22 +107,18 @@ class SimbiconActor(ActorInterface):
             Slowly modifies the parameters during training
         """
         move_scale = 0.1
-        r = np.random.normal(0, move_scale, 1)[0]
         ## Can change at most by +-move_scale between each action This does not seem to work as well = 0.1
         # r = ((r - 0.5) * 2.0) * move_scale
-        self._target_vel += r
         vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
+        self._target_vel = randomExporation(move_scale, [self._target_vel], vel_bounds)[0]
         self._target_vel = clampAction([self._target_vel], vel_bounds)[0]
         
-        r = np.random.normal(0, move_scale, 1)[0]
-        ## Can change at most by +-move_scale between each action
-        # r = ((r - 0.5) * 2.0) * move_scale
-        self._target_root_height += r
         root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
+        self._target_root_height = randomExporation(move_scale, [self._target_root_height], root_height_bounds)[0]
         self._target_root_height = clampAction([self._target_root_height], root_height_bounds)[0]
         
-        self._target_lean += r
         root_pitch_bounds = self._settings['controller_parameter_settings']['root_pitch_bounds']
+        self._target_lean = randomExporation(move_scale, [self._target_lean], root_pitch_bounds)[0]
         self._target_lean = clampAction([self._target_lean], root_pitch_bounds)[0]
         
         # print("New target Velocity: ", self._target_vel)
