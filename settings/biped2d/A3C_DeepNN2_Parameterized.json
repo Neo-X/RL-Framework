@@ -1,7 +1,7 @@
 {
 "model_type": "Deep_NN",
 "agent_name": "A3C",
-"data_folder": "Simple_Walk/",
+"data_folder": "Simple_Walk2_Parameterized/",
 "epsilon": 0.5, 
 "omega": 0.15,
 "batch_size": 32,
@@ -14,9 +14,9 @@
 "epochs": 10,
 "eval_epochs": 10,
 "discount_factor": 0.8,
-"visualize_learning": false,
+"visualize_learning": true,
 "save_trainData": true,
-"train_forward_dynamics": true,
+"train_forward_dynamics": false,
 "reward_bounds": [[0.0],[1.0]],
 "expereince_length": 10000,
 "state_bounds": [[-3.14, 1.0,-8.05, -1.0, -1.0, -8.5, -5.0, -5.5, -5.0, -2.5, -3.14],
@@ -43,7 +43,7 @@
 "look_ahead_planning_steps": 2,
 "plotting_update_freq_num_rounds": 10,
 "saving_update_freq_num_rounds": 10,
-"num_available_threads": 8,
+"num_available_threads": 14,
 "queue_size_limit": 100,
 "sim_action_per_training_update": 8,
 "adaptive_samples": 5,
@@ -67,7 +67,7 @@
 "use_guided_policy_search" : false,
 "training_updates_per_sim_action": 1,
 "use_sampling_exploration": false,
-"use_model_based_action_optimization": true,
+"use_model_based_action_optimization": false,
 "use_transfer_task_network": false,
 "penalize_actions_outside_bounds": false,
 "use_transfer_task_network": false,
@@ -97,7 +97,7 @@
 	"comment__": "float type to use, if for example you want to train on the GPU use float32",
 "float_type": "float32",
 	"comment__": "What processor type to perform the training on [cpu|gpu]",
-"training_processor_type": "gpu",
+"training_processor_type": "cpu",
 	"comment__": "optimizer is the type of optimization algorithm to use",
 "optimizer": "rmsprop",
 	"comment__": "This setting uses a sampling method overtop of simulation",
@@ -105,5 +105,11 @@
 	"comment__": "Variance scaling used for sampling",
 "variance_scalling": 0.1,
 	"comment__": "Whether or not to parameterize the control via the reward function, also adds parameters to input state",
-"use_parameterized_control": false
+"use_parameterized_control": true,
+	"comment__": "parameter bounds for parameterized controller",
+"controller_parameter_settings": {
+		"velocity_bounds": [[0.5],[2.5]],
+		"root_height_bounds": [[0.7],[1.1]],
+		"root_pitch_bounds": [[-0.25],[0.25]]
+		}
 }

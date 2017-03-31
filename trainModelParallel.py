@@ -117,24 +117,26 @@ def trainModelParallel(settingsFileName):
                 nlv.init()
                 
         if (settings['debug_critic']):
-            critic_loss_viz = NNVisualize(title=str("Critic Loss") + " with " + str(settings["model_type"]))
-            critic_loss_viz.setInteractive()
-            critic_loss_viz.init()
             criticLosses = []
-            critic_regularization_viz = NNVisualize(title=str("Critic Regularization Cost") + " with " + str(settings["model_type"]))
-            critic_regularization_viz.setInteractive()
-            critic_regularization_viz.init()
-            criticRegularizationCosts = []
+            criticRegularizationCosts = [] 
+            if (settings['visualize_learning']):
+                critic_loss_viz = NNVisualize(title=str("Critic Loss") + " with " + str(settings["model_type"]))
+                critic_loss_viz.setInteractive()
+                critic_loss_viz.init()
+                critic_regularization_viz = NNVisualize(title=str("Critic Regularization Cost") + " with " + str(settings["model_type"]))
+                critic_regularization_viz.setInteractive()
+                critic_regularization_viz.init()
             
         if (settings['debug_actor']):
-            actor_loss_viz = NNVisualize(title=str("Actor Loss") + " with " + str(settings["model_type"]))
-            actor_loss_viz.setInteractive()
-            actor_loss_viz.init()
             actorLosses = []
-            actor_regularization_viz = NNVisualize(title=str("Actor Regularization Cost") + " with " + str(settings["model_type"]))
-            actor_regularization_viz.setInteractive()
-            actor_regularization_viz.init()
-            actorRegularizationCosts = []
+            actorRegularizationCosts = []            
+            if (settings['visualize_learning']):
+                actor_loss_viz = NNVisualize(title=str("Actor Loss") + " with " + str(settings["model_type"]))
+                actor_loss_viz.setInteractive()
+                actor_loss_viz.init()
+                actor_regularization_viz = NNVisualize(title=str("Actor Regularization Cost") + " with " + str(settings["model_type"]))
+                actor_regularization_viz.setInteractive()
+                actor_regularization_viz.init()
 
         mgr = multiprocessing.Manager()
         namespace = mgr.Namespace()
@@ -522,22 +524,24 @@ def trainModelParallel(settingsFileName):
                         trainData["mean_critic_loss"].append(mean_criticLosses)
                         trainData["std_critic_loss"].append(std_criticLosses)
                         criticLosses = []
-                        critic_loss_viz.updateLoss(np.array(trainData["mean_critic_loss"]), np.array(trainData["std_critic_loss"]))
-                        critic_loss_viz.redraw()
-                        critic_loss_viz.setInteractiveOff()
-                        critic_loss_viz.saveVisual(directory+"criticLossGraph")
-                        critic_loss_viz.setInteractive()
+                        if (settings['visualize_learning']):
+                            critic_loss_viz.updateLoss(np.array(trainData["mean_critic_loss"]), np.array(trainData["std_critic_loss"]))
+                            critic_loss_viz.redraw()
+                            critic_loss_viz.setInteractiveOff()
+                            critic_loss_viz.saveVisual(directory+"criticLossGraph")
+                            critic_loss_viz.setInteractive()
                         
                         mean_criticRegularizationCosts = np.mean(criticRegularizationCosts)
                         std_criticRegularizationCosts = np.std(criticRegularizationCosts)
                         trainData["mean_critic_regularization_cost"].append(mean_criticRegularizationCosts)
                         trainData["std_critic_regularization_cost"].append(std_criticRegularizationCosts)
                         criticRegularizationCosts = []
-                        critic_regularization_viz.updateLoss(np.array(trainData["mean_critic_regularization_cost"]), np.array(trainData["std_critic_regularization_cost"]))
-                        critic_regularization_viz.redraw()
-                        critic_regularization_viz.setInteractiveOff()
-                        critic_regularization_viz.saveVisual(directory+"criticRegularizationGraph")
-                        critic_regularization_viz.setInteractive()
+                        if (settings['visualize_learning']):
+                            critic_regularization_viz.updateLoss(np.array(trainData["mean_critic_regularization_cost"]), np.array(trainData["std_critic_regularization_cost"]))
+                            critic_regularization_viz.redraw()
+                            critic_regularization_viz.setInteractiveOff()
+                            critic_regularization_viz.saveVisual(directory+"criticRegularizationGraph")
+                            critic_regularization_viz.setInteractive()
                         
                     if (settings['debug_actor']):
                         
@@ -546,22 +550,24 @@ def trainModelParallel(settingsFileName):
                         trainData["mean_actor_loss"].append(mean_actorLosses)
                         trainData["std_actor_loss"].append(std_actorLosses)
                         actorLosses = []
-                        actor_loss_viz.updateLoss(np.array(trainData["mean_actor_loss"]), np.array(trainData["std_actor_loss"]))
-                        actor_loss_viz.redraw()
-                        actor_loss_viz.setInteractiveOff()
-                        actor_loss_viz.saveVisual(directory+"actorLossGraph")
-                        actor_loss_viz.setInteractive()
+                        if (settings['visualize_learning']):
+                            actor_loss_viz.updateLoss(np.array(trainData["mean_actor_loss"]), np.array(trainData["std_actor_loss"]))
+                            actor_loss_viz.redraw()
+                            actor_loss_viz.setInteractiveOff()
+                            actor_loss_viz.saveVisual(directory+"actorLossGraph")
+                            actor_loss_viz.setInteractive()
                         
                         mean_actorRegularizationCosts = np.mean(actorRegularizationCosts)
                         std_actorRegularizationCosts = np.std(actorRegularizationCosts)
                         trainData["mean_actor_regularization_cost"].append(mean_actorRegularizationCosts)
                         trainData["std_actor_regularization_cost"].append(std_actorRegularizationCosts)
                         actorRegularizationCosts = []
-                        actor_regularization_viz.updateLoss(np.array(trainData["mean_actor_regularization_cost"]), np.array(trainData["std_actor_regularization_cost"]))
-                        actor_regularization_viz.redraw()
-                        actor_regularization_viz.setInteractiveOff()
-                        actor_regularization_viz.saveVisual(directory+"actorRegularizationGraph")
-                        actor_regularization_viz.setInteractive()
+                        if (settings['visualize_learning']):
+                            actor_regularization_viz.updateLoss(np.array(trainData["mean_actor_regularization_cost"]), np.array(trainData["std_actor_regularization_cost"]))
+                            actor_regularization_viz.redraw()
+                            actor_regularization_viz.setInteractiveOff()
+                            actor_regularization_viz.saveVisual(directory+"actorRegularizationGraph")
+                            actor_regularization_viz.setInteractive()
                 """for lw in learning_workers:
                     lw.start()
                    """     

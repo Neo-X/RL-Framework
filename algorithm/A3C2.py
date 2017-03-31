@@ -12,23 +12,29 @@ from algorithm.AlgorithmInterface import AlgorithmInterface
 # theano.config.mode='FAST_COMPILE'
 # from DeepCACLA import DeepCACLA
 
-# @profile(precision=5)
-class CACLA(AlgorithmInterface):
+class A3C2(AlgorithmInterface):
     
-    # @profile(precision=5)
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
-        super(CACLA,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(A3C2,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
         # create a small convolutional neural network
         
         self._Fallen = T.bcol("Fallen")
+        ## because float64 <= float32 * int32, need to use int16 or int8
         self._Fallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int8'))
         
         self._fallen_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype='int8'),
             broadcastable=(False, True))
-        self._usingDropout = True
+        
+        self._tmp_diff = T.col("Tmp_Diff")
+        self._tmp_diff.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
+        
+        self._tmp_diff_shared = theano.shared(
+            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
+            broadcastable=(False, True))
+        
         """
         self._target_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype='float64'),
@@ -43,12 +49,12 @@ class CACLA(AlgorithmInterface):
         
         self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsA_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
-        self._q_valsTargetNextState = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
-        self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
+        self._q_valsTargetNextState = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getResultStateSymbolicVariable())
+        self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable())
         self._q_valsTarget_drop = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_valsActA = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
-        self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
+        self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -57,19 +63,15 @@ class CACLA(AlgorithmInterface):
         self._q_funcTarget_drop = self._q_valsTarget_drop
         self._q_funcAct = self._q_valsActA
         self._q_funcAct_drop = self._q_valsActA_drop
-        # self._q_funcAct = theano.function(inputs=[self._model.getStateSymbolicVariable()], outputs=self._q_valsActA, allow_input_downcast=True)
         
-        # self._target = (self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState )) * theano.tensor.maximum(1.0, theano.tensor.ceil(self._model.getRewardSymbolicVariable())) # Did not understand how the maximum was working
-        # self._target = (self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState )) * theano.tensor.ceil(self._model.getRewardSymbolicVariable())
-        ## Don't need to use dropout for the target network
-        self._target = (self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState )) * self._Fallen
-        # self._target = self._model.getTargetSymbolicVariable()
-        ## When there is no dropout in the network it will have no affect here
+        # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._Fallen
+        self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsTargetNextState )), self._Fallen)
         self._diff = self._target - self._q_func
         self._diff_drop = self._target - self._q_func_drop 
-        loss = 0.5 * self._diff ** 2 
+        # loss = 0.5 * self._diff ** 2 
+        loss = T.pow(self._diff, 2)
         self._loss = T.mean(loss)
-        # self._loss_drop = T.mean(0.5 * (self._diff_drop ** 2))
+        self._loss_drop = T.mean(0.5 * self._diff_drop ** 2)
         
         self._params = lasagne.layers.helper.get_all_params(self._model.getCriticNetwork())
         self._actionParams = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
@@ -82,9 +84,11 @@ class CACLA(AlgorithmInterface):
         }
         self._actGivens = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._next_states_shared,
-            # self._model.getRewardSymbolicVariable(): self._rewards_shared,
-            self._model.getActionSymbolicVariable(): self._model.getActions()
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            self._Fallen: self._fallen_shared
+            # self._tmp_diff: self._tmp_diff_shared
         }
         
         self._critic_regularization = (self._critic_regularization_weight * lasagne.regularization.regularize_network_params(
@@ -92,41 +96,54 @@ class CACLA(AlgorithmInterface):
         self._actor_regularization = (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getActorNetwork(), lasagne.regularization.l2))
         # SGD update
-        # self._updates_ = lasagne.updates.rmsprop(self._loss + self._critic_regularization, self._params, 
-        #                         self._learning_rate, self._rho, self._rms_epsilon)
+        # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
+        # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
+        #                                    self._rms_epsilon)
         # TD update
-        self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
-                    self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
-        
-        
-        # actDiff1 = (self._model.getActionSymbolicVariable() - self._q_valsActTarget) #TODO is this correct?
-        # actDiff = (actDiff1 - (self._model.getActionSymbolicVariable() - self._q_valsActA))
+        if (self.getSettings()['optimizer'] == 'rmsprop'):
+            self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
+                        self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
+        elif (self.getSettings()['optimizer'] == 'momentum'):
+            self._updates_ = lasagne.updates.momentum(T.mean(self._q_func) + self._critic_regularization, self._params, 
+                        self._critic_learning_rate * -T.mean(self._diff), momentum=self._rho)
+        elif ( self.getSettings()['optimizer'] == 'adam'):
+            self._updates_ = lasagne.updates.adam(T.mean(self._q_func) + self._critic_regularization, self._params, 
+                        self._critic_learning_rate * -T.mean(self._diff), beta1=0.9, beta2=0.999, epsilon=1e-08)
+        else:
+            print ("Unknown optimization method: ", self.getSettings()['optimizer'])
+            sys.exit(-1)
+        ## Need to perform an element wise operation or replicate _diff for this to work properly.
+        self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), 
+                                                                           theano.tensor.tile((self._diff * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
+        self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)
         # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
-        self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
-        # self._actLoss = 0.5 * (self._actDiff ** 2) 
-        ## Should produce a single column vector or costs for each sample in the batch
-        self._actLoss_ = T.mean(T.pow(self._actDiff, 2),axis=1) 
+        self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
+        ## This should be a single column vector
+        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( (T.mean(T.pow(self._actDiff, 2),axis=1) )), (self._diff * (1.0/(1.0-self._discount_factor))))
+        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( T.reshape(T.sum(T.pow(self._actDiff, 2),axis=1), (self._batch_size, 1) )), 
+        #                                                                        (self._tmp_diff * (1.0/(1.0-self._discount_factor)))
+        self._actLoss_ = (T.mean(T.pow(self._actDiff, 2),axis=1))
+                                                                                
+        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)( (T.mean(T.pow(self._actDiff, 2),axis=1)), 
+        #                                                                         (self._tmp_diff * (1.0/(1.0-self._discount_factor)))
+        #                                                                     )
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
-        self._actLoss = T.mean(self._actLoss_)
+        self._actLoss = T.mean(self._actLoss_) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
-        # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
-        ## Computes the distance between actions weighted by the distances between the states that result in those actions
-        """
-        state_sum = T.mean(T.pow(self._model.getStateSymbolicVariable(),2), axis=1)
-        Distance = ((((state_sum + T.reshape(state_sum, (1,-1)).T) - 2*T.dot(self._model.getStateSymbolicVariable(), self._model.getStateSymbolicVariable().T))))
-        action_sum = T.mean(T.pow(self._q_valsActA_drop,2), axis=1)
-        Distance_action = ((((action_sum + T.reshape(action_sum, (1,-1)).T) - 2*T.dot(self._q_valsActA_drop, self._q_valsActA_drop.T))))
-        weighted_dist = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(Distance, Distance_action)
-        self._weighted_mean_dist = T.mean(weighted_dist, axis=1)
-        """
-        ## Entropy from A3C, make sure network is not producing same action for everything..
-        # self.entropy = -T.mean(T.sum(self._q_valsActA_drop, axis=0))
-        # self._weighted_entropy = -T.mean(self._weighted_mean_dist)
-        self._weighted_entropy = 0
+        self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         
-        
-        self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization + (0.00001 * self._weighted_entropy), 
-                                self._actionParams, self._learning_rate , self._rho, self._rms_epsilon)
+        if (self.getSettings()['optimizer'] == 'rmsprop'):
+            self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization, self._actionParams, 
+                    self._learning_rate , self._rho, self._rms_epsilon)
+        elif (self.getSettings()['optimizer'] == 'momentum'):
+            self._actionUpdates = lasagne.updates.momentum(self._actLoss + self._actor_regularization, self._actionParams, 
+                    self._learning_rate , momentum=self._rho)
+        elif ( self.getSettings()['optimizer'] == 'adam'):
+            self._actionUpdates = lasagne.updates.adam(self._actLoss + self._actor_regularization, self._actionParams, 
+                    self._learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
+        else:
+            print ("Unknown optimization method: ", self.getSettings()['optimizer'])
+            
         
         # actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct_drop) + 
         #   (self._regularization_weight * lasagne.regularization.regularize_network_params(
@@ -141,17 +158,12 @@ class CACLA(AlgorithmInterface):
         
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
-        CACLA.compile(self)
-    
-    # @profile(precision=5)   
+        A3C.compile(self)
+        
     def compile(self):
-        """
-            Theano uses a lot of memory to compile functions...
-        """
         
         #### Stuff for Debugging #####
         self._get_diff = theano.function([], [self._diff], givens=self._givens_)
-        self._get_actDiff = theano.function([], [self._actDiff], givens=self._actGivens)
         self._get_target = theano.function([], [self._target], givens={
             # self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
@@ -159,21 +171,20 @@ class CACLA(AlgorithmInterface):
             self._Fallen: self._fallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         })
-        """
-        self._get_weighted_mean_dist = theano.function([], [self._weighted_mean_dist], givens={
-            self._model.getStateSymbolicVariable(): self._model.getStates()
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            # self._Fallen: self._fallen_shared
-            # self._model.getActionSymbolicVariable(): self._actions_shared,
-        })
-        """
         self._get_critic_regularization = theano.function([], [self._critic_regularization])
         self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         
         self._get_actor_regularization = theano.function([], [self._actor_regularization])
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
-        self._get_actor_batch_loss = theano.function([], [self._actLoss_], givens=self._actGivens)
+        self._get_actor_diff_ = theano.function([], [self._actDiff], givens={
+            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getActionSymbolicVariable(): self._model.getActions()
+            # self._Fallen: self._fallen_shared
+        }) 
+        
+        self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
         
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
@@ -191,7 +202,7 @@ class CACLA(AlgorithmInterface):
         self._q_action_target = theano.function([], self._q_valsActTarget,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         # self._bellman_error_drop = theano.function(inputs=[self._model.getStateSymbolicVariable(), self._model.getRewardSymbolicVariable(), self._model.getResultStateSymbolicVariable()], outputs=self._diff_drop, allow_input_downcast=True)
-        # self._bellman_error_drop2 = theano.function(inputs=[], outputs=self._diff_drop, allow_input_downcast=True, givens=self._givens_)
+        self._bellman_error_drop2 = theano.function(inputs=[], outputs=self._diff_drop, allow_input_downcast=True, givens=self._givens_)
         
         # self._bellman_error = theano.function(inputs=[self._model.getStateSymbolicVariable(), self._model.getResultStateSymbolicVariable(), self._model.getRewardSymbolicVariable()], outputs=self._diff, allow_input_downcast=True)
         self._bellman_error2 = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
@@ -221,11 +232,16 @@ class CACLA(AlgorithmInterface):
         self._modelTarget.setRewards(rewards)
         # print ("Falls: ", fallen)
         self._fallen_shared.set_value(fallen)
+        # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
+        ## Easy fix for computing actor loss
+        diff = self._bellman_error2()
+        self._tmp_diff_shared.set_value(diff)
         
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
     def getGrads(self, states):
         # self.setData(states, actions, rewards, result_states)
+        states = np.array(states, dtype=theano.config.floatX)
         self._model.setStates(states)
         return self._get_grad()
 
@@ -256,36 +272,16 @@ class CACLA(AlgorithmInterface):
         #     self.updateTargetModel()
         # self._updates += 1
         # loss, _ = self._train()
+        # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
-        
-        diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        # print ("Diff")
-        # print (diff_)
-        tmp_states=[]
-        tmp_result_states=[]
-        tmp_actions=[]
-        tmp_rewards=[]
-        tmp_falls=[]
-        for i in range(len(diff_)):
-            if ( diff_[i] > 0.0):
-                tmp_states.append(states[i])
-                tmp_result_states.append(result_states[i])
-                tmp_actions.append(actions[i])
-                tmp_rewards.append(rewards[i])
-                tmp_falls.append(falls[i])
-                
-        if (len(tmp_actions) > 0):
-            self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
-            # print ("Actions: ", self._q_action_drop())
-            # print ("weighted dist: ", self._get_weighted_mean_dist())
-            lossActor, _ = self._trainActor()
-            print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
-            # print ( " Actions: ", tmp_actions)
-            # print ( "Actor diff: " , self._get_actDiff())
+        lossActor, _ = self._trainActor()
+        print( "Policy loss: ", lossActor)
+            # print( " Actor loss: ", lossActor)
+            # print("Diff for actor: ", self._get_diff())
+            # print ("Tmp_diff: ", tmp_diff)
+            # print ( "Action before diff: ", self._get_actor_diff_())
+            # print( "Action diff: ", self._get_action_diff())
             # return np.sqrt(lossActor);
-            # print ("batch loss: ", self._get_actor_batch_loss())
-        else:
-            print ("Length of BAD positive actions: ", len(tmp_actions))
         return lossActor
     
     def train(self, states, actions, rewards, result_states, falls):
@@ -294,16 +290,16 @@ class CACLA(AlgorithmInterface):
         return loss
     
     def predict(self, state, deterministic_=True):
-        # print ("dtype: ", theano.config.floatX)
-        state = np.array(state, dtype=theano.config.floatX)
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
         action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
@@ -325,20 +321,15 @@ class CACLA(AlgorithmInterface):
         return action_
     
     def q_value(self, state):
-        """
-            This input states for this function can come right from the env so that should be cleaned
-        """
-        # print ("dtype: ", theano.config.floatX)
-        state = np.array(state, dtype=theano.config.floatX)
-        # print ("dtype: ", state.dtype)
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
-        # print ("dtype: ", state.dtype)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        # return self._q_valTarget()[0]
-        return self._q_val()[0]
+        return self._q_valTarget()[0]
+        # return self._q_val()[0]
     
     def q_values(self, state):
         """
@@ -355,9 +346,9 @@ class CACLA(AlgorithmInterface):
         state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
-        return self._q_val_drop()[0]
+        return scale_reward(self._q_val_drop(), self.getRewardBounds())[0]
     
     def bellman_error(self, states, actions, rewards, result_states, falls):
         self.setData(states, actions, rewards, result_states, falls)
-        # return self._bellman_error2()
-        return self._bellman_errorTarget()
+        return self._bellman_error2()
+        # return self._bellman_errorTarget()

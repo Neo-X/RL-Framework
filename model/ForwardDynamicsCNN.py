@@ -684,6 +684,7 @@ class ForwardDynamicsCNN(ModelInterface):
         
         # networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
         # this should have dimensions (1,self._state_length + self._action_length)...
+        ## Put the terrain features together with the character feature predictions
         networkAct = lasagne.layers.ConcatLayer([networkAct, networkActChar], axis=1) 
         """
         self._actor = lasagne.layers.DenseLayer(

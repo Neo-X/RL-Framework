@@ -43,6 +43,10 @@ class DeepNN(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 network, num_units=32,
                 nonlinearity=lasagne.nonlinearities.rectify)
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=16,
+                nonlinearity=lasagne.nonlinearities.rectify)
     
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
@@ -60,6 +64,10 @@ class DeepNN(ModelInterface):
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
+        networkAct = lasagne.layers.DenseLayer(
+                networkAct, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
         self._actor = lasagne.layers.DenseLayer(
