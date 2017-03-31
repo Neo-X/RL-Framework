@@ -82,7 +82,7 @@
 "critic_regularization_weight": 0.000001,
 "critic_learning_rate": 0.01,
 "visualize_expected_value": true,
-"target_velocity_decay":-2.0,
+"target_velocity_decay":-10.0,
 "target_velocity":1.0,
 "num_terrain_features": 0,
 "initial_temperature": 5.0,
