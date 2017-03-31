@@ -115,7 +115,7 @@ class A3C2(AlgorithmInterface):
         ## Need to perform an element wise operation or replicate _diff for this to work properly.
         self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), 
                                                                            theano.tensor.tile((self._diff * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
-        self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)
+        # self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)
         # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
         self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
         ## This should be a single column vector
@@ -158,7 +158,7 @@ class A3C2(AlgorithmInterface):
         
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
-        A3C.compile(self)
+        A3C2.compile(self)
         
     def compile(self):
         
@@ -178,10 +178,10 @@ class A3C2(AlgorithmInterface):
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
         self._get_actor_diff_ = theano.function([], [self._actDiff], givens={
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._model.getActionSymbolicVariable(): self._model.getActions()
-            # self._Fallen: self._fallen_shared
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            self._Fallen: self._fallen_shared
         }) 
         
         self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
