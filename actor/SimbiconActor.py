@@ -34,7 +34,7 @@ class SimbiconActor(ActorInterface):
         action_ = np.array(action_, dtype='float64')
         right_hand_pos = np.array(exp.getEnvironment().getActor().getLinkPosition("rLowerarm"))
         position_root = np.array(exp.getEnvironment().getActor().getStateEuler()[0:][:3])
-        print ("Relative Right arm pos: ", right_hand_pos-position_root)
+        # print ("Relative Right arm pos: ", right_hand_pos-position_root)
         exp.getEnvironment().updateAction(action_)
         steps_ = 0
         vel_sum= float(0)
