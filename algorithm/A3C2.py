@@ -84,11 +84,11 @@ class A3C2(AlgorithmInterface):
         }
         self._actGivens = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            self._Fallen: self._fallen_shared
-            # self._tmp_diff: self._tmp_diff_shared
+            # self._Fallen: self._fallen_shared
+            self._tmp_diff: self._tmp_diff_shared
         }
         
         self._critic_regularization = (self._critic_regularization_weight * lasagne.regularization.regularize_network_params(
@@ -176,13 +176,14 @@ class A3C2(AlgorithmInterface):
         
         self._get_actor_regularization = theano.function([], [self._actor_regularization])
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
-        self._get_actor_diff_ = theano.function([], [self._actDiff], givens={
+        self._get_actor_diff_ = theano.function([], [self._actDiff], givens= self._actGivens)
+        """{
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
             self._Fallen: self._fallen_shared
-        }) 
+        }) """
         
         self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
         
