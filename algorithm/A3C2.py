@@ -114,7 +114,7 @@ class A3C2(AlgorithmInterface):
             sys.exit(-1)
         ## Need to perform an element wise operation or replicate _diff for this to work properly.
         self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), 
-                                                                           theano.tensor.tile((self._diff * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
+                                                                           theano.tensor.tile((self._tmp_diff * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
         # self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)
         # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
         self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?

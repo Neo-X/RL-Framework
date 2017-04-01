@@ -1,6 +1,6 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "Deep_CNN_SingleNet",
+"model_type": "Deep_CNN",
     "comment__": "Learning algorithm to use",
 "agent_name": "A3C2",
     "comment__": "Folder to store the training data in.",
