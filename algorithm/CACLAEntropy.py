@@ -13,12 +13,12 @@ from algorithm.AlgorithmInterface import AlgorithmInterface
 # from DeepCACLA import DeepCACLA
 
 # @profile(precision=5)
-class CACLA(AlgorithmInterface):
+class CACLAEntropy(AlgorithmInterface):
     
     # @profile(precision=5)
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
-        super(CACLA,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(CACLAEntropy,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
         # create a small convolutional neural network
         
@@ -139,7 +139,7 @@ class CACLA(AlgorithmInterface):
         
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
-        CACLA.compile(self)
+        CACLAEntropy.compile(self)
     
     # @profile(precision=5)   
     def compile(self):

@@ -41,6 +41,7 @@ def trainModelParallel(settingsFileName):
         ## Theano needs to be imported after the flags are set.
         # from ModelEvaluation import *
         # from model.ModelUtil import *
+        # print ( "theano.config.mode: ", theano.config.mode)
         from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience
         from model.ModelUtil import validBounds
         from model.LearningAgent import LearningAgent, LearningWorker

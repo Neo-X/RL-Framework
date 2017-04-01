@@ -46,6 +46,7 @@ from algorithm.CACLADVTarget import CACLADVTarget
 from algorithm.ForwardDynamics import ForwardDynamics
 from algorithm.A3C import A3C
 from algorithm.A3C2 import A3C2
+from algorithm.CACLAEntropy import CACLAEntropy
 
 from util.ExperienceMemory import ExperienceMemory
 from RLVisualize import RLVisualize
@@ -231,6 +232,9 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "A3C2" ):
         model = A3C2(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+    elif (algorihtm_type == "CACLA_Entropy" ):
+        model = CACLAEntropy(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     else:
         print ("Unknown learning algorithm type: " + str(algorihtm_type))
