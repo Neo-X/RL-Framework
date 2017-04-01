@@ -110,10 +110,11 @@
 "controller_parameter_settings": {
 		"velocity_bounds": [[0.5],[2.5]],
 		"root_height_bounds": [[0.7],[1.1]],
-		"root_pitch_bounds": [[-0.25],[0.25]]
+		"root_pitch_bounds": [[-0.25],[0.25]],
+		"right_hand_x_pos_bounds": [[0.0],[0.5]]
 		},
 	"comment__": "THe parameter used to control the average chage in the contorl parameters",
-"average_parameter_change": 0.25
+"average_parameter_change": 0.25,
 	"comment__": "Whether or not to train the value function some output from the forward dynamics",
 "train_critic_on_fd_output": false
 }

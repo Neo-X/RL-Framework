@@ -153,6 +153,13 @@ def randomUniformExporation(bounds):
         out.append(np.random.uniform(bounds[0][i],bounds[1][i],1)[0])
     return out
 
+def randomUniformExporation(explorationRate, actionV, bounds):
+    out = []
+    for i in range(len(bounds[0])):
+        r = np.random.uniform(-1.0,1,1)[0] * explorationRate
+        out.append( actionV[i] + (r * ( bounds[1][i] - bounds[0][i] ) ) )
+    return out
+
 def clampAction(actionV, bounds):
     """
     bounds[0] is lower bounds
