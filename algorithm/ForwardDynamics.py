@@ -94,6 +94,12 @@ class ForwardDynamics(AlgorithmInterface):
         self._model.setActions(action)
         state_ = scale_state(self._forwardDynamics()[0], self._state_bounds)
         return state_
+    
+    def predict_batch(self, states, actions):
+        ## These input should already be normalized.
+        self._model.setStates(states)
+        self._model.setActions(actions)
+        return self._forwardDynamics()
 
     def bellman_error(self, states, actions, result_states):
         self.setData(states, actions, result_states)

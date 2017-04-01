@@ -78,6 +78,14 @@ class LearningAgent(AgentInterface):
             dynamicsLoss = 0 
             if (self._settings['train_forward_dynamics']):
                 dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states)
+                if (self._settings['train_critic_on_fd_output']):
+                    result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
+                    cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=result_states__, falls=_falls)
+                    if not np.isfinite(cost) or (cost > 500) :
+                        print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
+                        print ("Training cost is Odd: ", cost)
+                        
+                        
         if self._useLock:
             self._accesLock.release()
         return (cost, dynamicsLoss) 
