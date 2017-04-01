@@ -27,28 +27,51 @@ class ForwardDynamics(AlgorithmInterface):
             self._model.getActionSymbolicVariable(): self._model.getActions(),
         }
         self._forward = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_)
+        self._reward = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_)
         
         # self._target = (Reward + self._discount_factor * self._q_valsB)
         self._diff = self._model.getResultStateSymbolicVariable() - self._forward
         self._loss = T.mean(T.pow(self._diff, 2),axis=1)
         self._loss = T.mean(self._loss)
         
+        
+        self._reward_diff = self._model.getRewardSymbolicVariable() - self._reward
+        self._reward_loss = T.mean(T.pow(self._reward_diff, 2),axis=1)
+        self._reward_loss = T.mean(self._reward_loss)
+        
         self._params = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
+        self._reward_params = lasagne.layers.helper.get_all_params(self._model.getCriticNetwork())
         self._givens_ = {
             self._model.getStateSymbolicVariable() : self._model.getStates(),
             self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
+        }
+        
+        self._reward_givens_ = {
+            self._model.getStateSymbolicVariable() : self._model.getStates(),
+            # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            self._model.getRewardSymbolicVariable() : self._model.getRewards(),
         }
 
         # SGD update
         self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getActorNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
                                             self._rms_epsilon)
+        
+        self._reward_updates_ = lasagne.updates.rmsprop(self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
+                self._model.getCriticNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, self._rho,
+                                            self._rms_epsilon)
      
         self._train = theano.function([], [self._loss], updates=self._updates_, givens=self._givens_)
+        self._train_reward = theano.function([], [self._reward_loss], updates=self._reward_updates_, givens=self._reward_givens_)
         self._forwardDynamics = theano.function([], self._forward,
                                        givens={self._model.getStateSymbolicVariable() : self._model.getStates(),
                                                 self._model.getActionSymbolicVariable(): self._model.getActions()})
+        self._predict_reward = theano.function([], self._reward,
+                                       givens={self._model.getStateSymbolicVariable() : self._model.getStates(),
+                                                self._model.getActionSymbolicVariable(): self._model.getActions()})
+        
         self._bellman_error = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         # self._diffs = theano.function(input=[State])
         self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss, [lasagne.layers.get_all_layers(self._model.getActorNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
