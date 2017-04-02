@@ -123,7 +123,7 @@ class ForwardDynamics(AlgorithmInterface):
         self._updates += 1
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         loss = self._train()
-        lossReward = self._train_reward()
+        # lossReward = self._train_reward()
         # This undoes the Actor parameter updates as a result of the Critic update.
         # print (diff_)
         return loss
