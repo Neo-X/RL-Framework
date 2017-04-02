@@ -57,12 +57,12 @@ class A3C(AlgorithmInterface):
         
         self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsA_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
-        self._q_valsTargetNextState = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getResultStateSymbolicVariable())
-        self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable())
+        self._q_valsTargetNextState = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
+        self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsTarget_drop = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_valsActA = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
-        self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())
+        self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -126,9 +126,9 @@ class A3C(AlgorithmInterface):
             sys.exit(-1)
         ## Need to perform an element wise operation or replicate _diff for this to work properly.
         # self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), theano.tensor.tile((self._diff * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
-        self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)
+        self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA_drop)
         # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
-        self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
+        # self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
         ## This should be a single column vector
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( T.transpose(T.sum(T.pow(self._actDiff, 2),axis=1) )), (self._diff * (1.0/(1.0-self._discount_factor))))
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( T.reshape(T.sum(T.pow(self._actDiff, 2),axis=1), (self._batch_size, 1) )), 
@@ -141,7 +141,7 @@ class A3C(AlgorithmInterface):
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
         self._actLoss = T.mean(self._actLoss_) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
-        self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
+        # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization, self._actionParams, 

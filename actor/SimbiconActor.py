@@ -101,7 +101,7 @@ class SimbiconActor(ActorInterface):
         _diff = (self._target_hand_pos - averagePosition)
         if ( self._settings["use_parameterized_control"] ):
             _bounds = self._settings['controller_parameter_settings']['right_hand_x_pos_bounds']
-            _diff = _scale_reward([right_hand_pos_x_diff], _bounds)[0]
+            _diff = _scale_reward([_diff], _bounds)[0]
         right_hand_pos_x_reward = math.exp((_diff * _diff) * self._target_vel_weight)
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 

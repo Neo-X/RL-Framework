@@ -36,6 +36,7 @@ from model.DeepCNNDropout import DeepCNNDropout
 from model.DeepCNNSingleNet import DeepCNNSingleNet
 from model.DumbModel import DumbModel
 from model.DeepNNDropout import DeepNNDropout
+from model.DeepNNSingleNetDropout import DeepNNSingleNetDropout
 
 from algorithm.DeepQNetwork import DeepQNetwork
 from algorithm.DoubleDeepQNetwork import DoubleDeepQNetwork
@@ -153,7 +154,10 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (model_type == "Deep_CNN_SingleNet" ):
         model = DeepCNNSingleNet(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
-                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)    
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)   
+    elif (model_type == "Deep_NN_SingleNet_Dropout" ):
+        model = DeepNNSingleNetDropout(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)        
     elif (model_type == "DumbModel" ):
         model = DumbModel(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
