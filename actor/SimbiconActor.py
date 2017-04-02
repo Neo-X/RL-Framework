@@ -98,7 +98,7 @@ class SimbiconActor(ActorInterface):
             root_height_diff = _scale_reward([root_height_diff], root_height_bounds)[0]
         root_height_reward = math.exp((root_height_diff * root_height_diff) * self._target_vel_weight)
         
-        right_hand_pos_x_diff = (self._target_hand_pos - averagePosition)
+        _diff = (self._target_hand_pos - averagePosition)
         if ( self._settings["use_parameterized_control"] ):
             _bounds = self._settings['controller_parameter_settings']['right_hand_x_pos_bounds']
             _diff = _scale_reward([right_hand_pos_x_diff], _bounds)[0]
