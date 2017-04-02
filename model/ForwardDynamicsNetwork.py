@@ -23,6 +23,8 @@ class ForwardDynamicsNetwork(ModelInterface):
         self._State.tag.test_value = np.random.rand(batch_size,self._state_length)
         self._ResultState = T.matrix("ResultState")
         self._ResultState.tag.test_value = np.random.rand(batch_size,self._state_length)
+        self._Reward = T.col("Reward")
+        self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
         self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(batch_size, self._action_length)
         # create a small convolutional neural network
@@ -48,8 +50,23 @@ class ForwardDynamicsNetwork(ModelInterface):
                 l_hid4ActA, num_units=self._state_length,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
+                
+        l_hid2ActA = lasagne.layers.DenseLayer(
+                network, num_units=256,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
-        self._crtic = None
+        l_hid3ActA = lasagne.layers.DenseLayer(
+                l_hid2ActA, num_units=128,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
+        l_hid4ActA = lasagne.layers.DenseLayer(
+                l_hid3ActA, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+    
+        self._critic = lasagne.layers.DenseLayer(
+                l_hid4ActA, num_units=1,
+                nonlinearity=lasagne.nonlinearities.linear)
+                # print ("Initial W " + str(self._w_o.get_value()) )
         
         self._states_shared = theano.shared(
             np.zeros((batch_size, self._state_length),
@@ -62,4 +79,8 @@ class ForwardDynamicsNetwork(ModelInterface):
         self._actions_shared = theano.shared(
             np.zeros((batch_size, self._action_length), dtype=theano.config.floatX),
             )
+        
+        self._rewards_shared = theano.shared(
+            np.zeros((self._batch_size, 1), dtype=theano.config.floatX),
+            broadcastable=(False, True))
         
