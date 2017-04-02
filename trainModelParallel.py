@@ -425,7 +425,7 @@ def trainModelParallel(settingsFileName):
                         print (states, actions, rewards, result_states)
                         
                     if (settings['train_forward_dynamics']):
-                        dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states)
+                        dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
                         dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
                         dynamicsLosses.append(dynamicsLoss)
                     if (settings['train_forward_dynamics']):

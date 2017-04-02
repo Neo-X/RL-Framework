@@ -84,10 +84,12 @@ class ForwardDynamics(AlgorithmInterface):
     def setNetworkParameters(self, params):
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params[0])
         
-    def setData(self, states, actions, result_states):
+    def setData(self, states, actions, result_states, rewards=None):
         self._model.setStates(states)
         self._model.setResultStates(result_states)
         self._model.setActions(actions)
+        if (rewards != None):
+            self._model.setRewards(rewards)
         
     def getGrads(self, states, actions, result_states):
         states = np.array(states, dtype=self.getSettings()['float_type'])
@@ -96,14 +98,15 @@ class ForwardDynamics(AlgorithmInterface):
         self.setData(states, actions, result_states)
         return self._get_grad()
                 
-    def train(self, states, actions, result_states):
-        self.setData(states, actions, result_states)
+    def train(self, states, actions, result_states, rewards):
+        self.setData(states, actions, result_states, rewards)
         # print ("Performing Critic trainning update")
         #if (( self._updates % self._weight_update_steps) == 0):
         #    self.updateTargetModel()
         self._updates += 1
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         loss = self._train()
+        lossReward = self._train_reward()
         # This undoes the Actor parameter updates as a result of the Critic update.
         # print (diff_)
         return loss
@@ -118,12 +121,22 @@ class ForwardDynamics(AlgorithmInterface):
         state_ = scale_state(self._forwardDynamics()[0], self._state_bounds)
         return state_
     
+    def predict_reward(self, state, action):
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        action = np.array([norm_action(action, self._action_bounds)], dtype=self.getSettings()['float_type'])
+        self._model.setStates(state)
+        self._model.setActions(action)
+        reward_ = scale_state(self._predict_reward()[0], self._reward_bounds)
+        return reward_
+    
     def predict_batch(self, states, actions):
         ## These input should already be normalized.
         self._model.setStates(states)
         self._model.setActions(actions)
         return self._forwardDynamics()
 
-    def bellman_error(self, states, actions, result_states):
-        self.setData(states, actions, result_states)
+    def bellman_error(self, states, actions, result_states, rewards):
+        self.setData(states, actions, result_states, rewards)
         return self._bellman_error()

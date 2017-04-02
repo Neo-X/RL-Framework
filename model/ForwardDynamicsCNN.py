@@ -587,6 +587,8 @@ class ForwardDynamicsCNN(ModelInterface):
         self._State.tag.test_value = np.random.rand(self._batch_size, self._state_length)
         self._ResultState = T.matrix("ResultState")
         self._ResultState.tag.test_value = np.random.rand(self._batch_size, self._state_length)
+        self._Reward = T.col("Reward")
+        self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
         self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         
@@ -695,6 +697,17 @@ class ForwardDynamicsCNN(ModelInterface):
         self._actor = networkAct
         print ("Network Shape:", lasagne.layers.get_output_shape(self._actor))
         
+        networkActReward = lasagne.layers.DenseLayer(
+                networkActMiddle, num_units=128,
+                nonlinearity=lasagne.nonlinearities.rectify)
+        networkActReward = lasagne.layers.DenseLayer(
+                networkActReward, num_units=64,
+                nonlinearity=lasagne.nonlinearities.rectify)
+        networkActReward = lasagne.layers.DenseLayer(
+                networkActReward, num_units=1,
+                nonlinearity=lasagne.nonlinearities.linear)        
+        self._critic = networkActReward
+        
         # self._actor = lasagne.layers.ReshapeLayer(self._actor, (-1, 1, 1, 208))
         
           # print ("Initial W " + str(self._w_o.get_value()) )
@@ -710,6 +723,10 @@ class ForwardDynamicsCNN(ModelInterface):
         self._actions_shared = theano.shared(
             np.zeros((self._batch_size, self._action_length), dtype=theano.config.floatX),
             )
+        
+        self._rewards_shared = theano.shared(
+            np.zeros((self._batch_size, 1), dtype=theano.config.floatX),
+            broadcastable=(False, True))
         
     def setStates(self, states):
         """
