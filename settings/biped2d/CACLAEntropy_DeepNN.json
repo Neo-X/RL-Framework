@@ -14,7 +14,7 @@
 "epochs": 10,
 "eval_epochs": 10,
 "discount_factor": 0.8,
-"visualize_learning": true,
+"visualize_learning": false,
 "save_trainData": true,
 "train_forward_dynamics": false,
 "reward_bounds": [[0.0],[1.0]],
