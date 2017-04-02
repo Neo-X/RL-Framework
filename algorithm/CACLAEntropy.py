@@ -123,7 +123,7 @@ class CACLAEntropy(AlgorithmInterface):
         self._weighted_entropy = -T.mean(self._weighted_mean_dist)
         
         
-        self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization + (0.00001 * self._weighted_entropy), 
+        self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization + (self.getSettings()['diversity_weight'] * self._weighted_entropy), 
                                 self._actionParams, self._learning_rate , self._rho, self._rms_epsilon)
         
         # actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct_drop) + 
