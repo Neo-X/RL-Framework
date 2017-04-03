@@ -12,7 +12,7 @@ class SimbiconActor(ActorInterface):
         super(SimbiconActor,self).__init__(settings_, experience)
         self._target_vel_weight=self._settings["target_velocity_decay"]
         self._target_vel = self._settings["target_velocity"]
-        self._target_lean = 0
+        self._target_lean = 0.0
         self._target_torque = 0
         self._target_root_height = 1.02
         self._target_hand_pos = 0.0
@@ -33,6 +33,7 @@ class SimbiconActor(ActorInterface):
         ## Need to make sure this is an vector of doubles
         action_ = np.array(action_, dtype='float64')
         right_hand_pos = np.array(exp.getEnvironment().getActor().getLinkPosition("rLowerarm"))
+        right_hand_pos = np.array(exp.getEnvironment().getActor().getLinkPosition("rLowerarm"))
         position_root = np.array(exp.getEnvironment().getActor().getStateEuler()[0:][:3])
         # print ("Relative Right arm pos: ", right_hand_pos-position_root)
         exp.getEnvironment().updateAction(action_)
@@ -45,18 +46,26 @@ class SimbiconActor(ActorInterface):
         while (not exp.getEnvironment().needUpdatedAction() or (steps_ == 0)):
             exp.getEnvironment().update()
             simData = exp.getEnvironment().getActor().getSimData()
+            position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
             # print ("avgSpeed: ", simData.avgSpeed)
             vel_sum += math.fabs(self._target_vel - simData.avgSpeed)
             torque_sum += math.fabs( self._target_torque - simData.avgTorque)
             
-            orientation = exp.getEnvironment().getActor().getStateEuler()[3:][:3]
-            pitch_sum += math.fabs(self._target_lean - orientation[0])
+            # orientation = exp.getEnvironment().getActor().getStateEuler()[3:][:3]
+            torso_pos = np.array(exp.getEnvironment().getActor().getLinkPosition("torso"))
+            """
+            if (self._settings["print_level"]== 'debug'):
+                print ("root orientation: ", orientation)
+            """
+            rel_torso_pos = (torso_pos[2]-position_root[2])
+            # print ("torso pos: ", rel_torso_pos)
+            pitch_sum += math.fabs(self._target_lean - (rel_torso_pos)) ## Not sure why this is around why, look like singularity around x axis...
             
-            position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
             position_sum += math.fabs(self._target_root_height - position_root[1])
             
             right_hand_pos = np.array(exp.getEnvironment().getActor().getLinkPosition("rLowerarm"))
-            right_hand_x_sum += math.fabs(self._target_hand_pos - right_hand_pos[2]) ## z = x here... 
+            # right_hand_x_sum += math.fabs(self._target_hand_pos - (right_hand_pos[2])) ## z = x here...
+            right_hand_x_sum += math.fabs(self._target_hand_pos - (right_hand_pos[2] - position_root[2])) ## z = x here... 
             
             steps_ += 1
         averageSpeed = vel_sum / steps_
@@ -83,6 +92,8 @@ class SimbiconActor(ActorInterface):
         if ( self._settings["use_parameterized_control"] ):
             vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
             vel_diff = _scale_reward([vel_diff], vel_bounds)[0]
+            if (self._settings["print_level"]== 'debug'):
+                print ("vel_diff: ", vel_diff)
         vel_reward = math.exp((vel_diff*vel_diff)*self._target_vel_weight)
         ## Rewarded for using less torque
         torque_diff = averageTorque
@@ -94,6 +105,8 @@ class SimbiconActor(ActorInterface):
         if ( self._settings["use_parameterized_control"] ):
             root_pitch_bounds = self._settings['controller_parameter_settings']['root_pitch_bounds']
             lean_diff = _scale_reward([lean_diff], root_pitch_bounds)[0]
+            if (self._settings["print_level"]== 'debug'):
+                print ("lean_diff: ", lean_diff)
         lean_reward = math.exp((lean_diff*lean_diff)*self._target_vel_weight)
         ## Rewarded for keeping the y height of the root at a specific height 
         root_height_diff = (averagePosition)
@@ -102,6 +115,8 @@ class SimbiconActor(ActorInterface):
         if ( self._settings["use_parameterized_control"] ):
             root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
             root_height_diff = _scale_reward([root_height_diff], root_height_bounds)[0]
+            if (self._settings["print_level"]== 'debug'):
+                print ("root_height_diff: ", root_height_diff)
         root_height_reward = math.exp((root_height_diff * root_height_diff) * self._target_vel_weight)
         
         _diff = (averageRightHandPos)
@@ -110,6 +125,8 @@ class SimbiconActor(ActorInterface):
         if ( self._settings["use_parameterized_control"] ):
             _bounds = self._settings['controller_parameter_settings']['right_hand_x_pos_bounds']
             _diff = _scale_reward([_diff], _bounds)[0]
+            if (self._settings["print_level"]== 'debug'):
+                print ("right_hand_diff: ", _diff)
         right_hand_pos_x_reward = math.exp((_diff * _diff) * self._target_vel_weight)
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 

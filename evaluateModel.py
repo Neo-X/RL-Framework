@@ -84,12 +84,14 @@ class SimContainer(object):
         if (self._exp.getEnvironment().needUpdatedAction()):
             state_ = self._exp.getState()
             position_root = self._exp.getEnvironment().getActor().getStateEuler()[0:][:3]
+            root_orientation = self._exp.getEnvironment().getActor().getStateEuler()[3:][:3]
             print("Root position: ", position_root)
+            print("Root orientation: ", root_orientation)
             action_ = np.array(self._agent.predict(state_), dtype='float64')
             grad_ = self._agent.getPolicy().getGrads(state_)[0]
             self._grad_sum += np.abs(grad_)
             self._num_actions +=1
-            print ("Input grad: ", self._grad_sum/self._num_actions)
+            # print ("Input grad: ", self._grad_sum/self._num_actions)
             
             # action_[1] = 1.0
             # print( "New action: ", action_)
