@@ -78,6 +78,8 @@ class SimbiconActor(ActorInterface):
         # print ("Orientation: ", orientation)
         ## Reward for going the desired velocity
         vel_diff = averageSpeed
+        if (self._settings["print_level"]== 'debug'):
+            print ("vel_diff: ", vel_diff)
         if ( self._settings["use_parameterized_control"] ):
             vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
             vel_diff = _scale_reward([vel_diff], vel_bounds)[0]
@@ -87,18 +89,24 @@ class SimbiconActor(ActorInterface):
         torque_reward = math.exp((torque_diff*torque_diff)*self._target_vel_weight)
         ## Rewarded for keeping the characters torso upright
         lean_diff = averagePitch
+        if (self._settings["print_level"]== 'debug'):
+            print ("lean_diff: ", lean_diff)
         if ( self._settings["use_parameterized_control"] ):
             root_pitch_bounds = self._settings['controller_parameter_settings']['root_pitch_bounds']
             lean_diff = _scale_reward([lean_diff], root_pitch_bounds)[0]
         lean_reward = math.exp((lean_diff*lean_diff)*self._target_vel_weight)
         ## Rewarded for keeping the y height of the root at a specific height 
         root_height_diff = (averagePosition)
+        if (self._settings["print_level"]== 'debug'):
+            print ("root_height_diff: ", root_height_diff)
         if ( self._settings["use_parameterized_control"] ):
             root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
             root_height_diff = _scale_reward([root_height_diff], root_height_bounds)[0]
         root_height_reward = math.exp((root_height_diff * root_height_diff) * self._target_vel_weight)
         
         _diff = (averageRightHandPos)
+        if (self._settings["print_level"]== 'debug'):
+            print ("right_hand_diff: ", _diff)
         if ( self._settings["use_parameterized_control"] ):
             _bounds = self._settings['controller_parameter_settings']['right_hand_x_pos_bounds']
             _diff = _scale_reward([_diff], _bounds)[0]
