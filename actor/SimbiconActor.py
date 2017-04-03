@@ -46,17 +46,17 @@ class SimbiconActor(ActorInterface):
             exp.getEnvironment().update()
             simData = exp.getEnvironment().getActor().getSimData()
             # print ("avgSpeed: ", simData.avgSpeed)
-            vel_sum += simData.avgSpeed
-            torque_sum += simData.avgTorque
+            vel_sum += math.abs(self._target_vel - simData.avgSpeed)
+            torque_sum += math.abs( self._target_torque - simData.avgTorque)
             
             orientation = exp.getEnvironment().getActor().getStateEuler()[3:][:3]
-            pitch_sum += orientation[0]
+            pitch_sum += math.abs(self._target_lean - orientation[0])
             
             position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
-            position_sum += position_root[1]
+            position_sum += math.abs(self._target_root_height - position_root[1])
             
             right_hand_pos = np.array(exp.getEnvironment().getActor().getLinkPosition("rLowerarm"))
-            right_hand_x_sum += right_hand_pos[2] ## z = x here... 
+            right_hand_x_sum += math.abs(self._target_hand_pos - right_hand_pos[2]) ## z = x here... 
             
             steps_ += 1
         averageSpeed = vel_sum / steps_
@@ -77,28 +77,28 @@ class SimbiconActor(ActorInterface):
         # print ("Pos: ", position_root)
         # print ("Orientation: ", orientation)
         ## Reward for going the desired velocity
-        vel_diff = self._target_vel - averageSpeed
+        vel_diff = averageSpeed
         if ( self._settings["use_parameterized_control"] ):
             vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
             vel_diff = _scale_reward([vel_diff], vel_bounds)[0]
         vel_reward = math.exp((vel_diff*vel_diff)*self._target_vel_weight)
         ## Rewarded for using less torque
-        torque_diff = averageTorque - self._target_torque
+        torque_diff = averageTorque
         torque_reward = math.exp((torque_diff*torque_diff)*self._target_vel_weight)
         ## Rewarded for keeping the characters torso upright
-        lean_diff = averagePitch - self._target_lean
+        lean_diff = averagePitch
         if ( self._settings["use_parameterized_control"] ):
             root_pitch_bounds = self._settings['controller_parameter_settings']['root_pitch_bounds']
             lean_diff = _scale_reward([lean_diff], root_pitch_bounds)[0]
         lean_reward = math.exp((lean_diff*lean_diff)*self._target_vel_weight)
         ## Rewarded for keeping the y height of the root at a specific height 
-        root_height_diff = (self._target_root_height - averagePosition)
+        root_height_diff = (averagePosition)
         if ( self._settings["use_parameterized_control"] ):
             root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
             root_height_diff = _scale_reward([root_height_diff], root_height_bounds)[0]
         root_height_reward = math.exp((root_height_diff * root_height_diff) * self._target_vel_weight)
         
-        _diff = (self._target_hand_pos - averageRightHandPos)
+        _diff = (averageRightHandPos)
         if ( self._settings["use_parameterized_control"] ):
             _bounds = self._settings['controller_parameter_settings']['right_hand_x_pos_bounds']
             _diff = _scale_reward([_diff], _bounds)[0]
