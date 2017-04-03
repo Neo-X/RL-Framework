@@ -82,10 +82,10 @@
 "critic_regularization_weight": 0.000001,
 "critic_learning_rate": 0.01,
 "visualize_expected_value": true,
-"target_velocity_decay":-10.0,
+"target_velocity_decay":-2.5,
 "target_velocity":1.0,
 "num_terrain_features": 0,
-"initial_temperature": 5.0,
+"initial_temperature": 2.5,
 "min_epsilon": 0.15,
 "shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
@@ -116,5 +116,7 @@
 	"comment__": "THe parameter used to control the average chage in the contorl parameters",
 "average_parameter_change": 0.25,
 	"comment__": "Whether or not to train the value function some output from the forward dynamics",
-"train_critic_on_fd_output": false
+"train_critic_on_fd_output": false,
+	"comment__": "Use to add an additional regularization term to prevent the network from moving to far from its previous values",
+"use_previous_value_regularization": false 
 }
