@@ -46,17 +46,17 @@ class SimbiconActor(ActorInterface):
             exp.getEnvironment().update()
             simData = exp.getEnvironment().getActor().getSimData()
             # print ("avgSpeed: ", simData.avgSpeed)
-            vel_sum += math.abs(self._target_vel - simData.avgSpeed)
-            torque_sum += math.abs( self._target_torque - simData.avgTorque)
+            vel_sum += math.fabs(self._target_vel - simData.avgSpeed)
+            torque_sum += math.fabs( self._target_torque - simData.avgTorque)
             
             orientation = exp.getEnvironment().getActor().getStateEuler()[3:][:3]
-            pitch_sum += math.abs(self._target_lean - orientation[0])
+            pitch_sum += math.fabs(self._target_lean - orientation[0])
             
             position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
-            position_sum += math.abs(self._target_root_height - position_root[1])
+            position_sum += math.fabs(self._target_root_height - position_root[1])
             
             right_hand_pos = np.array(exp.getEnvironment().getActor().getLinkPosition("rLowerarm"))
-            right_hand_x_sum += math.abs(self._target_hand_pos - right_hand_pos[2]) ## z = x here... 
+            right_hand_x_sum += math.fabs(self._target_hand_pos - right_hand_pos[2]) ## z = x here... 
             
             steps_ += 1
         averageSpeed = vel_sum / steps_
