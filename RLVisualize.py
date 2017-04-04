@@ -16,11 +16,13 @@ class RLVisualize(object):
             discounted reward error
         """
         if (settings != None):
-            self._iteration_scale = ((settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'] * 
-                                      settings['training_updates_per_sim_action']) / 
+            self._sim_iteration_scale = (settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'])
+            self._iteration_scale = ((self._sim_iteration_scale * settings['training_updates_per_sim_action']) / 
                                      settings['sim_action_per_training_update'])
+            
         else:
             self._iteration_scale = 1
+            self._sim_iteration_scale = 1
         self._title=title
         self._fig, (self._bellman_error_ax, self._reward_ax, self._discount_error_ax) = plt.subplots(3, 1, sharey=False, sharex=True)
         self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
@@ -38,7 +40,7 @@ class RLVisualize(object):
         self._discount_error_ax.set_title('Discount Error')
         self._discount_error_ax.set_ylabel("Absolute Error")
         self._discount_error_ax.grid(b=True, which='major', color='black', linestyle='--')
-        plt.xlabel("Iteration x" + str(self._iteration_scale))
+        plt.xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale))
         
         self._fig.set_size_inches(8.0, 12.5, forward=True)
         
@@ -125,10 +127,14 @@ if __name__ == "__main__":
     trainData = json.load(file)
     # print "Training data: " + str(trainingData)
     file.close()
-    
+    settings = None
     length = len(trainData["mean_bellman_error"])
     if (len(sys.argv) == 3):
-        length = int(sys.argv[2])
+        datafile = sys.argv[2]
+        file = open(datafile)   
+        settings = json.load(file)
+        file.close()
+        
     
     """
     trainData["mean_reward"]=[]
@@ -140,7 +146,7 @@ if __name__ == "__main__":
     
     """
     
-    rlv = RLVisualize(datafile)
+    rlv = RLVisualize(datafile, settings)
     rlv.updateBellmanError(np.array(trainData["mean_bellman_error"][:length]), np.array(trainData["std_bellman_error"][:length]))
     rlv.updateReward(np.array(trainData["mean_eval"][:length]), np.array(trainData["std_eval"][:length]))
     rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"][:length]), np.array(trainData["std_discount_error"][:length]))
