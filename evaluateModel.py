@@ -91,7 +91,7 @@ class SimContainer(object):
             grad_ = self._agent.getPolicy().getGrads(state_)[0]
             self._grad_sum += np.abs(grad_)
             self._num_actions +=1
-            # print ("Input grad: ", self._grad_sum/self._num_actions)
+            print ("Input grad: ", self._grad_sum/self._num_actions)
             
             # action_[1] = 1.0
             # print( "New action: ", action_)
