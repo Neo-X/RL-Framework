@@ -140,6 +140,14 @@ class SimContainer(object):
             if ( self._settings["use_parameterized_control"] ):
                 self._exp.getActor()._target_root_height -= 0.02
                 print ("Target Height: ", self._exp.getActor()._target_root_height)    
+        elif c == 'N':
+            if ( self._settings["use_parameterized_control"] ):
+                self._exp.getActor()._target_hand_pos += 0.02
+                print ("_target_hand_pos: ", self._exp.getActor()._target_hand_pos)
+        elif c == 'n':
+            if ( self._settings["use_parameterized_control"] ):
+                self._exp.getActor()._target_hand_pos -= 0.02
+                print ("_target_hand_pos: ", self._exp.getActor()._target_hand_pos)    
                 
         ## ord converts the string to the corresponding integer value for the character...
         self._exp.getEnvironment().onKeyEvent(ord(c), x, y)
