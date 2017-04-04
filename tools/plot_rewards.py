@@ -22,15 +22,7 @@ class RLVisualize(object):
         else:
             self._iteration_scale = 1
         self._title=title
-        self._fig, ( self._reward_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-        self._reward, = self._reward_ax.plot([], [], linewidth=2.0)
-        self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
-        self._reward_ax.set_title('Mean Reward')
-        self._reward_ax.set_ylabel("Reward")
-        self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')
-        plt.xlabel("Iteration x" + str(self._iteration_scale))
         
-        self._fig.set_size_inches(8.0, 4.5, forward=True)
         
     def init(self):
         """
@@ -40,8 +32,9 @@ class RLVisualize(object):
             discounted reward error
         """
         self._fig, (self._reward_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-        self._reward, = self._reward_ax.plot([], [], linewidth=2.0)
-        self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
+        for i in range(len(self._trainingDatas)):
+            self._reward, = self._reward_ax.plot(range(len(self._trainingDatas[i]["mean_eval"])), self._trainingDatas[i]["mean_eval"], linewidth=2.0)
+        # self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
         self._reward_ax.set_title('Mean Reward')
         self._reward_ax.set_ylabel("Reward")
         self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')
@@ -51,17 +44,12 @@ class RLVisualize(object):
         # plt.grid(b=True, which='major', color='black', linestyle='--')
         # plt.grid(b=True, which='minor', color='g', linestyle='--'
         
-        self._fig.set_size_inches(8.0, 12.5, forward=True)
+        self._fig.set_size_inches(8.0, 4.0, forward=True)
+        plt.show()
         
-    def updateReward(self, reward, std):
-        self._reward.set_xdata(np.arange(len(reward)))
-        self._reward.set_ydata(reward)
-        self._reward_ax.collections.remove(self._reward_std)
-        self._reward_std = self._reward_ax.fill_between(np.arange(len(reward)), reward - std, reward + std, facecolor='blue', alpha=0.5)
-        
-        self._reward_ax.relim()      # make sure all the data fits
-        self._reward_ax.autoscale()  # auto-scale
-        
+    def updateRewards(self, trainingDatas):
+        self._trainingDatas = trainingDatas
+       
         
     def show(self):
         plt.show()
@@ -81,11 +69,14 @@ class RLVisualize(object):
         
 if __name__ == "__main__":
     
-    datafile = sys.argv[1]
-    file = open(datafile)
-    trainData = json.load(file)
-    # print "Training data: " + str(trainingData)
-    file.close()
+    trainingDatas = []
+    for i in range(len(sys.argv)-1):
+        datafile = sys.argv[1]
+        file = open(datafile)
+        trainData = json.load(file)
+        trainingDatas.append(trainData)
+        # print "Training data: " + str(trainingData)
+        file.close()
     
     length = len(trainData["mean_bellman_error"])
     if (len(sys.argv) == 3):
@@ -102,6 +93,7 @@ if __name__ == "__main__":
     """
     
     rlv = RLVisualize(datafile)
-    rlv.updateReward(np.array(trainData["mean_eval"][:length]), np.array(trainData["std_eval"][:length]))
-    rlv.saveVisual("pendulum_agent")
+    rlv.updateRewards(trainingDatas)
+    rlv.init()
+    rlv.saveVisual("agent")
     rlv.show()

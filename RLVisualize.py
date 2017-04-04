@@ -67,7 +67,7 @@ class RLVisualize(object):
         self._discount_error_ax.set_title('Discount Error')
         self._discount_error_ax.set_ylabel("Absolute Error")
         self._discount_error_ax.grid(b=True, which='major', color='black', linestyle='--')
-        plt.xlabel("Iteration x" + str(self._iteration_scale))
+        plt.xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale))
         self._fig.suptitle(self._title, fontsize=18)
         
         # plt.grid(b=True, which='major', color='black', linestyle='--')
