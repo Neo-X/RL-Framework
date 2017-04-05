@@ -89,7 +89,7 @@
 "min_epsilon": 0.15,
 "shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
-"action_learning_rate": 0.1,
+"action_learning_rate": 0.5,
     "comment__": "During model-based action exploration, Probability of random policy action",
 "model_based_action_omega": 0.5,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
