@@ -17,7 +17,14 @@ class SimbiconActor(ActorInterface):
         self._target_root_height = 1.02
         self._target_hand_pos = 0.0
         
-    
+    def reward_smoother(self, diff_, settings):
+        if (settings['reward_smoother'] == 'abs'):
+            return np.exp(np.abs(diff_)*self._target_vel_weight)
+        elif (settings['reward_smoother'] == 'gaussian'):
+            return np.exp((diff_*diff_)*self._target_vel_weight)
+        else:
+            print("Reward smoother unknown: ", settings['reward_smoother'])
+            sys.exit(-1)
     # @profile(precision=5)
     def act(self, exp, action_, bootstrapping=False):
         samp = self.getActionParams(action_)
@@ -94,10 +101,10 @@ class SimbiconActor(ActorInterface):
             vel_diff = _scale_reward([vel_diff], vel_bounds)[0]
             if (self._settings["print_level"]== 'debug'):
                 print ("vel_diff: ", vel_diff)
-        vel_reward = math.exp((vel_diff*vel_diff)*self._target_vel_weight)
+        vel_reward = self.reward_smoother(vel_diff, self._settings)
         ## Rewarded for using less torque
         torque_diff = averageTorque
-        torque_reward = math.exp((torque_diff*torque_diff)*self._target_vel_weight)
+        torque_reward = self.reward_smoother(torque_diff, self._settings)
         ## Rewarded for keeping the characters torso upright
         lean_diff = averagePitch
         if (self._settings["print_level"]== 'debug'):
@@ -107,7 +114,7 @@ class SimbiconActor(ActorInterface):
             lean_diff = _scale_reward([lean_diff], root_pitch_bounds)[0]
             if (self._settings["print_level"]== 'debug'):
                 print ("lean_diff: ", lean_diff)
-        lean_reward = math.exp((lean_diff*lean_diff)*self._target_vel_weight)
+        lean_reward = self.reward_smoother(lean_diff, self._settings)
         ## Rewarded for keeping the y height of the root at a specific height 
         root_height_diff = (averagePosition)
         if (self._settings["print_level"]== 'debug'):
@@ -117,7 +124,7 @@ class SimbiconActor(ActorInterface):
             root_height_diff = _scale_reward([root_height_diff], root_height_bounds)[0]
             if (self._settings["print_level"]== 'debug'):
                 print ("root_height_diff: ", root_height_diff)
-        root_height_reward = math.exp((root_height_diff * root_height_diff) * self._target_vel_weight)
+        root_height_reward = self.reward_smoother(root_height_diff, self._settings)
         
         _diff = (averageRightHandPos)
         if (self._settings["print_level"]== 'debug'):
@@ -127,7 +134,7 @@ class SimbiconActor(ActorInterface):
             _diff = _scale_reward([_diff], _bounds)[0]
             if (self._settings["print_level"]== 'debug'):
                 print ("right_hand_diff: ", _diff)
-        right_hand_pos_x_reward = math.exp((_diff * _diff) * self._target_vel_weight)
+        right_hand_pos_x_reward = self.reward_smoother(_diff, self._settings)
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 
                   (vel_reward * 0.3) +
