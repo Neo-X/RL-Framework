@@ -33,10 +33,13 @@ class RLVisualize(object):
         """
         self._fig, (self._reward_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
         for i in range(len(self._trainingDatas)):
-            self._reward, = self._reward_ax.plot(range(len(self._trainingDatas[i]["mean_eval"])), self._trainingDatas[i]["mean_eval"], linewidth=2.0)
+            self._reward, = self._reward_ax.plot(range(len(self._trainingDatas[i]['data']["mean_eval"])), self._trainingDatas[i]['data']["mean_eval"], 
+                                                 linewidth=3.0, label=self._trainingDatas[i]['name'])
         # self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
-        self._reward_ax.set_title('Mean Reward')
-        self._reward_ax.set_ylabel("Reward")
+        self._reward_ax.legend(loc="lower right",
+                     ncol=1, shadow=True, fancybox=True)
+        # self._reward_ax.set_title('Mean Reward')
+        self._reward_ax.set_ylabel("Mean Reward")
         self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')
         plt.xlabel("Iteration x" + str(self._iteration_scale))
         self._fig.suptitle(self._title, fontsize=18)
@@ -70,15 +73,54 @@ class RLVisualize(object):
 if __name__ == "__main__":
     
     trainingDatas = []
-    for i in range(len(sys.argv)-1):
-        datafile = sys.argv[1]
+    
+    """
+    # Need to train a better Baseline
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk/Deep_NN/trainingData_A3C.json'
+    trainData['name']='Baseline'
+    trainingDatas.append(trainData)
+    """
+    # Temporary baseline
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_Parameterized/Deep_NN_SingleNet_Dropout/trainingData_A3C.json'
+    trainData['name']='Baseline'
+    trainingDatas.append(trainData)
+    
+    # Baseline + Model-based Action Exploration
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD/Deep_NN/trainingData_A3C.json'
+    trainData['name']='Baseline + MBAE'
+    trainingDatas.append(trainData)
+    
+    # Baseline + MDAE and regularization
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD2_No_critic_train_on_fd/Deep_NN/trainingData_A3C.json'
+    trainData['name']='Baseline + MBAE + regularization'
+    trainingDatas.append(trainData)
+    
+    """
+    # Need to train just Dyna
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD/Deep_NN/trainingData_A3C.json'
+    trainData['name']='+ proixmal point regularization'
+    trainingDatas.append(trainData)
+    """
+    
+    # Final method
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD2/Deep_NN/trainingData_A3C.json'
+    trainData['name']='Baseline + MBAE + regularization + Dyna'
+    trainingDatas.append(trainData)
+    
+    
+    for i in range(len(trainingDatas)):
+        datafile = trainingDatas[i]['fileName']
         file = open(datafile)
-        trainData = json.load(file)
-        trainingDatas.append(trainData)
+        trainingDatas[i]['data'] = json.load(file)
         # print "Training data: " + str(trainingData)
         file.close()
     
-    length = len(trainData["mean_bellman_error"])
     if (len(sys.argv) == 3):
         length = int(sys.argv[2])
     
@@ -92,7 +134,7 @@ if __name__ == "__main__":
     
     """
     
-    rlv = RLVisualize(datafile)
+    rlv = RLVisualize("Training Curves Different Combinations of Methods")
     rlv.updateRewards(trainingDatas)
     rlv.init()
     rlv.saveVisual("agent")
