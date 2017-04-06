@@ -43,7 +43,7 @@ class ForwardDynamicsNetwork(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid4ActA = lasagne.layers.DenseLayer(
-                l_hid3ActA, num_units=64,
+                l_hid3ActA, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
         self._actor = lasagne.layers.DenseLayer(
