@@ -137,11 +137,11 @@ class SimbiconActor(ActorInterface):
         right_hand_pos_x_reward = self.reward_smoother(_diff, self._settings)
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 
-                  (vel_reward * 0.3) +
-                  (torque_reward * 0.05) +
-                  (lean_reward * 0.3) + 
-                  ((root_height_reward) * 0.05) +
-                  (right_hand_pos_x_reward * 0.3)
+                  (vel_reward * self._settings['controller_reward_weights']['velocity']) +
+                  (torque_reward * self._settings['controller_reward_weights']['torque']) +
+                  (lean_reward * self._settings['controller_reward_weights']['root_pitch']) + 
+                  ((root_height_reward) * self._settings['controller_reward_weights']['root_height']) +
+                  (right_hand_pos_x_reward * self._settings['controller_reward_weights']['right_hand_x_pos'])
                   )# optimal is 0
         
         self._reward_sum = self._reward_sum + reward
