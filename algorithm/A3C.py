@@ -104,7 +104,7 @@ class A3C(AlgorithmInterface):
         self._actor_regularization = ( (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getActorNetwork(), lasagne.regularization.l2)) )
         if (self.getSettings()['use_previous_value_regularization']):
-            self._actor_regularization = self._actor_regularization + (( self._regularization_weight * 10 ) * 
+            self._actor_regularization = self._actor_regularization + (( self.getSettings()['previous_value_regularization_weight']) * 
                        change_penalty(self._model.getActorNetwork(), self._modelTarget.getActorNetwork()) 
                       ) 
         # SGD update

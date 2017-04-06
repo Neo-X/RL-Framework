@@ -82,7 +82,7 @@
 "critic_regularization_weight": 0.000001,
 "critic_learning_rate": 0.01,
 "visualize_expected_value": true,
-"target_velocity_decay":-2.5,
+"target_velocity_decay":-10.0,
 "target_velocity":1.0,
 "num_terrain_features": 0,
 "initial_temperature": 2.5,
@@ -130,5 +130,7 @@
 		"root_height": 0.0,
 		"root_pitch": 0.0,
 		"right_hand_x_pos": 0.0
-		}
+		},
+	"comment__": "Regularizatino weight for different between policy parameters and old policy parameters",
+"previous_value_regularization_weight":  0.001
 }
