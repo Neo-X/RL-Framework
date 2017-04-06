@@ -5,7 +5,7 @@
 "epsilon": 0.5, 
 "omega": 0.15,
 "batch_size": 32,
-"learning_rate": 0.001,
+"learning_rate": 0.0001,
 "sim_config_file": "../data/simbiconBiped2D/trainContinuousActions.ini",
 "forwardDynamics_config_file": "../data/simbiconBiped2D/trainContinuousActions.ini",
 "num_actions": 9,
@@ -51,7 +51,7 @@
 "use_actor_policy_action_variance_suggestion": false,
 "exploration_method": "gaussian_random",
 "dropout_p": 0.1,
-"regularization_weight": 0.00001,
+"regularization_weight": 0.000001,
 "rho": 0.95,
 "rms_epsilon": 0.001,
 "steps_until_target_network_update": 1000,
@@ -80,7 +80,7 @@
 "train_actor": true,
 "debug_critic": true,
 "critic_regularization_weight": 0.000001,
-"critic_learning_rate": 0.01,
+"critic_learning_rate": 0.001,
 "visualize_expected_value": true,
 "target_velocity_decay":-10.0,
 "target_velocity":1.0,
@@ -131,6 +131,6 @@
 		"root_pitch": 0.0,
 		"right_hand_x_pos": 0.0
 		},
-	"comment__": "Regularizatino weight for different between policy parameters and old policy parameters",
+	"comment__": "Regularization weight for different between policy parameters and old policy parameters",
 "previous_value_regularization_weight":  0.001
 }
