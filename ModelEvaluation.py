@@ -22,7 +22,7 @@ import resource
 class SimWorker(Process):
     
     def __init__(self, namespace, input_queue, output_queue, actor, exp, model, discount_factor, action_space_continuous, 
-                 settings, print_data, p, validation, eval_episode_data_queue):
+                 settings, print_data, p, validation, eval_episode_data_queue, process_random_seed):
         super(SimWorker, self).__init__()
         self._input_queue= input_queue
         self._output_queue = output_queue
@@ -39,6 +39,7 @@ class SimWorker(Process):
         self._max_iterations = settings['rounds'] + settings['epochs'] * 32
         self._iteration = 0
         self._namespace = namespace # A way to pass messages between processes
+        self._process_random_seed = process_random_seed
     
     def current_mem_usage(self):
         return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
@@ -54,6 +55,7 @@ class SimWorker(Process):
     def run(self):
         # from pympler import summary
         # from pympler import muppy
+        np.random.seed(self._process_random_seed)
         
         # print ("SW model: ", self._model.getPolicy())
         # print ("Thread: ", self._model._exp)
@@ -159,7 +161,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         exp.generateEnvironmentSample()
         
     exp.getEnvironment().initEpoch()
-    actor.init()
+    actor.initEpoch()
     state_ = exp.getState()
     # pa = model.predict(state_)
     if (not bootstraping):

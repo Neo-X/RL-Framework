@@ -1,4 +1,5 @@
 import sys
+import os
 import math
 from actor.ActorInterface import ActorInterface
 import numpy as np
@@ -178,7 +179,22 @@ class SimbiconActor(ActorInterface):
     def getControlParameters(self):
         return [self._target_vel, self._target_root_height, self._target_lean, self._target_hand_pos]
         
-    
+    def initEpoch(self):
+        super(SimbiconActor,self).initEpoch()
+        print (os.getpid(), ", Old target velocity: ", self._target_vel)
+        _bounds = self._settings['controller_parameter_settings']['velocity_bounds']
+        self._target_vel = np.random.uniform(_bounds[0][0], _bounds[1][0])
+        print (os.getpid(), ", New target velocity: ", self._target_vel)
+        
+        _bounds = self._settings['controller_parameter_settings']['root_height_bounds']
+        self._target_root_height = np.random.uniform(_bounds[0][0], _bounds[1][0])
+        
+        _bounds = self._settings['controller_parameter_settings']['root_pitch_bounds']
+        self._target_lean = np.random.uniform(_bounds[0][0], _bounds[1][0])
+        
+        _bounds = self._settings['controller_parameter_settings']['right_hand_x_pos_bounds']
+        self._target_hand_pos = np.random.uniform(_bounds[0][0], _bounds[1][0])
+        
     def getEvaluationData(self):
         return self._reward_sum
     
