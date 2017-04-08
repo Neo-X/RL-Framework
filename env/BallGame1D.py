@@ -321,10 +321,10 @@ def generateTerrainVerts(terrainData_, translateX):
         verts.append([(i*terrainScale)+translateX, terrainData_[i], -1.0])
         verts.append([(i*terrainScale)+translateX, terrainData_[i], 1.0])
         j=2*i
-        face=[]
-        face.append(j-2)
-        face.append(j-1)
-        face.append(j)
+        face=[] # ccw order
+        face.append(j-2) # top left
+        face.append(j-1) # bottom left
+        face.append(j) # top right
         faces.append(face)
         
         face=[]
