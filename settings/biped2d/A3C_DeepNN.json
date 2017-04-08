@@ -124,10 +124,14 @@
 "reward_smoother": "gaussian",
 	"comment__": "Weights for different components of the reward function",
 "controller_reward_weights": {
-		"velocity": 0.3,
+		"velocity": 0.8,
 		"torque": 0.05,
 		"root_height": 0.05,
-		"root_pitch": 0.3,
-		"right_hand_x_pos": 0.3
-		}  
+		"root_pitch": 0.1,
+		"right_hand_x_pos": 0.0
+		},
+	"comment__": "Regularization weight for different between policy parameters and old policy parameters",
+"previous_value_regularization_weight":  0.001,
+	"comment__": "Random seed value for the simulation to use",
+"random_seed": 1234
 }
