@@ -83,7 +83,7 @@
 "critic_learning_rate": 0.001,
 "visualize_expected_value": true,
 "target_velocity_decay":-2.0,
-"target_velocity":3.5,
+"target_velocity":2.5,
 "num_terrain_features": 0,
 "initial_temperature": 2.5,
 "min_epsilon": 0.15,
