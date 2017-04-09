@@ -200,7 +200,8 @@ class SimbiconActor(ActorInterface):
         return self._reward_sum
     
     def hasNotFallen(self, exp):
-        if ( exp.getEnvironment().agentHasFallen() ) :
+        position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
+        if ( exp.getEnvironment().agentHasFallen() or (position_root[1] < 0.0) ) :
             return 0
         else:
             return 1
