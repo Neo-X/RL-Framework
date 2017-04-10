@@ -197,8 +197,8 @@ def evaluateModelRender(settings_file_name):
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
-    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
     f = open(file_name, 'r')
     model = dill.load(f)
     f.close()

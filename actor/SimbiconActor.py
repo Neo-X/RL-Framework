@@ -97,44 +97,46 @@ class SimbiconActor(ActorInterface):
         vel_diff = averageSpeed
         if (self._settings["print_level"]== 'debug'):
             print ("vel_diff: ", vel_diff)
-        if ( self._settings["use_parameterized_control"] ):
-            vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
-            vel_diff = _scale_reward([vel_diff], vel_bounds)[0]
-            if (self._settings["print_level"]== 'debug'):
-                print ("vel_diff: ", vel_diff)
+        # if ( self._settings["use_parameterized_control"] ):
+        vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
+        vel_diff = _scale_reward([vel_diff], vel_bounds)[0]
+        if (self._settings["print_level"]== 'debug'):
+            print ("vel_diff: ", vel_diff)
         vel_reward = self.reward_smoother(vel_diff, self._settings)
         ## Rewarded for using less torque
         torque_diff = averageTorque
+        _bounds = self._settings['controller_parameter_settings']['torque_bounds']
+        torque_diff = _scale_reward([torque_diff], _bounds)[0]
         torque_reward = self.reward_smoother(torque_diff, self._settings)
         ## Rewarded for keeping the characters torso upright
         lean_diff = averagePitch
         if (self._settings["print_level"]== 'debug'):
             print ("lean_diff: ", lean_diff)
-        if ( self._settings["use_parameterized_control"] ):
-            root_pitch_bounds = self._settings['controller_parameter_settings']['root_pitch_bounds']
-            lean_diff = _scale_reward([lean_diff], root_pitch_bounds)[0]
-            if (self._settings["print_level"]== 'debug'):
-                print ("lean_diff: ", lean_diff)
+        # if ( self._settings["use_parameterized_control"] ):
+        root_pitch_bounds = self._settings['controller_parameter_settings']['root_pitch_bounds']
+        lean_diff = _scale_reward([lean_diff], root_pitch_bounds)[0]
+        if (self._settings["print_level"]== 'debug'):
+            print ("lean_diff: ", lean_diff)
         lean_reward = self.reward_smoother(lean_diff, self._settings)
         ## Rewarded for keeping the y height of the root at a specific height 
         root_height_diff = (averagePosition)
         if (self._settings["print_level"]== 'debug'):
             print ("root_height_diff: ", root_height_diff)
-        if ( self._settings["use_parameterized_control"] ):
-            root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
-            root_height_diff = _scale_reward([root_height_diff], root_height_bounds)[0]
-            if (self._settings["print_level"]== 'debug'):
-                print ("root_height_diff: ", root_height_diff)
+        # if ( self._settings["use_parameterized_control"] ):
+        root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
+        root_height_diff = _scale_reward([root_height_diff], root_height_bounds)[0]
+        if (self._settings["print_level"]== 'debug'):
+            print ("root_height_diff: ", root_height_diff)
         root_height_reward = self.reward_smoother(root_height_diff, self._settings)
         
         _diff = (averageRightHandPos)
         if (self._settings["print_level"]== 'debug'):
             print ("right_hand_diff: ", _diff)
-        if ( self._settings["use_parameterized_control"] ):
-            _bounds = self._settings['controller_parameter_settings']['right_hand_x_pos_bounds']
-            _diff = _scale_reward([_diff], _bounds)[0]
-            if (self._settings["print_level"]== 'debug'):
-                print ("right_hand_diff: ", _diff)
+        # if ( self._settings["use_parameterized_control"] ):
+        _bounds = self._settings['controller_parameter_settings']['right_hand_x_pos_bounds']
+        _diff = _scale_reward([_diff], _bounds)[0]
+        if (self._settings["print_level"]== 'debug'):
+            print ("right_hand_diff: ", _diff)
         right_hand_pos_x_reward = self.reward_smoother(_diff, self._settings)
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 
@@ -160,6 +162,7 @@ class SimbiconActor(ActorInterface):
         vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
         self._target_vel = randomUniformExporation(move_scale, [self._target_vel], vel_bounds)[0]
         self._target_vel = clampAction([self._target_vel], vel_bounds)[0]
+        # print("New target velocity after action: ", self._target_vel)
         
         root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
         self._target_root_height = randomUniformExporation(move_scale, [self._target_root_height], root_height_bounds)[0]
