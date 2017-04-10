@@ -278,7 +278,8 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = GapGame1D(conf)
         exp = GapGame1DEnv(exp, settings)
         return exp
-    elif (env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D'):
+    elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D') or 
+          (env_type == 'simbiconBiped2DTerrain')):
         import simbiconAdapter
         c = simbiconAdapter.Configuration(config_file)
         print ("Num state: ", c._NUMBER_OF_STATES)
@@ -354,7 +355,8 @@ def createActor(env_type, settings, experience):
         actor = BallGame1DActor(settings, experience)
     elif env_type == 'gapgame_1d':
         actor = GapGame1DActor(settings, experience)
-    elif (env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D'):
+    elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or
+          (env_type == 'simbiconBiped2DTerrain')):
         actor = SimbiconActor(settings, experience)
     elif (env_type == 'Imitate3D') :
         actor = ImitationActor(settings, experience)

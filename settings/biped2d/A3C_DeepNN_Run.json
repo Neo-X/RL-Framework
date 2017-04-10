@@ -3,7 +3,7 @@
 "agent_name": "A3C",
 "data_folder": "Simple_Run/",
 "epsilon": 0.5, 
-"omega": 0.15,
+"omega": 0.0,
 "batch_size": 32,
 "learning_rate": 0.0001,
 "sim_config_file": "../data/simbiconBiped2D/trainContinuousActions.ini",
