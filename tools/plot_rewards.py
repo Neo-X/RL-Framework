@@ -74,7 +74,6 @@ if __name__ == "__main__":
     
     trainingDatas = []
     
-    """
     # Need to train a better Baseline
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk/Deep_NN/trainingData_A3C.json'
@@ -99,7 +98,7 @@ if __name__ == "__main__":
     trainData['name']='Baseline + MBAE + regularization'
     trainingDatas.append(trainData)
     
-    """
+    
     # Need to train just Dyna
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD/Deep_NN/trainingData_A3C.json'
@@ -109,7 +108,7 @@ if __name__ == "__main__":
     
     # Final method
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD2/Deep_NN/trainingData_A3C.json'
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD_Dyna_Reg/Deep_NN/trainingData_A3C.json'
     trainData['name']='Baseline + MBAE + regularization + Dyna'
     trainingDatas.append(trainData)
     
