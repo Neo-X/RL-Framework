@@ -65,15 +65,15 @@ class SimbiconActor(ActorInterface):
             if (self._settings["print_level"]== 'debug'):
                 print ("root orientation: ", orientation)
             """
-            rel_torso_pos = (torso_pos[2]-position_root[2])
+            rel_torso_pos = (torso_pos[0]-position_root[0])
             # print ("torso pos: ", rel_torso_pos)
-            pitch_sum += math.fabs(self._target_lean - (rel_torso_pos)) ## Not sure why this is around why, look like singularity around x axis...
+            pitch_sum += math.fabs(self._target_lean - (rel_torso_pos))
             
             position_sum += math.fabs(self._target_root_height - position_root[1])
             
             right_hand_pos = np.array(exp.getEnvironment().getActor().getLinkPosition("rLowerarm"))
             # right_hand_x_sum += math.fabs(self._target_hand_pos - (right_hand_pos[2])) ## z = x here...
-            right_hand_x_sum += math.fabs(self._target_hand_pos - (right_hand_pos[2] - position_root[2])) ## z = x here... 
+            right_hand_x_sum += math.fabs(self._target_hand_pos - (right_hand_pos[0] - position_root[0]))  
             
             steps_ += 1
         averageSpeed = vel_sum / steps_
