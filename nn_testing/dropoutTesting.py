@@ -66,7 +66,7 @@ if __name__ == '__main__':
     
     errors=[]
     for i in range(50000):
-        _states, _actions, _result_states, _rewards, fals_ = experience.get_batch(batch_size)
+        _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
         # print _actions 
         error = model.train(_states, _actions)
         errors.append(error)

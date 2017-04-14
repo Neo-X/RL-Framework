@@ -216,7 +216,7 @@ def train(settingsFileName):
                         else:
                             agent.getExperience().insert(state_, [action], resultState, [reward], [fall])
                         if agent.getExperience().samples() > batch_size and ( (steps_ % settings['sim_action_per_training_update']) == 0 ):
-                            _states, _actions, _result_states, _rewards, _falls = agent.getExperience().get_batch(batch_size)
+                            _states, _actions, _result_states, _rewards, _falls, _G_ts = agent.getExperience().get_batch(batch_size)
                             # print ("Q values:", agent.getPolicy().q_values(_states[0]))
                             # print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                             cost=0
@@ -237,7 +237,7 @@ def train(settingsFileName):
                         # print ("Current Tuple: " + str(agent.getExperience().current()))
                         # rewards.append([reward])
                 if agent.getExperience().samples() > batch_size:
-                    states, actions, result_states, rewards, falls = agent.getExperience().get_batch(batch_size)
+                    states, actions, result_states, rewards, falls, G_ts = agent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
                     error = agent.getPolicy().bellman_error(states, actions, rewards, result_states, falls)
                     # rewards = map(scale_reward, rewards, [reward_bounds]* len(rewards)) # scales the rewards back to env space

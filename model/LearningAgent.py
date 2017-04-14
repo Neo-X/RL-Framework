@@ -67,7 +67,7 @@ class LearningAgent(AgentInterface):
         cost = 0
         for update in range(self._settings['training_updates_per_sim_action']): ## Even more training options...
             for i in range(self._settings['critic_updates_per_actor_update']):
-                _states, _actions, _result_states, _rewards, _falls = self._expBuff.get_batch(self._settings["batch_size"])
+                _states, _actions, _result_states, _rewards, _falls, _G_ts = self._expBuff.get_batch(self._settings["batch_size"])
                 # print ("Updating Critic")
                 cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                 if not np.isfinite(cost) or (cost > 500) :
@@ -154,22 +154,22 @@ class LearningWorker(Process):
             #if len(tmp) == 6:
                 # self._input_queue.put(tmp)
             #    continue # don't learn from eval tuples
-            (state_, action, reward, resultState, fall) = tmp
+            # (state_, action, reward, resultState, fall, G_t) = tmp
             # print ("Learner Size of state input Queue: " + str(self._input_queue.qsize()))
             # self._agent._expBuff = self._namespace.experience
             if self._agent._settings['action_space_continuous']:
                 # self._agent._expBuff.insert(norm_state(state_, self._agent._state_bounds), 
                 #                            norm_action(action, self._agent._action_bounds), norm_state(resultState, self._agent._state_bounds), [reward])
-                self._agent._expBuff.insert(state_, action, resultState, [reward], [fall])
+                self._agent._expBuff.insertTuple(tmp)
                 # print ("Experience buffer size: " + str(self._namespace.experience.samples()))
                 # print ("Reward Scale: ", self._agent._reward_bounds)
                 # print ("Reward Scale Model: ", self._agent._pol.getRewardBounds())
             else:
-                self._agent._expBuff.insert(self._agent._state_bounds, [action], resultState, [reward], [fall])
+                self._agent._expBuff.insertTuple(tmp)
             # print ("Learning agent experience size: " + str(self._agent._expBuff.samples()))
             step_ += 1
             if self._agent._expBuff.samples() > self._agent._settings["batch_size"] and ((step_ >= self._agent._settings['sim_action_per_training_update']) ):
-                __states, __actions, __result_states, __rewards, __falls = self._agent._expBuff.get_batch(self._agent._settings["batch_size"])
+                __states, __actions, __result_states, __rewards, __falls, __G_ts = self._agent._expBuff.get_batch(self._agent._settings["batch_size"])
                 # print ("States: " + str(__states) + " ResultsStates: " + str(__result_states) + " Rewards: " + str(__rewards) + " Actions: " + str(__actions))
                 (cost, dynamicsLoss) = self._agent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls)
                 # print ("Master Agent Running training step, cost: " + str(cost) + " PID " + str(os.getpid()))

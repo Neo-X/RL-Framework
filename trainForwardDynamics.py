@@ -111,7 +111,7 @@ def trainForwardDynamics(settingsFileName):
     trainData["std_eval"]=[]
     # dynamicsLosses=[]
     best_dynamicsLosses=1000000
-    _states, _actions, _result_states, _rewards, _falls = experience.get_batch(batch_size)
+    _states, _actions, _result_states, _rewards, _falls, _G_ts = experience.get_batch(batch_size)
     """
     _states = theano.shared(np.array(_states, dtype=theano.config.floatX))
     _actions = theano.shared(np.array(_actions, dtype=theano.config.floatX))
@@ -122,7 +122,7 @@ def trainForwardDynamics(settingsFileName):
     for round_ in range(rounds):
         t0 = time.time()
         for epoch in range(epochs):
-            _states, _actions, _result_states, _rewards, _falls = experience.get_batch(batch_size)
+            _states, _actions, _result_states, _rewards, _falls, _G_ts = experience.get_batch(batch_size)
             # print _actions 
             # dynamicsLoss = model.train(states=_states, actions=_actions, result_states=_result_states)
             model.setData(_states, _actions, _result_states)

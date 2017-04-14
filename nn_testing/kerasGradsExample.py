@@ -132,7 +132,7 @@ from keras.callbacks import EarlyStopping
 
 errors=[]
 for i in range(5000):
-    _states, _actions, _result_states, _rewards, fals_ = experience.get_batch(batch_size)
+    _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
     # scale_states = np.array(map(scale_state, _states, itertools.repeat(state_bounds, len(_states))))
     # tmp_actions = np.transpose(np.array([map(f, scale_states)]))
     # norm_actions = np.array(map(norm_action, tmp_actions, itertools.repeat(action_bounds, len(tmp_actions))))

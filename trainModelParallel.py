@@ -398,7 +398,7 @@ def trainModelParallel(settingsFileName):
                 # pr.enable()
                 # print ("Current Tuple: " + str(namespace.experience.current()))
                 if masterAgent.getExperience().samples() > batch_size:
-                    states, actions, result_states, rewards, falls = masterAgent.getExperience().get_batch(batch_size)
+                    states, actions, result_states, rewards, falls, G_ts = masterAgent.getExperience().get_batch(batch_size)
                     print ("Batch size: " + str(batch_size))
                     error = masterAgent.bellman_error(states, actions, rewards, result_states, falls)
                     bellman_errors.append(error)
