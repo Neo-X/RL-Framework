@@ -173,8 +173,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # print ("Updated parameters: " + str(model._pol.getNetworkParameters()[3]))
     # print ("q_values_: " + str(q_value) + " Action: " + str(action_))
     # original_val = q_value
-    discounted_sum = 0;
-    discounted_sums = [];
+    discounted_sum = 0
+    discounted_sums = []
+    G_t = []
     state_num=0
     i_=0
     reward_=0
@@ -196,6 +197,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             discounted_sums.append(discounted_sum)
             discounted_sum=0
             state_num=0
+            G_t = []
             exp.getActor().initEpoch()
             if validation:
                 exp.generateValidation(anchors, (epoch * settings['max_epoch_length']) + i_)
@@ -351,6 +353,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ((reward_ >= settings['reward_lower_bound'] )):
             # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * reward_))) # *(1.0-discount_factor))
             discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * (reward_ * (1.0-discount_factor) )))) # *(1.0-discount_factor))
+            # G_t.append((math.pow(discount_factor,0) * (reward_ * (1.0-discount_factor) ))) # *(1.0-discount_factor)))
+            G_t.append(0) # *(1.0-discount_factor)))
+            for i in range(len(G_t)):
+                G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ * (1.0-discount_factor) ))))
+            print ("discounted sum: ", discounted_sum, " G_t: ", G_t[0])
+            print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
         # print ("discounted_sum: ", discounted_sum)
         resultState = exp.getState()
         # print ("Result State: " + str(resultState))

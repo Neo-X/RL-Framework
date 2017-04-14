@@ -216,5 +216,19 @@
 	"comment__": "Use to add an additional regularization term to prevent the network from moving to far from its previous values",
 "use_previous_value_regularization": false,
 	"comment__": "Controls the level of information that is printed to the terminal",
-"print_level": "train"
+"print_level": "train",
+	"comment__": "The type of function to apply over the controller target values [gaussian|abs]",
+"reward_smoother": "abs",
+	"comment__": "Weights for different components of the reward function",
+"controller_reward_weights": {
+		"velocity": 0.8,
+		"torque": 0.05,
+		"root_height": 0.05,
+		"root_pitch": 0.1,
+		"right_hand_x_pos": 0.0
+		},
+	"comment__": "Regularization weight for different between policy parameters and old policy parameters",
+"previous_value_regularization_weight":  0.001,
+	"comment__": "Random seed value for the simulation to use",
+"random_seed": 1234
 }
