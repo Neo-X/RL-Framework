@@ -1,6 +1,7 @@
 import sys
 import math
 from actor.ActorInterface import ActorInterface
+from model.ModelUtil import reward_smoother
 
 class BallGame2DActor(ActorInterface):
     
@@ -26,6 +27,7 @@ class BallGame2DActor(ActorInterface):
         if (self.hasNotFallen(exp)):
             vel_dif = self._target_vel - averageSpeed
             reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight) # optimal is 0
+            reward = reward_smoother(vel_dif, self._settings, self._target_vel_weight)
         else:
             return 0.0
         self._reward_sum = self._reward_sum + reward

@@ -188,6 +188,15 @@ def clampActionWarn(actionV, bounds):
             out=True
     return (actionV, out)
 
+def reward_smoother(diff_, settings, _weight):
+    if (settings['reward_smoother'] == 'abs'):
+        return np.exp(np.abs(diff_)*_weight)
+    elif (settings['reward_smoother'] == 'gaussian'):
+        return np.exp((diff_*diff_)*_weight)
+    else:
+        print("Reward smoother unknown: ", settings['reward_smoother'])
+        sys.exit(-1)
+
 """
 def initSimulation(settings):
 
