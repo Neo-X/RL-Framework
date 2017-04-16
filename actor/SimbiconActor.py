@@ -180,16 +180,17 @@ class SimbiconActor(ActorInterface):
         # if ( self._settings["use_parameterized_control"] )
             
     def getControlParameters(self):
-        return [self._target_vel, self._target_root_height, self._target_lean, self._target_hand_pos]
+        # return [self._target_vel, self._target_root_height, self._target_lean, self._target_hand_pos]
+        return [self._target_vel]
         
     def initEpoch(self):
         super(SimbiconActor,self).initEpoch()
         if ( self._settings["use_parameterized_control"] ):
-            print (os.getpid(), ", Old target velocity: ", self._target_vel)
+            # print (os.getpid(), ", Old target velocity: ", self._target_vel)
             _bounds = self._settings['controller_parameter_settings']['velocity_bounds']
             self._target_vel = np.random.uniform(_bounds[0][0], _bounds[1][0])
-            print (os.getpid(), ", New target velocity: ", self._target_vel)
-            
+            # print (os.getpid(), ", New target velocity: ", self._target_vel)
+            """
             _bounds = self._settings['controller_parameter_settings']['root_height_bounds']
             self._target_root_height = np.random.uniform(_bounds[0][0], _bounds[1][0])
             
@@ -198,7 +199,7 @@ class SimbiconActor(ActorInterface):
             
             _bounds = self._settings['controller_parameter_settings']['right_hand_x_pos_bounds']
             self._target_hand_pos = np.random.uniform(_bounds[0][0], _bounds[1][0])
-        
+            """
     def getEvaluationData(self):
         return self._reward_sum
     
