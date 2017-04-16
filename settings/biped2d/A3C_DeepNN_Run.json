@@ -83,7 +83,7 @@
 "critic_learning_rate": 0.01,
 "visualize_expected_value": true,
 "target_velocity_decay":-2.0,
-"target_velocity":2.0,
+"target_velocity":1.5,
 "num_terrain_features": 0,
 "initial_temperature": 5.0,
 "min_epsilon": 0.15,
@@ -109,9 +109,9 @@
 	"comment__": "parameter bounds for parameterized controller",
 "controller_parameter_settings": {
 		"velocity_bounds": [[0.5],[2.5]],
-		"root_height_bounds": [[0.95],[1.0]],
-		"root_pitch_bounds": [[-0.5],[0.05]],
-		"right_hand_x_pos_bounds": [[0.0],[0.05]],
+		"root_height_bounds": [[0.75],[1.0]],
+		"root_pitch_bounds": [[-0.25],[0.25]],
+		"right_hand_x_pos_bounds": [[0.0],[0.5]],
 		"torque_bounds": [[0.0],[0.5]]
 		},
 	"comment__": "THe parameter used to control the average chage in the contorl parameters",
@@ -123,7 +123,7 @@
 	"comment__": "Controls the level of information that is printed to the terminal",
 "print_level": "train",
 	"comment__": "The type of function to apply over the controller target values [gaussian|abs]",
-"reward_smoother": "gaussian",
+"reward_smoother": "abs",
 	"comment__": "Weights for different components of the reward function",
 "controller_reward_weights": {
 		"velocity": 0.8,
