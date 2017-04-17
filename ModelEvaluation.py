@@ -107,7 +107,7 @@ class SimWorker(Process):
             
             #    self._output_queue.put(out)
             (tuples, discounted_sum, q_value, evalData) = out
-            # (states, actions, rewards, result_states, falls) = tuples
+            # (states, actions, result_states,  rewards, falls) = tuples
             ## Hack for now just update after ever episode
             if (eval):
                 self._eval_episode_data_queue.put(out)
@@ -364,8 +364,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             G_t.append(0) # *(1.0-discount_factor)))
             for i in range(len(G_t)):
                 G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ * (1.0-discount_factor) ))))
-            # print ("discounted sum: ", discounted_sum, " G_t: ", G_t[0])
-            # print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
+            print ("discounted sum: ", discounted_sum, " G_t: ", G_t[0])
+            print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
         # print ("discounted_sum: ", discounted_sum)
         resultState = exp.getState()
         # print ("Result State: " + str(resultState))
@@ -378,6 +378,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) )
         if print_data:
             # print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward_))
+            # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) + " Discounted Sum: " + str(discounted_sum) )
             print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) ) 
             pass     
             # print ("Python Reward: " + str(reward(state_, resultState)))
@@ -410,7 +411,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         print ("Evaluation: ", str(evalData)) 
     # print ("Evaluation Data: ", evalData)
         # print ("Current Tuple: " + str(experience.current()))
-    tuples = (states, actions, rewards, result_states, falls, G_ts)
+    tuples = (states, actions, result_states, rewards, falls, G_ts)
     if ((_output_queue != None) and (not evaluation) and (not bootstraping)): # for multi-threading
         for state, action, reward, result_state, fall, G_t in zip(states, actions, rewards, result_states, falls, G_ts):
             _output_queue.put((state_, action, resultState, reward_, agent_not_fell, G_t))
@@ -434,7 +435,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
                 settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
                 visualizeEvaluation=visualizeEvaluation)
         epoch_ = epoch_ + 1
-        (states, actions, rewards, result_states, falls) = tuples
+        (states, actions, result_states, rewards, falls, G_t) = tuples
         # print (states, actions, rewards, result_states, discounted_sum, value)
         # print ("Evaluated Actions: ", actions)
         # print ("Evaluated Rewards: ", rewards)
@@ -451,7 +452,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         # print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With reward_sum: " + str(np.sum(rewards)) + " bellman error: " + str(error))
         discounted_values.append(discounted_sum)
         values.append(value)
-        # print ("Rewards over eval epoch: ", rewards)
+        print ("Rewards over eval epoch: ", rewards)
         # This works better because epochs can terminate early, which is bad.
         reward_over_epocs.append(np.mean(np.array(rewards)))
         bellman_errors.append(error)
@@ -510,7 +511,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
                     visualizeEvaluation=visualizeEvaluation)
             """
             epoch_ = epoch_ + 1
-            (states, actions, rewards, result_states, falls, G_ts) = tuples
+            (states, actions, result_states, rewards, falls, G_ts) = tuples
             # print (states, actions, rewards, result_states, discounted_sum, value)
             # print ("Evaluated Actions: ", actions)
             # print ("Evaluated Rewards: ", rewards)
@@ -681,7 +682,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         # if self._p <= 0.0:
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out
-        (states_, actions_, rewards_, result_states_, falls_, G_t_) = tuples
+        (states_, actions_, result_states_, rewards_, falls_, G_t_) = tuples
         print ("Shape other states_: ", np.array(states_).shape)
         print ("Shape other action_: ", np.array(actions_).shape)
         # print ("States: ", states_)
@@ -790,7 +791,8 @@ def modelEvaluation(settings_file_name):
 
     # this is the process that selects which game to play
     
-    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
+    # exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
+    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=False)
     exp.setActor(actor)
     if (settings['train_forward_dynamics']):
         # actor.setForwardDynamicsModel(forwardDynamicsModel)
@@ -817,6 +819,9 @@ def modelEvaluation(settings_file_name):
                                                                                                                         action_space_continuous=action_space_continuous, settings=settings, print_data=True, evaluation=True,
                                                                                                                         visualizeEvaluation=expected_value_viz)
         # simEpoch(exp, model, discount_factor=discount_factor, anchors=_anchors[:settings['eval_epochs']][9], action_space_continuous=True, settings=settings, print_data=True, p=0.0, validation=True)
+    
+    # mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue,
+    #                                                        model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
     
     """
     workers = []
