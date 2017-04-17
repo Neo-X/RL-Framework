@@ -413,8 +413,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print ("Current Tuple: " + str(experience.current()))
     tuples = (states, actions, result_states, rewards, falls, G_ts)
     if ((_output_queue != None) and (not evaluation) and (not bootstraping)): # for multi-threading
-        for state, action, reward, result_state, fall, G_t in zip(states, actions, rewards, result_states, falls, G_ts):
-            _output_queue.put((state_, action, resultState, reward_, agent_not_fell, G_t))
+        for state__, action__, reward__, result_state__, fall__, G_t__ in zip(states, actions, rewards, result_states, falls, G_ts):
+            _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__))
         
     return (tuples, discounted_sum, q_value, evalData)
     
@@ -855,7 +855,7 @@ def modelEvaluation(settings_file_name):
     for w in workers:
         input_anchor_queue.put(None)
        """ 
-    print ("Average Reward: " + str(mean_reward))
+    print ("Mean Evaluation: " + str(mean_eval))
     
     
 if __name__ == "__main__":

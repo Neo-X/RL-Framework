@@ -31,6 +31,7 @@ class BallGame2DActor(ActorInterface):
         else:
             return 0.0
         self._reward_sum = self._reward_sum + reward
+        # print("Reward Sum: ", self._reward_sum)
         return reward
     
     def getEvaluationData(self):
