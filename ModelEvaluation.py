@@ -107,7 +107,7 @@ class SimWorker(Process):
             
             #    self._output_queue.put(out)
             (tuples, discounted_sum, q_value, evalData) = out
-            # (states, actions, result_states,  rewards, falls) = tuples
+            # (states, actions, result_states, rewards, falls) = tuples
             ## Hack for now just update after ever episode
             if (eval):
                 self._eval_episode_data_queue.put(out)
@@ -364,8 +364,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             G_t.append(0) # *(1.0-discount_factor)))
             for i in range(len(G_t)):
                 G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ * (1.0-discount_factor) ))))
-            print ("discounted sum: ", discounted_sum, " G_t: ", G_t[0])
-            print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
+            # print ("discounted sum: ", discounted_sum, " G_t: ", G_t[0])
+            # print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
         # print ("discounted_sum: ", discounted_sum)
         resultState = exp.getState()
         # print ("Result State: " + str(resultState))
