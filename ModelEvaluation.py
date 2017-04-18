@@ -212,7 +212,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 exp.generateEnvironmentSample()
                 
             exp.getEnvironment().initEpoch()
-            actor.init()
+            actor.init() ## This should be removed and only exp.getActor() should be used
             state_ = exp.getState()
             if (not bootstraping):
                 q_values_.append(model.q_value(state_))

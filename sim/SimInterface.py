@@ -35,6 +35,7 @@ class SimInterface(object):
     
     def getActor(self):
         return self._actor
+    
     def setActor(self, actor):
         self._actor = actor
     

@@ -24,9 +24,6 @@ class BallGame2DEnv(SimInterface):
     def getEvaluationData(self):
         return self.getEnvironment().getEvaluationData()
     
-    def getActor(self):
-        return self._exp
-    
     def finish(self):
         self._exp.finish()
         

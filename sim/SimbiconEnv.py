@@ -49,8 +49,6 @@ class SimbiconEnv(SimInterface):
     def update(self):
         self.getEnvironment().update()
             
-    def getActor(self):
-        return self._actor
     
     def finish(self):
         self._exp.finish()
