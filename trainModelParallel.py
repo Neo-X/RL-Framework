@@ -327,7 +327,7 @@ def trainModelParallel(settingsFileName):
             # actor.setForwardDynamicsModel(forwardDynamicsModel)
             namespace.forwardDynamicsModel = forwardDynamicsModel
         
-        ## NOw everything related to the exp memory needs to be updated
+        ## Now everything related to the exp memory needs to be updated
         bellman_errors=[]
         masterAgent.setPolicy(model)
         # masterAgent.setForwardDynamics(forwardDynamicsModel)

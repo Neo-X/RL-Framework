@@ -444,7 +444,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
             error = model.bellman_error(_states, _actions, _rewards, _result_states, falls)
         else :
             error = [[0]]
-            print ("Error: not enough samples")
+            print ("Error: not enough samples in experience to check bellman error" )
         # states, actions, result_states, rewards = experience.get_batch(64)
         # error = model.bellman_error(states, actions, rewards, result_states)
         # print (states, actions, rewards, result_states, discounted_sum, value)
@@ -520,7 +520,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
                 error = model.bellman_error(_states, _actions, _rewards, _result_states, falls)
             else :
                 error = [[0]]
-                print ("Error: not enough samples")
+                print ("Error: not enough samples in experience to check bellman error" )
             # states, actions, result_states, rewards = experience.get_batch(64)
             # error = model.bellman_error(states, actions, rewards, result_states)
             # print (states, actions, rewards, result_states, discounted_sum, value)
@@ -708,6 +708,8 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
 def modelEvaluation(settings_file_name):
     
     from model.ModelUtil import getSettings
+    import multiprocessing
+    
     settings = getSettings(settings_file_name)
     # settings['shouldRender'] = True
     import os    
@@ -751,6 +753,13 @@ def modelEvaluation(settings_file_name):
     action_space_continuous=settings['action_space_continuous']
     if action_space_continuous:
         action_bounds = np.array(settings["action_bounds"], dtype=float)
+        
+    input_anchor_queue = multiprocessing.Queue(settings['queue_size_limit'])
+    output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
+    eval_episode_data_queue = multiprocessing.Queue(settings['num_available_threads'])
+    mgr = multiprocessing.Manager()
+    namespace = mgr.Namespace()
+    namespace.p=0
     
     print ("Sim config file name: " + str(settings["sim_config_file"]))
     
@@ -791,8 +800,51 @@ def modelEvaluation(settings_file_name):
 
     # this is the process that selects which game to play
     
+    sim_workers = []
+    for process in range(settings['num_available_threads']):
+        # this is the process that selects which game to play
+        exp_=None
+        
+        if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
+            print ("Assigning same EXP")
+            exp_ = exp_val # This should not work properly for many simulations running at the same time. It could try and evalModel a simulation while it is still running samples 
+        print ("original exp: ", exp_)
+        if ( settings['use_simulation_sampling'] ):
+            
+            sampler = createSampler(settings, exp_)
+            ## This should be some kind of copy of the simulator not a network
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp_)
+            sampler.setForwardDynamics(forwardDynamicsModel)
+            # sampler.setPolicy(model)
+            agent = sampler
+            print ("thread together exp: ", agent._exp)
+            # sys.exit()
+        else:
+            agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+        
+        agent.setSettings(settings)
+        w = SimWorker(namespace, input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
+                settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process )
+        # w.start()
+        # w._settings['shouldRender']=True
+        sim_workers.append(w)
+        
+    if (int(settings["num_available_threads"]) != 1): # This is okay if there is one thread only...
+            for sw in sim_workers:
+                print ("Sim worker")
+                print (sw)
+                sw.start()
+            
+    ## This needs to be done after the simulatino work processes are created
+    exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'])
+    exp_val.setActor(actor)
+    exp_val.getActor().init()
+    exp_val.getEnvironment().init()
+    
     # exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
-    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=False)
+    # exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=False)
+    exp = exp_val
     exp.setActor(actor)
     if (settings['train_forward_dynamics']):
         # actor.setForwardDynamicsModel(forwardDynamicsModel)
@@ -803,6 +855,10 @@ def modelEvaluation(settings_file_name):
     
     exp.getActor().init()   
     exp.getEnvironment().init()
+    if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
+        sim_workers[0].setEnvironment(exp_val)
+        sim_workers[0].start()
+        
     expected_value_viz=None
     if (settings['visualize_expected_value']):
         expected_value_viz = NNVisualize(title=str("Expected Value") + " with " + str(settings["model_type"]), settings=settings)
@@ -814,15 +870,21 @@ def modelEvaluation(settings_file_name):
     masterAgent.setExperience(experience)
     masterAgent.setPolicy(model)
     
+    # masterAgent.setPolicy(model)
+    # masterAgent.setForwardDynamics(forwardDynamicsModel)
+    namespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
+    namespace.model = model
     
-    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, masterAgent, discount_factor, anchors=settings['eval_epochs'], 
-                                                                                                                        action_space_continuous=action_space_continuous, settings=settings, print_data=True, evaluation=True,
-                                                                                                                        visualizeEvaluation=expected_value_viz)
+    # mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, masterAgent, discount_factor, anchors=settings['eval_epochs'], 
+    #                                                                                                                     action_space_continuous=action_space_continuous, settings=settings, print_data=True, evaluation=True,
+    #                                                                                                                   visualizeEvaluation=expected_value_viz)
         # simEpoch(exp, model, discount_factor=discount_factor, anchors=_anchors[:settings['eval_epochs']][9], action_space_continuous=True, settings=settings, print_data=True, p=0.0, validation=True)
     
-    # mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue,
-    #                                                        model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
+    for k in range(5):
+        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue,
+                                                                model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
     
+        print ("Mean eval: ", mean_eval)
     """
     workers = []
     input_anchor_queue = Queue(settings['queue_size_limit'])
@@ -856,6 +918,13 @@ def modelEvaluation(settings_file_name):
         input_anchor_queue.put(None)
        """ 
     print ("Mean Evaluation: " + str(mean_eval))
+    
+    print ("Terminating Workers")
+    for sw in sim_workers: # Should update these more offten
+        input_anchor_queue.put(None)
+        
+    for sw in sim_workers: # Should update these more offten
+        sw.join()
     
     
 if __name__ == "__main__":

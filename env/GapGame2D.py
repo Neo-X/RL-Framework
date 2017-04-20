@@ -4,7 +4,7 @@ A 2D bouncing ball environment
 """
 
 
-import sys, os, random, time
+import sys, os, random
 from math import *
 import numpy as np
 from OpenGL.GL import *
@@ -13,6 +13,7 @@ from OpenGL.GLUT import *
 # from twisted.protocols import stateful
 import copy
 import math
+from GapGame1D import *
 
     
 
@@ -26,14 +27,15 @@ class GapGame2D(GapGame1D):
     def actContinuous(self, action, bootstrapping=False):
         # print ("Action: ", action)
         pos = self._obstacle.getPosition()
+        vel = self._obstacle.getLinearVel()
         # print ("Position Before action: ", pos)
-        dist = action[0]
-        if dist > self._game_settings["jump_bounds"][1]:
-            dist = self._game_settings["jump_bounds"][1]
-        elif dist < self._game_settings["jump_bounds"][0]:
-            dist = self._game_settings["jump_bounds"][0]
+        time = (action[1]/9.81)*2 # time for rise and fall
+        new_vel = np.array([vel[0] + action[0], action[1]])
+        new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+        self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0))
         ## Move forward along X
-        self.simulateAction([dist])
+        self.simulateAction(new_vel)
+        dist = new_vel[0] * time
         self._obstacle.setPosition(pos + np.array([dist, 0.0, 0.0]))
         # print ("Position After action: ", pos + np.array([dist, 0.0, 0.0]))
 
@@ -48,40 +50,6 @@ class GapGame2D(GapGame1D):
         # obstacle.addForce((0.0,100.0,0.0))
         
     
-    def simulateAction(self, action):
-        """
-            Returns True if a contact was detected
-        
-        """
-        if self._Paused:
-            return
-        t = self._dt - (time.time() - self._lasttime)    
-        if self._game_settings['render']:
-            if (t > 0):
-                time.sleep(t)
-        ## 
-        if self._game_settings['render']:
-            pos = self._obstacle.getPosition()
-            steps=50
-            hopTime=1.0
-            x = np.array(np.linspace(-0.5, 0.5, steps))
-            y = np.array(map(self._computeHeight, x))
-            y = (y + math.fabs(float(np.amin(y)))) * 2.0
-            x = np.array(np.linspace(0.0, 1.0, steps)) * action[0]
-            # x = (x + 0.5) * action[0]
-            x_ = (x + pos[0])
-            for i in range(steps):
-                ## Draw the ball arch
-                self._obstacle.setPosition([x_[i], y[i], 0.0] )
-                pos_ = self._obstacle.getPosition()
-                # print ("New obstacle position: ", pos_)
-                
-                glutPostRedisplay()
-                self.onDraw()
-        return True
-        
-    
-
 if __name__ == '__main__':
     import json
     settings={}
@@ -89,10 +57,11 @@ if __name__ == '__main__':
     if (len(sys.argv)) > 1:
         _settings=json.load(open(sys.argv[1]))
         print (_settings)
+        _settings['render']=True
         game = GapGame2D(_settings)
     else:
-        settings['render']=True
-        game = GapGame2D(settings)
+        _settings['render']=True
+        game = GapGame2D(_settings)
     game.init()
     for j in range(100):
         # game.generateEnvironmentSample()
@@ -116,7 +85,7 @@ if __name__ == '__main__':
             
             # print (state)
             
-            game.visualizeState(state[:len(state)-1], action, state[-1])
+            game.visualizeState(state[:len(state)-1], action, state[_settings['num_terrain_samples']])
             reward = game.actContinuous(action)
             
             if (game.agentHasFallen()):

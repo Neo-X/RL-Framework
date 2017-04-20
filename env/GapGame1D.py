@@ -14,6 +14,18 @@ from OpenGL.GLUT import *
 import copy
 import math
 
+def clampAction(actionV, bounds):
+    """
+    bounds[0] is lower bounds
+    bounds[1] is upper bounds
+    """
+    for i in range(len(actionV)):
+        if actionV[i] < bounds[0][i]:
+            actionV[i] = bounds[0][i]
+        elif actionV[i] > bounds[1][i]:
+            actionV[i] = bounds[1][i]
+    return actionV 
+
 def sign(x):
     """Returns 1.0 if x is positive, -1.0 if x is negative or zero."""
     if x > 0.0: return 1.0
@@ -282,12 +294,19 @@ class Obstacle(object):
     
     def __init__(self):
         self._pos = np.array([0,0,0])
+        self._vel = np.array([0,0,0])
         
     def setPosition(self, pos):
         self._pos = pos
         
     def getPosition(self):
         return copy.deepcopy(self._pos)
+    
+    def setLinearVel(self, vel):
+        self._vel = vel
+        
+    def getLinearVel(self):
+        return copy.deepcopy(self._vel)
 
     # def setRotation(self, balh):
     #     pass
@@ -588,11 +607,14 @@ class GapGame1D(object):
         if self._game_settings['render']:
             pos = self._obstacle.getPosition()
             steps=50
-            hopTime=1.0
+            # hopTime=1.0
+            vel = self._obstacle.getLinearVel()
+            time_ = (vel[1]/9.81)*2 # time for rise and fall
+            dist = vel[0] * time_
             x = np.array(np.linspace(-0.5, 0.5, steps))
             y = np.array(map(self._computeHeight, x))
-            y = (y + math.fabs(float(np.amin(y)))) * 2.0
-            x = np.array(np.linspace(0.0, 1.0, steps)) * action[0]
+            y = (y + math.fabs(float(np.amin(y)))) * action[1]
+            x = np.array(np.linspace(0.0, 1.0, steps)) * dist
             # x = (x + 0.5) * action[0]
             x_ = (x + pos[0])
             for i in range(steps):
@@ -610,8 +632,8 @@ class GapGame1D(object):
         self._nextTerrainData = terrain
         pos = self._obstacle.getPosition() 
         # self._obstacle.setLinearVel((action[0],4.0,0.0))
-        time = (4.0/9.81)*2 # time for rise and fall
-        self._nextTerrainStartX = pos[0] + (time * action[0]) + terrain_dx
+        time_ = (4.0/9.81)*2 # time for rise and fall
+        self._nextTerrainStartX = pos[0] + (time_ * action[0]) + terrain_dx
         # self._nextTerrainStartX = pos[0] + terrain_dx
         # drawTerrain(terrain, translateX, translateY=0.0, colour=(0.4, 0.4, 0.8, 0.0), wirefame=False):
         
@@ -619,8 +641,8 @@ class GapGame1D(object):
         self._nextTerrainData = terrain
         pos = self._obstacle.getPosition() 
         # self._obstacle.setLinearVel((action[0],4.0,0.0))
-        time = 0
-        self._nextTerrainStartX = pos[0] + (time * action[0]) + terrain_dx
+        time_ = 0
+        self._nextTerrainStartX = pos[0] + (time_ * action[0]) + terrain_dx
         # self._nextTerrainStartX = pos[0] + terrain_dx
         # drawTerrain(terrain, translateX, translateY=0.0, colour=(0.4, 0.4, 0.8, 0.0), wirefame=False):
     
@@ -705,7 +727,7 @@ class GapGame1D(object):
         # gap_start=random.randint(2,7)
         gap_start=self._terrainParameters['gap_start']
         next_gap=self._terrainParameters['distance_till_next_gap']
-        for i in range(int(terrainLength/next_gap)):
+        for i in range(terrainLength/next_gap):
             gap_start= gap_start+random.randint(self._terrainParameters['random_gap_start_range'][0],
                                                 self._terrainParameters['random_gap_start_range'][1])
             gap_size=random.randint(self._terrainParameters['random_gap_width_range'][0],
@@ -725,10 +747,11 @@ class GapGame1D(object):
         
     def getCharacterState(self):
         # add angular velocity
-        angularVel = list(self._obstacle.getAngularVel())
+        # angularVel = list(self._obstacle.getAngularVel())
+        angularVel = []
         #add rotation
-        rot = list(self._obstacle.getQuaternion())
-        angularVel.extend(rot)
+        # rot = list(self._obstacle.getQuaternion())
+        # angularVel.extend(rot)
         vel = self._obstacle.getLinearVel()
         angularVel.append(vel[0])
         return angularVel
@@ -740,7 +763,7 @@ class GapGame1D(object):
     def getState(self):
         """ get the next self._num_points points"""
         pos = self._obstacle.getPosition()
-        charState = []
+        charState = self.getCharacterState()
         num_extra_feature=1
         ## Get the index of the next terrain sample
         start = self.getTerrainIndex()
@@ -759,7 +782,7 @@ class GapGame1D(object):
             return state
         else: # good things are going on...
             # state[0:self._num_points] = copy.deepcopy(pos[1]-self._terrainData[start:start+self._num_points])
-            state[0:self._num_points] = copy.deepcopy(self._terrainData[start:start+self._num_points])
+            state[0:self._num_points] = pos[1] - copy.deepcopy(self._terrainData[start:start+self._num_points])
             # state = copy.deepcopy(self._terrainData[start:start+self._num_points+1])
             # print ("Start: ", start, " State Data: ", state)
             state[self._num_points] = fabs(float(math.floor(start)*self._terrainScale)-(pos[0]-self._terrainStartX)) # X distance to first sample

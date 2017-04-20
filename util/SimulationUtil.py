@@ -15,6 +15,7 @@ import numpy as np
 from env.BallGame2D import BallGame2D
 from env.BallGame1D import BallGame1D
 from env.GapGame1D import GapGame1D
+from env.GapGame2D import GapGame2D
 from ModelEvaluation import *
 
 from model.RLDeepNet import RLDeepNet
@@ -57,6 +58,7 @@ from actor.ActorInterface import ActorInterface
 from actor.BallGame2DActor import BallGame2DActor
 from actor.BallGame1DActor import BallGame1DActor
 from actor.GapGame1DActor import GapGame1DActor
+from actor.GapGame2DActor import GapGame2DActor
 from actor.SimbiconActor import SimbiconActor
 from actor.ImitationActor import ImitationActor
 from actor.TerrainRLActor import TerrainRLActor
@@ -71,6 +73,7 @@ from sim.TerrainRLImitateEnv import TerrainRLImitateEnv
 from sim.BallGame2DEnv import BallGame2DEnv
 from sim.BallGame1DEnv import BallGame1DEnv
 from sim.GapGame1DEnv import GapGame1DEnv
+from sim.GapGame2DEnv import GapGame2DEnv
 
 #Sampler types
 from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
@@ -278,6 +281,15 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = GapGame1D(conf)
         exp = GapGame1DEnv(exp, settings)
         return exp
+    elif env_type == 'gapgame_2d':
+        file = open(config_file)
+        conf = json.load(file)
+        # print ("Settings: " + str(json.dumps(conf)))
+        file.close()
+        conf['render'] = render
+        exp = GapGame2D(conf)
+        exp = GapGame2DEnv(exp, settings)
+        return exp
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D') or 
           (env_type == 'simbiconBiped2DTerrain')):
         import simbiconAdapter
@@ -355,6 +367,8 @@ def createActor(env_type, settings, experience):
         actor = BallGame1DActor(settings, experience)
     elif env_type == 'gapgame_1d':
         actor = GapGame1DActor(settings, experience)
+    elif env_type == 'gapgame_2d':
+        actor = GapGame2DActor(settings, experience)
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or
           (env_type == 'simbiconBiped2DTerrain')):
         actor = SimbiconActor(settings, experience)
