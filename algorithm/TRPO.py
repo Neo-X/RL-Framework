@@ -421,6 +421,13 @@ class A3CTRPO(AlgorithmInterface):
         # return self._bellman_errorTarget()
 
 
+def kl(self, prob0, prob1):
+        mean0 = prob0[:, :self.d]
+        std0 = prob0[:, self.d:]
+        mean1 = prob1[:, :self.d]
+        std1 = prob1[:, self.d:]
+        return T.log(std1 / std0).sum(axis=1) + ((T.square(std0) + T.square(mean0 - mean1)) / (2.0 * T.square(std1))).sum(axis=1) - 0.5 * self.d
+
 class TrpoUpdater(EzFlat, EzPickle):
     
     options = [
@@ -457,17 +464,22 @@ class TrpoUpdater(EzFlat, EzPickle):
 
         prob_np_fixed = theano.gradient.disconnected_grad(prob_np)
         kl_firstfixed = probtype.kl(prob_np_fixed, prob_np).sum()/N
+        ## first derivative of kl
         grads = T.grad(kl_firstfixed, params)
         flat_tangent = T.fvector(name="flat_tan")
         shapes = [var.get_value(borrow=True).shape for var in params]
         start = 0
+        ## Collect the current tangents
         tangents = []
         for shape in shapes:
             size = np.prod(shape)
             tangents.append(T.reshape(flat_tangent[start:start+size], shape))
             start += size
+        ## fisher vector product  (gvp: gradient vector product, fvp: fisher vector product)
+        ## grad * tangent = jacobian    
         gvp = T.add(*[T.sum(g*tangent) for (g, tangent) in zipsame(grads, tangents)]) #pylint: disable=E1111
         # Fisher-vector product
+        ## I think this computes the jacobian over the dot product between two gradients, resulting in the Hessian
         fvp = flatgrad(gvp, params)
 
         ent = probtype.entropy(prob_np).mean()
@@ -499,6 +511,7 @@ class TrpoUpdater(EzFlat, EzPickle):
             print "got zero gradient. not updating"
         else:
             stepdir = cg(fisher_vector_product, -g)
+            ## preconditioner, I think
             shs = .5*stepdir.dot(fisher_vector_product(stepdir))
             lm = np.sqrt(shs / cfg["max_kl"])
             print "lagrange multiplier:", lm, "gnorm:", np.linalg.norm(g)
@@ -506,7 +519,9 @@ class TrpoUpdater(EzFlat, EzPickle):
             neggdotstepdir = -g.dot(stepdir)
             def loss(th):
                 self.set_params_flat(th)
+                ## Returns surrogate loss
                 return self.compute_losses(*args)[0] #pylint: disable=W0640
+            ## line searcho ver surrogate loss
             success, theta = linesearch(loss, thprev, fullstep, neggdotstepdir/lm)
             print "success", success
             self.set_params_flat(theta)
@@ -540,6 +555,7 @@ def cg(f_Ax, b, cg_iters=10, callback=None, verbose=False, residual_tol=1e-10):
     """
     Demmel p 312
     """
+    ## Copies of policy gradient
     p = b.copy()
     r = b.copy()
     x = np.zeros_like(b)
@@ -553,7 +569,9 @@ def cg(f_Ax, b, cg_iters=10, callback=None, verbose=False, residual_tol=1e-10):
         if callback is not None:
             callback(x)
         if verbose: print fmtstr % (i, rdotr, np.linalg.norm(x))
+        ## fisher vector product of policy gradient
         z = f_Ax(p)
+        ## 
         v = rdotr / p.dot(z)
         x += v*p
         r -= v*z
