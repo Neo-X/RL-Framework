@@ -179,6 +179,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     G_ts = []
     state_num=0
     i_=0
+    last_epoch_end=0
     reward_=0
     states = [] 
     actions = []
@@ -203,7 +204,20 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             discounted_sums.append(discounted_sum)
             discounted_sum=0
             state_num=0
+            
             G_ts.extend(copy.deepcopy(G_t))
+            if ((_output_queue != None) and (not evaluation) and (not bootstraping)): # for multi-threading
+                tmp_states = states [last_epoch_end:]
+                tmp_actions = actions[last_epoch_end:]
+                tmp_rewards = rewards[last_epoch_end:]
+                tmp_falls = falls[last_epoch_end:]
+                tmp_result_states = result_states[last_epoch_end:]
+                tmp_G_ts = G_ts[last_epoch_end:]
+                for state__, action__, reward__, result_state__, fall__, G_t__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts):
+                    _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__))
+            
+            last_epoch_end=i_
+            
             G_t = []
             exp.getActor().initEpoch()
             if validation:
@@ -405,6 +419,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
     evalData = [np.mean(evalDatas)]
     discounted_sums.append(discounted_sum)
+    G_ts.extend(copy.deepcopy(G_t))
     discounted_sum = np.mean(discounted_sums)
     q_value = np.mean(q_values_)
     if print_data:
@@ -413,7 +428,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print ("Current Tuple: " + str(experience.current()))
     tuples = (states, actions, result_states, rewards, falls, G_ts)
     if ((_output_queue != None) and (not evaluation) and (not bootstraping)): # for multi-threading
-        for state__, action__, reward__, result_state__, fall__, G_t__ in zip(states, actions, rewards, result_states, falls, G_ts):
+        tmp_states = states [last_epoch_end:]
+        tmp_actions = actions[last_epoch_end:]
+        tmp_rewards = rewards[last_epoch_end:]
+        tmp_falls = falls[last_epoch_end:]
+        tmp_result_states = result_states[last_epoch_end:]
+        tmp_G_ts = G_ts[last_epoch_end:]
+        for state__, action__, reward__, result_state__, fall__, G_t__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts):
             _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__))
         
     return (tuples, discounted_sum, q_value, evalData)
