@@ -42,11 +42,11 @@ def kl(mean0, std0, mean1, std1, d):
 # theano.config.mode='FAST_COMPILE'
 # from DeepCACLA import DeepCACLA
 
-class TRPO(AlgorithmInterface):
+class PPO(AlgorithmInterface):
     
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
-        super(TRPO,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(PPO,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
         # create a small convolutional neural network
         
@@ -58,10 +58,10 @@ class TRPO(AlgorithmInterface):
             np.zeros((self._batch_size, 1), dtype='int8'),
             broadcastable=(False, True))
         
-        self._tmp_diff = T.col("Tmp_Diff")
-        self._tmp_diff.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
+        self._advantage = T.col("Advantage")
+        self._advantage.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
         
-        self._tmp_diff_shared = theano.shared(
+        self._advantage_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True))
         
@@ -118,17 +118,15 @@ class TRPO(AlgorithmInterface):
             # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
             # self._Fallen: self._fallen_shared
-            self._tmp_diff: self._tmp_diff_shared
+            self._advantage: self._advantage_shared
         }
         
         self._critic_regularization = (self._critic_regularization_weight * lasagne.regularization.regularize_network_params(
         self._model.getCriticNetwork(), lasagne.regularization.l2))
-        self._actor_regularization = ( (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                self._model.getActorNetwork(), lasagne.regularization.l2)) )
-        if (self.getSettings()['use_previous_value_regularization']):
-            self._actor_regularization = self._actor_regularization + (( self.getSettings()['previous_value_regularization_weight']) * 
-                       change_penalty(self._model.getActorNetwork(), self._modelTarget.getActorNetwork()) 
-                      ) 
+        # self._actor_regularization = ( (self._regularization_weight * lasagne.regularization.regularize_network_params(
+        #         self._model.getActorNetwork(), lasagne.regularization.l2)) )
+        self._kl_firstfixed = T.mean(kl(self._q_valsActA, theano.tensor.ones_like(self._q_valsActA), self._q_valsActTarget, theano.tensor.ones_like(self._q_valsActTarget), 1))
+        self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed ) 
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
         # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
@@ -147,19 +145,22 @@ class TRPO(AlgorithmInterface):
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
             sys.exit(-1)
         ## Need to perform an element wise operation or replicate _diff for this to work properly.
-        # self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), theano.tensor.tile((self._diff * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
-        self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA_drop)
+        # self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), 
+        #                                                                    theano.tensor.tile((self._advantage * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
+        
+        ## advantage = Q(a,s) - V(s) = (r + gamma*V(s')) - V(s) 
+        # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._Fallen)) - self._q_func
+        
+        self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA).dot( self._advantage)
+        
+        # self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)
         # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
-        # self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
+        self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
         ## This should be a single column vector
-        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( T.transpose(T.sum(T.pow(self._actDiff, 2),axis=1) )), (self._diff * (1.0/(1.0-self._discount_factor))))
+        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( (T.mean(T.pow(self._actDiff, 2),axis=1) )), (self._diff * (1.0/(1.0-self._discount_factor))))
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( T.reshape(T.sum(T.pow(self._actDiff, 2),axis=1), (self._batch_size, 1) )), 
-        #                                                                        (self._tmp_diff * (1.0/(1.0-self._discount_factor)))
-        # self._actLoss_ = (T.mean(T.pow(self._actDiff, 2),axis=1))
-                                                                                
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)( (T.mean(T.pow(self._actDiff, 2),axis=1)), 
-                                                                                (self._tmp_diff * (1.0/(1.0-self._discount_factor)))
-                                                                            )
+        #                                                                        (self._advantage * (1.0/(1.0-self._discount_factor)))
+        self._actLoss_ = (T.mean(T.pow(self._actDiff, 2),axis=1))
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
         self._actLoss = T.mean(self._actLoss_) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
@@ -192,12 +193,7 @@ class TRPO(AlgorithmInterface):
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
         
-        self._kl_firstfixed = T.mean(kl(self._q_valsActA, theano.tensor.ones_like(self._q_valsActA), self._q_valsActTarget, theano.tensor.ones_like(self._q_valsActTarget), 1))
-        ## advantage = 
-        self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._Fallen)) - self._q_func 
-        
-
-        TRPO.compile(self)
+        PPO.compile(self)
         
     def compile(self):
         
@@ -213,15 +209,17 @@ class TRPO(AlgorithmInterface):
         self._get_critic_regularization = theano.function([], [self._critic_regularization])
         self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         
-        self._get_actor_regularization = theano.function([], [self._actor_regularization])
+        self._get_actor_regularization = theano.function([], [self._actor_regularization],
+                                                         givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
-        self._get_actor_diff_ = theano.function([], [self._actDiff], givens={
+        self._get_actor_diff_ = theano.function([], [self._actDiff], givens= self._actGivens)
+        """{
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._model.getActionSymbolicVariable(): self._model.getActions()
-            # self._Fallen: self._fallen_shared
-        }) 
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            self._Fallen: self._fallen_shared
+        }) """
         
         self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
         
@@ -279,7 +277,7 @@ class TRPO(AlgorithmInterface):
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         ## Easy fix for computing actor loss
         diff = self._bellman_error2()
-        self._tmp_diff_shared.set_value(diff)
+        self._advantage_shared.set_value(diff)
         
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
@@ -320,7 +318,7 @@ class TRPO(AlgorithmInterface):
         lossActor = 0
         
         diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        self._tmp_diff_shared.set_value(diff_)
+        # self._advantage_shared.set_value(diff_)
         lossActor, _ = self._trainActor()
         print ("KL_divergence: ", self.kl_divergence())
         print( "Policy loss: ", lossActor)
@@ -345,7 +343,7 @@ class TRPO(AlgorithmInterface):
                 tmp_falls.append(falls[i])
                 
         if (len(tmp_actions) > 0):
-            self._tmp_diff_shared.set_value(tmp_diff)
+            self._advantage_shared.set_value(tmp_diff)
             self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
         
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
