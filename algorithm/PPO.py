@@ -151,7 +151,9 @@ class PPO(AlgorithmInterface):
         ## advantage = Q(a,s) - V(s) = (r + gamma*V(s')) - V(s) 
         # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._Fallen)) - self._q_func
         
-        self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA).dot( self._advantage)
+        # self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA).dot( self._advantage)
+        self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), 
+                                                                           theano.tensor.tile((self._advantage), self._action_length)) # Target network does not work well here?
         
         # self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)
         # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
