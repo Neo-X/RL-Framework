@@ -77,9 +77,9 @@ def trainModelParallel(settingsFileName):
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
         action_space_continuous=settings['action_space_continuous']
         
-        input_anchor_queue = multiprocessing.Queue(settings['queue_size_limit'])
+        input_anchor_queue = multiprocessing.Queue(settings['epochs'])
         output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
-        eval_episode_data_queue = multiprocessing.Queue(settings['num_available_threads'])
+        eval_episode_data_queue = multiprocessing.Queue(settings['eval_epochs'])
         
         action_space_continuous=settings['action_space_continuous']
         if action_space_continuous:

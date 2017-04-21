@@ -179,8 +179,9 @@ class SimbiconActor(ActorInterface):
         super(SimbiconActor,self).initEpoch()
         if ( self._settings["use_parameterized_control"] ):
             # print (os.getpid(), ", Old target velocity: ", self._target_vel)
-            _bounds = self._settings['controller_parameter_settings']['velocity_bounds']
-            self._target_vel = np.random.uniform(_bounds[0][0], _bounds[1][0])
+            # _bounds = self._settings['controller_parameter_settings']['velocity_bounds']
+            # self._target_vel = np.random.uniform(_bounds[0][0], _bounds[1][0])
+            self._target_vel = self._settings["target_velocity"]
             # print (os.getpid(), ", New target velocity: ", self._target_vel)
             """
             _bounds = self._settings['controller_parameter_settings']['root_height_bounds']

@@ -52,12 +52,12 @@ class DeepCNNSingleNet(ModelInterface):
             nonlinearity=lasagne.nonlinearities.rectify,
             W=lasagne.init.GlorotUniform())
         """
-        """
+        
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=32, filter_size=4,
             nonlinearity=lasagne.nonlinearities.rectify,
             W=lasagne.init.GlorotUniform())
-        """
+        
         self._critic_task_part = network 
         
         """
