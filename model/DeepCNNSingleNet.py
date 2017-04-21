@@ -52,11 +52,12 @@ class DeepCNNSingleNet(ModelInterface):
             nonlinearity=lasagne.nonlinearities.rectify,
             W=lasagne.init.GlorotUniform())
         """
+        """
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=32, filter_size=4,
             nonlinearity=lasagne.nonlinearities.rectify,
             W=lasagne.init.GlorotUniform())
-        
+        """
         self._critic_task_part = network 
         
         """
@@ -76,17 +77,17 @@ class DeepCNNSingleNet(ModelInterface):
         
 
         networkAct = lasagne.layers.DenseLayer(
-                network, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=64,
+                network, num_units=32,
                 nonlinearity=lasagne.nonlinearities.rectify)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=32,
                 nonlinearity=lasagne.nonlinearities.rectify)
-        
+        """
+        network = lasagne.layers.DenseLayer(
+                network, num_units=32,
+                nonlinearity=lasagne.nonlinearities.rectify)
+        """
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
                 nonlinearity=lasagne.nonlinearities.rectify)
@@ -94,11 +95,11 @@ class DeepCNNSingleNet(ModelInterface):
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
-        
+        """
         networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=32,
+                networkAct, num_units=16,
                 nonlinearity=lasagne.nonlinearities.rectify)
-    
+        """
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
                 nonlinearity=lasagne.nonlinearities.linear)
