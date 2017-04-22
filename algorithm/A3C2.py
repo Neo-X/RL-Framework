@@ -67,6 +67,7 @@ class A3C2(AlgorithmInterface):
         # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._Fallen
         self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsTargetNextState )), self._Fallen)
         self._diff = self._target - self._q_func
+        self._Advantage = self._diff
         self._diff_drop = self._target - self._q_func_drop 
         # loss = 0.5 * self._diff ** 2 
         loss = T.pow(self._diff, 2)
@@ -84,11 +85,11 @@ class A3C2(AlgorithmInterface):
         }
         self._actGivens = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._Fallen: self._fallen_shared
-            self._advantage: self._advantage_shared
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            # self._model.getActionSymbolicVariable(): self._model.getActions(),
+            self._Fallen: self._fallen_shared
+            # self._advantage: self._advantage_shared
         }
         
         self._critic_regularization = (self._critic_regularization_weight * lasagne.regularization.regularize_network_params(
@@ -113,24 +114,24 @@ class A3C2(AlgorithmInterface):
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
             sys.exit(-1)
         ## Need to perform an element wise operation or replicate _diff for this to work properly.
-        self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), 
-                                                                           theano.tensor.tile((self._advantage * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
+        # self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), 
+        #                                                                theano.tensor.tile((self._advantage * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
+        # self._actLoss
         # self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)
         # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
-        self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
+        # self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
         ## This should be a single column vector
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( (T.mean(T.pow(self._actDiff, 2),axis=1) )), (self._diff * (1.0/(1.0-self._discount_factor))))
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( T.reshape(T.sum(T.pow(self._actDiff, 2),axis=1), (self._batch_size, 1) )), 
         #                                                                        (self._advantage * (1.0/(1.0-self._discount_factor)))
-        self._actLoss_ = (T.mean(T.pow(self._actDiff, 2),axis=1))
-                                                                                
-        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)( (T.mean(T.pow(self._actDiff, 2),axis=1)), 
-        #                                                                         (self._advantage * (1.0/(1.0-self._discount_factor)))
-        #                                                                     )
-        # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
-        self._actLoss = T.mean(self._actLoss_) 
+        # self._actLoss_ = (T.mean(T.pow(self._actDiff, 2),axis=1))
+        self._Advantage = theano.gradient.disconnected_grad(self._diff)
+        self._actLoss_ = (T.log(self._q_valsActA) * self._Advantage)
+        ## - because update computes gradient DESCENT updates
+        # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)                                                                 
+        self._actLoss = - T.mean(self._actLoss_) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
-        self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
+        # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization, self._actionParams, 
@@ -176,7 +177,7 @@ class A3C2(AlgorithmInterface):
         
         self._get_actor_regularization = theano.function([], [self._actor_regularization])
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
-        self._get_actor_diff_ = theano.function([], [self._actDiff], givens= self._actGivens)
+        # self._get_actor_diff_ = theano.function([], [self._actDiff], givens= self._actGivens)
         """{
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
@@ -185,7 +186,7 @@ class A3C2(AlgorithmInterface):
             self._Fallen: self._fallen_shared
         }) """
         
-        self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
+        # self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
         
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
