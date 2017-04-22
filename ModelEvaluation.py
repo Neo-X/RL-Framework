@@ -16,7 +16,7 @@ import copy
 import numpy as np
 from model.ModelUtil import *
 # import memory_profiler
-import resource
+# import resources
 
 # class SimWorker(threading.Thread):
 class SimWorker(Process):
@@ -42,7 +42,8 @@ class SimWorker(Process):
         self._process_random_seed = process_random_seed
     
     def current_mem_usage(self):
-        return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
+        # return resources.getrusage(resources.RUSAGE_SELF).ru_maxrss / 1024.
+        return 0
 
     def setEnvironment(self, exp_):
         """

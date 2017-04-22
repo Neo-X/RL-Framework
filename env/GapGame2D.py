@@ -13,7 +13,7 @@ from OpenGL.GLUT import *
 # from twisted.protocols import stateful
 import copy
 import math
-from GapGame1D import *
+from .GapGame1D import *
 
     
 
