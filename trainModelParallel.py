@@ -409,6 +409,12 @@ def trainModelParallel(settingsFileName):
                         criticRegularizationCosts.append(regularizationCost__)
                         
                     if (settings['debug_actor']):
+                        """
+                        print( "Advantage: ", masterAgent.getPolicy()._get_advantage())
+                        print("Policy prob: ", masterAgent.getPolicy()._q_action())
+                        print("Policy log prob: ", masterAgent.getPolicy()._get_log_prob())
+                        print( "Actor loss: ", masterAgent.getPolicy()._get_action_diff())
+                        """
                         loss__ = masterAgent.getPolicy()._get_actor_loss() # uses previous call batch data
                         actorLosses.append(loss__)
                         regularizationCost__ = masterAgent.getPolicy()._get_actor_regularization()
