@@ -295,7 +295,7 @@ class A3C2(AlgorithmInterface):
         # print( "Advantage: ", self._get_advantage())
         # print("Policy mean: ", self._q_action())
         # print("Policy log prob: ", self._get_log_prob())
-        print( "Actor loss: ", self._get_action_diff())
+        # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
         lossActor, _ = self._trainActor()
         print( "Policy loss: ", lossActor)
