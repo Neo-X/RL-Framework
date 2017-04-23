@@ -9,7 +9,7 @@ from model.ModelUtil import *
 from algorithm.AlgorithmInterface import AlgorithmInterface
 
 # For debugging
-theano.config.optimizer='fast_compile'
+# theano.config.optimizer='fast_compile'
 # from DeepCACLA import DeepCACLA
 def loglikelihood(a, mean0, std0, d):
     """
@@ -17,7 +17,8 @@ def loglikelihood(a, mean0, std0, d):
     """
     
     # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
-    return [- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1)]
+    return T.reshape(- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(32, 1))
+
 
 def likelihood(a, mean0, std0, d):
     return T.exp(loglikelihood(a, mean0, std0, d))
@@ -136,15 +137,16 @@ class A3C2(AlgorithmInterface):
         #                                                                        (self._advantage * (1.0/(1.0-self._discount_factor)))
         # self._actLoss_ = (T.mean(T.pow(self._actDiff, 2),axis=1))
         # self._Advantage = theano.tensor.tile(theano.gradient.disconnected_grad(self._diff), self._action_length)
-        self._Advantage = theano.gradient.disconnected_grad(self._diff)
-        self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, theano.tensor.ones_like(self._q_valsActA) * 0.2, self._action_length)
-        self._actLoss_ = ( T.dot(self._log_prob , self._Advantage) )
+        # self._Advantage = theano.gradient.disconnected_grad(self._diff)
+        self._Advantage = self._diff
+        self._log_prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, theano.tensor.ones_like(self._q_valsActA) * 0.1, self._action_length)
+        self._actLoss_ = ( (self._log_prob * self._Advantage) )
+        # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
-        # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)                                                                 
-        self._actLoss = - T.sum(self._actLoss_) 
+        self._actLoss = - T.mean(self._actLoss_) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
-        self._policy_grad = T.grad(self._actLoss + self._actor_regularization,  self._actionParams)
+        self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             self._actionUpdates = lasagne.updates.rmsprop(self._policy_grad, self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
@@ -290,9 +292,9 @@ class A3C2(AlgorithmInterface):
         #     self.updateTargetModel()
         # self._updates += 1
         # loss, _ = self._train()
-        print( "Advantage: ", self._get_advantage())
-        print("Policy prob: ", self._q_action())
-        print("Policy log prob: ", self._get_log_prob())
+        # print( "Advantage: ", self._get_advantage())
+        # print("Policy mean: ", self._q_action())
+        # print("Policy log prob: ", self._get_log_prob())
         print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
         lossActor, _ = self._trainActor()
