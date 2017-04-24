@@ -38,6 +38,18 @@ def zipsame(*seqs):
 def kl(mean0, std0, mean1, std1, d):
     return T.log(std1 / std0).sum(axis=1) + ((T.square(std0) + T.square(mean0 - mean1)) / (2.0 * T.square(std1))).sum(axis=1) - 0.5 * d
 
+def loglikelihood(a, mean0, std0, d):
+    """
+        d is the number of action dimensions
+    """
+    
+    # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
+    return T.reshape(- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(32, 1))
+
+
+def likelihood(a, mean0, std0, d):
+    return T.exp(loglikelihood(a, mean0, std0, d))
+
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 # from DeepCACLA import DeepCACLA
@@ -64,6 +76,13 @@ class PPO(AlgorithmInterface):
         self._advantage_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True))
+        
+        self._KL_Weight = T.scalar("KL_Threshold")
+        self._KL_Weight.tag.test_value = np.zeros((1),dtype=np.dtype(self.getSettings()['float_type']))[0]
+        
+        self._kl_weight_shared = theano.shared(
+            np.ones((1), dtype=self.getSettings()['float_type'])[0])
+        self._kl_weight_shared.set_value(self.getSettings()['previous_value_regularization_weight'])
         
         """
         self._target_shared = theano.shared(
@@ -114,19 +133,22 @@ class PPO(AlgorithmInterface):
         }
         self._actGivens = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._Fallen: self._fallen_shared
-            self._advantage: self._advantage_shared
+            self._Fallen: self._fallen_shared,
+            # self._advantage: self._advantage_shared,
+            self._KL_Weight: self._kl_weight_shared
         }
         
         self._critic_regularization = (self._critic_regularization_weight * lasagne.regularization.regularize_network_params(
         self._model.getCriticNetwork(), lasagne.regularization.l2))
         # self._actor_regularization = ( (self._regularization_weight * lasagne.regularization.regularize_network_params(
         #         self._model.getActorNetwork(), lasagne.regularization.l2)) )
-        self._kl_firstfixed = T.mean(kl(self._q_valsActA, theano.tensor.ones_like(self._q_valsActA), self._q_valsActTarget, theano.tensor.ones_like(self._q_valsActTarget), 1))
-        self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed ) 
+        self._kl_firstfixed = T.mean(kl(self._q_valsActA, theano.tensor.ones_like(self._q_valsActA) * self.getSettings()['exploration_rate'], self._q_valsActTarget, theano.tensor.ones_like(self._q_valsActTarget) * self.getSettings()['exploration_rate'], self._action_length))
+        # self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed )
+        self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed )
+        
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
         # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
@@ -151,34 +173,27 @@ class PPO(AlgorithmInterface):
         ## advantage = Q(a,s) - V(s) = (r + gamma*V(s')) - V(s) 
         # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._Fallen)) - self._q_func
         
-        # self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA).dot( self._advantage)
-        self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), 
-                                                                           theano.tensor.tile((self._advantage), self._action_length)) # Target network does not work well here?
-        
-        # self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA)
-        # self._actDiff = ((self._model.getActionSymbolicVariable() - self._q_valsActA)) # Target network does not work well here?
-        self._actDiff_drop = ((self._model.getActionSymbolicVariable() - self._q_valsActA_drop)) # Target network does not work well here?
-        ## This should be a single column vector
-        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( (T.mean(T.pow(self._actDiff, 2),axis=1) )), (self._diff * (1.0/(1.0-self._discount_factor))))
-        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(( T.reshape(T.sum(T.pow(self._actDiff, 2),axis=1), (self._batch_size, 1) )), 
-        #                                                                        (self._advantage * (1.0/(1.0-self._discount_factor)))
-        self._actLoss_ = (T.mean(T.pow(self._actDiff, 2),axis=1))
-        # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
-        self._actLoss = T.mean(self._actLoss_) 
+        self._Advantage = self._diff
+        self._log_prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, theano.tensor.ones_like(self._q_valsActA) * self.getSettings()['exploration_rate'], self._action_length)
+        self._actLoss_ = ( (self._log_prob * self._Advantage) )
+        # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
+        ## - because update computes gradient DESCENT updates
+        self._actLoss = (-1.0 * T.mean(self._actLoss_)) + (1.0 *self._actor_regularization)
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
-        
+        self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
-            self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization, self._actionParams, 
+            self._actionUpdates = lasagne.updates.rmsprop(self._policy_grad, self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
         elif (self.getSettings()['optimizer'] == 'momentum'):
-            self._actionUpdates = lasagne.updates.momentum(self._actLoss + self._actor_regularization, self._actionParams, 
+            self._actionUpdates = lasagne.updates.momentum(self._policy_grad, self._actionParams, 
                     self._learning_rate , momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
-            self._actionUpdates = lasagne.updates.adam(self._actLoss + self._actor_regularization, self._actionParams, 
+            self._actionUpdates = lasagne.updates.adam(self._policy_grad, self._actionParams, 
                     self._learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
+            
             
         
         # actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct_drop) + 
@@ -212,9 +227,10 @@ class PPO(AlgorithmInterface):
         self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         
         self._get_actor_regularization = theano.function([], [self._actor_regularization],
-                                                         givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+                                                         givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+                                                                 self._KL_Weight: self._kl_weight_shared})
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
-        self._get_actor_diff_ = theano.function([], [self._actDiff], givens= self._actGivens)
+        # self._get_actor_diff_ = theano.function([], [self._actDiff], givens= self._actGivens)
         """{
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
@@ -223,7 +239,12 @@ class PPO(AlgorithmInterface):
             self._Fallen: self._fallen_shared
         }) """
         
-        self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
+        self._get_action_diff = theano.function([], [self._actLoss_], 
+                            givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            self._Fallen: self._fallen_shared})
         
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
@@ -322,7 +343,14 @@ class PPO(AlgorithmInterface):
         diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # self._advantage_shared.set_value(diff_)
         lossActor, _ = self._trainActor()
-        print ("KL_divergence: ", self.kl_divergence())
+        kl_d = self.kl_divergence()
+        print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
+        """
+        if kl_d > self.getSettings()['kl_divergence_threshold']:
+            self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()*2.0)
+        else:
+            self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()/2.0)
+        """    
         print( "Policy loss: ", lossActor)
         
         

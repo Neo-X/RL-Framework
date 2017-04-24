@@ -1,6 +1,6 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "Deep_CNN_SingleNet",
+"model_type": "Deep_CNN",
     "comment__": "Learning algorithm to use",
 "agent_name": "PPO",
     "comment__": "Folder to store the training data in.",
@@ -228,5 +228,7 @@
 	"comment__": "Regularization weight for different between policy parameters and old policy parameters",
 "previous_value_regularization_weight":  0.01,
 	"comment__": "Random seed value for the simulation to use",
-"random_seed": 1234
+"random_seed": 1234,
+	"comment__": "KL divergence threshold between policy updates",
+"kl_divergence_threshold": 0.01
 }
