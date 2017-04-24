@@ -199,6 +199,23 @@ def reward_smoother(diff_, settings, _weight):
         print("Reward smoother unknown: ", settings['reward_smoother'])
         sys.exit(-1)
 
+def loglikelihood(a, mean0, std0, d):
+    """
+        d is the number of action dimensions
+    """
+    
+    # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
+    diff = (a - mean0)
+    diff = np.square(diff/std0).sum(axis=1) * -0.5
+    print ("diff: ", diff)
+    print ("Final: ", diff - 0.5 * np.log(2.0 * np.pi) * d - np.log(std0).sum(axis=1))
+    return np.reshape(- 0.5 * np.square((a - mean0) / std0).sum(axis=1) - 0.5 * np.log(2.0 * np.pi) * d - np.log(std0).sum(axis=1), newshape=(a.shape[0], 1))
+
+
+def likelihood(a, mean0, std0, d):
+    return np.exp(loglikelihood(a, mean0, std0, d))
+
+
 """
 def initSimulation(settings):
 
@@ -389,7 +406,7 @@ if __name__ == '__main__':
     action_bounds = np.array(settings["action_bounds"], dtype=float)
     # action_bounds[0][0] = 0
     reward_bounds = np.array([[-10.1],[0.0]])
-    action = np.array((action_bounds[1]+action_bounds[0])/2.0)
+    action = np.array((action_bounds[1]+action_bounds[0])/2.0) # right in the middle
     print ("Action bounds: " + str(action_bounds))
     print ("Action: " + str(action))
     print ("Action length: " + str(action.shape[0]))
@@ -397,22 +414,26 @@ if __name__ == '__main__':
     print ("Normalized Action: " + str(norm_action(action+0.5, action_bounds)) + " same action: " + str(action+0.5) + " as " + str(scale_action(norm_action(action+0.5, action_bounds), action_bounds)))
     print ("Normalized Action: " + str(norm_action(action+-0.5, action_bounds)) + " same action: " + str(action+-0.5) + " as "  + str(scale_action(norm_action(action+-0.5, action_bounds), action_bounds)))
     actions_=[]
+    actions_list = []
     for i in range(action.shape[0] ):
         actions_.append([])
     print ("Actions Data: ", actions_)
-    for i in range(500):
+    
+    for i in range(50):
         action_ = randomExporation(settings["exploration_rate"], action, action_bounds)
+        actions_list.append(action_)
         print (" Exploration action: ", action_)
         for j in range(action.shape[0]):
             act_ = action_[j]
             actions_[j].append(act_)
     # data = actions_
+    """
     for k in range(len(actions_)):
         plt.hist(actions_[k], bins=20)
         plt.show()
-    
-    
+    """
     reward=np.array([-9.0])
+    """
     print ("Norm Reward: " + str(norm_reward(reward, reward_bounds)) )
     print ("Norm Reward: " + str(norm_reward(reward+-0.5, reward_bounds)))
     
@@ -482,4 +503,10 @@ if __name__ == '__main__':
           1.24063643e-01,   2.61238771e-01,   1.64705196e+00]])))
     
     
+    """
+    actions_list = np.array(actions_list)
+    l = likelihood(actions_list+0.1, actions_list, np.ones_like(actions_list) * 0.1, actions_list.shape[1])
+    l2 = likelihood(actions_list+0.02, actions_list-0.014, np.ones_like(actions_list) * 0.1, actions_list.shape[1])
+    print ("Actions: ", actions_list)
+    print ("Likelyhood: ", (l/l2))
     
