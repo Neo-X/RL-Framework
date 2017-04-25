@@ -151,6 +151,7 @@ class A3C2(AlgorithmInterface):
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target).dot(self._Advantage)) )
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target) * (self._Advantage)) )
         self._actLoss_ = ( ((self._log_prob) * self._Advantage) )
+        # self._actLoss_ = ( ((self._log_prob)) )
         # self._actLoss_ =  ( (self._log_prob).dot( self._Advantage) ) 
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
@@ -317,7 +318,7 @@ class A3C2(AlgorithmInterface):
         # print("Policy std: ", self._q_action_std())
         # print("Policy log prob: ", self._get_log_prob())
         # print("Policy log prob target: ", self._get_log_prob_target())
-        print( "Actor loss: ", self._get_action_diff())
+        # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
         lossActor, _ = self._trainActor()
         print( "Policy loss: ", lossActor)
