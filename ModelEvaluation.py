@@ -22,7 +22,8 @@ from model.ModelUtil import *
 class SimWorker(Process):
     
     def __init__(self, namespace, input_queue, output_queue, actor, exp, model, discount_factor, action_space_continuous, 
-                 settings, print_data, p, validation, eval_episode_data_queue, process_random_seed):
+                 settings, print_data, p, validation, eval_episode_data_queue, process_random_seed,
+                 message_que):
         super(SimWorker, self).__init__()
         self._input_queue= input_queue
         self._output_queue = output_queue
@@ -40,6 +41,8 @@ class SimWorker(Process):
         self._iteration = 0
         self._namespace = namespace # A way to pass messages between processes
         self._process_random_seed = process_random_seed
+        ## Used to recieve special messages like update your model parameters to this now!
+        self._message_queue = message_que
     
     def current_mem_usage(self):
         # return resources.getrusage(resources.RUSAGE_SELF).ru_maxrss / 1024.
@@ -114,16 +117,24 @@ class SimWorker(Process):
                 self._eval_episode_data_queue.put(out)
             else:
                 print("Updating sim policies:")
-                
-                self._model.getPolicy().setNetworkParameters(self._namespace.agentPoly)
-                if (self._settings['train_forward_dynamics']):
-                    self._model.getForwardDynamics().setNetworkParameters(self._namespace.forwardNN)
+                if (not self._settings['on_policy']):
+                    self._model.getPolicy().setNetworkParameters(self._namespace.agentPoly)
+                    if (self._settings['train_forward_dynamics']):
+                        self._model.getForwardDynamics().setNetworkParameters(self._namespace.forwardNN)
                 # gc.collect()
                 
             # print ("Actions: " + str(actions))
             # all_objects = muppy.get_objects()
             # sum1 = summary.summarize(all_objects)
             # summary.print_(sum1)
+            ## Check if any messages in the queue
+            if self._message_queue.qsize() > 0:
+                message = self._message_queue.get()
+                if message == "Update Policy":
+                    print ("Message: ", message)
+                    self._model.getPolicy().setNetworkParameters(self._namespace.agentPoly)
+                    if (self._settings['train_forward_dynamics']):
+                        self._model.getForwardDynamics().setNetworkParameters(self._namespace.forwardNN)
         print ("Simulation Worker Complete: ")
         self._exp.finish()
         

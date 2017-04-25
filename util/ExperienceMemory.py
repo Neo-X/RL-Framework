@@ -28,41 +28,41 @@ class ExperienceMemory(object):
             self._settings = settings
         
         self._history_size=memory_length
-        self._history_update_index=0 # where the next experience should write
-        self._inserts=0
         self._state_length = state_length
         self._action_length = action_length
+        self._continuous_actions = continuous_actions
         # self._settings = settings
-        
+        self.clear()
         # self._state_history = theano.shared(np.zeros((self._history_size, state_length)))
         # self._action_history = theano.shared(np.zeros((self._history_size, action_length)))
         # self._nextState_history = theano.shared(np.zeros((self._history_size, state_length)))
         # self._reward_history = theano.shared(np.zeros((self._history_size, 1)))
+        
+    def clear(self):
+        self._history_update_index=0 # where the next experience should write
+        self._inserts=0
+        
         if (self._settings['float_type'] == 'float32'):
             
-            self._state_history = (np.zeros((self._history_size, state_length), dtype='float32'))
-            if continuous_actions:
-                self._action_history = (np.zeros((self._history_size, action_length), dtype='float32'))
+            self._state_history = (np.zeros((self._history_size, self._state_length), dtype='float32'))
+            if self._continuous_actions:
+                self._action_history = (np.zeros((self._history_size, self._action_length), dtype='float32'))
             else:
-                self._action_history = (np.zeros((self._history_size, action_length), dtype='int8'))
-            self._nextState_history = (np.zeros((self._history_size, state_length), dtype='float32'))
+                self._action_history = (np.zeros((self._history_size, self._action_length), dtype='int8'))
+            self._nextState_history = (np.zeros((self._history_size, self._state_length), dtype='float32'))
             self._reward_history = (np.zeros((self._history_size, 1), dtype='float32'))
             self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
             self._discounted_sum_history = (np.zeros((self._history_size, 1), dtype='float32'))
-            self._continuous_actions = continuous_actions
         else:
-            self._state_history = (np.zeros((self._history_size, state_length), dtype='float64'))
-            if continuous_actions:
-                self._action_history = (np.zeros((self._history_size, action_length), dtype='float64'))
+            self._state_history = (np.zeros((self._history_size, self._state_length), dtype='float64'))
+            if self._continuous_actions:
+                self._action_history = (np.zeros((self._history_size, self._action_length), dtype='float64'))
             else:
-                self._action_history = (np.zeros((self._history_size, action_length), dtype='int8'))
-            self._nextState_history = (np.zeros((self._history_size, state_length), dtype='float64'))
+                self._action_history = (np.zeros((self._history_size, self._action_length), dtype='int8'))
+            self._nextState_history = (np.zeros((self._history_size, self._state_length), dtype='float64'))
             self._reward_history = (np.zeros((self._history_size, 1), dtype='float64'))
             self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
             self._discounted_sum_history = (np.zeros((self._history_size, 1), dtype='float64'))
-            self._continuous_actions = continuous_actions
-        
-        
         
     def insertTuple(self, tuple):
         

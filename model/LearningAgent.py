@@ -153,6 +153,9 @@ class LearningWorker(Process):
                 break
             #if len(tmp) == 6:
                 # self._input_queue.put(tmp)
+            if tmp == "clear":
+                self._agent._expBuff.clear()
+                continue
             #    continue # don't learn from eval tuples
             # (state_, action, reward, resultState, fall, G_t) = tmp
             # print ("Learner Size of state input Queue: " + str(self._input_queue.qsize()))

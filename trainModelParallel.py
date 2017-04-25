@@ -80,6 +80,7 @@ def trainModelParallel(settingsFileName):
         input_anchor_queue = multiprocessing.Queue(settings['epochs'])
         output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
         eval_episode_data_queue = multiprocessing.Queue(settings['eval_epochs'])
+        sim_work_queues = []
         
         action_space_continuous=settings['action_space_continuous']
         if action_space_continuous:
@@ -229,8 +230,11 @@ def trainModelParallel(settingsFileName):
                 # forwardDynamicsModel.setEnvironment(exp_)
                 forwardDynamicsModel_.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, exp_, settings)
             """
+            message_queue = multiprocessing.Queue(settings['epochs'])
+            sim_work_queues.append(message_queue)
             w = SimWorker(namespace, input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
-                    settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process )
+                    settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process,
+                    message_que=message_queue )
             # w.start()
             sim_workers.append(w)
         
@@ -465,6 +469,10 @@ def trainModelParallel(settingsFileName):
             ## This will let me know which part of learning is going slower training updates or simulation
             print ("sim queue size: ", input_anchor_queue.qsize() )
             print ("exp tuple queue size: ", output_experience_queue.qsize())
+            if (settings['on_policy']):
+                output_experience_queue.put("clear")
+                for m_q in sim_work_queues:
+                    m_q.put("Update Policy")
                 
             if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
                 # Running less often helps speed learning up.
