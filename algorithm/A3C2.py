@@ -17,7 +17,8 @@ def loglikelihood(a, mean0, std0, d):
     """
     
     # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
-    return T.reshape(- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(32, 1))
+    # return T.reshape(- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(32, 1))
+    return (- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1))
 
 
 def likelihood(a, mean0, std0, d):
@@ -66,8 +67,12 @@ class A3C2(AlgorithmInterface):
         
         self._q_valsActA = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)[:,:self._action_length]
         self._q_valsActASTD = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)[:,self._action_length:]
+        
+        ## prevent value from being 0
+        self._q_valsActASTD = self._q_valsActASTD + 1e-3
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
+        self._q_valsActTargetSTD = self._q_valsActTargetSTD + 1e-3
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -143,14 +148,15 @@ class A3C2(AlgorithmInterface):
         self._Advantage = self._diff
         self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
-        # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target) * self._Advantage) )
-        self._actLoss_ = ( ((self._log_prob) * self._Advantage) )
+        self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target).dot(self._Advantage)) )
+        # self._actLoss_ = ( ((self._log_prob) * self._Advantage) )
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
         self._actLoss = - T.mean(self._actLoss_) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
+        # self._policy_grad = self._actLoss
         self._policy_grad = lasagne.updates.total_norm_constraint(self._policy_grad, 5)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             self._actionUpdates = lasagne.updates.rmsprop(self._policy_grad, self._actionParams, 
@@ -220,6 +226,8 @@ class A3C2(AlgorithmInterface):
         self._q_action_drop = theano.function([], self._q_valsActA_drop,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._q_action = theano.function([], self._q_valsActA,
+                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+        self._q_action_std = theano.function([], self._q_valsActASTD,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._get_log_prob = theano.function([], self._log_prob,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -304,7 +312,8 @@ class A3C2(AlgorithmInterface):
         # print( "Advantage: ", self._get_advantage())
         print("Actions: ", actions)
         print("Policy mean: ", self._q_action())
-        # print("Policy log prob: ", self._get_log_prob())
+        print("Policy std: ", self._q_action_std())
+        print("Policy log prob: ", self._get_log_prob())
         # print("Policy log prob target: ", self._get_log_prob_target())
         # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
@@ -338,6 +347,22 @@ class A3C2(AlgorithmInterface):
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
         return action_
+    
+    def predict_std(self, state, deterministic_=True):
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        state = np.array(state, dtype=theano.config.floatX)
+        state = norm_state(state, self._state_bounds)
+        self._model.setStates(state)
+        # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # if deterministic_:
+        # action_std = scale_action(self._q_action_std()[0], self._action_bounds)
+        action_std = self._q_action_std()[0]
+        # else:
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # action_ = q_valsActA[0]
+        return action_std
     
     def predictWithDropout(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)

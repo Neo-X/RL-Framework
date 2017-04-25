@@ -98,6 +98,14 @@ class LearningAgent(AgentInterface):
             self._accesLock.release()
         return act
     
+    def predict_std(self, state, evaluation_=False):
+        if self._useLock:
+            self._accesLock.acquire()
+        std = self._pol.predict_std(state)
+        if self._useLock:
+            self._accesLock.release()
+        return std
+    
     def predictWithDropout(self, state):
         if self._useLock:
             self._accesLock.acquire()

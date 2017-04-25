@@ -159,6 +159,20 @@ def randomExporation(explorationRate, actionV, bounds):
         out.append(actionV[i] + n)
     return out
 
+def randomExporationSTD(explorationRate, actionV, std):
+    """
+        This version scales the exploration noise wrt the action bounds
+    """
+    out = []
+    for i in range(len(actionV)):
+        while True:
+            ## resample noise that is greater than std*3 away
+            n = np.random.normal(0, std[i], 1)[0]
+            if (np.abs(n) < (std[i]*3)):
+                break
+        out.append(actionV[i] + n)
+    return out
+
 def randomUniformExporation(bounds):
     out = []
     for i in range(len(bounds[0])):
