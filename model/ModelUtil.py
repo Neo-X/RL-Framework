@@ -536,7 +536,7 @@ if __name__ == '__main__':
     actions_list2 = np.array(actions_list2)
     print ("Actions: ", actions_list)
     print ("Actions2: ", actions_list2)
-    std = np.repeat([action_bound_variance(action_bounds)], 50, axis=0) * 0.2
+    std = np.repeat([action_bound_variance(action_bounds)], 50, axis=0) * 0.5
     l = loglikelihood(actions_list2, actions_list, std, actions_list.shape[1])
     l2 = loglikelihood(actions_list2+0.001, actions_list, std, actions_list.shape[1])
     # print ("Action std: ", np.repeat([std], 50, axis=0))

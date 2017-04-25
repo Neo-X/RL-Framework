@@ -143,6 +143,8 @@ class LearningWorker(Process):
     # @profile(precision=5)    
     def run(self):
         print ('Worker started')
+        if (self._agent._settings['on_policy']):
+            self._agent._expBuff.clear()
         # do some initialization here
         step_ = 0
         iterations_=0
