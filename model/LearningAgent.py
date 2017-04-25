@@ -11,6 +11,7 @@ from model.ModelUtil import *
 import os
 import numpy
 import copy
+from keras.backend.tensorflow_backend import dtype
 # numpy.set_printoptions(threshold=numpy.nan)
 
 class LearningAgent(AgentInterface):
@@ -65,27 +66,40 @@ class LearningAgent(AgentInterface):
         if self._useLock:
             self._accesLock.acquire()
         cost = 0
-        for update in range(self._settings['training_updates_per_sim_action']): ## Even more training options...
-            for i in range(self._settings['critic_updates_per_actor_update']):
-                _states, _actions, _result_states, _rewards, _falls, _G_ts = self._expBuff.get_batch(self._settings["batch_size"])
-                # print ("Updating Critic")
-                cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
-                if not np.isfinite(cost) or (cost > 500) :
-                    print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
-                    print ("Training cost is Odd: ", cost)
+        if self._settings['on_policy']:
+            _states = np.array(norm_actions(np.array(_states), self._state_bounds), dtype=self._settings['float_type'])
+            _actions = np.array(norm_actions(np.array(_actions), self._action_bounds), dtype=self._settings['float_type'])
+            _rewards = np.array(_rewards, dtype=self._settings['float_type'])
+            _result_states = np.array(norm_actions(np.array(_result_states), self._state_bounds), dtype=self._settings['float_type'])
+            _falls = np.array(_falls, dtype='int8')
+            cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
             if (self._settings['train_actor']):
-                cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
             dynamicsLoss = 0 
             if (self._settings['train_forward_dynamics']):
-                dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
-                if (self._settings['train_critic_on_fd_output']):
-                    result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
-                    cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=result_states__, falls=_falls)
+                    dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
+        else:
+            for update in range(self._settings['training_updates_per_sim_action']): ## Even more training options...
+                for i in range(self._settings['critic_updates_per_actor_update']):
+                    _states, _actions, _result_states, _rewards, _falls, _G_ts = self._expBuff.get_batch(self._settings["batch_size"])
+                    # print ("Updating Critic")
+                    cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                     if not np.isfinite(cost) or (cost > 500) :
                         print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                         print ("Training cost is Odd: ", cost)
-                        
-                        
+                if (self._settings['train_actor']):
+                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                dynamicsLoss = 0 
+                if (self._settings['train_forward_dynamics']):
+                    dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
+                    if (self._settings['train_critic_on_fd_output']):
+                        result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
+                        cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=result_states__, falls=_falls)
+                        if not np.isfinite(cost) or (cost > 500) :
+                            print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
+                            print ("Training cost is Odd: ", cost)
+                            
+                            
         if self._useLock:
             self._accesLock.release()
         return (cost, dynamicsLoss) 

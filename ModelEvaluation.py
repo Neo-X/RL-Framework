@@ -197,7 +197,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     actions = []
     rewards = []
     falls = []
-    result_states = []
+    result_states___ = []
     evalDatas=[]
     
     # while not exp.getEnvironment().endOfEpoch():
@@ -219,12 +219,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             
             G_ts.extend(copy.deepcopy(G_t))
             if ((_output_queue != None) and (not evaluation) and (not bootstraping)): # for multi-threading
-                tmp_states = states [last_epoch_end:]
-                tmp_actions = actions[last_epoch_end:]
-                tmp_rewards = rewards[last_epoch_end:]
-                tmp_falls = falls[last_epoch_end:]
-                tmp_result_states = result_states[last_epoch_end:]
-                tmp_G_ts = G_ts[last_epoch_end:]
+                tmp_states = copy.deepcopy(states [last_epoch_end:])
+                tmp_actions = copy.deepcopy(actions[last_epoch_end:])
+                tmp_rewards = copy.deepcopy(rewards[last_epoch_end:])
+                tmp_falls = copy.deepcopy(falls[last_epoch_end:])
+                tmp_result_states = copy.deepcopy(result_states___[last_epoch_end:])
+                tmp_G_ts = copy.deepcopy(G_ts[last_epoch_end:])
                 for state__, action__, reward__, result_state__, fall__, G_t__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts):
                     _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__))
             
@@ -292,7 +292,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     elif (settings['exploration_method'] == 'gaussian_network'):
                         # action = randomExporation(settings["exploration_rate"], pa)
                         std = model.predict_std(state_)
-                        print ("Action std: ", std)
+                        # print ("Action std: ", std)
                         action = randomExporationSTD(settings["exploration_rate"], pa, std)
                     elif ((settings['exploration_method'] == 'thompson')):
                         # print ('Using Thompson sampling')
@@ -398,8 +398,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print ("discounted sum: ", discounted_sum, " G_t: ", G_t[0])
             # print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
         # print ("discounted_sum: ", discounted_sum)
-        resultState = exp.getState()
-        # print ("Result State: " + str(resultState))
+        resultState_ = exp.getState()
+        # print ("Result State shape: ", (np.array(resultState).shape))
         # _val_act = exp.getActor().getModel().maxExpectedActionForState(resultState)
         # bellman_error.append(val_act[0] - (reward + _val_act[0]))
         # For testing remove later
@@ -415,10 +415,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print ("Python Reward: " + str(reward(state_, resultState)))
             
         if ( (reward_ >= settings['reward_lower_bound'] ) or evaluation):
+            # print("Shape of states: ", np.array(states).shape, " state shape, ", np.array(state_).shape)
             states.extend(state_)
             actions.append(action)
             rewards.append([reward_])
-            result_states.append(resultState)
+            # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)
+            # print("result states: ", result_states___)
+            result_states___.extend(resultState_)
             falls.append([agent_not_fell])
             # print ("falls: ", falls)
             # values.append(value)
@@ -443,13 +446,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         print ("Evaluation: ", str(evalData)) 
     # print ("Evaluation Data: ", evalData)
         # print ("Current Tuple: " + str(experience.current()))
-    tuples = (states, actions, result_states, rewards, falls, G_ts)
+    tuples = (states, actions, result_states___, rewards, falls, G_ts)
     if ((_output_queue != None) and (not evaluation) and (not bootstraping)): # for multi-threading
         tmp_states = states [last_epoch_end:]
         tmp_actions = actions[last_epoch_end:]
         tmp_rewards = rewards[last_epoch_end:]
         tmp_falls = falls[last_epoch_end:]
-        tmp_result_states = result_states[last_epoch_end:]
+        tmp_result_states = result_states___[last_epoch_end:]
         tmp_G_ts = G_ts[last_epoch_end:]
         for state__, action__, reward__, result_state__, fall__, G_t__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts):
             _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__))
@@ -490,7 +493,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         # print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With reward_sum: " + str(np.sum(rewards)) + " bellman error: " + str(error))
         discounted_values.append(discounted_sum)
         values.append(value)
-        print ("Rewards over eval epoch: ", rewards)
+        # print ("Rewards over eval epoch: ", rewards)
         # This works better because epochs can terminate early, which is bad.
         reward_over_epocs.append(np.mean(np.array(rewards)))
         bellman_errors.append(error)

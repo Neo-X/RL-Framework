@@ -32,7 +32,7 @@ class GapGame2DEnv(SimInterface):
     
     def getState(self):
         # state = np.array(self._exp.getState())
-        state_ = np.array(self._exp.getState())
+        state_ = self._exp.getState()
         state = np.array(state_)
         state = np.reshape(state, (-1, len(state_)))
         

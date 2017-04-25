@@ -111,6 +111,23 @@ def norm_action(action_, action_bounds_):
     # return (action_ - (avg)) / (action_bounds_[1]-avg)
     return (action_ - (avg)) / (var)
 
+def norm_actions(actions_, action_bounds_):
+    """
+        
+        Normalizes the action 
+        Where the middle of the action bounds are mapped to 0
+        upper bound will correspond to 1 and -1 to the lower
+        from environment space to normalized space
+        
+        norm_action = ( action - mean ) / var
+    """
+    
+    
+    avg = (action_bounds_[0] + action_bounds_[1])/2.0
+    var = (action_bounds_[1] - action_bounds_[0])/2.0
+    # return (action_ - (avg)) / (action_bounds_[1]-avg)
+    return (actions_ - (avg)) / (var)
+
 def scale_action(normed_action_, action_bounds_):
     """
         from normalize space back to environment space
@@ -550,7 +567,7 @@ if __name__ == '__main__':
     actions_list2 = np.array(actions_list2)
     print ("Actions: ", actions_list)
     print ("Actions2: ", actions_list2)
-    std = np.repeat([action_bound_variance(action_bounds)], 50, axis=0) * 0.5
+    std = np.repeat([action_bound_variance(action_bounds)], 50, axis=0) * 0.2
     l = loglikelihood(actions_list2, actions_list, std, actions_list.shape[1])
     l2 = loglikelihood(actions_list2+0.001, actions_list, std, actions_list.shape[1])
     # print ("Action std: ", np.repeat([std], 50, axis=0))

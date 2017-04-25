@@ -42,7 +42,7 @@ def trainModelParallel(settingsFileName):
         # from ModelEvaluation import *
         # from model.ModelUtil import *
         # print ( "theano.config.mode: ", theano.config.mode)
-        from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience
+        from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience, simEpoch, evalModel
         from model.ModelUtil import validBounds
         from model.LearningAgent import LearningAgent, LearningWorker
         from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
@@ -394,11 +394,20 @@ def trainModelParallel(settingsFileName):
                 # sm.setP(p)
             # pr = cProfile.Profile()
             for epoch in range(epochs):
-                episodeData = {}
-                episodeData['data'] = epoch
-                episodeData['type'] = 'sim'
-                input_anchor_queue.put(episodeData)
-                    
+                if (settings['on_policy']):
+                    out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
+                       print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None )
+                    (tuples, discounted_sum, q_value, evalData) = out
+                    (__states, __actions, __result_states, __rewards, __falls, __G_ts) = tuples
+                    print("**** training states: ", np.array(__states).shape)
+                    print("**** training __result_states: ", np.array(__result_states).shape)
+                    masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls)
+                else:
+                    episodeData = {}
+                    episodeData['data'] = epoch
+                    episodeData['type'] = 'sim'
+                    input_anchor_queue.put(episodeData)
+                
                 # pr.enable()
                 # print ("Current Tuple: " + str(namespace.experience.current()))
                 if masterAgent.getExperience().samples() > batch_size:
@@ -469,21 +478,22 @@ def trainModelParallel(settingsFileName):
             ## This will let me know which part of learning is going slower training updates or simulation
             print ("sim queue size: ", input_anchor_queue.qsize() )
             print ("exp tuple queue size: ", output_experience_queue.qsize())
+            """
             if (settings['on_policy']):
                 output_experience_queue.put("clear")
                 for m_q in sim_work_queues:
                     m_q.put("Update Policy")
-                
+            """    
             if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
                 # Running less often helps speed learning up.
                 # Sync up sim actors
                 
-                """ 
-                mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp_val, masterAgent, discount_factor, 
-                                                    anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings)
-                                                    """
-                mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue,
-                                                           model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
+                if (settings['on_policy']):
+                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp_val, masterAgent, discount_factor, 
+                                                        anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings)
+                else:
+                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue,
+                                                               model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                 """
                 for sm in sim_workers:
                     sm.setP(0.0)
