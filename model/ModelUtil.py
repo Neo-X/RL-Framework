@@ -176,17 +176,20 @@ def randomExporation(explorationRate, actionV, bounds):
         out.append(actionV[i] + n)
     return out
 
-def randomExporationSTD(explorationRate, actionV, std):
+def randomExporationSTD(explorationRate, actionV, std, bounds):
     """
         This version scales the exploration noise wrt the action bounds
     """
     out = []
     for i in range(len(actionV)):
+        ## I think this should have a /2.0 want to map 1 - -1 to this interval
+        scale = (bounds[1][i]-bounds[0][i])/2.0
         while True:
             ## resample noise that is greater than std*3 away
             n = np.random.normal(0, std[i], 1)[0]
             if (np.abs(n) < (std[i]*3)):
                 break
+        n = n + scale
         out.append(actionV[i] + n)
     return out
 
