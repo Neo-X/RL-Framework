@@ -123,6 +123,11 @@ def scale_action(normed_action_, action_bounds_):
     # return normed_action_ * (action_bounds_[1] - avg) + avg
     return (normed_action_ * (var)) + avg
 
+def action_bound_variance(action_bounds_):
+    avg = (action_bounds_[0] + action_bounds_[1])/2.0
+    var = (action_bounds_[1] - action_bounds_[0])/2.0
+    return var
+
 def getSettings(settingsFileName):
     file = open(settingsFileName)
     settings = json.load(file)
@@ -144,7 +149,14 @@ def randomExporation(explorationRate, actionV, bounds):
     
     out = []
     for i in range(len(actionV)):
-        out.append(actionV[i] + np.random.normal(0, explorationRate * (bounds[1][i]-bounds[0][i]), 1)[0])
+        scale = (bounds[1][i]-bounds[0][i])
+        while True:
+            ## resample noise that is greater than std*3 away
+            n = np.random.normal(0, explorationRate, 1)[0]
+            if (np.abs(n) < (explorationRate*3)):
+                break
+        n = n * scale
+        out.append(actionV[i] + n)
     return out
 
 def randomUniformExporation(bounds):
@@ -205,10 +217,18 @@ def loglikelihood(a, mean0, std0, d):
     """
     
     # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
-    diff = (a - mean0)
-    diff = np.square(diff/std0).sum(axis=1) * -0.5
-    print ("diff: ", diff)
+    diff = np.square(a - mean0)
+    print ("norm0: ", (a[0]-mean0[0]))
+    print ("a.shape: ", a.shape, " mean0.shape: ", mean0.shape)
+    print ("diff: ", diff.shape, diff)
+    print ("diff/std0: ", diff/std0)
+    # print ("log(diff/std0): ", np.log(diff/std0))
+    diff = (diff/std0).sum(axis=1) * -0.5
+    print("np.log(std0).sum(axis=1): ", np.log(std0).sum(axis=1))
     print ("Final: ", diff - 0.5 * np.log(2.0 * np.pi) * d - np.log(std0).sum(axis=1))
+    # print ("Final: ", - 0.5 * np.square(diff/std0) - 0.5 * np.log(2.0 * np.pi) * d - np.log(std0))
+    # square_return = (- 0.5 * np.square((a - mean0) / std0) - 0.5 * np.log(2.0 * np.pi) * d - np.log(std0)).sum(axis=1)
+    # print ("FInal2: ", square_return)
     return np.reshape(- 0.5 * np.square((a - mean0) / std0).sum(axis=1) - 0.5 * np.log(2.0 * np.pi) * d - np.log(std0).sum(axis=1), newshape=(a.shape[0], 1))
 
 
@@ -397,6 +417,7 @@ def validBounds(bounds):
 if __name__ == '__main__':
     import sys
     import matplotlib.pyplot as plt
+    # np.set_printoptions(threshold=np.nan)
     
     settingsFileName = sys.argv[1]
     file = open(settingsFileName)
@@ -415,6 +436,7 @@ if __name__ == '__main__':
     print ("Normalized Action: " + str(norm_action(action+-0.5, action_bounds)) + " same action: " + str(action+-0.5) + " as "  + str(scale_action(norm_action(action+-0.5, action_bounds), action_bounds)))
     actions_=[]
     actions_list = []
+    actions_list2 = []
     for i in range(action.shape[0] ):
         actions_.append([])
     print ("Actions Data: ", actions_)
@@ -426,6 +448,12 @@ if __name__ == '__main__':
         for j in range(action.shape[0]):
             act_ = action_[j]
             actions_[j].append(act_)
+            
+    for i in range(50):
+        action_ = randomExporation(settings["exploration_rate"], actions_list[i], action_bounds)
+        actions_list2.append(action_)
+        print (" Exploration action: ", action_)
+            
     # data = actions_
     """
     for k in range(len(actions_)):
@@ -505,8 +533,13 @@ if __name__ == '__main__':
     
     """
     actions_list = np.array(actions_list)
-    l = likelihood(actions_list+0.1, actions_list, np.ones_like(actions_list) * 0.1, actions_list.shape[1])
-    l2 = likelihood(actions_list+0.02, actions_list-0.014, np.ones_like(actions_list) * 0.1, actions_list.shape[1])
+    actions_list2 = np.array(actions_list2)
     print ("Actions: ", actions_list)
-    print ("Likelyhood: ", (l/l2))
+    print ("Actions2: ", actions_list2)
+    std = np.repeat([action_bound_variance(action_bounds)], 50, axis=0) * 0.2
+    l = loglikelihood(actions_list2, actions_list, std, actions_list.shape[1])
+    l2 = loglikelihood(actions_list2+0.001, actions_list, std, actions_list.shape[1])
+    # print ("Action std: ", np.repeat([std], 50, axis=0))
+    # print ("Likelyhood: ", np.exp(l-l2))
+    print ("Likelyhood: ", (l))
     

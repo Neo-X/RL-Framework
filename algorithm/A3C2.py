@@ -139,7 +139,7 @@ class A3C2(AlgorithmInterface):
         # self._Advantage = theano.tensor.tile(theano.gradient.disconnected_grad(self._diff), self._action_length)
         # self._Advantage = theano.gradient.disconnected_grad(self._diff)
         self._Advantage = self._diff
-        self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, theano.tensor.ones_like(self._q_valsActA) * 0.1, self._action_length)
+        self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, theano.tensor.ones_like(self._q_valsActA) * self.getSettings()['exploration_rate'], self._action_length)
         self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, theano.tensor.ones_like(self._q_valsActTarget) * 0.1, self._action_length)
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target) * self._Advantage) )
         self._actLoss_ = ( ((self._log_prob) * self._Advantage) )
@@ -300,10 +300,11 @@ class A3C2(AlgorithmInterface):
         # self._updates += 1
         # loss, _ = self._train()
         # print( "Advantage: ", self._get_advantage())
+        # print("Actions: ", actions)
         # print("Policy mean: ", self._q_action())
-        print("Policy log prob: ", self._get_log_prob())
-        print("Policy log prob target: ", self._get_log_prob_target())
-        print( "Actor loss: ", self._get_action_diff())
+        # print("Policy log prob: ", self._get_log_prob())
+        # print("Policy log prob target: ", self._get_log_prob_target())
+        # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
         lossActor, _ = self._trainActor()
         print( "Policy loss: ", lossActor)
