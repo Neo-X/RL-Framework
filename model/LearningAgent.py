@@ -11,7 +11,6 @@ from model.ModelUtil import *
 import os
 import numpy
 import copy
-# from keras.backend.tensorflow_backend import dtype
 # numpy.set_printoptions(threshold=numpy.nan)
 
 class LearningAgent(AgentInterface):
