@@ -147,7 +147,7 @@ class A3C2(AlgorithmInterface):
         # self._actLoss_ = (T.mean(T.pow(self._actDiff, 2),axis=1))
         # self._Advantage = theano.tensor.tile(theano.gradient.disconnected_grad(self._diff), self._action_length)
         # self._Advantage = theano.gradient.disconnected_grad(self._diff)
-        self._Advantage = self._diff
+        self._Advantage = self._diff * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
         self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target).dot(self._Advantage)) )
