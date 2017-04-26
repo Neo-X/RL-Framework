@@ -189,7 +189,7 @@ def randomExporationSTD(explorationRate, actionV, std, bounds):
             n = np.random.normal(0, std[i], 1)[0]
             if (np.abs(n) < (std[i]*3)):
                 break
-        n = n + scale
+        n = n * scale
         out.append(actionV[i] + n)
     return out
 
