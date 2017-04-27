@@ -39,7 +39,7 @@ class TerrainRLActor(ActorInterface):
                 action_idx+=1
             else:
                 action__.append(self._default_action[i])
-        action_= = np.array(action__, dtype='float64')
+        action_= np.array(action__, dtype='float64')
         sim.getEnvironment().act(action_)
         updates_=0
         stumble_count=0
