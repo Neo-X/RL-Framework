@@ -144,6 +144,7 @@ def fitModelToData(settingsFileName):
         # lw.start()
         learning_workers.append(lw)  
     masterAgent = agent
+    masterAgent.setExperience(experience)
     
     if action_space_continuous:
         model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
@@ -253,9 +254,10 @@ def fitModelToData(settingsFileName):
         # print("**** training states: ", np.array(__states).shape)
         # print("**** training __result_states: ", np.array(__result_states).shape)
         # print ("Actions before: ", __actions)
-        for i in range(100):
+        for i in range(1):
             masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls)
         t1 = time.time()
+        time_taken = t1 - t0
         if masterAgent.getExperience().samples() > batch_size:
             states, actions, result_states, rewards, falls, G_ts = masterAgent.getExperience().get_batch(batch_size)
             print ("Batch size: " + str(batch_size))
@@ -294,15 +296,15 @@ def fitModelToData(settingsFileName):
                 dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
                 dynamicsLosses.append(dynamicsLoss)
             if (settings['train_forward_dynamics']):
-                print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
+                print ("Round: " + str(round_) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss) + " in " + str(time_taken) + " seconds")
             else:
-                print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
+                print ("Round: " + str(round_) + " bellman error: " + str(error) + " in " + str(time_taken) + " seconds")
             # discounted_values.append(discounted_sum)
 
         print ("Master agent experience size: " + str(masterAgent.getExperience().samples()))
         # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
-        masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
-        masterAgent.setExperience(learningNamespace.experience)
+        # masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
+        # masterAgent.setExperience(learningNamespace.experience)
         if (settings['train_forward_dynamics']):
             masterAgent.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
         """
