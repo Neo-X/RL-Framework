@@ -1,6 +1,7 @@
 import sys
 import math
 from actor.ActorInterface import ActorInterface
+import numpy as np
 
 class TerrainRLActor(ActorInterface):
     

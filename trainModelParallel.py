@@ -402,7 +402,7 @@ def trainModelParallel(settingsFileName):
                     # print("**** training states: ", np.array(__states).shape)
                     # print("**** training __result_states: ", np.array(__result_states).shape)
                     # print ("Actions before: ", __actions)
-                    for i in range(100):
+                    for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls)
                 else:
                     episodeData = {}
