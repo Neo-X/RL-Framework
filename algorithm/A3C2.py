@@ -7,6 +7,7 @@ import copy
 sys.path.append('../')
 from model.ModelUtil import *
 from algorithm.AlgorithmInterface import AlgorithmInterface
+from collections import OrderedDict
 
 # For debugging
 # theano.config.optimizer='fast_compile'
@@ -17,12 +18,71 @@ def loglikelihood(a, mean0, std0, d):
     """
     
     # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
-    return T.reshape(- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(-1, 1))
+    return T.reshape(- 0.5 * (T.square(a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(-1, 1))
     # return (- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1))
 
 
 def likelihood(a, mean0, std0, d):
     return T.exp(loglikelihood(a, mean0, std0, d))
+
+def get_adam_steps_and_updates(all_grads, params, learning_rate=0.001, beta1=0.9,
+                               beta2=0.999, epsilon=1e-8):
+    t_prev = theano.shared(lasagne.utils.floatX(0.))
+    updates = OrderedDict()
+
+    # Using theano constant to prevent upcasting of float32
+    one = T.constant(1)
+
+    t = t_prev + 1
+    a_t = learning_rate*T.sqrt(one-beta2**t)/(one-beta1**t)
+
+    adam_steps = []
+    for param, g_t in zip(params, all_grads):
+        value = param.get_value(borrow=True)
+        m_prev = theano.shared(np.zeros(value.shape, dtype=value.dtype),
+                               broadcastable=param.broadcastable)
+        v_prev = theano.shared(np.zeros(value.shape, dtype=value.dtype),
+                               broadcastable=param.broadcastable)
+
+        m_t = beta1*m_prev + (one-beta1)*g_t
+        v_t = beta2*v_prev + (one-beta2)*g_t**2
+        step = a_t*m_t/(T.sqrt(v_t) + epsilon)
+
+        updates[m_prev] = m_t
+        updates[v_prev] = v_t
+
+        adam_steps.append(step)
+
+    updates[t_prev] = t
+    return adam_steps, updates
+
+def adam_updates(loss, params, learning_rate=0.001, beta1=0.9,
+         beta2=0.999, epsilon=1e-8):
+
+    all_grads = T.grad(loss, params)
+    t_prev = theano.shared(np.array(0,dtype=theano.config.floatX))
+    updates = OrderedDict()
+
+    t = t_prev + 1
+    a_t = learning_rate*T.sqrt(1-beta2**t)/(1-beta1**t)
+
+    for param, g_t in zip(params, all_grads):
+        value = param.get_value(borrow=True)
+        m_prev = theano.shared(np.zeros(value.shape, dtype=value.dtype),
+                               broadcastable=param.broadcastable)
+        v_prev = theano.shared(np.zeros(value.shape, dtype=value.dtype),
+                               broadcastable=param.broadcastable)
+
+        m_t = beta1*m_prev + (1-beta1)*g_t
+        v_t = beta2*v_prev + (1-beta2)*g_t**2
+        step = a_t*m_t/(T.sqrt(v_t) + epsilon)
+
+        updates[m_prev] = m_t
+        updates[v_prev] = v_t
+        updates[param] = param - step
+
+    updates[t_prev] = t
+    return updates
 
 class A3C2(AlgorithmInterface):
     
@@ -147,7 +207,7 @@ class A3C2(AlgorithmInterface):
         # self._actLoss_ = (T.mean(T.pow(self._actDiff, 2),axis=1))
         # self._Advantage = theano.tensor.tile(theano.gradient.disconnected_grad(self._diff), self._action_length)
         # self._Advantage = theano.gradient.disconnected_grad(self._diff)
-        self._Advantage = self._diff * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
+        self._Advantage = theano.tensor.clip(self._diff * (1.0/(1.0-self._discount_factor)), 0, 100000.0) ## scale back to same as rewards
         self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target).dot(self._Advantage)) )
@@ -157,7 +217,8 @@ class A3C2(AlgorithmInterface):
         ## This does the sum already
         # self._actLoss_ =  ( (self._log_prob).dot( self._Advantage) )
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob), self._Advantage) 
+        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob), self._Advantage)
+        # self._actLoss_ = T.mean(self._log_prob) 
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
         self._actLoss = - T.mean((self._actLoss_))
@@ -166,6 +227,9 @@ class A3C2(AlgorithmInterface):
         # self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
         # self._policy_grad = self._actLoss
         # self._policy_grad = lasagne.updates.total_norm_constraint(self._policy_grad, 5)
+        # steps, self._actionUpdates = get_adam_steps_and_updates(self._policy_grad, self._actionParams, self._learning_rate)
+        # self._actionUpdates = adam_updates(self._actLoss, self._actionParams, self._learning_rate)
+        
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             self._actionUpdates = lasagne.updates.rmsprop(self._actLoss , self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
@@ -321,11 +385,16 @@ class A3C2(AlgorithmInterface):
         # loss, _ = self._train()
         print( "Advantage: ", np.mean(self._get_advantage()))
         print("Actions: ", np.mean(actions, axis=0))
+        print("Actions: std", np.std(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
         print("Policy std: ", np.mean(self._q_action_std(), axis=0))
         print("Policy log prob: ", np.mean(self._get_log_prob(), axis=0))
         print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
         print( "Actor loss: ", np.mean(self._get_action_diff()))
+        if ( np.mean(self._get_action_diff()) > 0 ): ## should be impossible
+            print( "Advantage: ", (self._get_advantage()))
+            print("Policy log prob: ", (self._get_log_prob()))
+            print("Policy mean: ", (self._q_action()))
         lossActor = 0
         lossActor, _ = self._trainActor()
         print( "Policy loss: ", lossActor)

@@ -72,7 +72,9 @@ class LearningAgent(AgentInterface):
             _result_states = np.array(norm_action(np.array(_result_states), self._state_bounds), dtype=self._settings['float_type'])
             _falls = np.array(_falls, dtype='int8')
             # print ("Actions after: ", _actions)
-            cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+            cost = 0
+            if (self._settings['train_critic']):
+                cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
             if (self._settings['train_actor']):
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
             dynamicsLoss = 0 
