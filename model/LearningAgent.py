@@ -66,10 +66,10 @@ class LearningAgent(AgentInterface):
             self._accesLock.acquire()
         cost = 0
         if self._settings['on_policy']:
-            _states = np.array(norm_actions(np.array(_states), self._state_bounds), dtype=self._settings['float_type'])
-            _actions = np.array(norm_actions(np.array(_actions), self._action_bounds), dtype=self._settings['float_type'])
+            _states = np.array(norm_action(np.array(_states), self._state_bounds), dtype=self._settings['float_type'])
+            _actions = np.array(norm_action(np.array(_actions), self._action_bounds), dtype=self._settings['float_type'])
             _rewards = np.array(_rewards, dtype=self._settings['float_type'])
-            _result_states = np.array(norm_actions(np.array(_result_states), self._state_bounds), dtype=self._settings['float_type'])
+            _result_states = np.array(norm_action(np.array(_result_states), self._state_bounds), dtype=self._settings['float_type'])
             _falls = np.array(_falls, dtype='int8')
             cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
             if (self._settings['train_actor']):

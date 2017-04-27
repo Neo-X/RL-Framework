@@ -292,7 +292,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     elif (settings['exploration_method'] == 'gaussian_network'):
                         # action = randomExporation(settings["exploration_rate"], pa)
                         std = model.predict_std(state_)
-                        # print ("Action std: ", std)
+                        print("Action: ", pa)
+                        print ("Action std: ", std)
                         action = randomExporationSTD(settings["exploration_rate"], pa, std, action_bounds)
                     elif ((settings['exploration_method'] == 'thompson')):
                         # print ('Using Thompson sampling')
