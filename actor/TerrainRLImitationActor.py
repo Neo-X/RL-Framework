@@ -29,6 +29,8 @@ class TerrainRLImitationActor(ActorInterface):
         # print "Action: " + str(action_)
         # reward = exp.getEnvironment().act(action_)
         # mask some parameters
+        ## Need to make sure this is an vector of doubles
+        action_ = np.array(action_, dtype='float64')
         action_idx=0
         action__=[]
         vel_sum=0

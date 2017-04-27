@@ -66,13 +66,13 @@ class LearningAgent(AgentInterface):
             self._accesLock.acquire()
         cost = 0
         if self._settings['on_policy']:
-            """
+            
             _states = np.array(norm_action(np.array(_states), self._state_bounds), dtype=self._settings['float_type'])
             _actions = np.array(norm_action(np.array(_actions), self._action_bounds), dtype=self._settings['float_type'])
             _rewards = np.array(_rewards, dtype=self._settings['float_type'])
             _result_states = np.array(norm_action(np.array(_result_states), self._state_bounds), dtype=self._settings['float_type'])
             _falls = np.array(_falls, dtype='int8')
-            """
+            
             # print ("Actions after: ", _actions)
             cost = 0
             if (self._settings['train_critic']):

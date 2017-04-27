@@ -28,6 +28,8 @@ class TerrainRLActor(ActorInterface):
         # print "Action: " + str(action_)
         # reward = exp.getEnvironment().act(action_)
         # mask some parameters
+        ## Need to make sure this is an vector of doubles
+        action_ = np.array(action_, dtype='float64')
         action_idx=0
         action__=[]
         vel_sum=0
@@ -37,7 +39,7 @@ class TerrainRLActor(ActorInterface):
                 action_idx+=1
             else:
                 action__.append(self._default_action[i])
-        action_=action__
+        action_= = np.array(action__, dtype='float64')
         sim.getEnvironment().act(action_)
         updates_=0
         stumble_count=0
