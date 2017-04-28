@@ -457,10 +457,11 @@ def trainModelParallel(settingsFileName):
 
                 print ("Master agent experience size: " + str(masterAgent.getExperience().samples()))
                 # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
-                masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
-                masterAgent.setExperience(learningNamespace.experience)
-                if (settings['train_forward_dynamics']):
-                    masterAgent.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
+                if (not settings['on_policy']):
+                    masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
+                    masterAgent.setExperience(learningNamespace.experience)
+                    if (settings['train_forward_dynamics']):
+                        masterAgent.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
                 """
                 for sw in sim_workers: # Should update these more often?
                     sw._model.getPolicy().setNetworkParameters(namespace.agentPoly)
