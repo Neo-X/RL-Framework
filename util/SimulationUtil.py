@@ -346,6 +346,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
     import characterSim
     c = characterSim.Configuration(config_file)
     # print ("Num state: ", c._NUMBER_OF_STATES)
+    c._RENDER = render
     exp = characterSim.Experiment(c)
     # print ("Num state: ", exp._config._NUMBER_OF_STATES)
     if env_type == 'pendulum_env_state':

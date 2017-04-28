@@ -5,6 +5,7 @@ import math
 from sim.SimInterface import SimInterface
 import sys
 sys.path.append("../characterSimAdapter/")
+from model.ModelUtil import getAnchors
 
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
@@ -18,6 +19,11 @@ class PendulumEnv(SimInterface):
         super(PendulumEnv,self).__init__(exp, settings)
         self._action_dimension=3
         self._range = 5.0
+        anchor_data_file = open(settings["anchor_file"])
+        _anchors = getAnchors(anchor_data_file)
+        print ("Length of anchors epochs: ", str(len(_anchors)))
+        anchor_data_file.close()
+        self._validation_anchors = _anchors
 
     def getEnvironment(self):
         return self._exp.getEnvironment()
@@ -26,6 +32,8 @@ class PendulumEnv(SimInterface):
         return self.getEnvironment().getEvaluationData()
     
     def generateValidation(self, data, epoch):
+        # print (("Training on validation set: ", epoch, " Data: ", data))
+        data = self._validation_anchors[data]
         # print (("Training on validation set: ", epoch, " Data: ", data))
         self.getEnvironment().clear()
         # print (("Done clear"))
@@ -46,7 +54,9 @@ class PendulumEnv(SimInterface):
         self._exp.finish()
     
     def getState(self):
-        state = np.array(self.getEnvironment().getState().getParams())
+        state_ = self.getEnvironment().getState().getParams()
+        state = np.array(state_)
+        state = np.reshape(state, (-1, len(state_)))
         return state
     
     def setState(self, st):

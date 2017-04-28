@@ -716,9 +716,10 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
     # _anchors = getAnchors(anchor_data_file)
     # print ("Length of anchors epochs: " + str(len(_anchors)))
     # anchor_data_file.close()
+    episode_ = 0
     while i < samples:
         # Actor should be FIRST here
-        out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=i, 
+        out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=episode_, 
                                action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
                                 p=100.0, validation=settings['train_on_validation_set'], bootstraping=True)
         # if self._p <= 0.0:
@@ -736,6 +737,8 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         G_ts.extend(G_t_)
         
         i=i+len(states_)
+        episode_ += 1
+        episode_ = episode_ % settings["epochs"]
         print("Number of Experience samples so far: ", i)
         # print ("States: ", states)
         # print ("Actions: ", actions)
