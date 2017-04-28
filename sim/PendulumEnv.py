@@ -46,12 +46,6 @@ class PendulumEnv(SimInterface):
 
     def generateEnvironmentSample(self):
         self.getEnvironment().generateEnvironmentSample()
-            
-    def getActor(self):
-        return self._exp.getActor()
-    
-    def finish(self):
-        self._exp.finish()
     
     def getState(self):
         state_ = self.getEnvironment().getState().getParams()
