@@ -106,10 +106,10 @@ class A3C2(AlgorithmInterface):
         }
         self._actGivens = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._Fallen: self._fallen_shared
+            self._Fallen: self._fallen_shared
             # self._advantage: self._advantage_shared
         }
         
@@ -158,12 +158,12 @@ class A3C2(AlgorithmInterface):
         # self._actLoss_ = ( ((self._log_prob)) )
         ## This does the sum already
         # self._actLoss_ =  ( (self._log_prob).dot( self._Advantage) )
-        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
+        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob), self._Advantage)
-        self._actLoss_ = T.mean(self._log_prob) 
-        # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
+        # self._actLoss_ = T.mean(self._log_prob) 
+        self._policy_entropy = 0.5 * T.mean(T.log(2 * np.pi * self._q_valsActASTD ) + 1 )
         ## - because update computes gradient DESCENT updates
-        self._actLoss = - T.mean((self._actLoss_))
+        self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._policy_entropy * 1e-2))
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         # self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
@@ -352,7 +352,7 @@ class A3C2(AlgorithmInterface):
         # loss, _ = self._train()
         # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
-        
+        """
         diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print ("Diff")
         # print (diff_)
@@ -372,22 +372,24 @@ class A3C2(AlgorithmInterface):
                 tmp_falls.append(falls[i])
                 
         if (len(tmp_actions) > 0):
-            
-            self._advantage_shared.set_value(tmp_diff)
-            self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
-        
-            print( "Advantage: ", np.mean(self._get_advantage()))
-            print("Actions: ", np.mean(actions, axis=0))
-            print("Actions: std", np.std(actions, axis=0))
-            print("Policy mean: ", np.mean(self._q_action(), axis=0))
-            print("Policy std: ", np.mean(self._q_action_std(), axis=0))
-            print("Policy log prob: ", np.mean(self._get_log_prob(), axis=0))
-            print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
-            print( "Actor loss: ", np.mean(self._get_action_diff()))
-            # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
+           """ 
+        # self._advantage_shared.set_value(tmp_diff)
+        # self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
+    
+        print( "Advantage: ", np.mean(self._get_advantage()))
+        print("Actions: ", np.mean(actions, axis=0))
+        print("Actions: std", np.std(actions, axis=0))
+        print("Policy mean: ", np.mean(self._q_action(), axis=0))
+        print("Policy std: ", np.mean(self._q_action_std(), axis=0))
+        print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
+        print( "Actor loss: ", np.mean(self._get_action_diff()))
+        # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
+        ## Sometimes really HUGE losses appear
+        if (np.abs(np.mean(self._get_action_diff())) < 10): 
             lossActor, _ = self._trainActor()
-            print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
-            # print( " Actor loss: ", lossActor)
+        print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
+        # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
+        print( " Actor loss: ", lossActor)
             # print("Diff for actor: ", self._get_diff())
             # print ("Tmp_diff: ", tmp_diff)
             # print ( "Action before diff: ", self._get_actor_diff_())
