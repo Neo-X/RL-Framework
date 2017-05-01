@@ -41,9 +41,9 @@ class SequentialMCSampler(Sampler):
     
     def sampleModel(self, model, forwardDynamics, current_state):
         print ("Starting SMC sampling")
-        state__ = self._exp.getEnvironment().getSimState()
+        state__ = self._exp.getSimState()
         _bestSample = self._sampleModel(model, forwardDynamics, current_state, self._look_ahead)
-        self._exp.getEnvironment().setSimState(state__)
+        self._exp.setSimState(state__)
         self._bestSample = _bestSample
         return _bestSample
     
@@ -60,7 +60,7 @@ class SequentialMCSampler(Sampler):
         current_state_copy = current_state 
         if isinstance(forwardDynamics, ForwardDynamicsSimulator):
             # current_state_copy = characterSim.State(current_state.getID(), current_state.getParams())
-            current_state_copy = current_state
+            current_state_copy = copy.deepcopy(current_state)
         # print ("Suggested Action: " + str(action) + " for state: " + str(current_state_copy))
         _action_params = []
         samples = []
@@ -72,14 +72,14 @@ class SequentialMCSampler(Sampler):
             for i in range(look_ahead):
                 if isinstance(forwardDynamics, ForwardDynamicsSimulator):
                     current_state_copy3 = copy.deepcopy(current_state_copy2)
-                    current_state_copy__ = self._exp.getEnvironment().getStateFromSimState(current_state_copy)
+                    current_state_copy__ = self._exp.getStateFromSimState(current_state_copy)
                     # print ("current_state_copy__: ", current_state_copy__)
                     pa = model.predict(np.array([current_state_copy__]))
                     if self.getSettings()["use_actor_policy_action_variance_suggestion"]:
                         
                         lSquared =(4.1**2)
                         ## This uses the learned model so in the case the state given must be that used by the model
-                        current_state_copy3__ = self._exp.getEnvironment().getStateFromSimState(current_state_copy3)
+                        current_state_copy3__ = self._exp.getStateFromSimState(current_state_copy3)
                         variance__ = getModelPredictionUncertanty(model, current_state_copy3__, 
                                                         length=4.1, num_samples=32, settings=self.getSettings())
                         
@@ -132,10 +132,10 @@ class SequentialMCSampler(Sampler):
                 current_state_ = copy.deepcopy(current_state_copy)
                 # actions = chunks(sample, self._pol._action_length)
                 for act_ in actions:
-                    current_state__ = self._exp.getEnvironment().getStateFromSimState(current_state_)
+                    current_state__ = self._exp.getStateFromSimState(current_state_)
                     init_states.append(current_state__)
                     (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=act_)
-                    prediction_ = self._exp.getEnvironment().getStateFromSimState(prediction)
+                    prediction_ = self._exp.getStateFromSimState(prediction)
                     predictions.append(prediction_)
                     # print ("Current State: ", current_state_.getParams(), " Num: ", current_state_.getID())
                     # print ("Prediction: ", prediction.getParams(), " Num: ", prediction.getID())
@@ -201,10 +201,10 @@ class SequentialMCSampler(Sampler):
                 current_state_ = copy.deepcopy(current_state_copy)
                 # actions = chunks(sample, self._pol._action_length)
                 for act_ in actions:
-                    current_state__ = self._exp.getEnvironment().getStateFromSimState(current_state_)
+                    current_state__ = self._exp.getStateFromSimState(current_state_)
                     init_states.append(current_state__)
                     (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=act_)
-                    prediction_ = self._exp.getEnvironment().getStateFromSimState(prediction)
+                    prediction_ = self._exp.getStateFromSimState(prediction)
                     predictions.append(prediction_)
                     # print ("Current State: ", current_state_.getParams(), " Num: ", current_state_.getID())
                     # print ("Prediction: ", prediction.getParams(), " Num: ", prediction.getID())
@@ -259,14 +259,14 @@ class SequentialMCSampler(Sampler):
             if isinstance(self._fd, ForwardDynamicsSimulator):
                 # print ( "SMC exp: ", self._exp)
                 # self._fd.initEpoch(self._exp)
-                # state = self._exp.getEnvironment().getState()
-                state_ = self._exp.getEnvironment().getSimState()
+                # state = self._exp.getState()
+                state_ = self._exp.getSimState()
             
             self.sampleModel(model=self._pol, forwardDynamics=self._fd, current_state=state_)
             action = self.getBestSample()
-            self._exp.getEnvironment().setSimState(state_)
+            self._exp.setSimState(state_)
             # if isinstance(self._fd, ForwardDynamicsSimulator):
-            #     self._fd._sim.getEnvironment().setState(state)
+            #     self._fd._sim.setState(state)
             # print ("Best Action SMC: " + str(action))
             action = action[0]
             return action
