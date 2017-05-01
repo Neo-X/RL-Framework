@@ -86,7 +86,26 @@ class PendulumEnv(SimInterface):
                 min_dist = _tmp_dist
         self._target_choice = i
         self._target = self._targets[0][i]
-        
+    
+    def getStateFromSimState(self, simState):
+        """
+            Converts a detailed simulation state to a state better suited for learning
+            Does nothing for this Env
+        """
+        return simState
+    
+    def getSimState(self):
+        """
+            Gets a more detailed state that can be used to re-initilize the state of the character back to this state later.
+            Can just use normal state, sim state can be recoverd from this.
+        """
+        return self.getState()
+    
+    def setSimState(state_):
+        """
+            Sets the state of the simulation to the given state
+        """
+        return self.getEnvironment().setState(state_)    
         
 #ani = animation.FuncAnimation(fig, animate, frames=600,
 #                               interval=10, blit=True, init_func=init)
