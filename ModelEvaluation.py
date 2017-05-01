@@ -66,7 +66,7 @@ class SimWorker(Process):
         ## This is no needed if there is one thread only...
         if (int(self._settings["num_available_threads"]) > 1): 
             from util.SimulationUtil import createEnvironment
-            self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings)
+            self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings, render=self._settings['shouldRender'])
             self._exp.setActor(self._actor)
             self._exp.getActor().init()   
             self._exp.getEnvironment().init()
