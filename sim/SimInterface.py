@@ -80,7 +80,7 @@ class SimInterface(object):
         """
         pass
     
-    def setSimState(state_):
+    def setSimState(self, state_):
         """
             Sets the state of the simulation to the given state
         """

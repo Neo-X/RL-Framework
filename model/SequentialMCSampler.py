@@ -60,7 +60,7 @@ class SequentialMCSampler(Sampler):
         current_state_copy = current_state 
         if isinstance(forwardDynamics, ForwardDynamicsSimulator):
             # current_state_copy = characterSim.State(current_state.getID(), current_state.getParams())
-            current_state_copy = copy.deepcopy(current_state)
+            current_state_copy = current_state
         # print ("Suggested Action: " + str(action) + " for state: " + str(current_state_copy))
         _action_params = []
         samples = []

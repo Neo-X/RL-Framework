@@ -6,6 +6,7 @@ from sim.SimInterface import SimInterface
 import sys
 sys.path.append("../characterSimAdapter/")
 from model.ModelUtil import getAnchors
+import characterSim
 
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
@@ -92,19 +93,26 @@ class PendulumEnv(SimInterface):
             Converts a detailed simulation state to a state better suited for learning
             Does nothing for this Env
         """
-        return simState
+        state_ = simState[1]
+        
+        return state_
     
     def getSimState(self):
         """
             Gets a more detailed state that can be used to re-initilize the state of the character back to this state later.
             Can just use normal state, sim state can be recoverd from this.
         """
-        return self.getState()
+        state_ = self.getEnvironment().getState()
+        state = []
+        state.append(state_.getID())
+        state.append(state_.getParams())
+        return state
     
-    def setSimState(state_):
+    def setSimState(self, state_):
         """
             Sets the state of the simulation to the given state
         """
+        state_ = characterSim.State(state_[0], state_[1])
         return self.getEnvironment().setState(state_)    
         
 #ani = animation.FuncAnimation(fig, animate, frames=600,
