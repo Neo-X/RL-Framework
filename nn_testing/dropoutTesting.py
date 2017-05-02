@@ -29,6 +29,13 @@ def fNoise(x):
 
 if __name__ == '__main__':
     
+    file = open(sys.argv[1])
+    settings = json.load(file)
+    print ("Settings: " + str(json.dumps(settings)))
+    file.close()
+    import os    
+    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+        
     state_bounds = np.array([[-5.0],[5.0]])
     action_bounds = np.array([[-4.0],[2.0]])
     reward_bounds = np.array([[-3.0],[1.0]])
@@ -51,6 +58,7 @@ if __name__ == '__main__':
     experience.setStateBounds(state_bounds)
     experience.setRewardBounds(reward_bounds)
     experience.setActionBounds(action_bounds)
+    experience.setSettings(settings)
     arr = range(experience_length)
     random.shuffle(arr)
     num_samples_to_keep=300
