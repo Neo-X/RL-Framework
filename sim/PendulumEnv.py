@@ -6,7 +6,6 @@ from sim.SimInterface import SimInterface
 import sys
 sys.path.append("../characterSimAdapter/")
 from model.ModelUtil import getAnchors
-import characterSim
 
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
@@ -112,6 +111,7 @@ class PendulumEnv(SimInterface):
         """
             Sets the state of the simulation to the given state
         """
+        import characterSim
         state_ = characterSim.State(state_[0], state_[1])
         return self.getEnvironment().setState(state_)    
         
