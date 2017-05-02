@@ -10,17 +10,15 @@ import json
 
 
 def f(x):
-    return (math.cos(x)-0.75)*(math.sin(x)+0.75)
+    return ((math.cos(x)-0.75)*(math.sin(x)+0.75))
 
 def fNoise(x):
     out = f(x)
-    if (x > 1.0) and (x < 2.0):
+    if (x > -1.0) and (x < 0.0):
         # print "Adding noise"
         r = random.choice([0,1])
-        if r == 1:
-            out = x
-        else:
-            out = out
+        n = np.random.normal(0, 0.1 * (np.abs(x)+1), 1)[0]
+        out = out + n
     return out
 
 if __name__ == '__main__':
@@ -44,7 +42,7 @@ if __name__ == '__main__':
     experience_length = 300
     batch_size=16
     # states = np.repeat([np.linspace(-5.0, 5.0, experience_length)],2, axis=0)
-    states = np.linspace(-5.0,-2.0, experience_length/2)
+    states = np.linspace(-5.0,-1.0, experience_length/2)
     states = np.append(states, np.linspace(-1.0, 5.0, experience_length/2))
     old_states = states
     # print states
@@ -74,7 +72,7 @@ if __name__ == '__main__':
         experience.insert(state_, action_, state_, np.array([0]))
     
     errors=[]
-    for i in range(100000):
+    for i in range(10000):
         _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
         # print _actions 
         error = model.train(_states, _actions)
@@ -89,20 +87,13 @@ if __name__ == '__main__':
     predicted_actions_dropout = np.array(map(model.predictWithDropout, states))
     predicted_actions_var = []
     
-    lSquared =0.001
-    num_samples = 32
-    modelPrecsionInv = (2*experience_length*1e-6 ) / (0.90) / lSquared
+    # print ("modelPrecsionInv: ", modelPrecsionInv)
     predictions = []
     for i in range(len(states)):
         
-        samp_ = np.repeat([states[i]],num_samples, axis=0)
-        # print "Sample: " + str(samp_)
-        for sam in samp_:
-            predictions.append(model.predictWithDropout(sam))
-        # print "Predictions: " + str(predictions)
-        var_ = (modelPrecsionInv)+np.var(predictions)
+        var_ = getModelPredictionUncertanty(model, state=states[i], length=0.5, num_samples=128)
         # print var_
-        predicted_actions_var.append(var_)
+        predicted_actions_var.append(var_[0])
         predictions=[]
     # predictions = model.predictWithDropout(samp_)
     predicted_actions_var = np.array(predicted_actions_var)
@@ -134,7 +125,7 @@ if __name__ == '__main__':
     _bellman_error, = _bellman_error_ax.plot(states, predicted_actions, linewidth=2.0, color='g', label="Estimated function")
     _bellman_error, = _bellman_error_ax.plot(states, actionsNoNoise, linewidth=2.0, label="True function")
     _bellman_error = _bellman_error_ax.scatter(given_states, given_actions, label="Data trained on")
-    
+    _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_var, linewidth=2.0, label="Variance")
     
     # _bellman_error_std = _bellman_error_ax.fill_between(states, predicted_actions - predicted_actions_var,
     #                                                     predicted_actions + predicted_actions_var, facecolor='green', alpha=0.5)
