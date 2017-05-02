@@ -20,13 +20,13 @@ class DropoutNetwork(AgentInterface):
         batch_size=32
         dropout_p=0.10
         # data types for model
-        State = T.dmatrix("State")
+        State = T.matrix("State")
         State.tag.test_value = np.random.rand(batch_size,self._state_length)
         # ResultState = T.dmatrix("ResultState")
         # ResultState.tag.test_value = np.random.rand(batch_size,self._state_length)
-        Action = T.dmatrix("Action")
+        Action = T.matrix("Action")
         Action.tag.test_value = np.random.rand(batch_size, self._action_length)
-        # create a small convolutional neural network
+        ## create a small neural network
         inputLayerState = lasagne.layers.InputLayer((None, self._state_length), State)
         # inputLayerAction = lasagne.layers.InputLayer((None, self._action_length), Action)
         # concatLayer = lasagne.layers.ConcatLayer([inputLayerState, inputLayerAction])
@@ -82,7 +82,7 @@ class DropoutNetwork(AgentInterface):
         
         # self._target = (Reward + self._discount_factor * self._q_valsB)
         self._diff = Action - self._forward_dropout
-        self._loss = 0.5 * self._diff ** 2 + (1e-6 * lasagne.regularization.regularize_network_params(
+        self._loss = 0.5 * self._diff ** 2 + (1e-3 * lasagne.regularization.regularize_network_params(
                 self._l_out, lasagne.regularization.l2))
         self._loss = T.mean(self._loss)
         

@@ -1,15 +1,11 @@
-import theano
-from theano import tensor as T
 import numpy as np
-import lasagne
+# import lasagne
 import sys
 sys.path.append('../')
-from model.ModelUtil import *
-from model.DropoutNetwork import DropoutNetwork
-from util.ExperienceMemory import ExperienceMemory
 import matplotlib.pyplot as plt
 import math
 import random
+import json
 
 
 
@@ -36,6 +32,12 @@ if __name__ == '__main__':
     import os    
     os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
         
+    # import theano
+    # from theano import tensor as T
+    from model.ModelUtil import *
+    from model.DropoutNetwork import DropoutNetwork
+    from util.ExperienceMemory import ExperienceMemory
+    
     state_bounds = np.array([[-5.0],[5.0]])
     action_bounds = np.array([[-4.0],[2.0]])
     reward_bounds = np.array([[-3.0],[1.0]])
@@ -48,13 +50,12 @@ if __name__ == '__main__':
     # print states
     actions = np.array(map(fNoise, states))
     actionsNoNoise = np.array(map(f, states))
-    settings = {}
     
     # states2 = np.transpose(np.repeat([states], 2, axis=0))
     # print states2
     model = DropoutNetwork(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, settings)
     
-    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True)
+    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True, settings=settings)
     experience.setStateBounds(state_bounds)
     experience.setRewardBounds(reward_bounds)
     experience.setActionBounds(action_bounds)
@@ -73,7 +74,7 @@ if __name__ == '__main__':
         experience.insert(state_, action_, state_, np.array([0]))
     
     errors=[]
-    for i in range(50000):
+    for i in range(100000):
         _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
         # print _actions 
         error = model.train(_states, _actions)
@@ -81,7 +82,7 @@ if __name__ == '__main__':
         # print "Error: " + str(error)
     
     
-    states = np.linspace(-8.0, 8.0, experience_length)
+    states = np.linspace(-5.0, 5.0, experience_length)
     actionsNoNoise = np.array(map(f, states))
     
     predicted_actions = np.array(map(model.predict, states))
