@@ -34,18 +34,18 @@ class DropoutNetwork(AgentInterface):
         l_hid2ActA = lasagne.layers.DenseLayer(
                 l_hid2ActA, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        l_hid2ActA = lasagne.layers.DropoutLayer(l_hid2ActA, p=dropout_p, rescale=True)
-        """
+        l_hid2ActA = lasagne.layers.DropoutLayer(l_hid2ActA, p=dropout_p/2.0, rescale=True)
+        
         l_hid2ActA = lasagne.layers.DenseLayer(
                 inputLayerState, num_units=64,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=lasagne.nonlinearities.LeakyRectify(0.1))
         l_hid2ActA = lasagne.layers.DropoutLayer(l_hid2ActA, p=dropout_p, rescale=True)
         
         l_hid2ActA = lasagne.layers.DenseLayer(
                 l_hid2ActA, num_units=64,
-                nonlinearity=lasagne.nonlinearities.tanh)
-        l_hid2ActA = lasagne.layers.DropoutLayer(l_hid2ActA, p=dropout_p, rescale=True)
-        """
+                nonlinearity=lasagne.nonlinearities.LeakyRectify(0.05))
+        l_hid2ActA = lasagne.layers.DropoutLayer(l_hid2ActA, p=dropout_p/2.0, rescale=True)
+        
         l_hid2ActA = lasagne.layers.DenseLayer(
                 l_hid2ActA, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
@@ -56,7 +56,7 @@ class DropoutNetwork(AgentInterface):
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print "Initial W " + str(self._w_o.get_value()) 
         
-        self._learning_rate = 0.0001
+        self._learning_rate = 0.001
         self._rho = 0.95
         self._rms_epsilon = 0.001
         
@@ -83,7 +83,8 @@ class DropoutNetwork(AgentInterface):
         
         # self._target = (Reward + self._discount_factor * self._q_valsB)
         self._diff = Action - self._forward_dropout
-        self._loss = 0.5 * T.power(self._diff, 2)  + (1e-5 * lasagne.regularization.regularize_network_params(
+        # self._diff = Action - self._forward
+        self._loss = 0.5 * T.power(self._diff, 2)  + (1e-3 * lasagne.regularization.regularize_network_params(
                 self._l_out, lasagne.regularization.l2))
         self._loss = T.mean(self._loss)
         

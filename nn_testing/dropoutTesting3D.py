@@ -4,9 +4,6 @@ import numpy as np
 import lasagne
 import sys
 sys.path.append('../learn/')
-from model.ModelUtil import *
-from model.DropoutNetwork import DropoutNetwork
-from NNVisualize import NNVisualize
 from ExperienceMemory import ExperienceMemory
 import math
 import matplotlib.pyplot as plt
@@ -23,6 +20,19 @@ def fNoise2(x, y):
     return out
 
 if __name__ == '__main__':
+    
+    file = open(sys.argv[1])
+    settings = json.load(file)
+    print ("Settings: " + str(json.dumps(settings)))
+    file.close()
+    import os    
+    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+        
+    # import theano
+    # from theano import tensor as T
+    from model.ModelUtil import *
+    from model.DropoutNetwork import DropoutNetwork
+    from util.ExperienceMemory import ExperienceMemory
     
     state_bounds = np.array([[-5.0, -5.0],[5.0, 5.0]])
     action_bounds = np.array([[-4.0],[2.0]])
