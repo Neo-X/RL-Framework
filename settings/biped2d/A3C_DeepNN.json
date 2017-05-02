@@ -134,5 +134,11 @@
 	"comment__": "Regularization weight for different between policy parameters and old policy parameters",
 "previous_value_regularization_weight":  0.001,
 	"comment__": "Random seed value for the simulation to use",
-"random_seed": 1234
+"random_seed": 1234,
+	"comment__": "Makes a few changes to the flow of control in order for things to be on policy",
+"on_policy": false,
+	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
+"use_stocastic_policy": false,
+	"comment__": "Whether or  not to train the critic at all. Usually used for debugging",
+"train_critic": true
 }
