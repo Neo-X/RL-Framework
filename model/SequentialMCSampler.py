@@ -161,7 +161,7 @@ class SequentialMCSampler(Sampler):
                 self.pushSample(sample, self.discountedSum(y))
             else : # this is bad, usually means the simulation has exploded...
                 print ("Y: ", y, " Sample: ", sample)
-                # self._fd.initEpoch(self._exp)
+                self._fd.initEpoch(self._exp)
                 
                 
             if self.discountedSum(y) > self.discountedSum(_bestSample[1]):
