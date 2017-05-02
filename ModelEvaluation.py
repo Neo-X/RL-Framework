@@ -989,7 +989,7 @@ def modelEvaluation(settings_file_name):
     # from model.ModelUtil import validBounds
     from model.LearningAgent import LearningAgent, LearningWorker
     from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
-    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel
+    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
     
     
     from util.ExperienceMemory import ExperienceMemory
@@ -1030,8 +1030,21 @@ def modelEvaluation(settings_file_name):
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
     # actor = ActorInterface(discrete_actions)
     actor = createActor(str(settings['environment_type']),settings, experience)
-    masterAgent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+    
+    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=False)
+    
+    if ( settings['use_simulation_sampling'] ):
+        sampler = createSampler(settings, exp)
+        ## This should be some kind of copy of the simulator not a network
+        forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
+        sampler.setForwardDynamics(forwardDynamicsModel)
+        # sampler.setPolicy(model)
+        masterAgent = sampler
+        print ("thread together exp: ", masterAgent._exp)
+        # sys.exit()
+    else:
+        masterAgent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                                  action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
@@ -1060,7 +1073,6 @@ def modelEvaluation(settings_file_name):
 
     # this is the process that selects which game to play
     
-    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
 
     if (settings['train_forward_dynamics']):
         # actor.setForwardDynamicsModel(forwardDynamicsModel)
@@ -1084,7 +1096,7 @@ def modelEvaluation(settings_file_name):
     
     
     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, masterAgent, discount_factor, anchors=settings['eval_epochs'], 
-                                                                                                                        action_space_continuous=action_space_continuous, settings=settings, print_data=True, evaluation=True,
+                                                                                                                        action_space_continuous=action_space_continuous, settings=settings, print_data=True, evaluation=False,
                                                                                                                         visualizeEvaluation=expected_value_viz)
         # simEpoch(exp, model, discount_factor=discount_factor, anchors=_anchors[:settings['eval_epochs']][9], action_space_continuous=True, settings=settings, print_data=True, p=0.0, validation=True)
     
