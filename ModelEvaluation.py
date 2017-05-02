@@ -1031,7 +1031,7 @@ def modelEvaluation(settings_file_name):
     # actor = ActorInterface(discrete_actions)
     actor = createActor(str(settings['environment_type']),settings, experience)
     
-    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=False)
+    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
     
     if ( settings['use_simulation_sampling'] ):
         sampler = createSampler(settings, exp)
@@ -1096,7 +1096,7 @@ def modelEvaluation(settings_file_name):
     
     
     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, masterAgent, discount_factor, anchors=settings['eval_epochs'], 
-                                                                                                                        action_space_continuous=action_space_continuous, settings=settings, print_data=True, evaluation=False,
+                                                                                                                        action_space_continuous=action_space_continuous, settings=settings, print_data=True, evaluation=True,
                                                                                                                         visualizeEvaluation=expected_value_viz)
         # simEpoch(exp, model, discount_factor=discount_factor, anchors=_anchors[:settings['eval_epochs']][9], action_space_continuous=True, settings=settings, print_data=True, p=0.0, validation=True)
     
