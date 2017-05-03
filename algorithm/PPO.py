@@ -247,7 +247,9 @@ class PPO(AlgorithmInterface):
         self._get_critic_regularization = theano.function([], [self._critic_regularization])
         self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         
-        self._get_actor_regularization = theano.function([], [self._actor_regularization])
+        self._get_actor_regularization = theano.function([], [self._actor_regularization],
+                                                            givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+                                                                    self._KL_Weight: self._kl_weight_shared})
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
         # self._get_actor_diff_ = theano.function([], [self._actDiff], givens= self._actGivens)
         """{
@@ -258,7 +260,15 @@ class PPO(AlgorithmInterface):
             self._Fallen: self._fallen_shared
         }) """
         
-        self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
+        self._get_action_diff = theano.function([], [self._actLoss_], givens={
+            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            self._Fallen: self._fallen_shared,
+            # self._advantage: self._advantage_shared,
+            # self._KL_Weight: self._kl_weight_shared
+        })
         
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
@@ -360,7 +370,7 @@ class PPO(AlgorithmInterface):
         lossActor = 0
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-         print( "Advantage: ", np.mean(self._get_advantage()))
+        print( "Advantage: ", np.mean(self._get_advantage()))
         print("Actions: ", np.mean(actions, axis=0))
         print("Actions: std", np.std(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
@@ -368,7 +378,7 @@ class PPO(AlgorithmInterface):
         print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
         print( "Actor loss: ", np.mean(self._get_action_diff()))
         # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
-        ## Sometimes really HUGE losses appear
+        ## Sometimes really HUGE losses appear, ocasionally
         if (np.abs(np.mean(self._get_action_diff())) < 10): 
             lossActor, _ = self._trainActor()
         print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
@@ -387,12 +397,14 @@ class PPO(AlgorithmInterface):
         kl_coeff = self._kl_weight_shared.get_value()
         if kl_after > 1.3*self.getSettings()['kl_divergence_threshold']: 
             kl_coeff *= 1.5
-            self._kl_weight_shared.set_value(kl_coeff)
-            print "Got KL=%.3f (target %.3f). Increasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
+            if (kl_coeff > 1e-4):
+                self._kl_weight_shared.set_value(kl_coeff)
+                print "Got KL=%.3f (target %.3f). Increasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
         elif kl_after < 0.7*self.getSettings()['kl_divergence_threshold']: 
             kl_coeff /= 1.5
-            self._kl_weight_shared.set_value(kl_coeff)
-            print "Got KL=%.3f (target %.3f). Decreasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
+            if (kl_coeff > 1e-4):
+                self._kl_weight_shared.set_value(kl_coeff)
+                print "Got KL=%.3f (target %.3f). Decreasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
         else:
             print ("KL=%.3f is close enough to target %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold']))
         print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
