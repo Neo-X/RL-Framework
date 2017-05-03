@@ -234,7 +234,9 @@ class PPO(AlgorithmInterface):
     def compile(self):
         
         #### Stuff for Debugging #####
+        #### Stuff for Debugging #####
         self._get_diff = theano.function([], [self._diff], givens=self._givens_)
+        self._get_advantage = theano.function([], [self._Advantage], givens=self._givens_)
         self._get_target = theano.function([], [self._target], givens={
             # self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
@@ -245,9 +247,7 @@ class PPO(AlgorithmInterface):
         self._get_critic_regularization = theano.function([], [self._critic_regularization])
         self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         
-        self._get_actor_regularization = theano.function([], [self._actor_regularization],
-                                                         givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
-                                                                 self._KL_Weight: self._kl_weight_shared})
+        self._get_actor_regularization = theano.function([], [self._actor_regularization])
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
         # self._get_actor_diff_ = theano.function([], [self._actDiff], givens= self._actGivens)
         """{
@@ -258,12 +258,7 @@ class PPO(AlgorithmInterface):
             self._Fallen: self._fallen_shared
         }) """
         
-        self._get_action_diff = theano.function([], [self._actLoss_], 
-                            givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._model.getActionSymbolicVariable(): self._model.getActions(),
-            self._Fallen: self._fallen_shared})
+        self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
         
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
@@ -278,6 +273,15 @@ class PPO(AlgorithmInterface):
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._q_action = theano.function([], self._q_valsActA,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+        self._q_action_std = theano.function([], self._q_valsActASTD,
+                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+        self._get_log_prob = theano.function([], self._log_prob,
+                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+                                               self._model.getActionSymbolicVariable(): self._model.getActions(),})
+        self._get_log_prob_target = theano.function([], self._log_prob_target,
+                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+                                               self._model.getActionSymbolicVariable(): self._model.getActions(),})
+        
         self._q_action_target = theano.function([], self._q_valsActTarget,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         # self._bellman_error_drop = theano.function(inputs=[self._model.getStateSymbolicVariable(), self._model.getRewardSymbolicVariable(), self._model.getResultStateSymbolicVariable()], outputs=self._diff_drop, allow_input_downcast=True)
@@ -289,10 +293,6 @@ class PPO(AlgorithmInterface):
         # self._diffs = theano.function(input=[self._model.getStateSymbolicVariable()])
         self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         # self._get_grad2 = theano.gof.graph.inputs(lasagne.updates.rmsprop(loss, params, self._learning_rate, self._rho, self._rms_epsilon))
-        
-        # self._compute_fisher_vector_product = theano.function([flat_tangent] + args, fvp, **FNOPTS)
-        self.kl_divergence = theano.function([], self._kl_firstfixed,
-                                             givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         
         
     def updateTargetModel(self):
@@ -359,9 +359,23 @@ class PPO(AlgorithmInterface):
         # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
         
-        diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
+        # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
+         print( "Advantage: ", np.mean(self._get_advantage()))
+        print("Actions: ", np.mean(actions, axis=0))
+        print("Actions: std", np.std(actions, axis=0))
+        print("Policy mean: ", np.mean(self._q_action(), axis=0))
+        print("Policy std: ", np.mean(self._q_action_std(), axis=0))
+        print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
+        print( "Actor loss: ", np.mean(self._get_action_diff()))
+        # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
+        ## Sometimes really HUGE losses appear
+        if (np.abs(np.mean(self._get_action_diff())) < 10): 
+            lossActor, _ = self._trainActor()
+        print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
+        # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
+        print( " Actor loss: ", lossActor)
         # self._advantage_shared.set_value(diff_)
-        lossActor, _ = self._trainActor()
+        # lossActor, _ = self._trainActor()
         kl_after = self.kl_divergence()
         """
         if kl_d > self.getSettings()['kl_divergence_threshold']:
