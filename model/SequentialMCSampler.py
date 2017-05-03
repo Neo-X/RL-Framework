@@ -161,6 +161,7 @@ class SequentialMCSampler(Sampler):
                 self.pushSample(sample, self.discountedSum(y))
             else : # this is bad, usually means the simulation has exploded...
                 print ("Y: ", y, " Sample: ", sample)
+                print (" current_state_: ", current_state_copy)
                 self._fd.initEpoch(self._exp)
                 
                 
@@ -236,6 +237,7 @@ class SequentialMCSampler(Sampler):
                     _bestSample[3] = predictions
             else : # this is bad, usually means the simulation has exploded...
                 print ("Y: ", y, " Sample: ", sample)
+                print (" current_state_: ", current_state_copy)
                 self._fd.initEpoch(self._exp)
         _bestSample[1] = self.discountedSum(_bestSample[1])
         # print ("Best Sample: ", _bestSample[0], _bestSample[1])
