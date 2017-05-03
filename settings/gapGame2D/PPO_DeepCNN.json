@@ -6,7 +6,7 @@
     "comment__": "Folder to store the training data in.",
 "data_folder": "Gaps_Sphere",
 	"comment": "initial probability of selecting a random action",
-"epsilon": 0.50, 
+"epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
 "omega": 0.01,
     "comment__": "Batch size used for learning",

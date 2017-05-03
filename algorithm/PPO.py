@@ -456,8 +456,8 @@ class PPO(AlgorithmInterface):
     def predict(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -468,6 +468,22 @@ class PPO(AlgorithmInterface):
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
         return action_
+    
+    def predict_std(self, state, deterministic_=True):
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
+        self._model.setStates(state)
+        # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # if deterministic_:
+        # action_std = scale_action(self._q_action_std()[0], self._action_bounds)
+        action_std = self._q_action_std()[0]
+        # else:
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # action_ = q_valsActA[0]
+        return action_std
     
     def predictWithDropout(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
