@@ -363,7 +363,11 @@ class PPO(AlgorithmInterface):
         return loss
     
     def trainActor(self, states, actions, rewards, result_states, falls):
+        
         self.setData(states, actions, rewards, result_states, falls)
+        
+        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+        lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
         # print ("Performing Critic trainning update")
         # if (( self._updates % self._weight_update_steps) == 0):
         #     self.updateTargetModel()
