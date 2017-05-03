@@ -44,7 +44,8 @@ def loglikelihood(a, mean0, std0, d):
     """
     
     # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
-    return T.reshape(- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(32, 1))
+    return T.reshape(- 0.5 * (T.square(a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(-1, 1))
+    # return (- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1))
 
 
 def likelihood(a, mean0, std0, d):
@@ -102,8 +103,14 @@ class PPO(AlgorithmInterface):
         self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsTarget_drop = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
-        self._q_valsActA = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
-        self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
+        self._q_valsActA = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)[:,:self._action_length]
+        self._q_valsActASTD = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)[:,self._action_length:]
+        
+        ## prevent value from being 0
+        self._q_valsActASTD = self._q_valsActASTD + 1e-3
+        self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
+        self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
+        self._q_valsActTargetSTD = self._q_valsActTargetSTD + 1e-3
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -145,7 +152,7 @@ class PPO(AlgorithmInterface):
         self._model.getCriticNetwork(), lasagne.regularization.l2))
         # self._actor_regularization = ( (self._regularization_weight * lasagne.regularization.regularize_network_params(
         #         self._model.getActorNetwork(), lasagne.regularization.l2)) )
-        self._kl_firstfixed = T.mean(kl(self._q_valsActA, theano.tensor.ones_like(self._q_valsActA) * self.getSettings()['exploration_rate'], self._q_valsActTarget, theano.tensor.ones_like(self._q_valsActTarget) * self.getSettings()['exploration_rate'], self._action_length))
+        self._kl_firstfixed = T.mean(kl(self._q_valsActA, self._q_valsActASTD, self._q_valsActTarget, elf._q_valsActTargetSTD, self._action_length))
         # self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed )
         self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed )
         
@@ -343,14 +350,26 @@ class PPO(AlgorithmInterface):
         diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # self._advantage_shared.set_value(diff_)
         lossActor, _ = self._trainActor()
-        kl_d = self.kl_divergence()
-        print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
+        kl_after = self.kl_divergence()
         """
         if kl_d > self.getSettings()['kl_divergence_threshold']:
             self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()*2.0)
         else:
             self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()/2.0)
-        """    
+        """  
+        
+        kl_coeff = self._kl_weight_shared.get_value()
+        if kl_after > 1.3*self.getSettings()['kl_divergence_threshold']: 
+            kl_coeff *= 1.5
+            self._kl_weight_shared.set_value(kl_coeff)
+            print "Got KL=%.3f (target %.3f). Increasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
+        elif kl_after < 0.7*self.getSettings()['kl_divergence_threshold']: 
+            kl_coeff /= 1.5
+            self._kl_weight_shared.set_value(kl_coeff)
+            print "Got KL=%.3f (target %.3f). Decreasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
+        else:
+            print ("KL=%.3f is close enough to target %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold']))
+        print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
         print( "Policy loss: ", lossActor)
         
         
