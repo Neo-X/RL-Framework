@@ -53,6 +53,8 @@ class ActorInterface(object):
         # samp = paramSampler.generateRandomSample()
         action.setParams(action_)
         reward = exp.getEnvironment().act(action)
+        if ( not np.isfinite(reward)):
+            print ("Found some bad reward: ", reward, " for action: ", action_)
         self._reward_sum = self._reward_sum + reward
         return reward
     
