@@ -77,7 +77,7 @@
     "comment__": "How often to save the training data and plotting data",
 "saving_update_freq_num_rounds": 1,
     "comment__": "Number of treads that can be run in parallel during training",
-"num_available_threads": 1,
+"num_available_threads": 3,
     "comment__": "Length of the queues used to pass simulation data between the simulation workers and the learning agent(s).",
 "queue_size_limit": 300,
     "comment__": "Number of actions performed between training updates",
