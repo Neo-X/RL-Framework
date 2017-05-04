@@ -88,7 +88,7 @@
     "comment__": "Use the variance calculated from the policy network (calculated using dropout)",
 "use_actor_policy_action_variance_suggestion": false,
     "comment__": "Method used for action exploration",
-"exploration_method": "gaussian_random",
+"exploration_method": "sampling",
     "comment__": "Amount of dropout to use in the networks (if using a dropout network)",
 "dropout_p": 0.1,
     "comment__": "Regularization weight for the policy network",

@@ -22,6 +22,7 @@ class LearningAgent(AgentInterface):
             self._accesLock = threading.Lock()
         self._pol = None
         self._fd = None
+        self._sampler = None
         
     def getPolicy(self):
         if self._useLock:
@@ -35,6 +36,8 @@ class LearningAgent(AgentInterface):
         if self._useLock:
             self._accesLock.acquire()
         self._pol = pol
+        if (not self._sampler == None ):
+            self._sampler.setPolicy(pol)
         if self._useLock:
             self._accesLock.release()
         
@@ -153,6 +156,15 @@ class LearningAgent(AgentInterface):
         
     def initEpoch(self, exp):
         pass
+    
+    def setSampler(self, sampler):
+        self._sampler = sampler
+    def getSampler(self):
+        return self._sampler
+    
+    def setEnvironment(self, exp):
+        if (not self._sampler == None ):
+            self._sampler.setEnvironment(exp)
 
 import copy
 # class LearningWorker(threading.Thread):
