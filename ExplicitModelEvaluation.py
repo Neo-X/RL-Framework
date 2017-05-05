@@ -58,8 +58,8 @@ def modelSampling(settings):
         sampler = createSampler(settings, exp)
             
         # if (settings['use_actor_policy_action_suggestion']):
-        file_name=data_folder+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-        model = dill.load(open(file_name))
+        # file_name=data_folder+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        # model = dill.load(open(file_name))
         
         if (settings['train_forward_dynamics']):
             file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
@@ -74,7 +74,7 @@ def modelSampling(settings):
             sampler.setForwardDynamics(forwardDynamicsModel)
             
         
-        sampler.setPolicy(model)
+        # sampler.setPolicy(model)
         sampler.setSettings(settings)
         
         if not os.path.exists(data_folder):
@@ -84,7 +84,8 @@ def modelSampling(settings):
         exp.getEnvironment().init()
 
         mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error = evalModel(actor, exp, sampler, settings["discount_factor"], 
-                                                anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings, print_data=True)
+                                                anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings, print_data=True, 
+                                                bootstrapping=True)
 
         print "Average Reward: " + str(mean_reward)
     #except Exception, e:

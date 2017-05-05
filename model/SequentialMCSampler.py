@@ -54,6 +54,8 @@ class SequentialMCSampler(Sampler):
             with the same state.
         
         """
+        _action_dimension = len(self.getSettings()["action_bounds"][0])
+        _action_bounds = np.array(self.getSettings()["action_bounds"])
         # import characterSim
         _bestSample=[[0],[-10000000], [], []]
         self._samples=[]
@@ -102,35 +104,35 @@ class SequentialMCSampler(Sampler):
                 _action_params.extend(action)
                 # print ("Suggested Action: " + str(action) + " for state: " + str(current_state_copy) + " " + str(current_state_copy.getParams()) + " with variance: " + str(variance__))
                 current_state_copy3 = forwardDynamics._predict(state__c=current_state_copy2, action=pa)
-                # samples = self.generateSamples(self._pol._action_bounds,  num_samples=5)
+                # samples = self.generateSamples(_action_bounds,  num_samples=5)
                 # samples = self.generateSamples(bounds,  num_samples=self._settings["num_uniform_action_samples"])
-            # num_samples_ = pow(self.getSettings()["num_uniform_action_samples"], self._pol._action_length)
-            num_samples_ = self.getSettings()["num_uniform_action_samples"] * self._pol._action_length
+            # num_samples_ = pow(self.getSettings()["num_uniform_action_samples"], _action_dimension)
+            num_samples_ = self.getSettings()["num_uniform_action_samples"] * _action_dimension
             # print ("Number of initial random samples: ", num_samples_)
             samples = self.generateSamplesFromNormal(mean=_action_params, num_samples=num_samples_, variance_=variance__)
         else:
-            num_samples_ = self.getSettings()["num_uniform_action_samples"] * self._pol._action_length
-            # samples = self.generateSamples(self._pol._action_bounds,  num_samples=self.getSettings()["num_uniform_action_samples"], repeate=look_ahead)
-            samples = self.generateSamplesUniform(self._pol._action_bounds,  num_samples=num_samples_, repeate=look_ahead)
+            num_samples_ = self.getSettings()["num_uniform_action_samples"] * (_action_dimension)
+            # samples = self.generateSamples(_action_bounds,  num_samples=self.getSettings()["num_uniform_action_samples"], repeate=look_ahead)
+            samples = self.generateSamplesUniform(_action_bounds,  num_samples=num_samples_, repeate=look_ahead)
             # print ("Samples: ", samples)
         # print ("Current state sample: " + str(current_state_copy.getParams()))
         for sample in samples:
             pa = sample
             # print ("sample: " + str(sample))
-            actions_ = chunks(sample, self._pol._action_length)
+            actions_ = chunks(sample, _action_dimension)
             actions=[]
             for chunk in actions_:
-                act_ = clampAction(chunk, self._pol._action_bounds)
+                act_ = clampAction(chunk, _action_bounds)
                 actions.extend(act_)
             # self.updateSampleWeights()
-            actions=chunks(actions, self._pol._action_length)
+            actions=chunks(actions, _action_dimension)
             
             y=[]
             init_states=[]
             predictions=[]
             if isinstance(forwardDynamics, ForwardDynamicsSimulator):
                 current_state_ = copy.deepcopy(current_state_copy)
-                # actions = chunks(sample, self._pol._action_length)
+                # actions = chunks(sample, _action_dimension)
                 for act_ in actions:
                     current_state__ = self._exp.getStateFromSimState(current_state_)
                     init_states.append(current_state__)
@@ -148,7 +150,7 @@ class SequentialMCSampler(Sampler):
                     
             else:
                 current_state_=current_state_copy
-                # actions = chunks(sample, self._pol._action_length)
+                # actions = chunks(sample, _action_dimension)
                 for act_ in actions:
                     init_states.append(current_state_)
                     prediction = forwardDynamics.predict(state=current_state_, action=act_)
@@ -167,7 +169,7 @@ class SequentialMCSampler(Sampler):
                 
             if self.discountedSum(y) > self.discountedSum(_bestSample[1]):
                 _bestSample[1] = y
-                _bestSample[0] = pa[:self._pol._action_length]
+                _bestSample[0] = pa[:_action_dimension]
                 _bestSample[2] = init_states
                 _bestSample[3] = predictions
             del y
@@ -179,13 +181,13 @@ class SequentialMCSampler(Sampler):
             # print ("Data probabilities: " + str(self._data[:,1]))
             # print ("Data rewards: " + str(self._data[:,0]))
             sample = self.drawSample()
-            actions_ = chunks(sample, self._pol._action_length)
+            actions_ = chunks(sample, _action_dimension)
             actions=[]
             for chunk in actions_:
-                act_ = clampAction(chunk, self._pol._action_bounds)
+                act_ = clampAction(chunk, _action_bounds)
                 actions.extend(act_)
             self.updateSampleWeights()
-            actions=chunks(actions, self._pol._action_length)
+            actions=chunks(actions, _action_dimension)
             # print ("Action samples: " + str(list(actions)))
             """
             for item in self._samples:
@@ -200,7 +202,7 @@ class SequentialMCSampler(Sampler):
             predictions=[]
             if isinstance(forwardDynamics, ForwardDynamicsSimulator):
                 current_state_ = copy.deepcopy(current_state_copy)
-                # actions = chunks(sample, self._pol._action_length)
+                # actions = chunks(sample, _action_dimension)
                 for act_ in actions:
                     current_state__ = self._exp.getStateFromSimState(current_state_)
                     init_states.append(current_state__)
@@ -218,7 +220,7 @@ class SequentialMCSampler(Sampler):
                     
             else:
                 current_state_=current_state_copy
-                # actions = chunks(sample, self._pol._action_length)
+                # actions = chunks(sample, _action_dimension)
                 for act_ in actions:
                     init_states.append(current_state_)
                     prediction = forwardDynamics.predict(state=current_state_, action=act_)
@@ -232,7 +234,7 @@ class SequentialMCSampler(Sampler):
                 self.pushSample(sample, self.discountedSum(y))
                 if self.discountedSum(y) > self.discountedSum(_bestSample[1]):
                     _bestSample[1] = y
-                    _bestSample[0] = pa[:self._pol._action_length]
+                    _bestSample[0] = pa[:_action_dimension]
                     _bestSample[2] = init_states
                     _bestSample[3] = predictions
             else : # this is bad, usually means the simulation has exploded...

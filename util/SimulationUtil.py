@@ -65,6 +65,7 @@ from actor.SimbiconActor import SimbiconActor
 from actor.ImitationActor import ImitationActor
 from actor.TerrainRLActor import TerrainRLActor
 from actor.TerrainRLImitationActor import TerrainRLImitationActor
+from actor.PaperGibbonAgent import PaperGibbonAgent
 
 from sim.PendulumEnvState import PendulumEnvState
 from sim.PendulumEnv import PendulumEnv
@@ -387,6 +388,8 @@ def createActor(env_type, settings, experience):
         actor = TerrainRLActor(settings, experience)
     elif (env_type == 'terrainRLImitateBiped2D'):
         actor = TerrainRLImitationActor(settings, experience)
+    elif (env_type == 'paperGibbon'):
+        actor = PaperGibbonAgent(settings, experience)
     else:
         actor = ActorInterface(settings, experience)
     

@@ -1,0 +1,28 @@
+import sys
+import os
+import math
+from actor.ActorInterface import ActorInterface
+import numpy as np
+from model.ModelUtil import clampAction 
+from model.ModelUtil import _scale_reward 
+from model.ModelUtil import randomExporation, randomUniformExporation, reward_smoother
+
+
+class PaperGibbonAgent(ActorInterface):
+    
+    
+    # @profile(precision=5)
+    def actContinuous(self, exp, action_, bootstrapping=False):
+        import characterSim
+        print ("Executing action")
+        action_ = np.array(action_, dtype='float64')
+        # Actor should be FIRST here
+        # print "Action: " + str(action_)
+        action = characterSim.Action()
+        # samp = paramSampler.generateRandomSample()
+        action.setParams(action_)
+        reward = exp.getEnvironment().act(action)
+        if ( not np.isfinite(reward)):
+            print ("Found some bad reward: ", reward, " for action: ", action_)
+        self._reward_sum = self._reward_sum + reward
+        return reward
