@@ -77,6 +77,7 @@ from sim.BallGame2DEnv import BallGame2DEnv
 from sim.BallGame1DEnv import BallGame1DEnv
 from sim.GapGame1DEnv import GapGame1DEnv
 from sim.GapGame2DEnv import GapGame2DEnv
+from sim.PaperGibbonEnv import PaperGibbonEnv
 
 #Sampler types
 from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
@@ -361,7 +362,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = PendulumEnv(exp, settings)
     elif env_type == 'paperGibbon':
         print ("Using Environment Type: " + str(env_type))
-        exp = PendulumEnv(exp, settings)
+        exp = PaperGibbonEnv(exp, settings)
     else:
         print ("Invalid environment type: " + str(env_type))
         sys.exit()
