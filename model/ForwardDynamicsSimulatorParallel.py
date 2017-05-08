@@ -54,15 +54,15 @@ class ForwardDynamicsSimulatorProcess(Process):
             if tmp == None:
                 break
             elif (tmp[0] == 'init'):
-                print ("Initilizing environment")
+                print ("Initilizing environment simpar")
                 self._sim.getActor().initEpoch()
                 self._sim.getEnvironment().clear()
                 # for anchor_ in tmp[1]:
                     # print (_anchor)
                     # anchor_ = self._exp.getEnvironment().getAnchor(anchor)
                     # self._sim.getEnvironment().addAnchor(anchor_[0], anchor_[1], anchor_[2])
-                simState = self._exp.getSimState()
-                self._sim.setSimState(simState)
+                # simState = self._exp.getSimState()
+                # self._sim.setSimState(simState)
                 self._sim.initEpoch()
                 # print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
                 

@@ -24,6 +24,10 @@ class PaperGibbonEnv(SimInterface):
         print ("Length of anchors epochs: ", str(len(_anchors)))
         anchor_data_file.close()
         self._validation_anchors = _anchors
+        
+    def initEpoch(self):
+        self.getEnvironment().initEpoch()
+        # self.getAgent().initEpoch()
 
     def getEnvironment(self):
         return self._exp.getEnvironment()

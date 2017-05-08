@@ -19,6 +19,10 @@ class SimbiconEnv(SimInterface):
         self._action_dimension=3
         self._range = 5.0
 
+    def initEpoch(self):
+        self.getEnvironment().initEpoch()
+        # self.getAgent().initEpoch()
+        
     def getEnvironment(self):
         return self._exp
     
