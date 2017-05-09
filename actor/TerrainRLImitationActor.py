@@ -48,7 +48,7 @@ class TerrainRLImitationActor(ActorInterface):
         updates_=0
         stumble_count=0
         torque_sum=0
-        while (not sim.getEnvironment().endOfAction() and (updates_ < 1)
+        while (not sim.getEnvironment().needUpdatedAction() and (updates_ < 1)
                and (not sim.getEnvironment().agentHasFallen())
                ):
             sim.getEnvironment().update()

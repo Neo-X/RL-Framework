@@ -76,27 +76,33 @@ class SimContainer(object):
             self._episode += 1
             
         glutTimerFunc(1000/fps, self.animate, 0) # 30 fps?
+        """
         simData = self._exp.getEnvironment().getActor().getSimData()
         # print("Average Speed: ", simData.avgSpeed)
         vel_sum = simData.avgSpeed
         torque_sum = simData.avgTorque
-        
+        """
         if (self._exp.getEnvironment().needUpdatedAction()):
             state_ = self._exp.getState()
+            """
             position_root = self._exp.getEnvironment().getActor().getStateEuler()[0:][:3]
             root_orientation = self._exp.getEnvironment().getActor().getStateEuler()[3:][:3]
             print("Root position: ", position_root)
             print("Root orientation: ", root_orientation)
+            """
             action_ = np.array(self._agent.predict(state_), dtype='float64')
+            """
             grad_ = self._agent.getPolicy().getGrads(state_)[0]
             self._grad_sum += np.abs(grad_)
             self._num_actions +=1
             print ("Input grad: ", self._grad_sum/self._num_actions)
+            """
             
             # action_[1] = 1.0
             # print( "New action: ", action_)
-            self._exp.getEnvironment().updateAction(action_)
+            self._exp.updateAction(action_)
         
+        self._exp.update()
         self._exp.update()
         
     def onKey(self, c, x, y):
@@ -289,7 +295,7 @@ def evaluateModelRender(settings_file_name):
     fps=30
     state_ = exp.getState()
     action_ = np.array(masterAgent.predict(state_), dtype='float64')
-    exp.getEnvironment().updateAction(action_)
+    exp.updateAction(action_)
     sim = SimContainer(exp, masterAgent, settings)
     sim._grad_sum = np.zeros_like(state_)
     # glutInitWindowPosition(x, y);

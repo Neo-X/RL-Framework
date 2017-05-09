@@ -23,6 +23,20 @@ class TerrainRLActor(ActorInterface):
         reward = self.actContinuous(exp, samp, bootstrapping)
         return reward
     
+    def updateAction(self, sim, action_):
+        action_ = np.array(action_, dtype='float64')
+        action_idx=0
+        action__=[]
+        vel_sum=0
+        for i in range(len(self._default_action)): # because the use of parameters can be switched on and off.
+            if (self._param_mask[i] == True):
+                action__.append(action_[action_idx] )
+                action_idx+=1
+            else:
+                action__.append(self._default_action[i])
+        action_= np.array(action__, dtype='float64')
+        sim.getEnvironment().updateAction(action_)
+    
     # @profile(precision=5)
     def actContinuous(self, sim, action_, bootstrapping=False):
         # Actor should be FIRST here
@@ -45,7 +59,7 @@ class TerrainRLActor(ActorInterface):
         updates_=0
         stumble_count=0
         torque_sum=0
-        while (not sim.getEnvironment().endOfAction() and (updates_ < 500)
+        while (not sim.getEnvironment().needUpdatedAction() and (updates_ < 500)
                and (not sim.getEnvironment().agentHasFallen())
                ):
             sim.getEnvironment().update()
