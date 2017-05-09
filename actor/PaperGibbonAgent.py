@@ -14,7 +14,7 @@ class PaperGibbonAgent(ActorInterface):
     # @profile(precision=5)
     def actContinuous(self, exp, action_, bootstrapping=False):
         import characterSim
-        print ("Executing action")
+        # print ("Executing action")
         action_ = np.array(action_, dtype='float64')
         # Actor should be FIRST here
         # print "Action: " + str(action_)
