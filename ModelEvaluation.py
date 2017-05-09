@@ -66,11 +66,11 @@ class SimWorker(Process):
         ## This is no needed if there is one thread only...
         if (int(self._settings["num_available_threads"]) > 1): 
             from util.SimulationUtil import createEnvironment
-            self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings)
+            self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings, render=self._settings['shouldRender'])
             self._exp.setActor(self._actor)
             self._exp.getActor().init()   
             self._exp.getEnvironment().init()
-            ## The sampler might need this new model is threads > 1
+            ## The sampler might need this new model if threads > 1
             self._model.setEnvironment(self._exp)
         
         print ('Worker started')
@@ -146,11 +146,11 @@ class SimWorker(Process):
     
 # @profile(precision=5)
 def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, 
-             p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstraping=False, visualizeEvaluation=None):
+             p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None):
     """
         
         evaluation: If Ture than the simulation is being evaluated and the episodes will not terminate early.
-        bootstraping: is used to collect initial random actions for the state bounds to be calculated and to init the expBuffer
+        bootstrapping: is used to collect initial random actions for the state bounds to be calculated and to init the expBuffer
         epoch: is an integer that can be used to help create repeatable episodes to evaluation
         _output_queue: is the queue exp tuples should be put in so the learning agents can pull them out
         p:  is the probability of selecting a random action
@@ -172,11 +172,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     else:
         exp.generateEnvironmentSample()
         
-    exp.getEnvironment().initEpoch()
+    # exp.getEnvironment().initEpoch()
+    exp.initEpoch()
+    print ("sim EXP: ", exp)
     # actor.initEpoch()
     state_ = exp.getState()
     # pa = model.predict(state_)
-    if (not bootstraping):
+    if (not bootstrapping):
         q_values_ = [model.q_value(state_)]
     else:
         q_values_ = []
@@ -209,7 +211,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                                                   (not evaluation))):
             evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
             """
-            if ((_output_queue != None) and (not evaluation) and (not bootstraping)): # for multi-threading
+            if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
                 # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
                 _output_queue.put((state_, action, [reward_], resultState, [agent_not_fell]))
             """
@@ -218,7 +220,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             state_num=0
             
             G_ts.extend(copy.deepcopy(G_t))
-            if ((_output_queue != None) and (not evaluation) and (not bootstraping)): # for multi-threading
+            if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
                 tmp_states = copy.deepcopy(states [last_epoch_end:])
                 tmp_actions = copy.deepcopy(actions[last_epoch_end:])
                 tmp_rewards = copy.deepcopy(rewards[last_epoch_end:])
@@ -240,7 +242,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             exp.getEnvironment().initEpoch()
             actor.init() ## This should be removed and only exp.getActor() should be used
             state_ = exp.getState()
-            if (not bootstraping):
+            if (not bootstrapping):
                 q_values_.append(model.q_value(state_))
         # state = exp.getEnvironment().getState()
         state_ = exp.getState()
@@ -275,7 +277,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if r < (epsilon * p): # explore random actions
                 
                 r2 = np.random.rand(1)[0]
-                if (r2 < (omega * p)) or bootstraping:# explore hand crafted actions
+                if (r2 < (omega * p)) or bootstrapping:# explore hand crafted actions
                     # return ra2
                     # randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # action = randomAction
@@ -298,6 +300,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     elif ((settings['exploration_method'] == 'thompson')):
                         # print ('Using Thompson sampling')
                         action = thompsonExploration(model, settings["exploration_rate"], state_)
+                    elif ((settings['exploration_method'] == 'sampling')):
+                        ## Use a sampling method to find a good action
+                        action = model.getSampler().predict(state_)
                     else:
                         print ("Exploration method unknown: " + str(settings['exploration_method']))
                         sys.exit(1)
@@ -411,7 +416,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if print_data:
             # print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward_))
             # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) + " Discounted Sum: " + str(discounted_sum) )
-            print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) ) 
+            value__ = 0
+            if ( not bootstrapping ):
+                value__ = model.q_value(state_)
+            print ("Value: ", value__, " Action " + str(pa) + " Reward: " + str(reward_) ) 
             pass     
             # print ("Python Reward: " + str(reward(state_, resultState)))
             
@@ -427,7 +435,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print ("falls: ", falls)
             # values.append(value)
             """
-            if ((_output_queue != None) and (not evaluation) and (not bootstraping)): # for multi-threading
+            if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
                 # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
                 _output_queue.put((state_, action, [reward_], resultState, [agent_not_fell]))
             """
@@ -448,7 +456,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # print ("Evaluation Data: ", evalData)
         # print ("Current Tuple: " + str(experience.current()))
     tuples = (states, actions, result_states___, rewards, falls, G_ts)
-    if ((_output_queue != None) and (not evaluation) and (not bootstraping)): # for multi-threading
+    if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
         tmp_states = states [last_epoch_end:]
         tmp_actions = actions[last_epoch_end:]
         tmp_rewards = rewards[last_epoch_end:]
@@ -462,7 +470,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     
 
 # @profile(precision=5)
-def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, p=0.0, evaluation=False, visualizeEvaluation=None):
+def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, 
+              settings=None, print_data=False, p=0.0, evaluation=False, visualizeEvaluation=None,
+              bootstrapping=False):
     print ("Evaluating model:")
     j=0
     discounted_values = []
@@ -475,7 +485,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         (tuples, discounted_sum, value, evalData) = simEpoch(actor, exp, 
                 model, discount_factor, anchors=i, action_space_continuous=action_space_continuous, 
                 settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
-                visualizeEvaluation=visualizeEvaluation)
+                visualizeEvaluation=visualizeEvaluation, bootstrapping=bootstrapping)
         epoch_ = epoch_ + 1
         (states, actions, result_states, rewards, falls, G_t) = tuples
         # print (states, actions, rewards, result_states, discounted_sum, value)
@@ -716,11 +726,12 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
     # _anchors = getAnchors(anchor_data_file)
     # print ("Length of anchors epochs: " + str(len(_anchors)))
     # anchor_data_file.close()
+    episode_ = 0
     while i < samples:
         # Actor should be FIRST here
-        out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=i, 
+        out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=episode_, 
                                action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
-                                p=100.0, validation=settings['train_on_validation_set'], bootstraping=True)
+                                p=100.0, validation=settings['train_on_validation_set'], bootstrapping=True)
         # if self._p <= 0.0:
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out
@@ -736,6 +747,8 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         G_ts.extend(G_t_)
         
         i=i+len(states_)
+        episode_ += 1
+        episode_ = episode_ % settings["epochs"]
         print("Number of Experience samples so far: ", i)
         # print ("States: ", states)
         # print ("Actions: ", actions)
@@ -986,7 +999,7 @@ def modelEvaluation(settings_file_name):
     # from model.ModelUtil import validBounds
     from model.LearningAgent import LearningAgent, LearningWorker
     from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
-    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel
+    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
     
     
     from util.ExperienceMemory import ExperienceMemory
@@ -1027,8 +1040,21 @@ def modelEvaluation(settings_file_name):
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
     # actor = ActorInterface(discrete_actions)
     actor = createActor(str(settings['environment_type']),settings, experience)
-    masterAgent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+    
+    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
+    
+    if ( settings['use_simulation_sampling'] ):
+        sampler = createSampler(settings, exp)
+        ## This should be some kind of copy of the simulator not a network
+        forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
+        sampler.setForwardDynamics(forwardDynamicsModel)
+        # sampler.setPolicy(model)
+        masterAgent = sampler
+        print ("thread together exp: ", masterAgent._exp)
+        # sys.exit()
+    else:
+        masterAgent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                                  action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
@@ -1057,7 +1083,6 @@ def modelEvaluation(settings_file_name):
 
     # this is the process that selects which game to play
     
-    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
 
     if (settings['train_forward_dynamics']):
         # actor.setForwardDynamicsModel(forwardDynamicsModel)

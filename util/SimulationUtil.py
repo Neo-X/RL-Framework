@@ -65,6 +65,7 @@ from actor.SimbiconActor import SimbiconActor
 from actor.ImitationActor import ImitationActor
 from actor.TerrainRLActor import TerrainRLActor
 from actor.TerrainRLImitationActor import TerrainRLImitationActor
+from actor.PaperGibbonAgent import PaperGibbonAgent
 
 from sim.PendulumEnvState import PendulumEnvState
 from sim.PendulumEnv import PendulumEnv
@@ -76,6 +77,7 @@ from sim.BallGame2DEnv import BallGame2DEnv
 from sim.BallGame1DEnv import BallGame1DEnv
 from sim.GapGame1DEnv import GapGame1DEnv
 from sim.GapGame2DEnv import GapGame2DEnv
+from sim.PaperGibbonEnv import PaperGibbonEnv
 
 #Sampler types
 from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
@@ -346,6 +348,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
     import characterSim
     c = characterSim.Configuration(config_file)
     # print ("Num state: ", c._NUMBER_OF_STATES)
+    c._RENDER = render
     exp = characterSim.Experiment(c)
     # print ("Num state: ", exp._config._NUMBER_OF_STATES)
     if env_type == 'pendulum_env_state':
@@ -359,7 +362,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = PendulumEnv(exp, settings)
     elif env_type == 'paperGibbon':
         print ("Using Environment Type: " + str(env_type))
-        exp = PendulumEnv(exp, settings)
+        exp = PaperGibbonEnv(exp, settings)
     else:
         print ("Invalid environment type: " + str(env_type))
         sys.exit()
@@ -386,6 +389,8 @@ def createActor(env_type, settings, experience):
         actor = TerrainRLActor(settings, experience)
     elif (env_type == 'terrainRLImitateBiped2D'):
         actor = TerrainRLImitationActor(settings, experience)
+    elif (env_type == 'paperGibbon'):
+        actor = PaperGibbonAgent(settings, experience)
     else:
         actor = ActorInterface(settings, experience)
     

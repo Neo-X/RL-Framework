@@ -57,8 +57,8 @@ class ForwardDynamicsSimulator(AgentInterface):
             self._sim.getEnvironment().addAnchor(anchor_.getX(), anchor_.getY(), anchor_.getZ())
         """
         simState = self._exp.getEnvironment().getSimState()
-        self._sim.getEnvironment().setSimState(simState)
-        self._sim.getEnvironment().initEpoch()
+        self._sim.setSimState(simState)
+        self._sim.initEpoch()
 
     def predict(self, state, action):
         """
@@ -70,14 +70,14 @@ class ForwardDynamicsSimulator(AgentInterface):
         # print ("State: " + str(state._id))
         # self._exp.getEnvironment().setState(state)
         # current_state = self._exp._exp.getEnvironment().getSimInterface().getController().getControllerStateVector()
-        c_state = self._sim.getEnvironment().getState()
+        c_state = self._sim.getSimState()
         reward = self._actor.actContinuous(self._sim,action)
         # print ("State: " + str(state.getParams()))
         state_ = self._sim.getState()
         # print ("State: " + str.(state))
         # restore previous state
         # self._exp._exp.getEnvironment().getSimInterface().getController().setControllerStateVector(current_state)
-        self._sim.getEnvironment().setState(c_state)
+        self._sim.setSimState(c_state)
         # print ("State: " + str(state))
         return state_
     
@@ -90,18 +90,18 @@ class ForwardDynamicsSimulator(AgentInterface):
         # action = norm_action(action, self._action_bounds)
         # print ("Action: " + str(action))
         # print ("State: " + str(state._id))
-        state__ = self._sim.getEnvironment().getSimState()
+        state__ = self._sim.getSimState()
         
-        self._sim.getEnvironment().setSimState(state__c)
+        self._sim.setSimState(state__c)
         # current_state = self._exp._exp.getEnvironment().getSimInterface().getController().getControllerStateVector()
         # c_state = self._sim.getEnvironment().getState()
         reward = self._actor.actContinuous(self._sim,action)
         # print("_Predict reward: ", reward)
         # print ("State: " + str(state.getParams()))
-        state___ = self._sim.getEnvironment().getSimState()
+        state___ = self._sim.getSimState()
         # print ("State: " + str(state))
         # restore previous state
         # self._exp._exp.getEnvironment().getSimInterface().getController().setControllerStateVector(current_state)
-        self._sim.getEnvironment().setSimState(state__)
+        self._sim.setSimState(state__)
         # print ("State: " + str(state))
         return (state___, reward)

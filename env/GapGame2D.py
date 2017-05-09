@@ -29,9 +29,10 @@ class GapGame2D(GapGame1D):
         pos = self._obstacle.getPosition()
         vel = self._obstacle.getLinearVel()
         # print ("Position Before action: ", pos)
-        time = (action[1]/9.81)*2 # time for rise and fall
         new_vel = np.array([vel[0] + action[0], action[1]])
         new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+        # print("New action: ", new_vel)
+        time = (new_vel[1]/9.81)*2 # time for rise and fall
         self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0))
         ## Move forward along X
         self.simulateAction(new_vel)

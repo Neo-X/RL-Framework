@@ -19,6 +19,10 @@ class SimbiconEnv(SimInterface):
         self._action_dimension=3
         self._range = 5.0
 
+    def initEpoch(self):
+        self.getEnvironment().initEpoch()
+        # self.getAgent().initEpoch()
+        
     def getEnvironment(self):
         return self._exp
     
@@ -74,6 +78,25 @@ class SimbiconEnv(SimInterface):
     def setTargetChoice(self, i):
         # need to find which target corresponds to this bin.
         pass
+    
+    
+    def getStateFromSimState(self, simState):
+        """
+            Converts a detailed simulation state to a state better suited for learning
+        """
+        return self.getEnvironment().getStateFromSimState(simState)
+    
+    def getSimState(self):
+        """
+            Gets a more detailed state that can be used to re-initilize the state of the character back to this state later.
+        """
+        return self.getEnvironment().getSimState()
+    
+    def setSimState(self, state_):
+        """
+            Sets the state of the simulation to the given state
+        """
+        return self.getEnvironment().setSimState(state_)
         
         
 #ani = animation.FuncAnimation(fig, animate, frames=600,

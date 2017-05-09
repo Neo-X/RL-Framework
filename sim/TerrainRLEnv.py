@@ -21,6 +21,10 @@ class TerrainRLEnv(SimInterface):
         self._range = 5.0
         self._actor = DoNothingActor()
 
+    def initEpoch(self):
+        self.getEnvironment().initEpoch()
+        # self.getAgent().initEpoch()
+        
     def getEnvironment(self):
         return self._exp
     

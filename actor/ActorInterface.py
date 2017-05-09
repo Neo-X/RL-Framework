@@ -38,27 +38,28 @@ class ActorInterface(object):
     def act(self, exp, action_, bootstrapping=False):
         import characterSim
         samp = self.getActionParams(action_)
-        action = characterSim.Action()
-        # samp = paramSampler.generateRandomSample()
-        action.setParams(samp)
-        reward = exp.getEnvironment().act(action)
-        self._reward_sum = self._reward_sum + reward
+        
+        reward = self.actContinuous(exp, samp, bootstrapping=bootstrapping)
+        
         return reward
     
     # @profile(precision=5)
     def actContinuous(self, exp, action_, bootstrapping=False):
         import characterSim
+        action_ = np.array(action_, dtype='float64')
         # Actor should be FIRST here
         # print "Action: " + str(action_)
         action = characterSim.Action()
         # samp = paramSampler.generateRandomSample()
         action.setParams(action_)
         reward = exp.getEnvironment().act(action)
+        if ( not np.isfinite(reward)):
+            print ("Found some bad reward: ", reward, " for action: ", action_)
         self._reward_sum = self._reward_sum + reward
         return reward
     
     def getEvaluationData(self):
-        pass
+        return self._reward_sum
         
         
         

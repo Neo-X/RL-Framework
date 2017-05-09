@@ -54,34 +54,35 @@ class ForwardDynamicsSimulatorProcess(Process):
             if tmp == None:
                 break
             elif (tmp[0] == 'init'):
-                print ("Initilizing environment")
+                print ("Initilizing environment sampler:")
                 self._sim.getActor().initEpoch()
                 self._sim.getEnvironment().clear()
                 # for anchor_ in tmp[1]:
                     # print (_anchor)
                     # anchor_ = self._exp.getEnvironment().getAnchor(anchor)
                     # self._sim.getEnvironment().addAnchor(anchor_[0], anchor_[1], anchor_[2])
-                simState = self._exp.getEnvironment().getSimState()
-                self._sim.getEnvironment().setSimState(simState)
-                self._sim.getEnvironment().initEpoch()
-                # print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
+                # simState = self._exp.getSimState()
+                # self._sim.setSimState(simState)
+                self._sim.generateEnvironmentSample()
+                self._sim.initEpoch()
+                print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
                 
             else:
                 (state__c, action) = tmp
                 ## get current state of sim
-                state__ = self._sim.getEnvironment().getSimState()
+                state__ = self._sim.getSimState()
                 # print ("Sampling State:" + str(state__c))
                 # print ("State: " + str(state_c) + " sim " + str(self._sim.getEnvironment()))
                 ## Set sim to given state
-                self._sim.getEnvironment().setSimState(state__c)
+                self._sim.setSimState(state__c)
                 # print ("State: " + str(state_c) + " Action: " + str(action))
                 reward = self._actor.actContinuous(self._sim,action)
                 # print ("Reward: ", reward)
                 # print ("State: " + str(state.getParams()))
                 ## Get new state after action
-                state_ = self._sim.getEnvironment().getSimState()
+                state_ = self._sim.getSimState()
                 ## Set back to original state (maybe not needed)...
-                self._sim.getEnvironment().setSimState(state__)
+                self._sim.setSimState(state__)
                 # characterSim.State(current_state_copy.getID(), current_state_copy.getParams())
                 
                 self._output_state_queue.put((reward, state_))
@@ -106,19 +107,19 @@ class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
         self._worker.start()
         
    
-    def initEpoch(self, exp):
+    def initEpoch(self):
         print ("Init FD epoch: ")
-        self._sim.getActor().initEpoch()
-        self._sim.getEnvironment().clear()
+        # self._sim.getActor().initEpoch()
+        # self._sim.getEnvironment().clear()
         """
         for anchor in range(self.getSettings()['max_epoch_length']):
             # print (_anchor)
             anchor_ = self._exp.getEnvironment().getAnchor(anchor)
             self._sim.getEnvironment().addAnchor(anchor_.getX(), anchor_.getY(), anchor_.getZ())
         """
-        simState = self._exp.getEnvironment().getSimState()
-        self._sim.getEnvironment().setSimState(simState)
-        self._sim.getEnvironment().initEpoch()
+        # simState = self._exp.getSimState()
+        # self._sim.setSimState(simState)
+        # self._sim.initEpoch()
         self._output_state_queue.put(('init',self.getSettings()['max_epoch_length'])) 
 
     def _predict(self, state__c, action):

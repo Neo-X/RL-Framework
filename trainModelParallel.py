@@ -192,6 +192,13 @@ def trainModelParallel(settingsFileName):
                 print ("Done starting worker ", process)
             """
             print ("original exp: ", exp_)
+                # sys.exit()
+        
+            agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+            
+            agent.setSettings(settings)
+            
             if ( settings['use_simulation_sampling'] ):
                 
                 sampler = createSampler(settings, exp_)
@@ -199,14 +206,8 @@ def trainModelParallel(settingsFileName):
                 forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp_)
                 sampler.setForwardDynamics(forwardDynamicsModel)
                 # sampler.setPolicy(model)
-                agent = sampler
-                print ("thread together exp: ", agent._exp)
-                # sys.exit()
-            else:
-                agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                                  action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
-            
-            agent.setSettings(settings)
+                agent.setSampler(sampler)
+                print ("thread together exp: ", sampler._exp)
             """
             if action_space_continuous:
                 model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
@@ -457,10 +458,11 @@ def trainModelParallel(settingsFileName):
 
                 print ("Master agent experience size: " + str(masterAgent.getExperience().samples()))
                 # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
-                masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
-                masterAgent.setExperience(learningNamespace.experience)
-                if (settings['train_forward_dynamics']):
-                    masterAgent.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
+                if (not settings['on_policy']):
+                    masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
+                    masterAgent.setExperience(learningNamespace.experience)
+                    if (settings['train_forward_dynamics']):
+                        masterAgent.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
                 """
                 for sw in sim_workers: # Should update these more often?
                     sw._model.getPolicy().setNetworkParameters(namespace.agentPoly)

@@ -18,41 +18,42 @@ class DropoutNetwork(AgentInterface):
         super(DropoutNetwork,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
         
         batch_size=32
-        dropout_p=0.10
+        dropout_p=0.50
         # data types for model
-        State = T.dmatrix("State")
+        State = T.matrix("State")
         State.tag.test_value = np.random.rand(batch_size,self._state_length)
         # ResultState = T.dmatrix("ResultState")
         # ResultState.tag.test_value = np.random.rand(batch_size,self._state_length)
-        Action = T.dmatrix("Action")
+        Action = T.matrix("Action")
         Action.tag.test_value = np.random.rand(batch_size, self._action_length)
-        # create a small convolutional neural network
+        ## create a small neural network
         inputLayerState = lasagne.layers.InputLayer((None, self._state_length), State)
         # inputLayerAction = lasagne.layers.InputLayer((None, self._action_length), Action)
         # concatLayer = lasagne.layers.ConcatLayer([inputLayerState, inputLayerAction])
+        l_hid2ActA = lasagne.layers.DropoutLayer(inputLayerState, p=dropout_p, rescale=True)
         l_hid2ActA = lasagne.layers.DenseLayer(
-                inputLayerState, num_units=16,
-                nonlinearity=lasagne.nonlinearities.rectify)
-        l_hid2ActA = lasagne.layers.DropoutLayer(l_hid2ActA, p=dropout_p, rescale=True)
-        """
+                l_hid2ActA, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        l_hid2ActA = lasagne.layers.DropoutLayer(l_hid2ActA, p=dropout_p/2.0, rescale=True)
+        
         l_hid2ActA = lasagne.layers.DenseLayer(
-                inputLayerState, num_units=128,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                inputLayerState, num_units=64,
+                nonlinearity=lasagne.nonlinearities.LeakyRectify(0.1))
         l_hid2ActA = lasagne.layers.DropoutLayer(l_hid2ActA, p=dropout_p, rescale=True)
         
         l_hid2ActA = lasagne.layers.DenseLayer(
                 l_hid2ActA, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
-        l_hid2ActA = lasagne.layers.DropoutLayer(l_hid2ActA, p=dropout_p, rescale=True)
-        """
+                nonlinearity=lasagne.nonlinearities.LeakyRectify(0.05))
+        l_hid2ActA = lasagne.layers.DropoutLayer(l_hid2ActA, p=dropout_p/2.0, rescale=True)
+        
         l_hid2ActA = lasagne.layers.DenseLayer(
-                l_hid2ActA, num_units=8,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                l_hid2ActA, num_units=32,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         l_hid2ActA = lasagne.layers.DropoutLayer(l_hid2ActA, p=dropout_p, rescale=True)
     
         self._l_out = lasagne.layers.DenseLayer(
                 l_hid2ActA, num_units=self._action_length,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=lasagne.nonlinearities.linear)
                 # print "Initial W " + str(self._w_o.get_value()) 
         
         self._learning_rate = 0.001
@@ -82,7 +83,8 @@ class DropoutNetwork(AgentInterface):
         
         # self._target = (Reward + self._discount_factor * self._q_valsB)
         self._diff = Action - self._forward_dropout
-        self._loss = 0.5 * self._diff ** 2 + (1e-6 * lasagne.regularization.regularize_network_params(
+        # self._diff = Action - self._forward
+        self._loss = 0.5 * T.power(self._diff, 2)  + (1e-3 * lasagne.regularization.regularize_network_params(
                 self._l_out, lasagne.regularization.l2))
         self._loss = T.mean(self._loss)
         
@@ -161,7 +163,9 @@ class DropoutNetwork(AgentInterface):
     def predict(self, state):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        state = np.array(state, dtype=theano.config.floatX)
         state = [norm_state(state, self._state_bounds)]
+        state = np.array(state, dtype=theano.config.floatX)
         # action = [norm_action(action, self._action_bounds)]
         self._states_shared.set_value(state)
         # self._actions_shared.set_value(action)
@@ -172,6 +176,7 @@ class DropoutNetwork(AgentInterface):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
         state = [norm_state(state, self._state_bounds)]
+        state = np.array(state, dtype=theano.config.floatX)
         # action = [norm_action(action, self._action_bounds)]
         self._states_shared.set_value(state)
         # self._actions_shared.set_value(action)

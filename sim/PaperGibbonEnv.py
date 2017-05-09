@@ -11,12 +11,12 @@ from model.ModelUtil import getAnchors
 # import matplotlib.animation as animation
 
 
-class PendulumEnv(SimInterface):
+class PaperGibbonEnv(SimInterface):
 
     def __init__(self, exp, settings):
         #------------------------------------------------------------
         # set up initial state
-        super(PendulumEnv,self).__init__(exp, settings)
+        super(PaperGibbonEnv,self).__init__(exp, settings)
         self._action_dimension=3
         self._range = 5.0
         anchor_data_file = open(settings["anchor_file"])
@@ -24,6 +24,10 @@ class PendulumEnv(SimInterface):
         print ("Length of anchors epochs: ", str(len(_anchors)))
         anchor_data_file.close()
         self._validation_anchors = _anchors
+        
+    def initEpoch(self):
+        self.getEnvironment().initEpoch()
+        # self.getAgent().initEpoch()
 
     def getEnvironment(self):
         return self._exp.getEnvironment()
@@ -92,7 +96,7 @@ class PendulumEnv(SimInterface):
             Converts a detailed simulation state to a state better suited for learning
             Does nothing for this Env
         """
-        state_ = simState[1]
+        state_ = self.getEnvironment().getStateFromSimState(simState)
         
         return state_
     
@@ -101,19 +105,14 @@ class PendulumEnv(SimInterface):
             Gets a more detailed state that can be used to re-initilize the state of the character back to this state later.
             Can just use normal state, sim state can be recoverd from this.
         """
-        state_ = self.getEnvironment().getState()
-        state = []
-        state.append(state_.getID())
-        state.append(state_.getParams())
-        return state
+        state_ = self.getEnvironment().getSimState()
+        return state_
     
     def setSimState(self, state_):
         """
             Sets the state of the simulation to the given state
         """
-        import characterSim
-        state_ = characterSim.State(state_[0], state_[1])
-        return self.getEnvironment().setState(state_)    
+        return self.getEnvironment().setSimState(state_)    
         
 #ani = animation.FuncAnimation(fig, animate, frames=600,
 #                               interval=10, blit=True, init_func=init)
