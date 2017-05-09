@@ -107,7 +107,7 @@ class SequentialMCSampler(Sampler):
                 # samples = self.generateSamples(_action_bounds,  num_samples=5)
                 # samples = self.generateSamples(bounds,  num_samples=self._settings["num_uniform_action_samples"])
             # num_samples_ = pow(self.getSettings()["num_uniform_action_samples"], _action_dimension)
-            num_samples_ = self.getSettings()["num_uniform_action_samples"] * _action_dimension
+            num_samples_ = self.getSettings()["num_uniform_action_samples"] * (_action_dimension)
             # print ("Number of initial random samples: ", num_samples_)
             samples = self.generateSamplesFromNormal(mean=_action_params, num_samples=num_samples_, variance_=variance__)
         else:
