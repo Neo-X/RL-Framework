@@ -54,7 +54,7 @@ class ForwardDynamicsSimulatorProcess(Process):
             if tmp == None:
                 break
             elif (tmp[0] == 'init'):
-                print ("Initilizing environment simpar")
+                print ("Initilizing environment sampler:")
                 self._sim.getActor().initEpoch()
                 self._sim.getEnvironment().clear()
                 # for anchor_ in tmp[1]:
@@ -63,8 +63,9 @@ class ForwardDynamicsSimulatorProcess(Process):
                     # self._sim.getEnvironment().addAnchor(anchor_[0], anchor_[1], anchor_[2])
                 # simState = self._exp.getSimState()
                 # self._sim.setSimState(simState)
+                self._sim.generateEnvironmentSample()
                 self._sim.initEpoch()
-                # print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
+                print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
                 
             else:
                 (state__c, action) = tmp
@@ -106,19 +107,19 @@ class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
         self._worker.start()
         
    
-    def initEpoch(self, exp):
+    def initEpoch(self):
         print ("Init FD epoch: ")
-        self._sim.getActor().initEpoch()
-        self._sim.getEnvironment().clear()
+        # self._sim.getActor().initEpoch()
+        # self._sim.getEnvironment().clear()
         """
         for anchor in range(self.getSettings()['max_epoch_length']):
             # print (_anchor)
             anchor_ = self._exp.getEnvironment().getAnchor(anchor)
             self._sim.getEnvironment().addAnchor(anchor_.getX(), anchor_.getY(), anchor_.getZ())
         """
-        simState = self._exp.getSimState()
-        self._sim.setSimState(simState)
-        self._sim.initEpoch()
+        # simState = self._exp.getSimState()
+        # self._sim.setSimState(simState)
+        # self._sim.initEpoch()
         self._output_state_queue.put(('init',self.getSettings()['max_epoch_length'])) 
 
     def _predict(self, state__c, action):

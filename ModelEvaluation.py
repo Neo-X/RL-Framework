@@ -416,7 +416,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if print_data:
             # print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward_))
             # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) + " Discounted Sum: " + str(discounted_sum) )
-            print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) ) 
+            value__ = 0
+            if ( not bootstrapping ):
+                value__ = model.q_value(state_)
+            print ("Value: ", value__, " Action " + str(pa) + " Reward: " + str(reward_) ) 
             pass     
             # print ("Python Reward: " + str(reward(state_, resultState)))
             

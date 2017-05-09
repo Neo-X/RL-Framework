@@ -51,7 +51,7 @@ def modelSampling(settings):
         ### Using a wrapper for the type of actor now
         actor = createActor(str(settings['environment_type']),settings, experience)
         # this is the process that selects which game to play
-        exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
+        exp = None
         
         data_folder = getDataDirectory(settings)
         
@@ -71,6 +71,7 @@ def modelSampling(settings):
         else:
             
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
+            forwardDynamicsModel.initEpoch()
             sampler.setForwardDynamics(forwardDynamicsModel)
             
         
@@ -80,6 +81,8 @@ def modelSampling(settings):
         if not os.path.exists(data_folder):
             os.makedirs(data_folder)
             
+        exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
+        sampler.setEnvironment(exp)
         exp.getActor().init()   
         exp.getEnvironment().init()
 
