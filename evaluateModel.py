@@ -66,44 +66,56 @@ class SimContainer(object):
         glutPostRedisplay()
         
         """
-        
-        # print ("End of Epoch: ", self._exp.getEnvironment().endOfEpoch())
-        if (self._exp.getEnvironment().endOfEpoch() and 
-               self._exp.getEnvironment().needUpdatedAction()):
-            self._exp.getActor().initEpoch()
-            self._exp.generateValidation(10, self._episode)
-            self._exp.getEnvironment().initEpoch()
-            self._episode += 1
+        current_time = glutGet(GLUT_ELAPSED_TIME);
+        print ("Current sim time: ", current_time)
+        num_substeps = 1
+        for i in range(num_substeps):
+            # print ("End of Epoch: ", self._exp.getEnvironment().endOfEpoch())
+            if (self._exp.getEnvironment().endOfEpoch() and 
+                   self._exp.getEnvironment().needUpdatedAction()):
+                self._exp.getActor().initEpoch()
+                self._exp.generateValidation(10, self._episode)
+                self._exp.getEnvironment().initEpoch()
+                self._episode += 1
+                print("New eposide:")
+                
+            """
+            simData = self._exp.getEnvironment().getActor().getSimData()
+            # print("Average Speed: ", simData.avgSpeed)
+            vel_sum = simData.avgSpeed
+            torque_sum = simData.avgTorque
+            """
+            if (self._exp.getEnvironment().needUpdatedAction()):
+                state_ = self._exp.getState()
+                """
+                position_root = self._exp.getEnvironment().getActor().getStateEuler()[0:][:3]
+                root_orientation = self._exp.getEnvironment().getActor().getStateEuler()[3:][:3]
+                print("Root position: ", position_root)
+                print("Root orientation: ", root_orientation)
+                """
+                action_ = np.array(self._agent.predict(state_), dtype='float64')
+                """
+                grad_ = self._agent.getPolicy().getGrads(state_)[0]
+                self._grad_sum += np.abs(grad_)
+                self._num_actions +=1
+                print ("Input grad: ", self._grad_sum/self._num_actions)
+                """
+                
+                # action_[1] = 1.0
+                print( "New action: ", action_)
+                self._exp.updateAction(action_)
             
-        glutTimerFunc(1000/fps, self.animate, 0) # 30 fps?
-        """
-        simData = self._exp.getEnvironment().getActor().getSimData()
-        # print("Average Speed: ", simData.avgSpeed)
-        vel_sum = simData.avgSpeed
-        torque_sum = simData.avgTorque
-        """
-        if (self._exp.getEnvironment().needUpdatedAction()):
-            state_ = self._exp.getState()
-            """
-            position_root = self._exp.getEnvironment().getActor().getStateEuler()[0:][:3]
-            root_orientation = self._exp.getEnvironment().getActor().getStateEuler()[3:][:3]
-            print("Root position: ", position_root)
-            print("Root orientation: ", root_orientation)
-            """
-            action_ = np.array(self._agent.predict(state_), dtype='float64')
-            """
-            grad_ = self._agent.getPolicy().getGrads(state_)[0]
-            self._grad_sum += np.abs(grad_)
-            self._num_actions +=1
-            print ("Input grad: ", self._grad_sum/self._num_actions)
-            """
             
-            # action_[1] = 1.0
-            # print( "New action: ", action_)
-            self._exp.updateAction(action_)
-        
-        self._exp.update()
-        self._exp.update()
+            self._exp.update()
+        self._exp.display()
+        dur_time = (glutGet(GLUT_ELAPSED_TIME) - current_time)
+        next_time = int((1000/fps)) - dur_time
+        print("duration to perform update: ", dur_time, " next time: ", next_time)
+        # anim_time = int(gDisplayAnimTime * GetNumTimeSteps() / gPlaybackSpeed);
+        # anim_time = np.abs(anim_time);
+        # return anim_time;
+        next_time = np.max([next_time, 0]);
+        glutTimerFunc(next_time, self.animate, 0) # 30 fps?
         
     def onKey(self, c, x, y):
         """GLUT keyboard callback."""
