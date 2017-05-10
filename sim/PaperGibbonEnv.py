@@ -29,6 +29,9 @@ class PaperGibbonEnv(SimInterface):
         self.getEnvironment().initEpoch()
         # self.getAgent().initEpoch()
 
+    def getActor(self):
+        return self._exp.getActor()
+    
     def getEnvironment(self):
         return self._exp.getEnvironment()
     

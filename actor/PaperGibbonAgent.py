@@ -26,3 +26,14 @@ class PaperGibbonAgent(ActorInterface):
             print ("Found some bad reward: ", reward, " for action: ", action_)
         self._reward_sum = self._reward_sum + reward
         return reward
+    
+    def init(self):
+        self._agent.init()
+        self._reward_sum=0
+        
+    def initEpoch(self):
+        # self._agent.initEpoch()
+        self._reward_sum=0
+        
+    def setAgent(self, agent):
+        
