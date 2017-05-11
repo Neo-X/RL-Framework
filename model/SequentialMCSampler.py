@@ -70,6 +70,8 @@ class SequentialMCSampler(Sampler):
             variance____=self.getSettings()['variance_scalling']
             variance__=[variance____]
             current_state_copy2 = copy.deepcopy(current_state_copy)
+            current_state_copy__ = self._exp.getStateFromSimState(current_state_copy)
+            _bestSample[0] = model.predict(np.array([current_state_copy__]))
             ## Get first action
             for i in range(look_ahead):
                 if isinstance(forwardDynamics, ForwardDynamicsSimulator):
@@ -165,6 +167,7 @@ class SequentialMCSampler(Sampler):
                 print ("Y: ", y, " Sample: ", sample)
                 print (" current_state_: ", current_state_copy)
                 # self._fd.initEpoch(self._exp)
+                return _bestSample
                 
                 
             if self.discountedSum(y) > self.discountedSum(_bestSample[1]):
@@ -241,6 +244,7 @@ class SequentialMCSampler(Sampler):
                 print ("Y: ", y, " Sample: ", sample)
                 print (" current_state_: ", current_state_copy)
                 # self._fd.initEpoch(self._exp)
+                return _bestSample
         _bestSample[1] = self.discountedSum(_bestSample[1])
         # print ("Best Sample: ", _bestSample[0], _bestSample[1])
         return _bestSample
