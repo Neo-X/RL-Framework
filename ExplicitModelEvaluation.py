@@ -71,7 +71,7 @@ def modelSampling(settings):
         else:
             
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
-            # forwardDynamicsModel.initEpoch()
+            forwardDynamicsModel.initEpoch()
             sampler.setForwardDynamics(forwardDynamicsModel)
             
         
