@@ -360,7 +360,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
     elif env_type == 'pendulum3D_env':
         print ("Using Environment Type: " + str(env_type))
         exp = PendulumEnv(exp, settings)
-    elif env_type == 'paperGibbon':
+    elif env_type == 'paperGibbon_env':
         print ("Using Environment Type: " + str(env_type))
         exp = PaperGibbonEnv(exp, settings)
     else:
@@ -389,7 +389,7 @@ def createActor(env_type, settings, experience):
         actor = TerrainRLActor(settings, experience)
     elif (env_type == 'terrainRLImitateBiped2D'):
         actor = TerrainRLImitationActor(settings, experience)
-    elif (env_type == 'paperGibbon'):
+    elif (env_type == 'paperGibbon_env'):
         actor = PaperGibbonAgent(settings, experience)
     else:
         actor = ActorInterface(settings, experience)

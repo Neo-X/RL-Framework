@@ -37,7 +37,7 @@
 		             [-0.2, -0.5, 0.30, -0.71]], 		  
 "action_space_continuous":true,
 "train_on_validation_set":true,
-"environment_type": "paperGibbon",
+"environment_type": "paperGibbon_env",
 "forward_dynamics_predictor": "network",
 "sampling_method": "SequentialMC",
 "use_actor_policy_action_suggestion": true,
