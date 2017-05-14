@@ -10,6 +10,11 @@ from model.ModelUtil import randomExporation, randomUniformExporation, reward_sm
 
 class PaperGibbonAgent(ActorInterface):
     
+    def __init__(self, settings_, experience):
+        super(PaperGibbonAgent,self).__init__(settings_, experience)
+        self._target_vel_weight=self._settings["target_velocity_decay"]
+        self._target_vel = self._settings["target_velocity"]
+    
     
     # @profile(precision=5)
     def actContinuous(self, exp, action_, bootstrapping=False):
@@ -22,6 +27,7 @@ class PaperGibbonAgent(ActorInterface):
         # samp = paramSampler.generateRandomSample()
         action.setParams(action_)
         reward = exp.getEnvironment().act(action)
+        reward = reward_smoother(reward, self._settings, self._target_vel_weight)
         if ( not np.isfinite(reward)):
             print ("Found some bad reward: ", reward, " for action: ", action_)
         self._reward_sum = self._reward_sum + reward
