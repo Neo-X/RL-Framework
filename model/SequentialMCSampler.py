@@ -140,6 +140,10 @@ class SequentialMCSampler(Sampler):
                     init_states.append(current_state__)
                     (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=act_)
                     prediction_ = self._exp.getStateFromSimState(prediction)
+                    if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
+                        print("Reached bad state in search")
+                        continue
+                        
                     predictions.append(prediction_)
                     # print ("Current State: ", current_state_.getParams(), " Num: ", current_state_.getID())
                     # print ("Prediction: ", prediction.getParams(), " Num: ", prediction.getID())
@@ -148,7 +152,7 @@ class SequentialMCSampler(Sampler):
                     y.append(reward__)
                     current_state_ = copy.deepcopy(prediction)
                     # goalDistance(np.array(current_state_.getParams()), )
-                    # print ("Y : " + str(y))
+                    print ("Y : " + str(y))
                     
             else:
                 current_state_=current_state_copy
@@ -156,11 +160,15 @@ class SequentialMCSampler(Sampler):
                 for act_ in actions:
                     init_states.append(current_state_)
                     prediction = forwardDynamics.predict(state=current_state_, action=act_)
+                    if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
+                        print("Reached bad state in search")
+                        continue
+                    
                     predictions.append(prediction)
                     y.append(reward(current_state_, prediction))
                     current_state_ = prediction
             # print (pa, y, id(y))
-            if all(np.isfinite(y)): # lots of nan values for some reason...
+            if ( np.all(np.isfinite(y)) and (np.all(np.greater(y, -10000.0))) and (np.all(np.less(y, 10000.0))) ): # lots of nan values for some reason...
                 # print ("Good sample:")
                 self.pushSample(sample, self.discountedSum(y))
             else : # this is bad, usually means the simulation has exploded...
@@ -210,6 +218,10 @@ class SequentialMCSampler(Sampler):
                     current_state__ = self._exp.getStateFromSimState(current_state_)
                     init_states.append(current_state__)
                     (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=act_)
+                    if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
+                        print("Reached bad state in search")
+                        continue
+                    
                     prediction_ = self._exp.getStateFromSimState(prediction)
                     predictions.append(prediction_)
                     # print ("Current State: ", current_state_.getParams(), " Num: ", current_state_.getID())
@@ -219,7 +231,7 @@ class SequentialMCSampler(Sampler):
                     y.append(reward__)
                     current_state_ = copy.deepcopy(prediction)
                     # goalDistance(np.array(current_state_.getParams()), )
-                    # print ("Y : " + str(y))
+                    print ("Y : " + str(y))
                     
             else:
                 current_state_=current_state_copy
@@ -227,6 +239,9 @@ class SequentialMCSampler(Sampler):
                 for act_ in actions:
                     init_states.append(current_state_)
                     prediction = forwardDynamics.predict(state=current_state_, action=act_)
+                    if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
+                        print("Reached bad state in search")
+                        continue
                     predictions.append(prediction)
                     y.append(reward(current_state_, prediction))
                     current_state_ = prediction
