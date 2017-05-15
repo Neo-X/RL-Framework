@@ -401,7 +401,7 @@ class PPO(AlgorithmInterface):
         else:
             self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()/2.0)
         """  
-        """
+    
         kl_coeff = self._kl_weight_shared.get_value()
         if kl_after > 1.3*self.getSettings()['kl_divergence_threshold']: 
             kl_coeff *= 1.5
@@ -416,7 +416,7 @@ class PPO(AlgorithmInterface):
         else:
             print ("KL=%.3f is close enough to target %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold']))
         print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
-        """
+        
         print( "Policy loss: ", lossActor)
         
         
