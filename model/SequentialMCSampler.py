@@ -152,7 +152,7 @@ class SequentialMCSampler(Sampler):
                     y.append(reward__)
                     current_state_ = copy.deepcopy(prediction)
                     # goalDistance(np.array(current_state_.getParams()), )
-                    print ("Y : " + str(y))
+                    # print ("Y : " + str(y))
                     
             else:
                 current_state_=current_state_copy
@@ -231,7 +231,7 @@ class SequentialMCSampler(Sampler):
                     y.append(reward__)
                     current_state_ = copy.deepcopy(prediction)
                     # goalDistance(np.array(current_state_.getParams()), )
-                    print ("Y : " + str(y))
+                    # print ("Y : " + str(y))
                     
             else:
                 current_state_=current_state_copy

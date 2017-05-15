@@ -86,9 +86,16 @@ def modelSampling(settings):
         exp.getActor().init()   
         exp.getEnvironment().init()
 
+        expected_value_viz=None
+        if (settings['visualize_expected_value']):
+            expected_value_viz = NNVisualize(title=str("Expected Value") + " with " + str(settings["model_type"]), settings=settings)
+            expected_value_viz.setInteractive()
+            expected_value_viz.init()
+            criticLosses = []
+            
         mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error = evalModel(actor, exp, sampler, settings["discount_factor"], 
                                                 anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings, print_data=True, 
-                                                bootstrapping=True)
+                                                bootstrapping=True, visualizeEvaluation=expected_value_viz)
 
         print "Average Reward: " + str(mean_reward)
     #except Exception, e:
