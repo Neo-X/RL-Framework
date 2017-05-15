@@ -23,7 +23,7 @@ class SimbiconActor(ActorInterface):
         samp = self.getActionParams(action_)
         
         reward = self.actContinuous(exp, samp, bootstrapping)
-        self._reward_sum = self._reward_sum + reward
+        # self._reward_sum = self._reward_sum + reward
         return reward
     
     # @profile(precision=5)

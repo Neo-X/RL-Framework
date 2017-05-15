@@ -40,3 +40,7 @@ class PaperGibbonAgent(ActorInterface):
     def initEpoch(self):
         # self._agent.initEpoch()
         self._reward_sum=0
+
+    def getEvaluationData(self):
+        return self._reward_sum
+    

@@ -175,7 +175,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # exp.getEnvironment().initEpoch()
     exp.initEpoch()
     print ("sim EXP: ", exp)
-    # actor.initEpoch()
+    actor.initEpoch()
     state_ = exp.getState()
     # pa = model.predict(state_)
     if (not bootstrapping):
@@ -452,7 +452,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     discounted_sum = np.mean(discounted_sums)
     q_value = np.mean(q_values_)
     if print_data:
-        print ("Evaluation: ", str(evalData)) 
+        print ("Evaluation: ", str(evalData))
+        print ("Eval Datas: ", evalDatas) 
     # print ("Evaluation Data: ", evalData)
         # print ("Current Tuple: " + str(experience.current()))
     tuples = (states, actions, result_states___, rewards, falls, G_ts)
@@ -1041,7 +1042,7 @@ def modelEvaluation(settings_file_name):
     # actor = ActorInterface(discrete_actions)
     actor = createActor(str(settings['environment_type']),settings, experience)
     
-    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
+    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=False)
     
     if ( settings['use_simulation_sampling'] ):
         sampler = createSampler(settings, exp)
