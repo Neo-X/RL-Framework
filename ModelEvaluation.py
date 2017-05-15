@@ -1042,7 +1042,7 @@ def modelEvaluation(settings_file_name):
     # actor = ActorInterface(discrete_actions)
     actor = createActor(str(settings['environment_type']),settings, experience)
     
-    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=False)
+    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
     
     if ( settings['use_simulation_sampling'] ):
         sampler = createSampler(settings, exp)
