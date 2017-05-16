@@ -378,7 +378,7 @@ class PPO(AlgorithmInterface):
         lossActor = 0
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        print( "Advantage: ", np.mean(self._get_advantage()))
+        print("Advantage: ", np.mean(self._get_advantage()))
         print("Actions: ", np.mean(actions, axis=0))
         print("Actions: std", np.std(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))

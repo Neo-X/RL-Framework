@@ -116,12 +116,15 @@ class SimWorker(Process):
             if (eval):
                 self._eval_episode_data_queue.put(out)
             else:
+                pass
+                """
                 print("Updating sim policies:")
                 if (not self._settings['on_policy']):
                     self._model.getPolicy().setNetworkParameters(self._namespace.agentPoly)
                     if (self._settings['train_forward_dynamics']):
                         self._model.getForwardDynamics().setNetworkParameters(self._namespace.forwardNN)
                 # gc.collect()
+                """
                 
             # print ("Actions: " + str(actions))
             # all_objects = muppy.get_objects()
@@ -129,12 +132,13 @@ class SimWorker(Process):
             # summary.print_(sum1)
             ## Check if any messages in the queue
             if self._message_queue.qsize() > 0:
-                message = self._message_queue.get()
-                if message == "Update Policy":
+                data = self._message_queue.get()
+                message = data[0]
+                if message == "Update_Policy":
                     print ("Message: ", message)
-                    self._model.getPolicy().setNetworkParameters(self._namespace.agentPoly)
+                    self._model.getPolicy().setNetworkParameters(data[1])
                     if (self._settings['train_forward_dynamics']):
-                        self._model.getForwardDynamics().setNetworkParameters(self._namespace.forwardNN)
+                        self._model.getForwardDynamics().setNetworkParameters(data[2])
         print ("Simulation Worker Complete: ")
         self._exp.finish()
         

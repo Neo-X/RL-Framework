@@ -458,11 +458,13 @@ def trainModelParallel(settingsFileName):
 
                 print ("Master agent experience size: " + str(masterAgent.getExperience().samples()))
                 # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
+                
                 if (not settings['on_policy']):
                     masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
                     masterAgent.setExperience(learningNamespace.experience)
                     if (settings['train_forward_dynamics']):
                         masterAgent.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
+                
                 """
                 for sw in sim_workers: # Should update these more often?
                     sw._model.getPolicy().setNetworkParameters(namespace.agentPoly)
@@ -482,12 +484,19 @@ def trainModelParallel(settingsFileName):
             ## This will let me know which part of learning is going slower training updates or simulation
             print ("sim queue size: ", input_anchor_queue.qsize() )
             print ("exp tuple queue size: ", output_experience_queue.qsize())
-            """
-            if (settings['on_policy']):
-                output_experience_queue.put("clear")
+            
+            # if (settings['on_policy']):
+            # output_experience_queue.put("clear")
+            if (not settings['on_policy']):
+                # masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
+                # masterAgent.setExperience(learningNamespace.experience)
+                data = ('Update_Policy', namespace.agentPoly)
+                if (settings['train_forward_dynamics']):
+                    # masterAgent.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
+                    data = ('Update_Policy', namespace.agentPoly, namespace.forwardNN)
                 for m_q in sim_work_queues:
-                    m_q.put("Update Policy")
-            """    
+                    m_q.put(data)
+              
             if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
                 # Running less often helps speed learning up.
                 # Sync up sim actors
