@@ -428,7 +428,7 @@ class A3C2(AlgorithmInterface):
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
         # action_std = scale_action(self._q_action_std()[0], self._action_bounds)
-        action_std = self._q_action_std()[0]
+        action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]

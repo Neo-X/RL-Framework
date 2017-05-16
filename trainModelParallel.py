@@ -399,12 +399,12 @@ def trainModelParallel(settingsFileName):
                     out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
                        print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None )
                     (tuples, discounted_sum, q_value, evalData) = out
-                    (__states, __actions, __result_states, __rewards, __falls, __G_ts) = tuples
+                    (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__) = tuples
                     # print("**** training states: ", np.array(__states).shape)
                     # print("**** training __result_states: ", np.array(__result_states).shape)
                     # print ("Actions before: ", __actions)
                     for i in range(1):
-                        masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls)
+                        masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls, _advantage=advantage__)
                 else:
                     episodeData = {}
                     episodeData['data'] = epoch

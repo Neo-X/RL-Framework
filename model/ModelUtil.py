@@ -107,9 +107,9 @@ def norm_action(action_, action_bounds_):
     
     
     avg = (action_bounds_[0] + action_bounds_[1])/2.0
-    var = (action_bounds_[1] - action_bounds_[0])/2.0
+    std = (action_bounds_[1] - action_bounds_[0])/2.0
     # return (action_ - (avg)) / (action_bounds_[1]-avg)
-    return (action_ - (avg)) / (var)
+    return (action_ - (avg)) / (std)
 
 def norm_actions(actions_, action_bounds_):
     """
@@ -124,9 +124,9 @@ def norm_actions(actions_, action_bounds_):
     
     
     avg = (action_bounds_[0] + action_bounds_[1])/2.0
-    var = (action_bounds_[1] - action_bounds_[0])/2.0
+    std = (action_bounds_[1] - action_bounds_[0])/2.0
     # return (action_ - (avg)) / (action_bounds_[1]-avg)
-    return (actions_ - (avg)) / (var)
+    return (actions_ - (std)) / (var)
 
 def scale_action(normed_action_, action_bounds_):
     """
@@ -136,14 +136,14 @@ def scale_action(normed_action_, action_bounds_):
         1 will correspond to the upper bound and -1 to the lower
     """
     avg = (action_bounds_[0] + action_bounds_[1])/2.0
-    var = (action_bounds_[1] - action_bounds_[0])/2.0
+    std = (action_bounds_[1] - action_bounds_[0])/2.0
     # return normed_action_ * (action_bounds_[1] - avg) + avg
-    return (normed_action_ * (var)) + avg
+    return (normed_action_ * (std)) + avg
 
-def action_bound_variance(action_bounds_):
-    avg = (action_bounds_[0] + action_bounds_[1])/2.0
-    var = (action_bounds_[1] - action_bounds_[0])/2.0
-    return var
+def action_bound_std(action_bounds_):
+    # avg = (action_bounds_[0] + action_bounds_[1])/2.0
+    std = (action_bounds_[1] - action_bounds_[0])/2.0
+    return std
 
 def getSettings(settingsFileName):
     file = open(settingsFileName)
@@ -176,20 +176,20 @@ def randomExporation(explorationRate, actionV, bounds):
         out.append(actionV[i] + n)
     return out
 
-def randomExporationSTD(explorationRate, actionV, std, bounds):
+def randomExporationSTD(explorationRate, actionV, std):
     """
         This version scales the exploration noise wrt the action bounds
     """
     out = []
     for i in range(len(actionV)):
         ## I think this should have a /2.0 want to map 1 - -1 to this interval
-        scale = (bounds[1][i]-bounds[0][i])/2.0
+        # scale = (bounds[1][i]-bounds[0][i])/2.0
         # while True:
             ## resample noise that is greater than std*3 away
         n = np.random.normal(0, std[i], 1)[0]
         #     if (np.abs(n) < (std[i]*3)):
         #         break
-        n = n * scale
+        # n = n * scale
         out.append(actionV[i] + n)
     return out
 
@@ -457,6 +457,7 @@ if __name__ == '__main__':
     file = open(settingsFileName)
     settings = json.load(file)
     file.close()
+    num_samples = 5000
     
     action_bounds = np.array(settings["action_bounds"], dtype=float)
     # action_bounds[0][0] = 0
@@ -471,11 +472,12 @@ if __name__ == '__main__':
     actions_=[]
     actions_list = []
     actions_list2 = []
+    std = action_bound_std(action_bounds)
     for i in range(action.shape[0] ):
         actions_.append([])
     print ("Actions Data: ", actions_)
     
-    for i in range(50):
+    for i in range(num_samples):
         action_ = randomExporation(settings["exploration_rate"], action, action_bounds)
         actions_list.append(action_)
         print (" Exploration action: ", action_)
@@ -483,8 +485,9 @@ if __name__ == '__main__':
             act_ = action_[j]
             actions_[j].append(act_)
             
-    for i in range(50):
-        action_ = randomExporation(settings["exploration_rate"], actions_list[i], action_bounds)
+    for i in range(num_samples):
+        action_ = randomExporationSTD(settings["exploration_rate"], actions_list[i], std, action_bounds)
+        # action_ = randomExporation(settings["exploration_rate"], actions_list[i], action_bounds)
         actions_list2.append(action_)
         print (" Exploration action: ", action_)
             
@@ -566,14 +569,41 @@ if __name__ == '__main__':
     
     
     """
+    
+    print("std: ", std)
     actions_list = np.array(actions_list)
     actions_list2 = np.array(actions_list2)
     print ("Actions: ", actions_list)
     print ("Actions2: ", actions_list2)
-    std = np.repeat([action_bound_variance(action_bounds)], 50, axis=0) * 0.2
-    l = loglikelihood(actions_list2, actions_list, std, actions_list.shape[1])
-    l2 = loglikelihood(actions_list2+0.001, actions_list, std, actions_list.shape[1])
+    
+    print ("Actions2 mean:", np.mean(actions_list2, axis=0))
+    print ("Actions2 std:", np.std(actions_list2, axis=0))
+    
+    # print ("Actions2 norm mean:", np.mean(norm_action(actions_list2, action_bounds), axis=0))
+    # print ("Actions2 norm std:", np.std(norm_action(actions_list2, action_bounds), axis=0))
+    print ("Actions2 mean:", np.mean(scale_action(norm_action(actions_list2, action_bounds), action_bounds), axis=0))
+    print ("Actions2 std:", np.std(scale_action(norm_action(actions_list2, action_bounds), action_bounds), axis=0))
+    
+    actions_list_2 = norm_action(actions_list, action_bounds)
+    # actions_list_2= []
+    # for i in range(num_samples):
+    #     actions_list_2.append(norm_action(actions_list2[i], action_bounds))
+        
+    actions_list2_ = []
+    for i in range(num_samples):
+        action_ = randomExporationSTD(settings["exploration_rate"], scale_action(actions_list_2[i], action_bounds), std, action_bounds)
+        # action_ = randomExporation(settings["exploration_rate"], actions_list[i], action_bounds)
+        actions_list2_.append(action_)
+        # print (" Exploration action: ", action_)
+        
+    # print ("Actions2 mean:", np.mean(scale_action(actions_list2_, action_bounds), axis=0))
+    # print ("Actions2 std:", np.std(scale_action(actions_list2_, action_bounds), axis=0))
+    print ("Actions2 mean:", np.mean(actions_list2_, axis=0))
+    print ("Actions2 std:", np.std(actions_list2_, axis=0))
+    
+    # l = loglikelihood(actions_list2, actions_list, std, actions_list.shape[1])
+    # l2 = loglikelihood(actions_list2+0.001, actions_list, std, actions_list.shape[1])
     # print ("Action std: ", np.repeat([std], 50, axis=0))
     # print ("Likelyhood: ", np.exp(l-l2))
-    print ("Likelyhood: ", (l))
+    # print ("Likelyhood: ", (l))
     

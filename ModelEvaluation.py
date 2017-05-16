@@ -195,6 +195,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     discounted_sums = []
     G_t = []
     G_ts = []
+    advantage = []
     state_num=0
     i_=0
     last_epoch_end=0
@@ -222,7 +223,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             discounted_sums.append(discounted_sum)
             discounted_sum=0
             state_num=0
-            
+            for j in range(len(G_t)-1):
+                advantage.append([G_t[j] - G_t[j+1]])
+            advantage.append([0])
             G_ts.extend(copy.deepcopy(G_t))
             if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
                 tmp_states = copy.deepcopy(states [last_epoch_end:])
@@ -231,6 +234,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 tmp_falls = copy.deepcopy(falls[last_epoch_end:])
                 tmp_result_states = copy.deepcopy(result_states___[last_epoch_end:])
                 tmp_G_ts = copy.deepcopy(G_ts[last_epoch_end:])
+                
                 for state__, action__, reward__, result_state__, fall__, G_t__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts):
                     _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__))
             
@@ -300,7 +304,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         std = model.predict_std(state_)
                         # print("Action: ", pa)
                         # print ("Action std: ", std)
-                        action = randomExporationSTD(settings["exploration_rate"], pa, std, action_bounds)
+                        action = randomExporationSTD(settings["exploration_rate"], pa, std)
                     elif ((settings['exploration_method'] == 'thompson')):
                         # print ('Using Thompson sampling')
                         action = thompsonExploration(model, settings["exploration_rate"], state_)
@@ -424,7 +428,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if ( not bootstrapping ):
                 value__ = model.q_value(state_)
             print ("Value: ", value__, " Action " + str(pa) + " Reward: " + str(reward_) ) 
-            pass     
+            print ("Agent has fallen: ", not agent_not_fell )
             # print ("Python Reward: " + str(reward(state_, resultState)))
             
         if ( (reward_ >= settings['reward_lower_bound'] ) or evaluation):
@@ -460,7 +464,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         print ("Eval Datas: ", evalDatas) 
     # print ("Evaluation Data: ", evalData)
         # print ("Current Tuple: " + str(experience.current()))
-    tuples = (states, actions, result_states___, rewards, falls, G_ts)
     if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
         tmp_states = states [last_epoch_end:]
         tmp_actions = actions[last_epoch_end:]
@@ -468,9 +471,15 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_falls = falls[last_epoch_end:]
         tmp_result_states = result_states___[last_epoch_end:]
         tmp_G_ts = G_ts[last_epoch_end:]
+        
         for state__, action__, reward__, result_state__, fall__, G_t__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts):
             _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__))
-        
+    ## Compute Advantage
+    for j in range(len(G_t)-1):
+        advantage.append([G_t[j] - G_t[j+1]])
+    advantage.append([0])
+    print ("Advantage for Episode: ", advantage)
+    tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage)
     return (tuples, discounted_sum, q_value, evalData)
     
 
@@ -492,7 +501,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
                 settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
                 visualizeEvaluation=visualizeEvaluation, bootstrapping=bootstrapping)
         epoch_ = epoch_ + 1
-        (states, actions, result_states, rewards, falls, G_t) = tuples
+        (states, actions, result_states, rewards, falls, G_t, advantage) = tuples
         # print (states, actions, rewards, result_states, discounted_sum, value)
         # print ("Evaluated Actions: ", actions)
         # print ("Evaluated Rewards: ", rewards)
@@ -568,7 +577,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
                     visualizeEvaluation=visualizeEvaluation)
             """
             epoch_ = epoch_ + 1
-            (states, actions, result_states, rewards, falls, G_ts) = tuples
+            (states, actions, result_states, rewards, falls, G_ts, advantage) = tuples
             # print (states, actions, rewards, result_states, discounted_sum, value)
             # print ("Evaluated Actions: ", actions)
             # print ("Evaluated Rewards: ", rewards)
@@ -740,7 +749,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         # if self._p <= 0.0:
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out
-        (states_, actions_, result_states_, rewards_, falls_, G_t_) = tuples
+        (states_, actions_, result_states_, rewards_, falls_, G_t_, advantage) = tuples
         print ("Shape other states_: ", np.array(states_).shape)
         print ("Shape other action_: ", np.array(actions_).shape)
         # print ("States: ", states_)
@@ -1062,8 +1071,8 @@ def modelEvaluation(settings_file_name):
                                   action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
-    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
     f = open(file_name, 'r')
     model = dill.load(f)
     f.close()

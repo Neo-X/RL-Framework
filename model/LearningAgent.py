@@ -64,7 +64,7 @@ class LearningAgent(AgentInterface):
     def getExperience(self):
         return self._expBuff 
     
-    def train(self, _states, _actions, _rewards, _result_states, _falls):
+    def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None):
         if self._useLock:
             self._accesLock.acquire()
         cost = 0
@@ -75,13 +75,16 @@ class LearningAgent(AgentInterface):
             _rewards = np.array(_rewards, dtype=self._settings['float_type'])
             _result_states = np.array(norm_action(np.array(_result_states), self._state_bounds), dtype=self._settings['float_type'])
             _falls = np.array(_falls, dtype='int8')
+            _advantage = np.array(_advantage, dtype=self._settings['float_type'])
+            # print("Not Falls: ", _falls)
             # print("Rewards: ", _rewards)
             # print ("Actions after: ", _actions)
             cost = 0
             if (self._settings['train_critic']):
-                cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                for i in range(self._settings['critic_updates_per_actor_update']):
+                    cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
             if (self._settings['train_actor']):
-                cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
             dynamicsLoss = 0 
             if (self._settings['train_forward_dynamics']):
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
