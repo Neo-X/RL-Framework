@@ -478,7 +478,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     for j in range(len(G_t)-1):
         advantage.append([G_t[j] - G_t[j+1]])
     advantage.append([0])
-    print ("Advantage for Episode: ", advantage)
+    # print ("Advantage for Episode: ", advantage)
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage)
     return (tuples, discounted_sum, q_value, evalData)
     

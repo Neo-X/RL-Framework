@@ -383,6 +383,7 @@ class PPO(AlgorithmInterface):
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print("Advantage: ", np.mean(self._get_advantage()))
+        print("Advantage: ", np.mean(advantage))
         print("Actions:     ", np.mean(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
         # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
@@ -410,14 +411,14 @@ class PPO(AlgorithmInterface):
         kl_coeff = self._kl_weight_shared.get_value()
         if kl_after > 1.3*self.getSettings()['kl_divergence_threshold']: 
             kl_coeff *= 1.5
-            if (kl_coeff > 1e-8):
-                self._kl_weight_shared.set_value(kl_coeff)
-                print "Got KL=%.3f (target %.3f). Increasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
+            # if (kl_coeff > 1e-8):
+            self._kl_weight_shared.set_value(kl_coeff)
+            print "Got KL=%.3f (target %.3f). Increasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
         elif kl_after < 0.7*self.getSettings()['kl_divergence_threshold']: 
             kl_coeff /= 1.5
-            if (kl_coeff > 1e-8):
-                self._kl_weight_shared.set_value(kl_coeff)
-                print "Got KL=%.3f (target %.3f). Decreasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
+            # if (kl_coeff > 1e-8):
+            self._kl_weight_shared.set_value(kl_coeff)
+            print "Got KL=%.3f (target %.3f). Decreasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
         else:
             print ("KL=%.3f is close enough to target %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold']))
         print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
