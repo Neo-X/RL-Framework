@@ -30,6 +30,7 @@ class PaperGibbonAgent(ActorInterface):
         reward = reward_smoother(reward, self._settings, self._target_vel_weight)
         if ( not np.isfinite(reward)):
             print ("Found some bad reward: ", reward, " for action: ", action_)
+            reward = 0
         self._reward_sum = self._reward_sum + reward
         return reward
     
