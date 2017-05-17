@@ -311,6 +311,8 @@ class SequentialMCSampler(Sampler):
                 # self._fd.initEpoch(self._exp)
                 # state = self._exp.getState()
                 state_ = self._exp.getSimState()
+            if ( self._exp.endOfEpoch() ):
+                return self._pol.predict(state)
             
             self.sampleModel(model=self._pol, forwardDynamics=self._fd, current_state=state_)
             action = self.getBestSample()

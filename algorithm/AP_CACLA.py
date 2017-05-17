@@ -313,8 +313,8 @@ class AP_CACLA(AlgorithmInterface):
         # loss, _ = self._train()
         # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
-        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
+        # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+        # lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
         
         diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print ("Diff")
