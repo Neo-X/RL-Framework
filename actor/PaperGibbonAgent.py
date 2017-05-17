@@ -45,3 +45,6 @@ class PaperGibbonAgent(ActorInterface):
     def getEvaluationData(self):
         return self._reward_sum
     
+    def hasNotFallen(self, exp):
+        return not exp.getEnvironment().hasFallen()
+    
