@@ -150,7 +150,8 @@ class SimWorker(Process):
     
 # @profile(precision=5)
 def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, 
-             p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None):
+             p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None,
+             sampling=False):
     """
         
         evaluation: If Ture than the simulation is being evaluated and the episodes will not terminate early.
@@ -180,6 +181,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     exp.initEpoch()
     # print ("sim EXP: ", exp)
     actor.initEpoch()
+    model.initEpoch()
     state_ = exp.getState()
     # pa = model.predict(state_)
     if (not bootstrapping):
@@ -249,6 +251,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 
             exp.getEnvironment().initEpoch()
             # actor.init() ## This should be removed and only exp.getActor() should be used
+            model.initEpoch()
             state_ = exp.getState()
             if (not bootstrapping):
                 q_values_.append(model.q_value(state_))
@@ -285,7 +288,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if r < (epsilon * p): # explore random actions
                 
                 r2 = np.random.rand(1)[0]
-                if (r2 < (omega * p)) or bootstrapping:# explore hand crafted actions
+                if ((r2 < (omega * p)) or bootstrapping) and (not sampling) :# explore hand crafted actions
                     # return ra2
                     # randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # action = randomAction
@@ -295,11 +298,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("Discrete action choice: ", action, " epsilon * p: ", epsilon * p)
                 else : # add noise to current policy
                     # return ra1
-                    pa = model.predict(state_)
                     if (settings['exploration_method'] == 'gaussian_random'):
+                        pa = model.predict(state_)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         action = randomExporation(settings["exploration_rate"], pa, action_bounds)
                     elif (settings['exploration_method'] == 'gaussian_network'):
+                        pa = model.predict(state_)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         std = model.predict_std(state_)
                         # print("Action: ", pa)
@@ -487,7 +491,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 # @profile(precision=5)
 def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, 
               settings=None, print_data=False, p=0.0, evaluation=False, visualizeEvaluation=None,
-              bootstrapping=False):
+              bootstrapping=False, sampling=False):
     print ("Evaluating model:")
     j=0
     discounted_values = []
@@ -499,8 +503,8 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
     for i in range(anchors): # half the anchors
         (tuples, discounted_sum, value, evalData) = simEpoch(actor, exp, 
                 model, discount_factor, anchors=i, action_space_continuous=action_space_continuous, 
-                settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
-                visualizeEvaluation=visualizeEvaluation, bootstrapping=bootstrapping)
+                settings=settings, print_data=print_data, p=p, validation=True, epoch=epoch_, evaluation=evaluation,
+                visualizeEvaluation=visualizeEvaluation, bootstrapping=bootstrapping, sampling=sampling)
         epoch_ = epoch_ + 1
         (states, actions, result_states, rewards, falls, G_t, advantage) = tuples
         # print (states, actions, rewards, result_states, discounted_sum, value)

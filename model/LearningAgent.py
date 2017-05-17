@@ -157,8 +157,9 @@ class LearningAgent(AgentInterface):
             self._accesLock.release()
         return err
         
-    def initEpoch(self, exp):
-        pass
+    def initEpoch(self):
+        if (not (self._sampler == None ) ):
+            self._sampler.initEpoch()
     
     def setSampler(self, sampler):
         self._sampler = sampler

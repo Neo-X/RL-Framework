@@ -38,6 +38,7 @@ def modelSampling(settings):
         state_bounds = np.array(settings['state_bounds'])
         discrete_actions = np.array(settings['discrete_actions'])
         print ("Sim config file name: ", str(settings["sim_config_file"]))
+        reward_bounds=np.array(settings["reward_bounds"])
         # c = characterSim.Configuration(str(settings["sim_config_file"]))
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
         action_space_continuous=settings['action_space_continuous']
@@ -55,7 +56,11 @@ def modelSampling(settings):
         
         data_folder = getDataDirectory(settings)
         
-        sampler = createSampler(settings, exp)
+        agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+            
+        agent.setSettings(settings)
+        
             
         # if (settings['use_actor_policy_action_suggestion']):
         # file_name=data_folder+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
@@ -67,24 +72,34 @@ def modelSampling(settings):
             f = open(file_name_dynamics, 'r')
             forwardDynamicsModel = dill.load(f)
             f.close()
-            sampler.setForwardDynamics(forwardDynamicsModel)
+            agent.setForwardDynamics(forwardDynamicsModel)
         else:
             
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
             forwardDynamicsModel.initEpoch()
-            sampler.setForwardDynamics(forwardDynamicsModel)
+            agent.setForwardDynamics(forwardDynamicsModel)
             
         
         # sampler.setPolicy(model)
-        sampler.setSettings(settings)
-        
         if not os.path.exists(data_folder):
             os.makedirs(data_folder)
             
         exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
-        sampler.setEnvironment(exp)
+        agent.setEnvironment(exp)
         exp.getActor().init()   
         exp.getEnvironment().init()
+        
+        if ( settings['use_simulation_sampling'] ):
+            
+            sampler = createSampler(settings, exp)
+            ## This should be some kind of copy of the simulator not a network
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
+            sampler.setForwardDynamics(forwardDynamicsModel)
+            # sampler.setPolicy(model)
+            agent.setSampler(sampler)
+            sampler.setEnvironment(exp)
+            # forwardDynamicsModel.initEpoch()
+            print ("thread together exp: ", sampler._exp)
 
         expected_value_viz=None
         if (settings['visualize_expected_value']):
@@ -93,9 +108,9 @@ def modelSampling(settings):
             expected_value_viz.init()
             criticLosses = []
             
-        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error = evalModel(actor, exp, sampler, settings["discount_factor"], 
+        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error = evalModel(actor, exp, agent, settings["discount_factor"], 
                                                 anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings, print_data=True, 
-                                                bootstrapping=True, visualizeEvaluation=None)
+                                                bootstrapping=True, visualizeEvaluation=None, p=10.0, sampling=True)
 
         print "Average Reward: " + str(mean_reward)
     #except Exception, e:

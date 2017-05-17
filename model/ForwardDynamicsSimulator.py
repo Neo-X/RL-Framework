@@ -93,7 +93,7 @@ class ForwardDynamicsSimulator(AgentInterface):
         # action = norm_action(action, self._action_bounds)
         # print ("Action: " + str(action))
         # print ("State: " + str(state._id))
-        state__ = self._sim.getSimState()
+        # state__ = self._sim.getSimState()
         
         self._sim.setSimState(state__c)
         # current_state = self._exp._exp.getEnvironment().getSimInterface().getController().getControllerStateVector()
@@ -105,6 +105,6 @@ class ForwardDynamicsSimulator(AgentInterface):
         # print ("State: " + str(state))
         # restore previous state
         # self._exp._exp.getEnvironment().getSimInterface().getController().setControllerStateVector(current_state)
-        self._sim.setSimState(state__)
+        # self._sim.setSimState(state__)
         # print ("State: " + str(state))
         return (state___, reward)
