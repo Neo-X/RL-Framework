@@ -81,10 +81,16 @@ class SequentialMCSampler(Sampler):
                     if ( (not (np.all(np.isfinite(current_state_copy3)) and (np.all(np.greater(current_state_copy3, -10000.0))) and (np.all(np.less(current_state_copy3, 10000.0))))) or 
                             self._exp.endOfEpoch()  
                          ): # lots of nan values for some reason...
-                        print("Found bad state in search", current_state_copy3)
+                        print("Found bad sim state in search", current_state_copy3)
                         print("endOfEpoch(): ", self._exp.endOfEpoch())
                         break
                     current_state_copy__ = self._exp.getStateFromSimState(current_state_copy)
+                    if ( (not (np.all(np.isfinite(current_state_copy__)) and (np.all(np.greater(current_state_copy__, -10000.0))) and (np.all(np.less(current_state_copy__, 10000.0))))) or 
+                            self._exp.endOfEpoch()  
+                         ): # lots of nan values for some reason...
+                        print("Found bad state in search", current_state_copy__)
+                        print("endOfEpoch(): ", self._exp.endOfEpoch())
+                        break
                     # print ("current_state_copy__: ", current_state_copy__)
                     pa = model.predict(np.array([current_state_copy__]))
                     if ( (not (np.all(np.isfinite(pa)) and (np.all(np.greater(pa, -10000.0))) and (np.all(np.less(pa, 10000.0)))))
