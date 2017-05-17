@@ -166,7 +166,7 @@ class SequentialMCSampler(Sampler):
                 # actions = chunks(sample, _action_dimension)
                 for act_ in actions:
                     
-                    if ( (not (np.all(np.isfinite(act_)) and (np.all(np.greater(act_, -10000.0))) and (np.all(np.less(act_, 10000.0)))) or
+                    if ( ((not np.all(np.isfinite(act_)) or (np.any(np.less(act_, -10000.0))) or (np.any(np.greater(act_, 10000.0)))) or
                             forwardDynamics.endOfEpoch()  ) 
                          ): # lots of nan values for some reason...
                         print("Found bad action in search")
@@ -253,8 +253,8 @@ class SequentialMCSampler(Sampler):
                 current_state_ = copy.deepcopy(current_state_copy)
                 # actions = chunks(sample, _action_dimension)
                 for act_ in actions:
-                    if ( (not (np.all(np.isfinite(act_)) and (np.all(np.greater(act_, -10000.0))) and (np.all(np.less(act_, 10000.0)))) or
-                            forwardDynamics.endOfEpoch()  ) 
+                    if ( ((not np.all(np.isfinite(act_)) or (np.any(np.less(act_, -10000.0))) or (np.any(np.greater(act_, 10000.0)))) or
+                            forwardDynamics.endOfEpoch()  )
                          ): # lots of nan values for some reason...
                         print("Found bad action in search")
                         # break
