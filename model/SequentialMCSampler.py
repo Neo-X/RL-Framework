@@ -7,12 +7,14 @@ from model.ModelUtil import *
 import math
 import heapq
 import copy
-
+import os
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 from model.Sampler import Sampler
 from model.ForwardDynamicsSimulator import ForwardDynamicsSimulator
 from actor.ActorInterface import *
+
+
 
 class Sample(object):
     
@@ -122,6 +124,7 @@ class SequentialMCSampler(Sampler):
             num_samples_ = self.getSettings()["num_uniform_action_samples"] * (_action_dimension)
             # print ("Number of initial random samples: ", num_samples_)
             variance__=[variance____]*(len(_action_params))
+            print ("_action_params: ", _action_params, " variance: ", variance__, " for pid: ", os.getpid())
             samples = self.generateSamplesFromNormal(mean=_action_params, num_samples=num_samples_, variance_=variance__)
         else:
             num_samples_ = self.getSettings()["num_uniform_action_samples"] * (_action_dimension)
