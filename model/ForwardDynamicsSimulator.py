@@ -45,7 +45,10 @@ class ForwardDynamicsSimulator(AgentInterface):
     
     def bellman_error(self, state, action, result_state):
         return 0
-
+    
+    def endOfEpoch(self):
+        self._sim.getEnvironment().endOfEpoch()
+        
     def initEpoch(self, exp):
         print ("Init FD epoch: ")
         self._sim.getActor().initEpoch()
