@@ -310,7 +310,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         action = thompsonExploration(model, settings["exploration_rate"], state_)
                     elif ((settings['exploration_method'] == 'sampling')):
                         ## Use a sampling method to find a good action
-                        action = model.getSampler().predict(state_)
+                        sim_state_ = exp.getSimState()
+                        action = model.getSampler().predict(sim_state_)
                     else:
                         print ("Exploration method unknown: " + str(settings['exploration_method']))
                         sys.exit(1)

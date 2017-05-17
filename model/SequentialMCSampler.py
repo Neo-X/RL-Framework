@@ -79,17 +79,17 @@ class SequentialMCSampler(Sampler):
                 if isinstance(forwardDynamics, ForwardDynamicsSimulator):
                     current_state_copy3 = copy.deepcopy(current_state_copy2)
                     if ( (not (np.all(np.isfinite(current_state_copy3)) and (np.all(np.greater(current_state_copy3, -10000.0))) and (np.all(np.less(current_state_copy3, 10000.0))))) or 
-                            forwardDynamics.endOfEpoch()  
+                            self._exp.endOfEpoch()  
                          ): # lots of nan values for some reason...
-                        print("Found bad action in search")
+                        print("Found bad state in search", current_state_copy3)
+                        print("endOfEpoch(): ", self._exp.endOfEpoch())
                         break
                     current_state_copy__ = self._exp.getStateFromSimState(current_state_copy)
                     # print ("current_state_copy__: ", current_state_copy__)
                     pa = model.predict(np.array([current_state_copy__]))
-                    if ( (not (np.all(np.isfinite(pa)) and (np.all(np.greater(pa, -10000.0))) and (np.all(np.less(pa, 10000.0))))) or
-                            forwardDynamics.endOfEpoch()  
+                    if ( (not (np.all(np.isfinite(pa)) and (np.all(np.greater(pa, -10000.0))) and (np.all(np.less(pa, 10000.0)))))
                          ): # lots of nan values for some reason...
-                        print("Found bad action in search")
+                        print("Found bad action in search: ", pa)
                         break
                     if self.getSettings()["use_actor_policy_action_variance_suggestion"]:
                         
@@ -310,13 +310,15 @@ class SequentialMCSampler(Sampler):
                 # print ( "SMC exp: ", self._exp)
                 # self._fd.initEpoch(self._exp)
                 # state = self._exp.getState()
-                state_ = self._exp.getSimState()
+                # state_ = self._exp.getSimState()
+                self._exp.setSimState(state)
             if ( self._exp.endOfEpoch() ):
+                print ("Given back state where it is already endOfEpoch()")
                 return self._pol.predict(state)
             
-            self.sampleModel(model=self._pol, forwardDynamics=self._fd, current_state=state_)
+            self.sampleModel(model=self._pol, forwardDynamics=self._fd, current_state=state)
             action = self.getBestSample()
-            self._exp.setSimState(state_)
+            self._exp.setSimState(state)
             # if isinstance(self._fd, ForwardDynamicsSimulator):
             #     self._fd._sim.setState(state)
             # print ("Best Action SMC: " + str(action))

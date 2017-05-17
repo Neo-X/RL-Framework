@@ -371,8 +371,8 @@ class PPO(AlgorithmInterface):
         self.setData(states, actions, rewards, result_states, falls)
         self._advantage_shared.set_value(advantage)
         
-        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
+        # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+        # lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
         # print ("Performing Critic trainning update")
         # if (( self._updates % self._weight_update_steps) == 0):
         #     self.updateTargetModel()
