@@ -182,7 +182,7 @@ class SequentialMCSampler(Sampler):
                     init_states.append(current_state__)
                     (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=actions[a])
                     # epochEnded = forwardDynamics.endOfEpoch()
-                    # print ("Epoch Ended: ", epochEnded)
+                    # print ("Epoch Ended: ", epochEnded, " on action: ", a)
                     prediction_ = self._exp.getStateFromSimState(prediction)
                     
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
@@ -244,7 +244,7 @@ class SequentialMCSampler(Sampler):
                 act__ = clampAction(chunk, _action_bounds)
                 actions.extend(act__)
             self.updateSampleWeights()
-            actions=chunks(actions, _action_dimension)
+            actions=list(chunks(actions, _action_dimension))
             # print ("Action samples: " + str(list(actions)))
             """
             for item in self._samples:
@@ -274,8 +274,8 @@ class SequentialMCSampler(Sampler):
                     current_state__ = self._exp.getStateFromSimState(current_state_)
                     init_states.append(current_state__)
                     (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=actions[a])
-                    epochEnded = forwardDynamics.endOfEpoch()
-                    print ("Epoch Ended: ", epochEnded)
+                    # epochEnded = forwardDynamics.endOfEpoch()
+                    # print ("Epoch Ended: ", epochEnded, " on action: ", a)
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
                         print("Reached bad state in search")
                         # break
