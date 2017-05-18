@@ -107,7 +107,7 @@ class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
         self._worker.start()
         
    
-    def initEpoch(self):
+    def initEpoch(self, exp_):
         print ("Init FD epoch: ")
         # self._sim.getActor().initEpoch()
         # self._sim.getEnvironment().clear()
@@ -147,7 +147,8 @@ class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
         # print ("State: " + str(state))
         # restore previous state
         # self._exp._exp.getEnvironment().getSimInterface().getController().setControllerStateVector(current_state)
-        # self._sim.getEnvironment().setSimState(state__)
+        ## Set the state to that of the simm on the other process, (if, for example, we want to check endOfEpoch())
+        self._sim.getEnvironment().setSimState(state___)
         # print ("State: " + str(state))
         return (state___, reward)
         """

@@ -36,6 +36,7 @@ class SequentialMCSampler(Sampler):
         super(SequentialMCSampler,self).__init__(settings)
         self._look_ahead=look_ahead
         self._exp=exp
+        self._bad_reward_value=0
         
     def setEnvironment(self, exp):
         self._exp = exp
@@ -153,10 +154,10 @@ class SequentialMCSampler(Sampler):
             actions_ = chunks(sample, _action_dimension)
             actions=[]
             for chunk in actions_:
-                act_ = clampAction(chunk, _action_bounds)
-                actions.extend(act_)
+                act__ = clampAction(chunk, _action_bounds)
+                actions.extend(act__)
             # self.updateSampleWeights()
-            actions=chunks(actions, _action_dimension)
+            actions=list(chunks(actions, _action_dimension))
             
             y=[]
             init_states=[]
@@ -164,17 +165,24 @@ class SequentialMCSampler(Sampler):
             if isinstance(forwardDynamics, ForwardDynamicsSimulator):
                 current_state_ = copy.deepcopy(current_state_copy)
                 # actions = chunks(sample, _action_dimension)
-                for act_ in actions:
+                forwardDynamics.setSimState(current_state_)
+                for a in range(len(actions)):
                     
-                    if ( ((not np.all(np.isfinite(act_)) or (np.any(np.less(act_, -10000.0))) or (np.any(np.greater(act_, 10000.0)))) or
+                    if ( ((not np.all(np.isfinite(actions[a])) or (np.any(np.less(actions[a], -10000.0))) or (np.any(np.greater(actions[a], 10000.0)))) or
                             forwardDynamics.endOfEpoch()  ) 
                          ): # lots of nan values for some reason...
-                        print("Found bad action in search")
+                        print("Found bad action in search at: ", a)
+                        ## Append bad values for the rest of the actions
+                        self._bad_reward_value
+                        y.append(self._bad_reward_value)
+                        continue
                         # break
                     
                     current_state__ = self._exp.getStateFromSimState(current_state_)
                     init_states.append(current_state__)
-                    (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=act_)
+                    (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=actions[a])
+                    # epochEnded = forwardDynamics.endOfEpoch()
+                    # print ("Epoch Ended: ", epochEnded)
                     prediction_ = self._exp.getStateFromSimState(prediction)
                     
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
@@ -185,7 +193,7 @@ class SequentialMCSampler(Sampler):
                     predictions.append(prediction_)
                     # print ("Current State: ", current_state_.getParams(), " Num: ", current_state_.getID())
                     # print ("Prediction: ", prediction.getParams(), " Num: ", prediction.getID())
-                    # print ("Executed Action: ", act_)
+                    # print ("Executed Action: ", actions[a])
                     ## This reward function is not going to work anymore
                     y.append(reward__)
                     current_state_ = copy.deepcopy(prediction)
@@ -195,9 +203,9 @@ class SequentialMCSampler(Sampler):
             else:
                 current_state_=current_state_copy
                 # actions = chunks(sample, _action_dimension)
-                for act_ in actions:
+                for a in range(len(actions)):
                     init_states.append(current_state_)
-                    prediction = forwardDynamics.predict(state=current_state_, action=act_)
+                    prediction = forwardDynamics.predict(state=current_state_, action=actions[a])
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
                         print("Reached bad state in search")
                         # break
@@ -233,8 +241,8 @@ class SequentialMCSampler(Sampler):
             actions_ = chunks(sample, _action_dimension)
             actions=[]
             for chunk in actions_:
-                act_ = clampAction(chunk, _action_bounds)
-                actions.extend(act_)
+                act__ = clampAction(chunk, _action_bounds)
+                actions.extend(act__)
             self.updateSampleWeights()
             actions=chunks(actions, _action_dimension)
             # print ("Action samples: " + str(list(actions)))
@@ -252,15 +260,22 @@ class SequentialMCSampler(Sampler):
             if isinstance(forwardDynamics, ForwardDynamicsSimulator):
                 current_state_ = copy.deepcopy(current_state_copy)
                 # actions = chunks(sample, _action_dimension)
-                for act_ in actions:
-                    if ( ((not np.all(np.isfinite(act_)) or (np.any(np.less(act_, -10000.0))) or (np.any(np.greater(act_, 10000.0)))) or
+                forwardDynamics.setSimState(current_state_)
+                for a in range(len(actions)):
+                    if ( ((not np.all(np.isfinite(actions[a])) or (np.any(np.less(actions[a], -10000.0))) or (np.any(np.greater(actions[a], 10000.0)))) or
                             forwardDynamics.endOfEpoch()  )
                          ): # lots of nan values for some reason...
-                        print("Found bad action in search")
+                        print("Found bad action in search at: ", a)
+                        ## Append bad values for the rest of the actions
+                        self._bad_reward_value
+                        y.append(self._bad_reward_value)
+                        continue
                         # break
                     current_state__ = self._exp.getStateFromSimState(current_state_)
                     init_states.append(current_state__)
-                    (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=act_)
+                    (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=actions[a])
+                    epochEnded = forwardDynamics.endOfEpoch()
+                    print ("Epoch Ended: ", epochEnded)
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
                         print("Reached bad state in search")
                         # break
@@ -269,7 +284,7 @@ class SequentialMCSampler(Sampler):
                     predictions.append(prediction_)
                     # print ("Current State: ", current_state_.getParams(), " Num: ", current_state_.getID())
                     # print ("Prediction: ", prediction.getParams(), " Num: ", prediction.getID())
-                    # print ("Executed Action: ", act_)
+                    # print ("Executed Action: ", actions[a])
                     ## This reward function is not going to work anymore
                     y.append(reward__)
                     current_state_ = copy.deepcopy(prediction)
@@ -279,9 +294,9 @@ class SequentialMCSampler(Sampler):
             else:
                 current_state_=current_state_copy
                 # actions = chunks(sample, _action_dimension)
-                for act_ in actions:
+                for a in range(len(actions)):
                     init_states.append(current_state_)
-                    prediction = forwardDynamics.predict(state=current_state_, action=act_)
+                    prediction = forwardDynamics.predict(state=current_state_, action=actions[a])
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
                         print("Reached bad state in search")
                         # break

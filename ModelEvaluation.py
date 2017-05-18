@@ -181,7 +181,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     exp.initEpoch()
     # print ("sim EXP: ", exp)
     actor.initEpoch()
-    model.initEpoch()
+    model.initEpoch(exp)
     state_ = exp.getState()
     # pa = model.predict(state_)
     if (not bootstrapping):

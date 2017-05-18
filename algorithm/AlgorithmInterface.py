@@ -142,3 +142,6 @@ class AlgorithmInterface(object):
 
     def init(self, state_length, action_length, state_bounds, action_bounds, actor, exp, settings):
         pass
+    
+    def initEpoch(self):
+        pass

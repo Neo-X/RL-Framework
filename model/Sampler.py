@@ -88,8 +88,8 @@ class Sampler(LearningAgent):
         else:
             return super(Sampler, self).predict(state, evaluation_=evaluation_)
         
-    def initEpoch(self):
-        self._fd.initEpoch()
+    def initEpoch(self, exp_):
+        self._fd.initEpoch(exp_)
             
     """
     Not sure if this should come from the sampling or the model

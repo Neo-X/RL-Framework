@@ -66,18 +66,6 @@ def modelSampling(settings):
         # file_name=data_folder+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
         # model = dill.load(open(file_name))
         
-        if (settings['train_forward_dynamics']):
-            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
-            # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
-            f = open(file_name_dynamics, 'r')
-            forwardDynamicsModel = dill.load(f)
-            f.close()
-            agent.setForwardDynamics(forwardDynamicsModel)
-        else:
-            
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
-            forwardDynamicsModel.initEpoch()
-            agent.setForwardDynamics(forwardDynamicsModel)
             
         
         # sampler.setPolicy(model)
@@ -88,6 +76,19 @@ def modelSampling(settings):
         agent.setEnvironment(exp)
         exp.getActor().init()   
         exp.getEnvironment().init()
+        
+        if (settings['train_forward_dynamics']):
+            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
+            # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+            f = open(file_name_dynamics, 'r')
+            forwardDynamicsModel = dill.load(f)
+            f.close()
+            agent.setForwardDynamics(forwardDynamicsModel)
+        else:
+            
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
+            forwardDynamicsModel.initEpoch(exp)
+            agent.setForwardDynamics(forwardDynamicsModel)
         
         if ( settings['use_simulation_sampling'] ):
             

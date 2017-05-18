@@ -47,7 +47,10 @@ class ForwardDynamicsSimulator(AgentInterface):
         return 0
     
     def endOfEpoch(self):
-        self._sim.getEnvironment().endOfEpoch()
+        return self._sim.getEnvironment().endOfEpoch()
+    
+    def setSimState(self, state_):
+        self._sim.setSimState(state_)
         
     def initEpoch(self, exp):
         print ("Init FD epoch: ")
@@ -61,8 +64,10 @@ class ForwardDynamicsSimulator(AgentInterface):
         """
         simState = self._exp.getEnvironment().getSimState()
         self._sim.setSimState(simState)
+        self._sim.generateEnvironmentSample()
         self._sim.initEpoch()
-
+        print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
+        
     def predict(self, state, action):
         """
             This is the normal prediction using the reduced state
