@@ -59,6 +59,9 @@ class TerrainRLEnv(SimInterface):
         for i in range(1):
             self.getEnvironment().update()
             
+    def needUpdatedAction(self):
+        return self.getEnvironment().needUpdatedAction()
+            
     def display(self):
         self.getEnvironment().display()
     

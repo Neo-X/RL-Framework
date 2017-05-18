@@ -17,6 +17,7 @@ class TerrainRLImitateEnv(TerrainRLEnv):
         #------------------------------------------------------------
         # set up initial state
         super(TerrainRLImitateEnv,self).__init__(exp, settings)
+        self._num_updates_since_last_action=0
 
     
     def getState(self):
@@ -31,6 +32,24 @@ class TerrainRLImitateEnv(TerrainRLEnv):
         state = np.reshape(state, (-1, len(state_)))
         return state
     
+    def update(self):
+        for i in range(1):
+            self.getEnvironment().update()
+            self._num_updates_since_last_action+=1
+            
+    def updateAction(self, action_):
+        
+        self.getActor().updateAction(self, action_)
+        self._num_updates_since_last_action = 0
+
+    def needUpdatedAction(self):
+        
+        if ( self._num_updates_since_last_action >= 5):
+            return True
+        else:
+            return False
+        return 
+            
     def generateValidationEnvironmentSample(self, epoch):
         pass
     def generateEnvironmentSample(self):

@@ -72,7 +72,7 @@ class SimContainer(object):
         for i in range(num_substeps):
             # print ("End of Epoch: ", self._exp.getEnvironment().endOfEpoch())
             if (self._exp.getEnvironment().endOfEpoch() and 
-                   self._exp.getEnvironment().needUpdatedAction()):
+                   self._exp.needUpdatedAction()):
                 self._exp.getActor().initEpoch()
                 self._exp.generateValidation(10, self._episode)
                 self._exp.getEnvironment().initEpoch()
@@ -85,7 +85,7 @@ class SimContainer(object):
             vel_sum = simData.avgSpeed
             torque_sum = simData.avgTorque
             """
-            if (self._exp.getEnvironment().needUpdatedAction()):
+            if (self._exp.needUpdatedAction()):
                 state_ = self._exp.getState()
                 """
                 position_root = self._exp.getEnvironment().getActor().getStateEuler()[0:][:3]
