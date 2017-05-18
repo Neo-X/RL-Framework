@@ -55,16 +55,16 @@ class ForwardDynamicsSimulator(AgentInterface):
     def initEpoch(self, exp):
         print ("Init FD epoch: ")
         self._sim.getActor().initEpoch()
-        self._sim.getEnvironment().clear()
+        # self._sim.getEnvironment().clear()
         """
         for anchor in range(self.getSettings()['max_epoch_length']):
             # print (_anchor)
-            anchor_ = self._exp.getEnvironment().getAnchor(anchor)
+            anchor_ = exp.getEnvironment().getAnchor(anchor)
             self._sim.getEnvironment().addAnchor(anchor_.getX(), anchor_.getY(), anchor_.getZ())
         """
         simState = self._exp.getEnvironment().getSimState()
         self._sim.setSimState(simState)
-        self._sim.generateEnvironmentSample()
+        # self._sim.generateEnvironmentSample()
         self._sim.initEpoch()
         print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
         

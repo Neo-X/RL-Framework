@@ -154,7 +154,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
              sampling=False):
     """
         
-        evaluation: If Ture than the simulation is being evaluated and the episodes will not terminate early.
+        evaluation: If True than the simulation is being evaluated and the episodes will not terminate early.
         bootstrapping: is used to collect initial random actions for the state bounds to be calculated and to init the expBuffer
         epoch: is an integer that can be used to help create repeatable episodes to evaluation
         _output_queue: is the queue exp tuples should be put in so the learning agents can pull them out

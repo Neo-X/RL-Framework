@@ -87,7 +87,7 @@ def modelSampling(settings):
         else:
             
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
-            forwardDynamicsModel.initEpoch(exp)
+            # forwardDynamicsModel.initEpoch(exp)
             agent.setForwardDynamics(forwardDynamicsModel)
         
         if ( settings['use_simulation_sampling'] ):
