@@ -31,3 +31,8 @@ class TerrainRLImitateEnv(TerrainRLEnv):
         state = np.reshape(state, (-1, len(state_)))
         return state
     
+    def generateValidationEnvironmentSample(self, epoch):
+        pass
+    def generateEnvironmentSample(self):
+        pass
+        # self._exp.getEnvironment().generateEnvironmentSample()

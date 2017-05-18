@@ -18,6 +18,11 @@ class TerrainRLImitationActor(ActorInterface):
         False,        True,        True,        True,        True,        True,        True]
         """
     # @profile(precision=5)
+    
+    def updateAction(self, sim, action_):
+        action_ = np.array(action_, dtype='float64')
+        sim.getEnvironment().updateAction(action_)
+        
     def act(self, exp, action_, bootstrapping=False):
         samp = self.getActionParams(action_)
         
