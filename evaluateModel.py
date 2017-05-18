@@ -77,7 +77,9 @@ class SimContainer(object):
                 self._exp.generateValidation(10, self._episode)
                 self._exp.getEnvironment().initEpoch()
                 self._episode += 1
-                print("New eposide:")
+                print("*******")
+                print("New eposide: ")
+                print("*******")
                 
             """
             simData = self._exp.getEnvironment().getActor().getSimData()

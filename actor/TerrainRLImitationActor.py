@@ -49,22 +49,22 @@ class TerrainRLImitationActor(ActorInterface):
                 action__.append(self._default_action[i])
         action_=action__
         """
-        sim.getEnvironment().act(action_)
+        sim.updateAction(action_)
         updates_=0
         stumble_count=0
         torque_sum=0
-        while (not sim.getEnvironment().needUpdatedAction() and (updates_ < 1)
+        # print("Acting")
+        while (not sim.needUpdatedAction() and (updates_ < 100)
                and (not sim.getEnvironment().agentHasFallen())
                ):
-            sim.getEnvironment().update()
+            sim.update()
             vel_sum += sim.getEnvironment().calcVelocity()
             updates_+=1
             if ( sim.getEnvironment().hasStumbled() ):
                 stumble_count+=1
+                # print ("Agent has stumbled")
             torque_sum += sim.getEnvironment().jointTorque()
-            print("Update #: ", updates_)
-            if ( sim.getEnvironment().agentHasFallen() ):
-                print ("Agent has fallen")
+            # print("Update #: ", updates_)
         """    
         if (updates_ == 1):
             print("Action update did not go well....")

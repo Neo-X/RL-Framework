@@ -36,6 +36,7 @@ class TerrainRLImitateEnv(TerrainRLEnv):
         for i in range(1):
             self.getEnvironment().update()
             self._num_updates_since_last_action+=1
+        # self.getEnvironment().display()
             
     def updateAction(self, action_):
         
