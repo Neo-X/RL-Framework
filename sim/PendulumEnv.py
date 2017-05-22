@@ -92,7 +92,7 @@ class PendulumEnv(SimInterface):
             Converts a detailed simulation state to a state better suited for learning
             Does nothing for this Env
         """
-        state_ = simState[1]
+        state_ = self.getEnvironment().getStateFromSimState(simState)
         
         return state_
     
@@ -101,19 +101,14 @@ class PendulumEnv(SimInterface):
             Gets a more detailed state that can be used to re-initilize the state of the character back to this state later.
             Can just use normal state, sim state can be recoverd from this.
         """
-        state_ = self.getEnvironment().getState()
-        state = []
-        state.append(state_.getID())
-        state.append(state_.getParams())
-        return state
+        state_ = self.getEnvironment().getSimState()
+        return state_
     
     def setSimState(self, state_):
         """
             Sets the state of the simulation to the given state
         """
-        import characterSim
-        state_ = characterSim.State(state_[0], state_[1])
-        return self.getEnvironment().setState(state_)    
+        return self.getEnvironment().setSimState(state_)    
         
 #ani = animation.FuncAnimation(fig, animate, frames=600,
 #                               interval=10, blit=True, init_func=init)
