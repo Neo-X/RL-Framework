@@ -145,9 +145,11 @@ class SequentialMCSampler(Sampler):
             samples = self.generateSamplesUniform(_action_bounds,  num_samples=num_samples_, repeate=look_ahead)
             # print ("Samples: ", samples)
         # print ("Current state sample: " + str(current_state_copy.getParams()))
-        if ( not (np.all(np.isfinite(current_state_copy)) and (np.all(np.greater(current_state_copy, -10000.0))) and (np.all(np.less(current_state_copy, 10000.0)))) ): # lots of nan values for some reason...
+        """
+        if not ( np.all(np.isfinite(current_state_copy)) and (np.all(np.greater(current_state_copy, -10000.0))) and (np.all(np.less(current_state_copy, 10000.0))) ): # lots of nan values for some reason...
             print("Found bad Current State in search")
             return _bestSample
+        """
         for sample in samples:
             pa = sample
             # print ("sample: " + str(sample))
@@ -185,7 +187,7 @@ class SequentialMCSampler(Sampler):
                     # print ("Epoch Ended: ", epochEnded, " on action: ", a)
                     prediction_ = self._exp.getStateFromSimState(prediction)
                     
-                    if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
+                    if ( ( not np.all(np.isfinite(prediction_))) or (np.any(np.less(prediction_, -10000.0))) or (np.any(np.greater(prediction_, 10000.0))) ): # lots of nan values for some reason...
                         print("Reached bad state in search")
                         # break
                     

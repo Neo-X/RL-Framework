@@ -365,6 +365,9 @@ def createEnvironment(config_file, env_type, settings, render=False):
     elif env_type == 'pendulum3D_env':
         print ("Using Environment Type: " + str(env_type))
         exp = PendulumEnv(exp, settings)
+    elif env_type == 'pendulum_3D_env':
+        print ("Using Environment Type: " + str(env_type))
+        exp = PendulumEnv(exp, settings)
     elif env_type == 'paperGibbon_env':
         print ("Using Environment Type: " + str(env_type))
         exp = PaperGibbonEnv(exp, settings)
