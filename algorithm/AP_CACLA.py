@@ -103,10 +103,10 @@ class AP_CACLA(AlgorithmInterface):
         
         self._critic_regularization = (self._critic_regularization_weight * lasagne.regularization.regularize_network_params(
         self._model.getCriticNetwork(), lasagne.regularization.l2))
-        self._actor_regularization = ( (self._regularization_weight * lasagne.regularization.regularize_network_params(
+        self._actor_regularization1 = ( (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getActorNetwork(), lasagne.regularization.l2)) )
         if (self.getSettings()['use_previous_value_regularization']):
-            self._actor_regularization = self._actor_regularization + (( self.getSettings()['previous_value_regularization_weight']) * 
+            self._actor_regularization1 = self._actor_regularization + (( self.getSettings()['previous_value_regularization_weight']) * 
                        change_penalty(self._model.getActorNetwork(), self._modelTarget.getActorNetwork()) 
                       ) 
         elif (self.getSettings()['regularization_type'] == 'kl'):
@@ -151,13 +151,13 @@ class AP_CACLA(AlgorithmInterface):
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         
         if (self.getSettings()['optimizer'] == 'rmsprop'):
-            self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization, self._actionParams, 
+            self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization + self._actor_regularization1, self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
         elif (self.getSettings()['optimizer'] == 'momentum'):
-            self._actionUpdates = lasagne.updates.momentum(self._actLoss + self._actor_regularization, self._actionParams, 
+            self._actionUpdates = lasagne.updates.momentum(self._actLoss + self._actor_regularization + self._actor_regularization1, self._actionParams, 
                     self._learning_rate , momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
-            self._actionUpdates = lasagne.updates.adam(self._actLoss + self._actor_regularization, self._actionParams, 
+            self._actionUpdates = lasagne.updates.adam(self._actLoss + self._actor_regularization + self._actor_regularization1, self._actionParams, 
                     self._learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
