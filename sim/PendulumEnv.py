@@ -33,15 +33,18 @@ class PendulumEnv(SimInterface):
     
     def generateValidation(self, data, epoch):
         # print (("Training on validation set: ", epoch, " Data: ", data))
-        data = self._validation_anchors[data]
-        # print (("Training on validation set: ", epoch, " Data: ", data))
-        self.getEnvironment().clear()
-        # print (("Done clear"))
-        for i in range(len(data)):
-            data_ = data[i]
-            # print (("Adding anchor: ", data_, " index ", i))
-            self.getEnvironment().addAnchor(data_[0], data_[1], data_[2])
-            
+        if (self.getSettings()['train_on_validation_set']):
+            data = self._validation_anchors[data]
+            # print (("Training on validation set: ", epoch, " Data: ", data))
+            self.getEnvironment().clear()
+            # print (("Done clear"))
+            for i in range(len(data)):
+                data_ = data[i]
+                # print (("Adding anchor: ", data_, " index ", i))
+                self.getEnvironment().addAnchor(data_[0], data_[1], data_[2])
+                
+        else:
+            self.generateEnvironmentSample()
         # print (("Done adding anchors"))
 
     def generateEnvironmentSample(self):

@@ -18,6 +18,9 @@ class SimInterface(object):
         self._settings = settings_
         self._actor = DoNothingActor()
 
+    def getSettings(self):
+        return self._settings
+        
     def getEnvironment(self):
         return self._exp
     
