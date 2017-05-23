@@ -327,8 +327,9 @@ class A3C(AlgorithmInterface):
     def predict(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
+        # state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)

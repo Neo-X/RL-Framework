@@ -288,7 +288,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if r < (epsilon * p): # explore random actions
                 
                 r2 = np.random.rand(1)[0]
-                if ((r2 < (omega * p)) or bootstrapping) and (not sampling) :# explore hand crafted actions
+                if ((r2 < (omega * p))) and (not sampling) :# explore hand crafted actions
                     # return ra2
                     # randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # action = randomAction
@@ -298,7 +298,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("Discrete action choice: ", action, " epsilon * p: ", epsilon * p)
                 else : # add noise to current policy
                     # return ra1
-                    if (settings['exploration_method'] == 'gaussian_random'):
+                    if ( (settings['exploration_method'] == 'gaussian_random') or (bootstrapping)):
+                        # print ("Random Guassian sample, state bounds", model.getStateBounds())
                         pa = model.predict(state_)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         action = randomExporation(settings["exploration_rate"], pa, action_bounds)
@@ -709,7 +710,7 @@ def collectExperience(actor, exp_val, model, settings):
             else:
                 print ("Tuple with reward: " + str(reward_) + " skipped")
         # sys.exit()
-    else: ## Most like performing continuation learning
+    else: ## Most likely performing continuation learning
         if settings['action_space_continuous']:
             experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
         else:
