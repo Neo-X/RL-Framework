@@ -68,7 +68,7 @@ class SimContainer(object):
         """
         current_time = glutGet(GLUT_ELAPSED_TIME);
         print ("Current sim time: ", current_time)
-        num_substeps = 1
+        num_substeps = 5
         for i in range(num_substeps):
             # print ("End of Epoch: ", self._exp.getEnvironment().endOfEpoch())
             if (self._exp.getEnvironment().endOfEpoch() and 
