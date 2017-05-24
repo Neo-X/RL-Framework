@@ -108,7 +108,11 @@ def modelSampling(settings):
             expected_value_viz.setInteractive()
             expected_value_viz.init()
             criticLosses = []
-            
+        
+        agent.setSettings(settings)
+        agent.setExperience(experience)
+        # agent.setPolicy(model)
+    
         mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error = evalModel(actor, exp, agent, settings["discount_factor"], 
                                                 anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings, print_data=True, 
                                                 bootstrapping=True, visualizeEvaluation=None, p=10.0, sampling=True)

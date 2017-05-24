@@ -298,7 +298,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("Discrete action choice: ", action, " epsilon * p: ", epsilon * p)
                 else : # add noise to current policy
                     # return ra1
-                    if ( (settings['exploration_method'] == 'gaussian_random') or (bootstrapping)):
+                    if ( ((settings['exploration_method'] == 'gaussian_random') or (bootstrapping)) 
+                         and (not sampling)):
                         # print ("Random Guassian sample, state bounds", model.getStateBounds())
                         pa = model.predict(state_)
                         # action = randomExporation(settings["exploration_rate"], pa)

@@ -54,16 +54,16 @@ class ForwardDynamicsSimulatorProcess(Process):
             if tmp == None:
                 break
             elif (tmp[0] == 'init'):
-                print ("Initilizing environment sampler:")
+                print ("Init Epoch in FDSP:")
                 self._sim.getActor().initEpoch()
                 self._sim.getEnvironment().clear()
-                # for anchor_ in tmp[1]:
+                for anchor_ in tmp[1]:
                     # print (_anchor)
                     # anchor_ = self._exp.getEnvironment().getAnchor(anchor)
-                    # self._sim.getEnvironment().addAnchor(anchor_[0], anchor_[1], anchor_[2])
+                    self._sim.getEnvironment().addAnchor(anchor_[0], anchor_[1], anchor_[2])
                 # simState = self._exp.getSimState()
                 # self._sim.setSimState(simState)
-                self._sim.generateEnvironmentSample()
+                # self._sim.generateEnvironmentSample()
                 self._sim.initEpoch()
                 print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
                 
@@ -111,16 +111,18 @@ class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
         print ("Init FD epoch: ")
         # self._sim.getActor().initEpoch()
         # self._sim.getEnvironment().clear()
-        """
-        for anchor in range(self.getSettings()['max_epoch_length']):
+        anchors = []
+        for anchor in range(exp_.getEnvironment().numAnchors()):
             # print (_anchor)
-            anchor_ = self._exp.getEnvironment().getAnchor(anchor)
-            self._sim.getEnvironment().addAnchor(anchor_.getX(), anchor_.getY(), anchor_.getZ())
-        """
+            anchor_ = exp_.getEnvironment().getAnchor(anchor)
+            anchors.append([anchor_.getX(), anchor_.getY(), anchor_.getZ()])
+            # self._sim.getEnvironment().addAnchor(anchor_.getX(), anchor_.getY(), anchor_.getZ())
+            
+        
         # simState = self._exp.getSimState()
         # self._sim.setSimState(simState)
         # self._sim.initEpoch()
-        self._output_state_queue.put(('init',self.getSettings()['max_epoch_length'])) 
+        self._output_state_queue.put(('init',anchors)) 
 
     def _predict(self, state__c, action):
         """
