@@ -110,7 +110,7 @@ class AP_CACLA(AlgorithmInterface):
                        change_penalty(self._model.getActorNetwork(), self._modelTarget.getActorNetwork()) 
                       ) 
         elif (self.getSettings()['regularization_type'] == 'kl'):
-            self._kl_firstfixed = T.mean(kl(self._q_valsActA, T.ones_like(self._q_valsActA) * self.getSettings()['exploration_rate'], self._q_valsActTarget, T.ones_like(self._q_valsActTarget) * self.getSettings()['exploration_rate'], self._action_length))
+            self._kl_firstfixed = T.mean(kl(self._q_valsActTarget, T.ones_like(self._q_valsActTarget) * self.getSettings()['exploration_rate'], self._q_valsActA, T.ones_like(self._q_valsActA) * self.getSettings()['exploration_rate'], self._action_length))
             self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (1000*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
                                                                                      T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold'])) 
         

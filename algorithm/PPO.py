@@ -36,6 +36,21 @@ def zipsame(*seqs):
 
 
 def kl(mean0, std0, mean1, std1, d):
+    """
+        The first districbution should be from a fixed distribution. 
+        The second should be from the distribution that will change from the parameter update.
+        Parameters
+        ----------
+        mean0: mean of fixed distribution
+        std0: standard deviation of fixed distribution
+        mean1: mean of moving distribution
+        std1: standard deviation of moving distribution
+        d: is the dimensionality of the action space
+        
+        Return(s)
+        ----------
+        Vector: Of kl_divergence for each sample/row in the input data
+    """
     return T.log(std1 / std0).sum(axis=1) + ((T.square(std0) + T.square(mean0 - mean1)) / (2.0 * T.square(std1))).sum(axis=1) - 0.5 * d
 
 def loglikelihood(a, mean0, std0, d):
@@ -152,7 +167,7 @@ class PPO(AlgorithmInterface):
         self._model.getCriticNetwork(), lasagne.regularization.l2))
         # self._actor_regularization = ( (self._regularization_weight * lasagne.regularization.regularize_network_params(
         #         self._model.getActorNetwork(), lasagne.regularization.l2)) )
-        self._kl_firstfixed = T.mean(kl(self._q_valsActA, self._q_valsActASTD, self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length))
+        self._kl_firstfixed = T.mean(kl(self._q_valsActTarget, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length))
         # self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed )
         self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (1000*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
                                                                                      T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
@@ -369,6 +384,7 @@ class PPO(AlgorithmInterface):
     def trainActor(self, states, actions, rewards, result_states, falls, advantage):
         
         self.setData(states, actions, rewards, result_states, falls)
+        advantage = self._get_diff()[0]
         self._advantage_shared.set_value(advantage)
         
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
