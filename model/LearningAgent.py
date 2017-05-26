@@ -95,6 +95,7 @@ class LearningAgent(AgentInterface):
                     # print ("Updating Critic")
                     cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                     if not np.isfinite(cost) or (cost > 500) :
+                        numpy.set_printoptions(threshold=numpy.nan)
                         print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                         print ("Training cost is Odd: ", cost)
                 if (self._settings['train_actor']):
@@ -106,6 +107,7 @@ class LearningAgent(AgentInterface):
                         result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
                         cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=result_states__, falls=_falls)
                         if not np.isfinite(cost) or (cost > 500) :
+                            numpy.set_printoptions(threshold=numpy.nan)
                             print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                             print ("Training cost is Odd: ", cost)
                             
