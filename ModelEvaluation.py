@@ -167,7 +167,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     
     action_selection = range(len(settings["discrete_actions"]))   
     reward_bounds = np.array(settings['reward_bounds'] )
-    
+    ## If tuples should be put in the output_exp_queue in batches which will include proper values for calculated future discounted rewards.
+    use_batched_exp=False
     pa=None
     epsilon = settings["epsilon"]
     # Actor should be FIRST here
@@ -229,16 +230,17 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 advantage.append([G_t[j] - G_t[j+1]])
             advantage.append([0])
             G_ts.extend(copy.deepcopy(G_t))
-            if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
-                tmp_states = copy.deepcopy(states [last_epoch_end:])
-                tmp_actions = copy.deepcopy(actions[last_epoch_end:])
-                tmp_rewards = copy.deepcopy(rewards[last_epoch_end:])
-                tmp_falls = copy.deepcopy(falls[last_epoch_end:])
-                tmp_result_states = copy.deepcopy(result_states___[last_epoch_end:])
-                tmp_G_ts = copy.deepcopy(G_ts[last_epoch_end:])
-                
-                for state__, action__, reward__, result_state__, fall__, G_t__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts):
-                    _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__))
+            if (use_batched_exp):
+                if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
+                    tmp_states = copy.deepcopy(states [last_epoch_end:])
+                    tmp_actions = copy.deepcopy(actions[last_epoch_end:])
+                    tmp_rewards = copy.deepcopy(rewards[last_epoch_end:])
+                    tmp_falls = copy.deepcopy(falls[last_epoch_end:])
+                    tmp_result_states = copy.deepcopy(result_states___[last_epoch_end:])
+                    tmp_G_ts = copy.deepcopy(G_ts[last_epoch_end:])
+                    
+                    for state__, action__, reward__, result_state__, fall__, G_t__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts):
+                        _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__))
             
             last_epoch_end=i_
             
@@ -449,11 +451,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             falls.append([agent_not_fell])
             # print ("falls: ", falls)
             # values.append(value)
-            """
-            if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
-                # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
-                _output_queue.put((state_, action, [reward_], resultState, [agent_not_fell]))
-            """
+            if (not use_batched_exp):
+                if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
+                    # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
+                    _output_queue.put((state_, action, resultState_, [reward_],  [agent_not_fell], [0]))
+            
             state_num += 1
         else:
             print ("****Reward was to bad: ", reward_)
@@ -471,16 +473,17 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         print ("Eval Datas: ", evalDatas) 
     # print ("Evaluation Data: ", evalData)
         # print ("Current Tuple: " + str(experience.current()))
-    if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
-        tmp_states = states [last_epoch_end:]
-        tmp_actions = actions[last_epoch_end:]
-        tmp_rewards = rewards[last_epoch_end:]
-        tmp_falls = falls[last_epoch_end:]
-        tmp_result_states = result_states___[last_epoch_end:]
-        tmp_G_ts = G_ts[last_epoch_end:]
-        
-        for state__, action__, reward__, result_state__, fall__, G_t__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts):
-            _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__))
+    if (use_batched_exp):
+        if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
+            tmp_states = states [last_epoch_end:]
+            tmp_actions = actions[last_epoch_end:]
+            tmp_rewards = rewards[last_epoch_end:]
+            tmp_falls = falls[last_epoch_end:]
+            tmp_result_states = result_states___[last_epoch_end:]
+            tmp_G_ts = G_ts[last_epoch_end:]
+            
+            for state__, action__, reward__, result_state__, fall__, G_t__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts):
+                _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__))
     ## Compute Advantage
     for j in range(len(G_t)-1):
         advantage.append([G_t[j] - G_t[j+1]])
