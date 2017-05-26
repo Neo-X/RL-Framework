@@ -168,7 +168,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     action_selection = range(len(settings["discrete_actions"]))   
     reward_bounds = np.array(settings['reward_bounds'] )
     ## If tuples should be put in the output_exp_queue in batches which will include proper values for calculated future discounted rewards.
-    use_batched_exp=False
+    use_batched_exp=settings['collect_tuples_in_batches']
     pa=None
     epsilon = settings["epsilon"]
     # Actor should be FIRST here

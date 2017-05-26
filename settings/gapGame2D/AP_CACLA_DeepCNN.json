@@ -238,5 +238,7 @@
 	"comment__": "Whether or  not to train the critic at all. Usually used for debugging",
 "train_critic": true,
 	"comment__": "What type of regularization to use",
-"regularization_type": "kl"
+"regularization_type": "kl",
+	"comment__": "Whether or not to collects tuples in batches, this can be good for multi-threading or computing furture discounted reward",
+"collect_tuples_in_batches":false
 }
