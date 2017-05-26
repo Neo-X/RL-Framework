@@ -76,14 +76,16 @@ def trainModelParallel(settingsFileName):
         # c = characterSim.Configuration(str(settings["sim_config_file"]))
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
         action_space_continuous=settings['action_space_continuous']
-        """
-        input_anchor_queue = multiprocessing.Queue(settings['epochs'])
-        output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
-        eval_episode_data_queue = multiprocessing.Queue(settings['eval_epochs'])
-        """
-        input_anchor_queue = multiprocessing.Queue(settings['queue_size_limit'])
-        output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
-        eval_episode_data_queue = multiprocessing.Queue(settings['queue_size_limit'])
+
+        if (settings['queue_size_limit'] == 1):
+            input_anchor_queue = multiprocessing.Queue(settings['queue_size_limit'])
+            output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
+            eval_episode_data_queue = multiprocessing.Queue(settings['queue_size_limit'])
+        else:
+            input_anchor_queue = multiprocessing.Queue(settings['epochs'])
+            output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
+            eval_episode_data_queue = multiprocessing.Queue(settings['eval_epochs'])
+            
         sim_work_queues = []
         
         action_space_continuous=settings['action_space_continuous']
@@ -505,7 +507,7 @@ def trainModelParallel(settingsFileName):
                 # Running less often helps speed learning up.
                 # Sync up sim actors
                 
-                if (settings['on_policy']):
+                if (settings['on_policy'] or ((settings['queue_size_limit'] == 1))):
                     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp_val, masterAgent, discount_factor, 
                                                         anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings)
                 else:
