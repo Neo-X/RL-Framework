@@ -211,5 +211,7 @@
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
 "use_stocastic_policy": false,
 	"comment__": "Whether or  not to train the critic at all. Usually used for debugging",
-"train_critic": true
+"train_critic": true,
+	"comment__": "Whether or not to collects tuples in batches, this can be good for multi-threading or computing furture discounted reward",
+"collect_tuples_in_batches":true
 }
