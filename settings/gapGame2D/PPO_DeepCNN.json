@@ -17,7 +17,7 @@
 "sim_config_file": "./settings/gapGame2D/ballgame_settings_gaps.json",
     "comment__": "A different config file for the forward dynamics simulator",
 "forwardDynamics_config_file": "./settings/gapGame2D/ballgame_settings_gaps.json",
-    "comment__": "Exploration distance use when randomly generating new actions",
+    "comment__": "Exploration distance use when randomly generating new actions or scaling parameter to adjust exploration",
 "exploration_rate": 0.1,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 50000,
