@@ -94,6 +94,8 @@ class TerrainRLImitationActor(ActorInterface):
                    """
         self._reward_sum = self._reward_sum + reward_
         # print ("Reward: ", reward_)
+        if (self._settings["shouldRender"]):
+            sim.display()
 
         return reward_
     
