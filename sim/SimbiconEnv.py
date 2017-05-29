@@ -50,10 +50,20 @@ class SimbiconEnv(SimInterface):
         pass
         # self._exp.getEnvironment().generateEnvironmentSample()
         
+    def updateAction(self, action_):
+        # print("Simbicon updating action:")
+        self.getActor().updateAction(self, action_)
+    
+    def needUpdatedAction(self):
+        return self.getEnvironment().needUpdatedAction()
+        
     def update(self):
         self.getEnvironment().update()
             
-    
+    def display(self):
+        pass
+        # self.getEnvironment().display()
+
     def finish(self):
         self._exp.finish()
     

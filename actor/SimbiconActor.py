@@ -18,6 +18,10 @@ class SimbiconActor(ActorInterface):
         self._target_root_height = 1.02
         self._target_hand_pos = 0.0
         
+    def updateAction(self, sim, action_):
+        action_ = np.array(action_, dtype='float64')
+        sim.getEnvironment().updateAction(action_)
+        
     # @profile(precision=5)
     def act(self, exp, action_, bootstrapping=False):
         samp = self.getActionParams(action_)

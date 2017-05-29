@@ -435,7 +435,12 @@ def validBounds(bounds):
     """
     valid = np.all(np.less(bounds[0], bounds[1]))
     if (not valid):
-        print ("Invalid bounds: ", np.less(bounds[0], bounds[1]))
+        less_ = np.less(bounds[0], bounds[1])
+        bad_indecies = np.where(less_ == False)
+        bad_values_low = bounds[0][bad_indecies]
+        bad_values_high = bounds[1][bad_indecies]
+        print ("Invalid bounds: ", bad_indecies )
+        print ("Bad Values:", bad_values_low, bad_values_high)
         
     # bounds not too close to each other
     epsilon = 0.01
@@ -443,6 +448,12 @@ def validBounds(bounds):
     diff = bounds[1]-bounds[0]
     valid = valid and np.all(np.greater(diff, epsilon))
     if (not valid):
+        less_ = np.greater(diff, epsilon)
+        bad_indecies = np.where(less_ == False)
+        bad_values_low = bounds[0][bad_indecies]
+        bad_values_high = bounds[1][bad_indecies]
+        print ("Invalid bounds, bounds to small: ", bad_indecies )
+        print ("Bad Values:", bad_values_low, bad_values_high)
         print ("Bounds to small:", np.greater(diff, epsilon))
         
     return valid
