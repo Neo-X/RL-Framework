@@ -1115,6 +1115,7 @@ def modelEvaluation(settings_file_name):
         # forwardDynamicsModel.setEnvironment(exp)
     # actor.setPolicy(model)
     
+    exp.setActor(actor)
     exp.getActor().init()   
     exp.getEnvironment().init()
     expected_value_viz=None
