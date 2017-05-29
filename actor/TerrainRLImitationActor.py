@@ -58,6 +58,8 @@ class TerrainRLImitationActor(ActorInterface):
                and (not sim.getEnvironment().agentHasFallen())
                ):
             sim.update()
+            if (self._settings["shouldRender"]):
+                sim.display()
             vel_sum += sim.getEnvironment().calcVelocity()
             updates_+=1
             if ( sim.getEnvironment().hasStumbled() ):
@@ -94,8 +96,6 @@ class TerrainRLImitationActor(ActorInterface):
                    """
         self._reward_sum = self._reward_sum + reward_
         # print ("Reward: ", reward_)
-        if (self._settings["shouldRender"]):
-            sim.display()
 
         return reward_
     

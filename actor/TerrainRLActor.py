@@ -63,6 +63,8 @@ class TerrainRLActor(ActorInterface):
                and (not sim.getEnvironment().agentHasFallen())
                ):
             sim.getEnvironment().update()
+            if (self._settings["shouldRender"]):
+                sim.display()
             vel_sum += sim.getEnvironment().calcVelocity()
             updates_+=1
             if ( sim.getEnvironment().hasStumbled() ):
@@ -96,7 +98,6 @@ class TerrainRLActor(ActorInterface):
                    )
         self._reward_sum = self._reward_sum + reward_
         # print ("Reward: ", reward_)
-
         return reward_
     
     def getEvaluationData(self):
