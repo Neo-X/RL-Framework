@@ -26,13 +26,15 @@ exp=None
 fps=30
 class SimContainer(object):
     
-    def __init__(self, exp, agent, settings):
+    def __init__(self, exp, agent, settings, expected_value_viz):
         self._exp = exp
         self._agent = agent
         self._episode=0
         self._settings = settings
         self._grad_sum=0
         self._num_actions=0
+        self._expected_value_viz = expected_value_viz
+        self._viz_q_values_ = []
         
     def animate(self, callBackVal=-1):
         # print ("Animating: ", callBackVal)
@@ -68,7 +70,7 @@ class SimContainer(object):
         """
         current_time = glutGet(GLUT_ELAPSED_TIME);
         print ("Current sim time: ", current_time)
-        num_substeps = 5
+        num_substeps = 1
         for i in range(num_substeps):
             # print ("End of Epoch: ", self._exp.getEnvironment().endOfEpoch())
             if (self._exp.getEnvironment().endOfEpoch() and 
@@ -89,6 +91,18 @@ class SimContainer(object):
             """
             if (self._exp.needUpdatedAction()):
                 state_ = self._exp.getState()
+                ## Update value function visualization
+                if ( True ):
+                    self._viz_q_values_.append(self._agent.q_value(state_)[0])
+                    if (len(self._viz_q_values_)>30):
+                         self._viz_q_values_.pop(0)
+                    # print ("viz_q_values_: ", viz_q_values_ )
+                    # print ("np.zeros(len(viz_q_values_)): ", np.zeros(len(viz_q_values_)))
+                    self._expected_value_viz.updateLoss(self._viz_q_values_, np.zeros(len(self._viz_q_values_)))
+                    self._expected_value_viz.redraw()
+                    # visualizeEvaluation.setInteractiveOff()
+                    # visualizeEvaluation.saveVisual(directory+"criticLossGraph")
+                    # visualizeEvaluation.setInteractive()
                 """
                 position_root = self._exp.getEnvironment().getActor().getStateEuler()[0:][:3]
                 root_orientation = self._exp.getEnvironment().getActor().getStateEuler()[3:][:3]
@@ -310,7 +324,7 @@ def evaluateModelRender(settings_file_name):
     state_ = exp.getState()
     action_ = np.array(masterAgent.predict(state_), dtype='float64')
     exp.updateAction(action_)
-    sim = SimContainer(exp, masterAgent, settings)
+    sim = SimContainer(exp, masterAgent, settings, expected_value_viz)
     sim._grad_sum = np.zeros_like(state_)
     # glutInitWindowPosition(x, y);
     # glutInitWindowSize(width, height);
