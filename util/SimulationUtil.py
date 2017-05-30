@@ -190,7 +190,7 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
         directory= getDataDirectory(settings)
         print ("Loading pre compiled network")
         file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-        f = open(file_name, 'rb')
+        f = open(file_name, 'r')
         model = dill.load(f)
         f.close()
     elif ( "Deep_NN2" == algorihtm_type):
