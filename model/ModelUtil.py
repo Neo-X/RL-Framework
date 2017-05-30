@@ -211,12 +211,13 @@ def clampAction(actionV, bounds):
     bounds[0] is lower bounds
     bounds[1] is upper bounds
     """
-    for i in range(len(actionV)):
-        if actionV[i] < bounds[0][i]:
-            actionV[i] = bounds[0][i]
-        elif actionV[i] > bounds[1][i]:
-            actionV[i] = bounds[1][i]
-    return actionV
+    actionV_ = copy.deepcopy(actionV)
+    for i in range(len(actionV_)):
+        if actionV_[i] < bounds[0][i]:
+            actionV_[i] = bounds[0][i]
+        elif actionV_[i] > bounds[1][i]:
+            actionV_[i] = bounds[1][i]
+    return actionV_
 
 def clampActionWarn(actionV, bounds):
     """
@@ -225,14 +226,15 @@ def clampActionWarn(actionV, bounds):
     Returns True if the actionV was outside the bounds
     """
     out=False
-    for i in range(len(actionV)):
-        if actionV[i] < bounds[0][i]:
-            actionV[i] = bounds[0][i]
+    actionV_ = copy.deepcopy(actionV)
+    for i in range(len(actionV_)):
+        if actionV_[i] < bounds[0][i]:
+            actionV_[i] = bounds[0][i]
             out=True
-        elif actionV[i] > bounds[1][i]:
-            actionV[i] = bounds[1][i]
+        elif actionV_[i] > bounds[1][i]:
+            actionV_[i] = bounds[1][i]
             out=True
-    return (actionV, out)
+    return (actionV_, out)
 
 def reward_smoother(diff_, settings, _weight):
     if (settings['reward_smoother'] == 'abs'):
