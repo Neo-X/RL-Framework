@@ -70,12 +70,29 @@ class LearningAgent(AgentInterface):
         cost = 0
         if self._settings['on_policy']:
             
-            _states = np.array(norm_action(np.array(_states), self._state_bounds), dtype=self._settings['float_type'])
-            _actions = np.array(norm_action(np.array(_actions), self._action_bounds), dtype=self._settings['float_type'])
-            _rewards = np.array(_rewards, dtype=self._settings['float_type'])
-            _result_states = np.array(norm_action(np.array(_result_states), self._state_bounds), dtype=self._settings['float_type'])
-            _falls = np.array(_falls, dtype='int8')
-            _advantage = np.array(_advantage, dtype=self._settings['float_type'])
+            ### Validate data
+            tmp_states = []
+            tmp_actions = []
+            tmp_result_states = [] 
+            tmp_rewards = []
+            tmp_falls = []
+            tmp_advantage = []
+            for (state__, action__, next_state__, reward__, fall__, advantage__) in zip(_states, _actions, _result_states, _rewards, _falls, _advantage):
+                if (checkValidData(state__, action__, next_state__, reward__)):
+                    tmp_states.append(state__)
+                    tmp_actions.append(action__)
+                    tmp_result_states.append(next_state__)
+                    tmp_rewards.append(reward__)
+                    tmp_falls.append(fall__)
+                    tmp_advantage.append(advantage__)
+                    
+            
+            _states = np.array(norm_action(np.array(tmp_states), self._state_bounds), dtype=self._settings['float_type'])
+            _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
+            _result_states = np.array(norm_action(np.array(tmp_result_states), self._state_bounds), dtype=self._settings['float_type'])
+            _rewards = np.array(tmp_rewards, dtype=self._settings['float_type'])
+            _falls = np.array(tmp_falls, dtype='int8')
+            _advantage = np.array(tmp_advantage, dtype=self._settings['float_type'])
             # print("Not Falls: ", _falls)
             # print("Rewards: ", _rewards)
             # print ("Actions after: ", _actions)
