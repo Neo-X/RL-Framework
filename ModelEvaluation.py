@@ -386,7 +386,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             reward_ = actor.actContinuous(exp,action)
             agent_not_fell = actor.hasNotFallen(exp)
             if (outside_bounds and settings['penalize_actions_outside_bounds']):
-                reward_ = reward_ + reward_bounds[0] # TODO: this penalty should really be a function of the distance the action was outside the bounds 
+                reward_ = reward_ + settings['reward_lower_bound'] # TODO: this penalty should really be a function of the distance the action was outside the bounds 
             # print ("Action: ", action, " reward: ", reward_, " p: ", p)
         elif not action_space_continuous:
             """

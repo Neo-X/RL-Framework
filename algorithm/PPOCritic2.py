@@ -446,8 +446,9 @@ class PPOCritic2(AlgorithmInterface):
             current_params = np.array(lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork()))
             old_params = np.array(lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork()))
             param_direction = current_params - old_params
+            alpha = 0.5
             for alpha in range(10):
-                alpha_ = float(alpha)/iters
+                # alpha_ = float(alpha)/iters
                 tmp_params = (old_params) + (param_direction * alpha_)
                 tmp_params_list = [i for i in tmp_params]
                 lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), tmp_params_list)
@@ -456,7 +457,14 @@ class PPOCritic2(AlgorithmInterface):
                     ( self.kl_divergence() > best[0] ) ):
                     best[0] = self.kl_divergence()
                     best[1] = alpha_
-                     
+                if ( (self.kl_divergence() < self.getSettings()['kl_divergence_threshold']) ):
+                    alpha_ = (alpha_ * 1.5)
+                else:
+                    alpha_ = (alpha_ / 1.5)
+            alpha_ = best[1]
+            tmp_params = (old_params) + (param_direction * alpha_)
+            tmp_params_list = [i for i in tmp_params]
+            lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), tmp_params_list)
         """
         if kl_d > self.getSettings()['kl_divergence_threshold']:
             self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()*2.0)

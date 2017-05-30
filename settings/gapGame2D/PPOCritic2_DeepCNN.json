@@ -138,7 +138,7 @@
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
 "max_epoch_length": 100,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
-"reward_lower_bound": -0.5,
+"reward_lower_bound": -1.0,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",
 "use_guided_policy_search" : false,
     "comment__": "The number of training updates to perform for every action that is simulated",
