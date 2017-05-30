@@ -433,6 +433,7 @@ class PPOCritic2(AlgorithmInterface):
         print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
         # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
         print( " Actor loss: ", lossActor)
+        # print( "Policy loss: ", lossActor)
         # self._advantage_shared.set_value(diff_)
         # lossActor, _ = self._trainActor()
         kl_after = self.kl_divergence()
@@ -491,9 +492,6 @@ class PPOCritic2(AlgorithmInterface):
         else:
             print ("KL=%.3f is close enough to target %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold']))
         print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
-        
-        print( "Policy loss: ", lossActor)
-        
         
         # print ("Diff")
         # print (diff_)
