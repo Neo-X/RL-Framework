@@ -5,6 +5,11 @@
 # ================================================================
 # Proximal Policy Optimization
 # ================================================================
+"""
+    This version uses a value function to compute the advantage
+    This method also uses some techniques to reduce the KL divergence iff the 
+    divergence goes above the a threshold.
+"""
 
 
 import theano
@@ -25,9 +30,21 @@ def change_penalty(network1, network2):
     """
     return sum(T.sum((x1-x2)**2) for x1,x2 in zip(get_all_params(network1), get_all_params(network2)))
 
-def flatgrad(loss, var_list):
+def flatgrad(grads, var_list):
     grads = T.grad(loss, var_list)
     return T.concatenate([g.flatten() for g in grads])
+
+def setFromFlat(var_list, flat_grad):
+        
+        theta = T.vector()
+        start = 0
+        updates = []
+        for v in var_list:
+            shape = v.shape
+            size = T.prod(shape)
+            updates.append((v, theta[start:start+size].reshape(shape)))
+            start += size
+        self.op = theano.function([theta],[], updates=updates,**FNOPTS)
 
 def zipsame(*seqs):
     L = len(seqs[0])
@@ -70,11 +87,11 @@ def likelihood(a, mean0, std0, d):
 # theano.config.mode='FAST_COMPILE'
 # from DeepCACLA import DeepCACLA
 
-class PPOCritic(AlgorithmInterface):
+class PPOCritic2(AlgorithmInterface):
     
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
-        super(PPOCritic,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(PPOCritic2,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
         # create a small convolutional neural network
         
@@ -249,7 +266,7 @@ class PPOCritic(AlgorithmInterface):
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
         
-        PPOCritic.compile(self)
+        PPOCritic2.compile(self)
         
     def compile(self):
         
@@ -419,6 +436,27 @@ class PPOCritic(AlgorithmInterface):
         # self._advantage_shared.set_value(diff_)
         # lossActor, _ = self._trainActor()
         kl_after = self.kl_divergence()
+        ### kl is too high
+        if (kl_after > self.getSettings()['kl_divergence_threshold']):
+        # if ( True ):
+            ### perform line search to find better step for this update
+            iters = 10
+            ## Best is closest to threshold without going over
+            best = [-10000000, 0]
+            current_params = np.array(lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork()))
+            old_params = np.array(lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork()))
+            param_direction = current_params - old_params
+            for alpha in range(10):
+                alpha_ = float(alpha)/iters
+                tmp_params = (old_params) + (param_direction * alpha_)
+                tmp_params_list = [i for i in tmp_params]
+                lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), tmp_params_list)
+                print ("New kl: ", self.kl_divergence())
+                if ( (self.kl_divergence() < self.getSettings()['kl_divergence_threshold']) and 
+                    ( self.kl_divergence() > best[0] ) ):
+                    best[0] = self.kl_divergence()
+                    best[1] = alpha_
+                     
         """
         if kl_d > self.getSettings()['kl_divergence_threshold']:
             self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()*2.0)

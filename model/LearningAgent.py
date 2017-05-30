@@ -77,6 +77,7 @@ class LearningAgent(AgentInterface):
             tmp_rewards = []
             tmp_falls = []
             tmp_advantage = []
+            # print("Batch size: ", len(_states), len(_actions), len(_result_states), len(_rewards), len(_falls), len(_advantage))
             for (state__, action__, next_state__, reward__, fall__, advantage__) in zip(_states, _actions, _result_states, _rewards, _falls, _advantage):
                 if (checkValidData(state__, action__, next_state__, reward__)):
                     tmp_states.append(state__)
@@ -87,6 +88,9 @@ class LearningAgent(AgentInterface):
                     tmp_advantage.append(advantage__)
                     tup = (state__, action__, next_state__, reward__, fall__, advantage__)
                     self._expBuff.insertTuple(tup)
+                    # print ("self._expBuff.samples(): ", self._expBuff.samples())
+                # else:
+                    # print ("Tuple invalid:")
                     
             
             _states = np.array(norm_action(np.array(tmp_states), self._state_bounds), dtype=self._settings['float_type'])
@@ -101,9 +105,10 @@ class LearningAgent(AgentInterface):
             cost = 0
             if (self._settings['train_critic']):
                 for i in range(self._settings['critic_updates_per_actor_update']):
+                    # print ("Number of samples:", self._expBuff.samples())
                     _states, _actions, _result_states, _rewards, _falls, _G_ts = self._expBuff.get_batch(self._settings["batch_size"])
                     cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
-                    self._expBuff.clear()
+                # self._expBuff.clear()
             if (self._settings['train_actor']):
                 cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
             dynamicsLoss = 0 
