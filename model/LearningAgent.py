@@ -85,6 +85,8 @@ class LearningAgent(AgentInterface):
                     tmp_rewards.append(reward__)
                     tmp_falls.append(fall__)
                     tmp_advantage.append(advantage__)
+                    tup = (state__, action__, next_state__, reward__, fall__, advantage__)
+                    self._expBuff.insertTuple(tup)
                     
             
             _states = np.array(norm_action(np.array(tmp_states), self._state_bounds), dtype=self._settings['float_type'])
@@ -99,7 +101,9 @@ class LearningAgent(AgentInterface):
             cost = 0
             if (self._settings['train_critic']):
                 for i in range(self._settings['critic_updates_per_actor_update']):
+                    _states, _actions, _result_states, _rewards, _falls, _G_ts = self._expBuff.get_batch(self._settings["batch_size"])
                     cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                    self._expBuff.clear()
             if (self._settings['train_actor']):
                 cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
             dynamicsLoss = 0 
