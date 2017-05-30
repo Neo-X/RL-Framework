@@ -53,6 +53,7 @@ from algorithm.CACLAEntropy import CACLAEntropy
 from algorithm.TRPO import TRPO
 from algorithm.PPO import PPO
 from algorithm.AP_CACLA import AP_CACLA
+from algorithm.PPOCritic import PPOCritic
 
 from util.ExperienceMemory import ExperienceMemory
 from RLVisualize import RLVisualize
@@ -258,7 +259,9 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
     elif (algorihtm_type == "AP_CACLA" ):
         model = AP_CACLA(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)    
-    
+    elif (algorihtm_type == "PPO_Critic" ):
+        model = PPOCritic(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "CACLA_Entropy" ):
         model = CACLAEntropy(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
