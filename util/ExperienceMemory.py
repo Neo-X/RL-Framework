@@ -69,6 +69,85 @@ class ExperienceMemory(object):
         (state, action, nextState, reward, fall, G_t) = tuple
         self.insert(state, action, nextState, reward, fall, G_t)
         
+    def checkValidData(self, state, action, nextState, reward):
+        """
+            Checks to make sure the data going into the exp buffer is not garbage...
+        
+        """
+        if (not np.all(np.isfinite(state))):
+            less_ = np.isfinite(state)
+            bad_indecies = np.where(less_ == False)
+            bad_values_ = state[bad_indecies]
+            print ("State not finite: ", np.isfinite(state) )
+            print ("Bad Value indx: ", bad_indecies)
+            print ("Bad Values: ", bad_values_)
+            return False
+        
+        if (not np.all(np.isfinite(action))):
+            less_ = np.isfinite(action)
+            bad_indecies = np.where(less_ == False)
+            bad_values_ = action[bad_indecies]
+            print ("Action not finite: ", np.isfinite(state) )
+            print ("Bad Value indx: ", bad_indecies)
+            print ("Bad Values: ", bad_values_)
+            return False
+        
+        if (not np.all(np.isfinite(nextState))):
+            less_ = np.isfinite(state)
+            bad_indecies = np.where(less_ == False)
+            bad_values_ = nextState[bad_indecies]
+            print ("NextState not finite: ", np.isfinite(state) )
+            print ("Bad Value indx: ", bad_indecies)
+            print ("Bad Values: ", bad_values_)
+            return False
+        
+        if (not np.all(np.isfinite(reward))):
+            less_ = np.isfinite(reward)
+            bad_indecies = np.where(less_ == False)
+            bad_values_ = reward[bad_indecies]
+            print ("Reward not finite: ", np.isfinite(state) )
+            print ("Bad Value indx: ", bad_indecies)
+            print ("Bad Values: ", bad_values_)
+            return False
+        
+        if (np.any(np.less(state, -1000.0))):
+            less_ = np.less(state, -1000.0)
+            bad_indecies = np.where(less_ == True)
+            bad_values_ = state[bad_indecies]
+            print ("State too negative: ", np.less(state, -1000.0) )
+            print ("Bad Value indx: ", bad_indecies)
+            print ("Bad Values: ", bad_values_)
+            return False
+        
+        if (np.any(np.less(nextState, -1000.0))):
+            less_ = np.less(nextState, -1000.0)
+            bad_indecies = np.where(less_ == True)
+            bad_values_ = nextState[bad_indecies]
+            print ("nextState too negative: ", np.less(nextState, -1000.0) )
+            print ("Bad Value indx: ", bad_indecies)
+            print ("Bad Values: ", bad_values_)
+            return False
+        
+        if (np.any(np.greater(state, 1000.0))):
+            less_ = np.greater(state, 1000.0)
+            bad_indecies = np.where(less_ == True)
+            bad_values_ = state[bad_indecies]
+            print ("State too positive: ", np.greater(state, 1000.0) )
+            print ("Bad Value indx: ", bad_indecies)
+            print ("Bad Values: ", bad_values_)
+            return False
+        
+        if (np.any(np.greater(nextState, 1000.0))):
+            less_ = np.greater(nextState, 1000.0)
+            bad_indecies = np.where(less_ == True)
+            bad_values_ = nextState[bad_indecies]
+            print ("nextState too positive: ", np.greater(nextState, 1000.0) )
+            print ("Bad Value indx: ", bad_indecies)
+            print ("Bad Values: ", bad_values_)
+            return False
+        
+        return True
+        
     def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]]):
         # print "Instert State: " + str(state)
         # state = list(state)
@@ -81,12 +160,8 @@ class ExperienceMemory(object):
         nums = state+action+nextState+reward
         """
         
-        if ((not np.all(np.isfinite(state))) or (not np.all(np.isfinite(action))) or
-            (not np.all(np.isfinite(nextState))) or (not np.all(np.isfinite(reward))) or
-            (np.any(np.less(state, -1000.0))) or (np.any(np.greater(state, 1000.0))) or
-            (np.any(np.less(nextState, -1000.0))) or (np.any(np.greater(nextState, 1000.0)))):
+        if ( self.checkValidData(state, action, nextState, reward) == False ):
             print ("Failed inserting: ")
-            print (state, action, nextState, reward)
             return
         
         if ( (self._history_update_index % (self._history_size-1) ) == 0):
