@@ -40,14 +40,6 @@ from model.DeepNNDropout import DeepNNDropout
 from model.DeepNNSingleNetDropout import DeepNNSingleNetDropout
 from model.DeepNNWide import DeepNNWide
 
-from algorithm.DeepQNetwork import DeepQNetwork
-from algorithm.DoubleDeepQNetwork import DoubleDeepQNetwork
-from algorithm.CACLA import CACLA
-from algorithm.CACLA2 import CACLA2
-from algorithm.CACLADV import CACLADV
-from algorithm.CACLADVTarget import CACLADVTarget
-from algorithm.ForwardDynamics import ForwardDynamics
-
 from util.ExperienceMemory import ExperienceMemory
 from RLVisualize import RLVisualize
 from NNVisualize import NNVisualize
@@ -147,21 +139,27 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
         model = DeepCNN(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (model_type == "Deep_CNN_Dropout" ):
+        from model.DeepCNNDropout import DeepCNNDropout
         model = DeepCNNDropout(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (model_type == "Deep_NN_Dropout" ):
+        from model.DeepNNDropout import DeepNNDropout
         model = DeepNNDropout(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (model_type == "Deep_NN_SingleNet" ):
+        from model.DeepNNSingleNet import DeepNNSingleNet
         model = DeepNNSingleNet(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (model_type == "Deep_CNN_SingleNet" ):
+        from model.DeepCNNSingleNet import DeepCNNSingleNet
         model = DeepCNNSingleNet(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)   
     elif (model_type == "Deep_NN_SingleNet_Dropout" ):
+        from model.DeepNNSingleNetDropout import DeepNNSingleNetDropout
         model = DeepNNSingleNetDropout(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (model_type == "Deep_NN_Wide" ):
+        from model.DeepNNWide import DeepNNWide
         model = DeepNNWide(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)        
     elif (model_type == "DumbModel" ):
@@ -218,22 +216,28 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
         model = DeepDPG2(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "CACLA" ):
+        from algorithm.CACLA import CACLA
         model = CACLA(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "CACLA2" ):
+        from algorithm.CACLA import CACLA
         model = CACLA2(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "CACLADV" ):
+        from algorithm.CACLADV import CACLADV
         model = CACLADV(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "CACLADVTarget" ):
+        from algorithm.CACLADVTarget import CACLADVTarget
         model = CACLADVTarget(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "DeepQNetwork" ):
+        from algorithm.DeepQNetwork import DeepQNetwork
         print ("Using model type ", algorihtm_type , " with ", len(action_bounds), " actions")
         model = DeepQNetwork(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "DoubleDeepQNetwork" ):
+        from algorithm.DoubleDeepQNetwork import DoubleDeepQNetwork
         print ("Using model type ", algorihtm_type , " with ", len(action_bounds), " actions")
         model = DoubleDeepQNetwork(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
@@ -461,6 +465,7 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
             f.close()
         else:
             fd_net = createForwardDynamicsNetwork(state_bounds, action_bounds, settings)
+            from algorithm.ForwardDynamics import ForwardDynamics
             forwardDynamicsModel = ForwardDynamics(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 
                                                    state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
     else:

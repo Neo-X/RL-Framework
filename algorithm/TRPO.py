@@ -214,8 +214,9 @@ class TRPO(AlgorithmInterface):
 
         self.args = [self._model.getStateSymbolicVariable(), 
                      self._model.getActionSymbolicVariable(), 
-                     self._advantage,
-                     self._q_valsActTarget_]
+                     self._advantage
+                     # self._q_valsActTarget_
+                     ]
         
         
         self.args_fvp = [self._model.getStateSymbolicVariable(), 
@@ -401,22 +402,26 @@ class TRPO(AlgorithmInterface):
         print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
         print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
         print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
-        print( "Actor loss: ", np.mean(self._get_action_diff()))
+        # print( "Actor loss: ", np.mean(self._get_action_diff()))
         # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
         ## Sometimes really HUGE losses appear, ocasionally
         # if (np.abs(np.mean(self._get_action_diff())) < 10): 
         #     lossActor, _ = self._trainActor()
         
-        
+        self.getSettings()['cg_damping'] = 1e-3
+        """
         cfg = self.cfg
         prob_np = concat([path["prob"] for path in paths])
         ob_no = concat([path["observation"] for path in paths])
         action_na = concat([path["action"] for path in paths])
         advantage_n = concat([path["advantage"] for path in paths])
+        """
+        args = (states, actions, advantage)
+        args_fvp = (states)
 
         thprev = self.get_params_flat()
         def fisher_vector_product(p):
-            return self.compute_fisher_vector_product(p, *args)+cfg["cg_damping"]*p #pylint: disable=E1101,W0640
+            return self.compute_fisher_vector_product(p, *args_fvp)+self.getSettings()['cg_damping']*p #pylint: disable=E1101,W0640
         g = self.compute_policy_gradient(*args)
         losses_before = self.compute_losses(*args)
         if np.allclose(g, 0):
@@ -424,7 +429,7 @@ class TRPO(AlgorithmInterface):
         else:
             stepdir = cg(fisher_vector_product, -g)
             shs = .5*stepdir.dot(fisher_vector_product(stepdir))
-            lm = np.sqrt(shs / cfg["max_kl"])
+            lm = np.sqrt(shs / self.getSettings()['kl_divergence_threshold'])
             print "lagrange multiplier:", lm, "gnorm:", np.linalg.norm(g)
             fullstep = stepdir / lm
             neggdotstepdir = -g.dot(stepdir)
@@ -440,13 +445,14 @@ class TRPO(AlgorithmInterface):
         for (lname, lbefore, lafter) in zipsame(self.loss_names, losses_before, losses_after):
             out[lname+"_before"] = lbefore
             out[lname+"_after"] = lafter
-            return out
-        print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
+        return out
+        
+        # print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
         # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
-        print( " Actor loss: ", lossActor)
+        # print( " Actor loss: ", lossActor)
         # self._advantage_shared.set_value(diff_)
         # lossActor, _ = self._trainActor()
-        kl_after = self.kl_divergence()
+        # kl_after = self.kl_divergence()
         """
         if kl_d > self.getSettings()['kl_divergence_threshold']:
             self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()*2.0)
@@ -454,7 +460,7 @@ class TRPO(AlgorithmInterface):
             self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()/2.0)
         """  
     
-        return lossActor
+        # return lossActor
     
     def train(self, states, actions, rewards, result_states, falls):
         loss = self.trainCritic(states, actions, rewards, result_states, falls)
