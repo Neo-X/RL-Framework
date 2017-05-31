@@ -481,7 +481,7 @@ class PPOCritic2(AlgorithmInterface):
         kl_coeff = self._kl_weight_shared.get_value()
         if kl_after > 1.3*self.getSettings()['kl_divergence_threshold']: 
             kl_coeff *= 1.5
-            if (kl_coeff < 1e+2):
+            if (kl_coeff < 1e-4):
                 self._kl_weight_shared.set_value(kl_coeff)
                 print "Got KL=%.3f (target %.3f). Increasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
         elif kl_after < 0.7*self.getSettings()['kl_divergence_threshold']: 
