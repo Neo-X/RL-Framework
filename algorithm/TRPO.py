@@ -16,7 +16,7 @@ import sys
 import copy
 sys.path.append('../')
 from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std
-from model.LearningUtil import loglikelihood, kl, entropy, flatgrad, zipsame
+from model.LearningUtil import loglikelihood, kl, entropy, flatgrad, zipsame, get_params_flat
 from algorithm.AlgorithmInterface import AlgorithmInterface
 
 
@@ -419,9 +419,9 @@ class TRPO(AlgorithmInterface):
         args = (states, actions, advantage)
         args_fvp = (states)
 
-        thprev = self.get_params_flat()
+        thprev = get_params_flat(lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork()))
         def fisher_vector_product(p):
-            return self.compute_fisher_vector_product(p, *args_fvp)+self.getSettings()['cg_damping']*p #pylint: disable=E1101,W0640
+            return self.compute_fisher_vector_product(p, states)+np.float32(self.getSettings()['cg_damping'])*p #pylint: disable=E1101,W0640
         g = self.compute_policy_gradient(*args)
         losses_before = self.compute_losses(*args)
         if np.allclose(g, 0):
@@ -429,7 +429,7 @@ class TRPO(AlgorithmInterface):
         else:
             stepdir = cg(fisher_vector_product, -g)
             shs = .5*stepdir.dot(fisher_vector_product(stepdir))
-            lm = np.sqrt(shs / self.getSettings()['kl_divergence_threshold'])
+            lm = np.sqrt(shs / np.float32(self.getSettings()['kl_divergence_threshold']))
             print "lagrange multiplier:", lm, "gnorm:", np.linalg.norm(g)
             fullstep = stepdir / lm
             neggdotstepdir = -g.dot(stepdir)

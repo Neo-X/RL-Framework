@@ -40,6 +40,9 @@ def change_penalty(network1, network2):
     """
     return sum(T.sum((x1-x2)**2) for x1,x2 in zip(get_all_params(network1), get_all_params(network2)))
 
+def get_params_flat(var_list):
+    return [v.flatten() for v in var_list]
+
 def flatgrad(loss, var_list):
     """
         Returns the gradient as a vector instead of alist of vectors

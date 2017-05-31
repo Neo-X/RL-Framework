@@ -18,28 +18,6 @@ from env.GapGame1D import GapGame1D
 from env.GapGame2D import GapGame2D
 from ModelEvaluation import *
 
-from model.RLDeepNet import RLDeepNet
-from model.DeepRLNet3 import DeepRLNet3  
-from model.DeepCACLA import DeepCACLA
-from model.DeepCACLADQ import DeepCACLADQ
-from model.DeepCACLADV import DeepCACLADV
-from model.DeepCACLADropout import DeepCACLADropout
-from model.DeepDPG import DeepDPG
-from model.DeepDPG2 import DeepDPG2
-from model.DeepDPGDQ import DeepDPGDQ
-from model.LearningAgent import *
-
-from model.DeepDropout import DeepDropout
-from model.DeepNN import DeepNN
-from model.DeepNNSingleNet import DeepNNSingleNet
-from model.DeepCNN import DeepCNN
-from model.DeepCNNDropout import DeepCNNDropout
-from model.DeepCNNSingleNet import DeepCNNSingleNet
-from model.DumbModel import DumbModel
-from model.DeepNNDropout import DeepNNDropout
-from model.DeepNNSingleNetDropout import DeepNNSingleNetDropout
-from model.DeepNNWide import DeepNNWide
-
 from util.ExperienceMemory import ExperienceMemory
 from RLVisualize import RLVisualize
 from NNVisualize import NNVisualize
@@ -130,12 +108,15 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
     if (settings['load_saved_model'] == True):
         return None
     elif (model_type == "Deep_Dropout" ):
+        from model.DeepDropout import DeepDropout
         model = DeepDropout(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (model_type == "Deep_NN" ):
+        from model.DeepNN import DeepNN
         model = DeepNN(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (model_type == "Deep_CNN" ):
+        from model.DeepCNN import DeepCNN
         model = DeepCNN(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (model_type == "Deep_CNN_Dropout" ):
@@ -186,33 +167,43 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
         model = dill.load(f)
         f.close()
     elif ( "Deep_NN2" == algorihtm_type):
+        from model.RLDeepNet import RLDeepNet
         model = RLDeepNet(n_in=len(state_bounds[0]), n_out=num_actions, state_bounds=state_bounds, 
                           action_bounds=None, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "Deep_NN3" ):
+        from model.DeepRLNet3 import DeepRLNet3
         model = DeepRLNet3(n_in=len(state_bounds[0]), n_out=num_actions, state_bounds=state_bounds, 
                           action_bounds=None, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "Deep_CACLA" ):
+        from model.DeepCACLA import DeepCACLA
         model = DeepCACLA(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "Deep_CACLA2" ):
+        from model.DeepCACLA2 import DeepCACLA2
         model = DeepCACLA2(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "Deep_CACLA_Dropout" ):
+        from model.DeepCACLADropout import DeepCACLADropout
         model = DeepCACLADropout(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "Deep_CACLA_DQ" ):
+        from model.DeepCACLADQ import DeepCACLADQ
         model = DeepCACLADQ(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "DeepCACLADV" ):
+        from model.DeepCACLADV import DeepCACLADV
         model = DeepCACLADV(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "Deep_DPG" ):
+        from model.DeepDPG import DeepDPG
         model = DeepDPG(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "Deep_DPG_DQ" ):
+        from model.DeepDPGDQ import DeepDPGDQ
         model = DeepDPGDQ(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "Deep_DPG_2" ):
+        from model.DeepDPG2 import DeepDPG2
         model = DeepDPG2(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "CACLA" ):
@@ -285,6 +276,7 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
 def createEnvironment(config_file, env_type, settings, render=False):
     
     if env_type == 'ballgame_2d':
+        from env.BallGame2D import BallGame2D
         file = open(config_file)
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
@@ -294,6 +286,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = BallGame2DEnv(exp, settings)
         return exp
     elif env_type == 'ballgame_1d':
+        from env.BallGame1D import BallGame1D
         file = open(config_file)
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
@@ -303,6 +296,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = BallGame1DEnv(exp, settings)
         return exp
     elif env_type == 'gapgame_1d':
+        from env.GapGame1D import GapGame1D
         file = open(config_file)
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
@@ -312,6 +306,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = GapGame1DEnv(exp, settings)
         return exp
     elif env_type == 'gapgame_2d':
+        from env.GapGame2D import GapGame2D
         file = open(config_file)
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))

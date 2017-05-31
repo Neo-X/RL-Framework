@@ -173,7 +173,7 @@ class PPOCritic2(AlgorithmInterface):
         # self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._actor_regularization ))
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
-        self._actLoss = (-1.0 * T.mean(self._actLoss_)) + (1.0 *self._actor_regularization) + (-1e-6 * entropy(self._q_valsActASTD))
+        self._actLoss = (-1.0 * T.mean(self._actLoss_)) + (1.0 *self._actor_regularization) + (-1e-3 * entropy(self._q_valsActASTD))
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
@@ -387,7 +387,7 @@ class PPOCritic2(AlgorithmInterface):
             old_params = np.array(lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork()))
             param_direction = current_params - old_params
             alpha_ = 0.5
-            for alpha in range(20):
+            for alpha in range(iters):
                 # alpha_ = float(alpha)/iters
                 tmp_params = (old_params) + (param_direction * alpha_)
                 tmp_params_list = [i for i in tmp_params]
