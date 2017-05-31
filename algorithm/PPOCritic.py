@@ -414,6 +414,9 @@ class PPOCritic(AlgorithmInterface):
         ## Sometimes really HUGE losses appear, ocasionally
         if (np.abs(np.mean(self._get_action_diff())) < 10): 
             lossActor, _ = self._trainActor()
+        else:
+            print ("Did not train actor this time")
+    
         print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
         # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
         print( " Actor loss: ", lossActor)

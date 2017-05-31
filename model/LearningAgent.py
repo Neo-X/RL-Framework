@@ -107,7 +107,8 @@ class LearningAgent(AgentInterface):
                 for i in range(self._settings['critic_updates_per_actor_update']):
                     # print ("Number of samples:", self._expBuff.samples())
                     states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
-                    cost = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                    # cost = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                    cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                 # self._expBuff.clear()
             if (self._settings['train_actor']):
                 cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)

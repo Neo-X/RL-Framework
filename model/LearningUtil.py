@@ -41,10 +41,11 @@ def change_penalty(network1, network2):
     return sum(T.sum((x1-x2)**2) for x1,x2 in zip(get_all_params(network1), get_all_params(network2)))
 
 def get_params_flat(var_list):
-    return [v.flatten() for v in var_list]
-
+    return np.concatenate([v.flatten() for v in var_list])
+"""
 def set_params_flat(model, var_list):
     return [v.flatten() for v in var_list]
+"""
 
 def flatgrad(loss, var_list):
     """
@@ -68,9 +69,16 @@ def setFromFlat(var_list, theta):
     start = 0
     updates = []
     for v in var_list:
+        # print("Start: ", start, " theta length: ", len(theta))
         shape = v.shape
+        # print ("Shape: ", shape)
         size = np.prod(shape)
-        updates.append(np.array(theta[start:start+size].reshape(shape)))
+        # print ("Size: ", size)
+        tmp_theta = np.array(theta[start:start+size])
+        # print ("theta: ", tmp_theta)
+        tmp_theta = tmp_theta.reshape(shape)
+        # print ("new theta shape: ", tmp_theta.shape)
+        updates.append(tmp_theta)
         start += size
     return updates
     # self.op = theano.function([theta],[], updates=updates,**FNOPTS)

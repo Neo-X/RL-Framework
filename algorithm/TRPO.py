@@ -10,6 +10,7 @@
 import theano
 from theano import tensor as T
 from lasagne.layers import get_all_params
+from collections import OrderedDict
 import numpy as np
 import lasagne
 import sys
@@ -435,12 +436,12 @@ class TRPO(AlgorithmInterface):
             neggdotstepdir = -g.dot(stepdir)
             def loss(th):
                 # self.set_params_flat(th)
-                params_tmp = setFromFlat(thprev, th)
+                params_tmp = setFromFlat(all_paramsActA, th)
                 lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params_tmp)
                 return self.compute_losses(*args)[0] #pylint: disable=W0640
             success, theta = linesearch(loss, thprev, fullstep, neggdotstepdir/lm)
             print "success", success
-            params_tmp = setFromFlat(thprev, th)
+            params_tmp = setFromFlat(all_paramsActA, theta)
             lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params_tmp)
             # self.set_params_flat(theta)
         losses_after = self.compute_losses(*args)
