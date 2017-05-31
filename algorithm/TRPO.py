@@ -77,8 +77,9 @@ class TRPO(AlgorithmInterface):
         
         ## prevent value from being 0
         self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 1e-3
-        self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
-        self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
+        self._q_valsActTarget_ = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())
+        self._q_valsActTarget = self._q_valsActTarget_[:,:self._action_length]
+        self._q_valsActTargetSTD = self._q_valsActTarget_[:,self._action_length:]
         self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 1e-3
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
@@ -189,9 +190,9 @@ class TRPO(AlgorithmInterface):
         surr = self._actLoss * (1.0/N)
         self.pg = flatgrad(surr, params)
 
-        # prob_mean_fixed = theano.gradient.disconnected_grad(prob_np)
-        # prob_std_fixed = theano.gradient.disconnected_grad(prob_np)
-        kl_firstfixed = kl(self._q_valsActTarget, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length).sum()/N
+        prob_mean_fixed = theano.gradient.disconnected_grad(self._q_valsActA)
+        prob_std_fixed = theano.gradient.disconnected_grad(self._q_valsActASTD)
+        kl_firstfixed = kl(prob_mean_fixed, prob_std_fixed, self._q_valsActA, self._q_valsActASTD, self._action_length).sum()/N
         grads = T.grad(kl_firstfixed, params)
         self.flat_tangent = T.fvector(name="flat_tan")
         shapes = [var.get_value(borrow=True).shape for var in params]
@@ -214,7 +215,14 @@ class TRPO(AlgorithmInterface):
         self.args = [self._model.getStateSymbolicVariable(), 
                      self._model.getActionSymbolicVariable(), 
                      self._advantage,
-                     lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())]
+                     self._q_valsActTarget_]
+        
+        
+        self.args_fvp = [self._model.getStateSymbolicVariable(), 
+                     # self._model.getActionSymbolicVariable()
+                     # self._advantage,
+                     # self._q_valsActTarget_
+                     ]
         
         # actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct_drop) + 
         #   (self._regularization_weight * lasagne.regularization.regularize_network_params(
@@ -312,7 +320,7 @@ class TRPO(AlgorithmInterface):
         
         self.compute_policy_gradient = theano.function(self.args, self.pg)
         self.compute_losses = theano.function(self.args, self.losses)
-        self.compute_fisher_vector_product = theano.function([self.flat_tangent] + self.args, self.fvp)
+        self.compute_fisher_vector_product = theano.function([self.flat_tangent] + self.args_fvp, self.fvp)
         
     def updateTargetModel(self):
         print ("Updating target Model")

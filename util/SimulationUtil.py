@@ -47,14 +47,6 @@ from algorithm.CACLA2 import CACLA2
 from algorithm.CACLADV import CACLADV
 from algorithm.CACLADVTarget import CACLADVTarget
 from algorithm.ForwardDynamics import ForwardDynamics
-from algorithm.A3C import A3C
-from algorithm.A3C2 import A3C2
-from algorithm.CACLAEntropy import CACLAEntropy
-from algorithm.TRPO import TRPO
-from algorithm.PPO import PPO
-from algorithm.AP_CACLA import AP_CACLA
-from algorithm.PPOCritic import PPOCritic
-from algorithm.PPOCritic2 import PPOCritic2
 
 from util.ExperienceMemory import ExperienceMemory
 from RLVisualize import RLVisualize
@@ -246,27 +238,35 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
         model = DoubleDeepQNetwork(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "A3C" ):
+        from algorithm.A3C import A3C
         model = A3C(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "A3C2" ):
+        from algorithm.A3C2 import A3C2
         model = A3C2(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "TRPO" ):
+        from algorithm.TRPO import TRPO
         model = TRPO(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "PPO" ):
+        from algorithm.PPO import PPO
         model = PPO(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "AP_CACLA" ):
+        from algorithm.AP_CACLA import AP_CACLA
         model = AP_CACLA(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)    
     elif (algorihtm_type == "PPO_Critic" ):
+        from algorithm.PPOCritic import PPOCritic
         model = PPOCritic(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "PPO_Critic_2" ):
+        from algorithm.PPOCritic2 import PPOCritic2
         model = PPOCritic2(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "CACLA_Entropy" ):
+        from algorithm.CACLAEntropy import CACLAEntropy
         model = CACLAEntropy(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     else:
