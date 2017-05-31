@@ -18,18 +18,6 @@ from util.ExperienceMemory import ExperienceMemory
 from RLVisualize import RLVisualize
 from NNVisualize import NNVisualize
 
-#Sampler types
-from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
-from model.ForwardDynamicsCNN import ForwardDynamicsCNN
-from model.ForwardDynamicsCNN2 import ForwardDynamicsCNN2
-from model.ForwardDynamicsCNN3 import ForwardDynamicsCNN3
-from model.ForwardDynamicsCNNTile import ForwardDynamicsCNNTile
-from model.ForwardDynamicsSimulator import ForwardDynamicsSimulator
-from model.ForwardDynamicsSimulatorParallel import ForwardDynamicsSimulatorParallel
-from model.Sampler import Sampler
-from model.BruteForceSampler import BruteForceSampler
-from model.SequentialMCSampler import SequentialMCSampler
-from model.ForwardPlanner import ForwardPlanner
 
 
 import random
