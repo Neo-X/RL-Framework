@@ -12,38 +12,11 @@ sys.path.append("../simAdapter/")
 import math
 import numpy as np
 
-from env.BallGame2D import BallGame2D
-from env.BallGame1D import BallGame1D
-from env.GapGame1D import GapGame1D
-from env.GapGame2D import GapGame2D
 from ModelEvaluation import *
 
 from util.ExperienceMemory import ExperienceMemory
 from RLVisualize import RLVisualize
 from NNVisualize import NNVisualize
-
-from actor.ActorInterface import ActorInterface
-from actor.BallGame2DActor import BallGame2DActor
-from actor.BallGame1DActor import BallGame1DActor
-from actor.GapGame1DActor import GapGame1DActor
-from actor.GapGame2DActor import GapGame2DActor
-from actor.SimbiconActor import SimbiconActor
-from actor.ImitationActor import ImitationActor
-from actor.TerrainRLActor import TerrainRLActor
-from actor.TerrainRLImitationActor import TerrainRLImitationActor
-from actor.PaperGibbonAgent import PaperGibbonAgent
-
-from sim.PendulumEnvState import PendulumEnvState
-from sim.PendulumEnv import PendulumEnv
-from sim.SimbiconEnv import SimbiconEnv
-from sim.TerrainRLEnv import TerrainRLEnv
-from sim.TerrainRLFlatEnv import TerrainRLFlatEnv
-from sim.TerrainRLImitateEnv import TerrainRLImitateEnv
-from sim.BallGame2DEnv import BallGame2DEnv
-from sim.BallGame1DEnv import BallGame1DEnv
-from sim.GapGame1DEnv import GapGame1DEnv
-from sim.GapGame2DEnv import GapGame2DEnv
-from sim.PaperGibbonEnv import PaperGibbonEnv
 
 #Sampler types
 from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
@@ -277,6 +250,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
     
     if env_type == 'ballgame_2d':
         from env.BallGame2D import BallGame2D
+        from sim.BallGame2DEnv import BallGame2DEnv
         file = open(config_file)
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
@@ -287,6 +261,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         return exp
     elif env_type == 'ballgame_1d':
         from env.BallGame1D import BallGame1D
+        from sim.BallGame1DEnv import BallGame1DEnv
         file = open(config_file)
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
@@ -297,6 +272,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         return exp
     elif env_type == 'gapgame_1d':
         from env.GapGame1D import GapGame1D
+        from sim.GapGame1DEnv import GapGame1DEnv
         file = open(config_file)
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
@@ -307,6 +283,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         return exp
     elif env_type == 'gapgame_2d':
         from env.GapGame2D import GapGame2D
+        from sim.GapGame2DEnv import GapGame2DEnv
         file = open(config_file)
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
@@ -318,6 +295,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D') or 
           (env_type == 'simbiconBiped2DTerrain')):
         import simbiconAdapter
+        from sim.SimbiconEnv import SimbiconEnv
         c = simbiconAdapter.Configuration(config_file)
         print ("Num state: ", c._NUMBER_OF_STATES)
         c._RENDER = render
@@ -328,6 +306,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         return exp
     elif env_type == 'terrainRLBiped2D':
         import terrainRLAdapter
+        from sim.TerrainRLEnv import TerrainRLEnv
         sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
         sim.setRender(render)
         # sim.init(['train', '-arg_file=', config_file])
@@ -339,6 +318,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         return exp
     elif env_type == 'terrainRLFlatBiped2D':
         import terrainRLAdapter
+        from sim.TerrainRLFlatEnv import TerrainRLFlatEnv
         sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
         sim.setRender(render)
         # sim.init(['train', '-arg_file=', config_file])
@@ -350,6 +330,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         return exp
     elif env_type == 'terrainRLImitateBiped2D':
         import terrainRLAdapter
+        from sim.TerrainRLImitateEnv import TerrainRLImitateEnv
         sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
         sim.setRender(render)
         # sim.init(['train', '-arg_file=', config_file])
@@ -367,18 +348,23 @@ def createEnvironment(config_file, env_type, settings, render=False):
     exp = characterSim.Experiment(c)
     # print ("Num state: ", exp._config._NUMBER_OF_STATES)
     if env_type == 'pendulum_env_state':
+        from sim.PendulumEnvState import PendulumEnvState
         print ("Using Environment Type: " + str(env_type))
         exp = PendulumEnvState(exp, settings)
     elif env_type == 'pendulum_env':
+        from sim.PendulumEnv import PendulumEnv
         print ("Using Environment Type: " + str(env_type))
         exp = PendulumEnv(exp, settings)
     elif env_type == 'pendulum3D_env':
+        from sim.PendulumEnv import PendulumEnv
         print ("Using Environment Type: " + str(env_type))
         exp = PendulumEnv(exp, settings)
     elif env_type == 'pendulum_3D_env':
+        from sim.PendulumEnv import PendulumEnv
         print ("Using Environment Type: " + str(env_type))
         exp = PendulumEnv(exp, settings)
     elif env_type == 'paperGibbon_env':
+        from sim.PaperGibbonEnv import PaperGibbonEnv
         print ("Using Environment Type: " + str(env_type))
         exp = PaperGibbonEnv(exp, settings)
     else:
@@ -391,25 +377,35 @@ def createEnvironment(config_file, env_type, settings, render=False):
 def createActor(env_type, settings, experience):
     actor=None
     if env_type == 'ballgame_2d':
+        from actor.BallGame2DActor import BallGame2DActor
         actor = BallGame2DActor(settings, experience)
     elif env_type == 'ballgame_1d':
+        from actor.BallGame1DActor import BallGame1DActor
         actor = BallGame1DActor(settings, experience)
     elif env_type == 'gapgame_1d':
+        from actor.GapGame1DActor import GapGame1DActor
         actor = GapGame1DActor(settings, experience)
     elif env_type == 'gapgame_2d':
+        from actor.GapGame2DActor import GapGame2DActor
         actor = GapGame2DActor(settings, experience)
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or
           (env_type == 'simbiconBiped2DTerrain')):
+        from actor.SimbiconActor import SimbiconActor
         actor = SimbiconActor(settings, experience)
     elif (env_type == 'Imitate3D') :
+        from actor.ImitationActor import ImitationActor
         actor = ImitationActor(settings, experience)
     elif env_type == 'terrainRLBiped2D' or (env_type == 'terrainRLFlatBiped2D'):
+        from actor.TerrainRLActor import TerrainRLActor
         actor = TerrainRLActor(settings, experience)
     elif (env_type == 'terrainRLImitateBiped2D'):
+        from actor.TerrainRLImitationActor import TerrainRLImitationActor
         actor = TerrainRLImitationActor(settings, experience)
     elif (env_type == 'paperGibbon_env'):
+        from actor.PaperGibbonAgent import PaperGibbonAgent
         actor = PaperGibbonAgent(settings, experience)
     else:
+        from actor.ActorInterface import ActorInterface
         actor = ActorInterface(settings, experience)
     
     return actor
@@ -437,15 +433,18 @@ def createSampler(settings, exp):
 def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp):
     
     if settings["forward_dynamics_predictor"] == "simulator":
+        from model.ForwardDynamicsSimulator import ForwardDynamicsSimulator
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
         forwardDynamicsModel = ForwardDynamicsSimulator(len(state_bounds[0]), len(action_bounds[0]), 
                                                         state_bounds, action_bounds, actor, exp, settings)
     elif settings["forward_dynamics_predictor"] == "simulator_parallel":
+        from model.ForwardDynamicsSimulatorParallel import ForwardDynamicsSimulatorParallel
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
         forwardDynamicsModel = ForwardDynamicsSimulatorParallel(len(state_bounds[0]), len(action_bounds[0]), 
                                                         state_bounds, action_bounds, actor, exp, settings)
         forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, exp, settings)
     elif settings["forward_dynamics_predictor"] == "saved_network":
+        # from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
         file_name_dynamics=data_folder+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
         forwardDynamicsModel = dill.load(open(file_name_dynamics))
@@ -472,23 +471,28 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
 def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
     
     if settings["forward_dynamics_model_type"] == "Deep_NN":
+        from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
         print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         forwardDynamicsNetwork = ForwardDynamicsNetwork(len(state_bounds[0]), len(action_bounds[0]), 
                                                         state_bounds, action_bounds, settings)
     elif settings["forward_dynamics_model_type"] == "Deep_CNN":
+        from model.ForwardDynamicsCNN import ForwardDynamicsCNN
         print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         forwardDynamicsNetwork = ForwardDynamicsCNN(len(state_bounds[0]), len(action_bounds[0]), 
                                                         state_bounds, action_bounds, settings)
     elif settings["forward_dynamics_model_type"] == "Deep_CNN_Tile":
+        from model.ForwardDynamicsCNNTile import ForwardDynamicsCNNTile
         print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         forwardDynamicsNetwork = ForwardDynamicsCNNTile(len(state_bounds[0]), len(action_bounds[0]), 
                                                         state_bounds, action_bounds, settings)
     elif settings["forward_dynamics_model_type"] == "Deep_CNN2":
+        from model.ForwardDynamicsCNN2 import ForwardDynamicsCNN2
         print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         forwardDynamicsNetwork = ForwardDynamicsCNN2(len(state_bounds[0]), len(action_bounds[0]), 
                                                         state_bounds, action_bounds, settings)
         
     elif settings["forward_dynamics_model_type"] == "Deep_CNN3":
+        from model.ForwardDynamicsCNN3 import ForwardDynamicsCNN3
         print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         forwardDynamicsNetwork = ForwardDynamicsCNN3(len(state_bounds[0]), len(action_bounds[0]), 
                                                         state_bounds, action_bounds, settings)       

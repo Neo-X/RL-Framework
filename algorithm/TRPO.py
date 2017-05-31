@@ -16,7 +16,7 @@ import sys
 import copy
 sys.path.append('../')
 from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std
-from model.LearningUtil import loglikelihood, kl, entropy, flatgrad, zipsame, get_params_flat
+from model.LearningUtil import loglikelihood, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
 from algorithm.AlgorithmInterface import AlgorithmInterface
 
 
@@ -194,7 +194,7 @@ class TRPO(AlgorithmInterface):
         prob_std_fixed = theano.gradient.disconnected_grad(self._q_valsActASTD)
         kl_firstfixed = kl(prob_mean_fixed, prob_std_fixed, self._q_valsActA, self._q_valsActASTD, self._action_length).sum()/N
         grads = T.grad(kl_firstfixed, params)
-        self.flat_tangent = T.fvector(name="flat_tan")
+        self.flat_tangent = T.vector(name="flat_tan")
         shapes = [var.get_value(borrow=True).shape for var in params]
         start = 0
         tangents = []
@@ -434,11 +434,15 @@ class TRPO(AlgorithmInterface):
             fullstep = stepdir / lm
             neggdotstepdir = -g.dot(stepdir)
             def loss(th):
-                self.set_params_flat(th)
+                # self.set_params_flat(th)
+                params_tmp = setFromFlat(thprev, th)
+                lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params_tmp)
                 return self.compute_losses(*args)[0] #pylint: disable=W0640
             success, theta = linesearch(loss, thprev, fullstep, neggdotstepdir/lm)
             print "success", success
-            self.set_params_flat(theta)
+            params_tmp = setFromFlat(thprev, th)
+            lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params_tmp)
+            # self.set_params_flat(theta)
         losses_after = self.compute_losses(*args)
 
         out = OrderedDict()

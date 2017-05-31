@@ -43,6 +43,9 @@ def change_penalty(network1, network2):
 def get_params_flat(var_list):
     return [v.flatten() for v in var_list]
 
+def set_params_flat(model, var_list):
+    return [v.flatten() for v in var_list]
+
 def flatgrad(loss, var_list):
     """
         Returns the gradient as a vector instead of alist of vectors
@@ -50,19 +53,27 @@ def flatgrad(loss, var_list):
     grads = T.grad(loss, var_list)
     return T.concatenate([g.flatten() for g in grads])
 
-def setFromFlat(var_list, flat_grad):
+def setFromFlat(var_list, theta):
     """
         Probably does not work...
+        
+        var_list: list of parameter vectors of the same shape of the desired output
+        theta: the input parameters to create a list out of
+        
+        Returns
+        --------
+        updates: A list of the same shape as var_list with the values of theta
     """
-    theta = T.vector()
+    # theta = T.vector()
     start = 0
     updates = []
     for v in var_list:
         shape = v.shape
-        size = T.prod(shape)
-        updates.append((v, theta[start:start+size].reshape(shape)))
+        size = np.prod(shape)
+        updates.append(np.array(theta[start:start+size].reshape(shape)))
         start += size
-    self.op = theano.function([theta],[], updates=updates,**FNOPTS)
+    return updates
+    # self.op = theano.function([theta],[], updates=updates,**FNOPTS)
     
 def entropy(std):
     """
