@@ -20,72 +20,11 @@ import lasagne
 import sys
 import copy
 sys.path.append('../')
-from model.ModelUtil import *
+from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std
+from model.LearningUtil import loglikelihood, kl, entropy
 from algorithm.AlgorithmInterface import AlgorithmInterface
 
-def change_penalty(network1, network2):
-    """
-    The networks should be the same shape and design
-    return ||network1 - network2||_2
-    """
-    return sum(T.sum((x1-x2)**2) for x1,x2 in zip(get_all_params(network1), get_all_params(network2)))
 
-def flatgrad(grads, var_list):
-    grads = T.grad(loss, var_list)
-    return T.concatenate([g.flatten() for g in grads])
-
-def setFromFlat(var_list, flat_grad):
-        
-        theta = T.vector()
-        start = 0
-        updates = []
-        for v in var_list:
-            shape = v.shape
-            size = T.prod(shape)
-            updates.append((v, theta[start:start+size].reshape(shape)))
-            start += size
-        self.op = theano.function([theta],[], updates=updates,**FNOPTS)
-
-def zipsame(*seqs):
-    L = len(seqs[0])
-    assert all(len(seq) == L for seq in seqs[1:])
-    return zip(*seqs)
-
-
-def kl(mean0, std0, mean1, std1, d):
-    """
-        The first districbution should be from a fixed distribution. 
-        The second should be from the distribution that will change from the parameter update.
-        Parameters
-        ----------
-        mean0: mean of fixed distribution
-        std0: standard deviation of fixed distribution
-        mean1: mean of moving distribution
-        std1: standard deviation of moving distribution
-        d: is the dimensionality of the action space
-        
-        Return(s)
-        ----------
-        Vector: Of kl_divergence for each sample/row in the input data
-    """
-    return T.log(std1 / std0).sum(axis=1) + ((T.square(std0) + T.square(mean0 - mean1)) / (2.0 * T.square(std1))).sum(axis=1) - 0.5 * d
-
-def loglikelihood(a, mean0, std0, d):
-    """
-        d is the number of action dimensions
-    """
-    
-    # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
-    return T.reshape(- 0.5 * (T.square(a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(-1, 1))
-    # return (- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1))
-
-
-def likelihood(a, mean0, std0, d):
-    return T.exp(loglikelihood(a, mean0, std0, d))
-
-# For debugging
-# theano.config.mode='FAST_COMPILE'
-# from DeepCACLA import DeepCACLA
 
 class PPOCritic2(AlgorithmInterface):
     
@@ -234,7 +173,7 @@ class PPOCritic2(AlgorithmInterface):
         # self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._actor_regularization ))
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
-        self._actLoss = (-1.0 * T.mean(self._actLoss_)) + (1.0 *self._actor_regularization)
+        self._actLoss = (-1.0 * T.mean(self._actLoss_)) + (1.0 *self._actor_regularization) + (-1e-3 * entropy(self._q_valsActASTD))
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)

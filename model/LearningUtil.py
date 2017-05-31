@@ -13,7 +13,7 @@ import lasagne
 import sys
 import copy
 sys.path.append('../')
-from model.ModelUtil import *
+# from model.ModelUtil import *
 
 def kl(mean0, std0, mean1, std1, d):
     """
@@ -40,11 +40,11 @@ def change_penalty(network1, network2):
     """
     return sum(T.sum((x1-x2)**2) for x1,x2 in zip(get_all_params(network1), get_all_params(network2)))
 
-def flatgrad(grads, var_list):
+def flatgrad(loss, var_list):
     """
         Returns the gradient as a vector instead of alist of vectors
     """
-    # grads = T.grad(loss, var_list)
+    grads = T.grad(loss, var_list)
     return T.concatenate([g.flatten() for g in grads])
 
 def setFromFlat(var_list, flat_grad):
@@ -66,3 +66,20 @@ def entropy(std):
         Computes the entropy for a Guassian distribution given the std.
     """
     return 0.5 * T.mean(T.log(2 * np.pi * std ) + 1 )
+
+def loglikelihood(a, mean0, std0, d):
+    """
+        d is the number of action dimensions
+    """
+    # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
+    return T.reshape(- 0.5 * (T.square(a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(-1, 1))
+    # return (- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1))
+
+
+def likelihood(a, mean0, std0, d):
+    return T.exp(loglikelihood(a, mean0, std0, d))
+
+def zipsame(*seqs):
+    L = len(seqs[0])
+    assert all(len(seq) == L for seq in seqs[1:])
+    return zip(*seqs)
