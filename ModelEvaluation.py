@@ -45,7 +45,8 @@ class SimWorker(Process):
         self._message_queue = message_que
     
     def current_mem_usage(self):
-        # return resources.getrusage(resources.RUSAGE_SELF).ru_maxrss / 1024.
+        import resources
+        return resources.getrusage(resources.RUSAGE_SELF).ru_maxrss / 1024.
         return 0
 
     def setEnvironment(self, exp_):
