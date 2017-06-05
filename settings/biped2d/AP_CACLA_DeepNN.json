@@ -215,5 +215,5 @@
 	"comment__": "Whether or not to collects tuples in batches, this can be good for multi-threading or computing furture discounted reward",
 "collect_tuples_in_batches":false,
 	"comment__": "What type of regularization to use",
-"regularization_type": "kl",
+"regularization_type": "kl"
 }
