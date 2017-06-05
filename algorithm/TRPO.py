@@ -451,6 +451,9 @@ class TRPO(AlgorithmInterface):
             out[lname+"_before"] = lbefore
             out[lname+"_after"] = lafter
         return out
+    
+        print( "Losses before: ", self.loss_names, ", ", losses_before)
+        print( "Losses after: ", self.loss_names, ", ", losses_after)
         
         # print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
         # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
