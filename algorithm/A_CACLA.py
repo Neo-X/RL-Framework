@@ -20,11 +20,11 @@ def change_penalty(network1, network2):
 # theano.config.mode='FAST_COMPILE'
 # from DeepCACLA import DeepCACLA
 
-class A3C(AlgorithmInterface):
+class A_CACLA(AlgorithmInterface):
     
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
-        super(A3C,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(A_CACLA,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
         # create a small convolutional neural network
         
@@ -169,7 +169,7 @@ class A3C(AlgorithmInterface):
         
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
-        A3C.compile(self)
+        A_CACLA.compile(self)
         
     def compile(self):
         
@@ -276,7 +276,7 @@ class A3C(AlgorithmInterface):
         
         return loss
     
-    def trainActor(self, states, actions, rewards, result_states, falls):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage):
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
         # if (( self._updates % self._weight_update_steps) == 0):

@@ -193,9 +193,9 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
         print ("Using model type ", algorihtm_type , " with ", len(action_bounds), " actions")
         model = DoubleDeepQNetwork(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
-    elif (algorihtm_type == "A3C" ):
-        from algorithm.A3C import A3C
-        model = A3C(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+    elif (algorihtm_type == "A_CACLA" ):
+        from algorithm.A_CACLA import A_CACLA
+        model = A_CACLA(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "A3C2" ):
         from algorithm.A3C2 import A3C2
