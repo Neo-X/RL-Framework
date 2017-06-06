@@ -50,7 +50,7 @@ class Hopper2DActor(ActorInterface):
             exp.getEnvironment().update()
             simData = exp.getEnvironment().getActor().getSimData()
             position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
-            print ("avgSpeed: ", simData.avgSpeed)
+            # print ("avgSpeed: ", simData.avgSpeed)
             vel_sum += simData.avgSpeed
             torque_sum += math.fabs( self._target_torque - simData.avgTorque)
             
@@ -64,8 +64,8 @@ class Hopper2DActor(ActorInterface):
         averagePosition = position_sum / steps_
              
         # averageSpeed = exp.getEnvironment().act(action_)
-        print ("root position: ", position_root)
-        print ("averageSpeed: ", averageSpeed)
+        # print ("root position: ", position_root)
+        # print ("averageSpeed: ", averageSpeed)
         # if (averageSpeed < 0.0):
         #     return 0.0
         if (exp.getEnvironment().agentHasFallen()):
