@@ -50,8 +50,8 @@ class Hopper2DActor(ActorInterface):
             exp.getEnvironment().update()
             simData = exp.getEnvironment().getActor().getSimData()
             position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
-            # print ("avgSpeed: ", simData.avgSpeed)
-            vel_sum += math.fabs(self._target_vel - simData.avgSpeed)
+            print ("avgSpeed: ", simData.avgSpeed)
+            vel_sum += simData.avgSpeed
             torque_sum += math.fabs( self._target_torque - simData.avgTorque)
             
             # orientation = exp.getEnvironment().getActor().getStateEuler()[3:][:3]
@@ -64,7 +64,8 @@ class Hopper2DActor(ActorInterface):
         averagePosition = position_sum / steps_
              
         # averageSpeed = exp.getEnvironment().act(action_)
-        # print ("averageSpeed: ", averageSpeed)
+        print ("root position: ", position_root)
+        print ("averageSpeed: ", averageSpeed)
         # if (averageSpeed < 0.0):
         #     return 0.0
         if (exp.getEnvironment().agentHasFallen()):
@@ -75,7 +76,7 @@ class Hopper2DActor(ActorInterface):
         # print ("Pos: ", position_root)
         # print ("Orientation: ", orientation)
         ## Reward for going the desired velocity
-        vel_diff = averageSpeed
+        vel_diff = math.fabs(self._target_vel - averageSpeed)
         if (self._settings["print_level"]== 'debug'):
             print ("vel_diff: ", vel_diff)
         # if ( self._settings["use_parameterized_control"] ):
@@ -102,10 +103,10 @@ class Hopper2DActor(ActorInterface):
         
         # print ("vel reward: ", vel_reward, " torque reward: ", torque_reward )
         reward = ( 
-                  (vel_reward * self._settings['controller_reward_weights']['velocity']) +
-                  (torque_reward * self._settings['controller_reward_weights']['torque']) +
+                  (vel_reward * self._settings['controller_reward_weights']['velocity'])
+                  # + (torque_reward * self._settings['controller_reward_weights']['torque']) +
                   # (lean_reward * self._settings['controller_reward_weights']['root_pitch']) + 
-                  ((root_height_reward) * self._settings['controller_reward_weights']['root_height']) 
+                  # + ((root_height_reward) * self._settings['controller_reward_weights']['root_height']) 
                   # (right_hand_pos_x_reward * self._settings['controller_reward_weights']['right_hand_x_pos'])
                   )# optimal is 0
         
