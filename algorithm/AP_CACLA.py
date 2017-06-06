@@ -344,7 +344,7 @@ class AP_CACLA(AlgorithmInterface):
             # print( " Actor loss: ", lossActor)
             # print("Diff for actor: ", self._get_diff())
             # print ("Tmp_diff: ", tmp_diff)
-            # print ( "Action before diff: ", self._get_actor_diff_())
+            print ( "Action before diff: ", self._get_actor_diff_())
             # print( "Action diff: ", self._get_action_diff())
             # return np.sqrt(lossActor);
             kl_after = self.kl_divergence()
@@ -374,8 +374,8 @@ class AP_CACLA(AlgorithmInterface):
     def predict(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -390,8 +390,8 @@ class AP_CACLA(AlgorithmInterface):
     def predictWithDropout(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -405,8 +405,8 @@ class AP_CACLA(AlgorithmInterface):
     def q_value(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
@@ -425,8 +425,8 @@ class AP_CACLA(AlgorithmInterface):
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         return scale_reward(self._q_val_drop(), self.getRewardBounds())[0]
     

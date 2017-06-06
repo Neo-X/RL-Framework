@@ -316,7 +316,7 @@ class A3C2(AlgorithmInterface):
         
         return loss
     
-    def trainActor(self, states, actions, rewards, result_states, falls):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage):
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
         # if (( self._updates % self._weight_update_steps) == 0):
@@ -405,8 +405,8 @@ class A3C2(AlgorithmInterface):
     def predict(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -421,8 +421,8 @@ class A3C2(AlgorithmInterface):
     def predict_std(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -437,8 +437,8 @@ class A3C2(AlgorithmInterface):
     def predictWithDropout(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -452,8 +452,8 @@ class A3C2(AlgorithmInterface):
     def q_value(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
@@ -472,8 +472,8 @@ class A3C2(AlgorithmInterface):
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         return scale_reward(self._q_val_drop(), self.getRewardBounds())[0]
     
