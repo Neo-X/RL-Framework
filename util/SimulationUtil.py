@@ -281,7 +281,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = GapGame2DEnv(exp, settings)
         return exp
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D') or 
-          (env_type == 'simbiconBiped2DTerrain') or (env_type == 'hopper2D')):
+          (env_type == 'simbiconBiped2DTerrain') or (env_type == 'hopper_2D')):
         import simbiconAdapter
         from sim.SimbiconEnv import SimbiconEnv
         c = simbiconAdapter.Configuration(config_file)
@@ -380,7 +380,7 @@ def createActor(env_type, settings, experience):
           (env_type == 'simbiconBiped2DTerrain')):
         from actor.SimbiconActor import SimbiconActor
         actor = SimbiconActor(settings, experience)
-    elif ((env_type == 'hopper2D')):
+    elif ((env_type == 'hopper_2D')):
         from actor.Hopper2DActor import Hopper2DActor
         actor = Hopper2DActor(settings, experience)
     elif (env_type == 'Imitate3D') :
