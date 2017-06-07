@@ -132,7 +132,7 @@ class LearningAgent(AgentInterface):
                         print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                         print ("Training cost is Odd: ", cost)
                 if (self._settings['train_actor']):
-                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
                 dynamicsLoss = 0 
                 if (self._settings['train_forward_dynamics']):
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
