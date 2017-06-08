@@ -9,6 +9,39 @@ from actor.DoNothingActor import DoNothingActor
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
+def reOrderMocapData(data, current_order, desired_order):
+    """
+    
+    -------
+    Parameters
+    
+    data: is a vector of doubles the makes up a pose
+    current_order: is a list of dicts of the form
+    [{"root_pos":
+        {"start_index":1,
+        "data_length":3}},
+    {"root_rot":
+        {"start_index":4,
+        "data_length":4}},
+    {"pelvis_torso":
+        {"start_index":8,
+        "data_length":4}},
+    {"rHip":
+        {"start_index":12,
+        "data_length":4}},
+    ...
+    ]
+    desired_order: is a list of strings that match the names of the joints in the current_order
+    dicts
+    """
+    old_data = copy.deepcopy(data)
+    current_index = 0
+    for joint in desired_order:
+        data[current_index:current_index+current_order[joint]['data_length']] = old_data[current_order[joint]['start_index']:(current_order[joint]['start_index']+current_order[joint]['data_length'])] 
+        current_index = current_index + current_order[joint]['data_length']
+        # print ("Current index: ", current_index, " data: ", data)
+        
+    return data
 
 class MocapImitationEnv(SimInterface):
 
@@ -23,6 +56,34 @@ class MocapImitationEnv(SimInterface):
         self.getEnvironment().initEpoch()
         # self.getAgent().initEpoch()
         
+    def init(self):
+        self.getEnvironment().init()
+                ### Read motion file.
+    if ( len(sys.argv) == 3 ):
+        motionFileName = self.getSettings()['motion_file']
+        motionFile = open(motionFileName)
+        motionFileData = json.load(motionFile)
+        print ("motionFileData: " + str(json.dumps(motionFileData)))
+        motionFile.close()
+        motion = simbiconAdapter.Motion(len(motionFileData['Frames']), len(motionFileData['Frames'][0]))
+        print( "There are: ", len(motionFileData['Frames']), " frames of length: ", len(motionFileData['Frames'][0]))
+        desired_joint_order = ["knot", "root_pos", "root_rot", "pelvis_torso", "rHip", "lHip", "rKnee", "lKnee", "rAnkle", "lAnkle"]
+        ## To switch the ordering of the joints, a hack to produce the walking step from the other foot as well
+        # desired_joint_order = ["knot", "root_pos", "root_rot", "pelvis_torso", "lHip", "lKnee", "lAnkle", "rHip", "rKnee", "rAnkle"]
+        motionData = []
+        for rowIndex in range(len(motionFileData['Frames'])):
+            row = motionFileData['Frames'][rowIndex]
+            fixed_row = reOrderMocapData(row, motionFileData['joint_order'], desired_joint_order)
+            print ("Row length: ", len(fixed_row), " data: ", fixed_row)
+            motion.addFrame(fixed_row, rowIndex)
+            motionData.append(fixed_row)
+        
+        print ("MotionData: ", motionData)
+        motion.setFrameStep(0.0333);
+        self.getEnvironment().setMotion(motion)
+                                   
+                                   
+                                   
     def getEnvironment(self):
         return self._exp
     

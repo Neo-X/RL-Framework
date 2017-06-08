@@ -70,7 +70,7 @@ class SimWorker(Process):
             self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings, render=self._settings['shouldRender'])
             self._exp.setActor(self._actor)
             self._exp.getActor().init()   
-            self._exp.getEnvironment().init()
+            self._exp.init()
             ## The sampler might need this new model if threads > 1
             self._model.setEnvironment(self._exp)
         

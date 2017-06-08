@@ -282,7 +282,7 @@ def trainModelParallel(settingsFileName):
         exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'])
         exp_val.setActor(actor)
         exp_val.getActor().init()
-        exp_val.getEnvironment().init()
+        exp_val.init()
         
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings)

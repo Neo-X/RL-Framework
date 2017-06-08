@@ -23,7 +23,10 @@ class SimInterface(object):
         
     def getEnvironment(self):
         return self._exp
-    
+
+    def init(self):
+        self.getEnvironment().init()
+            
     def initEpoch(self):
         self.getEnvironment().initEpoch()
     
