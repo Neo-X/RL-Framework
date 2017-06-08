@@ -292,6 +292,17 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = SimbiconEnv(sim, settings)
         exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
+    elif ((env_type == 'mocapImitation2D')):
+        import simbiconAdapter
+        from sim.MocapImitationEnv import MocapImitationEnv
+        c = simbiconAdapter.Configuration(config_file)
+        print ("Num state: ", c._NUMBER_OF_STATES)
+        c._RENDER = render
+        sim = simbiconAdapter.SimbiconWrapper(c)
+        print ("Using Environment Type: " + str(env_type))
+        exp = MocapImitationEnv(sim, settings)
+        exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
+        return exp
     elif env_type == 'terrainRLBiped2D':
         import terrainRLAdapter
         from sim.TerrainRLEnv import TerrainRLEnv
@@ -380,6 +391,9 @@ def createActor(env_type, settings, experience):
           (env_type == 'simbiconBiped2DTerrain')):
         from actor.SimbiconActor import SimbiconActor
         actor = SimbiconActor(settings, experience)
+    elif ((env_type == 'mocapImitation2D')):
+        from actor.MocapImitationActor import MocapImitationActor
+        actor = MocapImitationActor(settings, experience)
     elif ((env_type == 'hopper_2D')):
         from actor.Hopper2DActor import Hopper2DActor
         actor = Hopper2DActor(settings, experience)
