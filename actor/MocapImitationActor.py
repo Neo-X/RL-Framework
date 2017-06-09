@@ -43,6 +43,7 @@ class MocapImitationActor(ActorInterface):
         vel_sum= float(0)
         torque_sum= float(0)
         position_sum = float(0)
+        pose_error_sum = float(0)
         while (not exp.getEnvironment().needUpdatedAction() or (steps_ == 0)):
             exp.getEnvironment().update()
             simData = exp.getEnvironment().getActor().getSimData()
@@ -53,10 +54,15 @@ class MocapImitationActor(ActorInterface):
             
             position_sum += math.fabs(self._target_root_height - position_root[1])
             
+            pose_error_sum += exp.getEnvironment().calcImitationReward()
+            
             steps_ += 1
         averageSpeed = vel_sum / steps_
         averageTorque = torque_sum / steps_
         averagePosition = position_sum / steps_
+        averagePoseError = pose_error_sum / steps_
+        
+        
              
         # averageSpeed = exp.getEnvironment().act(action_)
         # print ("averageSpeed: ", averageSpeed)
@@ -95,15 +101,24 @@ class MocapImitationActor(ActorInterface):
             print ("root_height_diff: ", root_height_diff)
         root_height_reward = reward_smoother(root_height_diff, self._settings, self._target_vel_weight)
         
+        pose_error = (averagePoseError)
+        if (self._settings["print_level"]== 'debug'):
+            print ("pose_error: ", pose_error)
+        # if ( self._settings["use_parameterized_control"] ):
+        pose_error_bounds = self._settings['controller_parameter_settings']['pose_error_bounds']
+        pose_error_diff = _scale_reward([pose_error], pose_error_bounds)[0]
+        if (self._settings["print_level"]== 'debug'):
+            print ("pose_error_diff: ", pose_error_diff)
+        pose_error_reward = reward_smoother(pose_error_diff, self._settings, self._target_vel_weight)
+        
         reward = ( 
-                  (vel_reward * self._settings['controller_reward_weights']['velocity']) +
-                  (torque_reward * self._settings['controller_reward_weights']['torque']) +
-                  ((root_height_reward) * self._settings['controller_reward_weights']['root_height'])
+                  (vel_reward * self._settings['controller_reward_weights']['velocity']) 
+                  + (torque_reward * self._settings['controller_reward_weights']['torque']) 
+                  + ((root_height_reward) * self._settings['controller_reward_weights']['root_height'])
+                  + ((pose_error_reward) * self._settings['controller_reward_weights']['pose_error'])
                   )# optimal is 0
         
         self._reward_sum = self._reward_sum + reward
-        if ( self._settings["use_parameterized_control"] ):
-            self.changeParameters()
         return reward
     
         
