@@ -40,26 +40,28 @@ class MocapImitationActor(ActorInterface):
         # print ("Relative Right arm pos: ", right_hand_pos-position_root)
         exp.getEnvironment().updateAction(action_)
         steps_ = 0
-        vel_sum= float(0)
+        vel_error_sum= float(0)
         torque_sum= float(0)
-        position_sum = float(0)
+        position_error_sum = float(0)
         pose_error_sum = float(0)
         while (not exp.getEnvironment().needUpdatedAction() or (steps_ == 0)):
             exp.getEnvironment().update()
             simData = exp.getEnvironment().getActor().getSimData()
-            position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
-            # print ("avgSpeed: ", simData.avgSpeed)
-            vel_sum += math.fabs(self._target_vel - simData.avgSpeed)
+            position_root = exp.getEnvironment().getActor().getStateEuler()[0:3]
+            vel_root = exp.getEnvironment().getActor().getStateEuler()[6:9]
+            if (self._settings["print_level"]== 'debug'):
+                print ("avgSpeed: ", simData.avgSpeed, " grabed speed: ", vel_root)
+            vel_error_sum += math.fabs(self._target_vel - vel_root[0])
             torque_sum += math.fabs( self._target_torque - simData.avgTorque)
             
-            position_sum += math.fabs(self._target_root_height - position_root[1])
+            position_error_sum += math.fabs(self._target_root_height - position_root[1])
             
             pose_error_sum += exp.getEnvironment().calcImitationReward()
             
             steps_ += 1
-        averageSpeed = vel_sum / steps_
+        averageSpeedError = vel_error_sum / steps_
         averageTorque = torque_sum / steps_
-        averagePosition = position_sum / steps_
+        averagePositionError = position_error_sum / steps_
         averagePoseError = pose_error_sum / steps_
         
         
@@ -76,30 +78,30 @@ class MocapImitationActor(ActorInterface):
         # print ("Pos: ", position_root)
         # print ("Orientation: ", orientation)
         ## Reward for going the desired velocity
-        vel_diff = averageSpeed
+        vel_diff = averageSpeedError
         if (self._settings["print_level"]== 'debug'):
             print ("vel_diff: ", vel_diff)
         # if ( self._settings["use_parameterized_control"] ):
         vel_bounds = self._settings['controller_parameter_settings']['velocity_bounds']
         vel_diff = _scale_reward([vel_diff], vel_bounds)[0]
-        if (self._settings["print_level"]== 'debug'):
-            print ("vel_diff: ", vel_diff)
         vel_reward = reward_smoother(vel_diff, self._settings, self._target_vel_weight)
+        if (self._settings["print_level"]== 'debug'):
+            print ("vel_reward: ", vel_reward)
         ## Rewarded for using less torque
         torque_diff = averageTorque
         _bounds = self._settings['controller_parameter_settings']['torque_bounds']
         torque_diff = _scale_reward([torque_diff], _bounds)[0]
         torque_reward = reward_smoother(torque_diff, self._settings, self._target_vel_weight)
         ## Rewarded for keeping the y height of the root at a specific height 
-        root_height_diff = (averagePosition)
+        root_height_diff = (averagePositionError)
         if (self._settings["print_level"]== 'debug'):
             print ("root_height_diff: ", root_height_diff)
         # if ( self._settings["use_parameterized_control"] ):
         root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
         root_height_diff = _scale_reward([root_height_diff], root_height_bounds)[0]
-        if (self._settings["print_level"]== 'debug'):
-            print ("root_height_diff: ", root_height_diff)
         root_height_reward = reward_smoother(root_height_diff, self._settings, self._target_vel_weight)
+        if (self._settings["print_level"]== 'debug'):
+            print ("root_height_reward: ", root_height_reward)
         
         pose_error = (averagePoseError)
         if (self._settings["print_level"]== 'debug'):
@@ -107,9 +109,9 @@ class MocapImitationActor(ActorInterface):
         # if ( self._settings["use_parameterized_control"] ):
         pose_error_bounds = self._settings['controller_parameter_settings']['pose_error_bounds']
         pose_error_diff = _scale_reward([pose_error], pose_error_bounds)[0]
-        if (self._settings["print_level"]== 'debug'):
-            print ("pose_error_diff: ", pose_error_diff)
         pose_error_reward = reward_smoother(pose_error_diff, self._settings, self._target_vel_weight)
+        if (self._settings["print_level"]== 'debug'):
+            print ("pose_error_reward: ", pose_error_reward)
         
         reward = ( 
                   (vel_reward * self._settings['controller_reward_weights']['velocity']) 
@@ -117,7 +119,8 @@ class MocapImitationActor(ActorInterface):
                   + ((root_height_reward) * self._settings['controller_reward_weights']['root_height'])
                   + ((pose_error_reward) * self._settings['controller_reward_weights']['pose_error'])
                   )# optimal is 0
-        # print ("Reward: ", reward)
+        if (self._settings["print_level"]== 'debug'):
+            print ("Reward: ", reward)
         
         self._reward_sum = self._reward_sum + reward
         return reward
