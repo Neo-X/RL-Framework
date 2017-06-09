@@ -75,7 +75,7 @@ def modelSampling(settings):
         exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
         agent.setEnvironment(exp)
         exp.getActor().init()   
-        exp.getEnvironment().init()
+        exp.init()
         
         if (settings['train_forward_dynamics']):
             file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"

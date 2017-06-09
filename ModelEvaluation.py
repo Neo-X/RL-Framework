@@ -918,11 +918,11 @@ def modelEvaluationParallel(settings_file_name):
                 print (sw)
                 sw.start()
             
-    ## This needs to be done after the simulatino work processes are created
+    ## This needs to be done after the simulation work processes are created
     exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'])
     exp_val.setActor(actor)
     exp_val.getActor().init()
-    exp_val.getEnvironment().init()
+    exp_val.init()
     
     # exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
     # exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=False)
@@ -936,7 +936,7 @@ def modelEvaluationParallel(settings_file_name):
     # actor.setPolicy(model)
     
     exp.getActor().init()   
-    exp.getEnvironment().init()
+    exp.init()
     if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
         sim_workers[0].setEnvironment(exp_val)
         sim_workers[0].start()
@@ -986,7 +986,7 @@ def modelEvaluationParallel(settings_file_name):
                 
         
         exp.getActor().init()   
-        exp.getEnvironment().init()
+        exp.init()
         
         w = SimWorker(input_anchor_queue, output_experience_queue, exp, model, discount_factor, action_space_continuous=action_space_continuous, 
                 settings=settings, print_data=False, p=0.0, validation=True)
@@ -1118,7 +1118,7 @@ def modelEvaluation(settings_file_name):
     
     exp.setActor(actor)
     exp.getActor().init()   
-    exp.getEnvironment().init()
+    exp.init()
     expected_value_viz=None
     if (settings['visualize_expected_value']):
         expected_value_viz = NNVisualize(title=str("Expected Value") + " with " + str(settings["model_type"]), settings=settings)
@@ -1155,7 +1155,7 @@ def modelEvaluation(settings_file_name):
                 
         
         exp.getActor().init()   
-        exp.getEnvironment().init()
+        exp.init()
         
         w = SimWorker(input_anchor_queue, output_experience_queue, exp, model, discount_factor, action_space_continuous=action_space_continuous, 
                 settings=settings, print_data=False, p=0.0, validation=True)

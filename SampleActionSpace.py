@@ -73,7 +73,7 @@ def sampleActionSpace(settingsFileName):
     state = characterSim.State()
     
     exp.getActor().init()
-    exp.getEnvironment().init()
+    exp.init()
     
     paramSampler = exp.getActor().getParamSampler()
     num_samples=2

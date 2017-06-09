@@ -111,7 +111,7 @@ def train(settingsFileName):
           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
         agent.setSettings(settings)
         exp.getActor().init()
-        exp.getEnvironment().init()
+        exp.init()
         experience, state_bounds, _, _ = collectExperience(actor, exp, model, settings)
         agent.setExperience(experience)
         agent.getExperience().setStateBounds(state_bounds)

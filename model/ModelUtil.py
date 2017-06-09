@@ -306,7 +306,7 @@ def initSimulation(settings):
     state = characterSim.State()
     
     exp.getActor().init()
-    exp.getEnvironment().init()
+    exp.init()
     
     output={}
     output['exp']=exp

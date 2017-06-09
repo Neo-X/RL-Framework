@@ -44,7 +44,7 @@ class ForwardDynamicsSimulatorProcess(Process):
         # sim = characterSim.Experiment(self._c)
         sim = createEnvironment(str(self._settings["forwardDynamics_config_file"]), str(self._settings['environment_type']), self._settings, render=False)
         sim.getActor().init()   
-        sim.getEnvironment().init()
+        sim.init()
         self._sim = sim # The real simulator that is used for predictions
         print ('ForwardDynamicsSimulatorProcess started')
         # do some initialization here

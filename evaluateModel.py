@@ -265,7 +265,7 @@ def evaluateModelRender(settings_file_name):
     # actor.setPolicy(model)
     exp.setActor(actor)
     exp.getActor().init()   
-    exp.getEnvironment().init()
+    exp.init()
     exp.generateValidationEnvironmentSample(0)
     expected_value_viz=None
     if (settings['visualize_expected_value']):
@@ -303,7 +303,7 @@ def evaluateModelRender(settings_file_name):
                 
         
         exp.getActor().init()   
-        exp.getEnvironment().init()
+        exp.init()
         
         w = SimWorker(input_anchor_queue, output_experience_queue, exp, model, discount_factor, action_space_continuous=action_space_continuous, 
                 settings=settings, print_data=False, p=0.0, validation=True)

@@ -194,7 +194,7 @@ def trainModelParallel(settingsFileName):
                 print ("Starting another worker ", process)
                 exp_ = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'], settings)
                 exp_.getActor().init()   
-                exp_.getEnvironment().init()
+                exp_.init()
                 print ("Done starting worker ", process)
             """
             print ("original exp: ", exp_)

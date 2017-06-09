@@ -29,7 +29,7 @@ class ForwardDynamicsSimulator(AgentInterface):
         self._sim = sim
         
         self._sim.getActor().init()   
-        self._sim.getEnvironment().init()
+        self._sim.init()
         
     def setActor(self, actor):
         self._actor = actor
