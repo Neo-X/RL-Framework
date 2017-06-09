@@ -117,6 +117,7 @@ class MocapImitationActor(ActorInterface):
                   + ((root_height_reward) * self._settings['controller_reward_weights']['root_height'])
                   + ((pose_error_reward) * self._settings['controller_reward_weights']['pose_error'])
                   )# optimal is 0
+        print ("Reward: ", reward)
         
         self._reward_sum = self._reward_sum + reward
         return reward

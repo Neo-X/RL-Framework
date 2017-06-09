@@ -134,7 +134,9 @@ class MocapImitationEnv(SimInterface):
         """
             I like the state in this shape, a row
         """
-        state_ = self.getEnvironment().getState()
+        state_ = list(self.getEnvironment().getState())
+        state_.extend(list([self.getEnvironment().getImitationPhase()]))    
+        state_.extend(list(self.getEnvironment().getImitationPose()))
         state = np.array(state_)
         state = np.reshape(state, (-1, len(state_)))
         if ( self._settings["use_parameterized_control"] ):
