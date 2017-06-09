@@ -258,7 +258,7 @@ class CACLA(AlgorithmInterface):
         # loss, _ = self._train()
         lossActor = 0
         
-        diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
+        diff_ = self.bellman_error(states, actions, rewards, result_states, falls, advantage=None)
         # print ("Diff")
         # print (diff_)
         tmp_states=[]

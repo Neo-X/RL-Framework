@@ -304,7 +304,7 @@ class AP_CACLA(AlgorithmInterface):
         
         return loss
     
-    def trainActor(self, states, actions, rewards, result_states, falls):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage=None):
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
         # if (( self._updates % self._weight_update_steps) == 0):
