@@ -6,6 +6,8 @@ from sim.SimInterface import SimInterface
 import sys
 sys.path.append("../simbiconAdapter/")
 from actor.DoNothingActor import DoNothingActor
+import json
+import copy
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
@@ -57,9 +59,9 @@ class MocapImitationEnv(SimInterface):
         # self.getAgent().initEpoch()
         
     def init(self):
+        import simbiconAdapter
         self.getEnvironment().init()
                 ### Read motion file.
-    if ( len(sys.argv) == 3 ):
         motionFileName = self.getSettings()['motion_file']
         motionFile = open(motionFileName)
         motionFileData = json.load(motionFile)
