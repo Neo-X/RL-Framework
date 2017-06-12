@@ -29,7 +29,7 @@ if __name__ == "__main__":
     trainData['name']='On Policy 1'
     trainingDatas.append(trainData)
     
-    trainData={}
+    trainData={} 
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_OnPolicy_2/Deep_CNN/trainingData_A_CACLA.json'
     trainData['name']='On Policy 2'
     trainingDatas.append(trainData)
