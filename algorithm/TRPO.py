@@ -125,7 +125,7 @@ class TRPO(AlgorithmInterface):
         #         self._model.getActorNetwork(), lasagne.regularization.l2)) )
         self._kl_firstfixed = kl(self._q_valsActTarget, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length).mean()
         # self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed )
-        self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (1000*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
+        self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + ((self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
                                                                                      T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
         
         # SGD update

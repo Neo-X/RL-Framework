@@ -260,7 +260,7 @@ def trainModelParallel(settingsFileName):
             print ("Learning worker" )
             print (lw)
         
-        if (int(settings["num_available_threads"]) != 1): # This is okay if there is one thread only...
+        if (int(settings["num_available_threads"]) > 1):
             for sw in sim_workers:
                 print ("Sim worker")
                 print (sw)

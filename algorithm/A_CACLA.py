@@ -8,13 +8,7 @@ import copy
 sys.path.append('../')
 from model.ModelUtil import *
 from algorithm.AlgorithmInterface import AlgorithmInterface
-
-def change_penalty(network1, network2):
-    """
-    The networks should be the same shape and design
-    return ||network1 - network2||_2
-    """
-    return sum(T.sum((x1-x2)**2) for x1,x2 in zip(get_all_params(network1), get_all_params(network2)))
+from model.LearningUtil import loglikelihood, kl, entropy, change_penalty
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -105,7 +99,7 @@ class A_CACLA(AlgorithmInterface):
                 self._model.getActorNetwork(), lasagne.regularization.l2)) )
         if (self.getSettings()['use_previous_value_regularization']):
             self._actor_regularization = self._actor_regularization + (( self.getSettings()['previous_value_regularization_weight']) * 
-                       change_penalty(self._model.getActorNetwork(), self._modelTarget.getActorNetwork()) 
+                       (self._model.getActorNetwork(), self._modelTarget.getActorNetwork()) 
                       ) 
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(

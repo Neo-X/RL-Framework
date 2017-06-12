@@ -73,7 +73,7 @@ class SimWorker(Process):
             self._exp.init()
             ## The sampler might need this new model if threads > 1
             self._model.setEnvironment(self._exp)
-        
+            
         print ('Worker started')
         # do some initialization here
         while True:
