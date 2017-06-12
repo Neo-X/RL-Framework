@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "A3C2",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Gaps_Sphere2",
+"data_folder": "Gaps_Sphere",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -128,7 +128,7 @@
     "comment__": "Different ways of calculating the scaling method used normalize the input and outputs of the network from the bootstrapping samples. minmax, input and output are -mean/max-min. variance, input and output are -mean/(std*2), given, use the bounds provided in this file",
 "state_normalization": "given",
 "load_saved_model": false,
-"critic_updates_per_actor_update": 1,
+"critic_updates_per_actor_update": 10,
     "comment__": "weather or not to clamp actions to stay inside the action boundaries",
 "clamp_actions_to_stay_inside_bounds": false,
     "comment__": "Number of initial actions to sample before calculating input/output scaling and starting to train.",
@@ -236,5 +236,7 @@
 	"comment__": "Whether or  not to train the critic at all. Usually used for debugging",
 "train_critic": true,
 	"comment__": "Whether or not to collects tuples in batches, this can be good for multi-threading or computing furture discounted reward",
-"collect_tuples_in_batches":true
+"collect_tuples_in_batches":true,
+	"comment__": "Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occured",
+"reset_on_fall":true
 }
