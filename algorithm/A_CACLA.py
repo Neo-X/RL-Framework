@@ -99,7 +99,7 @@ class A_CACLA(AlgorithmInterface):
                 self._model.getActorNetwork(), lasagne.regularization.l2)) )
         if (self.getSettings()['use_previous_value_regularization']):
             self._actor_regularization = self._actor_regularization + (( self.getSettings()['previous_value_regularization_weight']) * 
-                       (self._model.getActorNetwork(), self._modelTarget.getActorNetwork()) 
+                       change_penalty(self._model.getActorNetwork(), self._modelTarget.getActorNetwork()) 
                       ) 
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
