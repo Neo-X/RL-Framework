@@ -28,6 +28,12 @@ if __name__ == "__main__":
     
     # Baseline + Model-based Action Exploration
     trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A_CACLA/Simple_Walk_ProximalReg/Deep_NN/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + regularization'
+    trainingDatas.append(trainData)
+    
+    # Baseline + Model-based Action Exploration
+    trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD/Deep_NN/trainingData_A3C.json'
     trainData['name']='Baseline + MBAE'
     trainingDatas.append(trainData)
