@@ -5,6 +5,7 @@ import numpy as np
 import random
 import sys
 import json
+from PolicyTrainVisualize import PolicyTrainVisualize
 
         
 if __name__ == "__main__":
@@ -13,15 +14,17 @@ if __name__ == "__main__":
     
     # Need to train a better Baseline
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk/Deep_NN/trainingData_A3C.json'
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A_CACLA/Simple_walk/Deep_NN/trainingData_A_CACLA.json'
     trainData['name']='Baseline'
     trainingDatas.append(trainData)
+    
     """
     # Temporary baseline
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_Parameterized/Deep_NN_SingleNet_Dropout/trainingData_A3C.json'
     trainData['name']='Baseline'
     trainingDatas.append(trainData)
+    """
     
     # Baseline + Model-based Action Exploration
     trainData={}
@@ -36,17 +39,16 @@ if __name__ == "__main__":
     trainingDatas.append(trainData)
     
     
-    # Need to train just Dyna
-    trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD/Deep_NN/trainingData_A3C.json'
-    trainData['name']='+ proixmal point regularization'
-    trainingDatas.append(trainData)
-    """
-    
     # Final method
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD_Dyna_Reg/Deep_NN/trainingData_A3C.json'
     trainData['name']='Baseline + MBAE + regularization + Dyna'
+    trainingDatas.append(trainData)
+    
+        # Final method
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD_Dyna_Reg_OnPolicy/Deep_NN/trainingData_A3C.json'
+    trainData['name']='Baseline + MBAE + regularization + Dyna + OnPolicy'
     trainingDatas.append(trainData)
     
     
@@ -73,5 +75,5 @@ if __name__ == "__main__":
     rlv = PolicyTrainVisualize("Training Curves")
     rlv.updateRewards(trainingDatas)
     rlv.init()
-    rlv.saveVisual("agent")
+    rlv.saveVisual("MBAE_Training_curves")
     rlv.show()
