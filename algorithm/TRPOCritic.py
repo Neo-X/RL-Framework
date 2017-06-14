@@ -25,11 +25,11 @@ from algorithm.AlgorithmInterface import AlgorithmInterface
 # theano.config.mode='FAST_COMPILE'
 # from DeepCACLA import DeepCACLA
 
-class TRPO(AlgorithmInterface):
+class TRPOCritic(AlgorithmInterface):
     
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
-        super(TRPO,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(TRPOCritic,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
         # create a small convolutional neural network
         
@@ -111,11 +111,11 @@ class TRPO(AlgorithmInterface):
         }
         self._actGivens = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._Fallen: self._fallen_shared,
-            self._advantage: self._advantage_shared,
+            self._Fallen: self._fallen_shared,
+            # self._advantage: self._advantage_shared,
             # self._KL_Weight: self._kl_weight_shared
         }
         
@@ -152,7 +152,7 @@ class TRPO(AlgorithmInterface):
         ## advantage = Q(a,s) - V(s) = (r + gamma*V(s')) - V(s) 
         # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._Fallen)) - self._q_func
         
-        # self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
+        self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
         self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target).dot(self._Advantage)) )
@@ -161,8 +161,8 @@ class TRPO(AlgorithmInterface):
         # self._actLoss_ = ( ((self._log_prob)) )
         ## This does the sum already
         # self._actLoss_ =  ( (self._log_prob).dot( self._Advantage) )
-        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._advantage)
+        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
+        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._advantage)
         
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob), self._Advantage)
         # self._actLoss_ = T.mean(self._log_prob) 
@@ -214,8 +214,11 @@ class TRPO(AlgorithmInterface):
         self.loss_names = ["surr", "kl", "ent"]
 
         self.args = [self._model.getStateSymbolicVariable(), 
-                     self._model.getActionSymbolicVariable(), 
-                     self._advantage
+                     self._model.getActionSymbolicVariable(),
+                     self._model.getResultStateSymbolicVariable(), 
+                     self._model.getRewardSymbolicVariable(),
+                     self._Fallen
+                     # self._advantage
                      # self._q_valsActTarget_
                      ]
         
@@ -240,14 +243,14 @@ class TRPO(AlgorithmInterface):
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
         
-        TRPO.compile(self)
+        TRPOCritic.compile(self)
         
     def compile(self):
         
         #### Stuff for Debugging #####
         #### Stuff for Debugging #####
         self._get_diff = theano.function([], [self._diff], givens=self._givens_)
-        # self._get_advantage = theano.function([], [self._advantage], givens=self._givens_)
+        self._get_advantage = theano.function([], [self._Advantage], givens=self._givens_)
         # self._get_advantage = theano.function([], [self._advantage])
         self._get_target = theano.function([], [self._target], givens={
             # self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -274,11 +277,11 @@ class TRPO(AlgorithmInterface):
         
         self._get_action_diff = theano.function([], [self._actLoss_], givens={
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._Fallen: self._fallen_shared,
-            self._advantage: self._advantage_shared,
+            self._Fallen: self._fallen_shared,
+            #self._advantage: self._advantage_shared,
             # self._KL_Weight: self._kl_weight_shared
         })
         
@@ -382,7 +385,7 @@ class TRPO(AlgorithmInterface):
         
         self.setData(states, actions, rewards, result_states, falls)
         # advantage = self._get_diff()[0]
-        self._advantage_shared.set_value(advantage)
+        # self._advantage_shared.set_value(advantage)
         
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
@@ -395,9 +398,9 @@ class TRPO(AlgorithmInterface):
         lossActor = 0
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        # print("Advantage: ", np.mean(self._get_advantage()))
-        print("Advantage: ", np.mean(advantage))
-        print("Advantage, reward: ", np.concatenate((advantage, rewards), axis=1))
+        print("Advantage: ", np.mean(self._get_advantage()))
+        # print("Advantage: ", np.mean(advantage))
+        # print("Advantage, reward: ", np.concatenate((self._get_advantage(), rewards), axis=1))
         print("Actions:     ", np.mean(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
         # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
@@ -418,7 +421,7 @@ class TRPO(AlgorithmInterface):
         action_na = concat([path["action"] for path in paths])
         advantage_n = concat([path["advantage"] for path in paths])
         """
-        args = (states, actions, advantage)
+        args = (states, actions, result_states, rewards, falls)
         args_fvp = (states)
 
         thprev = get_params_flat(lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork()))

@@ -198,6 +198,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     discounted_sum = 0
     discounted_sums = []
     G_t = []
+    G_t_rewards = []
     G_ts = []
     advantage = []
     state_num=0
@@ -227,9 +228,20 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             discounted_sums.append(discounted_sum)
             discounted_sum=0
             state_num=0
+            G_t_rewards_gt = []
+            for k in range(len(G_t_rewards)):
+                ## Compute future discounted reward
+                G_t_rewards_gt.append(0)
+                for l in range(len(G_t_rewards)-k):
+                    G_t_rewards_gt[k] = G_t_rewards_gt[k] + math.pow(discount_factor,l)*(G_t_rewards[l+k] * (1.0-discount_factor))
+                    # G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ * (1.0-discount_factor) ))))
+            # print("G_t: ", G_t)
+            # print ("G_t_rewards_gt: ", G_t_rewards_gt)
             for j in range(len(G_t)-1):
-                advantage.append([G_t[j] - G_t[j+1]])
+                # g_len = len(G_t)-1
+                advantage.append([((discount_factor * G_t[j+1]) + (G_t_rewards[j] * (1.0-discount_factor))) - G_t[j]])
             advantage.append([0])
+            # print ("Advantage: ", advantage)
             G_ts.extend(copy.deepcopy(G_t))
             if (use_batched_exp):
                 if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
@@ -246,6 +258,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             last_epoch_end=i_
             
             G_t = []
+            G_t_rewards = []
             exp.getActor().initEpoch()
             if validation:
                 exp.generateValidation(anchors, (epoch * settings['max_epoch_length']) + i_)
@@ -416,6 +429,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * reward_))) # *(1.0-discount_factor))
             discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * (reward_ * (1.0-discount_factor) )))) # *(1.0-discount_factor))
             # G_t.append((math.pow(discount_factor,0) * (reward_ * (1.0-discount_factor) ))) # *(1.0-discount_factor)))
+            G_t_rewards.append(reward_)
             G_t.append(0) # *(1.0-discount_factor)))
             for i in range(len(G_t)):
                 G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ * (1.0-discount_factor) ))))

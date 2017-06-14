@@ -221,6 +221,10 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
         from algorithm.PPOCritic2 import PPOCritic2
         model = PPOCritic2(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+    elif (algorihtm_type == "TRPO_Critic" ):
+        from algorithm.TRPOCritic import TRPOCritic
+        model = TRPOCritic(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "CACLA_Entropy" ):
         from algorithm.CACLAEntropy import CACLAEntropy
         model = CACLAEntropy(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
