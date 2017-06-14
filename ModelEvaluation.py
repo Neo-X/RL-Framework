@@ -128,6 +128,7 @@ class SimWorker(Process):
                 message = data[0]
                 if message == "Update_Policy":
                     print ("Message: ", message)
+                    # print ("New model parameters: ", data[2][0])
                     self._model.getPolicy().setNetworkParameters(data[2])
                     if (self._settings['train_forward_dynamics']):
                         self._model.getForwardDynamics().setNetworkParameters(data[3])
