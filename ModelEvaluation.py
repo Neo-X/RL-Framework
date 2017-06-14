@@ -649,6 +649,10 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
 # @profile(precision=5)
 def collectExperience(actor, exp_val, model, settings):
     from util.ExperienceMemory import ExperienceMemory
+    
+    ## Easy hack to fix issue with training for MBAE needing a LearningAgent with forward dyanmics model and not just algorithm
+    settings = copy.deepcopy(settings)
+    settings['use_model_based_action_optimization'] = False
     action_selection = range(len(settings["discrete_actions"]))
     print ("Action selection: " + str(action_selection))
     # state_bounds = np.array(settings['state_bounds'])
