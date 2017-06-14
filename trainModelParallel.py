@@ -403,7 +403,7 @@ def trainModelParallel(settingsFileName):
             for epoch in range(epochs):
                 if (settings['on_policy']):
                     out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
-                       print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None )
+                       print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
                     (tuples, discounted_sum, q_value, evalData) = out
                     (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__) = tuples
                     # print("**** training states: ", np.array(__states).shape)
