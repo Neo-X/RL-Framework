@@ -12,11 +12,10 @@ sys.path.append("../simAdapter/")
 import math
 import numpy as np
 
-from ModelEvaluation import *
-
 from util.ExperienceMemory import ExperienceMemory
-from RLVisualize import RLVisualize
-from NNVisualize import NNVisualize
+# from ModelEvaluation import *
+# from RLVisualize import RLVisualize
+# from NNVisualize import NNVisualize
 
 
 
@@ -34,10 +33,9 @@ import gc
 # from memprof import memprof
 
 # import pathos.multiprocessing
-import multiprocessing
+# import multiprocessing
 
-from model.ModelUtil import *
-import lasagne
+from model.ModelUtil import scale_action
 
 def getDataDirectory(settings):
     return settings["environment_type"]+"/"+settings["agent_name"]+"/"+settings["data_folder"]+"/"+settings["model_type"]+"/"
@@ -55,6 +53,7 @@ def validateSettings(settings):
         for example, check if there is a display screen
     """
     """
+    ## This doesn't work as well as I was hoping...
     if ( not ( "DISPLAY" in os.environ)): # No screen on this computer
         settings['visulaize_forward_dynamics'] = False
         settings['visualize_learning'] = False
@@ -111,6 +110,7 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
         print ("Unknown network model type: ", str(model_type), " I hope you know what you are doing....")
         # sys.exit(2)
         return
+    import lasagne
     print (" network type: ", model_type, " : ", model)
     print ("Number of Critic network parameters", lasagne.layers.count_params(model.getCriticNetwork()))
     print ("Number of Actor network parameters", lasagne.layers.count_params(model.getActorNetwork()))

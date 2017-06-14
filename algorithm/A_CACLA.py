@@ -176,42 +176,44 @@ class A_CACLA(AlgorithmInterface):
             self._Fallen: self._fallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         })
-        self._get_critic_regularization = theano.function([], [self._critic_regularization])
-        self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
+        if (self.getSettings()['debug_critic']):
+            self._get_critic_regularization = theano.function([], [self._critic_regularization])
+            self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         
-        self._get_actor_regularization = theano.function([], [self._actor_regularization])
-        self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
-        self._get_actor_diff_ = theano.function([], [self._actDiff], givens={
-            self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._model.getActionSymbolicVariable(): self._model.getActions()
-            # self._Fallen: self._fallen_shared
-        }) 
+        if (self.getSettings()['debug_actor']):
+            self._get_actor_regularization = theano.function([], [self._actor_regularization])
+            self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
+            self._get_actor_diff_ = theano.function([], [self._actDiff], givens={
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+                self._model.getActionSymbolicVariable(): self._model.getActions()
+                # self._Fallen: self._fallen_shared
+            }) 
         
-        self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
+        # self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
         
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         self._trainActor = theano.function([], [self._actLoss, self._q_func_drop], updates=self._actionUpdates, givens=self._actGivens)
-        self._q_val = theano.function([], self._q_func,
-                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+        # self._q_val = theano.function([], self._q_func,
+        #                                givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._q_valTarget = theano.function([], self._q_funcTarget,
                                        givens={self._model.getStateSymbolicVariable(): self._modelTarget.getStates()})
-        self._q_val_drop = theano.function([], self._q_func_drop,
-                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
-        self._q_action_drop = theano.function([], self._q_valsActA_drop,
-                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+        # self._q_val_drop = theano.function([], self._q_func_drop,
+        #                                givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+        # self._q_action_drop = theano.function([], self._q_valsActA_drop,
+        #                                givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._q_action = theano.function([], self._q_valsActA,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
-        self._q_action_target = theano.function([], self._q_valsActTarget,
-                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+        # self._q_action_target = theano.function([], self._q_valsActTarget,
+        #                               givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         # self._bellman_error_drop = theano.function(inputs=[self._model.getStateSymbolicVariable(), self._model.getRewardSymbolicVariable(), self._model.getResultStateSymbolicVariable()], outputs=self._diff_drop, allow_input_downcast=True)
-        self._bellman_error_drop2 = theano.function(inputs=[], outputs=self._diff_drop, allow_input_downcast=True, givens=self._givens_)
+        # self._bellman_error_drop2 = theano.function(inputs=[], outputs=self._diff_drop, allow_input_downcast=True, givens=self._givens_)
         
         # self._bellman_error = theano.function(inputs=[self._model.getStateSymbolicVariable(), self._model.getResultStateSymbolicVariable(), self._model.getRewardSymbolicVariable()], outputs=self._diff, allow_input_downcast=True)
         self._bellman_error2 = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
-        self._bellman_errorTarget = theano.function(inputs=[], outputs=self._bellman, allow_input_downcast=True, givens=self._givens_)
+        # self._bellman_errorTarget = theano.function(inputs=[], outputs=self._bellman, allow_input_downcast=True, givens=self._givens_)
         # self._diffs = theano.function(input=[self._model.getStateSymbolicVariable()])
         self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         # self._get_grad2 = theano.gof.graph.inputs(lasagne.updates.rmsprop(loss, params, self._learning_rate, self._rho, self._rms_epsilon))
@@ -353,8 +355,8 @@ class A_CACLA(AlgorithmInterface):
     def q_value(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]

@@ -208,10 +208,10 @@ class LearningAgent(AgentInterface):
 import copy
 # class LearningWorker(threading.Thread):
 class LearningWorker(Process):
-    def __init__(self, input_exp_queue, agent, namespace):
+    def __init__(self, input_exp_queue, agent):
         super(LearningWorker, self).__init__()
         self._input_queue= input_exp_queue
-        self._namespace = namespace
+        # self._namespace = namespace
         self._agent = agent
         
     def setLearningNamespace(self, learningNamespace):    
@@ -225,7 +225,7 @@ class LearningWorker(Process):
         # do some initialization here
         step_ = 0
         iterations_=0
-        # self._agent._expBuff = self._namespace.experience
+        # self._agent._expBuff = self.__learningNamespace.experience
         while True:
             tmp = self._input_queue.get()
             if tmp == None:
@@ -238,12 +238,12 @@ class LearningWorker(Process):
             #    continue # don't learn from eval tuples
             # (state_, action, reward, resultState, fall, G_t) = tmp
             # print ("Learner Size of state input Queue: " + str(self._input_queue.qsize()))
-            # self._agent._expBuff = self._namespace.experience
+            # self._agent._expBuff = self.__learningNamespace.experience
             if self._agent._settings['action_space_continuous']:
                 # self._agent._expBuff.insert(norm_state(state_, self._agent._state_bounds), 
                 #                            norm_action(action, self._agent._action_bounds), norm_state(resultState, self._agent._state_bounds), [reward])
                 self._agent._expBuff.insertTuple(tmp)
-                # print ("Experience buffer size: " + str(self._namespace.experience.samples()))
+                # print ("Experience buffer size: " + str(self.__learningNamespace.experience.samples()))
                 # print ("Reward Scale: ", self._agent._reward_bounds)
                 # print ("Reward Scale Model: ", self._agent._pol.getRewardBounds())
             else:
@@ -261,9 +261,9 @@ class LearningWorker(Process):
                     print ("Training cost is Nan: ", cost)
                     sys.exit()
                 # if (step_ % 10) == 0: # to help speed things up
-                self._namespace.agentPoly = self._agent.getPolicy().getNetworkParameters()
+                self.__learningNamespace.agentPoly = self._agent.getPolicy().getNetworkParameters()
                 if (self._agent._settings['train_forward_dynamics']):
-                    self._namespace.forwardNN = self._agent.getForwardDynamics().getNetworkParameters()
+                    self.__learningNamespace.forwardNN = self._agent.getForwardDynamics().getNetworkParameters()
                 self._learningNamespace.experience = self._agent._expBuff
                 step_=0
             iterations_+=1
@@ -274,8 +274,8 @@ class LearningWorker(Process):
         
     # @profile(precision=5)  
     def updateModel(self):
-        print ("Updating model to: ", self._namespace.model)
+        print ("Updating model to: ", self.__learningNamespace.model)
         old_poli = self._agent.getPolicy()
-        self._agent.setPolicy(self._namespace.model)
+        self._agent.setPolicy(self.__learningNamespace.model)
         del old_poli
         

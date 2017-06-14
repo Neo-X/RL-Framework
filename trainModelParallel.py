@@ -45,7 +45,10 @@ def trainModelParallel(settingsFileName):
         from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience, simEpoch, evalModel
         from model.ModelUtil import validBounds
         from model.LearningAgent import LearningAgent, LearningWorker
-        from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
+        from util.SimulationUtil import validateSettings
+        from util.SimulationUtil import createEnvironment
+        from util.SimulationUtil import createRLAgent
+        from util.SimulationUtil import createActor
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
         
         
@@ -146,8 +149,10 @@ def trainModelParallel(settingsFileName):
                 actor_regularization_viz.setInteractive()
                 actor_regularization_viz.init()
 
-        mgr = multiprocessing.Manager()
-        namespace = mgr.Namespace()
+        # mgr = multiprocessing.Manager()
+        # namespace = mgr.Namespace()
+        
+        model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         
         learning_workers = []
         # for process in range(settings['num_available_threads']):
@@ -169,10 +174,10 @@ def trainModelParallel(settingsFileName):
             # agent.setPolicy(model)
             # actor.setPolicy(model)
             # agent.setExperience(experience)
-            # namespace.agentPoly = agent.getPolicy().getNetworkParameters()
-            # namespace.experience = experience
+            # learningNamespace.agentPoly = agent.getPolicy().getNetworkParameters()
+            # learningNamespace.experience = experience
             
-            lw = LearningWorker(output_experience_queue, agent, namespace)
+            lw = LearningWorker(output_experience_queue, agent)
             # lw.start()
             learning_workers.append(lw)  
         masterAgent = agent
@@ -204,6 +209,7 @@ def trainModelParallel(settingsFileName):
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
             
             agent.setSettings(settings)
+            agent.setPolicy(model)
             
             if ( settings['use_simulation_sampling'] ):
                 
@@ -239,7 +245,7 @@ def trainModelParallel(settingsFileName):
             """
             message_queue = multiprocessing.Queue(settings['epochs'])
             sim_work_queues.append(message_queue)
-            w = SimWorker(namespace, input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
+            w = SimWorker(input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
                     settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process,
                     message_que=message_queue )
             # w.start()
@@ -284,7 +290,6 @@ def trainModelParallel(settingsFileName):
         exp_val.getActor().init()
         exp_val.init()
         
-        model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings)
         masterAgent.setExperience(experience)
         
@@ -325,6 +330,8 @@ def trainModelParallel(settingsFileName):
             experience.setRewardBounds(model.getRewardBounds())
             experience.setActionBounds(model.getActionBounds())
             
+        mgr = multiprocessing.Manager()
+        learningNamespace = mgr.Namespace()
         
         if (settings['train_forward_dynamics']):
             print ("Created forward dynamics network")
@@ -334,16 +341,16 @@ def trainModelParallel(settingsFileName):
             forwardDynamicsModel.setActor(actor)
             # forwardDynamicsModel.setEnvironment(exp)
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
-            namespace.forwardNN = masterAgent.getForwardDynamics().getNetworkParameters()
+            learningNamespace.forwardNN = masterAgent.getForwardDynamics().getNetworkParameters()
             # actor.setForwardDynamicsModel(forwardDynamicsModel)
-            namespace.forwardDynamicsModel = forwardDynamicsModel
+            learningNamespace.forwardDynamicsModel = forwardDynamicsModel
         
         ## Now everything related to the exp memory needs to be updated
         bellman_errors=[]
         masterAgent.setPolicy(model)
         # masterAgent.setForwardDynamics(forwardDynamicsModel)
-        namespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
-        namespace.model = model
+        learningNamespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
+        # learningNamespace.model = model
         print("Master agent state bounds: ",  masterAgent.getPolicy().getStateBounds())
         # sys.exit()
         for sw in sim_workers: # Need to update parameter bounds for models
@@ -354,18 +361,23 @@ def trainModelParallel(settingsFileName):
             print ("sw modle: ", sw._model.getPolicy()) 
             
             
-        mgr2 = multiprocessing.Manager()
-        learningNamespace = mgr2.Namespace()
         learningNamespace.experience = experience
             
         for lw in learning_workers:
-            lw._agent.setPolicy(copy.deepcopy(model))
-            print ("ls policy: ", lw._agent.getPolicy())
+            # lw._agent.setPolicy(copy.deepcopy(model))
             lw.setLearningNamespace(learningNamespace)
             lw.updateExperience()
             lw.updateModel()
+            print ("ls policy: ", lw._agent.getPolicy())
             
             lw.start()
+            
+        data = ('Update_Policy', 1.0, learningNamespace.agentPoly)
+        if (settings['train_forward_dynamics']):
+            # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
+            data = ('Update_Policy', 1.0, learningNamespace.agentPoly, learningNamespace.forwardNN)
+        for m_q in sim_work_queues:
+            m_q.put(data)
             
         trainData = {}
         trainData["mean_reward"]=[]
@@ -395,7 +407,6 @@ def trainModelParallel(settingsFileName):
             p = ((settings['initial_temperature']/math.log(round_))) 
             # p = ((rounds - round_)/rounds) ** 2
             p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
-            namespace.p=p
             
             # for sm in sim_workers:
                 # sm.setP(p)
@@ -418,7 +429,7 @@ def trainModelParallel(settingsFileName):
                     input_anchor_queue.put(episodeData)
                 
                 # pr.enable()
-                # print ("Current Tuple: " + str(namespace.experience.current()))
+                # print ("Current Tuple: " + str(learningNamespace.experience.current()))
                 if masterAgent.getExperience().samples() > batch_size:
                     states, actions, result_states, rewards, falls, G_ts = masterAgent.getExperience().get_batch(batch_size)
                     print ("Batch size: " + str(batch_size))
@@ -466,17 +477,11 @@ def trainModelParallel(settingsFileName):
                 # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
                 
                 if (not settings['on_policy']):
-                    masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
+                    masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
                     masterAgent.setExperience(learningNamespace.experience)
                     if (settings['train_forward_dynamics']):
-                        masterAgent.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
+                        masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
                 
-                """
-                for sw in sim_workers: # Should update these more often?
-                    sw._model.getPolicy().setNetworkParameters(namespace.agentPoly)
-                    if (settings['train_forward_dynamics']):
-                        sw._model.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
-                        """
                 # experience = learningNamespace.experience
                 # actor.setExperience(experience)
                 """
@@ -494,12 +499,12 @@ def trainModelParallel(settingsFileName):
             # if (settings['on_policy']):
             # output_experience_queue.put("clear")
             if (not settings['on_policy']):
-                # masterAgent.getPolicy().setNetworkParameters(namespace.agentPoly)
+                # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
                 # masterAgent.setExperience(learningNamespace.experience)
-                data = ('Update_Policy', namespace.agentPoly)
+                data = ('Update_Policy', p, learningNamespace.agentPoly)
                 if (settings['train_forward_dynamics']):
-                    # masterAgent.getForwardDynamics().setNetworkParameters(namespace.forwardNN)
-                    data = ('Update_Policy', namespace.agentPoly, namespace.forwardNN)
+                    # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
+                    data = ('Update_Policy', p, learningNamespace.agentPoly, learningNamespace.forwardNN)
                 for m_q in sim_work_queues:
                     m_q.put(data)
               

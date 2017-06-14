@@ -21,7 +21,7 @@ from model.ModelUtil import *
 # class SimWorker(threading.Thread):
 class SimWorker(Process):
     
-    def __init__(self, namespace, input_queue, output_queue, actor, exp, model, discount_factor, action_space_continuous, 
+    def __init__(self, input_queue, output_queue, actor, exp, model, discount_factor, action_space_continuous, 
                  settings, print_data, p, validation, eval_episode_data_queue, process_random_seed,
                  message_que):
         super(SimWorker, self).__init__()
@@ -39,7 +39,7 @@ class SimWorker(Process):
         self._validation=validation
         self._max_iterations = settings['rounds'] + settings['epochs'] * 32
         self._iteration = 0
-        self._namespace = namespace # A way to pass messages between processes
+        # self._namespace = namespace # A way to pass messages between processes
         self._process_random_seed = process_random_seed
         ## Used to recieve special messages like update your model parameters to this now!
         self._message_queue = message_que
@@ -74,6 +74,14 @@ class SimWorker(Process):
             ## The sampler might need this new model if threads > 1
             self._model.setEnvironment(self._exp)
             
+        data = self._message_queue.get()
+        message = data[0]
+        if message == "Update_Policy":
+            print ("Message: ", message)
+            self._model.getPolicy().setNetworkParameters(data[2])
+            if (self._settings['train_forward_dynamics']):
+                self._model.getForwardDynamics().setNetworkParameters(data[3])
+            self._p = data[1]
         print ('Worker started')
         # do some initialization here
         while True:
@@ -87,16 +95,8 @@ class SimWorker(Process):
                 "Sim worker evaluating episode"
             else:
                 episodeData = episodeData['data']
-            if (self._model.getPolicy() == None): # cheap hack for now
-                self._model.setPolicy(self._namespace.model)
-            if ( (self._settings["train_forward_dynamics"]) and ( self._model.getForwardDynamics() == None ) ):
-                self._model.setForwardDynamics(self._namespace.forwardDynamicsModel)
             print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
             # print ("Nums samples in worker: ", self._namespace.experience.samples())
-            p = self._namespace.p
-            print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
-            if p < 0.1:
-                p = 0.1
             self._p = p
             # print ("sim worker p: " + str(self._p))
             if (eval): ## No action exploration
@@ -118,14 +118,6 @@ class SimWorker(Process):
                 self._eval_episode_data_queue.put(out)
             else:
                 pass
-                """
-                print("Updating sim policies:")
-                if (not self._settings['on_policy']):
-                    self._model.getPolicy().setNetworkParameters(self._namespace.agentPoly)
-                    if (self._settings['train_forward_dynamics']):
-                        self._model.getForwardDynamics().setNetworkParameters(self._namespace.forwardNN)
-                # gc.collect()
-                """
                 
             # print ("Actions: " + str(actions))
             # all_objects = muppy.get_objects()
@@ -137,9 +129,14 @@ class SimWorker(Process):
                 message = data[0]
                 if message == "Update_Policy":
                     print ("Message: ", message)
-                    self._model.getPolicy().setNetworkParameters(data[1])
+                    self._model.getPolicy().setNetworkParameters(data[2])
                     if (self._settings['train_forward_dynamics']):
-                        self._model.getForwardDynamics().setNetworkParameters(data[2])
+                        self._model.getForwardDynamics().setNetworkParameters(data[3])
+                    p = data[1]
+                    if p < 0.1:
+                        p = 0.1
+                    self._p = p
+                    print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
         print ("Simulation Worker Complete: ")
         self._exp.finish()
         
