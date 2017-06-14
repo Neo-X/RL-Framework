@@ -145,14 +145,14 @@ class SimWorker(Process):
         
     def simEpochParallel(self, actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, p=0.0, validation=False, epoch=0, evaluation=False):
         out = simEpoch(actor, exp, model, discount_factor, anchors=anchors, action_space_continuous=action_space_continuous, settings=settings, 
-                       print_data=print_data, p=p, validation=validation, epoch=epoch, evaluation=evaluation, _output_queue=self._output_queue )
+                       print_data=print_data, p=p, validation=validation, epoch=epoch, evaluation=evaluation, _output_queue=self._output_queue, epsilon=settings['epsilon'])
         return out
     
     
 # @profile(precision=5)
 def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, 
              p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None,
-             sampling=False):
+             sampling=False, epsilon=None):
     """
         
         evaluation: If True than the simulation is being evaluated and the episodes will not terminate early.
@@ -171,7 +171,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     ## If tuples should be put in the output_exp_queue in batches which will include proper values for calculated future discounted rewards.
     use_batched_exp=settings['collect_tuples_in_batches']
     pa=None
-    epsilon = settings["epsilon"]
+    # epsilon = settings["epsilon"]
     # Actor should be FIRST here
     exp.getActor().initEpoch()
     if validation:
@@ -524,7 +524,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         (tuples, discounted_sum, value, evalData) = simEpoch(actor, exp, 
                 model, discount_factor, anchors=i, action_space_continuous=action_space_continuous, 
                 settings=settings, print_data=print_data, p=p, validation=True, epoch=epoch_, evaluation=evaluation,
-                visualizeEvaluation=visualizeEvaluation, bootstrapping=bootstrapping, sampling=sampling)
+                visualizeEvaluation=visualizeEvaluation, bootstrapping=bootstrapping, sampling=sampling, epsilon=settings['epsilon'])
         epoch_ = epoch_ + 1
         (states, actions, result_states, rewards, falls, G_t, advantage) = tuples
         # print (states, actions, rewards, result_states, discounted_sum, value)
@@ -770,7 +770,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         # Actor should be FIRST here
         out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=episode_, 
                                action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
-                                p=1.0, validation=settings['train_on_validation_set'], bootstrapping=True)
+                                p=1.0, validation=settings['train_on_validation_set'], bootstrapping=True, epsilon=1.0)
         # if self._p <= 0.0:
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out
