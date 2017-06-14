@@ -770,7 +770,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         # Actor should be FIRST here
         out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=episode_, 
                                action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
-                                p=100.0, validation=settings['train_on_validation_set'], bootstrapping=True)
+                                p=1.0, validation=settings['train_on_validation_set'], bootstrapping=True)
         # if self._p <= 0.0:
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out
