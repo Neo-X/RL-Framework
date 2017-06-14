@@ -475,6 +475,7 @@ def trainModelParallel(settingsFileName):
                     else:
                         print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
                     # discounted_values.append(discounted_sum)
+                    
 
                 print ("Master agent experience size: " + str(masterAgent.getExperience().samples()))
                 # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
@@ -485,6 +486,16 @@ def trainModelParallel(settingsFileName):
                     if (settings['train_forward_dynamics']):
                         masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
                 
+                if (not settings['on_policy']):
+                    # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
+                    # masterAgent.setExperience(learningNamespace.experience)
+                    data = ('Update_Policy', p, learningNamespace.agentPoly)
+                    if (settings['train_forward_dynamics']):
+                        # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
+                        data = ('Update_Policy', p, learningNamespace.agentPoly, learningNamespace.forwardNN)
+                    for m_q in sim_work_queues:
+                        m_q.put(data)
+                        
                 # experience = learningNamespace.experience
                 # actor.setExperience(experience)
                 """
@@ -499,17 +510,6 @@ def trainModelParallel(settingsFileName):
             print ("sim queue size: ", input_anchor_queue.qsize() )
             print ("exp tuple queue size: ", output_experience_queue.qsize())
             
-            # if (settings['on_policy']):
-            # output_experience_queue.put("clear")
-            if (not settings['on_policy']):
-                # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
-                # masterAgent.setExperience(learningNamespace.experience)
-                data = ('Update_Policy', p, learningNamespace.agentPoly)
-                if (settings['train_forward_dynamics']):
-                    # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-                    data = ('Update_Policy', p, learningNamespace.agentPoly, learningNamespace.forwardNN)
-                for m_q in sim_work_queues:
-                    m_q.put(data)
               
             if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
                 # Running less often helps speed learning up.
