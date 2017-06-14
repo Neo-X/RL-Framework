@@ -82,6 +82,7 @@ class SimWorker(Process):
             if (self._settings['train_forward_dynamics']):
                 self._model.getForwardDynamics().setNetworkParameters(data[3])
             self._p = data[1]
+            # print ("sim worker p: " + str(self._p))
         print ('Worker started')
         # do some initialization here
         while True:
@@ -97,8 +98,6 @@ class SimWorker(Process):
                 episodeData = episodeData['data']
             print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
             # print ("Nums samples in worker: ", self._namespace.experience.samples())
-            self._p = p
-            # print ("sim worker p: " + str(self._p))
             if (eval): ## No action exploration
                 out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                         anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 

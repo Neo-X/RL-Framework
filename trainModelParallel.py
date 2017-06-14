@@ -350,7 +350,7 @@ def trainModelParallel(settingsFileName):
         masterAgent.setPolicy(model)
         # masterAgent.setForwardDynamics(forwardDynamicsModel)
         learningNamespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
-        # learningNamespace.model = model
+        learningNamespace.model = model
         print("Master agent state bounds: ",  masterAgent.getPolicy().getStateBounds())
         # sys.exit()
         for sw in sim_workers: # Need to update parameter bounds for models
@@ -371,6 +371,9 @@ def trainModelParallel(settingsFileName):
             print ("ls policy: ", lw._agent.getPolicy())
             
             lw.start()
+            
+        del model
+        # del learningNamespace.model
             
         data = ('Update_Policy', 1.0, learningNamespace.agentPoly)
         if (settings['train_forward_dynamics']):

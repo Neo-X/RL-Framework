@@ -261,9 +261,9 @@ class LearningWorker(Process):
                     print ("Training cost is Nan: ", cost)
                     sys.exit()
                 # if (step_ % 10) == 0: # to help speed things up
-                self.__learningNamespace.agentPoly = self._agent.getPolicy().getNetworkParameters()
+                self._learningNamespace.agentPoly = self._agent.getPolicy().getNetworkParameters()
                 if (self._agent._settings['train_forward_dynamics']):
-                    self.__learningNamespace.forwardNN = self._agent.getForwardDynamics().getNetworkParameters()
+                    self._learningNamespace.forwardNN = self._agent.getForwardDynamics().getNetworkParameters()
                 self._learningNamespace.experience = self._agent._expBuff
                 step_=0
             iterations_+=1
@@ -274,8 +274,8 @@ class LearningWorker(Process):
         
     # @profile(precision=5)  
     def updateModel(self):
-        print ("Updating model to: ", self.__learningNamespace.model)
+        print ("Updating model to: ", self._learningNamespace.model)
         old_poli = self._agent.getPolicy()
-        self._agent.setPolicy(self.__learningNamespace.model)
+        self._agent.setPolicy(self._learningNamespace.model)
         del old_poli
         
