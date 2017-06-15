@@ -744,6 +744,7 @@ def trainModelParallel(settingsFileName):
         print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward))
         
         """ 
+        
 import inspect
 def print_full_stack(tb=None):
     """
@@ -753,15 +754,15 @@ def print_full_stack(tb=None):
     if tb is None:
         tb = sys.exc_info()[2]
 
-    print 'Traceback (most recent call last):'
+    print ('Traceback (most recent call last):')
     for item in reversed(inspect.getouterframes(tb.tb_frame)[1:]):
-        print ' File "{1}", line {2}, in {3}\n'.format(*item),
+        print (' File "{1}", line {2}, in {3}\n'.format(*item),)
         for line in item[4]:
-            print ' ' + line.lstrip(),
+            print (' ' + line.lstrip(),)
         for item in inspect.getinnerframes(tb):
-            print ' File "{1}", line {2}, in {3}\n'.format(*item),
+            print (' File "{1}", line {2}, in {3}\n'.format(*item),)
         for line in item[4]:
-            print ' ' + line.lstrip(),
+            print (' ' + line.lstrip(),)
             
 import signal
 import sys
