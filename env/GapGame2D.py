@@ -47,7 +47,7 @@ class GapGame2D(GapGame1D):
         # state = self.getState()
         # print ("state length: " + str(len(state)))
         # print (state)
-        return new_vel[0]
+        return dist
         # obstacle.addForce((0.0,100.0,0.0))
         
     

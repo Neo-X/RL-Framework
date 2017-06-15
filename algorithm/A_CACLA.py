@@ -104,6 +104,19 @@ class A_CACLA(AlgorithmInterface):
         # SGD update
         self._updates_ = lasagne.updates.rmsprop(self._loss, self._params, self._learning_rate, self._rho,
                                            self._rms_epsilon)
+        if (self.getSettings()['optimizer'] == 'rmsprop'):
+            self._updates_ = lasagne.updates.rmsprop(self._loss # + self._critic_regularization
+                                                     , self._params, self._learning_rate, self._rho,
+                                           self._rms_epsilon)
+        elif (self.getSettings()['optimizer'] == 'momentum'):
+            self._updates_ = lasagne.updates.momentum(self._loss # + self._critic_regularization
+                                                      , self._params, self._critic_learning_rate , momentum=self._rho)
+        elif ( self.getSettings()['optimizer'] == 'adam'):
+            self._updates_ = lasagne.updates.adam(self._loss # + self._critic_regularization 
+                        , self._critic_learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
+        else:
+            print ("Unknown optimization method: ", self.getSettings()['optimizer'])
+            sys.exit(-1)
         ## TD update
         """
         if (self.getSettings()['optimizer'] == 'rmsprop'):

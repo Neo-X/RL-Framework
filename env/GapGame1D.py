@@ -540,7 +540,7 @@ class GapGame1D(object):
         # state = self.getState()
         # print ("state length: " + str(len(state)))
         # print (state)
-        return new_vel[0]
+        return dist
         # obstacle.addForce((0.0,100.0,0.0))
         
     def agentHasFallen(self):
