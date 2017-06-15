@@ -78,10 +78,13 @@ class SimWorker(Process):
         message = data[0]
         if message == "Update_Policy":
             print ("Message: ", message)
-            self._model.getPolicy().setNetworkParameters(data[2])
+            self._model.getPolicy().setNetworkParameters(data[5])
             if (self._settings['train_forward_dynamics']):
-                self._model.getForwardDynamics().setNetworkParameters(data[3])
+                self._model.getForwardDynamics().setNetworkParameters(data[6])
             self._p = data[1]
+            self._model.setStateBounds(data[2])
+            self._model.setActionBounds(data[3])
+            self._model.setRewardBounds(data[4])
             # print ("sim worker p: " + str(self._p))
         print ('Worker started')
         # do some initialization here
@@ -128,7 +131,7 @@ class SimWorker(Process):
                 message = data[0]
                 if message == "Update_Policy":
                     print ("Message: ", message)
-                    # print ("New model parameters: ", data[2][0])
+                    print ("New model parameters: ", data[2][1][0])
                     self._model.getPolicy().setNetworkParameters(data[2])
                     if (self._settings['train_forward_dynamics']):
                         self._model.getForwardDynamics().setNetworkParameters(data[3])
@@ -313,8 +316,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # return ra1
                     if ( ((settings['exploration_method'] == 'gaussian_random') or (bootstrapping)) 
                          and (not sampling)):
-                        # print ("Random Guassian sample, state bounds", model.getStateBounds())
+                        print ("Random Guassian sample, state bounds", model.getStateBounds())
                         pa = model.predict(state_)
+                        print ("Exploration Action: ", pa)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         action = randomExporation(settings["exploration_rate"], pa, action_bounds)
                     elif (settings['exploration_method'] == 'gaussian_network'):
@@ -666,11 +670,11 @@ def collectExperience(actor, exp_val, model, settings):
         state_bounds = np.ones((2,states.shape[1]))
         
         state_avg = states[:settings['bootsrap_samples']].mean(0)
-        state_stddev = states[:settings['bootsrap_samples']].std(0)*2
+        state_stddev = states[:settings['bootsrap_samples']].std(0)
         reward_avg = rewards_[:settings['bootsrap_samples']].mean(0)
-        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0)*2
+        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0)
         action_avg = actions[:settings['bootsrap_samples']].mean(0)
-        action_stddev = actions[:settings['bootsrap_samples']].std(0)*2
+        action_stddev = actions[:settings['bootsrap_samples']].std(0)
         if (settings['state_normalization'] == "minmax"):
             state_bounds[0] = states[:settings['bootsrap_samples']].min(0)
             state_bounds[1] = states[:settings['bootsrap_samples']].max(0)

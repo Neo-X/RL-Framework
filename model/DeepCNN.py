@@ -42,8 +42,7 @@ class DeepCNN(ModelInterface):
         
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=16, filter_size=8,
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.GlorotUniform())
+            nonlinearity=lasagne.nonlinearities.rectify)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
         """
@@ -54,8 +53,7 @@ class DeepCNN(ModelInterface):
         """
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=32, filter_size=4,
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.GlorotUniform())
+            nonlinearity=lasagne.nonlinearities.rectify)
         
         self._critic_task_part = network 
         
@@ -99,8 +97,7 @@ class DeepCNN(ModelInterface):
         
         networkAct = lasagne.layers.Conv1DLayer(
             networkAct, num_filters=16, filter_size=8,
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.GlorotUniform())
+            nonlinearity=lasagne.nonlinearities.rectify)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
         """
@@ -111,8 +108,7 @@ class DeepCNN(ModelInterface):
         """
         networkAct = lasagne.layers.Conv1DLayer(
             networkAct, num_filters=32, filter_size=4,
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.GlorotUniform())
+            nonlinearity=lasagne.nonlinearities.rectify)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
         

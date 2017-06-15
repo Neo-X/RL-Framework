@@ -372,15 +372,16 @@ def trainModelParallel(settingsFileName):
             
             lw.start()
             
-        del model
         # del learningNamespace.model
             
-        data = ('Update_Policy', 1.0, learningNamespace.agentPoly)
+        data = ('Update_Policy', 1.0, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), learningNamespace.agentPoly)
         if (settings['train_forward_dynamics']):
             # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-            data = ('Update_Policy', 1.0, learningNamespace.agentPoly, learningNamespace.forwardNN)
+            data = ('Update_Policy', 1.0, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), learningNamespace.agentPoly, learningNamespace.forwardNN)
         for m_q in sim_work_queues:
             m_q.put(data)
+            
+        del model
             
         trainData = {}
         trainData["mean_reward"]=[]

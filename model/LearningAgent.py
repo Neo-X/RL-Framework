@@ -204,6 +204,20 @@ class LearningAgent(AgentInterface):
     def setEnvironment(self, exp):
         if (not self._sampler == None ):
             self._sampler.setEnvironment(exp)
+            
+    def getStateBounds(self):
+        return self.getPolicy().getStateBounds()
+    def getActionBounds(self):
+        return self.getPolicy().getActionBounds()
+    def getRewardBounds(self):
+        return self.getPolicy().getRewardBounds()
+    
+    def setStateBounds(self, bounds):
+        self.getPolicy().setStateBounds(bounds)
+    def setActionBounds(self, bounds):
+        self.getPolicy().setActionBounds(bounds)
+    def setRewardBounds(self, bounds):
+        self.getPolicy().setRewardBounds(bounds)
 
 import copy
 # class LearningWorker(threading.Thread):

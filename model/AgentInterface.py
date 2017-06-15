@@ -6,9 +6,9 @@
 class AgentInterface(object):
     
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
-        self.setActionBounds(action_bounds) 
-        self.setStateBounds(state_bounds) 
-        self.setRewardBounds(reward_bound)    
+        AgentInterface.setActionBounds(self, action_bounds) 
+        AgentInterface.setStateBounds(self, state_bounds) 
+        AgentInterface.setRewardBounds(self, reward_bound)    
         self._state_length = n_in
         self._action_length = n_out
         self._settings = settings_ 
