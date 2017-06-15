@@ -1,5 +1,6 @@
 import copy
 import sys
+from pygments.lexers.theorem import LeanLexer
 sys.setrecursionlimit(50000)
 import os
 import json
@@ -23,6 +24,10 @@ import gc
 
 # import pathos.multiprocessing
 import multiprocessing
+
+
+sim_processes = []
+learning_processes = []
 
 # python -m memory_profiler example.py
 # @profile(precision=5)
@@ -387,6 +392,11 @@ def trainModelParallel(settingsFileName):
             m_q.put(data)
             
         del model
+        ## Give gloabl access to processes to they can be terminated when ctrl+c is pressed
+        global sim_processes
+        sim_processes = sim_workers
+        global learning_processes
+        learning_processes = learning_workers
             
         trainData = {}
         trainData["mean_reward"]=[]
@@ -508,7 +518,8 @@ def trainModelParallel(settingsFileName):
                         data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters(),
                                  masterAgent.getForwardDynamics().getNetworkParameters())
                     for m_q in sim_work_queues:
-                        m_q.put(data)
+                        ## Don't block on full queue
+                        m_q.put(data, False)
                         
                 # experience = learningNamespace.experience
                 # actor.setExperience(experience)
@@ -733,9 +744,41 @@ def trainModelParallel(settingsFileName):
         print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward))
         
         """ 
-          
-    
-    
+import inspect
+def print_full_stack(tb=None):
+    """
+    Only good way to print stack trace yourself.
+    http://blog.dscpl.com.au/2015/03/generating-full-stack-traces-for.html
+    """
+    if tb is None:
+        tb = sys.exc_info()[2]
+
+    print 'Traceback (most recent call last):'
+    for item in reversed(inspect.getouterframes(tb.tb_frame)[1:]):
+        print ' File "{1}", line {2}, in {3}\n'.format(*item),
+        for line in item[4]:
+            print ' ' + line.lstrip(),
+        for item in inspect.getinnerframes(tb):
+            print ' File "{1}", line {2}, in {3}\n'.format(*item),
+        for line in item[4]:
+            print ' ' + line.lstrip(),
+            
+import signal
+import sys
+def signal_handler(signal, frame):
+        print('You pressed Ctrl+C!')
+        global sim_processes
+        # sim_processes = sim_workers
+        global learning_processes
+        # learning_processes = learning_workers
+        for proc in sim_processes:
+            os.kill(proc.pid(), signal.SIGINT)
+        for proc in learning_processes:
+            os.kill(proc.pid(), signal.SIGINT)
+        print_full_stack()
+        sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
+
 if (__name__ == "__main__"):
     
     trainModelParallel(sys.argv[1])

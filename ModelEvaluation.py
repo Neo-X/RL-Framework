@@ -127,19 +127,25 @@ class SimWorker(Process):
             # summary.print_(sum1)
             ## Check if any messages in the queue
             if self._message_queue.qsize() > 0:
-                data = self._message_queue.get()
-                message = data[0]
-                if message == "Update_Policy":
-                    print ("Message: ", message)
-                    # print ("New model parameters: ", data[2][1][0])
-                    self._model.getPolicy().setNetworkParameters(data[2])
-                    if (self._settings['train_forward_dynamics']):
-                        self._model.getForwardDynamics().setNetworkParameters(data[3])
-                    p = data[1]
-                    if p < 0.1:
-                        p = 0.1
-                    self._p = p
-                    print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+                data = None
+                while (not self._message_queue.empty()):
+                    ## Don't block
+                    data_ = self._message_queue.get(False)
+                    if (not (data_ == None)):
+                        data = data_
+                if (data != None):
+                    message = data[0]
+                    if message == "Update_Policy":
+                        print ("Message: ", message)
+                        # print ("New model parameters: ", data[2][1][0])
+                        self._model.getPolicy().setNetworkParameters(data[2])
+                        if (self._settings['train_forward_dynamics']):
+                            self._model.getForwardDynamics().setNetworkParameters(data[3])
+                        p = data[1]
+                        if p < 0.1:
+                            p = 0.1
+                        self._p = p
+                        print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
         print ("Simulation Worker Complete: ")
         self._exp.finish()
         
