@@ -1,6 +1,6 @@
 import copy
 import sys
-from pygments.lexers.theorem import LeanLexer
+# from pygments.lexers.theorem import LeanLexer
 sys.setrecursionlimit(50000)
 import os
 import json
