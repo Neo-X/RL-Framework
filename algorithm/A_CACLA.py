@@ -102,10 +102,10 @@ class A_CACLA(AlgorithmInterface):
                        change_penalty(self._model.getActorNetwork(), self._modelTarget.getActorNetwork()) 
                       ) 
         # SGD update
-        # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-        # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
-        #                                    self._rms_epsilon)
-        # TD update
+        self._updates_ = lasagne.updates.rmsprop(self._loss, self._params, self._learning_rate, self._rho,
+                                           self._rms_epsilon)
+        ## TD update
+        """
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
                         self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
@@ -113,11 +113,12 @@ class A_CACLA(AlgorithmInterface):
             self._updates_ = lasagne.updates.momentum(T.mean(self._q_func) + self._critic_regularization, self._params, 
                         self._critic_learning_rate * -T.mean(self._diff), momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
-            self._updates_ = lasagne.updates.adam(T.mean(self._q_func) + self._critic_regularization, self._params, 
+            self._updates_ = lasagne.updates.adam(T.mean(self._q_func), self._params, 
                         self._critic_learning_rate * -T.mean(self._diff), beta1=0.9, beta2=0.999, epsilon=1e-08)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
             sys.exit(-1)
+        """
         ## Need to perform an element wise operation or replicate _diff for this to work properly.
         # self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), theano.tensor.tile((self._diff * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
         self._actDiff = (self._model.getActionSymbolicVariable() - self._q_valsActA_drop)
@@ -259,7 +260,7 @@ class A_CACLA(AlgorithmInterface):
             self.updateTargetModel()
         self._updates += 1
         # print ("Falls:", falls)
-        # print ("Ceilinged Rewards: ", np.ceil(rewards))
+        # print ("Rewards: ", rewards)
         # print ("Target Values: ", self._get_target())
         # print ("V Values: ", np.mean(self._q_val()))
         # print ("diff Values: ", np.mean(self._get_diff()))

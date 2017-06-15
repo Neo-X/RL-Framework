@@ -670,11 +670,11 @@ def collectExperience(actor, exp_val, model, settings):
         state_bounds = np.ones((2,states.shape[1]))
         
         state_avg = states[:settings['bootsrap_samples']].mean(0)
-        state_stddev = states[:settings['bootsrap_samples']].std(0)*2 ## *2 means higher learning rates...
+        state_stddev = states[:settings['bootsrap_samples']].std(0) ## *2 means higher learning rates...
         reward_avg = rewards_[:settings['bootsrap_samples']].mean(0)
-        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0)*2
+        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0)
         action_avg = actions[:settings['bootsrap_samples']].mean(0)
-        action_stddev = actions[:settings['bootsrap_samples']].std(0)*2
+        action_stddev = actions[:settings['bootsrap_samples']].std(0)
         if (settings['state_normalization'] == "minmax"):
             state_bounds[0] = states[:settings['bootsrap_samples']].min(0)
             state_bounds[1] = states[:settings['bootsrap_samples']].max(0)
@@ -1103,7 +1103,8 @@ def modelEvaluation(settings_file_name):
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
     # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
-    f = open(file_name, 'r')
+    print("Loading model: ", file_name)
+    f = open(file_name, 'rb')
     model = dill.load(f)
     f.close()
     print ("State Length: ", len(model.getStateBounds()[0]) )
@@ -1111,14 +1112,14 @@ def modelEvaluation(settings_file_name):
     if (settings['train_forward_dynamics']):
         file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
         # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
-        f = open(file_name_dynamics, 'r')
+        f = open(file_name_dynamics, 'rb')
         forwardDynamicsModel = dill.load(f)
         f.close()
     
     if ( settings["use_transfer_task_network"] ):
         task_directory = getTaskDataDirectory(settings)
         file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-        f = open(file_name, 'r')
+        f = open(file_name, 'rb')
         taskModel = dill.load(f)
         f.close()
         # copy the task part from taskModel to model

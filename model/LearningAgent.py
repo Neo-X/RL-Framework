@@ -284,6 +284,11 @@ class LearningWorker(Process):
                 ## put and do not block
                 if (not (self._output_message_queue.full())):
                     self._output_message_queue.put(data, False)
+                else:
+                    ## Pull out an old one
+                    self._output_message_queue.get(False)
+                    self._output_message_queue.put(data, False)
+                    
                 step_=0
             iterations_+=1
         print ("Learning Worker Complete:")
