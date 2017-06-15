@@ -131,7 +131,7 @@ class SimWorker(Process):
                 message = data[0]
                 if message == "Update_Policy":
                     print ("Message: ", message)
-                    print ("New model parameters: ", data[2][1][0])
+                    # print ("New model parameters: ", data[2][1][0])
                     self._model.getPolicy().setNetworkParameters(data[2])
                     if (self._settings['train_forward_dynamics']):
                         self._model.getForwardDynamics().setNetworkParameters(data[3])
@@ -316,9 +316,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # return ra1
                     if ( ((settings['exploration_method'] == 'gaussian_random') or (bootstrapping)) 
                          and (not sampling)):
-                        print ("Random Guassian sample, state bounds", model.getStateBounds())
+                        # print ("Random Guassian sample, state bounds", model.getStateBounds())
                         pa = model.predict(state_)
-                        print ("Exploration Action: ", pa)
+                        # print ("Exploration Action: ", pa)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         action = randomExporation(settings["exploration_rate"], pa, action_bounds)
                     elif (settings['exploration_method'] == 'gaussian_network'):
