@@ -407,6 +407,7 @@ class GapGame1D(object):
         pos = (0.0, 0.0, 0.0)
         #pos = (0.27396178783269359, 0.20000000000000001, 0.17531818795388002)
         self._obstacle.setPosition(pos)
+        self._obstacle.setLinearVel(pos)
         """
         rotation_ = list(np.reshape(rand_rotation_matrix(), (1,9))[0])
         self._obstacle.setRotation(rotation_)
@@ -467,6 +468,21 @@ class GapGame1D(object):
             return True 
         else:
             return False  
+        
+    def glut_print(self, x,  y,  font,  text, r,  g , b , a):
+
+        blending = False 
+        if glIsEnabled(GL_BLEND) :
+            blending = True
+    
+        #glEnable(GL_BLEND)
+        glColor3f(r,g,b)
+        glWindowPos2f(x,y)
+        for ch in text :
+            glutBitmapCharacter( font , ctypes.c_int( ord(ch) ) )
+    
+        if not blending :
+            glDisable(GL_BLEND) 
                     
     def prepare_GL(self):
         """Setup basic OpenGL rendering with smooth shading and a single light."""
@@ -499,6 +515,9 @@ class GapGame1D(object):
         pos = self._obstacle.getPosition()
         x_adjust=4.5
         gluLookAt(pos[0]+x_adjust, 0.0, 8.0, pos[0]+x_adjust, 0.0, -10.0, 0.0, 1.0, 0.0)
+        
+        vel = self._obstacle.getLinearVel()
+        self.glut_print( 5 , 5 , GLUT_BITMAP_9_BY_15 , "Vel: " + str(vel) , 0.0 , 0.0 , 0.0 , 1.0 )
         
     def actContinuous(self, action, bootstrapping=False):
         # print ("Action: ", action)
