@@ -522,25 +522,25 @@ class GapGame1D(object):
     def actContinuous(self, action, bootstrapping=False):
         # print ("Action: ", action)
         pos = self._obstacle.getPosition()
+        vel = self._obstacle.getLinearVel()
         # print ("Position Before action: ", pos)
-        dist = action[0]
-        if dist > self._game_settings["jump_bounds"][1]:
-            dist = self._game_settings["jump_bounds"][1]
-        elif dist < self._game_settings["jump_bounds"][0]:
-            dist = self._game_settings["jump_bounds"][0]
+        new_vel = np.array([vel[0] + action[0], 4.0])
+        new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+        self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0))
         ## Move forward along X
-        self.simulateAction([dist])
+        self.simulateAction(new_vel)
         self._obstacle.setPosition(pos + np.array([dist, 0.0, 0.0]))
         # print ("Position After action: ", pos + np.array([dist, 0.0, 0.0]))
 
         # print (pos)
-
+        time = (new_vel[1]/9.81)*2 # time for rise and fall
+        dist = new_vel[0] * time
         # self._terrainData = self.generateTerrain()
         self._state_num=self._state_num+1
         # state = self.getState()
         # print ("state length: " + str(len(state)))
         # print (state)
-        return dist
+        return new_vel[0]
         # obstacle.addForce((0.0,100.0,0.0))
         
     def agentHasFallen(self):
