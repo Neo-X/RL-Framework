@@ -330,27 +330,29 @@ def trainModelParallel(settingsFileName):
             experience.setRewardBounds(model.getRewardBounds())
             experience.setActionBounds(model.getActionBounds())
             
-        mgr = multiprocessing.Manager()
-        learningNamespace = mgr.Namespace()
+        # mgr = multiprocessing.Manager()
+        # learningNamespace = mgr.Namespace()
+        
+        masterAgent_message_queue = multiprocessing.Queue(settings['epochs'])
         
         if (settings['train_forward_dynamics']):
-            print ("Created forward dynamics network")
+            print ("Creating forward dynamics network")
             # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None)
             masterAgent.setForwardDynamics(forwardDynamicsModel)
             forwardDynamicsModel.setActor(actor)
             # forwardDynamicsModel.setEnvironment(exp)
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
-            learningNamespace.forwardNN = masterAgent.getForwardDynamics().getNetworkParameters()
+            # learningNamespace.forwardNN = masterAgent.getForwardDynamics().getNetworkParameters()
             # actor.setForwardDynamicsModel(forwardDynamicsModel)
-            learningNamespace.forwardDynamicsModel = forwardDynamicsModel
+            # learningNamespace.forwardDynamicsModel = forwardDynamicsModel
         
         ## Now everything related to the exp memory needs to be updated
         bellman_errors=[]
         masterAgent.setPolicy(model)
         # masterAgent.setForwardDynamics(forwardDynamicsModel)
-        learningNamespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
-        learningNamespace.model = model
+        # learningNamespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
+        # learningNamespace.model = model
         print("Master agent state bounds: ",  masterAgent.getPolicy().getStateBounds())
         # sys.exit()
         for sw in sim_workers: # Need to update parameter bounds for models
@@ -361,23 +363,26 @@ def trainModelParallel(settingsFileName):
             print ("sw modle: ", sw._model.getPolicy()) 
             
             
-        learningNamespace.experience = experience
+        # learningNamespace.experience = experience
             
         for lw in learning_workers:
-            # lw._agent.setPolicy(copy.deepcopy(model))
-            lw.setLearningNamespace(learningNamespace)
-            lw.updateExperience()
-            lw.updateModel()
+            lw._agent.setPolicy(copy.deepcopy(model))
+            # lw.setLearningNamespace(learningNamespace)
+            lw.setMasterAgentMessageQueue(masterAgent_message_queue)
+            lw.updateExperience(experience)
+            # lw.updateModel()
             print ("ls policy: ", lw._agent.getPolicy())
             
             lw.start()
             
         # del learningNamespace.model
             
-        data = ('Update_Policy', 1.0, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), learningNamespace.agentPoly)
+        data = ('Update_Policy', 1.0, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
+                masterAgent.getPolicy().getNetworkParameters())
         if (settings['train_forward_dynamics']):
             # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-            data = ('Update_Policy', 1.0, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), learningNamespace.agentPoly, learningNamespace.forwardNN)
+            data = ('Update_Policy', 1.0, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
+                    masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
         for m_q in sim_work_queues:
             m_q.put(data)
             
@@ -482,18 +487,26 @@ def trainModelParallel(settingsFileName):
                 # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
                 
                 if (not settings['on_policy']):
-                    masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
-                    masterAgent.setExperience(learningNamespace.experience)
-                    if (settings['train_forward_dynamics']):
-                        masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
+                    ## There could be stale policy parameters in here, use the last set put in the queue
+                    data = None
+                    while (not masterAgent_message_queue.empty()):
+                        ## Don't block
+                        data = masterAgent_message_queue.get(False)
+                    if (not (data == None) ):
+                        # print ("Data: ", data)
+                        masterAgent.setExperience(data[0])
+                        masterAgent.getPolicy().setNetworkParameters(data[1])
+                        if (settings['train_forward_dynamics']):
+                            masterAgent.getForwardDynamics().setNetworkParameters(data[2])
                 
                 if (not settings['on_policy']):
                     # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
                     # masterAgent.setExperience(learningNamespace.experience)
-                    data = ('Update_Policy', p, learningNamespace.agentPoly)
+                    data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters())
                     if (settings['train_forward_dynamics']):
                         # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-                        data = ('Update_Policy', p, learningNamespace.agentPoly, learningNamespace.forwardNN)
+                        data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters(),
+                                 masterAgent.getForwardDynamics().getNetworkParameters())
                     for m_q in sim_work_queues:
                         m_q.put(data)
                         

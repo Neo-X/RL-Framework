@@ -670,11 +670,11 @@ def collectExperience(actor, exp_val, model, settings):
         state_bounds = np.ones((2,states.shape[1]))
         
         state_avg = states[:settings['bootsrap_samples']].mean(0)
-        state_stddev = states[:settings['bootsrap_samples']].std(0)
+        state_stddev = states[:settings['bootsrap_samples']].std(0)*2 ## *2 means higher learning rates...
         reward_avg = rewards_[:settings['bootsrap_samples']].mean(0)
-        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0)
+        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0)*2
         action_avg = actions[:settings['bootsrap_samples']].mean(0)
-        action_stddev = actions[:settings['bootsrap_samples']].std(0)
+        action_stddev = actions[:settings['bootsrap_samples']].std(0)*2
         if (settings['state_normalization'] == "minmax"):
             state_bounds[0] = states[:settings['bootsrap_samples']].min(0)
             state_bounds[1] = states[:settings['bootsrap_samples']].max(0)

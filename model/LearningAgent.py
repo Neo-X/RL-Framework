@@ -275,16 +275,24 @@ class LearningWorker(Process):
                     print ("Training cost is Nan: ", cost)
                     sys.exit()
                 # if (step_ % 10) == 0: # to help speed things up
-                self._learningNamespace.agentPoly = self._agent.getPolicy().getNetworkParameters()
+                # self._learningNamespace.agentPoly = self._agent.getPolicy().getNetworkParameters()
+                data = (self._agent._expBuff, self._agent.getPolicy().getNetworkParameters())
                 if (self._agent._settings['train_forward_dynamics']):
-                    self._learningNamespace.forwardNN = self._agent.getForwardDynamics().getNetworkParameters()
-                self._learningNamespace.experience = self._agent._expBuff
+                    # self._learningNamespace.forwardNN = self._agent.getForwardDynamics().getNetworkParameters()
+                    data = (self._agent._expBuff, self._agent.getPolicy().getNetworkParameters(), self._agent.getForwardDynamics().getNetworkParameters())
+                # self._learningNamespace.experience = self._agent._expBuff
+                ## put and do not block
+                if (not (self._output_message_queue.full())):
+                    self._output_message_queue.put(data, False)
                 step_=0
             iterations_+=1
         print ("Learning Worker Complete:")
         
-    def updateExperience(self):
-        self._agent._expBuff = self._learningNamespace.experience
+    def updateExperience(self, experience):
+        self._agent._expBuff = experience
+        
+    def setMasterAgentMessageQueue(self, queue):
+        self._output_message_queue = queue
         
     # @profile(precision=5)  
     def updateModel(self):
