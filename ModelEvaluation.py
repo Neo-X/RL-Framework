@@ -130,7 +130,10 @@ class SimWorker(Process):
                 data = None
                 while (not self._message_queue.empty()):
                     ## Don't block
-                    data_ = self._message_queue.get(False)
+                    try:
+                        data_ = self._message_queue.get(False)
+                    except Exception as inst:
+                        print ("SimWorker model parameter message queue empty.")
                     if (not (data_ == None)):
                         data = data_
                 if (data != None):

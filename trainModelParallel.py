@@ -519,7 +519,10 @@ def trainModelParallel(settingsFileName):
                                  masterAgent.getForwardDynamics().getNetworkParameters())
                     for m_q in sim_work_queues:
                         ## Don't block on full queue
-                        m_q.put(data, False)
+                        try:
+                            m_q.put(data, False)
+                        except: 
+                            print ("SimWorker model parameter message queue full.")
                         
                 # experience = learningNamespace.experience
                 # actor.setExperience(experience)
