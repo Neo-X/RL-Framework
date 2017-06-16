@@ -755,27 +755,35 @@ def print_full_stack(tb=None):
         tb = sys.exc_info()[2]
 
     print ('Traceback (most recent call last):')
-    for item in reversed(inspect.getouterframes(tb.tb_frame)[1:]):
-        print (' File "{1}", line {2}, in {3}\n'.format(*item),)
-        for line in item[4]:
-            print (' ' + line.lstrip(),)
-        for item in inspect.getinnerframes(tb):
+    if (not (tb == None)):
+        for item in reversed(inspect.getouterframes(tb.tb_frame)[1:]):
             print (' File "{1}", line {2}, in {3}\n'.format(*item),)
-        for line in item[4]:
-            print (' ' + line.lstrip(),)
+            for line in item[4]:
+                print (' ' + line.lstrip(),)
+            for item in inspect.getinnerframes(tb):
+                print (' File "{1}", line {2}, in {3}\n'.format(*item),)
+            for line in item[4]:
+                print (' ' + line.lstrip(),)
             
 import signal
 import sys
 def signal_handler(signal, frame):
         print('You pressed Ctrl+C!')
-        global sim_processes
+        # global sim_processes
         # sim_processes = sim_workers
-        global learning_processes
+        # global learning_processes
         # learning_processes = learning_workers
+        print("sim processes: ", sim_processes)
+        print("learning_processes: ", learning_processes)
+        """
         for proc in sim_processes:
+            print ("Killing process: ", proc)
+            print ("process id: ", proc.pid())
             os.kill(proc.pid(), signal.SIGINT)
         for proc in learning_processes:
+            print ("Killing process: ", proc.pid())
             os.kill(proc.pid(), signal.SIGINT)
+            """
         print_full_stack()
         sys.exit(0)
 signal.signal(signal.SIGINT, signal_handler)
