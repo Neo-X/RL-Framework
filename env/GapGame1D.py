@@ -631,7 +631,7 @@ class GapGame1D(object):
             time_ = (vel[1]/9.81)*2 # time for rise and fall
             dist = vel[0] * time_
             x = np.array(np.linspace(-0.5, 0.5, steps))
-            y = np.array(map(self._computeHeight, x))
+            y = np.array(list(map(self._computeHeight, x)))
             y = (y + math.fabs(float(np.amin(y)))) * action[1]
             x = np.array(np.linspace(0.0, 1.0, steps)) * dist
             # x = (x + 0.5) * action[0]
