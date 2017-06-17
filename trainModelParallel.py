@@ -501,7 +501,10 @@ def trainModelParallel(settingsFileName):
                     data = None
                     while (not masterAgent_message_queue.empty()):
                         ## Don't block
-                        data = masterAgent_message_queue.get(False)
+                        try:
+                            data = masterAgent_message_queue.get(False)
+                        except Exception as inst:
+                            print ("training: In model parameter message queue empty.")
                     if (not (data == None) ):
                         # print ("Data: ", data)
                         masterAgent.setExperience(data[0])
