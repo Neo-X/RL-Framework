@@ -504,7 +504,7 @@ def trainModelParallel(settingsFileName):
                         try:
                             data = masterAgent_message_queue.get(False)
                         except Exception as inst:
-                            print ("training: In model parameter message queue empty.")
+                            print ("training: In model parameter message queue empty: ", masterAgent_message_queue.qsize())
                     if (not (data == None) ):
                         # print ("Data: ", data)
                         masterAgent.setExperience(data[0])
@@ -512,20 +512,6 @@ def trainModelParallel(settingsFileName):
                         if (settings['train_forward_dynamics']):
                             masterAgent.getForwardDynamics().setNetworkParameters(data[2])
                 
-                if (not settings['on_policy']):
-                    # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
-                    # masterAgent.setExperience(learningNamespace.experience)
-                    data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters())
-                    if (settings['train_forward_dynamics']):
-                        # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-                        data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters(),
-                                 masterAgent.getForwardDynamics().getNetworkParameters())
-                    for m_q in sim_work_queues:
-                        ## Don't block on full queue
-                        try:
-                            m_q.put(data, False)
-                        except: 
-                            print ("SimWorker model parameter message queue full.")
                         
                 # experience = learningNamespace.experience
                 # actor.setExperience(experience)
@@ -541,6 +527,20 @@ def trainModelParallel(settingsFileName):
             print ("sim queue size: ", input_anchor_queue.qsize() )
             print ("exp tuple queue size: ", output_experience_queue.qsize())
             
+            if (not settings['on_policy']):
+                # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
+                # masterAgent.setExperience(learningNamespace.experience)
+                data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters())
+                if (settings['train_forward_dynamics']):
+                    # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
+                    data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters(),
+                             masterAgent.getForwardDynamics().getNetworkParameters())
+                for m_q in sim_work_queues:
+                    ## Don't block on full queue
+                    try:
+                        m_q.put(data, False)
+                    except: 
+                        print ("SimWorker model parameter message queue full: ", m_q.qsize())
               
             if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
                 # Running less often helps speed learning up.
