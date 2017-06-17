@@ -73,7 +73,8 @@ class SimWorker(Process):
             self._exp.init()
             ## The sampler might need this new model if threads > 1
             self._model.setEnvironment(self._exp)
-            
+        
+        ## This get is fine, it is the first one that I want to block on.
         data = self._message_queue.get()
         message = data[0]
         if message == "Update_Policy":

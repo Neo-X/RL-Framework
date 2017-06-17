@@ -282,13 +282,15 @@ class LearningWorker(Process):
                     data = (self._agent._expBuff, self._agent.getPolicy().getNetworkParameters(), self._agent.getForwardDynamics().getNetworkParameters())
                 # self._learningNamespace.experience = self._agent._expBuff
                 ## put and do not block
-                if (not (self._output_message_queue.full())):
-                    self._output_message_queue.put(data, False)
-                else:
-                    ## Pull out an old one
-                    self._output_message_queue.get(False)
-                    self._output_message_queue.put(data, False)
-                    
+                try:
+                    if (not (self._output_message_queue.full())):
+                        self._output_message_queue.put(data, False)
+                    else:
+                        ## Pull out an old one
+                        self._output_message_queue.get(False)
+                        self._output_message_queue.put(data, False)
+                except Exception as inst:
+                    print ("LearningAgent: output model parameter message queue full: ", self._output_message_queue.qsize())
                 step_=0
             iterations_+=1
         print ("Learning Worker Complete:")
