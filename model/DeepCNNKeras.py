@@ -9,10 +9,10 @@ from model.ModelUtil import *
 from keras.models import Sequential, Model
 from keras.optimizers import SGD
 from keras.layers import Input
-from keras.layers.core import Dense, Dropout, Activation, Reshape, Flatten
+from keras.layers.core import Dense, Dropout, Activation, Reshape, Flatten, Lambda
 from keras.layers.convolutional import Conv1D
 from keras.layers.merge import Concatenate
-from keras.utils.np_utils import to_categoricalnetwork
+# from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
 
 # For debugging
@@ -25,23 +25,32 @@ class DeepCNNKeras(ModelInterface):
 
         super(DeepCNNKeras,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
-        
-        input = Input(shape=[self._state_length])
+        ### Apparently after the first layer the patch axis is left out for most of the Keras stuff...
+        input = Input(shape=(self._state_length,))
         input.trainable = True
         print ("Input ",  input)
         ## Custom slice layer, Keras does not have this layer type...
-        taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']], output_shape=(-1, self._settings['num_terrain_features']))(input)
-        characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(-1, self._state_length-self._settings['num_terrain_features']))(input)
-        
-        network = Reshape((-1, 1, self._settings['num_terrain_features']))(taskFeatures)
+        taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'],))(input)
+        # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(input)
+        characterFeatures = Lambda(lambda x: x[self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'], ))(input)
+        # characterFeatures = Reshape((-1, self._state_length-self._settings['num_terrain_features']))(characterFeatures)
+        # characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(1,))(input)
+        # print("TaskFeature shape: ", taskFeatures.output_shape)
+        network = Reshape((1, self._settings['num_terrain_features']))(taskFeatures)
         network = Conv1D(filters=16, kernel_size=8)(network)
         network = Activation('relu')(network)
         network = Conv1D(filters=16, kernel_size=8)(network)
         network = Activation('relu')(network)
         self._critic_task_part = network
         
-        network = FlattenLayer()(network)
-        network = Concatenate(axis=1)(network, characterFeatures)
+        network = Flatten()(network)
+        # characterFeatures = Flatten()(characterFeatures)
+        # network = Concatenate(axis=1)([network, characterFeatures])
+        ## network.shape should == (None, self._settings['num_terrain_features']) and
+        ## characterFeatures.shape should == (None, state_length-self._settings['num_terrain_features'])
+        print ("characterFeatures ", characterFeatures)
+        print ("network ", network)
+        network = Concatenate(axis=1)([network, characterFeatures])
         
         network = Dense(128, init='uniform')(network)
         print ("Network: ", network) 

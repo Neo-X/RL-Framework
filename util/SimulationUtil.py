@@ -105,8 +105,10 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (model_type == "Deep_CNN_KERAS" ):
         from model.DeepCNNKeras import DeepCNNKeras
+        print("Creating network model: ", model_type)
         model = DeepCNNKeras(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
-                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)        
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+        return model        
     elif (model_type == "DumbModel" ):
         model = DumbModel(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
@@ -228,6 +230,10 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
     elif (algorihtm_type == "TRPO_Critic" ):
         from algorithm.TRPOCritic import TRPOCritic
         model = TRPOCritic(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+    elif (algorihtm_type == "CACLA_KERAS" ):
+        from algorithm.CACLA_KERAS import CACLA_KERAS
+        model = CACLA_KERAS(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "CACLA_Entropy" ):
         from algorithm.CACLAEntropy import CACLAEntropy

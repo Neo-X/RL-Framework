@@ -233,21 +233,21 @@ def evaluateModelRender(settings_file_name):
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
     # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
-    f = open(file_name, 'r')
+    f = open(file_name, 'rb')
     model = dill.load(f)
     f.close()
     
     if (settings['train_forward_dynamics']):
         file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
         # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
-        f = open(file_name_dynamics, 'r')
+        f = open(file_name_dynamics, 'rb')
         forwardDynamicsModel = dill.load(f)
         f.close()
     
     if ( settings["use_transfer_task_network"] ):
         task_directory = getTaskDataDirectory(settings)
         file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-        f = open(file_name, 'r')
+        f = open(file_name, 'rb')
         taskModel = dill.load(f)
         f.close()
         # copy the task part from taskModel to model
