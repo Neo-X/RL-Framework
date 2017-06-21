@@ -30,13 +30,13 @@ class DeepCNNKeras(ModelInterface):
         input.trainable = True
         print ("Input ",  input)
         ## Custom slice layer, Keras does not have this layer type...
-        taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'],))(input)
+        taskFeatures = Lambda(lambda x: x[0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'],))(input)
         # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(input)
         characterFeatures = Lambda(lambda x: x[self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'], ))(input)
         # characterFeatures = Reshape((-1, self._state_length-self._settings['num_terrain_features']))(characterFeatures)
         # characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(1,))(input)
         # print("TaskFeature shape: ", taskFeatures.output_shape)
-        network = Reshape((1, self._settings['num_terrain_features']))(taskFeatures)
+        network = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
         network = Conv1D(filters=16, kernel_size=8)(network)
         network = Activation('relu')(network)
         network = Conv1D(filters=16, kernel_size=8)(network)
@@ -65,22 +65,22 @@ class DeepCNNKeras(ModelInterface):
         self._critic = Model(input=input, output=network)
         
         
-        networkAct = Input(shape=[self._state_length])
-        networkAct.trainable = True
-        print ("Input ",  networkAct)
+        inputAct = Input(shape=(self._state_length, ))
+        inputAct.trainable = True
+        print ("Input ",  inputAct)
         ## Custom slice layer, Keras does not have this layer type...
-        taskFeaturesAct = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']], output_shape=(-1, self._settings['num_terrain_features']))(networkAct)
-        characterFeaturesAct = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(-1, self._state_length-self._settings['num_terrain_features']))(networkAct)
-        
-        networkAct = Reshape((-1, 1, self._settings['num_terrain_features']))(taskFeatures)
+        taskFeaturesAct = Lambda(lambda x: x[0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'], ))(inputAct)
+        characterFeaturesAct = Lambda(lambda x: x[self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'], ))(inputAct)
+        ## Keras/Tensorflow likes the channels to be at the end
+        networkAct = Reshape((self._settings['num_terrain_features'], 1))(taskFeaturesAct)
         networkAct = Conv1D(filters=16, kernel_size=8)(networkAct)
         networkAct = Activation('relu')(networkAct)
         networkAct = Conv1D(filters=16, kernel_size=8)(networkAct)
         networkAct = Activation('relu')(networkAct)
         self._actor_task_part = networkAct
         
-        networkAct = FlattenLayer()(networkAct)
-        networkAct = Concatenate(axis=1)(networkAct, characterFeaturesAct)
+        networkAct = Flatten()(networkAct)
+        networkAct = Concatenate(axis=1)([networkAct, characterFeaturesAct])
         
         networkAct = Dense(128, init='uniform')(networkAct)
         print ("Network: ", networkAct) 
@@ -92,12 +92,7 @@ class DeepCNNKeras(ModelInterface):
         # 1 output, linear activation
         networkAct = Dense(1, init='uniform')(networkAct)
         networkAct = Activation('linear')(networkAct)
-        self._actor = Model(input=input, output=networkAct)
-        
-        sgd = SGD(lr=0.01, momentum=0.9)
-        print ("Clipping: ", sgd.decay)
-        self._actor.compile(loss='mse', optimizer=sgd)
-        print ("Loss ", self._actor.total_loss)
+        self._actor = Model(input=inputAct, output=networkAct)
         
     def setStates(self, states):
         """

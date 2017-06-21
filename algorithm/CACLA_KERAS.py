@@ -34,7 +34,7 @@ class CACLA_KERAS(AlgorithmInterface):
         print ("Clipping: ", sgd.decay)
         self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
         
-        print ("Loss ", self._actor.total_loss)
+        print ("Loss ", self._model.getActorNetwork().total_loss)
         
         
         ## Target network
