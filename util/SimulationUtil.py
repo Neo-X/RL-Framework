@@ -294,6 +294,18 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = GapGame2D(conf)
         exp = GapGame2DEnv(exp, settings)
         return exp
+    elif env_type == 'nav_Game':
+        from env.NavGame import NavGame
+        from sim.NavGameEnv import NavGameEnv
+        file = open(config_file)
+        conf = json.load(file)
+        # print ("Settings: " + str(json.dumps(conf)))
+        file.close()
+        conf['render'] = render
+        exp = NavGame(conf)
+        exp = NavGameEnv(exp, settings)
+        return exp
+    
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D') or 
           (env_type == 'simbiconBiped2DTerrain') or (env_type == 'hopper_2D')):
         import simbiconAdapter

@@ -50,4 +50,19 @@ class NavGameEnv(SimInterface):
         terrain_dy = next_state_[_t_length+1]
         character_features = next_state_[_t_length+2:]
         self.getEnvironment().visualizeNextState(terrain, action, terrain_dx)  
+    
+    def updateViz(self, actor, agent):
+        U = []
+        V = []
+        Q = []
+        ## This is a sampled grid in 2D
+        (X,Y) = self.getEnvironment().getStateSamples()
+        for x_,y_ in zip(X,Y):
+            for x,y in zip(x_,y_):
+                dir = agent.predict([[x,y]])
+                U.append(dir[0])
+                V.append(dir[1])
+                v = agent.q_value([[x,y]])
+                Q.append(v)
+        self.getEnvironment().updatePolicy(U, V, Q)
         

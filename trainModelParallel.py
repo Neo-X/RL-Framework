@@ -654,6 +654,10 @@ def trainModelParallel(settingsFileName):
                 """for lw in learning_workers:
                     lw.start()
                    """     
+                ## Visulaize some stuff if you want to
+                exp_val.updateViz(actor, masterAgent)
+                
+                
             if (round_ % settings['saving_update_freq_num_rounds']) == 0:
             
                 if (settings['train_forward_dynamics']):

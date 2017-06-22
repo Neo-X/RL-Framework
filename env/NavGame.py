@@ -165,6 +165,10 @@ class NavGame(object):
     
     def setState(self, st):
         self._agent = st
+        
+    def getStateSamples(self):
+        X,Y = np.mgrid[0:self._bounds[1][0]+1,0:self._bounds[1][0]+1]
+        return (X,Y)
     
     def initRender(self, U, V, Q):
         colours = ['gray','black','blue']
@@ -308,7 +312,7 @@ if __name__ == '__main__':
             state = game.getState()
             # pos = game._obstacle.getPosition()
             # drawTerrain(state, pos[0], translateY=0.0, colour=(0.6, 0.6, 0.9, 1.0))
-            # print ("State: " + str(state[-8:]))
+            print ("State: " + str(state))
             # print ("character State: " + str(game.getCharacterState()))
             # print ("rot Vel: " + str(game._obstacle.getQuaternion()))
             
