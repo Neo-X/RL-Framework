@@ -51,17 +51,23 @@ class NavGame(object):
         
         if self._settings['render'] == True:
             U = np.zeros((256))
-            V = np.zeros((256))
-            Q = np.zeros((256))
+            V = np.ones((256))
+            Q = np.random.rand((256))
             self.initRender(U, V, Q)
             
-        
+      
     def initEpoch(self):
+        """
+            Reset agent location
+        """
         self._agent = np.array([random.randint(0,15),random.randint(0,15)])
         
     def generateValidationEnvironmentSample(self, seed):
-        pass 
+        self._agent = np.array([random.randint(0,15),random.randint(0,15)])
     
+    def generateEnvironmentSample(self):
+        self._agent = np.array([random.randint(0,15),random.randint(0,15)])
+        
     def getAgentLocalState(self):
         """
             Returns a vector of value [-1,1]
@@ -210,7 +216,7 @@ class NavGame(object):
         X,Y = np.mgrid[0:self._bounds[1][0]+1,0:self._bounds[1][0]+1]
         print (X,Y)
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
-        textstr = "$\max q=%.2f$\n$\min q=%.2f$"%(np.max(Q), np.min(Q))
+        textstr = "$\max V=%.2f$\n$\min V=%.2f$"%(np.max(Q), np.min(Q))
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
         
         # place a text box in upper left in axes coords
@@ -260,7 +266,7 @@ class NavGame(object):
         # Might be a little touchy because floats are used
         a=(self._agent - self._target)
         d = np.sqrt((a*a).sum(axis=0))
-        return d <= 0.4
+        return d <= 0.3
     
     def endOfEpoch(self):
         return self.reachedTarget()
