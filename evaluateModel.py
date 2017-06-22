@@ -319,7 +319,7 @@ def evaluateModelRender(settings_file_name):
     # print ("Average Reward: " + str(mean_reward))
     
     exp.getActor().initEpoch()   
-    exp.getEnvironment().initEpoch()
+    exp.initEpoch()
     fps=30
     state_ = exp.getState()
     action_ = np.array(masterAgent.predict(state_), dtype='float64')
@@ -332,7 +332,7 @@ def evaluateModelRender(settings_file_name):
     # set GLUT callbacks
     glutKeyboardFunc(sim.onKey)
     ## This works because GLUT in C++ uses the same global context (singleton) as the one in python 
-    glutTimerFunc(1000/fps, sim.animate, 0) # 30 fps?
+    glutTimerFunc(float(1000.0/fps), sim.animate, 0) # 30 fps?
     # glutIdleFunc(animate)
     # enter the GLUT event loop
     glutMainLoop()
