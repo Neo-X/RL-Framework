@@ -198,15 +198,6 @@ def trainModelParallel(settingsFileName):
             if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
                 print ("Assigning same EXP")
                 exp_ = exp_val # This should not work properly for many simulations running at the same time. It could try and evalModel a simulation while it is still running samples 
-            """
-            else:
-               
-                print ("Starting another worker ", process)
-                exp_ = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'], settings)
-                exp_.getActor().init()   
-                exp_.init()
-                print ("Done starting worker ", process)
-            """
             print ("original exp: ", exp_)
                 # sys.exit()
         

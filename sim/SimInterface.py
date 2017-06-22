@@ -91,6 +91,13 @@ class SimInterface(object):
             Sets the state of the simulation to the given state
         """
         pass
+    
+    def updateViz(self, actor, agent):
+        """
+            Maybe the sim has some cool visualization of the policy or something.
+            This will update that visualization
+        """
+        pass
         
         
 #ani = animation.FuncAnimation(fig, animate, frames=600,

@@ -34,10 +34,8 @@ class NavGame(object):
         self._markerSize = 25
         self._map = np.zeros((16,16))
         
-    def init(self):
         self._agent = np.array([7,7]) ## Somewhat random initial spot
         self._target = np.array([8,8]) ## goal location
-        # self._map[self._target[0]][self._target[1]] = 1
         
         ## Some obstacles
         obstacles = []
@@ -54,7 +52,13 @@ class NavGame(object):
             V = np.ones((256))
             Q = np.random.rand((256))
             self.initRender(U, V, Q)
-            
+        
+    def init(self):
+        self._agent = np.array([7,7]) ## Somewhat random initial spot
+        self._target = np.array([8,8]) ## goal location
+        # self._map[self._target[0]][self._target[1]] = 1
+        
+        
       
     def initEpoch(self):
         """
