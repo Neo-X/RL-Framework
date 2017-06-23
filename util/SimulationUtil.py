@@ -249,7 +249,7 @@ def createRLAgent(algorihtm_type, state_bounds, action_bounds, reward_bounds, se
 
 
 def createEnvironment(config_file, env_type, settings, render=False):
-    
+    print("Creating sim Type: ", env_type)
     if env_type == 'ballgame_2d':
         from env.BallGame2D import BallGame2D
         from sim.BallGame2DEnv import BallGame2DEnv
@@ -413,6 +413,9 @@ def createActor(env_type, settings, experience):
     elif env_type == 'gapgame_2d':
         from actor.GapGame2DActor import GapGame2DActor
         actor = GapGame2DActor(settings, experience)
+    elif (env_type == 'nav_Game'):
+        from actor.NavGameActor import NavGameActor
+        actor = NavGameActor(settings, experience)
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or
           (env_type == 'simbiconBiped2DTerrain')):
         from actor.SimbiconActor import SimbiconActor
@@ -435,10 +438,12 @@ def createActor(env_type, settings, experience):
     elif (env_type == 'paperGibbon_env'):
         from actor.PaperGibbonAgent import PaperGibbonAgent
         actor = PaperGibbonAgent(settings, experience)
-    else:
+    elif (env_type == 'pendulum'):
         from actor.ActorInterface import ActorInterface
         actor = ActorInterface(settings, experience)
-    
+    else:
+        print("Error actor type unknown: ", env_type)
+        sys.exit()
     return actor
 
 def createSampler(settings, exp):

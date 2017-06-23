@@ -28,6 +28,7 @@ class NavGame(object):
     
     def __init__(self, settings):
         self._settings = settings
+        print ("Game settings: ", self._settings)
         
         self._bounds = np.array([[0,0], [15,15]])
         ## For plotting objects
@@ -47,11 +48,11 @@ class NavGame(object):
         
         self._obstacles = np.array(obstacles)+8.0 # shift coordinates
         
-        if self._settings['render'] == True:
-            U = np.zeros((256))
-            V = np.ones((256))
-            Q = np.random.rand((256))
-            self.initRender(U, V, Q)
+        # if self._settings['render'] == True:
+        U = np.zeros((256))
+        V = np.ones((256))
+        Q = np.random.rand((256))
+        self.initRender(U, V, Q)
         
     def init(self):
         self._agent = np.array([7,7]) ## Somewhat random initial spot
@@ -96,7 +97,9 @@ class NavGame(object):
             7: [-1,-1],
             }.get(action, [-1,0]) 
             
+    """
     def act(self, action):
+        print ("Trying discrete action: ", action)
         move = np.array(self.move(action))
         # loc = self._agent + (move * random.uniform(0.5,1.0))
         loc = self._agent + (move)
@@ -113,8 +116,9 @@ class NavGame(object):
         #     return self.reward() +-5
         self._agent = loc
         return self.reward()
-    
-    def actContinuous(self, action):
+    """
+    def actContinuous(self, action, bootstrapping):
+        # print ("Trying action: ", action)
         move = np.array(action)
         # loc = self._agent + (move * random.uniform(0.5,1.0))
         loc = self._agent + (move)
@@ -130,6 +134,10 @@ class NavGame(object):
             # Can't walk onto obstacles
         #     return self.reward() +-5
         self._agent = loc
+        
+        if ( self._settings['render'] == True ):
+            self.update()
+        
         return self.reward()
     
     def fall(self, loc):
@@ -161,7 +169,7 @@ class NavGame(object):
         d = np.sqrt((a*a).sum(axis=0))
         # print ("Dist Vector: " + str(a) + " Distance: " + str(d))
         if d < 0.3:
-            return 1.0
+            return 8.0
         return -d/8.0
     
     def getState(self):
@@ -242,7 +250,7 @@ class NavGame(object):
         """perform animation step"""
         # update pieces of the animation
         # self._agent = self._agent + np.array([0.1,0.1])
-        # print ("Agent loc: " + str(self._agent))
+        print ("Agent loc: " + str(self._agent))
         self._particles.set_data(self._agent[0], self._agent[1] )
         self._particles.set_markersize(self._markerSize)
         # self._line1.set_ydata(np.sin(x + phase))
