@@ -128,7 +128,7 @@ class NavGame(object):
             self.collision(loc) or
             self.fall(loc)):
             # Can't move out of map
-            return -8
+            return -2
             
         # if self._map[loc[0]-1][loc[1]-1] == 1:
             # Can't walk onto obstacles
@@ -169,7 +169,7 @@ class NavGame(object):
         d = np.sqrt((a*a).sum(axis=0))
         # print ("Dist Vector: " + str(a) + " Distance: " + str(d))
         if d < 0.3:
-            return 8.0
+            return 1.0
         return -d/8.0
     
     def getState(self):
