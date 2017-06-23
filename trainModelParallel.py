@@ -159,6 +159,15 @@ def trainModelParallel(settingsFileName):
         
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         
+        if (settings['train_forward_dynamics']):
+            print ("Creating forward dynamics network")
+            # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None)
+            # masterAgent.setForwardDynamics(forwardDynamicsModel)
+            forwardDynamicsModel.setActor(actor)
+            # forwardDynamicsModel.setEnvironment(exp)
+            forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
+        
         learning_workers = []
         # for process in range(settings['num_available_threads']):
         for process in range(1):
@@ -206,8 +215,10 @@ def trainModelParallel(settingsFileName):
             
             agent.setSettings(settings)
             agent.setPolicy(model)
+            if (settings['train_forward_dynamics']):
+                agent.setForwardDynamics(forwardDynamicsModel)
             
-            if ( settings['use_simulation_sampling'] ):
+            elif ( settings['use_simulation_sampling'] ):
                 
                 sampler = createSampler(settings, exp_)
                 ## This should be some kind of copy of the simulator not a network
@@ -216,6 +227,7 @@ def trainModelParallel(settingsFileName):
                 # sampler.setPolicy(model)
                 agent.setSampler(sampler)
                 print ("thread together exp: ", sampler._exp)
+            
             """
             if action_space_continuous:
                 model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
@@ -332,16 +344,10 @@ def trainModelParallel(settingsFileName):
         masterAgent_message_queue = multiprocessing.Queue(settings['epochs'])
         
         if (settings['train_forward_dynamics']):
-            print ("Creating forward dynamics network")
-            # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None)
+            forwardDynamicsModel.setStateBounds(state_bounds)
+            forwardDynamicsModel.setActionBounds(action_bounds)
+            forwardDynamicsModel.setRewardBounds(reward_bounds)
             masterAgent.setForwardDynamics(forwardDynamicsModel)
-            forwardDynamicsModel.setActor(actor)
-            # forwardDynamicsModel.setEnvironment(exp)
-            forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
-            # learningNamespace.forwardNN = masterAgent.getForwardDynamics().getNetworkParameters()
-            # actor.setForwardDynamicsModel(forwardDynamicsModel)
-            # learningNamespace.forwardDynamicsModel = forwardDynamicsModel
         
         ## Now everything related to the exp memory needs to be updated
         bellman_errors=[]

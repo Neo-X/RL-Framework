@@ -62,7 +62,7 @@ class ForwardDynamicsNetwork(ModelInterface):
         l_hid4ActA = lasagne.layers.DenseLayer(
                 l_hid3ActA, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-    
+        ## This can be used to model the reward function
         self._critic = lasagne.layers.DenseLayer(
                 l_hid4ActA, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)

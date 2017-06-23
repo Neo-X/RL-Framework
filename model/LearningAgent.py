@@ -214,10 +214,16 @@ class LearningAgent(AgentInterface):
     
     def setStateBounds(self, bounds):
         self.getPolicy().setStateBounds(bounds)
+        if (self._settings['train_forward_dynamics']):
+            self.getForwardDynamics().setStateBounds(bounds)
     def setActionBounds(self, bounds):
         self.getPolicy().setActionBounds(bounds)
+        if (self._settings['train_forward_dynamics']):
+            self.getForwardDynamics().setActionBounds(bounds)
     def setRewardBounds(self, bounds):
         self.getPolicy().setRewardBounds(bounds)
+        if (self._settings['train_forward_dynamics']):
+            self.getForwardDynamics().setRewardBounds(bounds)
 
 import copy
 # class LearningWorker(threading.Thread):
