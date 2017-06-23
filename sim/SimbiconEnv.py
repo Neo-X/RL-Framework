@@ -108,12 +108,6 @@ class SimbiconEnv(SimInterface):
         """
         return self.getEnvironment().setSimState(state_)
         
-    def updateViz(self, actor, agent):
-        """
-            Maybe the sim has some cool visualization of the policy or something.
-            This will update that visualization
-        """
-        pass
 #ani = animation.FuncAnimation(fig, animate, frames=600,
 #                               interval=10, blit=True, init_func=init)
 

@@ -22,8 +22,16 @@ class NavGameActor(ActorInterface):
     def actContinuous(self, exp, action_, bootstrapping=False):
         # Actor should be FIRST here
         # print "Action: " + str(action_)
-        reward = exp.getEnvironment().actContinuous(action_, bootstrapping=bootstrapping)
-        
+        dist = exp.getEnvironment().actContinuous(action_, bootstrapping=bootstrapping)
+        if ( dist > 0 ):
+            self._reward_sum = self._reward_sum + reward
+            return reward
+        if (self.hasNotFallen(exp)):
+            vel_dif = np.abs(self._target_vel - dist)
+            # reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight) # optimal is 0
+            reward = reward_smoother(vel_dif, self._settings, self._target_vel_weight)
+        else:
+            return 0.0
         
         self._reward_sum = self._reward_sum + reward
         return reward
