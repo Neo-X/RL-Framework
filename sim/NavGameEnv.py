@@ -70,4 +70,5 @@ class NavGameEnv(SimInterface):
                 v = agent.q_value([[x,y]])
                 Q.append(v)
         self.getEnvironment().updatePolicy(U, V, Q)
+        self.getEnvironment().saveVisual("navAgent")
         

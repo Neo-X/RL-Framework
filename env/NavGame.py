@@ -127,7 +127,7 @@ class NavGame(object):
             (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])) or
             self.collision(loc) or
             self.fall(loc)):
-            # Can't move out of map
+            # Can't move out of map or overlap an obstacle
             return -2
             
         # if self._map[loc[0]-1][loc[1]-1] == 1:
@@ -290,6 +290,7 @@ class NavGame(object):
     def saveVisual(self, fileName):
         # plt.savefig(fileName+".svg")
         self._fig.savefig(fileName+".svg")
+        self._fig.savefig(fileName+".png")
         
     def finish(self):
         pass
