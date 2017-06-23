@@ -148,7 +148,7 @@
     "comment__": "During evaluation plot of value function",
 "visualize_expected_value": true,
     "comment__": "exponential decay value for use in reward function",
-"target_velocity_decay":-0.75,
+"target_velocity_decay":-2.0,
     "comment__": "Target velocity for controller",
 "target_velocity":0.0,
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
