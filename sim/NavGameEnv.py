@@ -7,6 +7,8 @@ from sim.SimInterface import SimInterface
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
+from model.ModelUtil import getOptimalAction
+
 
 class NavGameEnv(SimInterface):
 
@@ -59,9 +61,12 @@ class NavGameEnv(SimInterface):
         (X,Y) = self.getEnvironment().getStateSamples()
         for x_,y_ in zip(X,Y):
             for x,y in zip(x_,y_):
-                dir = agent.predict([[x,y]])
-                U.append(dir[0])
-                V.append(dir[1])
+                ## Policy action
+                state_ = [[x,y]]
+                # action = agent.predict([[x,y]])
+                action = getOptimalAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
+                U.append(action[0])
+                V.append(action[1])
                 v = agent.q_value([[x,y]])
                 Q.append(v)
         self.getEnvironment().updatePolicy(U, V, Q)

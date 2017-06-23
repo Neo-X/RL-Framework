@@ -170,7 +170,7 @@ class NavGame(object):
         # print ("Dist Vector: " + str(a) + " Distance: " + str(d))
         if d < 0.3:
             return 2.0
-        return -1
+        return -d/8.0 # return -1
     
     def getState(self):
         return self._agent
