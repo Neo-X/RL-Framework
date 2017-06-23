@@ -53,7 +53,7 @@ class NavGameEnv(SimInterface):
         character_features = next_state_[_t_length+2:]
         self.getEnvironment().visualizeNextState(terrain, action, terrain_dx)  
     
-    def updateViz(self, actor, agent):
+    def updateViz(self, actor, agent, directory):
         U = []
         V = []
         Q = []
@@ -70,5 +70,5 @@ class NavGameEnv(SimInterface):
                 v = agent.q_value([[x,y]])
                 Q.append(v)
         self.getEnvironment().updatePolicy(U, V, Q)
-        self.getEnvironment().saveVisual("navAgent")
+        self.getEnvironment().saveVisual(directory+"/navAgent")
         
