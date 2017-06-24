@@ -31,7 +31,9 @@ class ForwardDynamics(AlgorithmInterface):
         
         # self._target = (Reward + self._discount_factor * self._q_valsB)
         self._diff = self._model.getResultStateSymbolicVariable() - self._forward
+        ## mean across each sate
         self._loss = T.mean(T.pow(self._diff, 2),axis=1)
+        ## mean over batch
         self._loss = T.mean(self._loss)
         
         
@@ -92,6 +94,7 @@ class ForwardDynamics(AlgorithmInterface):
         self._bellman_error = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         # self._diffs = theano.function(input=[State])
         self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss, [lasagne.layers.get_all_layers(self._model.getActorNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
+        self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._reward_loss, [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True, givens=self._reward_givens_)
 
     def getNetworkParameters(self):
         params = []
@@ -114,6 +117,13 @@ class ForwardDynamics(AlgorithmInterface):
         result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
         self.setData(states, actions, result_states)
         return self._get_grad()
+    
+    def getRewardGrads(self, states, actions, rewards):
+        states = np.array(states, dtype=self.getSettings()['float_type'])
+        actions = np.array(actions, dtype=self.getSettings()['float_type'])
+        rewards = np.array(rewards, dtype=self.getSettings()['float_type'])
+        self.setData(states, actions, None, rewards)
+        return self._get_grad_reward()
                 
     def train(self, states, actions, result_states, rewards):
         self.setData(states, actions, result_states, rewards)
@@ -123,7 +133,8 @@ class ForwardDynamics(AlgorithmInterface):
         self._updates += 1
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         loss = self._train()
-        # lossReward = self._train_reward()
+        if ( self.getSettings()['train_reward_predictor']):
+            lossReward = self._train_reward()
         # This undoes the Actor parameter updates as a result of the Critic update.
         # print (diff_)
         return loss

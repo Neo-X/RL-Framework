@@ -314,11 +314,51 @@ def initSimulation(settings):
     
     return output
 """
+
+def getMBAEAction(forwardDynamicsModel, model, state):
+    action = model.predict(state)
+    return getOptimalAction2(forwardDynamicsModel, model, action, state)
+
+def getMBAEAction2(forwardDynamicsModel, model, action, state):
+    """
+        Computes the optimal action to be taken given
+        the forwardDynamicsModel f and
+        the value function (model) v
+    """
+    learning_rate=model.getSettings()['action_learning_rate']
+    num_updates=1
+    state_length = model.getStateSize()
+    init_value = model.q_value(state)
+    """
+    fake_state_ = copy.deepcopy(state)
+    for i in range(num_updates):
+        fake_state_ = fake_state_ + ( model.getGrads(fake_state_)[0] * learning_rate )
+        print ("Fake state Value: ", model.q_value(fake_state_))
+    """
+    init_action = copy.deepcopy(action)
+    for i in range(num_updates):
+        ## find next state with dynamics model
+        next_reward = np.reshape(forwardDynamicsModel.predict_reward(state, action), (1, 1))
+        ## Set modified next state as output for dynamicsModel
+        ## Compute the grad to change the input to produce the new target next state
+        ## We will want to use the negative of this grad because the cost function is L2, the grad will make this bigger, use - to pull action towards target action using this loss function 
+        dynamics_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_reward+0.1, (1, 1)))[0]
+        ## Grab the part of the grads that is the action
+        action_grads = dynamics_grads[:, state_length:] * learning_rate 
+        action = action - action_grads
+        action = action[0]
+        next_state_ = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
+        
+        final_value = model.q_value(next_state_)
+        
+        # repeat
+    print ("New action: ", action, " action diff: ", (action - init_action))
+    action = clampAction(action, model._action_bounds)
+    return action
+
 def getOptimalAction(forwardDynamicsModel, model, state):
     action = model.predict(state)
     return getOptimalAction2(forwardDynamicsModel, model, action, state)
-    
-
 
 def getOptimalAction2(forwardDynamicsModel, model, action, state):
     """

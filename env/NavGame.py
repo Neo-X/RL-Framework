@@ -244,6 +244,32 @@ class NavGame(object):
         self._policy2 = self._policy_ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
         self._policy = self._policy_ax.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
         
+        # Two subplots, unpack the axes array immediately
+        self._fig2, (self._policy_mbae) = plt.subplots(1, 1, sharey=False)
+        self._fig2.set_size_inches(8.5, 8.5, forward=True)
+        
+        img2 = self._policy_mbae.imshow(np.array(self._map)*0.0,interpolation='nearest',
+                            cmap = cmap2,
+                            origin='lower')
+        
+        
+        self._policy_mbae.set_title('MBAE')
+        
+        X,Y = np.mgrid[0:self._bounds[1][0]+1,0:self._bounds[1][0]+1]
+        print (X,Y)
+        # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
+        textstr = "$\max V=%.2f$\n$\min V=%.2f$"%(np.max(Q), np.min(Q))
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
+        
+        # place a text box in upper left in axes coords
+        self._mbaeText = self._policy_mbae.text(0.05, 0.95, textstr, transform=self._policy_ax.transAxes, fontsize=14,
+                verticalalignment='top', bbox=props)
+        q_max = np.max(Q)
+        q_min = np.min(Q)
+        Q = (Q - q_min)/ (q_max-q_min)
+        self._mbae2 = self._policy_mbae.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
+        self._mbae = self._policy_mbae.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
+        
         # self._policy_ax.set_aspect(1.)
     
     def update(self):
@@ -278,6 +304,28 @@ class NavGame(object):
         self._policy.set_UVC(U, V)
         self._fig.canvas.draw()
         
+    def updateMBAE(self, U, V, Q):
+        # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
+        textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
+        self._mbaeText.set_text(textstr)
+        q_max = np.max(Q)
+        q_min = np.min(Q)
+        Q = (Q - q_min)/ (q_max-q_min)
+        self._mbae2.set_UVC(U, V, Q)
+        # self._policy2.set_vmin(1.0)
+        """
+        self._policy2.update_scalarmappable()
+        print ("cmap " + str(self._policy2.cmap)  )
+        print ("Face colours" + str(self._policy2.get_facecolor()))
+        colours = ['gray','black','blue']
+        cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                   colours,
+                                                   256)
+        self._policy2.cmap._set_extremes()
+        """
+        self._mbae.set_UVC(U, V)
+        self._fig.canvas.draw()
+        
     def reachedTarget(self):
         # Might be a little touchy because floats are used
         a=(self._agent - self._target)
@@ -291,6 +339,8 @@ class NavGame(object):
         # plt.savefig(fileName+".svg")
         self._fig.savefig(fileName+".svg")
         self._fig.savefig(fileName+".png")
+        self._fig2.savefig(fileName+"_MBAE.svg")
+        self._fig2.savefig(fileName+"_MBAE.png")
         
     def finish(self):
         pass

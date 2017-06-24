@@ -7,7 +7,7 @@ from sim.SimInterface import SimInterface
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
-from model.ModelUtil import getOptimalAction
+from model.ModelUtil import getOptimalAction, getMBAEAction
 
 
 class NavGameEnv(SimInterface):
@@ -57,18 +57,23 @@ class NavGameEnv(SimInterface):
         U = []
         V = []
         Q = []
+        U_mbae = []
+        V_mbae = []
         ## This is a sampled grid in 2D
         (X,Y) = self.getEnvironment().getStateSamples()
         for x_,y_ in zip(X,Y):
             for x,y in zip(x_,y_):
                 ## Policy action
                 state_ = [[x,y]]
-                # action = agent.predict([[x,y]])
-                action = getOptimalAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
+                action = agent.predict([[x,y]])
                 U.append(action[0])
                 V.append(action[1])
                 v = agent.q_value([[x,y]])
                 Q.append(v)
+                action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
+                U_mbae.append(action_[0])
+                V_mbae.append(action_[1])
         self.getEnvironment().updatePolicy(U, V, Q)
+        self.getEnvironment().updateMBAE(U_mbae, V_mbae, Q)
         self.getEnvironment().saveVisual(directory+"/navAgent")
         
