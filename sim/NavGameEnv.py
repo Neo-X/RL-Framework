@@ -59,6 +59,7 @@ class NavGameEnv(SimInterface):
         Q = []
         U_mbae = []
         V_mbae = []
+        R_mbae = []
         ## This is a sampled grid in 2D
         (X,Y) = self.getEnvironment().getStateSamples()
         for x_,y_ in zip(X,Y):
@@ -73,8 +74,9 @@ class NavGameEnv(SimInterface):
                 action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
                 U_mbae.append(action_[0])
                 V_mbae.append(action_[1])
-                r = agent.getForwardDynamics().predict_reward([[x,y]])
+                r = agent.getForwardDynamics().predict_reward(state_, np.array(action) + np.array(action_))
+                R_mbae.append(r)
         self.getEnvironment().updatePolicy(U, V, Q)
-        self.getEnvironment().updateMBAE(U_mbae, V_mbae, Q)
+        self.getEnvironment().updateMBAE(U_mbae, V_mbae, R_mbae)
         self.getEnvironment().saveVisual(directory+"/navAgent")
         
