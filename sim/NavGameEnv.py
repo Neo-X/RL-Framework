@@ -73,6 +73,7 @@ class NavGameEnv(SimInterface):
                 action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
                 U_mbae.append(action_[0])
                 V_mbae.append(action_[1])
+                r = agent.getForwardDynamics().predict_reward([[x,y]])
         self.getEnvironment().updatePolicy(U, V, Q)
         self.getEnvironment().updateMBAE(U_mbae, V_mbae, Q)
         self.getEnvironment().saveVisual(directory+"/navAgent")

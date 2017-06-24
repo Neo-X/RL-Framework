@@ -262,7 +262,7 @@ class NavGame(object):
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
         
         # place a text box in upper left in axes coords
-        self._mbaeText = self._policy_mbae.text(0.05, 0.95, textstr, transform=self._policy_ax.transAxes, fontsize=14,
+        self._mbaeText = self._policy_mbae.text(0.05, 0.95, textstr, transform=self._policy_mbae.transAxes, fontsize=14,
                 verticalalignment='top', bbox=props)
         q_max = np.max(Q)
         q_min = np.min(Q)
