@@ -511,6 +511,11 @@ def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
         print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         forwardDynamicsNetwork = ForwardDynamicsNetwork(len(state_bounds[0]), len(action_bounds[0]), 
                                                         state_bounds, action_bounds, settings)
+    elif settings["forward_dynamics_model_type"] == "Deep_NN_Dropout":
+        from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
+        print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
+        forwardDynamicsNetwork = ForwardDynamicsNetwork(len(state_bounds[0]), len(action_bounds[0]), 
+                                                        state_bounds, action_bounds, settings)
     elif settings["forward_dynamics_model_type"] == "Deep_CNN":
         from model.ForwardDynamicsCNN import ForwardDynamicsCNN
         print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
