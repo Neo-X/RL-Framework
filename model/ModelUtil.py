@@ -317,7 +317,7 @@ def initSimulation(settings):
 
 def getMBAEAction(forwardDynamicsModel, model, state):
     action = model.predict(state)
-    return getOptimalAction2(forwardDynamicsModel, model, action, state)
+    return getMBAEAction2(forwardDynamicsModel, model, action, state)
 
 def getMBAEAction2(forwardDynamicsModel, model, action, state):
     """
@@ -342,7 +342,7 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
         ## Set modified next state as output for dynamicsModel
         ## Compute the grad to change the input to produce the new target next state
         ## We will want to use the negative of this grad because the cost function is L2, the grad will make this bigger, use - to pull action towards target action using this loss function 
-        dynamics_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_reward+0.1, (1, 1)))[0]
+        dynamics_grads = forwardDynamicsModel.getRewardGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_reward+0.1, (1, 1)))[0]
         ## Grab the part of the grads that is the action
         action_grads = dynamics_grads[:, state_length:] * learning_rate 
         action = action - action_grads

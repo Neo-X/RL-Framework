@@ -28,6 +28,10 @@ import multiprocessing
 
 sim_processes = []
 learning_processes = []
+_input_anchor_queue = None
+_output_experience_queue = None
+_eval_episode_data_queue = None
+_sim_work_queues = []
 
 # python -m memory_profiler example.py
 # @profile(precision=5)
@@ -394,6 +398,14 @@ def trainModelParallel(settingsFileName):
         sim_processes = sim_workers
         global learning_processes
         learning_processes = learning_workers
+        global _input_anchor_queue
+        _input_anchor_queue = input_anchor_queue
+        global _output_experience_queue
+        _output_experience_queue = output_experience_queue
+        global _eval_episode_data_queue
+        _eval_episode_data_queue = eval_episode_data_queue
+        global _sim_work_queues
+        _sim_work_queues = sim_work_queues
             
         trainData = {}
         trainData["mean_reward"]=[]
@@ -782,15 +794,26 @@ def signal_handler(signal, frame):
         # learning_processes = learning_workers
         print("sim processes: ", sim_processes)
         print("learning_processes: ", learning_processes)
-        """
+        
+        # cancel_join_thread()
+        ## cancel all the queues
+        _input_anchor_queue.cancel_join_thread()
+        _output_experience_queue.cancel_join_thread()
+        _eval_episode_data_queue.cancel_join_thread()
+        for sim_queue in _sim_work_queues:
+            sim_queue.cancel_join_thread()
+        
+        
         for proc in sim_processes:
-            print ("Killing process: ", proc)
-            print ("process id: ", proc.pid())
-            os.kill(proc.pid(), signal.SIGINT)
+            if (not (proc == None)):
+                print ("Killing process: ", proc)
+                print ("process id: ", proc.pid())
+                os.kill(proc.pid(), signal.SIGINT)
         for proc in learning_processes:
-            print ("Killing process: ", proc.pid())
-            os.kill(proc.pid(), signal.SIGINT)
-            """
+            if (not (proc == None)):
+                print ("Killing process: ", proc.pid())
+                os.kill(proc.pid(), signal.SIGINT)
+            
         print_full_stack()
         sys.exit(0)
 # signal.signal(signal.SIGINT, signal_handler)
