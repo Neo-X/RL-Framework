@@ -102,7 +102,7 @@ class ForwardDynamics(AlgorithmInterface):
         self._bellman_error = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         # self._diffs = theano.function(input=[State])
         self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [lasagne.layers.get_all_layers(self._model.getActorNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
-        self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._reward, [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True, givens=self._reward_givens_)
+        self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True, givens=self._reward_givens_)
 
     def getNetworkParameters(self):
         params = []
