@@ -345,7 +345,7 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
         dynamics_grads = forwardDynamicsModel.getRewardGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_reward+0.1, (1, 1)))[0]
         ## Grab the part of the grads that is the action
         action_grads = dynamics_grads[:, state_length:] * learning_rate 
-        action = action - action_grads
+        action = action + action_grads
         action = action[0]
         next_state_ = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
         
