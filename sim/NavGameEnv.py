@@ -66,15 +66,16 @@ class NavGameEnv(SimInterface):
             for x,y in zip(x_,y_):
                 ## Policy action
                 state_ = [[x,y]]
-                action = agent.predict([[x,y]])
-                U.append(action[0])
-                V.append(action[1])
+                # action = agent.predict([[x,y]])
+                action1 = getOptimalAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
+                U.append(action1[0])
+                V.append(action1[1])
                 v = agent.q_value([[x,y]])
                 Q.append(v)
                 action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
                 U_mbae.append(action_[0])
                 V_mbae.append(action_[1])
-                r = agent.getForwardDynamics().predict_reward(state_, np.array(action) + np.array(action_))
+                r = agent.getForwardDynamics().predict_reward(state_, np.array(action_))
                 R_mbae.append(r)
         self.getEnvironment().updatePolicy(U, V, Q)
         self.getEnvironment().updateMBAE(U_mbae, V_mbae, R_mbae)

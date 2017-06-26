@@ -122,6 +122,13 @@ class ForwardDynamics(AlgorithmInterface):
         states = np.array(states, dtype=self.getSettings()['float_type'])
         actions = np.array(actions, dtype=self.getSettings()['float_type'])
         rewards = np.array(rewards, dtype=self.getSettings()['float_type'])
+        self.setData(states, actions, [], rewards=rewards)
+        return self._get_grad_reward()
+    
+    def getRewardGrads(self, states, actions, rewards):
+        states = np.array(states, dtype=self.getSettings()['float_type'])
+        actions = np.array(actions, dtype=self.getSettings()['float_type'])
+        rewards = np.array(rewards, dtype=self.getSettings()['float_type'])
         self.setData(states, actions, None, rewards)
         return self._get_grad_reward()
                 
