@@ -326,7 +326,7 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
         the value function (model) v
     """
     learning_rate=model.getSettings()['action_learning_rate']
-    num_updates=1
+    num_updates=model.getSettings()['num_mbae_steps']
     state_length = model.getStateSize()
     init_value = model.q_value(state)
     """
@@ -340,8 +340,7 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
         ## find next state with dynamics model
         next_reward = np.reshape(forwardDynamicsModel.predict_reward(state, action), (1, 1))
         ## Set modified next state as output for dynamicsModel
-        ## Compute the grad to change the input to produce the new target next state
-        ## We will want to use the negative of this grad because the cost function is L2, the grad will make this bigger, use - to pull action towards target action using this loss function 
+        ## Compute the grad to change the input to produce a better action
         dynamics_grads = forwardDynamicsModel.getRewardGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_reward+0.1, (1, 1)))[0]
         ## Grab the part of the grads that is the action
         action_grads = dynamics_grads[:, state_length:] * learning_rate 
@@ -367,7 +366,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
         the value function (model) v
     """
     learning_rate=model.getSettings()['action_learning_rate']
-    num_updates=1
+    num_updates=model.getSettings()['num_mbae_steps']
     state_length = model.getStateSize()
     # print ("state_length ", state_length)
     # print ("State shape: ", state.shape)
