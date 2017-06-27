@@ -59,6 +59,7 @@ class GapGame2DEnv(SimInterface):
         
     def visualizeNextState(self, next_state_, action):
         _t_length = self.getEnvironment()._game_settings['num_terrain_samples']
+        print ("next_state_: ", next_state_)
         terrain = next_state_[:_t_length]
         terrain_dx = next_state_[_t_length]
         terrain_dy = next_state_[_t_length+1]

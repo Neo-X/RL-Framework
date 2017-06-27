@@ -50,6 +50,46 @@ class GapGame2D(GapGame1D):
         return new_vel[0]
         # obstacle.addForce((0.0,100.0,0.0))
         
+    def visualizeAction(self, action):
+        print ("Action: ", action)
+        pos = self._obstacle.getPosition()
+        vel = self._obstacle.getLinearVel()
+        print ("Velocity: ", vel)
+        new_vel = np.array([vel[0] + action[0], action[1]])
+        # new_vel = action[0]
+        new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+        ## compute new location for landing.
+        time__ = self._computeTime(action[1]) * 2.0
+        new_pos = pos[0] + (new_vel[0] * time__)
+        self._obstacle2.setPosition((new_pos, 0,0))
+    
+    def visualizeActions(self, actions, dirs):
+                # print ("Action: ", action)
+        pos = self._obstacle.getPosition()
+        vel = self._obstacle.getLinearVel()
+        for a in range(len(actions)):
+            new_vel = np.array([vel[0] + actions[a][0], actions[a][1]])
+            # new_vel = action[0]
+            new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+            ## compute new location for landing.
+            time__ = self._computeTime(actions[a][1]) * 2.0
+            new_pos = pos[0] + (new_vel[0] * time__)
+            # self._obstacle2.setPosition((new_pos, 0,0))   
+            self._obstacles[a].setPosition((new_pos, 0,0)) 
+            self._obstacles[a].setDir(dirs[a]) 
+    
+    def visualizeNextState(self, terrain, action, terrain_dx):
+        self._nextTerrainData = terrain
+        pos = self._obstacle.getPosition() 
+        vel = self._obstacle.getLinearVel()
+        new_vel = np.array([vel[0] + action[0], action[1]])
+        # new_vel = action[0]
+        new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+        # self._obstacle.setLinearVel((action[0],4.0,0.0))
+        time = (action[1]/9.81)*2 # time for rise and fall
+        self._nextTerrainStartX = pos[0] + (time * new_vel[0]) + terrain_dx
+        # self._nextTerrainStartX = pos[0] + terrain_dx
+        # drawTerrain(terrain, translateX, translateY=0.0, colour=(0.4, 0.4, 0.8, 0.0), wirefame=False):
     
 if __name__ == '__main__':
     import json
