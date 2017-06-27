@@ -262,7 +262,8 @@ class A_CACLA(AlgorithmInterface):
         
     def getGrads(self, states):
         # self.setData(states, actions, rewards, result_states)
-        states = np.array(states, dtype=theano.config.floatX)
+        # states = np.array(states, dtype=theano.config.floatX)
+        states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
         self._model.setStates(states)
         return self._get_grad()
 

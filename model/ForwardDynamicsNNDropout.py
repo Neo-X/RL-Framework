@@ -43,6 +43,11 @@ class ForwardDynamicsNetwork(ModelInterface):
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         network = lasagne.layers.DenseLayer(
+                network, num_units=128,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        
+        network = lasagne.layers.DenseLayer(
                 network, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)

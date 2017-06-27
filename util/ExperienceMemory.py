@@ -130,7 +130,7 @@ class ExperienceMemory(object):
             action.append(norm_action(self._action_history[i], self._action_bounds)) # won't work for discrete actions...
             resultState.append(norm_state(self._nextState_history[i], self._state_bounds))
             if (self._settings['train_reward_predictor']):
-                print ("normalizing reward: ", self._reward_history[i], " to ", norm_state(self._reward_history[i] , self._reward_bounds ))
+                # print ("normalizing reward: ", self._reward_history[i], " to ", norm_state(self._reward_history[i] , self._reward_bounds ))
                 reward.append(norm_state(self._reward_history[i] , self._reward_bounds )) # scale rewards
             else:
                 reward.append(self._reward_history[i] * ((1.0-self._settings['discount_factor']))) # scale rewards

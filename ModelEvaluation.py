@@ -455,7 +455,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (settings["use_back_on_track_forcing"] and (not evaluation)):
             exp.getControllerBackOnTrack()
             
-        print ("Value: ", model.q_value(state_), " Action " + str(action) + " Reward: " + str(reward_) )
+        # print ("Value: ", model.q_value(state_), " Action " + str(action) + " Reward: " + str(reward_) )
         if print_data:
             # print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward_))
             # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) + " Discounted Sum: " + str(discounted_sum) )

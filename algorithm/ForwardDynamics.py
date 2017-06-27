@@ -49,6 +49,10 @@ class ForwardDynamics(AlgorithmInterface):
         self._reward_loss = T.mean(T.pow(self._reward_diff, 2),axis=1)
         self._reward_loss = T.mean(self._reward_loss)
         
+        self._reward_diff_NoDrop = self._model.getRewardSymbolicVariable() - self._reward
+        self._reward_loss_NoDrop = T.mean(T.pow(self._reward_diff_NoDrop, 2),axis=1)
+        self._reward_loss_NoDrop = T.mean(self._reward_loss_NoDrop)
+        
         self._params = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
         self._reward_params = lasagne.layers.helper.get_all_params(self._model.getCriticNetwork())
         self._givens_ = {
@@ -103,6 +107,7 @@ class ForwardDynamics(AlgorithmInterface):
         self._reward_error = theano.function(inputs=[], outputs=self._reward_diff, allow_input_downcast=True, givens=self._reward_givens_)
         # self._diffs = theano.function(input=[State])
         self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [lasagne.layers.get_all_layers(self._model.getActorNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
+        # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads((self._reward_loss_NoDrop), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True,
         self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True, 
                                                 givens={
             self._model.getStateSymbolicVariable() : self._model.getStates(),
@@ -127,23 +132,19 @@ class ForwardDynamics(AlgorithmInterface):
             self._model.setRewards(rewards)
         
     def getGrads(self, states, actions, result_states):
-        states = np.array(states, dtype=self.getSettings()['float_type'])
-        actions = np.array(actions, dtype=self.getSettings()['float_type'])
-        result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
+        states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
+        actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
+        result_states = np.array(norm_state(result_states, self._state_bounds), dtype=self.getSettings()['float_type'])
+        # result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
         self.setData(states, actions, result_states)
         return self._get_grad()
     
     def getRewardGrads(self, states, actions, rewards):
-        states = np.array(states, dtype=self.getSettings()['float_type'])
-        actions = np.array(actions, dtype=self.getSettings()['float_type'])
-        rewards = np.array(rewards, dtype=self.getSettings()['float_type'])
-        self.setData(states, actions, [], rewards=rewards)
-        return self._get_grad_reward()
-    
-    def getRewardGrads(self, states, actions, rewards):
-        states = np.array(states, dtype=self.getSettings()['float_type'])
-        actions = np.array(actions, dtype=self.getSettings()['float_type'])
-        rewards = np.array(rewards, dtype=self.getSettings()['float_type'])
+        # states = np.array(states, dtype=self.getSettings()['float_type'])
+        # actions = np.array(actions, dtype=self.getSettings()['float_type'])
+        states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
+        actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
+        rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
         self.setData(states, actions, None, rewards)
         return self._get_grad_reward()
                 
@@ -157,8 +158,8 @@ class ForwardDynamics(AlgorithmInterface):
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         loss = self._train()
         if ( self.getSettings()['train_reward_predictor']):
-            print ("self._reward_bounds: ", self._reward_bounds)
-            print( "Rewards: ", np.concatenate((rewards, self._predict_reward()), axis=1))
+            # print ("self._reward_bounds: ", self._reward_bounds)
+            # print( "Rewards, predicted_reward, difference: ", np.concatenate((rewards, self._predict_reward(), rewards - self._predict_reward()), axis=1))
             lossReward = self._train_reward()
         # This undoes the Actor parameter updates as a result of the Critic update.
         # print (diff_)
@@ -181,7 +182,9 @@ class ForwardDynamics(AlgorithmInterface):
         action = np.array([norm_action(action, self._action_bounds)], dtype=self.getSettings()['float_type'])
         self._model.setStates(state)
         self._model.setActions(action)
-        reward_ = scale_state(self._predict_reward()[0], self._reward_bounds)
+        predicted_reward = self._predict_reward()[0]
+        reward_ = scale_state(predicted_reward, self._reward_bounds)
+        # print ("reward, predicted reward: ", reward_, predicted_reward)
         return reward_
     
     def predict_batch(self, states, actions):

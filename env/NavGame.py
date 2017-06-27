@@ -306,7 +306,7 @@ class NavGame(object):
         
     def updateMBAE(self, U, V, Q):
         # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
-        textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
+        textstr = """$\max R=%.2f$\n$\min R=%.2f$"""%(np.max(Q), np.min(Q))
         self._mbaeText.set_text(textstr)
         q_max = np.max(Q)
         q_min = np.min(Q)

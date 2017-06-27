@@ -75,8 +75,8 @@ class NavGameEnv(SimInterface):
                 V.append(action1[1])
                 v = agent.q_value(state_)
                 Q.append(v)
-                # action_ = getOptimalAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
-                action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
+                action_ = getOptimalAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
+                # action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
                 ### How to change this action...
                 action_ = action_ - action1_cp
                 # next_state = agent.getForwardDynamics().predict(state_, action1)
@@ -86,7 +86,8 @@ class NavGameEnv(SimInterface):
                 # action_ = action_ - action1
                 U_mbae.append(action_[0])
                 V_mbae.append(action_[1])
-                r = agent.getForwardDynamics().predict_reward(state_, np.array(action_))
+                r = agent.getForwardDynamics().predict_reward(state_, np.array(action1_cp))
+                # print ("Predicted reward: ", r)
                 R_mbae.append(r)
         self.getEnvironment().updatePolicy(U, V, Q)
         self.getEnvironment().updateMBAE(U_mbae, V_mbae, R_mbae)
