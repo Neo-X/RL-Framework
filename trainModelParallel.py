@@ -135,7 +135,12 @@ def trainModelParallel(settingsFileName):
                 nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(settings["model_type"]), settings=settings)
                 nlv.setInteractive()
                 nlv.init()
-                
+        if (settings['train_reward_predictor']):
+            if settings['visualize_learning']:
+                rewardlv = NNVisualize(title=str("Reward Model") + " with " + str(settings["model_type"]), settings=settings)
+                rewardlv.setInteractive()
+                rewardlv.init()
+                 
         if (settings['debug_critic']):
             criticLosses = []
             criticRegularizationCosts = [] 
@@ -273,6 +278,7 @@ def trainModelParallel(settingsFileName):
         bellman_error = []
         reward_over_epoc = []
         dynamicsLosses = []
+        dynamicsRewardLosses = []
         
         for lw in learning_workers:
             print ("Learning worker" )
@@ -416,6 +422,8 @@ def trainModelParallel(settingsFileName):
         trainData["std_discount_error"]=[]
         trainData["mean_forward_dynamics_loss"]=[]
         trainData["std_forward_dynamics_loss"]=[]
+        trainData["mean_forward_dynamics_reward_loss"]=[]
+        trainData["std_forward_dynamics_reward_loss"]=[]
         trainData["mean_eval"]=[]
         trainData["std_eval"]=[]
         trainData["mean_critic_loss"]=[]
@@ -495,6 +503,10 @@ def trainModelParallel(settingsFileName):
                         dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
                         dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
                         dynamicsLosses.append(dynamicsLoss)
+                    if (settings['train_reward_predictor']):
+                        dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
+                        dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss))
+                        dynamicsRewardLosses.append(dynamicsRewardLoss)
                     if (settings['train_forward_dynamics']):
                         print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
                     else:
@@ -577,6 +589,10 @@ def trainModelParallel(settingsFileName):
                         mean_dynamicsLosses = np.mean(dynamicsLosses)
                         std_dynamicsLosses = np.std(dynamicsLosses)
                         dynamicsLosses = []
+                    if (settings['train_reward_predictor']):
+                        mean_dynamicsRewardLosses = np.mean(dynamicsRewardLosses)
+                        std_dynamicsRewardLosses = np.std(dynamicsRewardLosses)
+                        dynamicsRewardLosses = []
                         
                     trainData["mean_reward"].append(mean_reward)
                     # print ("Mean Rewards: " + str(mean_rewards))
@@ -594,6 +610,9 @@ def trainModelParallel(settingsFileName):
                     if (settings['train_forward_dynamics']):
                         trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
                         trainData["std_forward_dynamics_loss"].append(mean_dynamicsLosses)
+                    if (settings['train_reward_predictor']):
+                        trainData["mean_forward_dynamics_reward_loss"].append(mean_dynamicsRewardLosses)
+                        trainData["std_forward_dynamics_reward_loss"].append(mean_dynamicsRewardLosses)
                     if settings['visualize_learning']:
                         rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
                         rlv.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
@@ -609,6 +628,12 @@ def trainModelParallel(settingsFileName):
                         nlv.setInteractiveOff()
                         nlv.saveVisual(directory+"trainingGraphNN")
                         nlv.setInteractive()
+                    if (settings['train_reward_predictor'] and settings['visualize_learning']):
+                        rewardlv.updateLoss(np.array(trainData["mean_forward_dynamics_reward_loss"]), np.array(trainData["std_forward_dynamics_reward_loss"]))
+                        rewardlv.redraw()
+                        rewardlv.setInteractiveOff()
+                        rewardlv.saveVisual(directory+"rewardTrainingGraph")
+                        rewardlv.setInteractive()
                     if (settings['debug_critic']):
                         
                         mean_criticLosses = np.mean(criticLosses)

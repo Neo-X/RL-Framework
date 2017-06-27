@@ -336,22 +336,25 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
         print ("Fake state Value: ", model.q_value(fake_state_))
     """
     init_action = copy.deepcopy(action)
+    init_reward = final_reward = forwardDynamicsModel.predict_reward(state, action)
     for i in range(num_updates):
         ## find next state with dynamics model
-        next_reward = np.reshape(forwardDynamicsModel.predict_reward(state, action), (1, 1))
+        # next_reward = np.reshape(forwardDynamicsModel.predict_reward(state, action), (1, 1))
         ## Set modified next state as output for dynamicsModel
         ## Compute the grad to change the input to produce a better action
-        dynamics_grads = forwardDynamicsModel.getRewardGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_reward+0.1, (1, 1)))[0]
+        dynamics_grads = forwardDynamicsModel.getRewardGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape([[0]], (1, 1)))[0]
         ## Grab the part of the grads that is the action
         action_grads = dynamics_grads[:, state_length:] * learning_rate 
         action = action + action_grads
         action = action[0]
-        next_state_ = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
+        # next_state_ = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
         
-        final_value = model.q_value(next_state_)
+    # final_value = model.q_value(next_state_)
+    final_reward = forwardDynamicsModel.predict_reward(state, action)
         
         # repeat
-    print ("New action: ", action, " action diff: ", (action - init_action))
+    print ("New action: ", action, " action diff: ", (action - init_action), " reward change: ", 
+           (final_reward - init_reward))
     action = clampAction(action, model._action_bounds)
     return action
 

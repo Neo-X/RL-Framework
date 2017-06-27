@@ -100,6 +100,7 @@ class ForwardDynamics(AlgorithmInterface):
                                                 self._model.getActionSymbolicVariable(): self._model.getActions()})
         
         self._bellman_error = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
+        self._reward_error = theano.function(inputs=[], outputs=self._reward_diff, allow_input_downcast=True, givens=self._reward_givens_)
         # self._diffs = theano.function(input=[State])
         self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [lasagne.layers.get_all_layers(self._model.getActorNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
         self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True, 
@@ -147,6 +148,7 @@ class ForwardDynamics(AlgorithmInterface):
         return self._get_grad_reward()
                 
     def train(self, states, actions, result_states, rewards):
+        rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         self.setData(states, actions, result_states, rewards)
         # print ("Performing Critic trainning update")
         #if (( self._updates % self._weight_update_steps) == 0):
@@ -155,6 +157,8 @@ class ForwardDynamics(AlgorithmInterface):
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         loss = self._train()
         if ( self.getSettings()['train_reward_predictor']):
+            print ("self._reward_bounds: ", self._reward_bounds)
+            print( "Rewards: ", np.concatenate((rewards, self._predict_reward()), axis=1))
             lossReward = self._train_reward()
         # This undoes the Actor parameter updates as a result of the Critic update.
         # print (diff_)
@@ -189,3 +193,8 @@ class ForwardDynamics(AlgorithmInterface):
     def bellman_error(self, states, actions, result_states, rewards):
         self.setData(states, actions, result_states, rewards)
         return self._bellman_error()
+    
+    def reward_error(self, states, actions, result_states, rewards):
+        rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
+        self.setData(states, actions, result_states, rewards)
+        return self._reward_error()
