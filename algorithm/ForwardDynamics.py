@@ -148,7 +148,7 @@ class ForwardDynamics(AlgorithmInterface):
         return self._get_grad_reward()
                 
     def train(self, states, actions, result_states, rewards):
-        rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
+        # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         self.setData(states, actions, result_states, rewards)
         # print ("Performing Critic trainning update")
         #if (( self._updates % self._weight_update_steps) == 0):
@@ -195,6 +195,6 @@ class ForwardDynamics(AlgorithmInterface):
         return self._bellman_error()
     
     def reward_error(self, states, actions, result_states, rewards):
-        rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
+        # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         self.setData(states, actions, result_states, rewards)
         return self._reward_error()

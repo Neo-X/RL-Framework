@@ -30,9 +30,10 @@ class NavGameActor(ActorInterface):
             self._reward_sum = self._reward_sum + dist
             return dist
         if (self.hasNotFallen(exp)):
-            vel_dif = np.abs(self._target_vel - dist)
+            # vel_dif = np.abs(self._target_vel - dist)
             # reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight) # optimal is 0
-            reward = reward_smoother(vel_dif, self._settings, self._target_vel_weight)
+            # reward = reward_smoother(vel_dif, self._settings, self._target_vel_weight)
+            reward = dist
         else:
             return 0.0
         

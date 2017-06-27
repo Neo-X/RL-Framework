@@ -451,11 +451,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print ("Result State shape: ", (np.array(resultState).shape))
         # _val_act = exp.getActor().getModel().maxExpectedActionForState(resultState)
         # bellman_error.append(val_act[0] - (reward + _val_act[0]))
-        # For testing remove later
+        ## For testing remove later
         if (settings["use_back_on_track_forcing"] and (not evaluation)):
             exp.getControllerBackOnTrack()
             
-        # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) )
+        print ("Value: ", model.q_value(state_), " Action " + str(action) + " Reward: " + str(reward_) )
         if print_data:
             # print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward_))
             # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) + " Discounted Sum: " + str(discounted_sum) )
