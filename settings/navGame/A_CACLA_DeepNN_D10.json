@@ -32,7 +32,7 @@
     "comment__": "Whether or not to save the plotted data while learning",
 "save_trainData": true,
     "comment__": "Whether or not to train a forward dynamics model as well",
-"train_forward_dynamics": true,
+"train_forward_dynamics": false,
     "comment__": "Bounds used for scaling rewards for networks",
 "reward_bounds": [[-2.0],[2.0]],
     "comment__": "Max length of the Experience memory",
