@@ -219,7 +219,7 @@ class NavGame(object):
         
         # Two subplots, unpack the axes array immediately
         self._fig, (self._map_ax, self._policy_ax) = plt.subplots(1, 2, sharey=False)
-        self._fig.set_size_inches(18.5, 10.5, forward=True)
+        self._fig.set_size_inches(18.5, 8.5, forward=True)
         self._map_ax.set_title('Map')
         self._particles, = self._map_ax.plot([self._agent[0]], [self._agent[1]], 'bo', ms=self._markerSize)
         
