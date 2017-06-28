@@ -79,9 +79,10 @@ class GapGame2D(GapGame1D):
             self._obstacles[a].setDir(dirs[a]) 
     
     def visualizeNextState(self, terrain, action, terrain_dx):
-        self._nextTerrainData = terrain
         pos = self._obstacle.getPosition() 
         vel = self._obstacle.getLinearVel()
+        terrain = pos[1] - terrain
+        self._nextTerrainData = terrain
         new_vel = np.array([vel[0] + action[0], action[1]])
         # new_vel = action[0]
         new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
