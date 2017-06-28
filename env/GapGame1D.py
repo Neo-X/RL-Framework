@@ -230,6 +230,15 @@ def draw_body(body):
         sx,sy,sz = body.boxsize
         glScalef(sx, sy, sz)
         glutSolidCube(1)
+    elif body.shape == "arrow":
+        glColor3f(body.getColour()[0], body.getColour()[1], body.getColour()[2])
+        glTranslatef(0, -0.1, 1.1)
+        pos = body.getPosition()
+        glTranslated(pos[0], pos[1], pos[2])
+        glRotatef(90 * body.getDir(), 0, 1, 0)
+        glutSolidCone(body.radius, body.radius, CAPSULE_SLICES, CAPSULE_STACKS )
+    else:
+        print( "Don't know how to draw ", body.shape, " bodies.")
     glPopMatrix()
     
 def generateTerrainVerts(terrainData_, translateX):
@@ -295,6 +304,10 @@ class Obstacle(object):
     def __init__(self):
         self._pos = np.array([0,0,0])
         self._vel = np.array([0,0,0])
+        self.shape = "arrow"
+        self.radius = 0.1
+        self._dir = 1.0
+        self._colour = np.array([0.8, 0.3, 0.3])
         
     def setPosition(self, pos):
         self._pos = pos
@@ -308,8 +321,22 @@ class Obstacle(object):
     def getLinearVel(self):
         return copy.deepcopy(self._vel)
 
-    # def setRotation(self, balh):
-    #     pass
+    def setRotation(self, balh):
+        pass
+    
+    def getRotation(self):
+        return (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+    
+    def getDir(self):
+        return self._dir
+    def setDir(self, dir):
+        self._dir = dir
+    def setColour(self, r, g, b):
+        self._colour[0] = r
+        self._colour[1] = g
+        self._colour[2] = b
+    def getColour(self):
+        return self._colour
     
 
 class GapGame1D(object):
@@ -334,6 +361,7 @@ class GapGame1D(object):
             glutInitWindowSize(self._window_width, self._window_height);
             glutCreateWindow(None)
         
+        self._gravity = -9.81
         # create an infinite plane geom to simulate a floor
         """
         self._terrainStartX=0.0
@@ -395,6 +423,27 @@ class GapGame1D(object):
         self._bodies.append(self._obstacle)
         print ("obstacle created at %s" % (str(pos)))
         # print ("total mass is %.4f kg" % (self._obstacle.getMass().mass))
+        
+        ## debug visualization stuff
+        self._obstacle2 = Obstacle()
+        self._obstacle2.setColour(0.2,0.2,0.8)
+        pos = (0.0, self._ballRadius+self._ballEpsilon, 0.0)
+            #pos = (0.27396178783269359, 0.20000000000000001, 0.17531818795388002)
+        self._obstacle2.setPosition(pos)
+        self._obstacle2.setRotation(rightRot)
+        self._bodies.append(self._obstacle2)
+        
+        self._obstacles = []
+        num_obstacles = 10
+        for n in range(num_obstacles):
+            obs_ = Obstacle()
+
+            pos = (0.0, self._ballRadius+self._ballEpsilon, 0.0)
+            #pos = (0.27396178783269359, 0.20000000000000001, 0.17531818795388002)
+            obs_.setPosition(pos)
+            obs_.setRotation(rightRot)
+            self._bodies.append(obs_)
+            self._obstacles.append(obs_)
         
         
     def finish(self):
@@ -609,7 +658,14 @@ class GapGame1D(object):
     def _computeHeight(self, action_):
         init_v_squared = (action_*action_)
         # seconds_ = 2 * (-self._box.G)
-        return (-init_v_squared)/1.0    
+        return (-init_v_squared)/1.0  
+    
+    def _computeTime(self, velocity_y):
+        """
+            Time till ball stops moving/ reaches apex
+        """
+        seconds_ = velocity_y/-self._gravity
+        return seconds_  
     
     def simulateAction(self, action):
         """

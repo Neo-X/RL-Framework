@@ -369,7 +369,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     action = action_
             if (settings["visualize_forward_dynamics"]):
                 predicted_next_state = model.getForwardDynamics().predict(np.array(state_), action)
-                # exp.visualizeNextState(state_, action) # visualize current state
+                # exp.visualizeNextState(state_[0], [0,0]) # visualize current state
                 exp.visualizeNextState(predicted_next_state, action)
                 
                 action = model.predict(state_)
@@ -394,7 +394,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # action_ = _getOptimalAction(model.getForwardDynamics(), model.getPolicy(), action, state_)
                 exp.getEnvironment().visualizeActions(actions, dirs)
                 ## The perfect action?
-                exp.getEnvironment().visualizeAction([2.25])
+                exp.getEnvironment().visualizeAction(action)
                 
             
             if (not settings["train_actor"]): # hack to use debug critic only
