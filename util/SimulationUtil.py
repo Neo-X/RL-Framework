@@ -297,10 +297,11 @@ def createEnvironment(config_file, env_type, settings, render=False):
     elif env_type == 'nav_Game':
         from env.NavGame import NavGame
         from sim.NavGameEnv import NavGameEnv
-        file = open(config_file)
-        conf = json.load(file)
+        # file = open(config_file)
+        # conf = json.load(file)
+        conf = copy.deepcopy(settings)
         # print ("Settings: " + str(json.dumps(conf)))
-        file.close()
+        # file.close()
         conf['render'] = render
         exp = NavGame(conf)
         exp = NavGameEnv(exp, settings)

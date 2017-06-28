@@ -25,38 +25,43 @@ def loadMap():
 
 
 class NavGame(object):
+    """
+        An n-d continuous grid world like navigation game
+        The dimension of the world is determined from the length of state bounds
+    """
     
     def __init__(self, settings):
         self._settings = settings
         print ("Game settings: ", self._settings)
-        
-        self._bounds = np.array([[0,0], [15,15]])
+        self._action_bounds = self._settings['action_bounds']
+        self._state_bounds = self._settings['state_bounds']
+        self._state_length = len(self._state_bounds[0])
+        # self._state_bounds = np.array([[self._state_bounds[0][0]]*self._state_length, [self._state_bounds[1][0]]*self._state_length])
         ## For plotting objects
         self._markerSize = 25
-        self._map = np.zeros((16,16))
+        self._map = np.zeros((self._state_bounds[1][0]-self._state_bounds[0][0],
+                              self._state_bounds[1][0]-self._state_bounds[0][0]))
         
-        self._agent = np.array([7,7]) ## Somewhat random initial spot
-        self._target = np.array([8,8]) ## goal location
+        self._agent = np.array([2]* self._state_length) ## Somewhat random initial spot
+        self._target = np.array([0]* self._state_length) ## goal location
         
         ## Some obstacles
         obstacles = []
-        obstacles.append([2, 3])
-        obstacles.append([3, 7])
-        obstacles.append([-4, 6])
-        obstacles.append([-7, -6])
-        obstacles.append([-6, -6])
+        num_random_obstacles=5
+        for i in range(num_random_obstacles):
+            obstacles.append(np.random.random_integers(self._state_bounds[0][0], self._state_bounds[1][0], self._state_length))
         
-        self._obstacles = np.array(obstacles)+8.0 # shift coordinates
+        self._obstacles = np.array(obstacles)
         
         # if self._settings['render'] == True:
-        U = np.zeros((256))
-        V = np.ones((256))
-        Q = np.random.rand((256))
+        U = np.zeros((self._state_length * self._state_length))
+        V = np.ones((self._state_length * self._state_length))
+        Q = np.random.rand((self._state_length * self._state_length))
         self.initRender(U, V, Q)
         
     def init(self):
-        self._agent = np.array([7,7]) ## Somewhat random initial spot
-        self._target = np.array([8,8]) ## goal location
+        self._agent = np.array([2]* self._state_length) ## Somewhat random initial spot
+        self._target = np.array([0]* self._state_length) ## goal location
         # self._map[self._target[0]][self._target[1]] = 1
         
         
@@ -65,26 +70,26 @@ class NavGame(object):
         """
             Reset agent location
         """
-        self._agent = np.array([random.randint(0,15),random.randint(0,15)])
+        new_loc = np.random.random_integers(self._state_bounds[0][0], self._state_bounds[1][0], self._state_length)
+        self._agent = new_loc
         
     def generateValidationEnvironmentSample(self, seed):
-        self._agent = np.array([random.randint(0,15),random.randint(0,15)])
+        self.initEpoch()
     
     def generateEnvironmentSample(self):
-        self._agent = np.array([random.randint(0,15),random.randint(0,15)])
-        
+        self.initEpoch()
+
+    """        
     def getAgentLocalState(self):
-        """
-            Returns a vector of value [-1,1]
-        """
-        
         st_ = self._map[(self._agent[0]-1)::2, (self._agent[1]-1)::2] # submatrix around agent location
         st_ = np.reshape(st_, (1,)) # Make vector
         return st_
-        
+    """ 
+    
     def move(self, action):
         """
         action in [0,1,2,3,4,5,6,7]
+        Will only work for 2D environment
         """
         return {
             0: [-1,0],
@@ -104,8 +109,8 @@ class NavGame(object):
         # loc = self._agent + (move * random.uniform(0.5,1.0))
         loc = self._agent + (move)
         
-        if (((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
-            (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])) or
+        if (((loc[0] < self._state_bounds[0][0]) or (loc[0] > self._state_bounds[1][0]) or 
+            (loc[1] < self._state_bounds[0][1]) or (loc[1] > self._state_bounds[1][1])) or
             self.collision(loc) or
             self.fall(loc)):
             # Can't move out of map
@@ -123,8 +128,8 @@ class NavGame(object):
         # loc = self._agent + (move * random.uniform(0.5,1.0))
         loc = self._agent + (move)
         
-        if (((loc[0] < self._bounds[0][0]) or (loc[0] > self._bounds[1][0]) or 
-            (loc[1] < self._bounds[0][1]) or (loc[1] > self._bounds[1][1])) or
+        if (((loc[0] < self._state_bounds[0][0]) or (loc[0] > self._state_bounds[1][0]) or 
+            (loc[1] < self._state_bounds[0][1]) or (loc[1] > self._state_bounds[1][1])) or
             self.collision(loc) or
             self.fall(loc)):
             # Can't move out of map or overlap an obstacle
@@ -143,8 +148,8 @@ class NavGame(object):
     def fall(self, loc):
         # Check to see if collision at loc with any obstacles
         # print (int(math.floor(loc[0])), int(math.floor(loc[1])))
-        if self._map[int(math.floor(loc[0]))][ int(math.floor(loc[1]))] < 0:
-            return True
+        # if self._map[int(math.floor(loc[0]))][ int(math.floor(loc[1]))] < 0:
+        #     return True
         return False
     
     def agentHasFallen(self):
@@ -179,7 +184,8 @@ class NavGame(object):
         self._agent = st
         
     def getStateSamples(self):
-        X,Y = np.mgrid[0:self._bounds[1][0]+1,0:self._bounds[1][0]+1]
+        X,Y = np.mgrid[self._state_bounds[0][0]:self._state_bounds[1][0]+1,
+                       self._state_bounds[0][1]:self._state_bounds[1][1]+1]
         return (X,Y)
     
     def initRender(self, U, V, Q):
@@ -229,7 +235,7 @@ class NavGame(object):
         
         self._policy_ax.set_title('Policy')
         
-        X,Y = np.mgrid[0:self._bounds[1][0]+1,0:self._bounds[1][0]+1]
+        X,Y = self.getStateSamples()
         print (X,Y)
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
         textstr = "$\max V=%.2f$\n$\min V=%.2f$"%(np.max(Q), np.min(Q))
@@ -255,7 +261,7 @@ class NavGame(object):
         
         self._policy_mbae.set_title('MBAE')
         
-        X,Y = np.mgrid[0:self._bounds[1][0]+1,0:self._bounds[1][0]+1]
+        X,Y = self.getStateSamples()
         print (X,Y)
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
         textstr = "$\max V=%.2f$\n$\min V=%.2f$"%(np.max(Q), np.min(Q))
