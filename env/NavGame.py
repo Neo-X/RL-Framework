@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib
+import matplotlib.patches as patches
 # from matplotlib import mpl
 import numpy as np
 # import matplotlib.animation as animation
@@ -22,6 +23,23 @@ def loadMap():
 # zvals = loadMap()
 
 # print (zvals)
+
+def resetExtent(data,im):
+    """
+    Using the data and axes from an AxesImage, im, force the extent and 
+    axis values to match shape of data.
+    """
+    ax = im.get_axes()
+    dataShape = data.shape
+
+    if im.origin == 'upper':
+        im.set_extent((-0.5,dataShape[0]-.5,dataShape[1]-.5,-.5))
+        ax.set_xlim((-0.5,dataShape[0]-.5))
+        ax.set_ylim((dataShape[1]-.5,-.5))
+    else:
+        im.set_extent((-0.5,dataShape[0]-.5,-.5,dataShape[1]-.5))
+        ax.set_xlim((-0.5,dataShape[0]-.5))
+        ax.set_ylim((-.5,dataShape[1]-.5))
 
 
 class NavGame(object):
@@ -47,6 +65,8 @@ class NavGame(object):
         
         ## Some obstacles
         obstacles = []
+        obstacles.append([self._state_bounds[0][0]]*self._state_length)
+        obstacles.append([self._state_bounds[1][0]]*self._state_length)
         num_random_obstacles=5
         for i in range(num_random_obstacles):
             obstacles.append(np.random.random_integers(self._state_bounds[0][0], self._state_bounds[1][0], self._state_length))
@@ -211,14 +231,34 @@ class NavGame(object):
         cmap2 = matplotlib.colors.LinearSegmentedColormap.from_list('my_colormap',
                                                   colours,
                                                  256)
-        
+        """
         img1 = self._map_ax.imshow(self._map,interpolation='nearest',
                             cmap = cmap2,
                             origin='lower')
+        """
+        p = patches.Rectangle(
+            (self._state_bounds[0][0], self._state_bounds[0][0]),
+            (self._state_bounds[1][0]-self._state_bounds[0][0]),
+            (self._state_bounds[1][0]-self._state_bounds[0][0]),
+            alpha=0.45,
+            facecolor="#000000"
+            # fill=False      # remove background
+        )
+        self._map_ax.add_patch(p)
+        """
         img2 = self._policy_ax.imshow(np.array(self._map)*0.0,interpolation='nearest',
                             cmap = cmap2,
                             origin='lower')
-        
+        """
+        p = patches.Rectangle(
+            (self._state_bounds[0][0], self._state_bounds[0][0]),
+            (self._state_bounds[1][0]-self._state_bounds[0][0]),
+            (self._state_bounds[1][0]-self._state_bounds[0][0]),
+            alpha=0.45,
+            facecolor="#000000"
+            # fill=False      # remove background
+        )
+        self._policy_ax.add_patch(p)
         
         # make a color bar
         # self._map_ax.colorbar(img2,cmap=cmap,
@@ -253,11 +293,20 @@ class NavGame(object):
         # Two subplots, unpack the axes array immediately
         self._fig2, (self._policy_mbae) = plt.subplots(1, 1, sharey=False)
         self._fig2.set_size_inches(8.5, 8.5, forward=True)
-        
+        """
         img2 = self._policy_mbae.imshow(np.array(self._map)*0.0,interpolation='nearest',
                             cmap = cmap2,
                             origin='lower')
-        
+        """
+        p = patches.Rectangle(
+            (self._state_bounds[0][0], self._state_bounds[0][0]),
+            (self._state_bounds[1][0]-self._state_bounds[0][0]),
+            (self._state_bounds[1][0]-self._state_bounds[0][0]),
+            alpha=0.45,
+            facecolor="#000000"
+            # fill=False      # remove background
+        )
+        self._policy_mbae.add_patch(p)
         
         self._policy_mbae.set_title('MBAE')
         
