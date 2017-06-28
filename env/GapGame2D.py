@@ -70,12 +70,13 @@ class GapGame2D(GapGame1D):
         for a in range(len(actions)):
             new_vel = np.array([vel[0] + actions[a][0], actions[a][1]])
             # new_vel = action[0]
-            new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+            # new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
             ## compute new location for landing.
             time__ = self._computeTime(actions[a][1]) * 2.0
             new_pos = pos[0] + (new_vel[0] * time__)
-            # self._obstacle2.setPosition((new_pos, 0,0))   
-            self._obstacles[a].setPosition((new_pos, 0,0)) 
+            # self._obstacle2.setPosition((new_pos, 0,0)) 
+            # print ("new obs location: ", new_pos)  
+            self._obstacles[a].setPosition((new_pos, 0,2.1)) 
             self._obstacles[a].setDir(dirs[a]) 
     
     def visualizeNextState(self, terrain, action, terrain_dx):

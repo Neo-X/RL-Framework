@@ -307,6 +307,8 @@ def draw_body(body):
         sx,sy,sz = body.boxsize
         glScalef(sx, sy, sz)
         glutSolidCube(1)
+    else:
+        print( "Don't know how to draw ", body.shape, " bodies.")
     glPopMatrix()
     
 def generateTerrainVerts(terrainData_, translateX):

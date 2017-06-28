@@ -394,7 +394,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # action_ = _getOptimalAction(model.getForwardDynamics(), model.getPolicy(), action, state_)
                 exp.getEnvironment().visualizeActions(actions, dirs)
                 ## The perfect action?
-                exp.getEnvironment().visualizeAction([0.0, 3.0])
+                exp.getEnvironment().visualizeAction(action)
                 
             
             if (not settings["train_actor"]): # hack to use debug critic only

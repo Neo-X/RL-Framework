@@ -230,6 +230,15 @@ def draw_body(body):
         sx,sy,sz = body.boxsize
         glScalef(sx, sy, sz)
         glutSolidCube(1)
+    elif body.shape == "arrow":
+        glColor3f(body.getColour()[0], body.getColour()[1], body.getColour()[2])
+        glTranslatef(0, -0.1, 1.1)
+        pos = body.getPosition()
+        glTranslated(pos[0], pos[1], pos[2])
+        glRotatef(90 * body.getDir(), 0, 1, 0)
+        glutSolidCone(body.radius, body.radius, CAPSULE_SLICES, CAPSULE_STACKS )
+    else:
+        print( "Don't know how to draw ", body.shape, " bodies.")
     glPopMatrix()
     
 def generateTerrainVerts(terrainData_, translateX):
