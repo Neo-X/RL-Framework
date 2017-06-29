@@ -69,6 +69,10 @@ class AlgorithmInterface(object):
         return params
     
     def setNetworkParameters(self, params):
+        """
+        for i in range(len(params[0])):
+            params[0][i] = np.array(params[0][i], dtype=theano.config.floatX)
+            """
         lasagne.layers.helper.set_all_param_values(self._model.getCriticNetwork(), params[0])
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params[1])
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), params[2])

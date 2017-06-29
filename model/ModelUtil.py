@@ -391,7 +391,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
         # print ("Next State: ", next_state.shape)
         ## compute grad for next state wrt model, i.e. how to change the state to improve the value
         next_state_grads = model.getGrads(next_state)[0] * (learning_rate) # this uses the value function
-        # print ("Next State Grad: ", next_state_grads)
+        print ("Next State Grad: ", next_state_grads)
         # next_state_grads = np.sum(next_state_grads, axis=1)
         # print ("Next State Grad shape: ", next_state_grads.shape)
         ## modify next state wrt increasing grad, this is the direction we want the next state to go towards 
@@ -411,7 +411,8 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
         # print ("action_grad1: ", action_grads)
         # print ("dynamics_grads size: ", dynamics_grads.shape)
         ## Grab the part of the grads that is the action
-        action_grads = dynamics_grads[:, state_length:] * learning_rate 
+        # action_grads = dynamics_grads[:, state_length:] * learning_rate
+        action_grads = dynamics_grads[:, state_length:] 
         # action_grads = action_grads * learning_rate
         # print ("action_grad2: ", action_grads)
         ## Use grad to update action parameters
@@ -423,13 +424,16 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
         next_state_ = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
         
         # print ("Next_state: ", next_state_.shape, " values ", next_state_)
-        final_value = model.q_value(next_state_)
+    final_value = model.q_value(next_state_)
         # print ("Final Estimated Value: ", final_value)
         
         # repeat
-    print ("New action: ", action, " action diff: ", (action - init_action))
+    value_diff = final_value - init_value
+    print ("New action: ", action, " action diff: ", (action - init_action), " value change: ", 
+           (value_diff))
+    print ("dynamics_grads: ", dynamics_grads)
     action = clampAction(action, model._action_bounds)
-    return action
+    return (action, value_diff)
 
 def getModelPredictionUncertanty(model, state, length=4.1, num_samples=32):
     """

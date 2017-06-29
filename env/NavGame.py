@@ -331,11 +331,11 @@ class NavGame(object):
         """perform animation step"""
         # update pieces of the animation
         # self._agent = self._agent + np.array([0.1,0.1])
-        print ("Agent loc: " + str(self._agent))
+        # print ("Agent loc: " + str(self._agent))
         self._particles.set_data(self._agent[0], self._agent[1] )
         self._particles.set_markersize(self._markerSize)
         # self._line1.set_ydata(np.sin(x + phase))
-        self._fig.canvas.draw()
+        # self._fig.canvas.draw()
         
     def updatePolicy(self, U, V, Q):
         # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
