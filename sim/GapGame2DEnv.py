@@ -18,17 +18,31 @@ class GapGame2DEnv(SimInterface):
     def generateValidation(self, data, epoch):
         self.getEnvironment().generateValidationEnvironmentSample(epoch)
     
+    def generateValidationEnvironmentSample(self, epoch):
+        self.getEnvironment().generateValidationEnvironmentSample(epoch)
+        
     def generateEnvironmentSample(self):
         self.getEnvironment().generateEnvironmentSample()
         
     def getEvaluationData(self):
         return self.getEnvironment().getEvaluationData()
     
+    def updateAction(self, action_):
+        # print("Simbicon updating action:")
+        self.getActor().updateAction(self, action_)
+    
+    def needUpdatedAction(self):
+        return self.getEnvironment().needUpdatedAction()
+            
+    def display(self):
+        pass
+        # self.getEnvironment().display(
+    
     def finish(self):
         self._exp.finish()
         
     def update(self):
-        self._exp.simulateAction()
+        self.getEnvironment().update()
     
     def getState(self):
         # state = np.array(self._exp.getState())

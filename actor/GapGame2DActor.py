@@ -12,6 +12,10 @@ class GapGame2DActor(ActorInterface):
         self._target_vel = self._settings["target_velocity"]
         
     
+    def updateAction(self, sim, action_):
+        action_ = np.array(action_, dtype='float64')
+        sim.getEnvironment().updateAction(action_)
+    
     # @profile(precision=5)
     def act(self, exp, action_, bootstrapping=False):
         samp = self.getActionParams(action_)

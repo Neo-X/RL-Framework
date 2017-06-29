@@ -22,7 +22,57 @@ class GapGame2D(GapGame1D):
         """Creates a ragdoll of standard size at the given offset."""
         
         super(GapGame2D,self).__init__(settings)
+        self._x = []
+        self._y = []
+        self._step = 0
         
+        
+    def updateAction(self, action):
+        pos = self._obstacle.getPosition()
+        vel = self._obstacle.getLinearVel()
+        # print ("Position Before action: ", pos)
+        new_vel = np.array([vel[0] + action[0], action[1]])
+        new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+        # print("New action: ", new_vel)
+        time = (new_vel[1]/9.81)*2 # time for rise and fall
+        self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0))
+        
+        self._x = []
+        self._y = []
+        self._step = 0
+        
+        steps=50
+        # hopTime=1.0
+        vel = self._obstacle.getLinearVel()
+        time_ = (vel[1]/9.81)*2 # time for rise and fall
+        dist = vel[0] * time_
+        x = np.array(np.linspace(-0.5, 0.5, steps))
+        y = np.array(list(map(self._computeHeight, x)))
+        y = (y + math.fabs(float(np.amin(y)))) * action[1]
+        x = np.array(np.linspace(0.0, 1.0, steps)) * dist
+        # x = (x + 0.5) * action[0]
+        x_ = (x + pos[0])
+        self._x = x_
+        self._y = y
+        """
+        dist = new_vel[0] * time
+        self._obstacle.setPosition(pos + np.array([dist, 0.0, 0.0]))
+        """
+        
+    def update(self):
+        if self._game_settings['render']:
+            self._obstacle.setPosition([self._x[self._step], self._y[self._step], 0.0] )
+            pos_ = self._obstacle.getPosition()
+            # print ("New obstacle position: ", pos_)
+            
+            glutPostRedisplay()
+            self.onDraw()
+            self._step +=1
+    
+    def needUpdatedAction(self):
+        if self._step >= len(self._x):
+            return True
+        return False
         
     def actContinuous(self, action, bootstrapping=False):
         # print ("Action: ", action)
