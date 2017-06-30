@@ -21,7 +21,7 @@ import sys
 import copy
 sys.path.append('../')
 from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std
-from model.LearningUtil import loglikelihood, kl, entropy
+from model.LearningUtil import loglikelihood, kl, entropy, likelihood
 from algorithm.AlgorithmInterface import AlgorithmInterface
 
 
@@ -78,10 +78,10 @@ class PPOCritic2(AlgorithmInterface):
         self._q_valsActASTD = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)[:,self._action_length:]
         
         ## prevent value from being 0
-        self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 1e-3
+        self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 5e-2
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
-        self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 1e-3
+        self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 5e-2
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -129,10 +129,23 @@ class PPOCritic2(AlgorithmInterface):
                                                                                      T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
         
         # SGD update
-        # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-        # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
+        # self._updates_ = lasagne.updates.rmsprop(self._loss, self._params, self._learning_rate, self._rho,
         #                                    self._rms_epsilon)
-        # TD update
+        if (self.getSettings()['optimizer'] == 'rmsprop'):
+            self._updates_ = lasagne.updates.rmsprop(self._loss # + self._critic_regularization
+                                                     , self._params, self._learning_rate, self._rho,
+                                           self._rms_epsilon)
+        elif (self.getSettings()['optimizer'] == 'momentum'):
+            self._updates_ = lasagne.updates.momentum(self._loss # + self._critic_regularization
+                                                      , self._params, self._critic_learning_rate , momentum=self._rho)
+        elif ( self.getSettings()['optimizer'] == 'adam'):
+            self._updates_ = lasagne.updates.adam(self._loss # + self._critic_regularization 
+                        , self._params, self._critic_learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
+        else:
+            print ("Unknown optimization method: ", self.getSettings()['optimizer'])
+            sys.exit(-1)
+        ## TD update
+        """
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
                         self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
@@ -140,11 +153,12 @@ class PPOCritic2(AlgorithmInterface):
             self._updates_ = lasagne.updates.momentum(T.mean(self._q_func) + self._critic_regularization, self._params, 
                         self._critic_learning_rate * -T.mean(self._diff), momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
-            self._updates_ = lasagne.updates.adam(T.mean(self._q_func) + self._critic_regularization, self._params, 
+            self._updates_ = lasagne.updates.adam(T.mean(self._q_func), self._params, 
                         self._critic_learning_rate * -T.mean(self._diff), beta1=0.9, beta2=0.999, epsilon=1e-08)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
             sys.exit(-1)
+        """
         ## Need to perform an element wise operation or replicate _diff for this to work properly.
         # self._actDiff = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._model.getActionSymbolicVariable() - self._q_valsActA), 
         #                                                                    theano.tensor.tile((self._advantage * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
@@ -153,8 +167,8 @@ class PPOCritic2(AlgorithmInterface):
         # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._Fallen)) - self._q_func
         
         self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
-        self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
-        self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
+        self._log_prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        self._log_prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         # self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         # self._prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target).dot(self._Advantage)) )
@@ -164,7 +178,7 @@ class PPOCritic2(AlgorithmInterface):
         ## This does the sum already
         # self._actLoss_ =  ( (self._log_prob).dot( self._Advantage) )
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._prob / self._prob_target), self._Advantage)
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
+        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob / self._log_prob_target), self._Advantage)
         
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob), self._Advantage)
         # self._actLoss_ = T.mean(self._log_prob) 
