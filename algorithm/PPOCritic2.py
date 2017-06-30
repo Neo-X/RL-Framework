@@ -166,9 +166,9 @@ class PPOCritic2(AlgorithmInterface):
         ## advantage = Q(a,s) - V(s) = (r + gamma*V(s')) - V(s) 
         # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._Fallen)) - self._q_func
         
-        self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
-        self._log_prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
-        self._log_prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
+        self._Advantage = self._diff * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
+        self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         # self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         # self._prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target).dot(self._Advantage)) )
@@ -178,7 +178,7 @@ class PPOCritic2(AlgorithmInterface):
         ## This does the sum already
         # self._actLoss_ =  ( (self._log_prob).dot( self._Advantage) )
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._prob / self._prob_target), self._Advantage)
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob / self._log_prob_target), self._Advantage)
+        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
         
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob), self._Advantage)
         # self._actLoss_ = T.mean(self._log_prob) 
@@ -371,7 +371,7 @@ class PPOCritic2(AlgorithmInterface):
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print("Advantage: ", np.mean(self._get_advantage()))
-        print("Advantage: ", np.mean(advantage))
+        print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
         print("Actions:     ", np.mean(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
         # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
