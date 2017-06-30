@@ -131,7 +131,7 @@ class SimContainer(object):
         # anim_time = np.abs(anim_time);
         # return anim_time;
         next_time = np.max([next_time, 0]);
-        glutTimerFunc(next_time, self.animate, 0) # 30 fps?
+        glutTimerFunc(int(next_time), self.animate, 0) # 30 fps?
         
     def onKey(self, c, x, y):
         """GLUT keyboard callback."""

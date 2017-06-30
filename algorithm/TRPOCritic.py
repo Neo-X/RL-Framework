@@ -171,7 +171,7 @@ class TRPOCritic(AlgorithmInterface):
         # self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._actor_regularization ))
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
-        self._actLoss = (-1.0 * T.mean(self._actLoss_)) 
+        self._actLoss = (T.mean(self._actLoss_)) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
@@ -188,7 +188,7 @@ class TRPOCritic(AlgorithmInterface):
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
         N = self._model.getStateSymbolicVariable().shape[0]
         params = self._actionParams
-        surr = self._actLoss * (1.0/N)
+        surr = self._actLoss * (-1.0)
         self.pg = flatgrad(surr, params)
 
         prob_mean_fixed = theano.gradient.disconnected_grad(self._q_valsActA)
@@ -534,8 +534,8 @@ class TRPOCritic(AlgorithmInterface):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        return self._q_valTarget()[0]
-        # return self._q_val()[0]
+        # return self._q_valTarget()[0]
+        return self._q_val()[0]
     
     def q_values(self, state):
         """
@@ -544,7 +544,8 @@ class TRPOCritic(AlgorithmInterface):
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
-        return self._q_valTarget()
+        # return self._q_valTarget()
+        return self._q_val()
     
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
