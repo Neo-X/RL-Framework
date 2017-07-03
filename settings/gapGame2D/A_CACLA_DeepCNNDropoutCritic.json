@@ -1,6 +1,6 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "Deep_NN_Dropout_Critic",
+"model_type": "Deep_CNN_Dropout_Critic",
     "comment__": "Learning algorithm to use",
 "agent_name": "A_CACLA",
     "comment__": "Folder to store the training data in.",
@@ -246,5 +246,7 @@
     "comment__": "Whether a model of the reward r <- R(s,a) should be trained",
 "train_reward_predictor": false,
     "comment__": "How many gradient steps model based actino exploration should take",
-"num_mbae_steps": 1
+"num_mbae_steps": 1,
+    "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
+"fix_actor_batch_size": false
 }
