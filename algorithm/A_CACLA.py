@@ -37,6 +37,13 @@ class A_CACLA(AlgorithmInterface):
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True))
         
+        self._KL_Weight = T.scalar("KL_Weight")
+        self._KL_Weight.tag.test_value = np.zeros((1),dtype=np.dtype(self.getSettings()['float_type']))[0]
+        
+        self._kl_weight_shared = theano.shared(
+            np.ones((1), dtype=self.getSettings()['float_type'])[0])
+        self._kl_weight_shared.set_value(1.0)
+        
         """
         self._target_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype='float64'),
@@ -100,7 +107,14 @@ class A_CACLA(AlgorithmInterface):
         if (self.getSettings()['use_previous_value_regularization']):
             self._actor_regularization = self._actor_regularization + (( self.getSettings()['previous_value_regularization_weight']) * 
                        change_penalty(self._model.getActorNetwork(), self._modelTarget.getActorNetwork()) 
-                      ) 
+                      )
+        elif (self.getSettings()['regularization_type'] == 'KL_Divergence'):
+            self._kl_firstfixed = T.mean(kl(self._q_valsActTarget, T.ones_like(self._q_valsActTarget) * self.getSettings()['exploration_rate'], self._q_valsActA, T.ones_like(self._q_valsActA) * self.getSettings()['exploration_rate'], self._action_length))
+            #self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (10*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
+            #                                                                         T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
+            self._actor_regularization = (self._kl_firstfixed ) *(self.getSettings()['kl_divergence_threshold'])
+            
+            print("Using regularization type : ", self.getSettings()['regularization_type']) 
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss, self._params, self._learning_rate, self._rho,
         #                                    self._rms_epsilon)
@@ -195,7 +209,11 @@ class A_CACLA(AlgorithmInterface):
             self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         
         if (self.getSettings()['debug_actor']):
-            self._get_actor_regularization = theano.function([], [self._actor_regularization])
+            if (self.getSettings()['regularization_type'] == 'KL_Divergence'):
+                self._get_actor_regularization = theano.function([], [self._actor_regularization], 
+                                                                 givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+            else:
+                self._get_actor_regularization = theano.function([], [self._actor_regularization])
             self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
             self._get_actor_diff_ = theano.function([], [self._actDiff], givens={
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -329,6 +347,23 @@ class A_CACLA(AlgorithmInterface):
             # print ( "Action before diff: ", self._get_actor_diff_())
             # print( "Action diff: ", self._get_action_diff())
             # return np.sqrt(lossActor);
+            """
+            kl_after = self.kl_divergence()
+            kl_coeff = self._kl_weight_shared.get_value()
+            if kl_after > 1.3*self.getSettings()['kl_divergence_threshold']: 
+                kl_coeff *= 1.5
+                # if (kl_coeff > 1e-8):
+                self._kl_weight_shared.set_value(kl_coeff)
+                print "Got KL=%.3f (target %.3f). Increasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
+            elif kl_after < 0.7*self.getSettings()['kl_divergence_threshold']: 
+                kl_coeff /= 1.5
+                # if (kl_coeff > 1e-8):
+                self._kl_weight_shared.set_value(kl_coeff)
+                print "Got KL=%.3f (target %.3f). Decreasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
+            else:
+                print ("KL=%.3f is close enough to target %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold']))
+            print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
+            """
         return lossActor
     
     def train(self, states, actions, rewards, result_states, falls):
