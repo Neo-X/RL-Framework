@@ -212,7 +212,7 @@
 	"comment__": "Whether or not to train the value function some output from the forward dynamics",
 "train_critic_on_fd_output": false,
 	"comment__": "Use to add an additional regularization term to prevent the network from moving to far from its previous values",
-"use_previous_value_regularization": false,
+"use_previous_value_regularization": true,
 	"comment__": "Controls the level of information that is printed to the terminal",
 "print_level": "train",
 	"comment__": "The type of function to apply over the controller target values [gaussian|abs]",
@@ -242,5 +242,9 @@
 	"comment__": "Whether or not to collects tuples in batches, this can be good for multi-threading or computing furture discounted reward",
 "collect_tuples_in_batches":true,
 	"comment__": "Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occured",
-"reset_on_fall":true
+"reset_on_fall":true,
+	"comment__": "Whether a model of the reward r <- R(s,a) should be trained",
+"train_reward_predictor": false,
+	"comment__": "How many gradient steps model based actino exploration should take",
+"num_mbae_steps": 1
 }
