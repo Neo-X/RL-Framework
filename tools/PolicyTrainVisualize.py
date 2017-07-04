@@ -6,6 +6,11 @@ import random
 import sys
 import json
 
+def get_cmap(n, name='hsv'):
+    '''Returns a function that maps each index in 0, 1, ..., n-1 to a distinct 
+    RGB color; the keyword argument name must be a standard mpl colormap name.'''
+    return plt.cm.get_cmap(name, n)
+
 class PolicyTrainVisualize(object):
     
     def __init__(self, title, settings=None):
@@ -22,6 +27,10 @@ class PolicyTrainVisualize(object):
         else:
             self._iteration_scale = 1
         self._title=title
+        self._length = 0
+        
+    def setLength(self, length):
+        self._length = length
         
         
     def init(self):
@@ -31,13 +40,38 @@ class PolicyTrainVisualize(object):
             average reward
             discounted reward error
         """
+        
+        cmap = get_cmap(len(self._trainingDatas))
+        bin_size=5
         self._fig, (self._reward_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-        for i in range(len(self._trainingDatas)):
-            self._reward, = self._reward_ax.plot(range(len(self._trainingDatas[i]['data']["mean_eval"])), self._trainingDatas[i]['data']["mean_eval"], 
-                                                 linewidth=3.0, label=self._trainingDatas[i]['name'])
+        for i in range(0, len(self._trainingDatas), 1):
+            if ( (self._length) > 0 ):
+                if ( (self._length) < (len(self._trainingDatas[i]['data']["mean_eval"]) ) ):
+                    x_range = range(0, self._length, 1)
+                else:
+                    x_range = range(len(self._trainingDatas[i]['data']["mean_eval"]))
+            else:
+                x_range = range(len(self._trainingDatas[i]['data']["mean_eval"]))
+            new_shape = (len(x_range)/bin_size, bin_size)
+            new_length = new_shape[0]*new_shape[1]
+            x_range_ = range(new_shape[0])
+            # self._length = self._length/bin_size
+            mean = np.mean(np.reshape(self._trainingDatas[i]['data']["mean_eval"][:new_length], new_shape), axis=1)
+            std = np.mean(np.reshape(self._trainingDatas[i]['data']["std_eval"][:new_length], new_shape), axis=1)
+            self._reward, = self._reward_ax.plot(x_range_, mean, 
+                                                 linewidth=3.0, 
+                                                 c=cmap(i),
+                                                 label=self._trainingDatas[i]['name'])
+            print("Line colour: ", self._reward.get_color())
+            self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
+                                                                          np.array(mean) - std, 
+                                                                          np.array(mean) + std,
+                                                                          facecolor=self._reward.get_color(),
+                                                                          alpha=0.25)
         # self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
-        self._reward_ax.legend(loc="lower right",
+        leng = self._reward_ax.legend(loc="lower right",
                      ncol=1, shadow=True, fancybox=True)
+        leng.get_frame().set_alpha(0.5)
         # self._reward_ax.set_title('Mean Reward')
         self._reward_ax.set_ylabel("Mean Reward")
         self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')

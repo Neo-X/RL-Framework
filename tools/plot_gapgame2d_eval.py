@@ -66,9 +66,6 @@ if __name__ == "__main__":
         # print "Training data: " + str(trainingData)
         file.close()
     
-    if (len(sys.argv) == 3):
-        length = int(sys.argv[2])
-    
     """
     trainData["mean_reward"]=[]
     trainData["std_reward"]=[]
@@ -80,6 +77,9 @@ if __name__ == "__main__":
     """
     
     rlv = PolicyTrainVisualize("Training Curves")
+    if (len(sys.argv) == 2):
+        length = int(sys.argv[1])
+        rlv.setLength(length)
     rlv.updateRewards(trainingDatas)
     rlv.init()
     rlv.saveVisual("GapGame2D_Training_curves")
