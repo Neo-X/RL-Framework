@@ -392,7 +392,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
         ## compute grad for next state wrt model, i.e. how to change the state to improve the value
         next_state_grads = model.getGrads(next_state)[0] # this uses the value function
         ## normalize
-        next_state_grads = (next_state_grads/(np.sqrt((next_state_grads*next_state_grads).sum(axis=1)))) * (learning_rate)
+        next_state_grads = (next_state_grads/(np.sqrt((next_state_grads*next_state_grads).sum()))) * (learning_rate)
         print ("Next State Grad: ", next_state_grads)
         # next_state_grads = np.sum(next_state_grads, axis=1)
         # print ("Next State Grad shape: ", next_state_grads.shape)
@@ -415,6 +415,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
         ## Grab the part of the grads that is the action
         # action_grads = dynamics_grads[:, state_length:] * learning_rate
         action_grads = dynamics_grads[:, state_length:] 
+        action_grads = (action_grads/(np.sqrt((action_grads*action_grads).sum()))) * (learning_rate)
         # action_grads = action_grads * learning_rate
         # print ("action_grad2: ", action_grads)
         ## Use grad to update action parameters

@@ -152,9 +152,9 @@
     "comment__": "epsilon lower limit",
 "min_epsilon": 0.15,
     "comment__": "Whether or not to draw/render the simulation",
-"shouldRender": false,
+"shouldRender": true,
     "comment__": "Learning rate use for model based action exploration",
-"action_learning_rate": 10.0,
+"action_learning_rate": 0.50,
     "comment__": "During model-based action exploration, Probability of random policy action",
 "model_based_action_omega": 0.5,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
@@ -212,7 +212,9 @@
 	"comment__": "Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occured",
 "reset_on_fall": true,
 	"comment__": "Whether a model of the reward r <- R(s,a) should be trained",
-"train_reward_predictor": true,
+"train_reward_predictor": false,
 	"comment__": "How many gradient steps model based action exploration should take",
-"num_mbae_steps": 1
+"num_mbae_steps": 1,
+    "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
+"fix_actor_batch_size": false
 }
