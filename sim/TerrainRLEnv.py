@@ -48,6 +48,9 @@ class TerrainRLEnv(SimInterface):
 
     def generateEnvironmentSample(self):
         self._exp.getEnvironment().generateEnvironmentSample()
+        
+    def generateValidationEnvironmentSample(self, epoch):
+        pass
             
     def getActor(self):
         return self._actor
