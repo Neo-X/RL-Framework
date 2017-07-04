@@ -345,15 +345,14 @@ class A_CACLA(AlgorithmInterface):
         if (self.getSettings()['fix_actor_batch_size']):    
             while ( len(self._actor_buffer_diff) > self.getSettings()['batch_size'] ):
                 ### Get batch from buffer
-                tmp_states=self._actor_buffer_states[:self.getSettings()['batch_size']]
+                tmp_states = self._actor_buffer_states[:self.getSettings()['batch_size']]
                 tmp_actions = self._actor_buffer_actions[:self.getSettings()['batch_size']]
                 tmp_rewards = self._actor_buffer_rewards[:self.getSettings()['batch_size']]
                 tmp_result_states = self._actor_buffer_result_states[:self.getSettings()['batch_size']]
-                tmp_falls =self._actor_buffer_falls[:self.getSettings()['batch_size']]
+                tmp_falls = self._actor_buffer_falls[:self.getSettings()['batch_size']]
                 tmp_diff = self._actor_buffer_diff[:self.getSettings()['batch_size']]
-                self._tmp_diff_shared.set_value(tmp_diff)
                 self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
-            
+                self._tmp_diff_shared.set_value(tmp_diff)
                 # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
                 lossActor, _ = self._trainActor()
                 print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
@@ -369,6 +368,7 @@ class A_CACLA(AlgorithmInterface):
                 self._tmp_diff_shared.set_value(self._actor_buffer_diff)
                 self.setData(self._actor_buffer_states, self._actor_buffer_actions, self._actor_buffer_rewards,
                               self._actor_buffer_result_states, self._actor_buffer_falls)
+                self._tmp_diff_shared.set_value(self._actor_buffer_diff)
                 lossActor, _ = self._trainActor()
                 print( "Length of positive actions: " , str(len(self._actor_buffer_states)), " Actor loss: ", lossActor)
                 self._actor_buffer_states=[]
