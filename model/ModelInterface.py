@@ -18,6 +18,8 @@ class ModelInterface(object):
         self._state_length = n_in
         self._action_length = n_out
         self._settings = settings_
+        # data types for model
+        self._dropout_p=settings_['dropout_p']
         
     def getNetworkParameters(self):
         pass
