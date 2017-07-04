@@ -24,6 +24,16 @@ if __name__ == "__main__":
     trainingDatas.append(trainData)
     
     trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere/Deep_CNN_Dropout_Critic/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + DropoutOnCriticOnly'
+    trainingDatas.append(trainData)
+    
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_ActorBufFix/Deep_CNN/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + ActorBatchSize32'
+    trainingDatas.append(trainData)
+    
+    trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_MBAE/Deep_CNN/trainingData_A_CACLA.json'
     trainData['name']='Baseline + MBAE'
     trainingDatas.append(trainData)
@@ -33,6 +43,15 @@ if __name__ == "__main__":
     trainData['name']='Baseline + OnPolicy'
     trainingDatas.append(trainData)
     
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_OnPolicy_ProxReg/Deep_CNN/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + OnPolicy + ProxReg'
+    trainingDatas.append(trainData)
+    
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_OnPolicy_KLReg/Deep_CNN/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + OnPolicy + KLReg'
+    trainingDatas.append(trainData)
     
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_ProximalREg/Deep_CNN/trainingData_A_CACLA.json'
