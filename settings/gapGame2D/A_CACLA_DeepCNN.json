@@ -2,9 +2,9 @@
     "comment__": "Type of model/network to use for the actor and critic",
 "model_type": "Deep_CNN",
     "comment__": "Learning algorithm to use",
-"agent_name": "A_CACLA_Momentum",
+"agent_name": "A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Gaps_Sphere",
+"data_folder": "Gaps_Sphere_Momentum",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -248,5 +248,5 @@
 	"comment__": "How many gradient steps model based actino exploration should take",
 "num_mbae_steps": 1,
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
-"fix_actor_batch_size": true,
+"fix_actor_batch_size": false
 }
