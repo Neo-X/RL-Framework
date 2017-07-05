@@ -71,9 +71,10 @@ def trainForwardDynamics(settingsFileName):
         action_bounds = np.array(settings["action_bounds"], dtype=float)
     
     if action_space_continuous:
-        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True)
+        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
     else:
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+    experience.setSettings(settings)
     file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"expBufferInit.hdf5"
     # experience.saveToFile(file_name)
     experience.loadFromFile(file_name)
@@ -83,7 +84,7 @@ def trainForwardDynamics(settingsFileName):
         print ("Created forward dynamics network")
         # model = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
         model = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None)
-        if settings['visulaize_forward_dynamics']:
+        if settings['visualize_learning']:
             from NNVisualize import NNVisualize
             nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(settings["model_type"]))
             nlv.setInteractive()
@@ -125,11 +126,12 @@ def trainForwardDynamics(settingsFileName):
             _states, _actions, _result_states, _rewards, _falls, _G_ts = experience.get_batch(batch_size)
             # print _actions 
             # dynamicsLoss = model.train(states=_states, actions=_actions, result_states=_result_states)
-            model.setData(_states, _actions, _result_states)
+            # model.setData(_states, _actions, _result_states)
+            model.train(_states, _actions, _result_states, _rewards)
             dynamicsLoss = model._train()
         t1 = time.time()
         if (settings['train_forward_dynamics']):
-            dynamicsLoss_ = model.bellman_error(_states, _actions, _result_states)
+            dynamicsLoss_ = model.bellman_error(_states, _actions, _result_states, _rewards)
             # dynamicsLoss_ = model.bellman_error((_states), (_actions), (_result_states))
             dynamicsLoss = np.mean(np.fabs(dynamicsLoss_))
             # dynamicsLosses.append(dynamicsLoss)

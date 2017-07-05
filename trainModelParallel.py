@@ -332,6 +332,7 @@ def trainModelParallel(settingsFileName):
         print ("Action Mean: ", np.mean(experience._action_history))
         
         if (settings["save_experience_memory"]):
+            print ("Saving initial experience memory")
             file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"expBufferInit.hdf5"
             experience.saveToFile(file_name)
             
