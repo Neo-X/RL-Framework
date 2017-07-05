@@ -17,17 +17,17 @@ if __name__ == "__main__":
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_perfect/Deep_CNN/trainingData_A_CACLA.json'
     trainData['name']='Baseline'
     trainingDatas.append(trainData)
-    
+    """
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere/Deep_CNN_Dropout/trainingData_A_CACLA.json'
     trainData['name']='Baseline + Dropout'
     trainingDatas.append(trainData)
-    
+    """
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere/Deep_CNN_Dropout_Critic/trainingData_A_CACLA.json'
     trainData['name']='Baseline + DropoutOnCriticOnly'
     trainingDatas.append(trainData)
-    
+    """
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_ActorBufFix/Deep_CNN/trainingData_A_CACLA.json'
     trainData['name']='Baseline + ActorBatchSize32'
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_ProximalREg/Deep_CNN/trainingData_A_CACLA.json'
     trainData['name']='Baseline + ProximalRegularization'
     trainingDatas.append(trainData)
-    
+    """
     
     for i in range(len(trainingDatas)):
         datafile = trainingDatas[i]['fileName']
@@ -84,3 +84,5 @@ if __name__ == "__main__":
     rlv.init()
     rlv.saveVisual("GapGame2D_Training_curves")
     rlv.show()
+    
+    
