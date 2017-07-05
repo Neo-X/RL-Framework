@@ -599,9 +599,9 @@ class ForwardDynamicsCNNDropout(ModelInterface):
         network = lasagne.layers.InputLayer((None, self._state_length + self._action_length), new_state)
         
         taskFeatures = lasagne.layers.SliceLayer(network, indices=slice(0, self._settings['num_terrain_features']), axis=1)
-        taskFeatures = lasagne.layers.DropoutLayer(taskFeatures, p=self._dropout_p, rescale=True)
+        # taskFeatures = lasagne.layers.DropoutLayer(taskFeatures, p=self._dropout_p, rescale=True)
         characterFeatures = lasagne.layers.SliceLayer(network, indices=slice(self._settings['num_terrain_features']+1, self._state_length + self._action_length), axis=1)
-        characterFeatures = lasagne.layers.DropoutLayer(characterFeatures, p=self._dropout_p, rescale=True)
+        # characterFeatures = lasagne.layers.DropoutLayer(characterFeatures, p=self._dropout_p, rescale=True)
         print ("taskFeatures Shape:", lasagne.layers.get_output_shape(taskFeatures))
         print ("characterFeatures Shape:", lasagne.layers.get_output_shape(characterFeatures))
         networkTask = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, 1, self._settings['num_terrain_features']))
@@ -688,7 +688,7 @@ class ForwardDynamicsCNNDropout(ModelInterface):
         networkActChar = lasagne.layers.DenseLayer(
                 networkActChar, num_units=64,
                 nonlinearity=lasagne.nonlinearities.rectify)
-        networkActChar = lasagne.layers.DropoutLayer(networkActChar, p=self._dropout_p, rescale=True)
+        # networkActChar = lasagne.layers.DropoutLayer(networkActChar, p=self._dropout_p, rescale=True)
         networkActChar = lasagne.layers.DenseLayer(
                 networkActChar, num_units=((self._state_length) - self._settings['num_terrain_features']),
                 nonlinearity=lasagne.nonlinearities.linear)

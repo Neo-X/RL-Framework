@@ -126,15 +126,22 @@ class A_CACLA(AlgorithmInterface):
         # self._updates_ = lasagne.updates.rmsprop(self._loss, self._params, self._learning_rate, self._rho,
         #                                    self._rms_epsilon)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
+            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.rmsprop(self._loss # + self._critic_regularization
                                                      , self._params, self._learning_rate, self._rho,
                                            self._rms_epsilon)
         elif (self.getSettings()['optimizer'] == 'momentum'):
+            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.momentum(self._loss # + self._critic_regularization
                                                       , self._params, self._critic_learning_rate , momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
+            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.adam(self._loss # + self._critic_regularization 
-                        , self._params, self._critic_learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
+                        , self._params, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
+        elif ( self.getSettings()['optimizer'] == 'adagrad'):
+            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
+            self._updates_ = lasagne.updates.adagrad(self._loss # + self._critic_regularization 
+                        , self._params, self._critic_learning_rate, epsilon=self._rms_epsilon)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
             sys.exit(-1)
@@ -180,7 +187,10 @@ class A_CACLA(AlgorithmInterface):
                     self._learning_rate , momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
             self._actionUpdates = lasagne.updates.adam(self._actLoss + self._actor_regularization, self._actionParams, 
-                    self._learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
+                    self._learning_rate , beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
+        elif ( self.getSettings()['optimizer'] == 'adagrad'):
+            self._actionUpdates = lasagne.updates.adagrad(self._actLoss + self._actor_regularization, self._actionParams, 
+                    self._learning_rate, epsilon=self._rms_epsilon)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
             
