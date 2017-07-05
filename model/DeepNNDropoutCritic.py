@@ -28,7 +28,7 @@ class DeepNNDropoutCritic(ModelInterface):
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         # create a small convolutional neural network
         network = lasagne.layers.InputLayer((None, self._state_length), self._State)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=256,
@@ -53,7 +53,7 @@ class DeepNNDropoutCritic(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
                 nonlinearity=lasagne.nonlinearities.rectify)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
     
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
