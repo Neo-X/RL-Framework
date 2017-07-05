@@ -141,19 +141,21 @@ def trainForwardDynamics(settingsFileName):
                 trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
                 trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
             print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " ForwardPredictionLoss: " + str(dynamicsLoss) + " in " + str(t1-t0) + " seconds")
-            if mean_dynamicsLosses < best_dynamicsLosses:
-                best_dynamicsLosses = mean_dynamicsLosses
-                print ("Saving BEST current forward dynamics model: " + str(best_dynamicsLosses))
-                file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
-                f = open(file_name_dynamics, 'wb')
-                dill.dump(model, f)
-                f.close()
-        if (settings['visulaize_forward_dynamics']):
-            nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
-            nlv.redraw()
-            nlv.setInteractiveOff()
-            nlv.saveVisual(directory+"trainingGraphNN")
-            nlv.setInteractive()
+            if (round_ % settings['saving_update_freq_num_rounds']) == 0:
+                if mean_dynamicsLosses < best_dynamicsLosses:
+                    best_dynamicsLosses = mean_dynamicsLosses
+                    print ("Saving BEST current forward dynamics model: " + str(best_dynamicsLosses))
+                    file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
+                    f = open(file_name_dynamics, 'wb')
+                    dill.dump(model, f)
+                    f.close()
+        if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
+            if (settings['visualize_learning']):
+                nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
+                nlv.redraw()
+                nlv.setInteractiveOff()
+                nlv.saveVisual(directory+"trainingGraphNN")
+                nlv.setInteractive()
         # print "Error: " + str(error)
     
 

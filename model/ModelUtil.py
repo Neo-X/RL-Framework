@@ -436,7 +436,11 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
            (value_diff))
     print ("dynamics_grads: ", dynamics_grads)
     action = clampAction(action, model._action_bounds)
-    return (action, value_diff)
+    if (checkDataIsValid(action)):
+        ### Because there are some nan values coming out of here.
+        return (action, value_diff)
+    else:
+        return (init_action, 0)
 
 def getModelPredictionUncertanty(model, state, length=4.1, num_samples=32):
     """
@@ -509,11 +513,42 @@ def validBounds(bounds):
         
     return valid
 
+def checkDataIsValid(data):
+        """
+            Checks to make sure the data going into the exp buffer is not garbage...
+        """
+        if (not np.all(np.isfinite(data))):
+            less_ = np.isfinite(data)
+            bad_indecies = np.where(less_ == False)
+            bad_values_ = data[bad_indecies]
+            print ("Data not finite: ", np.isfinite(data) )
+            print ("Bad Value indx: ", bad_indecies)
+            print ("Bad Values: ", bad_values_)
+            return False
+    
+        if (np.any(np.less(data, -1000.0))):
+            less_ = np.less(data, -1000.0)
+            bad_indecies = np.where(less_ == True)
+            bad_values_ = data[bad_indecies]
+            print ("Data too negative: ", np.less(data, -1000.0) )
+            print ("Bad Value indx: ", bad_indecies)
+            print ("Bad Values: ", bad_values_)
+            return False
+        
+        if (np.any(np.greater(data, 1000.0))):
+            less_ = np.greater(data, 1000.0)
+            bad_indecies = np.where(less_ == True)
+            bad_values_ = data[bad_indecies]
+            print ("Data too positive: ", np.greater(data, 1000.0) )
+            print ("Bad Value indx: ", bad_indecies)
+            print ("Bad Values: ", bad_values_)
+            return False
+        
+        return True
 
 def checkValidData(state, action, nextState, reward):
         """
             Checks to make sure the data going into the exp buffer is not garbage...
-        
         """
         if (not np.all(np.isfinite(state))):
             less_ = np.isfinite(state)
