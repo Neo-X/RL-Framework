@@ -76,12 +76,15 @@ class TRPO(AlgorithmInterface):
         self._q_valsActA = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)[:,:self._action_length]
         self._q_valsActASTD = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)[:,self._action_length:]
         
+        
         ## prevent value from being 0
-        self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 1e-3
+        # self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 1e-3
+        self._q_valsActASTD = (T.ones_like(self._q_valsActA) * self.getSettings()['exploration_rate']) + 1e-3
         self._q_valsActTarget_ = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())
         self._q_valsActTarget = self._q_valsActTarget_[:,:self._action_length]
         self._q_valsActTargetSTD = self._q_valsActTarget_[:,self._action_length:]
-        self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 1e-3
+        # self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 1e-3
+        self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)  * self.getSettings()['exploration_rate']) + 1e-3
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
