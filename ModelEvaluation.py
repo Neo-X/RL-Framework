@@ -250,7 +250,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             for j in range(len(G_t)-1):
                 # g_len = len(G_t)-1
                 # advantage.append([((discount_factor * G_t[j+1]) + (G_t_rewards[j] * (1.0-discount_factor))) - G_t[j]])
-                advantage.append([G_t[j] - G_t[j+1]])
+                advantage.append([G_t[j+1] - G_t[j]])
             advantage.append([0])
             # print ("Advantage: ", advantage)
             G_ts.extend(copy.deepcopy(G_t))
