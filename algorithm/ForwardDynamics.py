@@ -133,11 +133,11 @@ class ForwardDynamics(AlgorithmInterface):
     def setNetworkParameters(self, params):
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params[0])
         
-    def setData(self, states, actions, result_states, rewards=None):
+    def setData(self, states, actions, result_states, rewards=[]):
         self._model.setStates(states)
         self._model.setResultStates(result_states)
         self._model.setActions(actions)
-        if (rewards != None):
+        if (rewards != []):
             self._model.setRewards(rewards)
         
     def getGrads(self, states, actions, result_states):
