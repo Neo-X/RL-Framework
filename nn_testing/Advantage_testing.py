@@ -7,12 +7,20 @@ import math
 import random
 import json
 
-def sum_furture_discounted_reward(rewards, discount_factor):
-    discount = 0
-    for i in range(len(rewards)):
-        discount += rewards[i] * math.pow(discount_factor, i)
-        
-    return discount
+def sum_furture_discounted_rewards(rewards, discount_factor):
+    discounts=[]
+    for k in range(len(rewards)):
+        discounts.append(0)
+        for i in range(len(rewards)-k):
+            discounts[k] += rewards[k+i] * math.pow(discount_factor, i)
+            print ("discounts: ", k, " ", i, " reward:", rewards[k+i],  " discounts", discounts)
+    return discounts
+
+def compute_advantage(discounted_rewards, rewards, discount_factor):
+    discounts = []
+    for i in range(len(discounted_rewards)-1):
+        discounts.append(((discounted_rewards[i+1] * discount_factor) + rewards[i+1]) - discounted_rewards[i])
+    return discounts
 
 if __name__ == "__main__":
     
@@ -22,13 +30,12 @@ if __name__ == "__main__":
     
     print ("Discount Factor: ", discount_factor)
     rewards=[0.2, 0.25, 0.2, 0.2, 0]
-    rewards2 = rewards[1:]
-    print ("Rewards2: ", rewards2)
-    discount = sum_furture_discounted_reward(rewards, discount_factor)
-    print ("Discount: ", discount)
-    discount_ = sum_furture_discounted_reward(rewards2, discount_factor)
-    print ("Discount2: ", discount_)
-    print ("Advantage: ", discount_-discount)
+    # rewards2 = rewards[1:]
+    # print ("Rewards2: ", rewards2)
+    discounts = sum_furture_discounted_rewards(rewards, discount_factor)
+    print("Discounts: ", discounts)
+    advantage = compute_advantage(discounts, rewards, discount_factor)
+    print ("Advantage: ", advantage)
     
     
     
