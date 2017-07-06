@@ -42,7 +42,7 @@ class DeepCNN(ModelInterface):
         
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=16, filter_size=8,
-            nonlinearity=lasagne.nonlinearities.rectify)
+            nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
         """
@@ -53,7 +53,7 @@ class DeepCNN(ModelInterface):
         """
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=32, filter_size=4,
-            nonlinearity=lasagne.nonlinearities.rectify)
+            nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         self._critic_task_part = network 
         
@@ -74,15 +74,15 @@ class DeepCNN(ModelInterface):
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
@@ -97,7 +97,7 @@ class DeepCNN(ModelInterface):
         
         networkAct = lasagne.layers.Conv1DLayer(
             networkAct, num_filters=16, filter_size=8,
-            nonlinearity=lasagne.nonlinearities.rectify)
+            nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
         """
@@ -108,7 +108,7 @@ class DeepCNN(ModelInterface):
         """
         networkAct = lasagne.layers.Conv1DLayer(
             networkAct, num_filters=32, filter_size=4,
-            nonlinearity=lasagne.nonlinearities.rectify)
+            nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
         
@@ -129,11 +129,11 @@ class DeepCNN(ModelInterface):
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         self._actor = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._action_length,
