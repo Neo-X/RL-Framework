@@ -77,6 +77,8 @@ class LearningAgent(AgentInterface):
             tmp_rewards = []
             tmp_falls = []
             tmp_advantage = []
+            # print ("Advantage:", _advantage)
+            # print ("rewards:", _rewards)
             # print("Batch size: ", len(_states), len(_actions), len(_result_states), len(_rewards), len(_falls), len(_advantage))
             for (state__, action__, next_state__, reward__, fall__, advantage__) in zip(_states, _actions, _result_states, _rewards, _falls, _advantage):
                 if (checkValidData(state__, action__, next_state__, reward__)):

@@ -7,6 +7,8 @@ import sys
 import numpy as np
 import math
 import copy 
+from scipy import signal, misc
+import scipy
 
 anchors__name="anchors"
 # replace string print ([a-z|A-Z|0-9|\"| |:|(|)|\+|_|,|\.|-|\[|\]|\/]*)
@@ -28,7 +30,33 @@ def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
         yield l[i:i+n]
+        
+def discounted_rewards(rewards, discount_factor):
+    """
+    computes discounted sums along 0th dimension of x.
+    inputs
+    ------
+    rewards: ndarray
+    discount_factor: float
+    outputs
+    -------
+    y: ndarray with same shape as x, satisfying
+        y[t] = x[t] + gamma*x[t+1] + gamma^2*x[t+2] + ... + gamma^k x[t+k],
+                where k = len(x) - t - 1
+    """
+    assert rewards.ndim >= 1
+    return scipy.signal.lfilter([1],[1,-discount_factor],rewards[::-1], axis=0)[::-1]
     
+def compute_advantage(discounted_rewards, rewards, discount_factor):
+    """
+    As 
+    """
+    adv = []
+    for i in range(len(discounted_rewards)-1):
+        adv.append([(discounted_rewards[i+1] )  - discounted_rewards[i]])
+        # print ("computing advantage discounts: ", adv)
+    return adv
+
 def btVectorToNumpy(vec):
     return np.array([vec.x(), vec.y(), vec.z()])
 

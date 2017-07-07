@@ -238,7 +238,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             discounted_sums.append(discounted_sum)
             discounted_sum=0
             state_num=0
-            discounted_reward = []
+            discounted_reward = discounted_rewards(np.array(G_t_rewards), discount_factor)
+            # print("discounted reward: ", discounted_reward)
+            advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
+            advantage.append([0.0])
+            # print("Advantage: ", advantage)
+            """
             for k in range(len(G_t_rewards)):
                 ## Compute future discounted reward
                 discounted_reward.append(0)
@@ -253,6 +258,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 advantage.append([((discount_factor * discounted_reward[j+1]) + (G_t_rewards[j])) - discounted_reward[j]])
                 # advantage.append([G_t[j+1] - G_t[j]])
             advantage.append([0])
+            """
             # print ("Advantage: ", advantage)
             G_ts.extend(copy.deepcopy(G_t))
             if (use_batched_exp):
@@ -513,9 +519,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             for state__, action__, reward__, result_state__, fall__, G_t__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts):
                 _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__))
     ## Compute Advantage
-    for j in range(len(G_t)-1):
-        advantage.append([G_t[j] - G_t[j+1]])
-    advantage.append([0])
+    discounted_reward = discounted_rewards(np.array(G_t_rewards), discount_factor)
+    advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
+    advantage.append( [0.0])
     # print ("Advantage for Episode: ", advantage)
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage)
     return (tuples, discounted_sum, q_value, evalData)
