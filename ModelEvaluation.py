@@ -247,7 +247,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     discounted_reward[k] = discounted_reward[k] + math.pow(discount_factor,l)*(G_t_rewards[l+k] )
                     # G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ * (1.0-discount_factor) ))))
             # print("G_t: ", G_t)
-            print ("discounted_reward: ", discounted_reward)
+            # print ("discounted_reward: ", discounted_reward)
             for j in range(len(G_t)-1):
                 # g_len = len(G_t)-1
                 advantage.append([((discount_factor * discounted_reward[j+1]) + (G_t_rewards[j])) - discounted_reward[j]])
