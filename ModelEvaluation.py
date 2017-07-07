@@ -238,19 +238,20 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             discounted_sums.append(discounted_sum)
             discounted_sum=0
             state_num=0
-            G_t_rewards_gt = []
+            discounted_reward = []
             for k in range(len(G_t_rewards)):
                 ## Compute future discounted reward
-                G_t_rewards_gt.append(0)
+                discounted_reward.append(0)
                 for l in range(len(G_t_rewards)-k):
-                    G_t_rewards_gt[k] = G_t_rewards_gt[k] + math.pow(discount_factor,l)*(G_t_rewards[l+k] * (1.0-discount_factor))
+                    # discounted_reward[k] = discounted_reward[k] + math.pow(discount_factor,l)*(G_t_rewards[l+k] * (1.0-discount_factor))
+                    discounted_reward[k] = discounted_reward[k] + math.pow(discount_factor,l)*(G_t_rewards[l+k] )
                     # G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ * (1.0-discount_factor) ))))
             # print("G_t: ", G_t)
-            # print ("G_t_rewards_gt: ", G_t_rewards_gt)
+            print ("discounted_reward: ", discounted_reward)
             for j in range(len(G_t)-1):
                 # g_len = len(G_t)-1
-                # advantage.append([((discount_factor * G_t[j+1]) + (G_t_rewards[j] * (1.0-discount_factor))) - G_t[j]])
-                advantage.append([G_t[j+1] - G_t[j]])
+                advantage.append([((discount_factor * discounted_reward[j+1]) + (G_t_rewards[j])) - discounted_reward[j]])
+                # advantage.append([G_t[j+1] - G_t[j]])
             advantage.append([0])
             # print ("Advantage: ", advantage)
             G_ts.extend(copy.deepcopy(G_t))
