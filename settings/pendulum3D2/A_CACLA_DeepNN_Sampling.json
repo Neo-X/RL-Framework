@@ -101,7 +101,7 @@
     "comment__": "Some parameter for rmsprop stocastic gradient optimization method.",
 "rho": 0.95,
     "comment__": "Some parameter for rmsprop stocastic gradient optimization method.",
-"rms_epsilon": 0.001,
+"rms_epsilon": 0.000001,
     "comment__": "Number of training updates before the target network is updated",
 "steps_until_target_network_update": 500,
     "comment__": "Initial factor epsilon in multiplied by (This value will slowly be reduced during training)",

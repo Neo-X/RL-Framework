@@ -54,7 +54,7 @@
 "dropout_p": 0.1,
 "regularization_weight": 0.01,
 "rho": 0.95,
-"rms_epsilon": 0.001,
+"rms_epsilon": 0.000001,
 "steps_until_target_network_update": 1,
 "epsilon_annealing": 0.7,
 "state_normalization": "variance",

@@ -72,7 +72,7 @@
 "dropout_p": 0.1,
 "regularization_weight": 0.0001,
 "rho": 0.95,
-"rms_epsilon": 0.001,
+"rms_epsilon": 0.000001,
 "steps_until_target_network_update": 1000,
 "epsilon_annealing": 0.8,
 "comment__": "Different ways of calculating the scaling method used normalize the input and outputs of the network from the bootstrapping samples. minmax, input and output are -mean/max-min. variance, input and output are -mean/(std*2), given, use the bounds provided in this file",
