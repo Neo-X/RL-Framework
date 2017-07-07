@@ -406,7 +406,7 @@ class TRPO(AlgorithmInterface):
         # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
         print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
         print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
-        print("Policy log prob before: ", np.mean(self.self._get_log_prob(), axis=0))
+        print("Policy log prob before: ", np.mean(self._get_log_prob(), axis=0))
         # print( "Actor loss: ", np.mean(self._get_action_diff()))
         # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
         ## Sometimes really HUGE losses appear, ocasionally
