@@ -191,7 +191,7 @@
     "comment__": "During evaluation plot of value function",
 "visualize_expected_value": true,
     "comment__": "exponential decay value for use in reward function",
-"target_velocity_decay":-0.75,
+"target_velocity_decay":-2.5,
     "comment__": "Target velocity for controller",
 "target_velocity":1.5,
     "comment__": "NUmmber of terrain features for which convolutinoal filters should be used",
@@ -237,7 +237,7 @@
 	"comment__": "Controls the level of information that is printed to the terminal",
 "print_level": "train",
 	"comment__": "The type of function to apply over the controller target values [gaussian|abs]",
-"reward_smoother": "gaussian",
+"reward_smoother": "abs",
 	"comment__": "Weights for different components of the reward function",
 "controller_reward_weights": {
 		"velocity": 0.8,
