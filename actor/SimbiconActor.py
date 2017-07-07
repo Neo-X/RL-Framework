@@ -51,7 +51,8 @@ class SimbiconActor(ActorInterface):
             exp.getEnvironment().update()
             simData = exp.getEnvironment().getActor().getSimData()
             position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
-            print ("avgSpeed: ", simData.avgSpeed)
+            if (self._settings["print_level"]== 'debug'):
+                print ("avgSpeed: ", simData.avgSpeed)
             vel_sum += math.fabs(self._target_vel - simData.avgSpeed)
             torque_sum += math.fabs( self._target_torque - simData.avgTorque)
             
