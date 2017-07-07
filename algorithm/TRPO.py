@@ -450,7 +450,7 @@ class TRPO(AlgorithmInterface):
             # self.set_params_flat(theta)
         losses_after = self.compute_losses(*args)
         
-        print("Policy log prob after: ", np.mean(self.self._get_log_prob(), axis=0))
+        print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
 
         out = OrderedDict()
         for (lname, lbefore, lafter) in zipsame(self.loss_names, losses_before, losses_after):
