@@ -161,6 +161,7 @@ class SimbiconActor(ActorInterface):
         self._target_vel = clampAction([self._target_vel], vel_bounds)[0]
         # print("New target velocity after action: ", self._target_vel)
         
+        """
         root_height_bounds = self._settings['controller_parameter_settings']['root_height_bounds']
         self._target_root_height = randomUniformExporation(move_scale, [self._target_root_height], root_height_bounds)[0]
         self._target_root_height = clampAction([self._target_root_height], root_height_bounds)[0]
@@ -172,7 +173,7 @@ class SimbiconActor(ActorInterface):
         _bounds = self._settings['controller_parameter_settings']['right_hand_x_pos_bounds']
         self._target_hand_pos = randomUniformExporation(move_scale, [self._target_hand_pos], _bounds)[0]
         self._target_hand_pos = clampAction([self._target_hand_pos], _bounds)[0]
-        
+        """
         # print("New target Velocity: ", self._target_vel)
         # if ( self._settings["use_parameterized_control"] )
             
