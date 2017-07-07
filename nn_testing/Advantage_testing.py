@@ -41,7 +41,8 @@ if __name__ == "__main__":
     
     print ("Discount Factor: ", discount_factor)
     # rewards=[0.2, 0.25, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]
-    rewards=[0.2, 0.25, 0.2, 0.2, 0.2, 0.7]
+    # rewards=[0.2, 0.25, 0.2, 0.2, 0.2, 0.7]
+    rewards=[0.082, 0.14, 0.2332, 0.2025, 0.117, 0.08025085, 0.08025085]
     # rewards2 = rewards[1:]
     print ("Rewards: ", rewards)
     discounts = sum_furture_discounted_rewards(rewards, discount_factor)
