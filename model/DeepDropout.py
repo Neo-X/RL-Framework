@@ -33,17 +33,17 @@ class DeepDropout(ModelInterface):
         
         l_hid1A = lasagne.layers.DenseLayer(
                 inputLayerA, num_units=128,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         l_hid1A = lasagne.layers.DropoutLayer(l_hid1A, p=self._dropout_p, rescale=True)
         
         l_hid2A = lasagne.layers.DenseLayer(
                 l_hid1A, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         l_hid2A = lasagne.layers.DropoutLayer(l_hid2A, p=self._dropout_p, rescale=True)
         
         l_hid3A = lasagne.layers.DenseLayer(
                 l_hid2A, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         l_hid3A = lasagne.layers.DropoutLayer(l_hid3A, p=self._dropout_p, rescale=True)
     
         self._critic = lasagne.layers.DenseLayer(

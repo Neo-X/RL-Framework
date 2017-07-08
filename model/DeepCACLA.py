@@ -34,15 +34,15 @@ class DeepCACLA(AgentInterface):
         for i in range(num_additional_layers):
             l_hid1A = lasagne.layers.DenseLayer(
                     l_hid1A, num_units=128,
-                    nonlinearity=lasagne.nonlinearities.rectify)
+                    nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid2A = lasagne.layers.DenseLayer(
                 l_hid1A, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid3A = lasagne.layers.DenseLayer(
                 l_hid2A, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
         self._l_outA = lasagne.layers.DenseLayer(
                 l_hid3A, num_units=1,
@@ -76,15 +76,15 @@ class DeepCACLA(AgentInterface):
         for i in range(num_additional_layers):
             l_hid1B = lasagne.layers.DenseLayer(
                     l_hid1B, num_units=128,
-                    nonlinearity=lasagne.nonlinearities.rectify)
+                    nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid2B = lasagne.layers.DenseLayer(
                 l_hid1B, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
         l_hid3B = lasagne.layers.DenseLayer(
                 l_hid2B, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         self._l_outB = lasagne.layers.DenseLayer(
                 l_hid3B, num_units=1,

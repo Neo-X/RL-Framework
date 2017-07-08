@@ -37,23 +37,23 @@ class DeepCACLA2(DeepCACLA):
 
         l_hid1A = lasagne.layers.DenseLayer(
                 inputLayerA, num_units=128,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid2A = lasagne.layers.DenseLayer(
                 l_hid1A, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid3A = lasagne.layers.DenseLayer(
                 l_hid2A, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid4A = lasagne.layers.DenseLayer(
                 l_hid3A, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid5A = lasagne.layers.DenseLayer(
                 l_hid4A, num_units=16,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
         self._l_outA = lasagne.layers.DenseLayer(
                 l_hid5A, num_units=1,
@@ -78,23 +78,23 @@ class DeepCACLA2(DeepCACLA):
 
         l_hid1B = lasagne.layers.DenseLayer(
                 inputLayerB, num_units=128,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid2B = lasagne.layers.DenseLayer(
                 l_hid1B, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid3B = lasagne.layers.DenseLayer(
                 l_hid2B, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid4B = lasagne.layers.DenseLayer(
                 l_hid3B, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid5B = lasagne.layers.DenseLayer(
                 l_hid4B, num_units=16,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
         self._l_outB = lasagne.layers.DenseLayer(
                 l_hid5B, num_units=1,

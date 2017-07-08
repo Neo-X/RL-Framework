@@ -33,17 +33,17 @@ class DeepCACLADropout(DeepCACLA):
         
         l_hid1A = lasagne.layers.DenseLayer(
                 inputLayerA, num_units=128,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         l_hid1A = lasagne.layers.DropoutLayer(l_hid1A, p=dropout_p, rescale=True)
         
         l_hid2A = lasagne.layers.DenseLayer(
                 l_hid1A, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         l_hid2A = lasagne.layers.DropoutLayer(l_hid2A, p=dropout_p, rescale=True)
         
         l_hid3A = lasagne.layers.DenseLayer(
                 l_hid2A, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         l_hid3A = lasagne.layers.DropoutLayer(l_hid3A, p=dropout_p, rescale=True)
     
         self._l_outA = lasagne.layers.DenseLayer(
@@ -79,17 +79,17 @@ class DeepCACLADropout(DeepCACLA):
         
         l_hid1B = lasagne.layers.DenseLayer(
                 inputLayerB, num_units=128,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         l_hid1B = lasagne.layers.DropoutLayer(l_hid1B, p=dropout_p, rescale=True)
         
         l_hid2B = lasagne.layers.DenseLayer(
                 l_hid1B, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         l_hid2B = lasagne.layers.DropoutLayer(l_hid2B, p=dropout_p, rescale=True)
     
         l_hid3B = lasagne.layers.DenseLayer(
                 l_hid2B, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         l_hid3B = lasagne.layers.DropoutLayer(l_hid3B, p=dropout_p, rescale=True)
         
         self._l_outB = lasagne.layers.DenseLayer(

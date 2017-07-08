@@ -31,26 +31,26 @@ class NeuralNetwork(AgentInterface):
         # concatLayer = lasagne.layers.ConcatLayer([inputLayerState, inputLayerAction])
         l_hid2ActA = lasagne.layers.DenseLayer(
                 inputLayerState, num_units=128,
-                nonlinearity=lasagne.nonlinearities.rectify,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify,
                 W=lasagne.init.Uniform())
         num_layers=1
         """
         l_hid2ActA = lasagne.layers.DenseLayer(
                 inputLayerState, num_units=128,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid2ActA = lasagne.layers.DenseLayer(
                 l_hid2ActA, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid2ActA = lasagne.layers.DenseLayer(
                 l_hid2ActA, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
         for i in range(num_layers):
             l_hid2ActA = lasagne.layers.DenseLayer(
                 l_hid2ActA, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify
+                nonlinearity=lasagne.nonlinearities.leaky_rectify
                 # ,W=lasagne.init.Uniform()
                 )
             

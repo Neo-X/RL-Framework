@@ -37,7 +37,7 @@ class ForwardDynamicsCNNTile(ModelInterface):
         networkAct = lasagne.layers.Conv2DLayer(
             inputLayerState, num_filters=32, filter_size=(1,8),
             stride=(1,1),
-            nonlinearity=lasagne.nonlinearities.rectify,
+            nonlinearity=lasagne.nonlinearities.leaky_rectify,
             W=lasagne.init.GlorotUniform())
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
@@ -45,7 +45,7 @@ class ForwardDynamicsCNNTile(ModelInterface):
         networkAct = lasagne.layers.Conv2DLayer(
             networkAct, num_filters=16, filter_size=(1,4),
             stride=(1,1),
-            nonlinearity=lasagne.nonlinearities.rectify,
+            nonlinearity=lasagne.nonlinearities.leaky_rectify,
             W=lasagne.init.GlorotUniform())
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
@@ -54,7 +54,7 @@ class ForwardDynamicsCNNTile(ModelInterface):
         """ 
         networkAct = lasagne.layers.Conv1DLayer(
             networkAct, num_filters=32, filter_size=4,
-            nonlinearity=lasagne.nonlinearities.rectify,
+            nonlinearity=lasagne.nonlinearities.leaky_rectify,
             W=lasagne.init.GlorotUniform())
         
         
@@ -76,21 +76,21 @@ class ForwardDynamicsCNNTile(ModelInterface):
         
         # networkAct = lasagne.layers.DenseLayer(
         #         networkAct, num_units=64,
-        #         nonlinearity=lasagne.nonlinearities.rectify)
+        #         nonlinearity=lasagne.nonlinearities.leaky_rectify)
         #print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         # networkAct = lasagne.layers.ReshapeLayer(networkAct, (-1, 1, 1, 64))
         
         networkAct = Deconv2DLayer(
             networkAct, num_filters=16, filter_size=(1,4),
             stride=(1,1),
-            nonlinearity=lasagne.nonlinearities.rectify)
+            nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         networkAct = Deconv2DLayer(
             networkAct, num_filters=32, filter_size=(1,8),
             stride=(1,1),
-            nonlinearity=lasagne.nonlinearities.rectify)
+            nonlinearity=lasagne.nonlinearities.leaky_rectify)
         # networkAct = lasagne.layers.ReshapeLayer(networkAct, (-1, 1, 1, 74))
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         self._actor = lasagne.layers.DenseLayer(
