@@ -48,7 +48,7 @@ class DeepCNN(ModelInterface):
         """
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=32, filter_size=4,
-            nonlinearity=lasagne.nonlinearities.rectify,
+            nonlinearity=lasagne.nonlinearities.leaky_rectify,
             W=lasagne.init.GlorotUniform())
         """
         network = lasagne.layers.Conv1DLayer(
@@ -62,12 +62,12 @@ class DeepCNN(ModelInterface):
         
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=32, filter_size=4,
-            nonlinearity=lasagne.nonlinearities.rectify,
+            nonlinearity=lasagne.nonlinearities.leaky_rectify,
             W=lasagne.init.GlorotUniform())
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=128,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
         network = lasagne.layers.FlattenLayer(network, outdim=2)
         network = lasagne.layers.ConcatLayer([network, characterFeatures], axis=1)
@@ -103,7 +103,7 @@ class DeepCNN(ModelInterface):
         """
         networkAct = lasagne.layers.Conv1DLayer(
             networkAct, num_filters=32, filter_size=4,
-            nonlinearity=lasagne.nonlinearities.rectify,
+            nonlinearity=lasagne.nonlinearities.leaky_rectify,
             W=lasagne.init.GlorotUniform())
         """
         networkAct = lasagne.layers.Conv1DLayer(
@@ -116,7 +116,7 @@ class DeepCNN(ModelInterface):
         """ 
         networkAct = lasagne.layers.Conv1DLayer(
             networkAct, num_filters=32, filter_size=4,
-            nonlinearity=lasagne.nonlinearities.rectify,
+            nonlinearity=lasagne.nonlinearities.leaky_rectify,
             W=lasagne.init.GlorotUniform())
         
         

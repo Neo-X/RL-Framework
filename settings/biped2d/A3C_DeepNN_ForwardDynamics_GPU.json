@@ -99,7 +99,7 @@
 	"comment__": "What processor type to perform the training on [cpu|gpu]",
 "training_processor_type": "gpu",
 	"comment__": "optimizer is the type of optimization algorithm to use",
-"optimizer": "rmsprop",
+"optimizer": "adam",
 	"comment__": "This setting uses a sampling method overtop of simulation",
 "use_simulation_sampling": false,
 	"comment__": "Variance scaling used for sampling",

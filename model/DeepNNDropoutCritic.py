@@ -32,27 +32,27 @@ class DeepNNDropoutCritic(ModelInterface):
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=256,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=128,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=64,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=32,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
-                nonlinearity=lasagne.nonlinearities.rectify)
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
     
         self._critic = lasagne.layers.DenseLayer(
