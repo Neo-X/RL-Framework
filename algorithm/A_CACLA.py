@@ -348,7 +348,7 @@ class A_CACLA(AlgorithmInterface):
             if ( diff_[i] > 0.0):
                 if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):
                     self._actor_buffer_diff.append([1.0])
-                    # print("Not using advantage")
+                    #  print("Not using advantage")
                 else:
                     self._actor_buffer_diff.append(diff_[i])
                 self._actor_buffer_states.append(states[i])
