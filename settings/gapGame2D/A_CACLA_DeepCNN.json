@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Gaps_Sphere_Adam",
+"data_folder": "Gaps_Sphere_Advantage",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -12,7 +12,7 @@
     "comment__": "Batch size used for learning",
 "batch_size": 32,
     "comment__": "Learning rate for the actor/policy",
-"learning_rate": 0.0001,
+"learning_rate": 0.001,
     "comment__": "Config file for the simulator",
 "sim_config_file": "./settings/gapGame2D/ballgame_settings_gaps.json",
     "comment__": "A different config file for the forward dynamics simulator",
@@ -174,7 +174,7 @@
     "comment__": "During evaluation plot of value function",
 "visualize_expected_value": true,
     "comment__": "exponential decay value for use in reward function",
-"target_velocity_decay":-0.75,
+"target_velocity_decay":-2.5,
     "comment__": "Target velocity for controller",
 "target_velocity":1.0,
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
@@ -216,7 +216,7 @@
 	"comment__": "Controls the level of information that is printed to the terminal",
 "print_level": "train",
 	"comment__": "The type of function to apply over the controller target values [gaussian|abs]",
-"reward_smoother": "gaussian",
+"reward_smoother": "abs",
 	"comment__": "Weights for different components of the reward function",
 "controller_reward_weights": {
 		"velocity": 0.8,
@@ -250,5 +250,5 @@
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
 "fix_actor_batch_size": false,
 	"comment__": "Whether or not to weight the actor loss update by the advantage of each action",
-"dont_use_advantage": true
+"dont_use_advantage": false
 }
