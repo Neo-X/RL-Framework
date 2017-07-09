@@ -50,6 +50,9 @@ class GapGame2DEnv(SimInterface):
         state = np.array(state_)
         state = np.reshape(state, (-1, len(state_)))
         
+        if ( self._settings["use_parameterized_control"] ):
+            state = np.append(state, [self.getActor().getControlParameters()], axis=1)
+        
         return state
     
     def setState(self, st):
