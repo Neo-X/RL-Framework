@@ -125,22 +125,27 @@ class A_CACLA(AlgorithmInterface):
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss, self._params, self._learning_rate, self._rho,
         #                                    self._rms_epsilon)
+        self._value_grad = T.grad(self._loss # + self._critic_regularization
+                                                     , self._params)
+        ## Clipping the max gradient
+        for x in range(len(self._value_grad)): 
+            self._value_grad[x] = T.clip(self._value_grad[x] ,  -0.1, 0.1)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-            self._updates_ = lasagne.updates.rmsprop(self._loss # + self._critic_regularization
+            self._updates_ = lasagne.updates.rmsprop(self._value_grad
                                                      , self._params, self._learning_rate, self._rho,
                                            self._rms_epsilon)
         elif (self.getSettings()['optimizer'] == 'momentum'):
             print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-            self._updates_ = lasagne.updates.momentum(self._loss # + self._critic_regularization
+            self._updates_ = lasagne.updates.momentum(self._value_grad
                                                       , self._params, self._critic_learning_rate , momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
             print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-            self._updates_ = lasagne.updates.adam(self._loss # + self._critic_regularization 
+            self._updates_ = lasagne.updates.adam(self._value_grad
                         , self._params, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         elif ( self.getSettings()['optimizer'] == 'adagrad'):
             print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-            self._updates_ = lasagne.updates.adagrad(self._loss # + self._critic_regularization 
+            self._updates_ = lasagne.updates.adagrad(self._value_grad
                         , self._params, self._critic_learning_rate, epsilon=self._rms_epsilon)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
@@ -178,18 +183,21 @@ class A_CACLA(AlgorithmInterface):
         self._actLoss = T.mean(self._actLoss_) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
-        
+        self._policy_grad = T.grad(self._actLoss + self._actor_regularization ,  self._actionParams)
+        ## Clipping the max gradient
+        for x in range(len(self._policy_grad)): 
+            self._policy_grad[x] = T.clip(self._policy_grad[x] ,  -0.1, 0.1)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
-            self._actionUpdates = lasagne.updates.rmsprop(self._actLoss + self._actor_regularization, self._actionParams, 
+            self._actionUpdates = lasagne.updates.rmsprop(self._policy_grad, self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
         elif (self.getSettings()['optimizer'] == 'momentum'):
-            self._actionUpdates = lasagne.updates.momentum(self._actLoss + self._actor_regularization, self._actionParams, 
+            self._actionUpdates = lasagne.updates.momentum(self._policy_grad, self._actionParams, 
                     self._learning_rate , momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
-            self._actionUpdates = lasagne.updates.adam(self._actLoss + self._actor_regularization, self._actionParams, 
+            self._actionUpdates = lasagne.updates.adam(self._policy_grad, self._actionParams, 
                     self._learning_rate , beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
         elif ( self.getSettings()['optimizer'] == 'adagrad'):
-            self._actionUpdates = lasagne.updates.adagrad(self._actLoss + self._actor_regularization, self._actionParams, 
+            self._actionUpdates = lasagne.updates.adagrad(self._policy_grad, self._actionParams, 
                     self._learning_rate, epsilon=self._rms_epsilon)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
@@ -265,6 +273,7 @@ class A_CACLA(AlgorithmInterface):
         # self._bellman_errorTarget = theano.function(inputs=[], outputs=self._bellman, allow_input_downcast=True, givens=self._givens_)
         # self._diffs = theano.function(input=[self._model.getStateSymbolicVariable()])
         self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        self._get_grad_policy = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._actLoss, [lasagne.layers.get_all_layers(self._model.getActorNetwork())[0].input_var] + self._actionParams), allow_input_downcast=True, givens=self._actGivens)
         # self._get_grad = theano.function([], outputs=lasagne.updates.rmsprop(T.mean(self._q_func), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._params, self._learning_rate , self._rho, self._rms_epsilon), allow_input_downcast=True, givens=self._givens_grad)
         # self._get_grad2 = theano.gof.graph.inputs(lasagne.updates.rmsprop(loss, params, self._learning_rate, self._rho, self._rms_epsilon))
         
@@ -309,6 +318,9 @@ class A_CACLA(AlgorithmInterface):
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
+        critic_grads = self._get_grad()
+        for grad in critic_grads:
+            print( "Critic grads, min: ", np.min(grad), " max: ", np.max(grad), " avg: ", np.mean(grad))
         # print ("Falls:", falls)
         # print ("Rewards: ", rewards)
         # print ("Target Values: ", self._get_target())
@@ -385,6 +397,11 @@ class A_CACLA(AlgorithmInterface):
                 self._tmp_diff_shared.set_value(self._actor_buffer_diff)
                 lossActor, _ = self._trainActor()
                 print( "Length of positive actions: " , str(len(self._actor_buffer_states)), " Actor loss: ", lossActor)
+                """
+                policy_grads = self._get_grad_policy()
+                for grad in policy_grads:
+                    print( "Policy grads, min: ", np.min(grad), " max: ", np.max(grad), " avg: ", np.mean(grad))
+                """
                 self._actor_buffer_states=[]
                 self._actor_buffer_actions=[]
                 self._actor_buffer_rewards=[]
