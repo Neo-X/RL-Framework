@@ -318,9 +318,11 @@ class A_CACLA(AlgorithmInterface):
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
+        """
         critic_grads = self._get_grad()
         for grad in critic_grads:
             print( "Critic grads, min: ", np.min(grad), " max: ", np.max(grad), " avg: ", np.mean(grad))
+        """
         # print ("Falls:", falls)
         # print ("Rewards: ", rewards)
         # print ("Target Values: ", self._get_target())
