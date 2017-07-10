@@ -186,7 +186,7 @@ class A_CACLA(AlgorithmInterface):
         self._policy_grad = T.grad(self._actLoss + self._actor_regularization ,  self._actionParams)
         ## Clipping the max gradient
         for x in range(len(self._policy_grad)): 
-            self._policy_grad[x] = T.clip(self._policy_grad[x] ,  -0.1, 0.1)
+            self._policy_grad[x] = T.clip(self._policy_grad[x] ,  -0.5, 0.5)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             self._actionUpdates = lasagne.updates.rmsprop(self._policy_grad, self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
