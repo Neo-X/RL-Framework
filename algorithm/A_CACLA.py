@@ -128,8 +128,10 @@ class A_CACLA(AlgorithmInterface):
         self._value_grad = T.grad(self._loss # + self._critic_regularization
                                                      , self._params)
         ## Clipping the max gradient
+        """
         for x in range(len(self._value_grad)): 
             self._value_grad[x] = T.clip(self._value_grad[x] ,  -0.1, 0.1)
+        """
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.rmsprop(self._value_grad
@@ -185,8 +187,10 @@ class A_CACLA(AlgorithmInterface):
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss + self._actor_regularization ,  self._actionParams)
         ## Clipping the max gradient
+        """
         for x in range(len(self._policy_grad)): 
             self._policy_grad[x] = T.clip(self._policy_grad[x] ,  -0.5, 0.5)
+        """
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             self._actionUpdates = lasagne.updates.rmsprop(self._policy_grad, self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
