@@ -155,6 +155,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
         file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
         f = open(file_name, 'r')
         model = dill.load(f)
+        model.setSettings(settings)
         f.close()
     elif ( "Deep_NN2" == algorihtm_type):
         from model.RLDeepNet import RLDeepNet
