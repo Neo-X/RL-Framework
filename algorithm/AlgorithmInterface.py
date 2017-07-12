@@ -17,7 +17,7 @@ class AlgorithmInterface(object):
         self._batch_size=settings_['batch_size']
         self._state_length = n_in
         self._action_length = n_out
-        self._settings = settings_
+        self.setSettings(settings_)
         
         self.setActionBounds(action_bounds) 
         self.setStateBounds(state_bounds) 
@@ -115,6 +115,8 @@ class AlgorithmInterface(object):
     
     def getSettings(self):
         return self._settings
+    def setSettings(self, settings_):
+        self._settings = settings_
     
     def setStateBounds(self, bounds):
         self._state_bounds = bounds
