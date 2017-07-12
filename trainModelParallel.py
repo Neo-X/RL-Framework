@@ -345,9 +345,9 @@ def trainModelParallel(settingsFileName):
             model.setActionBounds(action_bounds)
             model.setRewardBounds(reward_bounds)
         else: # continuation learning
-            experience.setStateBounds(model.getStateBounds())
-            experience.setRewardBounds(model.getRewardBounds())
-            experience.setActionBounds(model.getActionBounds())
+            experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
+            experience.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
+            experience.setActionBounds(copy.deepcopy(model.getActionBounds()))
             
         # mgr = multiprocessing.Manager()
         # learningNamespace = mgr.Namespace()
@@ -355,9 +355,10 @@ def trainModelParallel(settingsFileName):
         masterAgent_message_queue = multiprocessing.Queue(settings['epochs'])
         
         if (settings['train_forward_dynamics']):
-            forwardDynamicsModel.setStateBounds(state_bounds)
-            forwardDynamicsModel.setActionBounds(action_bounds)
-            forwardDynamicsModel.setRewardBounds(reward_bounds)
+            if ( not settings['load_saved_model'] ):
+                forwardDynamicsModel.setStateBounds(state_bounds)
+                forwardDynamicsModel.setActionBounds(action_bounds)
+                forwardDynamicsModel.setRewardBounds(reward_bounds)
             masterAgent.setForwardDynamics(forwardDynamicsModel)
         
         ## Now everything related to the exp memory needs to be updated
@@ -389,12 +390,14 @@ def trainModelParallel(settingsFileName):
             lw.start()
             
         # del learningNamespace.model
-            
-        data = ('Update_Policy', 1.0, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
+        tmp_p=1.0
+        if ( settings['load_saved_model'] ):
+            tmp_p = settings['min_epsilon']
+        data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
                 masterAgent.getPolicy().getNetworkParameters())
         if (settings['train_forward_dynamics']):
             # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-            data = ('Update_Policy', 1.0, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
+            data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
                     masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
         for m_q in sim_work_queues:
             m_q.put(data)
@@ -436,6 +439,13 @@ def trainModelParallel(settingsFileName):
         trainData["mean_actor_regularization_cost"]=[]
         trainData["std_actor_regularization_cost"]=[]
         
+        if (False ):
+            print("State Bounds:", masterAgent.getStateBounds())
+            print("Action Bounds:", masterAgent.getActionBounds())
+            
+            print("Exp State Bounds: ", experience.getStateBounds())
+            print("Exp Action Bounds: ", experience.getActionBounds())
+        
         print ("Starting first round")
         for round_ in range(2,rounds+2):
             # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
@@ -444,6 +454,8 @@ def trainModelParallel(settingsFileName):
             p = ((settings['initial_temperature']/math.log(round_))) 
             # p = ((rounds - round_)/rounds) ** 2
             p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
+            if ( settings['load_saved_model'] ):
+                p = settings['min_epsilon']
             
             # for sm in sim_workers:
                 # sm.setP(p)

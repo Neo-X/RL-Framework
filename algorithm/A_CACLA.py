@@ -233,9 +233,11 @@ class A_CACLA(AlgorithmInterface):
             self._Fallen: self._fallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         })
+        ## Always want this one
+        self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         if (self.getSettings()['debug_critic']):
             self._get_critic_regularization = theano.function([], [self._critic_regularization])
-            self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
+            # self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         
         if (self.getSettings()['debug_actor']):
             if (self.getSettings()['regularization_type'] == 'KL_Divergence'):
@@ -336,7 +338,11 @@ class A_CACLA(AlgorithmInterface):
         # print ("Rewards, Falls, Targets:", np.append(rewards, data, axis=1))
         # print ("Rewards, Falls, Targets:", [rewards, falls, self._get_target()])
         # print ("Actions: ", actions)
-        loss, _ = self._train()
+        loss = 0
+        pre_loss = self._get_critic_loss()[0]
+        # print("Critic loss before: ", pre_loss)
+        if ( pre_loss < 10.0): ## To protect the critic from odd losses
+            loss, _ = self._train()
         print(" Critic loss: ", loss)
         
         return loss

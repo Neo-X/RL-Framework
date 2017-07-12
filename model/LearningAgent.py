@@ -124,6 +124,11 @@ class LearningAgent(AgentInterface):
             if (self._settings['train_forward_dynamics']):
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
         else:
+            # print("State Bounds LA:", self._pol.getStateBounds())
+            # print("Action Bounds LA:", self._pol.getActionBounds())
+            # print("Exp State Bounds LA: ", self._expBuff.getStateBounds())
+            # print("Exp Action Bounds LA: ", self._expBuff.getActionBounds())
+            
             for update in range(self._settings['training_updates_per_sim_action']): ## Even more training options...
                 for i in range(self._settings['critic_updates_per_actor_update']):
                     _states, _actions, _result_states, _rewards, _falls, _G_ts = self._expBuff.get_batch(self._settings["batch_size"])

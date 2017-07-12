@@ -169,8 +169,17 @@ class ExperienceMemory(object):
         self._reward_bounds = _reward_bounds
     def setActionBounds(self, _action_bounds):
         self._action_bounds = _action_bounds
+    def getStateBounds(self):
+        return self._state_bounds
+    def getRewardBounds(self):
+        return self._reward_bounds
+    def getActionBounds(self):
+        return self._action_bounds
+    
     def setSettings(self, settings):
         self._settings = settings
+    def getSettings(self):
+        return self._settings
     
     def saveToFile(self, filename):
         hf = h5py.File(filename, "w")

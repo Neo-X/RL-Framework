@@ -100,7 +100,7 @@ class SimWorker(Process):
                 "Sim worker evaluating episode"
             else:
                 episodeData = episodeData['data']
-            print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
+            # print("self._p: ", self._p)
             # print ("Nums samples in worker: ", self._namespace.experience.samples())
             if (eval): ## No action exploration
                 out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
@@ -150,6 +150,7 @@ class SimWorker(Process):
                             p = 0.1
                         self._p = p
                         print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+                        print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
         print ("Simulation Worker Complete: ")
         self._exp.finish()
         
