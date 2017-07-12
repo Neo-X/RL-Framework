@@ -383,7 +383,8 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
     final_reward = forwardDynamicsModel.predict_reward(state, action)
         
         # repeat
-    print ("New action: ", action, " action diff: ", (action - init_action), " reward change: ", 
+    if (model.getSettings()["print_level"]== 'debug'):
+        print ("New action: ", action, " action diff: ", (action - init_action), " reward change: ", 
            (final_reward - init_reward))
     action = clampAction(action, model._action_bounds)
     return action
@@ -423,7 +424,8 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
         next_state_grads = model.getGrads(next_state)[0] # this uses the value function
         ## normalize
         next_state_grads = (next_state_grads/(np.sqrt((next_state_grads*next_state_grads).sum()))) * (learning_rate)
-        print ("Next State Grad: ", next_state_grads)
+        if (model.getSettings()["print_level"]== 'debug'):
+            print ("Next State Grad: ", next_state_grads)
         # next_state_grads = np.sum(next_state_grads, axis=1)
         # print ("Next State Grad shape: ", next_state_grads.shape)
         ## modify next state wrt increasing grad, this is the direction we want the next state to go towards 
@@ -462,9 +464,10 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
         
         # repeat
     value_diff = final_value - init_value
-    print ("New action: ", action, " action diff: ", (action - init_action), " value change: ", 
-           (value_diff))
-    print ("dynamics_grads: ", dynamics_grads)
+    if (model.getSettings()["print_level"]== 'debug'):
+        print ("New action: ", action, " action diff: ", (action - init_action), " value change: ", 
+               (value_diff))
+        print ("dynamics_grads: ", dynamics_grads)
     action = clampAction(action, model._action_bounds)
     if (checkDataIsValid(action)):
         ### Because there are some nan values coming out of here.
