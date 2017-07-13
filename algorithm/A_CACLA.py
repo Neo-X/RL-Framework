@@ -65,6 +65,7 @@ class A_CACLA(AlgorithmInterface):
         
         self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsA_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
+        self._q_valsNextState = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
         self._q_valsTargetNextState = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
         self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsTarget_drop = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
@@ -81,13 +82,22 @@ class A_CACLA(AlgorithmInterface):
         self._q_funcAct_drop = self._q_valsActA_drop
         
         # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._Fallen
-        self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsTargetNextState )), self._Fallen)
-        self._diff = self._target - self._q_func
-        self._diff_drop = self._target - self._q_func_drop 
-        # loss = 0.5 * self._diff ** 2 
-        loss = T.pow(self._diff, 2)
-        self._loss = T.mean(loss)
-        self._loss_drop = T.mean(0.5 * self._diff_drop ** 2)
+        if ( self.getSettings()['train_critic_on_fd_output']):
+            self._target = self._q_funcTarget
+            self._diff = self._target - (T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsNextState )), self._Fallen))
+            self._diff_drop = self._target - (T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsNextState )), self._Fallen))
+            # loss = 0.5 * self._diff ** 2 
+            loss = T.pow(self._diff, 2)
+            self._loss = T.mean(loss)
+            self._loss_drop = T.mean(0.5 * self._diff_drop ** 2)
+        else:
+            self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsTargetNextState )), self._Fallen)
+            self._diff = self._target - self._q_func
+            self._diff_drop = self._target - self._q_func_drop 
+            # loss = 0.5 * self._diff ** 2 
+            loss = T.pow(self._diff, 2)
+            self._loss = T.mean(loss)
+            self._loss_drop = T.mean(0.5 * self._diff_drop ** 2)
         
         self._params = lasagne.layers.helper.get_all_params(self._model.getCriticNetwork())
         self._actionParams = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
@@ -226,13 +236,22 @@ class A_CACLA(AlgorithmInterface):
         
         #### Stuff for Debugging #####
         self._get_diff = theano.function([], [self._diff], givens=self._givens_)
-        self._get_target = theano.function([], [self._target], givens={
-            # self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._Fallen: self._fallen_shared
-            # self._model.getActionSymbolicVariable(): self._actions_shared,
-        })
+        if ( self.getSettings()['train_critic_on_fd_output']):
+            self._get_target = theano.function([], [self._target], givens={
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+                # self._Fallen: self._fallen_shared
+                # self._model.getActionSymbolicVariable(): self._actions_shared,
+            })
+        else:
+            self._get_target = theano.function([], [self._target], givens={
+                # self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+                self._Fallen: self._fallen_shared
+                # self._model.getActionSymbolicVariable(): self._actions_shared,
+            })
         ## Always want this one
         self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         if (self.getSettings()['debug_critic']):
