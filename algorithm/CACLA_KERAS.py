@@ -38,6 +38,7 @@ class CACLA_KERAS(AlgorithmInterface):
         
         ## Target network
         self._modelTarget = copy.deepcopy(model)
+        # self._modelTarget = model
         
         CACLA_KERAS.compile(self)
         
@@ -151,7 +152,7 @@ class CACLA_KERAS(AlgorithmInterface):
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
-        action_ = scale_action(self._q_action()[0], self._action_bounds)
+        action_ = scale_action(self._modelTarget.getActorNetwork().predict(state, batch_size=1)[0], self._action_bounds)
         # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -167,7 +168,7 @@ class CACLA_KERAS(AlgorithmInterface):
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
-        action_ = scale_action(self._q_action_drop()[0], self._action_bounds)
+        action_ = scale_action(self._modelTarget.getActorNetwork().predict(states, batch_size=1)[0], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
@@ -181,7 +182,7 @@ class CACLA_KERAS(AlgorithmInterface):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        return self._q_valTarget()[0]
+        return self._modelTarget.getCriticNetwork().predict(state, batch_size=1)[0]
         # return self._q_val()[0]
     
     def q_values(self, state):
@@ -191,7 +192,7 @@ class CACLA_KERAS(AlgorithmInterface):
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
-        return self._q_valTarget()
+        return self._modelTarget.getCriticNetwork().predict(state, batch_size=state.shape[0])
     
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
