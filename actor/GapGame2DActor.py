@@ -99,6 +99,10 @@ class GapGame2DActor(ActorInterface):
     def getEvaluationData(self):
         return self._reward_sum
     
+    def setTargetVelocity(self, exp, target_vel):
+        self._target_vel = target_vel
+        exp.getEnvironment().setTargetVelocity(self._target_vel)
+    
     def hasNotFallen(self, exp):
         # if ( (not ( exp.getEnvironment().agentHasFallen() or exp.getEnvironment().hitWall())) and () ):
         # if ( exp.getEnvironment().agentHasFallen() or exp.getEnvironment().hitWall()) :

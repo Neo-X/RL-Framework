@@ -444,7 +444,11 @@ class GapGame1D(object):
             obs_.setRotation(rightRot)
             self._bodies.append(obs_)
             self._obstacles.append(obs_)
+            
+        self._target_velocity = 0.0
         
+    def setTargetVelocity(self, target_vel):
+        self._target_velocity = target_vel
         
     def finish(self):
         pass
@@ -565,8 +569,12 @@ class GapGame1D(object):
         x_adjust=4.5
         gluLookAt(pos[0]+x_adjust, 0.0, 8.0, pos[0]+x_adjust, 0.0, -10.0, 0.0, 1.0, 0.0)
         
+        y_adjust=15
+        y_start = 5
         vel = self._obstacle.getLinearVel()
-        self.glut_print( 5 , 5 , GLUT_BITMAP_9_BY_15 , "Vel: " + str(vel) , 0.0 , 0.0 , 0.0 , 1.0 )
+        self.glut_print( 5 , y_start , GLUT_BITMAP_9_BY_15 , "Vel: " + str(vel) , 0.0 , 0.0 , 0.0 , 1.0 )
+        y_start += y_adjust
+        self.glut_print( 5 , y_start , GLUT_BITMAP_9_BY_15 , "Target Vel: " + str(self._target_velocity) , 0.0 , 0.0 , 0.0 , 1.0 )
         
     def actContinuous(self, action, bootstrapping=False):
         # print ("Action: ", action)

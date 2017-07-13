@@ -160,11 +160,12 @@ class SimContainer(object):
             self._exp.getEnvironment().initEpoch()
         elif c == 'M':
             if ( self._settings["use_parameterized_control"] ):
-                self._exp.getActor()._target_vel += 0.1
+                # self._exp.getActor()._target_vel += 0.1
+                self._exp.getActor().setTargetVelocity(self._exp, self._exp.getActor()._target_vel + 0.1)
                 print ("Target Velocity: ", self._exp.getActor()._target_vel)
         elif c == 'm':
             if ( self._settings["use_parameterized_control"] ):
-                self._exp.getActor()._target_vel -= 0.1 
+                self._exp.getActor().setTargetVelocity(self._exp, self._exp.getActor()._target_vel - 0.1)
                 print ("Target Velocity: ", self._exp.getActor()._target_vel)
         elif c == 'H':
             if ( self._settings["use_parameterized_control"] ):
