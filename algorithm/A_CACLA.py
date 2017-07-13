@@ -125,7 +125,7 @@ class A_CACLA(AlgorithmInterface):
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss, self._params, self._learning_rate, self._rho,
         #                                    self._rms_epsilon)
-        self._value_grad = T.grad(self._loss # + self._critic_regularization
+        self._value_grad = T.grad(self._loss + self._critic_regularization
                                                      , self._params)
         ## Clipping the max gradient
         """
