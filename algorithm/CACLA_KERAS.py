@@ -12,6 +12,7 @@ from model.LearningUtil import loglikelihood, kl, entropy, change_penalty
 from keras.optimizers import SGD
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
+import keras
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -27,10 +28,12 @@ class CACLA_KERAS(AlgorithmInterface):
         ## primary network
         self._model = model
 
-        sgd = SGD(lr=0.001, momentum=0.9)
+        # sgd = SGD(lr=0.001, momentum=0.9)
+        sgd = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
         print ("Clipping: ", sgd.decay)
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
-        sgd = SGD(lr=0.0005, momentum=0.9)
+        # sgd = SGD(lr=0.0005, momentum=0.9)
+        sgd = keras.optimizers.Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, decay=0.0)
         print ("Clipping: ", sgd.decay)
         self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
         
