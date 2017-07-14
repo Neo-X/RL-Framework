@@ -43,6 +43,13 @@ class CACLA_KERAS(AlgorithmInterface):
         self._modelTarget = copy.deepcopy(model)
         # self._modelTarget = model
         
+        self._actor_buffer_states=[]
+        self._actor_buffer_result_states=[]
+        self._actor_buffer_actions=[]
+        self._actor_buffer_rewards=[]
+        self._actor_buffer_falls=[]
+        self._actor_buffer_diff=[]
+        
         CACLA_KERAS.compile(self)
         
     def compile(self):
@@ -130,29 +137,41 @@ class CACLA_KERAS(AlgorithmInterface):
         tmp_diff=[]
         for i in range(len(diff_)):
             if ( diff_[i][0] > 0.0):
-                tmp_diff.append(diff_[i])
-                tmp_states.append(states[i])
-                tmp_result_states.append(result_states[i])
-                tmp_actions.append(actions[i])
-                tmp_rewards.append(rewards[i])
-                tmp_falls.append(falls[i])
+                if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):
+                    self._actor_buffer_diff.append([1.0])
+                    #  print("Not using advantage")
+                else:
+                    self._actor_buffer_diff.append(diff_[i])
+                self._actor_buffer_states.append(states[i])
+                self._actor_buffer_actions.append(actions[i])
+                self._actor_buffer_rewards.append(rewards[i])
+                self._actor_buffer_result_states.append(result_states[i])
+                self._actor_buffer_falls.append(falls[i])
                 
-        if (len(tmp_actions) > 0):
-            # self._tmp_diff_shared.set_value(tmp_diff)
-            # self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
-            tmp_diff = np.array(tmp_diff)
-            tmp_states = np.array(tmp_states)
-            tmp_result_states = np.array(tmp_result_states)
-            tmp_actions = np.array(tmp_actions)
-            tmp_rewards = np.array(tmp_rewards)
-            tmp_falls = np.array(tmp_falls)
-            # print ("States: ", np.array(tmp_states))
-            # print ("Actions: ", np.array(tmp_actions))
+        while ( len(self._actor_buffer_diff) > self.getSettings()['batch_size'] ):
+            ### Get batch from buffer
+            tmp_states = self._actor_buffer_states[:self.getSettings()['batch_size']]
+            tmp_actions = self._actor_buffer_actions[:self.getSettings()['batch_size']]
+            tmp_rewards = self._actor_buffer_rewards[:self.getSettings()['batch_size']]
+            tmp_result_states = self._actor_buffer_result_states[:self.getSettings()['batch_size']]
+            tmp_falls = self._actor_buffer_falls[:self.getSettings()['batch_size']]
+            tmp_diff = self._actor_buffer_diff[:self.getSettings()['batch_size']]
+            self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
+            self._tmp_diff_shared.set_value(tmp_diff)
+            # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
             score = self._model.getActorNetwork().fit(tmp_states, tmp_actions,
               nb_epoch=1, batch_size=len(tmp_actions)
               # callbacks=[early_stopping],
               )
             lossActor = score.history['loss'][0]
+            print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor, " actor buffer size: ", len(self._actor_buffer_actions))
+            ### Remove batch from buffer
+            self._actor_buffer_states=self._actor_buffer_states[self.getSettings()['batch_size']:]
+            self._actor_buffer_actions = self._actor_buffer_actions[self.getSettings()['batch_size']:]
+            self._actor_buffer_rewards = self._actor_buffer_rewards[self.getSettings()['batch_size']:]
+            self._actor_buffer_result_states = self._actor_buffer_result_states[self.getSettings()['batch_size']:]
+            self._actor_buffer_falls =self._actor_buffer_falls[self.getSettings()['batch_size']:]
+            self._actor_buffer_diff = self._actor_buffer_diff[self.getSettings()['batch_size']:]
         
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
             # lossActor, _ = self._trainActor()
