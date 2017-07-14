@@ -27,10 +27,10 @@ class CACLA_KERAS(AlgorithmInterface):
         ## primary network
         self._model = model
 
-        sgd = SGD(lr=0.01, momentum=0.9)
+        sgd = SGD(lr=0.001, momentum=0.9)
         print ("Clipping: ", sgd.decay)
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
-        sgd = SGD(lr=0.01, momentum=0.9)
+        sgd = SGD(lr=0.0005, momentum=0.9)
         print ("Clipping: ", sgd.decay)
         self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
         
@@ -51,11 +51,8 @@ class CACLA_KERAS(AlgorithmInterface):
         """
             Target model updates
         """
-        for i in range(len(self._model.getCriticNetwork().layers)):
-            self._modelTarget.getCriticNetwork().layers[i].set_weights(self._model.getCriticNetwork().layers[i].get_weights())
-        
-        for i in range(len(self._model.getActorNetwork().layers)):
-            self._modelTarget.getActorNetwork().layers[i].set_weights(self._model.getActorNetwork().layers[i].get_weights())
+        self._modelTarget.getCriticNetwork().set_weights( copy.deepcopy(self._model.getCriticNetwork().get_weights()))
+        self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
     
     def getNetworkParameters(self):
         params = []
@@ -70,10 +67,10 @@ class CACLA_KERAS(AlgorithmInterface):
         for i in range(len(params[0])):
             params[0][i] = np.array(params[0][i], dtype=theano.config.floatX)
             """
-        self._model.getCriticNetwork().set_weights(params[0])
-        self._model.getActorNetwork().set_weights( params[1] )
-        self._modelTarget.getCriticNetwork().set_weights( params[2])
-        self._modelTarget.getActorNetwork().set_weights( params[3])
+        self._model.getCriticNetwork().set_weights(copy.deepcopy(params[0]))
+        self._model.getActorNetwork().set_weights( copy.deepcopy(params[1] ))
+        self._modelTarget.getCriticNetwork().set_weights( copy.deepcopy(params[2]))
+        self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(params[3]))
         
     def setData(self, states, actions, rewards, result_states, fallen):
         pass
@@ -101,9 +98,11 @@ class CACLA_KERAS(AlgorithmInterface):
         # print ("Rewards, Falls, Targets:", np.append(rewards, data, axis=1))
         # print ("Rewards, Falls, Targets:", [rewards, falls, self._get_target()])
         # print ("Actions: ", actions)
-        y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=200)
+        y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
+        v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
         target_ = rewards + ((self._discount_factor * y_) * falls)
-        # print ("Critic Target: ", target_)
+        target_ = np.array(target_, dtype=theano.config.floatX)
+        print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
         score = self._model.getCriticNetwork().fit(states, target_,
               nb_epoch=1, batch_size=32
               # callbacks=[early_stopping],
@@ -117,7 +116,7 @@ class CACLA_KERAS(AlgorithmInterface):
         lossActor = 0
         
         diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        print ("Action diff: ", diff_)
+        # print ("Action diff: ", diff_)
         # print ("Diff")
         # print (diff_)
         tmp_states=[]
@@ -144,6 +143,7 @@ class CACLA_KERAS(AlgorithmInterface):
             tmp_actions = np.array(tmp_actions)
             tmp_rewards = np.array(tmp_rewards)
             tmp_falls = np.array(tmp_falls)
+            print ("States: ", np.array(tmp_states))
             print ("Actions: ", np.array(tmp_actions))
             score = self._model.getActorNetwork().fit(tmp_states, tmp_actions,
               nb_epoch=1, batch_size=len(tmp_actions)
@@ -179,7 +179,7 @@ class CACLA_KERAS(AlgorithmInterface):
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
-        action_ = scale_action(self._modelTarget.getActorNetwork().predict(state, batch_size=1)[0], self._action_bounds)
+        action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1)[0], self._action_bounds)
         # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -195,7 +195,7 @@ class CACLA_KERAS(AlgorithmInterface):
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
-        action_ = scale_action(self._modelTarget.getActorNetwork().predict(states, batch_size=1)[0], self._action_bounds)
+        action_ = scale_action(self._model.getActorNetwork().predict(states, batch_size=1)[0], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
@@ -209,7 +209,7 @@ class CACLA_KERAS(AlgorithmInterface):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        return self._modelTarget.getCriticNetwork().predict(state, batch_size=1)[0]
+        return self._model.getCriticNetwork().predict(state, batch_size=1)[0]
         # return self._q_val()[0]
     
     def q_values(self, state):
@@ -219,7 +219,7 @@ class CACLA_KERAS(AlgorithmInterface):
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
-        return self._modelTarget.getCriticNetwork().predict(state, batch_size=state.shape[0])
+        return self._model.getCriticNetwork().predict(state, batch_size=state.shape[0])
     
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
@@ -230,6 +230,9 @@ class CACLA_KERAS(AlgorithmInterface):
         return scale_reward(self._q_val_drop(), self.getRewardBounds())[0]
     
     def bellman_error(self, states, actions, rewards, result_states, falls):
+        """
+            Computes the one step temporal difference.
+        """
         y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=32)
         target_ = rewards + ((self._discount_factor * y_) * falls)
         values =  self._model.getCriticNetwork().predict(states, batch_size=32)

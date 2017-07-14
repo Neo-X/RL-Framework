@@ -74,26 +74,28 @@ class NavGameEnv(SimInterface):
                     action1 = action1[:2]
                     # action1 = getOptimalAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
                     ## normalize
-                    # action1 = action1/(np.sqrt((action1*action1).sum(axis=0)))
+                    action1 = action1/(np.sqrt((action1*action1).sum(axis=0)))
                     U.append(action1[0])
                     V.append(action1[1])
                     v = agent.q_value(state_)
                     Q.append(v)
-                    (action_, value_diff) = getOptimalAction(agent.getForwardDynamics(), agent.getPolicy(), state_)[:2]
-                    # action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
-                    ### How to change this action...
-                    action_ = (action_[:2] - (action1_cp[:2]))
-                    # next_state = agent.getForwardDynamics().predict(state_, action1)
-                    # print ("next_state: ", next_state)
-                    # action_ = next_state - state_[0]
-                    # action_ = action_/(np.sqrt((action_*action_).sum(axis=0)))
-                    # action_ = action_ - action1
-                    U_mbae.append(action_[0])
-                    V_mbae.append(action_[1])
-                    # r = agent.getForwardDynamics().predict_reward(state_, np.array(action1_cp))
-                    # print ("Predicted reward: ", r)
-                    R_mbae.append(value_diff)
+                    if (self.getSettings()['train_forward_dynamics']):
+                        (action_, value_diff) = getOptimalAction(agent.getForwardDynamics(), agent.getPolicy(), state_)[:2]
+                        # action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
+                        ### How to change this action...
+                        action_ = (action_[:2] - (action1_cp[:2]))
+                        # next_state = agent.getForwardDynamics().predict(state_, action1)
+                        # print ("next_state: ", next_state)
+                        # action_ = next_state - state_[0]
+                        # action_ = action_/(np.sqrt((action_*action_).sum(axis=0)))
+                        # action_ = action_ - action1
+                        U_mbae.append(action_[0])
+                        V_mbae.append(action_[1])
+                        # r = agent.getForwardDynamics().predict_reward(state_, np.array(action1_cp))
+                        # print ("Predicted reward: ", r)
+                        R_mbae.append(value_diff)
             self.getEnvironment().updatePolicy(U, V, Q)
-            self.getEnvironment().updateMBAE(U_mbae, V_mbae, R_mbae)
+            if (self.getSettings()['train_forward_dynamics']):
+                self.getEnvironment().updateMBAE(U_mbae, V_mbae, R_mbae)
             self.getEnvironment().saveVisual(directory+"/navAgent")
         

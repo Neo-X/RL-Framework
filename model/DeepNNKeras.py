@@ -12,6 +12,7 @@ from keras.layers import Input
 from keras.layers.core import Dense, Dropout, Activation, Reshape, Flatten, Lambda
 from keras.layers.convolutional import Conv1D
 from keras.layers.merge import Concatenate
+from keras.layers.advanced_activations import LeakyReLU
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
 
@@ -27,15 +28,18 @@ class DeepNNKeras(ModelInterface):
         
         ### Apparently after the first layer the patch axis is left out for most of the Keras stuff...
         input = Input(shape=(self._state_length,))
-        input.trainable = True
+        # input.trainable = True
         print ("Input ",  input)
         
         network = Dense(128, init='uniform')(input)
         print ("Network: ", network) 
+        # network = LeakyReLU(alpha=0.15)(network)
         network = Activation('relu')(network)
         network = Dense(64, init='uniform')(network) 
         network = Activation('relu')(network)
         network = Dense(32, init='uniform')(network) 
+        network = Activation('relu')(network)
+        network = Dense(16, init='uniform')(network) 
         network = Activation('relu')(network)
         # 1 output, linear activation
         network = Dense(1, init='uniform')(network)
@@ -44,7 +48,7 @@ class DeepNNKeras(ModelInterface):
         
         
         inputAct = Input(shape=(self._state_length, ))
-        inputAct.trainable = True
+        # inputAct.trainable = True
         print ("Input ",  inputAct)
         networkAct = Dense(128, init='uniform')(inputAct)
         print ("Network: ", networkAct) 

@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import matplotlib
 import matplotlib.patches as patches
+from matplotlib import cm as CM
+from matplotlib import mlab as ML
 # from matplotlib import mpl
 import numpy as np
 # import matplotlib.animation as animation
@@ -290,6 +292,11 @@ class NavGame(object):
         self._policy2 = self._policy_ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
         self._policy = self._policy_ax.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
         
+        ### Add value visulization
+        # self._value_function = self._policy_ax.hexbin(X.ravel(), Y.ravel(), C=(Q.ravel()*10), gridsize=30, cmap=CM.jet, bins=None)
+        # self._value_function = self._policy_ax.scatter(X, Y, c=Q)
+        # PLT.axis([x.min(), x.max(), y.min(), y.max()])
+        
         # Two subplots, unpack the axes array immediately
         self._fig2, (self._policy_mbae) = plt.subplots(1, 1, sharey=False)
         self._fig2.set_size_inches(8.5, 8.5, forward=True)
@@ -359,6 +366,9 @@ class NavGame(object):
         self._policy.set_UVC(U, V)
         self._fig.canvas.draw()
         
+        # self._value_function.set_edgecolors(Q)
+        # self._value_function.set_data(Q)
+        
     def updateMBAE(self, U, V, Q):
         # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
         textstr = """$\max R=%.2f$\n$\min R=%.2f$"""%(np.max(Q), np.min(Q))
@@ -394,8 +404,9 @@ class NavGame(object):
         # plt.savefig(fileName+".svg")
         self._fig.savefig(fileName+".svg")
         self._fig.savefig(fileName+".png")
-        self._fig2.savefig(fileName+"_MBAE.svg")
-        self._fig2.savefig(fileName+"_MBAE.png")
+        if (self._settings['train_forward_dynamics']):
+            self._fig2.savefig(fileName+"_MBAE.svg")
+            self._fig2.savefig(fileName+"_MBAE.png")
         
     def finish(self):
         pass
