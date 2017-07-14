@@ -22,11 +22,12 @@ if __name__ == "__main__":
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere/Deep_CNN_Dropout/trainingData_A_CACLA.json'
     trainData['name']='Baseline + Dropout'
     trainingDatas.append(trainData)
-    """
+    
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere/Deep_CNN_Dropout_Critic/trainingData_A_CACLA.json'
     trainData['name']='Baseline + DropoutOnCriticOnly'
     trainingDatas.append(trainData)
+    """
     """
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_ActorBufFix/Deep_CNN/trainingData_A_CACLA.json'
@@ -58,6 +59,12 @@ if __name__ == "__main__":
     trainData['name']='Baseline + ProximalRegularization'
     trainingDatas.append(trainData)
     """
+    
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_MBAE/Deep_CNN/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + MBAE2'
+    trainingDatas.append(trainData)
+    
     
     for i in range(len(trainingDatas)):
         datafile = trainingDatas[i]['fileName']

@@ -55,9 +55,9 @@ class PolicyTrainVisualize(object):
                     x_range = range(len(self._trainingDatas[i]['data']["mean_eval"]))
             else:
                 x_range = range(len(self._trainingDatas[i]['data']["mean_eval"]))
-            new_shape = (len(x_range)/bin_size, bin_size)
+            new_shape = (int(len(x_range)/bin_size), int(bin_size))
             new_length = new_shape[0]*new_shape[1]
-            x_range_ = range(new_shape[0])
+            x_range_ = range(int(new_shape[0]))
             # self._length = self._length/bin_size
             mean = np.mean(np.reshape(self._trainingDatas[i]['data']["mean_eval"][:new_length], new_shape), axis=1)
             std = np.mean(np.reshape(self._trainingDatas[i]['data']["std_eval"][:new_length], new_shape), axis=1)

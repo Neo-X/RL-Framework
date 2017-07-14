@@ -18,10 +18,20 @@ if __name__ == "__main__":
     trainData['name']='Baseline'
     trainingDatas.append(trainData)
     
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/A_CACLA/Nav_Sphere_10D/Deep_NN_Dropout_Critic/trainingData_A_CACLA.json'
+    trainData['name']='Baseline2'
+    trainingDatas.append(trainData)
+    
     # Final method
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/A_CACLA/Nav_Sphere_MBAE_10D/Deep_NN/trainingData_A_CACLA.json'
     trainData['name']='Baseline + MBAE'
+    trainingDatas.append(trainData)
+    
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/A_CACLA/Nav_Sphere_MBAE_10D/Deep_NN_Dropout_Critic/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + MBAE2.0'
     trainingDatas.append(trainData)
     
     
