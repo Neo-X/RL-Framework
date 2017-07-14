@@ -90,7 +90,7 @@ class DeepCNNKeras(ModelInterface):
         networkAct = Dense(32, init='uniform')(networkAct) 
         networkAct = Activation('relu')(networkAct)
         # 1 output, linear activation
-        networkAct = Dense(1, init='uniform')(networkAct)
+        networkAct = Dense(self._action_length, init='uniform')(networkAct)
         networkAct = Activation('linear')(networkAct)
         self._actor = Model(input=inputAct, output=networkAct)
         

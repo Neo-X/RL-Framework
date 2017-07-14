@@ -103,7 +103,7 @@ class CACLA_KERAS(AlgorithmInterface):
         # print ("Actions: ", actions)
         y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=200)
         target_ = rewards + ((self._discount_factor * y_) * falls)
-        print ("Critic Target: ", target_)
+        # print ("Critic Target: ", target_)
         score = self._model.getCriticNetwork().fit(states, target_,
               nb_epoch=1, batch_size=32
               # callbacks=[early_stopping],
@@ -117,6 +117,7 @@ class CACLA_KERAS(AlgorithmInterface):
         lossActor = 0
         
         diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
+        print ("Action diff: ", diff_)
         # print ("Diff")
         # print (diff_)
         tmp_states=[]
@@ -126,7 +127,7 @@ class CACLA_KERAS(AlgorithmInterface):
         tmp_falls=[]
         tmp_diff=[]
         for i in range(len(diff_)):
-            if ( diff_[i] > 0.0):
+            if ( diff_[i][0] > 0.0):
                 tmp_diff.append(diff_[i])
                 tmp_states.append(states[i])
                 tmp_result_states.append(result_states[i])
@@ -137,7 +138,13 @@ class CACLA_KERAS(AlgorithmInterface):
         if (len(tmp_actions) > 0):
             # self._tmp_diff_shared.set_value(tmp_diff)
             # self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
-            
+            tmp_diff = np.array(tmp_diff)
+            tmp_states = np.array(tmp_states)
+            tmp_result_states = np.array(tmp_result_states)
+            tmp_actions = np.array(tmp_actions)
+            tmp_rewards = np.array(tmp_rewards)
+            tmp_falls = np.array(tmp_falls)
+            print ("Actions: ", np.array(tmp_actions))
             score = self._model.getActorNetwork().fit(tmp_states, tmp_actions,
               nb_epoch=1, batch_size=len(tmp_actions)
               # callbacks=[early_stopping],
@@ -153,6 +160,8 @@ class CACLA_KERAS(AlgorithmInterface):
             # print ( "Action before diff: ", self._get_actor_diff_())
             # print( "Action diff: ", self._get_action_diff())
             # return np.sqrt(lossActor);
+        else:
+            print( "No positive actions: ")
         return lossActor
     
     def train(self, states, actions, rewards, result_states, falls):
@@ -223,7 +232,7 @@ class CACLA_KERAS(AlgorithmInterface):
     def bellman_error(self, states, actions, rewards, result_states, falls):
         y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=32)
         target_ = rewards + ((self._discount_factor * y_) * falls)
-        values =  self._modelTarget.getCriticNetwork().predict(states, batch_size=32)
+        values =  self._model.getCriticNetwork().predict(states, batch_size=32)
         bellman_error = target_ - values
         return bellman_error
         # return self._bellman_errorTarget()
