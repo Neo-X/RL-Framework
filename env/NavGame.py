@@ -57,8 +57,8 @@ class NavGame(object):
         # self._state_bounds = np.array([[self._state_bounds[0][0]]*self._state_length, [self._state_bounds[1][0]]*self._state_length])
         ## For plotting objects
         self._markerSize = 25
-        self._map = np.zeros((self._state_bounds[1][0]-self._state_bounds[0][0],
-                              self._state_bounds[1][0]-self._state_bounds[0][0]))
+        self._map = np.zeros((int(self._state_bounds[1][0]-self._state_bounds[0][0]),
+                              int(self._state_bounds[1][0]-self._state_bounds[0][0])))
         
         self._agent = np.array([2]* self._state_length) ## Somewhat random initial spot
         self._target = np.array([0]* self._state_length) ## goal location

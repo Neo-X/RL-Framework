@@ -57,6 +57,24 @@ class CACLA_KERAS(AlgorithmInterface):
         for i in range(len(self._model.getActorNetwork().layers)):
             self._modelTarget.getActorNetwork().layers[i].set_weights(self._model.getActorNetwork().layers[i].get_weights())
     
+    def getNetworkParameters(self):
+        params = []
+        params.append((self._model.getCriticNetwork().get_weights()))
+        params.append((self._model.getActorNetwork().get_weights()))
+        params.append((self._modelTarget.getCriticNetwork().get_weights()))
+        params.append((self._modelTarget.getActorNetwork().get_weights()))
+        return params
+    
+    def setNetworkParameters(self, params):
+        """
+        for i in range(len(params[0])):
+            params[0][i] = np.array(params[0][i], dtype=theano.config.floatX)
+            """
+        self._model.getCriticNetwork().set_weights(params[0])
+        self._model.getActorNetwork().set_weights( params[1] )
+        self._modelTarget.getCriticNetwork().set_weights( params[2])
+        self._modelTarget.getActorNetwork().set_weights( params[3])
+        
     def setData(self, states, actions, rewards, result_states, fallen):
         pass
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
@@ -90,7 +108,7 @@ class CACLA_KERAS(AlgorithmInterface):
               nb_epoch=1, batch_size=32
               # callbacks=[early_stopping],
               )
-        loss = score.history['loss']
+        loss = score.history['loss'][0]
         print(" Critic loss: ", loss)
         
         return loss
@@ -124,7 +142,7 @@ class CACLA_KERAS(AlgorithmInterface):
               nb_epoch=1, batch_size=len(tmp_actions)
               # callbacks=[early_stopping],
               )
-            lossActor = score.history['loss']
+            lossActor = score.history['loss'][0]
         
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
             # lossActor, _ = self._trainActor()
@@ -206,6 +224,6 @@ class CACLA_KERAS(AlgorithmInterface):
         y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=32)
         target_ = rewards + ((self._discount_factor * y_) * falls)
         values =  self._modelTarget.getCriticNetwork().predict(states, batch_size=32)
-        bellman_error = target - values
+        bellman_error = target_ - values
         return bellman_error
         # return self._bellman_errorTarget()

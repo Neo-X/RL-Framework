@@ -109,6 +109,12 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
         model = DeepCNNKeras(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
         return model  
+    elif (model_type == "Deep_NN_KERAS" ):
+        from model.DeepNNKeras import DeepNNKeras
+        print("Creating network model: ", model_type)
+        model = DeepNNKeras(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+        return model
     elif (model_type == "Deep_NN_Dropout_Critic" ):
         from model.DeepNNDropoutCritic import DeepNNDropoutCritic
         print("Creating network model: ", model_type)
