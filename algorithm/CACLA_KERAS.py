@@ -129,12 +129,6 @@ class CACLA_KERAS(AlgorithmInterface):
         # print ("Action diff: ", diff_)
         # print ("Diff")
         # print (diff_)
-        tmp_states=[]
-        tmp_result_states=[]
-        tmp_actions=[]
-        tmp_rewards=[]
-        tmp_falls=[]
-        tmp_diff=[]
         for i in range(len(diff_)):
             if ( diff_[i][0] > 0.0):
                 if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):
@@ -156,10 +150,10 @@ class CACLA_KERAS(AlgorithmInterface):
             tmp_result_states = self._actor_buffer_result_states[:self.getSettings()['batch_size']]
             tmp_falls = self._actor_buffer_falls[:self.getSettings()['batch_size']]
             tmp_diff = self._actor_buffer_diff[:self.getSettings()['batch_size']]
-            self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
-            self._tmp_diff_shared.set_value(tmp_diff)
+            # self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
+            # self._tmp_diff_shared.set_value(tmp_diff)
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
-            score = self._model.getActorNetwork().fit(tmp_states, tmp_actions,
+            score = self._model.getActorNetwork().fit(np.array(tmp_states), np.array(tmp_actions),
               nb_epoch=1, batch_size=len(tmp_actions)
               # callbacks=[early_stopping],
               )
