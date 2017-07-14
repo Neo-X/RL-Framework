@@ -30,9 +30,9 @@ class DeepCNNKeras(ModelInterface):
         input.trainable = True
         print ("Input ",  input)
         ## Custom slice layer, Keras does not have this layer type...
-        taskFeatures = Lambda(lambda x: x[0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'],))(input)
+        taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'],))(input)
         # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(input)
-        characterFeatures = Lambda(lambda x: x[self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'], ))(input)
+        characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'],))(input)
         # characterFeatures = Reshape((-1, self._state_length-self._settings['num_terrain_features']))(characterFeatures)
         # characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(1,))(input)
         # print("TaskFeature shape: ", taskFeatures.output_shape)
@@ -69,8 +69,8 @@ class DeepCNNKeras(ModelInterface):
         inputAct.trainable = True
         print ("Input ",  inputAct)
         ## Custom slice layer, Keras does not have this layer type...
-        taskFeaturesAct = Lambda(lambda x: x[0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'],))(inputAct)
-        characterFeaturesAct = Lambda(lambda x: x[self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'], ))(inputAct)
+        taskFeaturesAct = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'],))(inputAct)
+        characterFeaturesAct = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'], ))(inputAct)
         ## Keras/Tensorflow likes the channels to be at the end
         networkAct = Reshape((self._settings['num_terrain_features'], 1))(taskFeaturesAct)
         networkAct = Conv1D(filters=16, kernel_size=8)(networkAct)
