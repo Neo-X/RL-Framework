@@ -381,7 +381,8 @@ def trainModelParallel(settingsFileName):
         # learningNamespace.experience = experience
             
         for lw in learning_workers:
-            lw._agent.setPolicy(copy.deepcopy(model))
+            # lw._agent.setPolicy(copy.deepcopy(model))
+            lw._agent.setPolicy(model)
             # lw.setLearningNamespace(learningNamespace)
             lw.setMasterAgentMessageQueue(masterAgent_message_queue)
             lw.updateExperience(experience)

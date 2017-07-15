@@ -40,8 +40,8 @@ class CACLA_KERAS(AlgorithmInterface):
         print ("Loss ", self._model.getActorNetwork().total_loss)
         
         ## Target network
-        self._modelTarget = copy.deepcopy(model)
-        # self._modelTarget = model
+        # self._modelTarget = copy.deepcopy(model)
+        self._modelTarget = model
         
         self._actor_buffer_states=[]
         self._actor_buffer_result_states=[]
