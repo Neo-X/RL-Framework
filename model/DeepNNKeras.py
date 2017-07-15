@@ -35,12 +35,16 @@ class DeepNNKeras(ModelInterface):
         print ("Network: ", network) 
         # network = LeakyReLU(alpha=np.asscalar(np.array([0.15], dtype=settings_['float_type'])))(network)
         network = Activation('tanh')(network)
+        network = Dropout(0.1)(network)
         network = Dense(64, init='uniform')(network) 
         network = Activation('tanh')(network)
+        network = Dropout(0.1)(network)
         network = Dense(32, init='uniform')(network) 
         network = Activation('tanh')(network)
+        network = Dropout(0.1)(network)
         network = Dense(16, init='uniform')(network) 
         network = Activation('tanh')(network)
+        network = Dropout(0.1)(network)
         # 1 output, linear activation
         network = Dense(1, init='uniform')(network)
         network = Activation('linear')(network)
@@ -51,8 +55,9 @@ class DeepNNKeras(ModelInterface):
         # inputAct.trainable = True
         print ("Input ",  inputAct)
         networkAct = Dense(128, init='uniform')(inputAct)
-        print ("Network: ", networkAct) 
+        print ("Network: ", networkAct)         
         networkAct = Activation('tanh')(networkAct)
+        
         networkAct = Dense(64, init='uniform')(networkAct) 
         networkAct = Activation('tanh')(networkAct)
         networkAct = Dense(32, init='uniform')(networkAct) 
