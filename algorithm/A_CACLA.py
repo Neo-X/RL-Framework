@@ -491,8 +491,8 @@ class A_CACLA(AlgorithmInterface):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        return self._q_valTarget()[0]
-        # return self._q_val()[0]
+        # return self._q_valTarget()[0]
+        return self._q_val()[0]
     
     def q_values(self, state):
         """
@@ -501,7 +501,7 @@ class A_CACLA(AlgorithmInterface):
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
-        return self._q_valTarget()
+        return self._q_val()
     
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
