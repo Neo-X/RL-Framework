@@ -260,8 +260,8 @@ class A_CACLA(AlgorithmInterface):
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         self._trainActor = theano.function([], [self._actLoss, self._q_func_drop], updates=self._actionUpdates, givens=self._actGivens)
-        # self._q_val = theano.function([], self._q_func,
-        #                                givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+        self._q_val = theano.function([], self._q_func,
+                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._q_valTarget = theano.function([], self._q_funcTarget,
                                        givens={self._model.getStateSymbolicVariable(): self._modelTarget.getStates()})
         # self._q_val_drop = theano.function([], self._q_func_drop,
