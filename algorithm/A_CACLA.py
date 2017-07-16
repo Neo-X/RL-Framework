@@ -219,6 +219,38 @@ class A_CACLA(AlgorithmInterface):
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         }
         
+        ### Noisey state updates
+        # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._Fallen
+        self._target_dyna = theano.gradient.disconnected_grad(self._q_func)
+        self._diff_dyna = self._target_dyna - self._q_valsNextState
+        # loss = 0.5 * self._diff ** 2 
+        loss = T.pow(self._diff_dyna, 2)
+        self._loss_dyna = T.mean(loss)
+        
+        self._dyna_grad = T.grad(self._loss_dyna + self._critic_regularization ,  self._params)
+        
+        self._givens_dyna = {
+            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            # self._Fallen: self._fallen_shared
+            # self._model.getActionSymbolicVariable(): self._actions_shared,
+        }
+        if (self.getSettings()['optimizer'] == 'rmsprop'):
+            self._DYNAUpdates = lasagne.updates.rmsprop(self._dyna_grad, self._params, 
+                    self._learning_rate , self._rho, self._rms_epsilon)
+        elif (self.getSettings()['optimizer'] == 'momentum'):
+            self._DYNAUpdates = lasagne.updates.momentum(self._dyna_grad, self._params, 
+                    self._learning_rate , momentum=self._rho)
+        elif ( self.getSettings()['optimizer'] == 'adam'):
+            self._DYNAUpdates = lasagne.updates.adam(self._dyna_grad, self._params, 
+                    self._learning_rate , beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
+        elif ( self.getSettings()['optimizer'] == 'adagrad'):
+            self._DYNAUpdates = lasagne.updates.adagrad(self._dyna_grad, self._params, 
+                    self._learning_rate, epsilon=self._rms_epsilon)
+        else:
+            print ("Unknown optimization method: ", self.getSettings()['optimizer'])
+        
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
         A_CACLA.compile(self)
@@ -260,6 +292,7 @@ class A_CACLA(AlgorithmInterface):
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         self._trainActor = theano.function([], [self._actLoss, self._q_func_drop], updates=self._actionUpdates, givens=self._actGivens)
+        self._trainDyna = theano.function([], [self._loss_dyna], updates=self._DYNAUpdates, givens=self._givens_dyna)
         self._q_val = theano.function([], self._q_func,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._q_valTarget = theano.function([], self._q_funcTarget,
@@ -445,6 +478,10 @@ class A_CACLA(AlgorithmInterface):
             print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
             """
         return lossActor
+    
+    def trainDyna(self, states, actions, rewards, result_states, falls):
+        self.setData(states, actions, rewards, result_states, falls)
+        dyna_loss = self._trainDyna()
     
     def train(self, states, actions, rewards, result_states, falls):
         loss = self.trainCritic(states, actions, rewards, result_states, falls)
