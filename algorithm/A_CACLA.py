@@ -482,6 +482,7 @@ class A_CACLA(AlgorithmInterface):
     def trainDyna(self, states, actions, rewards, result_states, falls):
         self.setData(states, actions, rewards, result_states, falls)
         dyna_loss = self._trainDyna()
+        return dyna_loss[0]
     
     def train(self, states, actions, rewards, result_states, falls):
         loss = self.trainCritic(states, actions, rewards, result_states, falls)
