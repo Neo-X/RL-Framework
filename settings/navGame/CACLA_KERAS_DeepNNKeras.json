@@ -221,5 +221,4 @@
 "train_reward_predictor": false,
 	"comment__": "How many gradient steps model based actino exploration should take",
 "num_mbae_steps": 1
-
 }

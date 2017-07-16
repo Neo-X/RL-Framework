@@ -75,32 +75,38 @@ class SimWorker(Process):
             self._model.setEnvironment(self._exp)
         
         ## This get is fine, it is the first one that I want to block on.
+        print ("Waiting for initial policy update.", self._message_queue)
         data = self._message_queue.get()
         message = data[0]
         if message == "Update_Policy":
-            print ("Message: ", message)
+            print ("First Message: ", message)
             self._model.getPolicy().setNetworkParameters(data[5])
+            print ("First Message: ", "Updated policy parameters")
             if (self._settings['train_forward_dynamics']):
                 self._model.getForwardDynamics().setNetworkParameters(data[6])
             self._p = data[1]
             self._model.setStateBounds(data[2])
             self._model.setActionBounds(data[3])
             self._model.setRewardBounds(data[4])
+            print ("Initial policy ready:")
             # print ("sim worker p: " + str(self._p))
-        print ('Worker started')
+        print ('Worker: started')
         # do some initialization here
         while True:
             eval=False
+            # print ("Worker: getting data")
             episodeData = self._input_queue.get()
+            # print ("Worker: got data", episodeData)
             if episodeData == None:
                 break
             if episodeData['type'] == "eval":
                 eval=True
                 episodeData = episodeData['data']
-                "Sim worker evaluating episode"
+                # "Sim worker evaluating episode"
             else:
                 episodeData = episodeData['data']
             # print("self._p: ", self._p)
+            # print ("Worker: Evaluating episode")
             # print ("Nums samples in worker: ", self._namespace.experience.samples())
             if (eval): ## No action exploration
                 out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
@@ -117,6 +123,7 @@ class SimWorker(Process):
             (tuples, discounted_sum, q_value, evalData) = out
             # (states, actions, result_states, rewards, falls) = tuples
             ## Hack for now just update after ever episode
+            # print ("Worker: send sim results: ")
             if (eval):
                 self._eval_episode_data_queue.put(out)
             else:
@@ -129,6 +136,7 @@ class SimWorker(Process):
             ## Check if any messages in the queue
             if self._message_queue.qsize() > 0:
                 data = None
+                # print ("Getting updated network parameters:")
                 while (not self._message_queue.empty()):
                     ## Don't block
                     try:
@@ -137,6 +145,7 @@ class SimWorker(Process):
                         print ("SimWorker model parameter message queue empty.")
                     if (not (data_ == None)):
                         data = data_
+                # print ("Got updated network parameters:")
                 if (data != None):
                     message = data[0]
                     if message == "Update_Policy":
@@ -203,7 +212,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         q_values_ = []
     viz_q_values_ = []
     # q_value = model.q_value(state_)
-    # print ("Updated parameters: " + str(model._pol.getNetworkParameters()[3]))
+    # print ("Updated parameters: " + str(model.getNetworkParameters()[1]))
     # print ("q_values_: " + str(q_value) + " Action: " + str(action_))
     # original_val = q_value
     discounted_sum = 0

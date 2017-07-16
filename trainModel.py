@@ -402,6 +402,7 @@ def trainModelParallel(settingsFileName):
             data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
                     masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
         for m_q in sim_work_queues:
+            print("trainModel: Sending current network parameters: ", m_q)
             m_q.put(data)
             
         del model

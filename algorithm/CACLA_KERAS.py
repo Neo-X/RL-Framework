@@ -66,10 +66,10 @@ class CACLA_KERAS(AlgorithmInterface):
     
     def getNetworkParameters(self):
         params = []
-        params.append((self._model.getCriticNetwork().get_weights()))
-        params.append((self._model.getActorNetwork().get_weights()))
-        params.append((self._modelTarget.getCriticNetwork().get_weights()))
-        params.append((self._modelTarget.getActorNetwork().get_weights()))
+        params.append(copy.deepcopy(self._model.getCriticNetwork().get_weights()))
+        params.append(copy.deepcopy(self._model.getActorNetwork().get_weights()))
+        params.append(copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
+        params.append(copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
         return params
     
     def setNetworkParameters(self, params):
@@ -77,11 +77,11 @@ class CACLA_KERAS(AlgorithmInterface):
         for i in range(len(params[0])):
             params[0][i] = np.array(params[0][i], dtype=theano.config.floatX)
             """
-        self._model.getCriticNetwork().set_weights(copy.deepcopy(params[0]))
-        self._model.getActorNetwork().set_weights( copy.deepcopy(params[1] ))
-        self._modelTarget.getCriticNetwork().set_weights( copy.deepcopy(params[2]))
-        self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(params[3]))
-        
+        self._model.getCriticNetwork().set_weights(params[0])
+        self._model.getActorNetwork().set_weights( params[1] )
+        self._modelTarget.getCriticNetwork().set_weights( params[2])
+        self._modelTarget.getActorNetwork().set_weights( params[3])
+    
     def setData(self, states, actions, rewards, result_states, fallen):
         pass
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
