@@ -51,12 +51,17 @@ if __name__ == "__main__":
     trainData['name']='Baseline + MBAE + regularization + Dyna'
     trainingDatas.append(trainData)
     
-        # Final method
+    # Final method
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD_Dyna_Reg_OnPolicy/Deep_NN/trainingData_A3C.json'
     trainData['name']='Baseline + MBAE + regularization + Dyna + OnPolicy'
     trainingDatas.append(trainData)
     
+    # Final method
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A_CACLA/Simple_Walk_MBAE/Deep_NN/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + MBAE2'
+    trainingDatas.append(trainData)
     
     for i in range(len(trainingDatas)):
         datafile = trainingDatas[i]['fileName']
@@ -79,6 +84,9 @@ if __name__ == "__main__":
     """
     
     rlv = PolicyTrainVisualize("Training Curves")
+    if (len(sys.argv) == 2):
+        length = int(sys.argv[1])
+        rlv.setLength(length)
     rlv.updateRewards(trainingDatas)
     rlv.init()
     rlv.saveVisual("MBAE_Training_curves")

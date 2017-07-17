@@ -56,6 +56,9 @@ if __name__ == "__main__":
     """
     
     rlv = PolicyTrainVisualize("Training Curves")
+    if (len(sys.argv) == 2):
+        length = int(sys.argv[1])
+        rlv.setLength(length)
     rlv.updateRewards(trainingDatas)
     rlv.init()
     rlv.saveVisual("MBAE_Training_curves")

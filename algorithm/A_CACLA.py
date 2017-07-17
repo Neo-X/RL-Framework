@@ -44,6 +44,13 @@ class A_CACLA(AlgorithmInterface):
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True))
         
+        self._dyna_target = T.col("DYNA_Target")
+        self._dyna_target.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
+        
+        self._dyna_target_shared = theano.shared(
+            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
+            broadcastable=(False, True))
+        
         self._KL_Weight = T.scalar("KL_Weight")
         self._KL_Weight.tag.test_value = np.zeros((1),dtype=np.dtype(self.getSettings()['float_type']))[0]
         
@@ -221,8 +228,8 @@ class A_CACLA(AlgorithmInterface):
         
         ### Noisey state updates
         # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._Fallen
-        self._target_dyna = theano.gradient.disconnected_grad(self._q_func)
-        self._diff_dyna = self._target_dyna - self._q_valsNextState
+        # self._target_dyna = theano.gradient.disconnected_grad(self._q_func)
+        self._diff_dyna = self._dyna_target - self._q_valsNextState
         # loss = 0.5 * self._diff ** 2 
         loss = T.pow(self._diff_dyna, 2)
         self._loss_dyna = T.mean(loss)
@@ -230,11 +237,12 @@ class A_CACLA(AlgorithmInterface):
         self._dyna_grad = T.grad(self._loss_dyna + self._critic_regularization ,  self._params)
         
         self._givens_dyna = {
-            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            # self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             # self._Fallen: self._fallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
+            self._dyna_target: self._dyna_target_shared
         }
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             self._DYNAUpdates = lasagne.updates.rmsprop(self._dyna_grad, self._params, 
@@ -481,6 +489,9 @@ class A_CACLA(AlgorithmInterface):
     
     def trainDyna(self, states, actions, rewards, result_states, falls):
         self.setData(states, actions, rewards, result_states, falls)
+        values = self._q_valTarget()
+        # print ("Dyna values: ", values)
+        self._dyna_target_shared.set_value(values)
         dyna_loss = self._trainDyna()
         return dyna_loss[0]
     
