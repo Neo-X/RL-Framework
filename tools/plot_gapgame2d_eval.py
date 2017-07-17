@@ -64,6 +64,17 @@ if __name__ == "__main__":
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_MBAE/Deep_CNN/trainingData_A_CACLA.json'
     trainData['name']='Baseline + MBAE2'
     trainingDatas.append(trainData)
+    """
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_MBAE/Deep_CNN_Dropout_Critic/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + MBAE2'
+    trainingDatas.append(trainData)
+    """
+    
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_MBAE_2/Deep_CNN_Dropout_Critic/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + MBAE2 + Dyna'
+    trainingDatas.append(trainData)
     
     
     for i in range(len(trainingDatas)):

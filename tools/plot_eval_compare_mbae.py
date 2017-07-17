@@ -44,7 +44,7 @@ if __name__ == "__main__":
     trainData['name']='Baseline + MBAE + regularization'
     trainingDatas.append(trainData)
     
-    
+    """
     # Final method
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD_Dyna_Reg/Deep_NN/trainingData_A3C.json'
@@ -56,10 +56,20 @@ if __name__ == "__main__":
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A3C/Simple_Walk_FD_Dyna_Reg_OnPolicy/Deep_NN/trainingData_A3C.json'
     trainData['name']='Baseline + MBAE + regularization + Dyna + OnPolicy'
     trainingDatas.append(trainData)
-    
+    """
     # Final method
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A_CACLA/Simple_Walk_MBAE/Deep_NN/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + MBAE2'
+    trainingDatas.append(trainData)
+    # Final method
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A_CACLA/Simple_Walk_MBAE_2/Deep_NN/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + MBAE2'
+    trainingDatas.append(trainData)
+    # Final method
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/simbiconBiped2D/A_CACLA/Simple_Walk_MBAE_3/Deep_NN/trainingData_A_CACLA.json'
     trainData['name']='Baseline + MBAE2'
     trainingDatas.append(trainData)
     
