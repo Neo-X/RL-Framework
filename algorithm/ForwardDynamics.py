@@ -5,7 +5,7 @@ import lasagne
 import sys
 sys.path.append('../')
 from model.ModelUtil import *
-
+from model.LearningUtil import loglikelihood, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -26,23 +26,33 @@ class ForwardDynamics(AlgorithmInterface):
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
         }
-        self._forward = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)
-        self._forward_drop = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=False)
+        self._forward = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,:self._action_length]
+        self._forward_std = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,self._state_length:]
+        self._forward_drop = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=False)[:,:self._action_length]
         self._reward = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=True)
         self._reward_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=False)
         
-        # self._target = (Reward + self._discount_factor * self._q_valsB)
-        self._diff = self._model.getResultStateSymbolicVariable() - self._forward_drop
-        ## mean across each sate
-        self._loss = T.mean(T.pow(self._diff, 2),axis=1)
-        ## mean over batch
-        self._loss = T.mean(self._loss)
-        ## Another version that does not have dropout
-        self._diff_NoDrop = self._model.getResultStateSymbolicVariable() - self._forward
-        ## mean across each sate
-        self._loss_NoDrop = T.mean(T.pow(self._diff_NoDrop, 2),axis=1)
-        ## mean over batch
-        self._loss_NoDrop = T.mean(self._loss_NoDrop)
+        if ('use_stochastic_forward_dynamics' in self.getSettings() and 
+            (self.getSettings()['use_stochastic_forward_dynamics'])):
+            self._diff = loglikelihood(self._model.getResultStateSymbolicVariable(), self._forward_drop, self._forward_std, self._state_length)
+            self._loss = T.mean(self._diff) 
+            
+            ### Not used dropout stuff
+            self._diff_NoDrop = self._diff
+            self._loss_NoDrop = self._loss
+        else:
+            # self._target = (Reward + self._discount_factor * self._q_valsB)
+            self._diff = self._model.getResultStateSymbolicVariable() - self._forward_drop
+            ## mean across each sate
+            self._loss = T.mean(T.pow(self._diff, 2),axis=1)
+            ## mean over batch
+            self._loss = T.mean(self._loss)
+            ## Another version that does not have dropout
+            self._diff_NoDrop = self._model.getResultStateSymbolicVariable() - self._forward
+            ## mean across each sate
+            self._loss_NoDrop = T.mean(T.pow(self._diff_NoDrop, 2),axis=1)
+            ## mean over batch
+            self._loss_NoDrop = T.mean(self._loss_NoDrop)
         
         
         self._reward_diff = self._model.getRewardSymbolicVariable() - self._reward_drop
@@ -106,6 +116,9 @@ class ForwardDynamics(AlgorithmInterface):
         self._train = theano.function([], [self._loss], updates=self._updates_, givens=self._givens_)
         self._train_reward = theano.function([], [self._reward_loss], updates=self._reward_updates_, givens=self._reward_givens_)
         self._forwardDynamics = theano.function([], self._forward,
+                                       givens={self._model.getStateSymbolicVariable() : self._model.getStates(),
+                                                self._model.getActionSymbolicVariable(): self._model.getActions()})
+        self._forwardDynamics_std = theano.function([], self._forward_std,
                                        givens={self._model.getStateSymbolicVariable() : self._model.getStates(),
                                                 self._model.getActionSymbolicVariable(): self._model.getActions()})
         self._predict_reward = theano.function([], self._reward,
@@ -182,6 +195,16 @@ class ForwardDynamics(AlgorithmInterface):
         self._model.setStates(state)
         self._model.setActions(action)
         state_ = scale_state(self._forwardDynamics()[0], self._state_bounds)
+        return state_
+    
+    def predict_std(self, state, action):
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        action = np.array([norm_action(action, self._action_bounds)], dtype=self.getSettings()['float_type'])
+        self._model.setStates(state)
+        self._model.setActions(action)
+        state_ = scale_state(self._forwardDynamics_std()[0], self._state_bounds)
         return state_
     
     def predict_reward(self, state, action):

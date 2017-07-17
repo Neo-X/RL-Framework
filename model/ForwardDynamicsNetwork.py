@@ -51,6 +51,12 @@ class ForwardDynamicsNetwork(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
                 
+        if (self._settings['use_stochastic_forward_dynamics']):
+            with_std = lasagne.layers.DenseLayer(
+                    l_hid4ActA, num_units=self._state_length,
+                    nonlinearity=theano.tensor.nnet.softplus)
+            self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
+                
         l_hid2ActA = lasagne.layers.DenseLayer(
                 input, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
