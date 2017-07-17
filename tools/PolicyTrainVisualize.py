@@ -44,7 +44,7 @@ class PolicyTrainVisualize(object):
         """
         
         cmap = get_cmap(len(self._trainingDatas)+1)
-        bin_size=5
+        bin_size=1
         self._fig, (self._reward_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
         self._fig_value, (self._value_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
         for i in range(0, len(self._trainingDatas), 1):
