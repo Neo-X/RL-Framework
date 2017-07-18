@@ -73,7 +73,7 @@ if __name__ == '__main__':
         experience.insert(state_, action_, state_, np.array([0]))
     
     errors=[]
-    for i in range(100000):
+    for i in range(10000):
         _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
         # print ("Actions: ", _actions)
         # print ("States: ", _states) 
@@ -116,6 +116,7 @@ if __name__ == '__main__':
     predicted_actions_var = np.array(predicted_actions_var)
     # states=np.reshape(states, (experience_length,1))
     predicted_actions = np.reshape(predicted_actions, (experience_length,))
+    print ("predicted_actions_var: ", predicted_actions_var)
     print "states shape: " + str(states.shape)
     print "var shape: " + str(predicted_actions_var.shape)
     print "act shape: " + str(predicted_actions.shape)

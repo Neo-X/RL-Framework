@@ -417,6 +417,10 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
     for i in range(num_updates):
         ## find next state with dynamics model
         next_state = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
+        if ('use_stochastic_forward_dynamics' in self.getSettings() and 
+            (self.getSettings()['use_stochastic_forward_dynamics'])):
+            std = forwardDynamicsModel.predict_std(state, action)
+            next_state = randomExporationSTD(0, next_state, std)
         value_ = model.q_value(next_state)
         # print ("next state q value: ", value_)
         # print ("Next State: ", next_state.shape)
