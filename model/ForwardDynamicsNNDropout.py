@@ -78,7 +78,8 @@ class ForwardDynamicsNetwork(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
                 
-        if (self._settings['use_stochastic_forward_dynamics']):
+        if (('use_stochastic_forward_dynamics' in self._settings) and 
+            self._settings['use_stochastic_forward_dynamics']):
             with_std = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._state_length,
                     nonlinearity=theano.tensor.nnet.softplus)
