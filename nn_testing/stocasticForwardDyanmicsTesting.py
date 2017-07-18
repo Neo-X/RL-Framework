@@ -38,7 +38,7 @@ if __name__ == '__main__':
     from util.SimulationUtil import createForwardDynamicsModel
     
     state_bounds = np.array([[-5.0],[5.0]])
-    action_bounds = np.array([[-4.0],[2.0]])
+    action_bounds = np.array([[-5.0],[5.0]])
     reward_bounds = np.array([[-3.0],[1.0]])
     experience_length = 300
     batch_size=16
@@ -70,14 +70,14 @@ if __name__ == '__main__':
         state_ = np.array([states[arr[i]]])
         given_states.append(state_)
         # print "Action: " + str([actions[i]])
-        experience.insert(state_, action_, state_, np.array([0]))
+        experience.insert(state_, state_, action_, np.array([0]))
     
     errors=[]
     for i in range(10000):
         _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
         # print ("Actions: ", _actions)
         # print ("States: ", _states) 
-        error = model.train(_states, _states, _actions, _actions)
+        error = model.train(_states, _states, _result_states, _actions)
         errors.append(error)
         # print "Error: " + str(error)
     
