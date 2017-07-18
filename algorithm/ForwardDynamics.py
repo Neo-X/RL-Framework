@@ -5,7 +5,7 @@ import lasagne
 import sys
 sys.path.append('../')
 from model.ModelUtil import *
-from model.LearningUtil import loglikelihood, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
+from model.LearningUtil import loglikelihood, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat, likelihood
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'

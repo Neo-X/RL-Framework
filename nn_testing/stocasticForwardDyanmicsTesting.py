@@ -172,6 +172,31 @@ if __name__ == '__main__':
     
     print "Max var: " + str(np.max(predicted_actions_var))
     print "Min var: " + str(np.min(predicted_actions_var))
+    grad_dirs=[]
+    old_states_=[]
+    predicted_actions_=[]
+    space=1
+    spaces_=0
+    for s in range(0, len(states), 2):
+        if (s % space) == 0:
+            action_ = np.reshape(norm_action(np.array([predicted_actions[s]-0.01]), action_bounds), (1,1))
+            state_ = np.reshape(norm_state(np.array([states[s]]), state_bounds), (1,1))
+            grads_ = model.getGrads(state_, state_, action_)
+            print ("Grad: ", grads_[0])
+            # diff = model.bellman_error(state_, action_)
+            # print ("Diff, ", diff)
+            grad_dir = np.sum(grads_[0], axis=1)
+            """
+            if (grad_dir > 0.0):
+                grad_dir = 1.0
+            else:
+                grad_dir = -1.0
+                """
+            grad_dirs.append(grad_dir)
+            old_states_.append(states[s])
+            predicted_actions_.append(predicted_actions[s])
+    
+    _bellman_error_ax.quiver(old_states_, predicted_actions_, grad_dirs, np.zeros((len(grad_dirs))), linewidth=0.5, pivot='tail', edgecolor='k', headaxislength=4, alpha=.5, angles='xy', linestyles='-', scale=10.0, label="gradient direction")
     
     # _fig.show()
     # er.show()
