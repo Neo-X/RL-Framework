@@ -71,6 +71,7 @@ class NavGameEnv(SimInterface):
                     state_ = np.array([[x,y] + ([0]*(s_length-2))])
                     action1 = agent.predict(state_)
                     action1_cp = copy.deepcopy(action1)
+                    next_state_true_ = state_ + action1_cp
                     action1 = action1[:2]
                     # action1 = getOptimalAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
                     ## normalize
@@ -84,9 +85,10 @@ class NavGameEnv(SimInterface):
                         # action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
                         ### How to change this action...
                         action_ = (action_[:2] - (action1_cp[:2]))
-                        # next_state = agent.getForwardDynamics().predict(state_, action1)
+                        # next_state = agent.getForwardDynamics().predict(state_, action1_cp)
                         # print ("next_state: ", next_state)
-                        # action_ = next_state - state_[0]
+                        # action_ = (next_state - next_state_true_)[0]
+                        # print ("forward_dynamics error: ", action_)
                         # action_ = action_/(np.sqrt((action_*action_).sum(axis=0)))
                         # action_ = action_ - action1
                         U_mbae.append(action_[0])

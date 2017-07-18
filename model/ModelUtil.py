@@ -420,6 +420,8 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
         if ('use_stochastic_forward_dynamics' in model.getSettings() and 
             (model.getSettings()['use_stochastic_forward_dynamics'])):
             std = forwardDynamicsModel.predict_std(state, action)
+            if (model.getSettings()["print_level"]== 'debug'):
+                print ("SMBAE std: ", std)
             next_state = randomExporationSTD(0, next_state, std)
         value_ = model.q_value(next_state)
         # print ("next state q value: ", value_)

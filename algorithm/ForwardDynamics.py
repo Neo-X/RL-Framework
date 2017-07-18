@@ -27,15 +27,18 @@ class ForwardDynamics(AlgorithmInterface):
             self._model.getActionSymbolicVariable(): self._model.getActions(),
         }
         self._forward = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,:self._action_length]
-        self._forward_std = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,self._state_length:]
+        ## This drops to ~ 0 so fast.
+        self._forward_std = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,self._state_length:] + 5e-3
         self._forward_drop = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=False)[:,:self._action_length]
         self._reward = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=True)
         self._reward_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=False)
         
         if ('use_stochastic_forward_dynamics' in self.getSettings() and 
             (self.getSettings()['use_stochastic_forward_dynamics'])):
+            
             self._diff = loglikelihood(self._model.getResultStateSymbolicVariable(), self._forward_drop, self._forward_std, self._state_length)
-            self._loss = -T.mean(self._diff) 
+            self._policy_entropy = 0.5 * T.mean(T.log(2 * np.pi * self._forward_std ) + 1 )
+            self._loss = -1.0 * (T.mean(self._diff) + (self._policy_entropy * 1e-2)) 
             
             ### Not used dropout stuff
             self._diff_NoDrop = self._diff
