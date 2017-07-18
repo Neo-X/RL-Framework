@@ -73,7 +73,7 @@ if __name__ == '__main__':
         experience.insert(state_, action_, state_, np.array([0]))
     
     errors=[]
-    for i in range(500):
+    for i in range(5000):
         _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
         # print ("Actions: ", _actions)
         # print ("States: ", _states) 
@@ -84,19 +84,28 @@ if __name__ == '__main__':
     
     states = np.linspace(-5.0, 5.0, experience_length)
     actionsNoNoise = np.array(map(f, states))
-    print ("Eval States: ", states)
-    predicted_actions = np.array(map(model.predict, np.transpose(np.array(states)), np.array([states])))
-    # predicted_actions = []
-    # for i in range(len(states)):
-    #     predicted_actions = 
+    print ("Eval States: ", np.transpose(np.array([states])))
+    
+    # predicted_actions = np.array(map(model.predict , states, states))
+    # predicted_actions = model.predict(np.transpose(np.array(states)), np.transpose(np.array(states)))
+    
+    predicted_actions = []
+    for i in range(len(states)):
+        # state__ = np.reshape(np.array([states[i]]), (-1,1))
+        state__ = np.array(states[i])
+        # print ("State__: ", state__)
+        predicted_actions.append(model.predict(state__,state__ ))
+    
     predicted_actions_dropout = np.array(map(model.predictWithDropout, states))
     predicted_actions_var = []
+    print ("predicted_actions: ", predicted_actions)
     
     # print ("modelPrecsionInv: ", modelPrecsionInv)
     predictions = []
     for i in range(len(states)):
         
-        var_ = getModelPredictionUncertanty(model, state=states[i], length=0.5, num_samples=128)
+        # var_ = getModelPredictionUncertanty(model, state=states[i], length=0.5, num_samples=128)
+        var_ = model.predict_std([states[i]],[states[i]])
         # print var_
         predicted_actions_var.append(var_[0])
         predictions=[]
