@@ -35,7 +35,7 @@ class ForwardDynamics(AlgorithmInterface):
         if ('use_stochastic_forward_dynamics' in self.getSettings() and 
             (self.getSettings()['use_stochastic_forward_dynamics'])):
             self._diff = loglikelihood(self._model.getResultStateSymbolicVariable(), self._forward_drop, self._forward_std, self._state_length)
-            self._loss = T.mean(self._diff) 
+            self._loss = -T.mean(self._diff) 
             
             ### Not used dropout stuff
             self._diff_NoDrop = self._diff
