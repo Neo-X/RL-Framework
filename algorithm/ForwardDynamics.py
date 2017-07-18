@@ -43,7 +43,7 @@ class ForwardDynamics(AlgorithmInterface):
             
             ### Not used dropout stuff
             self._diff_NoDrop = loglikelihood(self._model.getResultStateSymbolicVariable(), self._forward, self._forward_std, self._state_length)
-            self._loss_NoDrop = -1.0 * (T.mean(self._diff_NoDrop) + + (self._policy_entropy * 1e-2))
+            self._loss_NoDrop = -1.0 * (T.mean(self._diff_NoDrop) + (self._policy_entropy * 1e-2))
         else:
             # self._target = (Reward + self._discount_factor * self._q_valsB)
             self._diff = self._model.getResultStateSymbolicVariable() - self._forward_drop
