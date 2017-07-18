@@ -26,11 +26,11 @@ class ForwardDynamics(AlgorithmInterface):
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
         }
-        self._forward = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,:self._action_length]
+        self._forward = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,:self._state_length]
         ## This drops to ~ 0 so fast.
         self._forward_std = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,self._state_length:] + 5e-3
         self._forward_std_drop = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,self._state_length:] + 5e-3
-        self._forward_drop = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=False)[:,:self._action_length]
+        self._forward_drop = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=False)[:,:self._state_length]
         self._reward = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=True)
         self._reward_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=False)
         
@@ -199,6 +199,8 @@ class ForwardDynamics(AlgorithmInterface):
         action = np.array([norm_action(action, self._action_bounds)], dtype=self.getSettings()['float_type'])
         self._model.setStates(state)
         self._model.setActions(action)
+        # print ("State bounds: ", self._state_bounds)
+        # print ("fd output: ", self._forwardDynamics()[0])
         state_ = scale_state(self._forwardDynamics()[0], self._state_bounds)
         return state_
     
