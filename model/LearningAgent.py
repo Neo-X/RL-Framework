@@ -143,7 +143,9 @@ class LearningAgent(AgentInterface):
                 dynamicsLoss = 0 
                 if (self._settings['train_forward_dynamics']):
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
-                    if (self._settings['train_critic_on_fd_output']):
+                    if (self._settings['train_critic_on_fd_output'] and 
+                        (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0)
+                        ):
                         
                         result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
                         cost = self._pol.trainDyna(states=_result_states, actions=_actions, rewards=_rewards, result_states=result_states__, falls=_falls)

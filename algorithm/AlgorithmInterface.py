@@ -56,6 +56,9 @@ class AlgorithmInterface(object):
             Compiles the functions for this algorithm
         """
         pass
+    
+    def numUpdates(self):
+        return self._updates
         
     def updateTargetModel(self):
         pass
