@@ -190,7 +190,7 @@ class ForwardDynamics(AlgorithmInterface):
     def predict(self, state, action):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array([norm_state(state, self._state_bounds)], dtype=self.getSettings()['float_type'])
+        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         # print ("fd state: ", state)
         action = np.array([norm_action(action, self._action_bounds)], dtype=self.getSettings()['float_type'])
         self._model.setStates(state)
@@ -201,7 +201,7 @@ class ForwardDynamics(AlgorithmInterface):
     def predict_std(self, state, action):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array([norm_state(state, self._state_bounds)], dtype=self.getSettings()['float_type'])
+        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         # print ("fd state: ", state)
         action = np.array([norm_action(action, self._action_bounds)], dtype=self.getSettings()['float_type'])
         self._model.setStates(state)
