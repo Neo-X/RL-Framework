@@ -416,10 +416,10 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
     init_action = copy.deepcopy(action)
     for i in range(num_updates):
         ## find next state with dynamics model
-        next_state = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
+        next_state = np.reshape(forwardDynamicsModel.predict(state, [action]), (1, model.getStateSize()))
         if ('use_stochastic_forward_dynamics' in model.getSettings() and 
             (model.getSettings()['use_stochastic_forward_dynamics'])):
-            std = forwardDynamicsModel.predict_std(state, action)
+            std = forwardDynamicsModel.predict_std(state, [action])
             if (model.getSettings()["print_level"]== 'debug'):
                 print ("SMBAE std: ", std)
             next_state = randomExporationSTD(0, next_state, std)
@@ -462,7 +462,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state):
         # print ("action_grad: ", action_grads, " new action: ", action)
         # print ( "Action shape: ", action.shape)
         # print (" Action diff: ", (action - init_action))
-        next_state_ = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
+        next_state_ = np.reshape(forwardDynamicsModel.predict(state, [action]), (1, model.getStateSize()))
         
         # print ("Next_state: ", next_state_.shape, " values ", next_state_)
     final_value = model.q_value(next_state_)

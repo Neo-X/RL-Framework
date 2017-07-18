@@ -28,8 +28,8 @@ class ForwardDynamics(AlgorithmInterface):
         }
         self._forward = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,:self._state_length]
         ## This drops to ~ 0 so fast.
-        self._forward_std = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,self._state_length:] + 5e-3
-        self._forward_std_drop = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,self._state_length:] + 5e-3
+        self._forward_std = (lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate'] )+ 1e-4
+        self._forward_std_drop = (lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate']) + 1e-4
         self._forward_drop = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=False)[:,:self._state_length]
         self._reward = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=True)
         self._reward_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=False)
@@ -39,11 +39,13 @@ class ForwardDynamics(AlgorithmInterface):
             
             self._diff = loglikelihood(self._model.getResultStateSymbolicVariable(), self._forward_drop, self._forward_std_drop, self._state_length)
             self._policy_entropy = 0.5 * T.mean(T.log(2 * np.pi * self._forward_std ) + 1 )
-            self._loss = -1.0 * (T.mean(self._diff) + (self._policy_entropy * 1e-2)) 
+            # self._loss = -1.0 * (T.mean(self._diff) + (self._policy_entropy * 1e-4))
+            self._loss = -1.0 * (T.mean(self._diff) ) 
             
             ### Not used dropout stuff
             self._diff_NoDrop = loglikelihood(self._model.getResultStateSymbolicVariable(), self._forward, self._forward_std, self._state_length)
-            self._loss_NoDrop = -1.0 * (T.mean(self._diff_NoDrop) + (self._policy_entropy * 1e-2))
+            # self._loss_NoDrop = -1.0 * (T.mean(self._diff_NoDrop) + (self._policy_entropy * 1e-4))
+            self._loss_NoDrop = -1.0 * (T.mean(self._diff_NoDrop) )
         else:
             # self._target = (Reward + self._discount_factor * self._q_valsB)
             self._diff = self._model.getResultStateSymbolicVariable() - self._forward_drop
@@ -196,7 +198,7 @@ class ForwardDynamics(AlgorithmInterface):
         # states[0, ...] = state
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         # print ("fd state: ", state)
-        action = np.array([norm_action(action, self._action_bounds)], dtype=self.getSettings()['float_type'])
+        action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         self._model.setStates(state)
         self._model.setActions(action)
         # print ("State bounds: ", self._state_bounds)
@@ -209,7 +211,7 @@ class ForwardDynamics(AlgorithmInterface):
         # states[0, ...] = state
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         # print ("fd state: ", state)
-        action = np.array([norm_action(action, self._action_bounds)], dtype=self.getSettings()['float_type'])
+        action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         self._model.setStates(state)
         self._model.setActions(action)
         state_ = scale_state(self._forwardDynamics_std()[0], self._state_bounds)
@@ -219,7 +221,7 @@ class ForwardDynamics(AlgorithmInterface):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        action = np.array([norm_action(action, self._action_bounds)], dtype=self.getSettings()['float_type'])
+        action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         self._model.setStates(state)
         self._model.setActions(action)
         predicted_reward = self._predict_reward()[0]

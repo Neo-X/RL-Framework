@@ -75,7 +75,7 @@ class NavGameEnv(SimInterface):
                     action1 = action1[:2]
                     # action1 = getOptimalAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
                     ## normalize
-                    # action1 = action1/(np.sqrt((action1*action1).sum(axis=0)))
+                    action1 = action1/(np.sqrt((action1*action1).sum(axis=0)))
                     U.append(action1[0])
                     V.append(action1[1])
                     v = agent.q_value(state_)

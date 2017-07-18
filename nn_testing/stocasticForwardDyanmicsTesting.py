@@ -84,7 +84,7 @@ if __name__ == '__main__':
     
     states = np.linspace(-5.0, 5.0, experience_length)
     actionsNoNoise = np.array(map(f, states))
-    print ("Eval States: ", np.transpose(np.array([states])))
+    # print ("Eval States: ", np.transpose(np.array([states])))
     
     # predicted_actions = np.array(map(model.predict , states, states))
     # predicted_actions = model.predict(np.transpose(np.array(states)), np.transpose(np.array(states)))
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     predicted_actions = []
     for i in range(len(states)):
         # state__ = np.reshape(np.array([states[i]]), (-1,1))
-        state__ = np.array(states[i])
+        state__ = np.array([[states[i]]])
         # print ("State__: ", state__)
         predicted_actions.append(model.predict(state__,state__ ))
     
@@ -105,7 +105,8 @@ if __name__ == '__main__':
     for i in range(len(states)):
         
         # var_ = getModelPredictionUncertanty(model, state=states[i], length=0.5, num_samples=128)
-        var_ = model.predict_std([states[i]],[states[i]])
+        state__ = np.array([[states[i]]])
+        var_ = model.predict_std(state__,state__)
         # print var_
         if (len(var_) > 0):
             predicted_actions_var.append(var_[0])

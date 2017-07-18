@@ -6,7 +6,7 @@
     "comment__": "Folder to store the training data in.",
 "data_folder": "Nav_Sphere_SMBAE_5D",
 	"comment": "initial probability of selecting a random action",
-"epsilon": 1.0, 
+"epsilon": 0.5, 
 	"comment": "initial probability of selecting a discrete random action",
 "omega": 0.00,
     "comment__": "Batch size used for learning",
@@ -160,7 +160,7 @@
     "comment__": "Whether or not to draw/render the simulation",
 "shouldRender": true,
     "comment__": "Learning rate use for model based action exploration",
-"action_learning_rate": 1.0,
+"action_learning_rate": 0.50,
     "comment__": "During model-based action exploration, Probability of random policy action",
 "model_based_action_omega": 0.5,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
@@ -219,8 +219,8 @@
 "reset_on_fall": true,
 	"comment__": "Whether a model of the reward r <- R(s,a) should be trained",
 "train_reward_predictor": false,
-	"comment__": "How many gradient steps model based actino exploration should take",
+	"comment__": "How many gradient steps model based action exploration should take",
 "num_mbae_steps": 1,
-	"comment__": "Whether or not to use a stocastic forward dyanmics model",
+	"comment__": "Whether or not to use a stochastic forward dynamics model",
 "use_stochastic_forward_dynamics": true	
 }
