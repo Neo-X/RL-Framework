@@ -33,6 +33,13 @@ if __name__ == '__main__':
     State is the input state and Action is the desired output (y).
     """
     
+    file = open(sys.argv[1])
+    settings = json.load(file)
+    print ("Settings: " + str(json.dumps(settings)))
+    file.close()
+    import os    
+    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+    
     # state_bounds = np.array([[1.8],[3.0]])
     state_bounds = np.array([[-5.0],[8.0]])
     action_bounds = np.array([[-4.0],[2.0]])
@@ -47,13 +54,12 @@ if __name__ == '__main__':
     # actions = np.array(map(fNoise, states))
     actions = np.array(list(map(f, states)))
     actionsNoNoise = np.array(list(map(f, states)))
-    settings = {}
     
     # states2 = np.transpose(np.repeat([states], 2, axis=0))
     # print states2
     model = NeuralNetwork(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, settings)
     
-    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True)
+    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True, settings=settings)
     
     experience.setStateBounds(state_bounds)
     experience.setRewardBounds(reward_bounds)
@@ -66,7 +72,7 @@ if __name__ == '__main__':
     
     errors=[]
     for i in range(10000):
-        _states, _actions, _result_states, _rewards, _falls = experience.get_batch(batch_size)
+        _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
         # print _actions 
         error = model.train(_states, _actions)
         errors.append(error)
@@ -137,8 +143,8 @@ if __name__ == '__main__':
     spaces_=0
     for s in range(0, len(states), 2):
         if (s % space) == 0:
-            action_ = np.reshape(norm_action(np.array([predicted_actions[s]-0.01]), action_bounds), (1,1))
-            state_ = np.reshape(norm_state(np.array([states[s]]), state_bounds), (1,1))
+            action_ = np.reshape(np.array([predicted_actions[s]-0.01]), (1,1))
+            state_ = np.reshape(np.array([states[s]]), (1,1))
             grads_ = model.getGrads(state_, action_)
             print ("Grad: ", grads_[0])
             diff = model.bellman_error(state_, action_)

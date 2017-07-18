@@ -73,7 +73,7 @@ if __name__ == '__main__':
         experience.insert(state_, action_, state_, np.array([0]))
     
     errors=[]
-    for i in range(5000):
+    for i in range(100000):
         _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
         # print ("Actions: ", _actions)
         # print ("States: ", _states) 
@@ -107,7 +107,10 @@ if __name__ == '__main__':
         # var_ = getModelPredictionUncertanty(model, state=states[i], length=0.5, num_samples=128)
         var_ = model.predict_std([states[i]],[states[i]])
         # print var_
-        predicted_actions_var.append(var_[0])
+        if (len(var_) > 0):
+            predicted_actions_var.append(var_[0])
+        else:
+            predicted_actions_var.append(0)
         predictions=[]
     # predictions = model.predictWithDropout(samp_)
     predicted_actions_var = np.array(predicted_actions_var)
@@ -179,24 +182,26 @@ if __name__ == '__main__':
     spaces_=0
     for s in range(0, len(states), 2):
         if (s % space) == 0:
-            action_ = np.reshape(norm_action(np.array([predicted_actions[s]-0.01]), action_bounds), (1,1))
-            state_ = np.reshape(norm_state(np.array([states[s]]), state_bounds), (1,1))
+            action_ = np.reshape(np.array([predicted_actions[s]-0.01]), (1,1))
+            state_ = np.reshape(np.array([states[s]]), (1,1))
             grads_ = model.getGrads(state_, state_, action_)
             print ("Grad: ", grads_[0])
             # diff = model.bellman_error(state_, action_)
             # print ("Diff, ", diff)
-            grad_dir = np.sum(grads_[0], axis=1)
+            # grad_dir = np.sum(grads_[0][0], axis=1)
+            grad_dir = grads_[0][0][0]
+            print( "Grad direction: ", grad_dir)
             """
             if (grad_dir > 0.0):
                 grad_dir = 1.0
             else:
                 grad_dir = -1.0
                 """
-            grad_dirs.append(grad_dir)
+            grad_dirs.append(grad_dir * 0.05)
             old_states_.append(states[s])
             predicted_actions_.append(predicted_actions[s])
     
-    _bellman_error_ax.quiver(old_states_, predicted_actions_, grad_dirs, np.zeros((len(grad_dirs))), linewidth=0.5, pivot='tail', edgecolor='k', headaxislength=4, alpha=.5, angles='xy', linestyles='-', scale=10.0, label="gradient direction")
+    _bellman_error_ax.quiver(old_states_, predicted_actions_, grad_dirs, np.zeros((len(grad_dirs))), linewidth=0.5, pivot='tail', edgecolor='k', headaxislength=4, alpha=.5, angles='xy', linestyles='-', scale=5.0, label="gradient direction")
     
     # _fig.show()
     # er.show()

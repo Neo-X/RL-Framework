@@ -72,7 +72,7 @@ if __name__ == '__main__':
         experience.insert(state_, action_, state_, np.array([0]))
     
     errors=[]
-    for i in range(50000):
+    for i in range(10000):
         _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
         # print _actions 
         error = model.train(_states, _actions)
