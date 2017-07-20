@@ -23,13 +23,16 @@ class PolicyTrainVisualize(object):
             discounted reward error
         """
         if (settings != None):
-            self._iteration_scale = ((settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'] * 
-                                      settings['training_updates_per_sim_action']) / 
+            self._sim_iteration_scale = (settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'])
+            self._iteration_scale = ((self._sim_iteration_scale * settings['training_updates_per_sim_action']) / 
                                      settings['sim_action_per_training_update'])
+            
         else:
             self._iteration_scale = 1
+            self._sim_iteration_scale = 1
         self._title=title
         self._length = 0
+        
         
     def setLength(self, length):
         self._length = length
@@ -78,6 +81,7 @@ class PolicyTrainVisualize(object):
             self._value, = self._value_ax.plot(x_range_, mean_value, 
                                                  linewidth=3.0, 
                                                  c=cmap(i),
+                                                 alpha=0.75,
                                                  label=self._trainingDatas[i]['name'])
             print("Line colour: ", self._reward.get_color())
             self._discounted_error_std = self._value_ax.fill_between(x_range_, 
@@ -97,11 +101,13 @@ class PolicyTrainVisualize(object):
         self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')
         plt.xlabel("Iteration x" + str(self._iteration_scale))
         self._fig.suptitle(self._title, fontsize=18)
+        self._reward_ax.set_xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale))
         
         self._value_ax.set_ylabel("Mean Reward")
         self._value_ax.grid(b=True, which='major', color='black', linestyle='--')
         plt.xlabel("Iteration x" + str(self._iteration_scale))
         self._fig_value.suptitle(self._title, fontsize=18)
+        self._value_ax.set_xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale))
         
         # plt.grid(b=True, which='major', color='black', linestyle='--')
         # plt.grid(b=True, which='minor', color='g', linestyle='--'

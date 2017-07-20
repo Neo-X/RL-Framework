@@ -31,7 +31,7 @@ if __name__ == "__main__":
     
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/A_CACLA/Nav_Sphere_MBAE_10D/Deep_NN_Dropout_Critic/trainingData_A_CACLA.json'
-    trainData['name']='Baseline + MBAE2.0'
+    trainData['name']='Baseline + MBAE2'
     trainingDatas.append(trainData)
     
     
@@ -54,10 +54,15 @@ if __name__ == "__main__":
     trainData["std_discount_error"]=[]
     
     """
-    
-    rlv = PolicyTrainVisualize("Training Curves")
+    settings = None
     if (len(sys.argv) == 2):
-        length = int(sys.argv[1])
+        settingsFileName = sys.argv[1]
+        settingsFile = open(settingsFileName, 'r')
+        settings = json.load(settingsFile)
+        settingsFile.close()
+    rlv = PolicyTrainVisualize("Training Curves", settings=settings)
+    if (len(sys.argv) == 3):
+        length = int(sys.argv[2])
         rlv.setLength(length)
     rlv.updateRewards(trainingDatas)
     rlv.init()
