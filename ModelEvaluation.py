@@ -369,13 +369,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # randomAction = random.choice(action_selection)
                     if (settings["use_model_based_action_optimization"] ):
-                        if ( settings['anneal_mbae'] ):
+                        if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
                             mbae_omega = p * settings["model_based_action_omega"]
                         else:
                             mbae_omega = settings["model_based_action_omega"]
                         if (np.random.rand(1)[0] < mbae_omega):
                             ## Need to be learning a forward dynamics deep network for this
-                            if ( settings['anneal_mbae'] ):
+                            if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
                                 mbae_lr = p * settings["action_learning_rate"]
                             else:
                                 mbae_lr = settings["action_learning_rate"]
