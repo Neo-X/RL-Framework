@@ -38,7 +38,12 @@ class ModelInterface(object):
     
     def getCriticNetworkTaskPart(self):
         return self._critic_task_part
-
+    
+    def getForwardDynamicsNetwork(self):
+        return self._forward_dynamics_net
+    def getRewardNetwork(self):
+        return self._reward_net
+    
     ### Setting network input values ###    
     def setStates(self, states):
         self._states_shared.set_value(states)

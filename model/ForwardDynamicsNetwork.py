@@ -46,7 +46,7 @@ class ForwardDynamicsNetwork(ModelInterface):
                 l_hid3ActA, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
-        self._actor = lasagne.layers.DenseLayer(
+        self._forward_dynamics_net = lasagne.layers.DenseLayer(
                 l_hid4ActA, num_units=self._state_length,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
@@ -56,7 +56,7 @@ class ForwardDynamicsNetwork(ModelInterface):
             with_std = lasagne.layers.DenseLayer(
                     l_hid4ActA, num_units=self._state_length,
                     nonlinearity=theano.tensor.nnet.softplus)
-            self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
+            self._forward_dynamics_net = lasagne.layers.ConcatLayer([self._forward_dynamics_net, with_std], axis=1)
                 
         l_hid2ActA = lasagne.layers.DenseLayer(
                 input, num_units=256,
@@ -70,7 +70,7 @@ class ForwardDynamicsNetwork(ModelInterface):
                 l_hid3ActA, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         ## This can be used to model the reward function
-        self._critic = lasagne.layers.DenseLayer(
+        self._reward_net = lasagne.layers.DenseLayer(
                 l_hid4ActA, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )

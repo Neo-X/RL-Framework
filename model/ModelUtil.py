@@ -389,17 +389,17 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
     action = clampAction(action, model._action_bounds)
     return action
 
-def getOptimalAction(forwardDynamicsModel, model, state):
+def getOptimalAction(forwardDynamicsModel, model, state, action_lr):
     action = model.predict(state)
-    return getOptimalAction2(forwardDynamicsModel, model, action, state)
+    return getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr)
 
-def getOptimalAction2(forwardDynamicsModel, model, action, state):
+def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
     """
         Computes the optimal action to be taken given
         the forwardDynamicsModel f and
         the value function (model) v
     """
-    learning_rate=model.getSettings()['action_learning_rate']
+    learning_rate=action_lr
     num_updates=model.getSettings()['num_mbae_steps']
     state_length = model.getStateSize()
     # print ("state_length ", state_length)

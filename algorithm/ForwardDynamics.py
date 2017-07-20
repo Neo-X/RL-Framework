@@ -26,13 +26,13 @@ class ForwardDynamics(AlgorithmInterface):
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
         }
-        self._forward = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,:self._state_length]
+        self._forward = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_, deterministic=True)[:,:self._state_length]
         ## This drops to ~ 0 so fast.
-        self._forward_std = (lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate'] )+ 1e-4
-        self._forward_std_drop = (lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate']) + 1e-4
-        self._forward_drop = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_, deterministic=False)[:,:self._state_length]
-        self._reward = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=True)
-        self._reward_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=False)
+        self._forward_std = (lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate'] )+ 1e-4
+        self._forward_std_drop = (lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate']) + 1e-4
+        self._forward_drop = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_, deterministic=False)[:,:self._state_length]
+        self._reward = lasagne.layers.get_output(self._model.getRewardNetwork(), inputs_, deterministic=True)
+        self._reward_drop = lasagne.layers.get_output(self._model.getRewardNetwork(), inputs_, deterministic=False)
         
         if ('use_stochastic_forward_dynamics' in self.getSettings() and 
             (self.getSettings()['use_stochastic_forward_dynamics'])):
@@ -69,8 +69,8 @@ class ForwardDynamics(AlgorithmInterface):
         self._reward_loss_NoDrop = T.mean(T.pow(self._reward_diff_NoDrop, 2),axis=1)
         self._reward_loss_NoDrop = T.mean(self._reward_loss_NoDrop)
         
-        self._params = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
-        self._reward_params = lasagne.layers.helper.get_all_params(self._model.getCriticNetwork())
+        self._params = lasagne.layers.helper.get_all_params(self._model.getForwardDynamicsNetwork())
+        self._reward_params = lasagne.layers.helper.get_all_params(self._model.getRewardNetwork())
         self._givens_ = {
             self._model.getStateSymbolicVariable() : self._model.getStates(),
             self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
@@ -88,35 +88,35 @@ class ForwardDynamics(AlgorithmInterface):
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             print ("Optimizing Forward Dynamics with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                    self._model.getActorNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho, self._rms_epsilon)
+                    self._model.getForwardDynamicsNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho, self._rms_epsilon)
             self._reward_updates_ = lasagne.updates.rmsprop(self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                    self._model.getCriticNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, self._rho, self._rms_epsilon)
+                    self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, self._rho, self._rms_epsilon)
         elif (self.getSettings()['optimizer'] == 'momentum'):
             print ("Optimizing Forward Dynamics with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.momentum(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                self._model.getActorNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, momentum=self._rho)
+                self._model.getForwardDynamicsNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, momentum=self._rho)
             self._reward_updates_ = lasagne.updates.momentum(self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                self._model.getCriticNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, momentum=self._rho)
+                self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
             print ("Optimizing Forward Dynamics with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.adam(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                self._model.getActorNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
+                self._model.getForwardDynamicsNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
             self._reward_updates_ = lasagne.updates.adam(self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                self._model.getCriticNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
+                self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
         elif ( self.getSettings()['optimizer'] == 'adagrad'):
             print ("Optimizing Forward Dynamics with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.adagrad(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                self._model.getActorNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, epsilon=self._rms_epsilon)
+                self._model.getForwardDynamicsNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, epsilon=self._rms_epsilon)
             self._reward_updates_ = lasagne.updates.adagrad(self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                self._model.getCriticNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, epsilon=self._rms_epsilon)
+                self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, epsilon=self._rms_epsilon)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
         self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                self._model.getActorNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
+                self._model.getForwardDynamicsNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
                                             self._rms_epsilon)
         
         self._reward_updates_ = lasagne.updates.rmsprop(self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                self._model.getCriticNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, self._rho,
+                self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, self._rho,
                                             self._rms_epsilon)
      
         self._train = theano.function([], [self._loss], updates=self._updates_, givens=self._givens_)
@@ -134,9 +134,9 @@ class ForwardDynamics(AlgorithmInterface):
         self._bellman_error = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         self._reward_error = theano.function(inputs=[], outputs=self._reward_diff, allow_input_downcast=True, givens=self._reward_givens_)
         # self._diffs = theano.function(input=[State])
-        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [lasagne.layers.get_all_layers(self._model.getActorNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
-        # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads((self._reward_loss_NoDrop), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True,
-        self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True, 
+        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [lasagne.layers.get_all_layers(self._model.getForwardDynamicsNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
+        # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads((self._reward_loss_NoDrop), [lasagne.layers.get_all_layers(self._model.getRewardNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True,
+        self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [lasagne.layers.get_all_layers(self._model.getRewardNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True, 
                                                 givens={
             self._model.getStateSymbolicVariable() : self._model.getStates(),
             # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
@@ -146,11 +146,13 @@ class ForwardDynamics(AlgorithmInterface):
 
     def getNetworkParameters(self):
         params = []
-        params.append(lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork()))
+        params.append(lasagne.layers.helper.get_all_param_values(self._model.getForwardDynamicsNetwork()))
+        params.append(lasagne.layers.helper.get_all_param_values(self._model.getRewardNetwork()))
         return params
     
     def setNetworkParameters(self, params):
-        lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params[0])
+        lasagne.layers.helper.set_all_param_values(self._model.getForwardDynamicsNetwork(), params[0])
+        lasagne.layers.helper.set_all_param_values(self._model.getRewardNetwork(), params[1])
         
     def setData(self, states, actions, result_states, rewards=[]):
         self._model.setStates(states)
