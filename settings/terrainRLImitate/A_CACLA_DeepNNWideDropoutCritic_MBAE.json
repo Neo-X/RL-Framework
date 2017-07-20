@@ -85,7 +85,7 @@
     "comment__": "Name of the type of simulator to use",
 "environment_type": "terrainRLImitateBiped2D",
     "comment__": "Model type to use for the forward dynamics model",
-"forward_dynamics_predictor": "simulator",
+"forward_dynamics_predictor": "network",
     "comment__": "Method to be used for the forward dynamics model is the model types uses a simulator",
 "sampling_method": "SequentialMC",
     "comment__": "Use the action suggested by the policy to start the sampling method.",
