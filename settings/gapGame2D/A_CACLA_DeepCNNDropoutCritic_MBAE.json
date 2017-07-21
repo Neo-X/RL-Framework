@@ -160,7 +160,7 @@
     "comment__": "Force the character to start each new action in a good state, close to a good solution",
 "use_back_on_track_forcing": false,
     "comment__": "draw/render the next state suggested by the forward dynamics model",
-"visualize_forward_dynamics": true,
+"visualize_forward_dynamics": false,
     "comment__": "Learning rate for the forward dynamics model",
 "fd_learning_rate": 0.001,
     "comment__": "Whether or not to train the policy. Used for debugging",
@@ -250,7 +250,7 @@
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
 "fix_actor_batch_size": true,
 	"comment__": "Whether or not to put MBAE on the annelling schedule",
-"anneal_mbae": true,
+"anneal_mbae": false,
 	"comment__": "The number of critic updates that are done between every dyna update step.",
 "dyna_update_lag_steps": 10
 }
