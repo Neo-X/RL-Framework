@@ -395,7 +395,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 if (settings['clamp_actions_to_stay_inside_bounds']):
                     action = action_
             if (settings["visualize_forward_dynamics"]):
-                predicted_next_state = model.getForwardDynamics().predict(np.array(state_), action)
+                predicted_next_state = model.getForwardDynamics().predict(np.array(state_), [action])
                 # exp.visualizeNextState(state_[0], [0,0]) # visualize current state
                 exp.visualizeNextState(predicted_next_state, action)
                 
@@ -408,7 +408,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     for i in range(len(action_)):
                         action_[i] = action[i]
                     action_[0] = action[0] + deltas[d] 
-                    action_new_ = getOptimalAction2(model.getForwardDynamics(), model.getPolicy(), action_, state_)
+                    if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
+                        mbae_lr = p * settings["action_learning_rate"]
+                    else:
+                        mbae_lr = settings["action_learning_rate"]
+                    action_new_ = getOptimalAction2(model.getForwardDynamics(), model.getPolicy(), action_, state_, mbae_lr)
                     # actions.append(action_new_)
                     actions.append(action_)
                     print("action_new_: ", action_new_[0], " action_: ", action_[0])
