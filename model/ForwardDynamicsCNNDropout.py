@@ -703,16 +703,16 @@ class ForwardDynamicsCNNDropout(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
         """
-        self._actor = networkAct
+        self._forward_dynamics_net = networkAct
         
         if (('use_stochastic_forward_dynamics' in self._settings) and 
             self._settings['use_stochastic_forward_dynamics']):
             with_std = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._state_length,
                     nonlinearity=theano.tensor.nnet.softplus)
-            self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
+            self._forward_dynamics_net = lasagne.layers.ConcatLayer([self._forward_dynamics_net, with_std], axis=1)
             
-        print ("Network Shape:", lasagne.layers.get_output_shape(self._actor))
+        print ("Network Shape:", lasagne.layers.get_output_shape(self._forward_dynamics_net))
         
         networkActReward = lasagne.layers.DenseLayer(
                 networkActMiddle, num_units=128,
@@ -725,7 +725,7 @@ class ForwardDynamicsCNNDropout(ModelInterface):
         networkActReward = lasagne.layers.DenseLayer(
                 networkActReward, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)        
-        self._critic = networkActReward
+        self._reward_net = networkActReward
         
         # self._actor = lasagne.layers.ReshapeLayer(self._actor, (-1, 1, 1, 208))
         

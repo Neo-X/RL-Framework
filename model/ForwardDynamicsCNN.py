@@ -703,7 +703,7 @@ class ForwardDynamicsCNN(ModelInterface):
                     nonlinearity=theano.tensor.nnet.softplus)
             self._forward_dynamics_net = lasagne.layers.ConcatLayer([self._forward_dynamics_net, with_std], axis=1)
             
-        print ("Network Shape:", lasagne.layers.get_output_shape(self._actor))
+        print ("Network Shape:", lasagne.layers.get_output_shape(self._forward_dynamics_net))
         
         networkActReward = lasagne.layers.DenseLayer(
                 networkActMiddle, num_units=128,
