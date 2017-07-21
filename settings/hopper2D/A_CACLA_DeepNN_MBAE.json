@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Hopper_Walk/",
+"data_folder": "Hopper_Walk_MBAE/",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 0.55, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -238,5 +238,9 @@
 	"comment__": "How many gradient steps model based actino exploration should take",
 "num_mbae_steps": 1,
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
-"fix_actor_batch_size": true
+"fix_actor_batch_size": true,
+	"comment__": "Whether or not to put MBAE on the annelling schedule",
+"anneal_mbae": true,
+	"comment__": "How many value function updates should be done between Dyna updates",
+"dyna_update_lag_steps": 10
 }
