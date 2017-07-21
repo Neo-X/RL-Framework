@@ -85,7 +85,7 @@ class NavGameEnv(SimInterface):
                         # action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
                         ### How to change this action...
                         action_ = (action_[:2] - (action1_cp[:2]))
-                        next_state = agent.getForwardDynamics().predict(state_, action1_cp)
+                        next_state = agent.getForwardDynamics().predict(state_, [action1_cp])
                         # print ("next_state: ", next_state)
                         action_ = (next_state - next_state_true_)[0]
                         # print ("forward_dynamics error: ", action_)
