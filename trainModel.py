@@ -466,8 +466,8 @@ def trainModelParallel(settingsFileName):
             if ( settings['load_saved_model'] ):
                 p = settings['min_epsilon']
                 
-            print ("Model pointers: val, ", masterAgent._pol.getModel(), 
-                   " poli, ", masterAgent._pol.getModel(),  " fd, ", masterAgent._fd.getModel())
+            # print ("Model pointers: val, ", masterAgent._pol.getModel(), 
+            #        " poli, ", masterAgent._pol.getModel(),  " fd, ", masterAgent._fd.getModel())
             
             # for sm in sim_workers:
                 # sm.setP(p)

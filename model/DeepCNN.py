@@ -29,11 +29,12 @@ class DeepCNN(ModelInterface):
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         
         # create a small convolutional neural network
-        network = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        input = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        self._stateInputVar = input.input_var
         
-        taskFeatures = lasagne.layers.SliceLayer(network, indices=slice(0, self._settings['num_terrain_features']), axis=1)
+        taskFeatures = lasagne.layers.SliceLayer(inpt, indices=slice(0, self._settings['num_terrain_features']), axis=1)
         # characterFeatures = lasagne.layers.SliceLayer(network, indices=slice(-(self._state_length-self._settings['num_terrain_features']), None), axis=1)
-        characterFeatures = lasagne.layers.SliceLayer(network, indices=slice(self._settings['num_terrain_features'], self._state_length), axis=1)
+        characterFeatures = lasagne.layers.SliceLayer(input, indices=slice(self._settings['num_terrain_features'], self._state_length), axis=1)
         print ("taskFeatures Shape:", lasagne.layers.get_output_shape(taskFeatures))
         print ("characterFeatures Shape:", lasagne.layers.get_output_shape(characterFeatures))
         print ("State length: ", self._state_length)
@@ -90,10 +91,10 @@ class DeepCNN(ModelInterface):
         # self._b_o = init_b_weights((n_out,))
         networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         
-        taskFeaturesAct = lasagne.layers.SliceLayer(networkAct, indices=slice(0, self._settings['num_terrain_features']), axis=1)
-        characterFeaturesAct = lasagne.layers.SliceLayer(networkAct, indices=slice(self._settings['num_terrain_features']+1,self._state_length), axis=1)
+        # taskFeaturesAct = lasagne.layers.SliceLayer(networkAct, indices=slice(0, self._settings['num_terrain_features']), axis=1)
+        # characterFeaturesAct = lasagne.layers.SliceLayer(networkAct, indices=slice(self._settings['num_terrain_features']+1,self._state_length), axis=1)
         
-        networkAct = lasagne.layers.ReshapeLayer(taskFeaturesAct, (-1, 1, self._settings['num_terrain_features']))
+        networkAct = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['num_terrain_features']))
         
         networkAct = lasagne.layers.Conv1DLayer(
             networkAct, num_filters=16, filter_size=8,
@@ -125,7 +126,7 @@ class DeepCNN(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
         networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
-        networkAct = lasagne.layers.ConcatLayer([networkAct, characterFeaturesAct], axis=1)
+        networkAct = lasagne.layers.ConcatLayer([networkAct, characterFeatures], axis=1)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,

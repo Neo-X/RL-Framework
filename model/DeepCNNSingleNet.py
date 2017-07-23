@@ -29,11 +29,12 @@ class DeepCNN(ModelInterface):
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         
         # create a small convolutional neural network
-        network = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        input = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        self._stateInputVar = input.input_var
         
-        taskFeatures = lasagne.layers.SliceLayer(network, indices=slice(0, self._settings['num_terrain_features']), axis=1)
+        taskFeatures = lasagne.layers.SliceLayer(input, indices=slice(0, self._settings['num_terrain_features']), axis=1)
         # characterFeatures = lasagne.layers.SliceLayer(network, indices=slice(-(self._state_length-self._settings['num_terrain_features']), None), axis=1)
-        characterFeatures = lasagne.layers.SliceLayer(network, indices=slice(self._settings['num_terrain_features'], self._state_length), axis=1)
+        characterFeatures = lasagne.layers.SliceLayer(input, indices=slice(self._settings['num_terrain_features'], self._state_length), axis=1)
         print ("taskFeatures Shape:", lasagne.layers.get_output_shape(taskFeatures))
         print ("characterFeatures Shape:", lasagne.layers.get_output_shape(characterFeatures))
         print ("State length: ", self._state_length)

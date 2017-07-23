@@ -157,7 +157,7 @@ class LearningAgent(AgentInterface):
             # val_params = lasagne.layers.helper.get_all_param_values(self._pol.getModel().getCriticNetwork())
             # pol_params = lasagne.layers.helper.get_all_param_values(self._pol.getModel().getActorNetwork())
             # fd_params = lasagne.layers.helper.get_all_param_values(self._fd.getModel().getForwardDynamicsNetwork())
-            print ("Learning Agent: Model pointers: val, ", self._pol.getModel(), " poli, ", self._pol.getModel(),  " fd, ", self._fd.getModel())
+            # print ("Learning Agent: Model pointers: val, ", self._pol.getModel(), " poli, ", self._pol.getModel(),  " fd, ", self._fd.getModel())
             # print("pol first layer params: ", pol_params[1])
             # print("val first layer params: ", val_params[1])
             # print("fd first layer params: ", fd_params[1])               
