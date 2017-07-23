@@ -169,6 +169,8 @@ def trainModelParallel(settingsFileName):
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         
         if (settings['train_forward_dynamics']):
+            if ( settings['forward_dynamics_model_type'] == "SingleNet"):
+                forwardDynamicsModel = model
             print ("Creating forward dynamics network")
             # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None)
