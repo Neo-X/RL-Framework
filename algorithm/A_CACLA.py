@@ -328,10 +328,35 @@ class A_CACLA(AlgorithmInterface):
         """
             Target model updates
         """
-        all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
-        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_paramsA)
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA) 
+        if (( 'lerp_target_network' in self.getSettings()) and 
+            self.getSettings()['lerp_target_network'] ) :
+            all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
+            all_paramsB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork())
+            lerp_weight = 0.01
+            # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
+            
+            # print ("l_out length: " + str(len(all_paramsA)))
+            # print ("l_out length: " + str(all_paramsA[-6:]))
+            # print ("l_out[0] length: " + str(all_paramsA[0]))
+            # print ("l_out[4] length: " + str(all_paramsA[4]))
+            # print ("l_out[5] length: " + str(all_paramsA[5]))
+            # print ("l_out[6] length: " + str(all_paramsA[6]))
+            # print ("l_out[7] length: " + str(all_paramsA[7]))
+            # print ("l_out[11] length: " + str(all_paramsA[11]))
+            # print ("param Values")
+            all_params = []
+            for paramsA, paramsB in zip(all_paramsA, all_paramsB):
+                # print ("paramsA: " + str(paramsA))
+                # print ("paramsB: " + str(paramsB))
+                params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
+                all_params.append(params)
+                
+            lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_params)
+        else:
+            all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
+            all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+            lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_paramsA)
+            lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA) 
     
     def setData(self, states, actions, rewards, result_states, fallen):
         self._model.setStates(states)

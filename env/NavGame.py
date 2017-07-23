@@ -280,7 +280,7 @@ class NavGame(object):
         X,Y = self.getStateSamples()
         print (X,Y)
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
-        textstr = "$\max V=%.2f$\n$\min V=%.2f$"%(np.max(Q), np.min(Q))
+        textstr = "$\max V(s,a)=%.2f$\n$\min V(s,a)=%.2f$"%(np.max(Q), np.min(Q))
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
         
         # place a text box in upper left in axes coords
@@ -315,16 +315,16 @@ class NavGame(object):
         )
         self._policy_mbae.add_patch(p)
         
-        self._policy_mbae.set_title('MBAE')
+        self._policy_mbae.set_title('MBAE Action and Advantage')
         
         X,Y = self.getStateSamples()
         print (X,Y)
         # self._policy = self._policy_ax.quiver(X[::2, ::2],Y[::2, ::2],U[::2, ::2],V[::2, ::2], linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=5, facecolor='None')
-        textstr = "$\max V=%.2f$\n$\min V=%.2f$"%(np.max(Q), np.min(Q))
+        textstr2 = "$\max A(s,a)=%.2f$\n$\min A(s,a)=%.2f$"%(np.max(Q), np.min(Q))
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.75)
         
         # place a text box in upper left in axes coords
-        self._mbaeText = self._policy_mbae.text(0.05, 0.95, textstr, transform=self._policy_mbae.transAxes, fontsize=14,
+        self._mbaeText = self._policy_mbae.text(0.05, 0.95, textstr2, transform=self._policy_mbae.transAxes, fontsize=14,
                 verticalalignment='top', bbox=props)
         q_max = np.max(Q)
         q_min = np.min(Q)
@@ -346,7 +346,7 @@ class NavGame(object):
         
     def updatePolicy(self, U, V, Q):
         # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
-        textstr = """$\max q=%.2f$\n$\min q=%.2f$"""%(np.max(Q), np.min(Q))
+        textstr = """$\max V=%.2f$\n$\min V=%.2f$"""%(np.max(Q), np.min(Q))
         self._policyText.set_text(textstr)
         q_max = np.max(Q)
         q_min = np.min(Q)
@@ -371,7 +371,7 @@ class NavGame(object):
         
     def updateMBAE(self, U, V, Q):
         # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
-        textstr = """$\max R=%.2f$\n$\min R=%.2f$"""%(np.max(Q), np.min(Q))
+        textstr = """$\max A(s,a)=%.2f$\n$\min A(s,a)=%.2f$"""%(np.max(Q), np.min(Q))
         self._mbaeText.set_text(textstr)
         q_max = np.max(Q)
         q_min = np.min(Q)

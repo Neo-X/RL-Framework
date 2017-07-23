@@ -31,6 +31,8 @@ class DeepCNN(ModelInterface):
         # create a small convolutional neural network
         input = lasagne.layers.InputLayer((None, self._state_length), self._State)
         self._stateInputVar = input.input_var
+        actionInput = lasagne.layers.InputLayer((None, self._action_length), self._Action)
+        self._actionInputVar = actionInput.input_var
         
         taskFeatures = lasagne.layers.SliceLayer(input, indices=slice(0, self._settings['num_terrain_features']), axis=1)
         # characterFeatures = lasagne.layers.SliceLayer(network, indices=slice(-(self._state_length-self._settings['num_terrain_features']), None), axis=1)
@@ -106,7 +108,7 @@ class DeepCNN(ModelInterface):
         
         # networkAct = lasagne.layers.ReshapeLayer(networkAct, (-1, 99))
         # networkAct = lasagne.layers.FlattenLayer(networkAct, 2)
-        print ("Network Shape:", lasagne.layers.get_output_shape(networkActMiddle))
+        print ("Network Shape:", lasagne.layers.get_output_shape(networkMiddle))
         # networkAct = lasagne.layers.ConcatLayer([networkAct, inputLayerAction], axis=1)
         
         """
@@ -116,7 +118,7 @@ class DeepCNN(ModelInterface):
                 
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         """
-        networkAct = lasagne.layers.ReshapeLayer(networkActMiddle, (-1, 1, 1, 64))
+        networkAct = lasagne.layers.ReshapeLayer(networkMiddle, (-1, 1, 1, 64))
         
         networkAct = Deconv2DLayer(
             networkAct, num_filters=16, filter_size=(1,4),
@@ -137,7 +139,7 @@ class DeepCNN(ModelInterface):
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         
         networkActChar = lasagne.layers.DenseLayer(
-                networkActMiddle, num_units=128,
+                networkMiddle, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         networkActChar = lasagne.layers.DenseLayer(
                 networkActChar, num_units=64,
@@ -164,6 +166,18 @@ class DeepCNN(ModelInterface):
                     nonlinearity=theano.tensor.nnet.softplus)
             self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
         # self._b_o = init_b_weights((n_out,))
+        
+        
+        networkActReward = lasagne.layers.DenseLayer(
+                networkMiddle, num_units=128,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        networkActReward = lasagne.layers.DenseLayer(
+                networkActReward, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        networkActReward = lasagne.layers.DenseLayer(
+                networkActReward, num_units=1,
+                nonlinearity=lasagne.nonlinearities.linear)        
+        self._reward_net = networkActReward
         
         
           # print ("Initial W " + str(self._w_o.get_value()) )
