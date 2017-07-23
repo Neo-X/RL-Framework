@@ -170,6 +170,17 @@ def scale_action(normed_action_, action_bounds_):
     # return normed_action_ * (action_bounds_[1] - avg) + avg
     return (normed_action_ * (std)) + avg
 
+def rescale_action(normed_action_, action_bounds_):
+    """
+        from normalize space back to environment space
+        Scales the action 
+        Just scales the input wrt the given action bounds
+    """
+    
+    std = (action_bounds_[1] - action_bounds_[0])/2.0
+    # return normed_action_ * (action_bounds_[1] - avg) + avg
+    return (normed_action_ * (std)) 
+
 def action_bound_std(action_bounds_):
     # avg = (action_bounds_[0] + action_bounds_[1])/2.0
     std = (action_bounds_[1] - action_bounds_[0])/2.0
@@ -454,6 +465,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         # action_grads = dynamics_grads[:, state_length:] * learning_rate
         action_grads = dynamics_grads[:, state_length:] 
         action_grads = (action_grads/(np.sqrt((action_grads*action_grads).sum()))) * (learning_rate)
+        action_grads = rescale_action(action_grads, model.getActionBounds())
         # action_grads = action_grads * learning_rate
         # print ("action_grad2: ", action_grads)
         ## Use grad to update action parameters
