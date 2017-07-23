@@ -28,8 +28,12 @@ class ForwardDynamicsNetwork(ModelInterface):
         self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(batch_size, self._action_length)
         # create a small convolutional neural network
-        new_state = theano.tensor.concatenate([self._State, self._Action], axis=1)
-        input = lasagne.layers.InputLayer((None, self._state_length + self._action_length), new_state)
+        stateInput = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        self._stateInputVar = stateInput.input_var
+        actionInput = lasagne.layers.InputLayer((None, self._action_length), self._Action)
+        self._actionInputVar = actionInput.input_var
+        input = lasagne.layers.ConcatLayer([stateInput, actionInput])
+        
         network = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
 
         network = lasagne.layers.DenseLayer(
