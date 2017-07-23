@@ -271,7 +271,8 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     else:
         print ("Unknown learning algorithm type: " + str(algorihtm_type))
-        sys.exit(2)
+        raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+        # sys.exit(2)
         
     print ("Using model type ", algorihtm_type , " : ", model)
     
@@ -425,7 +426,8 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = PaperGibbonEnv(exp, settings)
     else:
         print ("Invalid environment type: " + str(env_type))
-        sys.exit()
+        raise ValueError("Invalid environment type: " + str(env_type))
+        # sys.exit()
     
     exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!    
     return exp
@@ -474,7 +476,8 @@ def createActor(env_type, settings, experience):
         actor = ActorInterface(settings, experience)
     else:
         print("Error actor type unknown: ", env_type)
-        sys.exit()
+        raise ValueError("Error actor type unknown: ", env_type)
+        # sys.exit()
     return actor
 
 def createSampler(settings, exp):
@@ -497,7 +500,7 @@ def createSampler(settings, exp):
     
     return sampler
 
-def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp):
+def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel):
     
     if settings["forward_dynamics_predictor"] == "simulator":
         from model.ForwardDynamicsSimulator import ForwardDynamicsSimulator
@@ -525,13 +528,18 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
             forwardDynamicsModel = dill.load(f)
             f.close()
         else:
-            fd_net = createForwardDynamicsNetwork(state_bounds, action_bounds, settings)
+            if ( settings['forward_dynamics_model_type'] == "SingleNet"):
+                ## Hopefully this will allow for parameter sharing across both models...
+                fd_net = agentModel.getModel()
+            else:
+                fd_net = createForwardDynamicsNetwork(state_bounds, action_bounds, settings)
             from algorithm.ForwardDynamics import ForwardDynamics
             forwardDynamicsModel = ForwardDynamics(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 
                                                    state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
     else:
         print ("Unrecognized forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
-        sys.exit()
+        raise ValueError("Unrecognized forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
+        # sys.exit()
         
     return forwardDynamicsModel
 
@@ -576,7 +584,8 @@ def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
         
     else:
         print ("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
-        sys.exit()
+        raise ValueError("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
+        # sys.exit()
         
     return forwardDynamicsNetwork
 

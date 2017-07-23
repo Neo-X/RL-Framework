@@ -170,10 +170,13 @@ def trainModelParallel(settingsFileName):
         
         if (settings['train_forward_dynamics']):
             if ( settings['forward_dynamics_model_type'] == "SingleNet"):
-                forwardDynamicsModel = model
-            print ("Creating forward dynamics network")
-            # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None)
+                print ("Creating forward dynamics network: Using single network model")
+                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model)
+                # forwardDynamicsModel = model
+            else:
+                print ("Creating forward dynamics network")
+                # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None)
             # masterAgent.setForwardDynamics(forwardDynamicsModel)
             forwardDynamicsModel.setActor(actor)
             # forwardDynamicsModel.setEnvironment(exp)
@@ -337,11 +340,12 @@ def trainModelParallel(settingsFileName):
             print ("Saving initial experience memory")
             file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"expBufferInit.hdf5"
             experience.saveToFile(file_name)
-            
+        """
         if action_space_continuous:
             model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
         else:
             model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+        """
         if ( not settings['load_saved_model'] ):
             model.setStateBounds(state_bounds)
             model.setActionBounds(action_bounds)
@@ -461,6 +465,9 @@ def trainModelParallel(settingsFileName):
             p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
             if ( settings['load_saved_model'] ):
                 p = settings['min_epsilon']
+                
+            print ("Model pointers: val, ", masterAgent._pol.getModel(), 
+                   " poli, ", masterAgent._pol.getModel(),  " fd, ", masterAgent._fd.getModel())
             
             # for sm in sim_workers:
                 # sm.setP(p)

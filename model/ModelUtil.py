@@ -458,13 +458,24 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         # print ("Uncertanty: ", uncertanty)
         ## Compute the grad to change the input to produce the new target next state
         ## We will want to use the negative o this grad because the cost funtion is L2, the grad will make thid bigger, user - to pull action towards target action using this loss function 
-        dynamics_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_state, (1, model.getStateSize())))[0]
+        dynamics_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_state, (1, model.getStateSize())))
+        """
+        if (model.getSettings()["print_level"]== 'debug'):
+            print("Fd network parameters: ", forwardDynamicsModel.getNetworkParameters()[0])
+            print ("Full fd grads: ", dynamics_grads)
+        """
+        dynamics_grads = dynamics_grads[0]
         # print ("action_grad1: ", action_grads)
-        # print ("dynamics_grads size: ", dynamics_grads.shape)
+        """
+        if (model.getSettings()["print_level"]== 'debug'):
+            print ("fd dynamics_grads: ", dynamics_grads)
+        """
         ## Grab the part of the grads that is the action
         # action_grads = dynamics_grads[:, state_length:] * learning_rate
-        action_grads = dynamics_grads[:, state_length:] 
+        action_grads = dynamics_grads 
         action_grads = (action_grads/(np.sqrt((action_grads*action_grads).sum()))) * (learning_rate)
+        if (model.getSettings()["print_level"]== 'debug'):
+            print ("action_grad2: ", action_grads)
         action_grads = rescale_action(action_grads, model.getActionBounds())
         # action_grads = action_grads * learning_rate
         # print ("action_grad2: ", action_grads)
