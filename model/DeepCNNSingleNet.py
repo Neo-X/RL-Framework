@@ -706,7 +706,7 @@ class DeepCNNSingleNet(ModelInterface):
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         
         networkActChar = lasagne.layers.DenseLayer(
-                networkMiddle, num_units=128,
+                networkActMiddle, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         networkActChar = lasagne.layers.DenseLayer(
                 networkActChar, num_units=64,
