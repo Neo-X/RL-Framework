@@ -144,6 +144,11 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
     print (" network type: ", model_type, " : ", model)
     print ("Number of Critic network parameters", lasagne.layers.count_params(model.getCriticNetwork()))
     print ("Number of Actor network parameters", lasagne.layers.count_params(model.getActorNetwork()))
+    
+    if (settings['train_forward_dynamics'] and (settings['forward_dynamics_model_type'] == 'SingleNet')):
+        print ("Number of Forward Dynamics network parameters", lasagne.layers.count_params(model.getForwardDynamicsNetwork()))
+        print ("Number of Reward predictor network parameters", lasagne.layers.count_params(model.getRewardNetwork()))
+
     return model
 
 def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds, settings):
@@ -586,6 +591,7 @@ def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
         print ("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         raise ValueError("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         # sys.exit()
-        
+    print ("Number of Forward Dynamics network parameters", lasagne.layers.count_params(forwardDynamicsNetwork.getForwardDynamicsNetwork()))
+    print ("Number of Reward predictor network parameters", lasagne.layers.count_params(forwardDynamicsNetwork.getRewardNetwork()))
     return forwardDynamicsNetwork
 

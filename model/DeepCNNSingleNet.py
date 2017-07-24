@@ -644,6 +644,10 @@ class DeepCNNSingleNet(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         network = lasagne.layers.DenseLayer(
+                networkMiddle, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
+        network = lasagne.layers.DenseLayer(
                 network, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
