@@ -46,12 +46,16 @@ class DeepNNSingleNet(ModelInterface):
                 stateInput, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
-        networkMiddle = lasagne.layers.DenseLayer(
+        network = lasagne.layers.DenseLayer(
                 network, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
+        networkMiddle = lasagne.layers.DenseLayer(
+                network, num_units=32,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
         network = lasagne.layers.DenseLayer(
-                networkMiddle, num_units=32,
+                networkMiddle, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         self._actor = lasagne.layers.DenseLayer(
@@ -59,7 +63,7 @@ class DeepNNSingleNet(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.linear)
         
         network = lasagne.layers.DenseLayer(
-                networkMiddle, num_units=16,
+                networkMiddle, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         network = lasagne.layers.DenseLayer(

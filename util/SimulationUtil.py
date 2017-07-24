@@ -591,6 +591,7 @@ def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
         print ("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         raise ValueError("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         # sys.exit()
+    import lasagne
     print ("Number of Forward Dynamics network parameters", lasagne.layers.count_params(forwardDynamicsNetwork.getForwardDynamicsNetwork()))
     print ("Number of Reward predictor network parameters", lasagne.layers.count_params(forwardDynamicsNetwork.getRewardNetwork()))
     return forwardDynamicsNetwork
