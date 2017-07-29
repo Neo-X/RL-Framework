@@ -34,6 +34,8 @@ class ForwardDynamics(AlgorithmInterface):
         self._reward = lasagne.layers.get_output(self._model.getRewardNetwork(), inputs_, deterministic=True)
         self._reward_drop = lasagne.layers.get_output(self._model.getRewardNetwork(), inputs_, deterministic=False)
         
+        l2_loss = False
+        
         if ('use_stochastic_forward_dynamics' in self.getSettings() and 
             (self.getSettings()['use_stochastic_forward_dynamics'])):
             
@@ -50,13 +52,19 @@ class ForwardDynamics(AlgorithmInterface):
             # self._target = (Reward + self._discount_factor * self._q_valsB)
             self._diff = self._model.getResultStateSymbolicVariable() - self._forward_drop
             ## mean across each sate
-            self._loss = T.mean(T.pow(self._diff, 2),axis=1)
+            if (l2_loss):
+                self._loss = T.mean(T.pow(self._diff, 2),axis=1)
+            else:
+                self._loss = T.mean(T.abs_(self._diff),axis=1)
             ## mean over batch
             self._loss = T.mean(self._loss)
             ## Another version that does not have dropout
             self._diff_NoDrop = self._model.getResultStateSymbolicVariable() - self._forward
             ## mean across each sate
-            self._loss_NoDrop = T.mean(T.pow(self._diff_NoDrop, 2),axis=1)
+            if (l2_loss):
+                self._loss_NoDrop = T.mean(T.pow(self._diff_NoDrop, 2),axis=1)
+            else:
+                self._loss_NoDrop = T.mean(T.abs_(self._diff_NoDrop),axis=1)
             ## mean over batch
             self._loss_NoDrop = T.mean(self._loss_NoDrop)
         
