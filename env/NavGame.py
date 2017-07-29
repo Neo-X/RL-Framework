@@ -332,6 +332,22 @@ class NavGame(object):
         self._mbae2 = self._policy_mbae.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
         self._mbae = self._policy_mbae.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
         
+        # Two subplots, unpack the axes array immediately
+        self._fig3, (self._fd_error) = plt.subplots(1, 1, sharey=False)
+        self._fig3.set_size_inches(8.5, 8.5, forward=True)
+        self._fd2 = self._fd_error.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
+        self._fd = self._fd_error.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
+        self._fd_error.set_title('MBAE FD error')
+        p = patches.Rectangle(
+            (self._state_bounds[0][0], self._state_bounds[0][0]),
+            (self._state_bounds[1][0]-self._state_bounds[0][0]),
+            (self._state_bounds[1][0]-self._state_bounds[0][0]),
+            alpha=0.25,
+            facecolor="#999999"
+            # fill=False      # remove background
+        )
+        self._fd_error.add_patch(p)
+        
         # self._policy_ax.set_aspect(1.)
     
     def update(self):
@@ -389,7 +405,29 @@ class NavGame(object):
         self._policy2.cmap._set_extremes()
         """
         self._mbae.set_UVC(U, V)
-        self._fig.canvas.draw()
+        self._fig2.canvas.draw()
+        
+    def updateFD(self, U, V, Q):
+        # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
+        # textstr = """$\max A(s,a)=%.2f$\n$\min A(s,a)=%.2f$"""%(np.max(Q), np.min(Q))
+        # self._mbaeText.set_text(textstr)
+        q_max = np.max(Q)
+        q_min = np.min(Q)
+        Q = (Q - q_min)/ (q_max-q_min)
+        self._fd2.set_UVC(U, V, Q)
+        # self._policy2.set_vmin(1.0)
+        """
+        self._policy2.update_scalarmappable()
+        print ("cmap " + str(self._policy2.cmap)  )
+        print ("Face colours" + str(self._policy2.get_facecolor()))
+        colours = ['gray','black','blue']
+        cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                   colours,
+                                                   256)
+        self._policy2.cmap._set_extremes()
+        """
+        self._fd.set_UVC(U, V)
+        self._fig3.canvas.draw()
         
     def reachedTarget(self):
         # Might be a little touchy because floats are used
