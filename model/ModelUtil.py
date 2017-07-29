@@ -443,6 +443,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         next_state_grads = (next_state_grads/(np.sqrt((next_state_grads*next_state_grads).sum()))) * (learning_rate)
         if (model.getSettings()["print_level"]== 'debug'):
             print ("Next State Grad: ", next_state_grads)
+        next_state_grads = rescale_action(next_state_grads, model.getStateBounds())
         # next_state_grads = np.sum(next_state_grads, axis=1)
         # print ("Next State Grad shape: ", next_state_grads.shape)
         ## modify next state wrt increasing grad, this is the direction we want the next state to go towards 
