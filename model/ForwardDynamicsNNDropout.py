@@ -11,11 +11,11 @@ from model.ModelUtil import *
 # theano.config.mode='FAST_COMPILE'
 from model.ModelInterface import ModelInterface
 
-class ForwardDynamicsNetwork(ModelInterface):
+class ForwardDynamicsNNDropout(ModelInterface):
     
     def __init__(self, state_length, action_length, state_bounds, action_bounds, settings_):
 
-        super(ForwardDynamicsNetwork,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
+        super(ForwardDynamicsNNDropout,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
         
         batch_size=32
         # data types for model
@@ -56,7 +56,7 @@ class ForwardDynamicsNetwork(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         ## This can be used to model the reward function
-        self._critic = lasagne.layers.DenseLayer(
+        self._reward_net = lasagne.layers.DenseLayer(
                 network, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
@@ -77,7 +77,7 @@ class ForwardDynamicsNetwork(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
     
-        self._actor = lasagne.layers.DenseLayer(
+        self._forward_dynamics_net = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._state_length,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
@@ -87,7 +87,7 @@ class ForwardDynamicsNetwork(ModelInterface):
             with_std = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._state_length,
                     nonlinearity=theano.tensor.nnet.softplus)
-            self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
+            self._forward_dynamics_net = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
                 
         self._states_shared = theano.shared(
             np.zeros((batch_size, self._state_length),

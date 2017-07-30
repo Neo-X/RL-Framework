@@ -34,7 +34,7 @@ class ForwardDynamics(AlgorithmInterface):
         self._reward = lasagne.layers.get_output(self._model.getRewardNetwork(), inputs_, deterministic=True)
         self._reward_drop = lasagne.layers.get_output(self._model.getRewardNetwork(), inputs_, deterministic=False)
         
-        l2_loss = False
+        l2_loss = True
         
         if ('use_stochastic_forward_dynamics' in self.getSettings() and 
             (self.getSettings()['use_stochastic_forward_dynamics'])):
