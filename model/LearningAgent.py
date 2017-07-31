@@ -144,7 +144,9 @@ class LearningAgent(AgentInterface):
                 if (self._settings['train_forward_dynamics']):
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
                     if (self._settings['train_critic_on_fd_output'] and 
-                        (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0)
+                        (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
+                        ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
+                        ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
                         ):
                         
                         result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
@@ -153,7 +155,14 @@ class LearningAgent(AgentInterface):
                             numpy.set_printoptions(threshold=numpy.nan)
                             print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                             print ("Training cost is Odd: ", cost)
-                           
+            # import lasagne
+            # val_params = lasagne.layers.helper.get_all_param_values(self._pol.getModel().getCriticNetwork())
+            # pol_params = lasagne.layers.helper.get_all_param_values(self._pol.getModel().getActorNetwork())
+            # fd_params = lasagne.layers.helper.get_all_param_values(self._fd.getModel().getForwardDynamicsNetwork())
+            # print ("Learning Agent: Model pointers: val, ", self._pol.getModel(), " poli, ", self._pol.getModel(),  " fd, ", self._fd.getModel())
+            # print("pol first layer params: ", pol_params[1])
+            # print("val first layer params: ", val_params[1])
+            # print("fd first layer params: ", fd_params[1])               
                             
         if self._useLock:
             self._accesLock.release()

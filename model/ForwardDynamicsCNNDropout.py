@@ -595,8 +595,11 @@ class ForwardDynamicsCNNDropout(ModelInterface):
         # self._b_o = init_b_weights((n_out,))
                 # create a small convolutional neural network
         # networkAct = lasagne.layers.ConcatLayer([networkAct, inputLayerAction], axis=1)
-        new_state = theano.tensor.concatenate([self._State, self._Action], axis=1)
-        network = lasagne.layers.InputLayer((None, self._state_length + self._action_length), new_state)
+        stateInput = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        self._stateInputVar = stateInput.input_var
+        actionInput = lasagne.layers.InputLayer((None, self._action_length), self._Action)
+        self._actionInputVar = actionInput.input_var
+        network = lasagne.layers.ConcatLayer([stateInput, actionInput])
         
         taskFeatures = lasagne.layers.SliceLayer(network, indices=slice(0, self._settings['num_terrain_features']), axis=1)
         # taskFeatures = lasagne.layers.DropoutLayer(taskFeatures, p=self._dropout_p, rescale=True)

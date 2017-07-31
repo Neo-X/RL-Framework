@@ -13,8 +13,15 @@ if __name__ == "__main__":
     trainingDatas = []
     
     # Need to train a better Baseline
+    """
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_perfect/Deep_CNN/trainingData_A_CACLA.json'
+    trainData['name']='Baseline'
+    trainingDatas.append(trainData)
+    """
+    # Need to train a better Baseline
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere/Deep_CNN_Dropout_Critic/trainingData_A_CACLA.json'
     trainData['name']='Baseline'
     trainingDatas.append(trainData)
     """
@@ -59,21 +66,27 @@ if __name__ == "__main__":
     trainData['name']='Baseline + ProximalRegularization'
     trainingDatas.append(trainData)
     """
-    
+    """
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_MBAE/Deep_CNN/trainingData_A_CACLA.json'
     trainData['name']='Baseline + MBAE2'
     trainingDatas.append(trainData)
+    """
     """
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_MBAE/Deep_CNN_Dropout_Critic/trainingData_A_CACLA.json'
     trainData['name']='Baseline + MBAE2'
     trainingDatas.append(trainData)
     """
-    
+    """
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_MBAE_2/Deep_CNN_Dropout_Critic/trainingData_A_CACLA.json'
     trainData['name']='Baseline + MBAE2 + Dyna'
+    trainingDatas.append(trainData)
+    """
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere/Deep_CNN_SingleNet/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + SingleNet'
     trainingDatas.append(trainData)
     
     

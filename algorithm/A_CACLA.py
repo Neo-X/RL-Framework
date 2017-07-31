@@ -65,9 +65,7 @@ class A_CACLA(AlgorithmInterface):
         """
         self._critic_regularization_weight = self.getSettings()["critic_regularization_weight"]
         self._critic_learning_rate = self.getSettings()["critic_learning_rate"]
-        # primary network
-        self._model = model
-        # Target network
+        ## Target network
         self._modelTarget = copy.deepcopy(model)
         
         self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
@@ -223,7 +221,7 @@ class A_CACLA(AlgorithmInterface):
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            # self._model.getActionSymbolicVariable(): self._actions_shared,
+            # self._model.getActionSymbolicVariable(): self._model.getActions(),
         }
         
         ### Noisey state updates
@@ -320,8 +318,8 @@ class A_CACLA(AlgorithmInterface):
         self._bellman_error2 = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         # self._bellman_errorTarget = theano.function(inputs=[], outputs=self._bellman, allow_input_downcast=True, givens=self._givens_)
         # self._diffs = theano.function(input=[self._model.getStateSymbolicVariable()])
-        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_grad)
-        self._get_grad_policy = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._actLoss, [lasagne.layers.get_all_layers(self._model.getActorNetwork())[0].input_var] + self._actionParams), allow_input_downcast=True, givens=self._actGivens)
+        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        self._get_grad_policy = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._actLoss, [self._model._stateInputVar] + self._actionParams), allow_input_downcast=True, givens=self._actGivens)
         # self._get_grad = theano.function([], outputs=lasagne.updates.rmsprop(T.mean(self._q_func), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._params, self._learning_rate , self._rho, self._rms_epsilon), allow_input_downcast=True, givens=self._givens_grad)
         # self._get_grad2 = theano.gof.graph.inputs(lasagne.updates.rmsprop(loss, params, self._learning_rate, self._rho, self._rms_epsilon))
         
@@ -330,10 +328,35 @@ class A_CACLA(AlgorithmInterface):
         """
             Target model updates
         """
-        all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
-        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_paramsA)
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA) 
+        if (( 'lerp_target_network' in self.getSettings()) and 
+            self.getSettings()['lerp_target_network'] ) :
+            all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
+            all_paramsB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork())
+            lerp_weight = 0.01
+            # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
+            
+            # print ("l_out length: " + str(len(all_paramsA)))
+            # print ("l_out length: " + str(all_paramsA[-6:]))
+            # print ("l_out[0] length: " + str(all_paramsA[0]))
+            # print ("l_out[4] length: " + str(all_paramsA[4]))
+            # print ("l_out[5] length: " + str(all_paramsA[5]))
+            # print ("l_out[6] length: " + str(all_paramsA[6]))
+            # print ("l_out[7] length: " + str(all_paramsA[7]))
+            # print ("l_out[11] length: " + str(all_paramsA[11]))
+            # print ("param Values")
+            all_params = []
+            for paramsA, paramsB in zip(all_paramsA, all_paramsB):
+                # print ("paramsA: " + str(paramsA))
+                # print ("paramsB: " + str(paramsB))
+                params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
+                all_params.append(params)
+                
+            lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_params)
+        else:
+            all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
+            all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+            lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_paramsA)
+            lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA) 
     
     def setData(self, states, actions, rewards, result_states, fallen):
         self._model.setStates(states)

@@ -170,6 +170,17 @@ def scale_action(normed_action_, action_bounds_):
     # return normed_action_ * (action_bounds_[1] - avg) + avg
     return (normed_action_ * (std)) + avg
 
+def rescale_action(normed_action_, action_bounds_):
+    """
+        from normalize space back to environment space
+        Scales the action 
+        Just scales the input wrt the given action bounds
+    """
+    
+    std = (action_bounds_[1] - action_bounds_[0])/2.0
+    # return normed_action_ * (action_bounds_[1] - avg) + avg
+    return (normed_action_ * (std)) 
+
 def action_bound_std(action_bounds_):
     # avg = (action_bounds_[0] + action_bounds_[1])/2.0
     std = (action_bounds_[1] - action_bounds_[0])/2.0
@@ -432,6 +443,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         next_state_grads = (next_state_grads/(np.sqrt((next_state_grads*next_state_grads).sum()))) * (learning_rate)
         if (model.getSettings()["print_level"]== 'debug'):
             print ("Next State Grad: ", next_state_grads)
+        next_state_grads = rescale_action(next_state_grads, model.getStateBounds())
         # next_state_grads = np.sum(next_state_grads, axis=1)
         # print ("Next State Grad shape: ", next_state_grads.shape)
         ## modify next state wrt increasing grad, this is the direction we want the next state to go towards 
@@ -447,13 +459,25 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         # print ("Uncertanty: ", uncertanty)
         ## Compute the grad to change the input to produce the new target next state
         ## We will want to use the negative o this grad because the cost funtion is L2, the grad will make thid bigger, user - to pull action towards target action using this loss function 
-        dynamics_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_state, (1, model.getStateSize())))[0]
+        dynamics_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_state, (1, model.getStateSize())))
+        """
+        if (model.getSettings()["print_level"]== 'debug'):
+            print("Fd network parameters: ", forwardDynamicsModel.getNetworkParameters()[0])
+            print ("Full fd grads: ", dynamics_grads)
+        """
+        dynamics_grads = dynamics_grads[0]
         # print ("action_grad1: ", action_grads)
-        # print ("dynamics_grads size: ", dynamics_grads.shape)
+        """
+        if (model.getSettings()["print_level"]== 'debug'):
+            print ("fd dynamics_grads: ", dynamics_grads)
+        """
         ## Grab the part of the grads that is the action
         # action_grads = dynamics_grads[:, state_length:] * learning_rate
-        action_grads = dynamics_grads[:, state_length:] 
+        action_grads = dynamics_grads 
         action_grads = (action_grads/(np.sqrt((action_grads*action_grads).sum()))) * (learning_rate)
+        if (model.getSettings()["print_level"]== 'debug'):
+            print ("action_grad2: ", action_grads)
+        action_grads = rescale_action(action_grads, model.getActionBounds())
         # action_grads = action_grads * learning_rate
         # print ("action_grad2: ", action_grads)
         ## Use grad to update action parameters

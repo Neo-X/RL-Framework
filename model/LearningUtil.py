@@ -101,6 +101,17 @@ def loglikelihood(a, mean0, std0, d):
 def likelihood(a, mean0, std0, d):
     return T.exp(loglikelihood(a, mean0, std0, d))
 
+
+def loglikelihoodMEAN(a, mean0, std0, d):
+    """
+        d is the number of action dimensions
+    """
+    # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
+    return T.reshape(- 0.5 * (T.square(a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(-1, 1))
+    # return (- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1))
+
+
+
 def zipsame(*seqs):
     L = len(seqs[0])
     assert all(len(seq) == L for seq in seqs[1:])

@@ -111,8 +111,8 @@ class SimContainer(object):
                 """
                 action_ = np.array(self._agent.predict(state_), dtype='float64')
                 
-                grad_ = self._agent.getPolicy().getGrads(state_)[0]
-                self._grad_sum += np.abs(grad_)
+                # grad_ = self._agent.getPolicy().getGrads(state_)[0]
+                # self._grad_sum += np.abs(grad_)
                 self._num_actions +=1
                 print ("Input grad: ", self._grad_sum/self._num_actions)
                 

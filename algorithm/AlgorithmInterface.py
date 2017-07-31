@@ -14,6 +14,9 @@ class AlgorithmInterface(object):
     
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
+        ## primary network, don't make a copy of this
+        self._model = model
+        
         self._batch_size=settings_['batch_size']
         self._state_length = n_in
         self._action_length = n_out

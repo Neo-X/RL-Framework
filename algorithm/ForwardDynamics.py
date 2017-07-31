@@ -5,7 +5,7 @@ import lasagne
 import sys
 sys.path.append('../')
 from model.ModelUtil import *
-from model.LearningUtil import loglikelihood, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat, likelihood
+from model.LearningUtil import loglikelihood, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat, likelihood, loglikelihoodMEAN
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -34,13 +34,15 @@ class ForwardDynamics(AlgorithmInterface):
         self._reward = lasagne.layers.get_output(self._model.getRewardNetwork(), inputs_, deterministic=True)
         self._reward_drop = lasagne.layers.get_output(self._model.getRewardNetwork(), inputs_, deterministic=False)
         
+        l2_loss = True
+        
         if ('use_stochastic_forward_dynamics' in self.getSettings() and 
             (self.getSettings()['use_stochastic_forward_dynamics'])):
             
-            self._diff = loglikelihood(self._model.getResultStateSymbolicVariable(), self._forward_drop, self._forward_std_drop, self._state_length)
+            self._diff = loglikelihoodMEAN(self._model.getResultStateSymbolicVariable(), self._forward_drop, self._forward_std_drop, self._state_length)
             self._policy_entropy = 0.5 * T.mean(T.log(2 * np.pi * self._forward_std ) + 1 )
-            # self._loss = -1.0 * (T.mean(self._diff) + (self._policy_entropy * 1e-4))
-            self._loss = -1.0 * (T.mean(self._diff) ) 
+            self._loss = -1.0 * (T.mean(self._diff) + (self._policy_entropy * 1e-4))
+            # self._loss = -1.0 * (T.mean(self._diff) ) 
             
             ### Not used dropout stuff
             self._diff_NoDrop = loglikelihood(self._model.getResultStateSymbolicVariable(), self._forward, self._forward_std, self._state_length)
@@ -50,13 +52,19 @@ class ForwardDynamics(AlgorithmInterface):
             # self._target = (Reward + self._discount_factor * self._q_valsB)
             self._diff = self._model.getResultStateSymbolicVariable() - self._forward_drop
             ## mean across each sate
-            self._loss = T.mean(T.pow(self._diff, 2),axis=1)
+            if (l2_loss):
+                self._loss = T.mean(T.pow(self._diff, 2),axis=1)
+            else:
+                self._loss = T.mean(T.abs_(self._diff),axis=1)
             ## mean over batch
             self._loss = T.mean(self._loss)
             ## Another version that does not have dropout
             self._diff_NoDrop = self._model.getResultStateSymbolicVariable() - self._forward
             ## mean across each sate
-            self._loss_NoDrop = T.mean(T.pow(self._diff_NoDrop, 2),axis=1)
+            if (l2_loss):
+                self._loss_NoDrop = T.mean(T.pow(self._diff_NoDrop, 2),axis=1)
+            else:
+                self._loss_NoDrop = T.mean(T.abs_(self._diff_NoDrop),axis=1)
             ## mean over batch
             self._loss_NoDrop = T.mean(self._loss_NoDrop)
         
@@ -134,9 +142,10 @@ class ForwardDynamics(AlgorithmInterface):
         self._bellman_error = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         self._reward_error = theano.function(inputs=[], outputs=self._reward_diff, allow_input_downcast=True, givens=self._reward_givens_)
         # self._diffs = theano.function(input=[State])
-        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [lasagne.layers.get_all_layers(self._model.getForwardDynamicsNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
+        # self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [lasagne.layers.get_all_layers(self._model.getForwardDynamicsNetwork())[self.getSettings()['action_input_layer_index']].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
+        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_)
         # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads((self._reward_loss_NoDrop), [lasagne.layers.get_all_layers(self._model.getRewardNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True,
-        self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [lasagne.layers.get_all_layers(self._model.getRewardNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True, 
+        self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [self._model._actionInputVar] + self._reward_params), allow_input_downcast=True, 
                                                 givens={
             self._model.getStateSymbolicVariable() : self._model.getStates(),
             # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),

@@ -61,6 +61,9 @@ class NavGameEnv(SimInterface):
             U_mbae = []
             V_mbae = []
             R_mbae = []
+            U_fd = []
+            V_fd = []
+            R_fd = []
             
             s_length = len(self.getSettings()['state_bounds'][0])
             ## This is a sampled grid in 2D
@@ -81,23 +84,28 @@ class NavGameEnv(SimInterface):
                     v = agent.q_value(state_)
                     Q.append(v)
                     if (self.getSettings()['train_forward_dynamics']):
-                        (action_, value_diff) = getOptimalAction(agent.getForwardDynamics(), agent.getPolicy(), state_)[:2]
+                        (action_, value_diff) = getOptimalAction(agent.getForwardDynamics(),
+                                                                  agent.getPolicy(), state_, action_lr=self.getSettings()['action_learning_rate'])[:2]
                         # action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
                         ### How to change this action...
                         action_ = (action_[:2] - (action1_cp[:2]))
                         next_state = agent.getForwardDynamics().predict(state_, [action1_cp])
                         # print ("next_state: ", next_state)
-                        action_ = (next_state - next_state_true_)[0]
+                        fd_error_ = (next_state - next_state_true_)[0]
                         # print ("forward_dynamics error: ", action_)
-                        # action_ = action_/(np.sqrt((action_*action_).sum(axis=0)))
+                        action_ = action_/(np.sqrt((action_*action_).sum(axis=0)))
                         # action_ = action_ - action1
                         U_mbae.append(action_[0])
                         V_mbae.append(action_[1])
+                        U_fd.append(fd_error_[0])
+                        V_fd.append(fd_error_[1])
                         # r = agent.getForwardDynamics().predict_reward(state_, np.array(action1_cp))
                         # print ("Predicted reward: ", r)
                         R_mbae.append(value_diff)
+                        R_fd.append(value_diff)
             self.getEnvironment().updatePolicy(U, V, Q)
             if (self.getSettings()['train_forward_dynamics']):
                 self.getEnvironment().updateMBAE(U_mbae, V_mbae, R_mbae)
+                self.getEnvironment().updateFD(U_fd, V_fd, R_fd)
             self.getEnvironment().saveVisual(directory+"/navAgent")
         

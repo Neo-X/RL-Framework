@@ -11,11 +11,11 @@ from model.ModelUtil import *
 # theano.config.mode='FAST_COMPILE'
 from model.ModelInterface import ModelInterface
 
-class ForwardDynamicsNetwork(ModelInterface):
+class ForwardDynamicsDenseNetwork(ModelInterface):
     
     def __init__(self, state_length, action_length, state_bounds, action_bounds, settings_):
 
-        super(ForwardDynamicsNetwork,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
+        super(ForwardDynamicsDenseNetwork,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
         
         batch_size=32
         # data types for model
@@ -32,53 +32,63 @@ class ForwardDynamicsNetwork(ModelInterface):
         self._stateInputVar = stateInput.input_var
         actionInput = lasagne.layers.InputLayer((None, self._action_length), self._Action)
         self._actionInputVar = actionInput.input_var
-        
         input = lasagne.layers.ConcatLayer([stateInput, actionInput])
         
-        # inputLayerState = lasagne.layers.InputLayer((None, self._state_length), self._State)
-        # inputLayerAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
-        # concatLayer = lasagne.layers.ConcatLayer([inputLayerState, inputLayerAction])
-        l_hid2ActA = lasagne.layers.DenseLayer(
+        network = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
+
+        network = lasagne.layers.DenseLayer(
                 input, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
-        l_hid3ActA = lasagne.layers.DenseLayer(
-                l_hid2ActA, num_units=128,
+        network = lasagne.layers.DenseLayer(
+                network, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
-        l_hid4ActA = lasagne.layers.DenseLayer(
-                l_hid3ActA, num_units=128,
+        network = lasagne.layers.DenseLayer(
+                network, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        ## This can be used to model the reward function
+        self._critic = lasagne.layers.DenseLayer(
+                network, num_units=1,
+                nonlinearity=lasagne.nonlinearities.linear)
+                # print ("Initial W " + str(self._w_o.get_value()) )
+                
+        networkAct = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
+        networkAct = lasagne.layers.DenseLayer(
+                input, num_units=256,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        
+        networkAct = lasagne.layers.DenseLayer(
+                networkAct, num_units=128,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        
+        networkAct = lasagne.layers.DenseLayer(
+                networkAct, num_units=128,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
     
-        self._forward_dynamics_net = lasagne.layers.DenseLayer(
-                l_hid4ActA, num_units=self._state_length,
+        self._actor = lasagne.layers.DenseLayer(
+                networkAct, num_units=self._state_length,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
                 
         if (('use_stochastic_forward_dynamics' in self._settings) and 
             self._settings['use_stochastic_forward_dynamics']):
             with_std = lasagne.layers.DenseLayer(
-                    l_hid4ActA, num_units=self._state_length,
+                    networkAct, num_units=self._state_length,
                     nonlinearity=theano.tensor.nnet.softplus)
-            self._forward_dynamics_net = lasagne.layers.ConcatLayer([self._forward_dynamics_net, with_std], axis=1)
+            self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
                 
-        l_hid2ActA = lasagne.layers.DenseLayer(
-                input, num_units=256,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
-        l_hid3ActA = lasagne.layers.DenseLayer(
-                l_hid2ActA, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
-        l_hid4ActA = lasagne.layers.DenseLayer(
-                l_hid3ActA, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        ## This can be used to model the reward function
-        self._reward_net = lasagne.layers.DenseLayer(
-                l_hid4ActA, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
-                # print ("Initial W " + str(self._w_o.get_value()) )
-        
         self._states_shared = theano.shared(
             np.zeros((batch_size, self._state_length),
                      dtype=theano.config.floatX))
