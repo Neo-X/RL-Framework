@@ -101,7 +101,7 @@
     "comment__": "Length of the queues used to pass simulation data between the simulation workers and the learning agent(s).",
 "queue_size_limit": 500,
     "comment__": "Number of actions performed between training updates",
-"sim_action_per_training_update": 8,
+"sim_action_per_training_update": 16,
     "comment__": "Number of rounds of adaptive sampling",
 "adaptive_samples": 5,
     "comment__": "Number of elite adaptive samples to keep between adaptive sampling rounds",
