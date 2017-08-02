@@ -5,17 +5,23 @@ import lasagne
 import sys
 sys.path.append('../')
 from model.ModelUtil import *
+from util.nn import weight_norm
 
+
+
+# elu
+def elu_mine(x):
+    return theano.tensor.switch(x > 0, x, theano.tensor.expm1(x))
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 from model.ModelInterface import ModelInterface
 
-class ForwardDynamicsDenseNetwork(ModelInterface):
+class ForwardDynamicsDenseNetworkDropout(ModelInterface):
     
     def __init__(self, state_length, action_length, state_bounds, action_bounds, settings_):
 
-        super(ForwardDynamicsDenseNetwork,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
+        super(ForwardDynamicsDenseNetworkDropout,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
         
         batch_size=32
         # data types for model
@@ -56,7 +62,7 @@ class ForwardDynamicsDenseNetwork(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         ## This can be used to model the reward function
-        self._critic = lasagne.layers.DenseLayer(
+        self._reward_net = lasagne.layers.DenseLayer(
                 network, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
@@ -64,20 +70,28 @@ class ForwardDynamicsDenseNetwork(ModelInterface):
         networkAct = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=256,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=elu_mine)
+        networkAct = weight_norm(networkAct)
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        layersAct = [networkAct]
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=elu_mine)
+        networkAct = weight_norm(networkAct)
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        layersAct.append(networkAct)
+        networkAct = lasagne.layers.ConcatLayer([layersAct[1], layersAct[0]])
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=elu_mine)
+        networkAct = weight_norm(networkAct)
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        layersAct.append(networkAct)
+        networkAct = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
     
-        self._actor = lasagne.layers.DenseLayer(
+        self._forward_dynamics_net = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._state_length,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
@@ -87,7 +101,7 @@ class ForwardDynamicsDenseNetwork(ModelInterface):
             with_std = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._state_length,
                     nonlinearity=theano.tensor.nnet.softplus)
-            self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
+            self._forward_dynamics_net = lasagne.layers.ConcatLayer([self._forward_dynamics_net, with_std], axis=1)
                 
         self._states_shared = theano.shared(
             np.zeros((batch_size, self._state_length),

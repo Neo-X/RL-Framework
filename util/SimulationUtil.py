@@ -585,8 +585,13 @@ def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
         from model.ForwardDynamicsCNNDropout import ForwardDynamicsCNNDropout
         print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         forwardDynamicsNetwork = ForwardDynamicsCNNDropout(len(state_bounds[0]), len(action_bounds[0]), 
-                                                        state_bounds, action_bounds, settings)       
-        
+                                                        state_bounds, action_bounds, settings)   
+    elif settings["forward_dynamics_model_type"] == "Deep_Dense_NN_Dropout":
+        from model.ForwardDynamicsDenseNetworkDropout import ForwardDynamicsDenseNetworkDropout
+        print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
+        forwardDynamicsNetwork = ForwardDynamicsDenseNetworkDropout(len(state_bounds[0]), len(action_bounds[0]), 
+                                                        state_bounds, action_bounds, settings)   
+            
     else:
         print ("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         raise ValueError("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
