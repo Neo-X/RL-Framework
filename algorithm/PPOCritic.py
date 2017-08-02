@@ -122,10 +122,10 @@ class PPOCritic(AlgorithmInterface):
         self._q_valsActASTD = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)[:,self._action_length:]
         
         ## prevent value from being 0
-        self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 1e-3
+        self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 1e-1
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
-        self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 1e-3
+        self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 1e-1
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -160,7 +160,7 @@ class PPOCritic(AlgorithmInterface):
             self._model.getActionSymbolicVariable(): self._model.getActions(),
             self._Fallen: self._fallen_shared,
             # self._advantage: self._advantage_shared,
-            self._KL_Weight: self._kl_weight_shared
+            # self._KL_Weight: self._kl_weight_shared
         }
         
         self._critic_regularization = (self._critic_regularization_weight * lasagne.regularization.regularize_network_params(
@@ -171,7 +171,7 @@ class PPOCritic(AlgorithmInterface):
         # self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed )
         self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (10*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
                                                                                      T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
-        
+        self._actor_regularization = 0.5 * T.mean(T.log(2 * np.pi * self._q_valsActASTD ) + 1 )
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
         # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
@@ -210,7 +210,7 @@ class PPOCritic(AlgorithmInterface):
         r = (self._prob / self._prob_target)
         self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((r), self._Advantage)
         self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(r, 0.9, 1.1), self._Advantage))
-        self._actLoss_ = theano.tensor.minimum(T.mean(self._actLoss_), T.mean(self._actLoss_2))
+        self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
         
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob), self._Advantage)
@@ -220,7 +220,7 @@ class PPOCritic(AlgorithmInterface):
         # self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._actor_regularization ))
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
-        self._actLoss = (-1.0 * T.mean(self._actLoss_)) + (1.0 *self._actor_regularization)
+        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (1e-4 * self._actor_regularization)))
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
@@ -274,7 +274,9 @@ class PPOCritic(AlgorithmInterface):
         
         self._get_actor_regularization = theano.function([], [self._actor_regularization],
                                                             givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
-                                                                    self._KL_Weight: self._kl_weight_shared})
+                                                                    # self._KL_Weight: self._kl_weight_shared
+                                                                    }
+                                                         )
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
         # self._get_actor_diff_ = theano.function([], [self._actDiff], givens= self._actGivens)
         """{
@@ -409,7 +411,8 @@ class PPOCritic(AlgorithmInterface):
         print("Actions:     ", np.mean(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
         # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-        print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
+        # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
+        print("Actions std:  ", np.std((actions), axis=0) )
         print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
         print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
         print( "Actor loss: ", np.mean(self._get_action_diff()))
