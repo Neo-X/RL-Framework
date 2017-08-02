@@ -169,8 +169,8 @@ class PPOCritic(AlgorithmInterface):
         #         self._model.getActorNetwork(), lasagne.regularization.l2)) )
         self._kl_firstfixed = T.mean(kl(self._q_valsActTarget, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length))
         # self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed )
-        self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (10*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
-                                                                                     T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
+        # self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (10*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
+        #                                                                              T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
         self._actor_regularization = 0.5 * T.mean(T.log(2 * np.pi * self._q_valsActASTD ) + 1 )
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(

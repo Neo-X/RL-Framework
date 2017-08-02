@@ -119,7 +119,8 @@ class LearningAgent(AgentInterface):
                     cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                 # self._expBuff.clear()
             if (self._settings['train_actor']):
-                cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
+                for i in range(self._settings['critic_updates_per_actor_update']):
+                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
             dynamicsLoss = 0 
             if (self._settings['train_forward_dynamics']):
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
