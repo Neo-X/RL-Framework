@@ -220,7 +220,7 @@ class PPOCritic(AlgorithmInterface):
         # self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._actor_regularization ))
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
-        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (1e-4 * self._actor_regularization)))
+        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (1e-1 * self._actor_regularization)))
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
@@ -411,8 +411,8 @@ class PPOCritic(AlgorithmInterface):
         print("Actions:     ", np.mean(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
         # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-        # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
-        print("Actions std:  ", np.std((actions), axis=0) )
+        print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
+        # print("Actions std:  ", np.std((actions), axis=0) )
         print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
         print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
         print( "Actor loss: ", np.mean(self._get_action_diff()))
