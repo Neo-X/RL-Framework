@@ -32,7 +32,7 @@ class DeepCNN(ModelInterface):
         input = lasagne.layers.InputLayer((None, self._state_length), self._State)
         self._stateInputVar = input.input_var
         
-        taskFeatures = lasagne.layers.SliceLayer(inpt, indices=slice(0, self._settings['num_terrain_features']), axis=1)
+        taskFeatures = lasagne.layers.SliceLayer(input, indices=slice(0, self._settings['num_terrain_features']), axis=1)
         # characterFeatures = lasagne.layers.SliceLayer(network, indices=slice(-(self._state_length-self._settings['num_terrain_features']), None), axis=1)
         characterFeatures = lasagne.layers.SliceLayer(input, indices=slice(self._settings['num_terrain_features'], self._state_length), axis=1)
         print ("taskFeatures Shape:", lasagne.layers.get_output_shape(taskFeatures))

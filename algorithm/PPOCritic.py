@@ -197,18 +197,21 @@ class PPOCritic(AlgorithmInterface):
         # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._Fallen)) - self._q_func
         
         self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
-        self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
-        self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
-        # self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
-        # self._prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
+        # self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        # self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
+        self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        self._prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target).dot(self._Advantage)) )
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target) * (self._Advantage)) )
         # self._actLoss_ = ( ((self._log_prob) * self._Advantage) )
         # self._actLoss_ = ( ((self._log_prob)) )
         ## This does the sum already
         # self._actLoss_ =  ( (self._log_prob).dot( self._Advantage) )
-        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._prob / self._prob_target), self._Advantage)
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
+        r = (self._prob / self._prob_target)
+        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((r), self._Advantage)
+        self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(r, 0.9, 1.1), self._Advantage))
+        self._actLoss_ = theano.tensor.min(self._actLoss_, self._actLoss_2)
+        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
         
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob), self._Advantage)
         # self._actLoss_ = T.mean(self._log_prob) 
@@ -429,7 +432,7 @@ class PPOCritic(AlgorithmInterface):
         else:
             self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()/2.0)
         """  
-    
+        """
         kl_coeff = self._kl_weight_shared.get_value()
         if kl_after > 1.3*self.getSettings()['kl_divergence_threshold']: 
             kl_coeff *= 1.5
@@ -444,7 +447,7 @@ class PPOCritic(AlgorithmInterface):
         else:
             print ("KL=%.3f is close enough to target %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold']))
         print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
-        
+        """
         print( "Policy loss: ", lossActor)
         
         

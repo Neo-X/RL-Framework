@@ -237,8 +237,20 @@
 "use_stocastic_policy": true,
 	"comment__": "Whether or  not to train the critic at all. Usually used for debugging",
 "train_critic": true,
+		"comment__": "What type of regularization to use",
+"regularization_type": "kl",
 	"comment__": "Whether or not to collects tuples in batches, this can be good for multi-threading or computing furture discounted reward",
-"collect_tuples_in_batches":true,
+"collect_tuples_in_batches": false,
 	"comment__": "Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occured",
-"reset_on_fall":true
+"reset_on_fall": true,
+	"comment__": "Whether a model of the reward r <- R(s,a) should be trained",
+"train_reward_predictor": false,
+	"comment__": "How many gradient steps model based actino exploration should take",
+"num_mbae_steps": 1,
+    "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
+"fix_actor_batch_size": true,
+	"comment__": "Whether or not to put MBAE on the annelling schedule",
+"anneal_mbae": true,
+	"comment__": "How many value function updates should be done between Dyna updates",
+"dyna_update_lag_steps": 10
 }
