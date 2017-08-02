@@ -210,7 +210,7 @@ class PPOCritic(AlgorithmInterface):
         r = (self._prob / self._prob_target)
         self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((r), self._Advantage)
         self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(r, 0.9, 1.1), self._Advantage))
-        self._actLoss_ = theano.tensor.min(self._actLoss_, self._actLoss_2)
+        self._actLoss_ = theano.tensor.minimum(T.mean(self._actLoss_), T.mean(self._actLoss_2))
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
         
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob), self._Advantage)
@@ -310,10 +310,10 @@ class PPOCritic(AlgorithmInterface):
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._q_action_std = theano.function([], self._q_valsActASTD,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
-        self._get_log_prob = theano.function([], self._log_prob,
+        self._get_log_prob = theano.function([], self._prob,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
                                                self._model.getActionSymbolicVariable(): self._model.getActions(),})
-        self._get_log_prob_target = theano.function([], self._log_prob_target,
+        self._get_log_prob_target = theano.function([], self._prob_target,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
                                                self._model.getActionSymbolicVariable(): self._model.getActions(),})
         
