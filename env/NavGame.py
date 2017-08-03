@@ -445,6 +445,8 @@ class NavGame(object):
         if (self._settings['train_forward_dynamics']):
             self._fig2.savefig(fileName+"_MBAE.svg")
             self._fig2.savefig(fileName+"_MBAE.png")
+            self._fig3.savefig(fileName+"_FD_error.svg")
+            self._fig3.savefig(fileName+"_FD_error.png")
         
     def finish(self):
         pass
