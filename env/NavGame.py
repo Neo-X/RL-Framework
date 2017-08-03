@@ -335,7 +335,7 @@ class NavGame(object):
         # Two subplots, unpack the axes array immediately
         self._fig3, (self._fd_error) = plt.subplots(1, 1, sharey=False)
         self._fig3.set_size_inches(8.5, 8.5, forward=True)
-        self._fd2 = self._fd_error.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, width=0.005, pivot='mid', angles='xy', linestyles='-', scale=25.0)
+        self._fd2 = self._fd_error.quiver(X,Y,U,V,Q, alpha=.75, linewidth=0.5, width=0.005, pivot='mid', angles='xy', linestyles='-', scale=25.0)
         # self._fd = self._fd_error.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
         self._fd_error.set_title('MBAE FD error')
         p = patches.Rectangle(
