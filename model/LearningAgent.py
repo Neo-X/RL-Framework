@@ -123,6 +123,7 @@ class LearningAgent(AgentInterface):
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
             dynamicsLoss = 0 
             if (self._settings['train_forward_dynamics']):
+                for i in range(self._settings['critic_updates_per_actor_update']):
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
         else:
             # print("State Bounds LA:", self._pol.getStateBounds())
