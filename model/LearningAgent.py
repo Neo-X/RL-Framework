@@ -124,7 +124,20 @@ class LearningAgent(AgentInterface):
             dynamicsLoss = 0 
             if (self._settings['train_forward_dynamics']):
                 for i in range(self._settings['critic_updates_per_actor_update']):
+                    states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
+                if (self._settings['train_critic_on_fd_output'] and 
+                        (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
+                        ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
+                        ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
+                        ):
+                        
+                        result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
+                        cost = self._pol.trainDyna(states=_result_states, actions=_actions, rewards=_rewards, result_states=result_states__, falls=_falls)
+                        if not np.isfinite(cost) or (cost > 500) :
+                            numpy.set_printoptions(threshold=numpy.nan)
+                            print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
+                            print ("Training cost is Odd: ", cost)
         else:
             # print("State Bounds LA:", self._pol.getStateBounds())
             # print("Action Bounds LA:", self._pol.getActionBounds())
