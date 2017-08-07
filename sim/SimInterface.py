@@ -17,6 +17,11 @@ class SimInterface(object):
         self._exp = exp
         self._settings = settings_
         self._actor = DoNothingActor()
+        
+        ## Should print the type of actions space, continuous/discrete, how many parameters
+        print(self.getEnvironment().action_space)
+        ## Should print the type of state space, continuous/discrete, how many parameters
+        print(self.getEnvironment().observation_space)
 
     def getSettings(self):
         return self._settings
