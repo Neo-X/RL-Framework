@@ -3,7 +3,7 @@ from gym import wrappers
 from gym import envs
 print(envs.registry.all())
 # env = gym.make('CartPole-v0')
-# env = gym.make('LunarLanderContinuous-v2')
+env = gym.make('LunarLanderContinuous-v2')
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
 for i_episode in range(20):

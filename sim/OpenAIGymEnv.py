@@ -22,6 +22,11 @@ class OpenAIGymEnv(SimInterface):
         super(OpenAIGymEnv,self).__init__(exp, settings)
         self._previous_observation=None
         self._end_of_episode=False
+        
+        ## Should print the type of actions space, continuous/discrete, how many parameters
+        print(self.getEnvironment().action_space)
+        ## Should print the type of state space, continuous/discrete, how many parameters
+        print(self.getEnvironment().observation_space)
 
     def init(self):
         self._previous_observation = self.getEnvironment().reset()
