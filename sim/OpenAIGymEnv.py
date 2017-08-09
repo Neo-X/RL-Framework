@@ -38,16 +38,13 @@ class OpenAIGymEnv(SimInterface):
         self._exp.finish()
     
     def generateValidation(self, data, epoch):
-        self.getEnvironment().generateValidationEnvironmentSample(epoch)
+        self.initEpoch()
     
     def generateEnvironmentSample(self):
-        self.getEnvironment().generateEnvironmentSample()
+        self.initEpoch()
         
     def getEvaluationData(self):
         return self.getEnvironment().getEvaluationData()
-    
-    def getActor(self):
-        return self._exp
     
     def finish(self):
         self._exp.finish()
@@ -57,7 +54,7 @@ class OpenAIGymEnv(SimInterface):
         # observation, reward, done, info = env.step(action)
         # self._previous_observation = observation
         
-        state_ = np.array(observation)
+        state_ = np.array(self._previous_observation)
         state = np.array(state_)
         state = np.reshape(state, (-1, len(state_)))
         

@@ -351,6 +351,22 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = NavGameEnv(exp, settings)
         return exp
     
+    elif env_type == 'openAIGym':
+        import gym
+        from gym import wrappers
+        from gym import envs
+        from sim.OpenAIGymEnv import OpenAIGymEnv
+        # print(envs.registry.all())
+        
+        # env = gym.make('CartPole-v0')
+        env = gym.make('LunarLanderContinuous-v2')
+        # file = open(config_file)
+        # conf = json.load(file)
+        settings = copy.deepcopy(settings)
+        exp = OpenAIGymEnv(env, settings)
+        exp = exp
+        return exp
+    
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D') or 
           (env_type == 'simbiconBiped2DTerrain') or (env_type == 'hopper_2D')):
         import simbiconAdapter
@@ -487,6 +503,9 @@ def createActor(env_type, settings, experience):
     elif (env_type == 'pendulum'):
         from actor.ActorInterface import ActorInterface
         actor = ActorInterface(settings, experience)
+    elif (env_type == 'openAIGym'):
+        from actor.OpenAIGymActor import OpenAIGymActor
+        actor = OpenAIGymActor(settings, experience)
     else:
         print("Error actor type unknown: ", env_type)
         raise ValueError("Error actor type unknown: ", env_type)

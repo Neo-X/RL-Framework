@@ -6,6 +6,13 @@ print(envs.registry.all())
 env = gym.make('LunarLanderContinuous-v2')
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
+
+print( "Action Space: ", env.action_space)
+print( "Action Space high: ", env.action_space.high)
+print( "Action Space low: ", env.action_space.low)
+print( "State Spance: ", env.observation_space)
+
+
 for i_episode in range(20):
     observation = env.reset()
     for t in range(100):
