@@ -208,7 +208,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     else:
         exp.generateEnvironmentSample()
         
-    # exp.getEnvironment().initEpoch()
+    # exp.initEpoch()
     exp.initEpoch()
     # print ("sim EXP: ", exp)
     actor.initEpoch()
@@ -241,11 +241,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     result_states___ = []
     evalDatas=[]
     
-    # while not exp.getEnvironment().endOfEpoch():
+    # while not exp.endOfEpoch():
     for i_ in range(settings['max_epoch_length']):
         
-        # if (exp.getEnvironment().endOfEpoch() or (reward_ < settings['reward_lower_bound'])):
-        if ((exp.getEnvironment().endOfEpoch() and settings['reset_on_fall'])  or ((reward_ < settings['reward_lower_bound']) 
+        # if (exp.endOfEpoch() or (reward_ < settings['reward_lower_bound'])):
+        if ((exp.endOfEpoch() and settings['reset_on_fall'])  or ((reward_ < settings['reward_lower_bound']) 
                                                   and
                                                   (not evaluation))):
             evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
@@ -302,13 +302,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             else:
                 exp.generateEnvironmentSample()
                 
-            exp.getEnvironment().initEpoch()
+            exp.initEpoch()
             # actor.init() ## This should be removed and only exp.getActor() should be used
             # model.initEpoch()
             state_ = exp.getState()
             if (not bootstrapping):
                 q_values_.append(model.q_value(state_))
-        # state = exp.getEnvironment().getState()
+        # state = exp.getState()
         state_ = exp.getState()
         if (not (visualizeEvaluation == None)):
             viz_q_values_.append(model.q_value(state_)[0])

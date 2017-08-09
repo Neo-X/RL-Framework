@@ -362,8 +362,10 @@ def createEnvironment(config_file, env_type, settings, render=False):
         env = gym.make('LunarLanderContinuous-v2')
         # file = open(config_file)
         # conf = json.load(file)
-        settings = copy.deepcopy(settings)
-        exp = OpenAIGymEnv(env, settings)
+        
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = OpenAIGymEnv(env, conf)
         exp = exp
         return exp
     

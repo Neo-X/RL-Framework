@@ -27,18 +27,9 @@ class OpenAIGymActor(ActorInterface):
         # Actor should be FIRST here
         # print ("Action: " + str(action_))
         # dist = exp.getEnvironment().step(action_, bootstrapping=bootstrapping)
-        observation, reward, done, info = env.step(action)
-        exp._end_of_episode = done
-        exp._previous_observation = observation
+        reward = exp.step(action_)
         self._reward_sum = self._reward_sum + reward
-        if (not done):
-            # vel_dif = np.abs(self._target_vel - dist)
-            # reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight) # optimal is 0
-            # reward = reward_smoother(vel_dif, self._settings, self._target_vel_weight)
-            self._reward_sum = self._reward_sum + reward
-            return reward
-        else:
-            return 0.0
+        return reward
         
     
     def getEvaluationData(self):

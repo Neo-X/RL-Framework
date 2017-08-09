@@ -34,6 +34,9 @@ class OpenAIGymEnv(SimInterface):
     def initEpoch(self):
         self._previous_observation = self.getEnvironment().reset()
         
+    def endOfEpoch(self):
+        return self._end_of_episode
+
     def finish(self):   
         self._exp.finish()
     
@@ -48,6 +51,15 @@ class OpenAIGymEnv(SimInterface):
     
     def finish(self):
         self._exp.finish()
+        
+    def step(self, action):
+        action_ = np.array(action)
+        if (self.getSettings()['render']):
+            self.getEnvironment().render()
+        observation, reward, done, info = self.getEnvironment().step(action_)
+        self._end_of_episode = done
+        self._previous_observation = observation
+        return reward
     
     def getState(self):
         # state = np.array(self._exp.getState())
