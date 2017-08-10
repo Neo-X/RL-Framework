@@ -38,8 +38,14 @@
     "comment__": "Max length of the Experience memory",
 "expereince_length": 10000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
-"state_bounds": [[ -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0],
-       			 [  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0]],
+"state_bounds": [[ 0.28982371 -0.01478721 -0.06078645 -0.04733083  1.03115964 -0.12812544
+	  -0.75965595 -0.2908558   0.13311847 -1.05580533 -0.2227477  -0.70291573
+	  -0.27491945  0.28134823  0.24749428  0.25030497  0.25906503  0.27485713
+	   0.29987109  0.33825073  0.39815044  0.49740493  0.7026459   0.97628568]
+	 [ 0.67975229  0.01997015  0.05256872  0.02784184  1.18600202  0.17897272
+	  -0.35893795  0.24659774  1.10448158 -0.41182801  0.17687246 -0.4974786
+	   0.21788138  1.17245173  0.30797514  0.31147268  0.32237351  0.34202474
+	   0.37315142  0.42091     0.49544761  0.61895716  0.81997967  1.20350296]],
     "comment__": "Action scaling values to be used to scale values for the network",
 "action_bounds": [[-1.0, -1.0, -1.0, -1.0],
                   [ 1.0,  1.0,  1.0,  1.0]],
@@ -94,7 +100,7 @@
     "comment__": "Initial factor epsilon in multiplied by (This value will slowly be reduced during training)",
 "epsilon_annealing": 0.8,
     "comment__": "Different ways of calculating the scaling method used normalize the input and outputs of the network from the bootstrapping samples. minmax, input and output are -mean/max-min. variance, input and output are -mean/(std*2), given, use the bounds provided in this file",
-"state_normalization": "variance",
+"state_normalization": "given",
 "load_saved_model": false,
 "critic_updates_per_actor_update": 1,
     "comment__": "weather or not to clamp actions to stay inside the action boundaries",
