@@ -3,7 +3,7 @@ from gym import wrappers
 from gym import envs
 print(envs.registry.all())
 # env = gym.make('CartPole-v0')
-env = gym.make('LunarLanderContinuous-v2')
+env = gym.make('BipedalWalker-v2')
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
 
@@ -11,6 +11,8 @@ print( "Action Space: ", env.action_space)
 print( "Action Space high: ", env.action_space.high)
 print( "Action Space low: ", env.action_space.low)
 print( "State Spance: ", env.observation_space)
+print( "State Spance high: ", env.observation_space.high)
+print( "State Spance low: ", env.observation_space.low)
 
 
 for i_episode in range(20):

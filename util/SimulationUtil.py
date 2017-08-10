@@ -359,7 +359,8 @@ def createEnvironment(config_file, env_type, settings, render=False):
         # print(envs.registry.all())
         
         # env = gym.make('CartPole-v0')
-        env = gym.make('LunarLanderContinuous-v2')
+        env_name = config_file
+        env = gym.make(env_name)
         # file = open(config_file)
         # conf = json.load(file)
         

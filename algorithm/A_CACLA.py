@@ -386,6 +386,7 @@ class A_CACLA(AlgorithmInterface):
     def trainCritic(self, states, actions, rewards, result_states, falls):
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
+        # print("Value function rewards: ", rewards)
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
