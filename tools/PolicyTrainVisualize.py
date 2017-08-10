@@ -22,20 +22,17 @@ class PolicyTrainVisualize(object):
             average reward
             discounted reward error
         """
-        if (settings != None):
-            self._sim_iteration_scale = (settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'])
-            self._iteration_scale = ((self._sim_iteration_scale * settings['training_updates_per_sim_action']) / 
-                                     settings['sim_action_per_training_update'])
-            
-        else:
-            self._iteration_scale = 1
-            self._sim_iteration_scale = 1
+        self._settings = settings
         self._title=title
         self._length = 0
+        self._bin_size = 1
         
         
     def setLength(self, length):
         self._length = length
+    
+    def setBinSize(self, bin_size_):
+        self._bin_size = bin_size_
         
         
     def init(self):
@@ -46,8 +43,19 @@ class PolicyTrainVisualize(object):
             discounted reward error
         """
         
+        if (self._settings != None):
+            self._sim_iteration_scale = (self._settings['plotting_update_freq_num_rounds']*
+                                         self._settings['max_epoch_length']*
+                                         self._settings['epochs']) * self._bin_size
+            self._iteration_scale = ((self._sim_iteration_scale * 
+                                      self._settings['training_updates_per_sim_action']) / 
+                                     self._settings['sim_action_per_training_update']) * self._bin_size
+            
+        else:
+            self._iteration_scale = 1 * self._bin_size
+            self._sim_iteration_scale = 1 * self._bin_size
+        
         cmap = get_cmap(len(self._trainingDatas)+1)
-        bin_size=1
         self._fig, (self._reward_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
         self._fig_value, (self._value_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
         for i in range(0, len(self._trainingDatas), 1):
@@ -58,10 +66,10 @@ class PolicyTrainVisualize(object):
                     x_range = range(len(self._trainingDatas[i]['data']["mean_eval"]))
             else:
                 x_range = range(len(self._trainingDatas[i]['data']["mean_eval"]))
-            new_shape = (int(len(x_range)/bin_size), int(bin_size))
+            new_shape = (int(len(x_range)/self._bin_size), int(self._bin_size))
             new_length = new_shape[0]*new_shape[1]
             x_range_ = range(int(new_shape[0]))
-            # self._length = self._length/bin_size
+            # self._length = self._length/self._bin_size
             mean = np.mean(np.reshape(self._trainingDatas[i]['data']["mean_eval"][:new_length], new_shape), axis=1)
             std = np.mean(np.reshape(self._trainingDatas[i]['data']["std_eval"][:new_length], new_shape), axis=1)
             
@@ -112,8 +120,8 @@ class PolicyTrainVisualize(object):
         # plt.grid(b=True, which='major', color='black', linestyle='--')
         # plt.grid(b=True, which='minor', color='g', linestyle='--'
         
-        self._fig.set_size_inches(8.0, 4.0, forward=True)
-        self._fig_value.set_size_inches(8.0, 4.0, forward=True)
+        self._fig.set_size_inches(8.0, 5.0, forward=True)
+        self._fig_value.set_size_inches(8.0, 5.0, forward=True)
         plt.show()
         
     def updateRewards(self, trainingDatas):
