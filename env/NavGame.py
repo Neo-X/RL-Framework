@@ -69,10 +69,15 @@ class NavGame(object):
         obstacles = []
         obstacles.append([self._state_bounds[0][0]]*self._state_length)
         obstacles.append([self._state_bounds[1][0]]*self._state_length)
+        obstacles.append([4]*self._state_length)
+        obstacles.append([-4]*self._state_length)
+        obstacles.append([4] + ([-4]*(self._state_length-1)))
+        obstacles.append([-4] + ([4]*(self._state_length-1)))
+        """
         num_random_obstacles=5
         for i in range(num_random_obstacles):
             obstacles.append(np.random.random_integers(self._state_bounds[0][0], self._state_bounds[1][0], self._state_length))
-        
+        """
         self._obstacles = np.array(obstacles)
         
         # if self._settings['render'] == True:
