@@ -400,8 +400,11 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
     action = clampAction(action, model._action_bounds)
     return action
 
-def getOptimalAction(forwardDynamicsModel, model, state, action_lr):
+def getOptimalAction(forwardDynamicsModel, model, state, action_lr, use_random_action=False):
     action = model.predict(state)
+    if ( use_random_action ):
+        action_bounds = np.array(model.getSettings()["action_bounds"], dtype=float)
+        action = randomExporation(model.getSettings()["exploration_rate"], action, action_bounds)
     return getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr)
 
 def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):

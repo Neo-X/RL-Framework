@@ -388,7 +388,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                                 mbae_lr = p * settings["action_learning_rate"]
                             else:
                                 mbae_lr = settings["action_learning_rate"]
-                            (action, value_diff) = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_, action_lr=mbae_lr)
+                            if ( 'use_random_actions_for_MBAE' in settings):
+                                use_rand_act = settings['use_random_actions_for_MBAE']
+                            else: 
+                                use_rand_act = False
+                            (action, value_diff) = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_, action_lr=mbae_lr, use_random_action=use_rand_act)
                     # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
             else: # exploit policy
                 # return pa1
