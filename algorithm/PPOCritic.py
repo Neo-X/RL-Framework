@@ -207,9 +207,9 @@ class PPOCritic(AlgorithmInterface):
         # self._actLoss_ = ( ((self._log_prob)) )
         ## This does the sum already
         # self._actLoss_ =  ( (self._log_prob).dot( self._Advantage) )
-        r = (self._prob / self._prob_target)
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((r), self._Advantage)
-        self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(r, 0.9, 1.1), self._Advantage))
+        self._r = (self._prob / self._prob_target)
+        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
+        self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 0.9, 1.1), self._Advantage))
         self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
         
@@ -220,7 +220,7 @@ class PPOCritic(AlgorithmInterface):
         # self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._actor_regularization ))
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
-        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (1e-4 * self._actor_regularization)))
+        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (1e-2 * self._actor_regularization)))
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
@@ -260,7 +260,7 @@ class PPOCritic(AlgorithmInterface):
         #### Stuff for Debugging #####
         #### Stuff for Debugging #####
         self._get_diff = theano.function([], [self._diff], givens=self._givens_)
-        # self._get_advantage = theano.function([], [self._advantage], givens=self._givens_)
+        self._get_advantage = self._get_diff
         # self._get_advantage = theano.function([], [self._advantage])
         self._get_target = theano.function([], [self._target], givens={
             # self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -319,6 +319,11 @@ class PPOCritic(AlgorithmInterface):
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
                                                self._model.getActionSymbolicVariable(): self._model.getActions(),})
         
+        self._get_r = theano.function([], self._r,
+                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+                                               self._model.getActionSymbolicVariable(): self._model.getActions(),
+                                               })
+        
         self._q_action_target = theano.function([], self._q_valsActTarget,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         # self._bellman_error_drop = theano.function(inputs=[self._model.getStateSymbolicVariable(), self._model.getRewardSymbolicVariable(), self._model.getResultStateSymbolicVariable()], outputs=self._diff_drop, allow_input_downcast=True)
@@ -344,7 +349,7 @@ class PPOCritic(AlgorithmInterface):
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_paramsA)
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA) 
-    
+        
     def setData(self, states, actions, rewards, result_states, fallen):
         self._model.setStates(states)
         self._model.setResultStates(result_states)
@@ -406,9 +411,9 @@ class PPOCritic(AlgorithmInterface):
         lossActor = 0
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        # print("Advantage: ", np.mean(self._get_advantage()))
-        print("Advantage: ", np.mean(advantage))
-        print("Actions:     ", np.mean(actions, axis=0))
+        print("Advantage, model: ", np.mean(self._get_advantage()), " std: ", np.std(self._get_advantage()))
+        print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
+        print("Actions mean:     ", np.mean(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
         # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
         print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
@@ -416,6 +421,7 @@ class PPOCritic(AlgorithmInterface):
         print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
         print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
         print( "Actor loss: ", np.mean(self._get_action_diff()))
+        # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
         # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
         ## Sometimes really HUGE losses appear, ocasionally
         if (np.abs(np.mean(self._get_action_diff())) < 10): 
@@ -424,6 +430,12 @@ class PPOCritic(AlgorithmInterface):
             print ("Did not train actor this time")
     
         print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
+        if (not np.isfinite(np.mean(self._get_log_prob(), axis=0))):
+            np.mean(self._get_log_prob(), axis=0)
+            print ( self._get_log_prob() )
+            all_paramsActA = lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork())
+            lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), all_paramsActA)
+        print("Policy log prob target after: ", np.mean(self._get_log_prob_target(), axis=0))
         # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
         print( " Actor loss: ", lossActor)
         # self._advantage_shared.set_value(diff_)
