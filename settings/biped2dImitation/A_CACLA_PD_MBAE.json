@@ -219,10 +219,10 @@
 "reward_smoother": "gaussian",
 	"comment__": "Weights for different components of the reward function",
 "controller_reward_weights": {
-		"velocity": 0.25,
+		"velocity": 0.35,
 		"torque": 0.05,
 		"root_height": 0.1,
-		"pose_error": 0.6
+		"pose_error": 0.5
 		},
 	"comment__": "Regularization weight for different between policy parameters and old policy parameters",
 "previous_value_regularization_weight":  0.001,
