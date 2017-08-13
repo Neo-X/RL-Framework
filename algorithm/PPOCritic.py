@@ -437,7 +437,7 @@ class PPOCritic(AlgorithmInterface):
             lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), all_paramsActA)
         print("Policy log prob target after: ", np.mean(self._get_log_prob_target(), axis=0))
         # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
-        print( " Actor loss: ", lossActor)
+        # print( " Actor loss: ", lossActor)
         # self._advantage_shared.set_value(diff_)
         # lossActor, _ = self._trainActor()
         kl_after = self.kl_divergence()
