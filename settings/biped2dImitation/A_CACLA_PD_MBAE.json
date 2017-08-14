@@ -97,7 +97,7 @@
     "comment__": "How often to save the training data and plotting data",
 "saving_update_freq_num_rounds": 10,
     "comment__": "Number of treads that can be run in parallel during training",
-"num_available_threads": 8,
+"num_available_threads": 5,
     "comment__": "Length of the queues used to pass simulation data between the simulation workers and the learning agent(s).",
 "queue_size_limit": 1000,
     "comment__": "Number of actions performed between training updates",
@@ -219,10 +219,10 @@
 "reward_smoother": "gaussian",
 	"comment__": "Weights for different components of the reward function",
 "controller_reward_weights": {
-		"velocity": 0.35,
+		"velocity": 0.20,
 		"torque": 0.05,
-		"root_height": 0.1,
-		"pose_error": 0.5
+		"root_height": 0.05,
+		"pose_error": 0.7
 		},
 	"comment__": "Regularization weight for different between policy parameters and old policy parameters",
 "previous_value_regularization_weight":  0.001,
