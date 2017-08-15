@@ -210,7 +210,8 @@ class PPOCritic(AlgorithmInterface):
         # self._actLoss_ =  ( (self._log_prob).dot( self._Advantage) )
         self._r = (self._prob / self._prob_target)
         self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
-        self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 0.9, 1.1), self._Advantage))
+        ppo_epsilon = self.getSettings()['kl_divergence_threshold']
+        self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - ppo_epsilon, 1+ppo_epsilon), self._Advantage))
         self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
         

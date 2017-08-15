@@ -227,7 +227,9 @@ class A_CACLA(AlgorithmInterface):
         ### Noisey state updates
         # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._Fallen
         # self._target_dyna = theano.gradient.disconnected_grad(self._q_func)
-        self._diff_dyna = self._dyna_target - self._q_valsNextState
+        
+        ### _q_valsA because the predicted state is stored in self._model.getStateSymbolicVariable()
+        self._diff_dyna = self._dyna_target - self._q_valsA
         # loss = 0.5 * self._diff ** 2 
         loss = T.pow(self._diff_dyna, 2)
         self._loss_dyna = T.mean(loss)
@@ -235,8 +237,8 @@ class A_CACLA(AlgorithmInterface):
         self._dyna_grad = T.grad(self._loss_dyna + self._critic_regularization ,  self._params)
         
         self._givens_dyna = {
-            # self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             # self._Fallen: self._fallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
@@ -301,8 +303,8 @@ class A_CACLA(AlgorithmInterface):
         self._trainDyna = theano.function([], [self._loss_dyna], updates=self._DYNAUpdates, givens=self._givens_dyna)
         self._q_val = theano.function([], self._q_func,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
-        self._q_valTarget = theano.function([], self._q_funcTarget,
-                                       givens={self._model.getStateSymbolicVariable(): self._modelTarget.getStates()})
+        self._val_TargetNextState = theano.function([], self._q_valsTargetNextState,
+                                       givens={self._model.getResultStateSymbolicVariable(): self._model.getResultStates()})
         # self._q_val_drop = theano.function([], self._q_func_drop,
         #                                givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         # self._q_action_drop = theano.function([], self._q_valsActA_drop,
@@ -491,9 +493,34 @@ class A_CACLA(AlgorithmInterface):
             """
         return lossActor
     
-    def trainDyna(self, states, actions, rewards, result_states, falls):
-        self.setData(states, actions, rewards, result_states, falls)
-        values = self._q_valTarget()
+    def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
+        """
+            Performs a DYNA type update
+            Because I am using target network a direct DYNA update does nothing. 
+            The gradients are not calculated for the target network.
+            L(\theta) = (r + V(s'|\theta')) - V(s|\theta))
+            Instead what is done is this
+            L(\theta) = V(s_1|\theta')) - V(s_2|\theta))
+            Where s1 comes from the simulation and s2 is a predicted and noisey value from an fd model
+            Parameters
+            ----------
+            predicted_states : predicted states, s_1
+            
+            actions : list of actions
+                
+            rewards : rewards for taking action a_i
+            
+            result_states : simulated states, s_2
+            
+            falls: list of flags for whether or not the character fell
+            Returns
+            -------
+            
+            loss: the loss for the DYNA type update
+
+        """
+        self.setData(predicted_states, actions, rewards, result_states, falls)
+        values = self._val_TargetNextState()
         # print ("Dyna values: ", values)
         self._dyna_target_shared.set_value(values)
         dyna_loss = self._trainDyna()

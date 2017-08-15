@@ -271,8 +271,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             else:
                 advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
             advantage.append(0.0)
-            adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
-            print("Advantage: ", adv_r)
+            if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
+                adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
+                print("Advantage: ", adv_r)
             # print ("Advantage: ", advantage)
             G_ts.extend(copy.deepcopy(G_t))
             if (use_batched_exp):
@@ -565,8 +566,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # advantage.append([0.0])
     # print (" len(advantage): ", len(advantage), " len(G_t_rewards): ", len(G_t_rewards))
     advantage = np.reshape(advantage, newshape=(len(advantage), 1))
-    adv_r = [ [x[0], y] for x,y in zip(advantage, G_t_rewards)]
-    print ("Advantage for Episode: ", np.array(adv_r))
+    if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
+        adv_r = [ [x[0], y] for x,y in zip(advantage, G_t_rewards)]
+        print ("Advantage for Episode: ", np.array(adv_r))
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage)
     return (tuples, discounted_sum, q_value, evalData)
     
