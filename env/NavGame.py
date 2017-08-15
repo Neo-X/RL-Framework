@@ -160,7 +160,7 @@ class NavGame(object):
             self.collision(loc) or
             self.fall(loc)):
             # Can't move out of map or overlap an obstacle
-            return -2
+            return (self._state_bounds[0][0] - self._state_bounds[1][0])/4.0
             
         # if self._map[loc[0]-1][loc[1]-1] == 1:
             # Can't walk onto obstacles
@@ -202,7 +202,7 @@ class NavGame(object):
         # print ("Dist Vector: " + str(a) + " Distance: " + str(d))
         if d < 0.3:
             return 2.0
-        return -d/8.0 # return -1
+        return -d/((self._state_bounds[1][0]- self._state_bounds[0][0])/2.0)
     
     def getState(self):
         return self._agent

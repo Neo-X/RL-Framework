@@ -263,15 +263,16 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print("discounted reward: ", discounted_reward)
             baseline.append(0)
             baseline = np.array(baseline)
-            print (" G_t_rewards: ", G_t_rewards)
-            print (" baseline: ", baseline)
+            # print (" G_t_rewards: ", G_t_rewards)
+            # print (" baseline: ", baseline)
             deltas = G_t_rewards + discount_factor*baseline[1:] - baseline[:-1]
             if ('use_GAE' in settings and ( settings['use_GAE'] )): 
                 advantage.extend(discounted_rewards(deltas, discount_factor * settings['GAE_lambda']))
             else:
                 advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
-            advantage.append([0.0])
-            # print("Advantage: ", advantage)
+            advantage.append(0.0)
+            adv_r = [[x] + [y] for x,y in zip(advantage, G_t_rewards)]
+            print("Advantage: ", adv_r)
             # print ("Advantage: ", advantage)
             G_ts.extend(copy.deepcopy(G_t))
             if (use_batched_exp):
@@ -478,7 +479,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ((reward_ >= settings['reward_lower_bound'] )):
             # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * reward_))) # *(1.0-discount_factor))
             discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * (reward_ * (1.0-discount_factor) )))) # *(1.0-discount_factor))
-            baseline.append(model.q_value(state_))
+            baseline.append(model.q_value(state_)[0])
             # G_t.append((math.pow(discount_factor,0) * (reward_ * (1.0-discount_factor) ))) # *(1.0-discount_factor)))
             G_t_rewards.append(reward_)
             G_t.append(0) # *(1.0-discount_factor)))
@@ -561,8 +562,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         advantage.extend(discounted_rewards(deltas, discount_factor * settings['GAE_lambda']))
     else:
         advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
-    advantage.append([0.0])
-    # print ("Advantage for Episode: ", advantage)
+    # advantage.append([0.0])
+    print (" len(advantage): ", len(advantage), " len(G_t_rewards): ", len(G_t_rewards))
+    advantage = np.reshape(advantage, newshape=(len(advantage), 1))
+    adv_r = [ [x[0], y] for x,y in zip(advantage, G_t_rewards)]
+    print ("Advantage for Episode: ", np.array(adv_r))
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage)
     return (tuples, discounted_sum, q_value, evalData)
     

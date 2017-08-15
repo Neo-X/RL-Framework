@@ -155,11 +155,11 @@ class PPOCritic(AlgorithmInterface):
         }
         self._actGivens = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            self._Fallen: self._fallen_shared,
-            # self._advantage: self._advantage_shared,
+            # self._Fallen: self._fallen_shared,
+            self._advantage: self._advantage_shared,
             # self._KL_Weight: self._kl_weight_shared
         }
         
@@ -196,7 +196,8 @@ class PPOCritic(AlgorithmInterface):
         ## advantage = Q(a,s) - V(s) = (r + gamma*V(s')) - V(s) 
         # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._Fallen)) - self._q_func
         
-        self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
+        # self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
+        self._Advantage = self._advantage * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
         # self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         # self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
@@ -289,11 +290,11 @@ class PPOCritic(AlgorithmInterface):
         
         self._get_action_diff = theano.function([], [self._actLoss_], givens={
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            self._Fallen: self._fallen_shared,
-            # self._advantage: self._advantage_shared,
+            # self._Fallen: self._fallen_shared,
+            self._advantage: self._advantage_shared,
             # self._KL_Weight: self._kl_weight_shared
         })
         
@@ -397,8 +398,13 @@ class PPOCritic(AlgorithmInterface):
     def trainActor(self, states, actions, rewards, result_states, falls, advantage):
         
         self.setData(states, actions, rewards, result_states, falls)
-        # advantage = self._get_diff()[0]
-        # self._advantage_shared.set_value(advantage)
+        
+        if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
+            # self._advantage_shared.set_value(advantage)
+            pass # use given advantage parameter
+        else:
+            advantage = self._get_diff()[0]
+        self._advantage_shared.set_value(advantage)
         ## Update the network parameters of the target network
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
@@ -565,7 +571,7 @@ class PPOCritic(AlgorithmInterface):
         """
             For returning a vector of q values, state should already be normalized
         """
-        state = norm_state(state, self._state_bounds)
+        # state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
