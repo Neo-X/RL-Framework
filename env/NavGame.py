@@ -155,12 +155,12 @@ class NavGame(object):
         # loc = self._agent + (move * random.uniform(0.5,1.0))
         loc = self._agent + (move)
         
-        if (((loc[0] < self._state_bounds[0][0]) or (loc[0] > self._state_bounds[1][0]) or 
-            (loc[1] < self._state_bounds[0][1]) or (loc[1] > self._state_bounds[1][1])) or
+        if(
+           (np.any(np.less(loc, self._state_bounds[0])) or np.any(np.greater(loc, self._state_bounds[1]))) or
             self.collision(loc) or
             self.fall(loc)):
-            # Can't move out of map or overlap an obstacle
-            return (self._state_bounds[0][0] - self._state_bounds[1][0])/4.0
+            # can't overlap an obstacle
+            return (self._state_bounds[0][0] - self._state_bounds[1][0])/8.0
             
         # if self._map[loc[0]-1][loc[1]-1] == 1:
             # Can't walk onto obstacles

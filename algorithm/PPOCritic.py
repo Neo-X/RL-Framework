@@ -165,13 +165,13 @@ class PPOCritic(AlgorithmInterface):
         
         self._critic_regularization = (self._critic_regularization_weight * lasagne.regularization.regularize_network_params(
         self._model.getCriticNetwork(), lasagne.regularization.l2))
-        # self._actor_regularization = ( (self._regularization_weight * lasagne.regularization.regularize_network_params(
-        #         self._model.getActorNetwork(), lasagne.regularization.l2)) )
+        self._actor_regularization = (self._regularization_weight * lasagne.regularization.regularize_network_params(
+                self._model.getActorNetwork(), lasagne.regularization.l2))
         self._kl_firstfixed = T.mean(kl(self._q_valsActTarget, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length))
         # self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed )
         # self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (10*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
         #                                                                              T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
-        self._actor_regularization = 0.5 * T.mean(T.log(2 * np.pi * self._q_valsActASTD ) + 1 )
+        self._actor_entropy = 0.5 * T.mean(T.log(2 * np.pi * self._q_valsActASTD ) + 1 )
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
         # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
@@ -221,7 +221,7 @@ class PPOCritic(AlgorithmInterface):
         # self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._actor_regularization ))
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
-        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (1e-2 * self._actor_regularization)))
+        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (1e-2 * self._actor_entropy))) + self._actor_regularization
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
@@ -273,7 +273,12 @@ class PPOCritic(AlgorithmInterface):
         self._get_critic_regularization = theano.function([], [self._critic_regularization])
         self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         
-        self._get_actor_regularization = theano.function([], [self._actor_regularization],
+        self._get_actor_regularization = theano.function([], [self._actor_regularization]
+                                                            #givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+                                                                    # self._KL_Weight: self._kl_weight_shared
+                                                            #        }
+                                                         )
+        self._get_actor_entropy = theano.function([], [self._actor_entropy],
                                                             givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
                                                                     # self._KL_Weight: self._kl_weight_shared
                                                                     }
@@ -576,6 +581,7 @@ class PPOCritic(AlgorithmInterface):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         return self._q_valTarget()
+        # return self._q_val()
     
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
