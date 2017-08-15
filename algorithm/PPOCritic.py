@@ -555,8 +555,6 @@ class PPOCritic(AlgorithmInterface):
     def q_value(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
-        state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
@@ -567,6 +565,7 @@ class PPOCritic(AlgorithmInterface):
         """
             For returning a vector of q values, state should already be normalized
         """
+        state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
