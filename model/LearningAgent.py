@@ -168,7 +168,7 @@ class LearningAgent(AgentInterface):
                         ):
                         
                         predicted_result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
-                        cost = self._pol.trainDyna(states=predicted_result_states__, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                        cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         if not np.isfinite(cost) or (cost > 500) :
                             numpy.set_printoptions(threshold=numpy.nan)
                             print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
