@@ -265,13 +265,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             baseline = np.array(baseline)
             # print (" G_t_rewards: ", G_t_rewards)
             # print (" baseline: ", baseline)
-            deltas = G_t_rewards + discount_factor*baseline[1:] - baseline[:-1]
+            deltas = (G_t_rewards + discount_factor*baseline[1:]) - baseline[:-1]
             if ('use_GAE' in settings and ( settings['use_GAE'] )): 
                 advantage.extend(discounted_rewards(deltas, discount_factor * settings['GAE_lambda']))
             else:
                 advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
             advantage.append(0.0)
-            adv_r = [[x] + [y] for x,y in zip(advantage, G_t_rewards)]
+            adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
             print("Advantage: ", adv_r)
             # print ("Advantage: ", advantage)
             G_ts.extend(copy.deepcopy(G_t))

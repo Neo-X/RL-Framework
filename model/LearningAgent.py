@@ -120,6 +120,9 @@ class LearningAgent(AgentInterface):
                 # self._expBuff.clear()
             if (self._settings['train_actor']):
                 for i in range(self._settings['critic_updates_per_actor_update']):
+                    if ( 'use_multiple_policy_updates' in self._settings and ( self._settings['use_multiple_policy_updates']) ):
+                        _states, _actions, _result_states, _rewards, _falls, _advantage = self._expBuff.get_batch(self._settings["batch_size"])
+                        # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
             dynamicsLoss = 0 
             if (self._settings['train_forward_dynamics']):
