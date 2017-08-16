@@ -3,7 +3,7 @@ import os
 import math
 from actor.ActorInterface import ActorInterface
 import numpy as np
-from model.ModelUtil import clampAction 
+from model.ModelUtil import clampAction, clampActionWarn
 from model.ModelUtil import _scale_reward 
 from model.ModelUtil import randomExporation, randomUniformExporation, reward_smoother
 
@@ -17,9 +17,11 @@ class MocapImitationActor(ActorInterface):
         self._target_torque = 0
         self._target_root_height = 1.02
         self._target_hand_pos = 0.0
+        self._action_bounds = np.array(self._settings["action_bounds"], dtype=float)
         
     def updateAction(self, sim, action_):
         action_ = np.array(action_, dtype='float64')
+        (action_, outside_bounds) = clampActionWarn(action_, self._action_bounds)
         sim.getEnvironment().updateAction(action_)
         
     # @profile(precision=5)
@@ -36,6 +38,7 @@ class MocapImitationActor(ActorInterface):
         # print "Action: " + str(action_)
         ## Need to make sure this is an vector of doubles
         action_ = np.array(action_, dtype='float64')
+        (action_, outside_bounds) = clampActionWarn(action_, self._action_bounds)
         position_root = np.array(exp.getEnvironment().getActor().getStateEuler()[0:][:3])
         # print ("Relative Right arm pos: ", right_hand_pos-position_root)
         exp.getEnvironment().updateAction(action_)
