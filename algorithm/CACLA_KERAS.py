@@ -169,15 +169,14 @@ class CACLA_KERAS(AlgorithmInterface):
         
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
             # lossActor, _ = self._trainActor()
-            print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
+            # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
             # print( " Actor loss: ", lossActor)
             # print("Diff for actor: ", self._get_diff())
             # print ("Tmp_diff: ", tmp_diff)
             # print ( "Action before diff: ", self._get_actor_diff_())
             # print( "Action diff: ", self._get_action_diff())
             # return np.sqrt(lossActor);
-        else:
-            print( "No positive actions: ")
+            
         return lossActor
     
     def train(self, states, actions, rewards, result_states, falls):

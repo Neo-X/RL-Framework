@@ -83,7 +83,7 @@ def trainForwardDynamics(settingsFileName):
     if (settings['train_forward_dynamics']):
         print ("Created forward dynamics network")
         # model = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
-        model = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None)
+        model = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None)
         if settings['visualize_learning']:
             from NNVisualize import NNVisualize
             nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(settings["model_type"]))

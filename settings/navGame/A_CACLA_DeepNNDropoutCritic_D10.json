@@ -152,7 +152,7 @@
     "comment__": "epsilon lower limit",
 "min_epsilon": 0.15,
     "comment__": "Whether or not to draw/render the simulation",
-"shouldRender": false,
+"shouldRender": true,
     "comment__": "Learning rate use for model based action exploration",
 "action_learning_rate": 1.0,
     "comment__": "During model-based action exploration, Probability of random policy action",
@@ -216,5 +216,7 @@
 	"comment__": "How many gradient steps model based action exploration should take",
 "num_mbae_steps": 1,
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
-"fix_actor_batch_size": false
+"fix_actor_batch_size": true,
+	"comment__": "The number of critic updates that are done between every dyna update step.",
+"dyna_update_lag_steps": 10
 }

@@ -64,7 +64,7 @@ class LearningAgent(AgentInterface):
     def getExperience(self):
         return self._expBuff 
     
-    def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None):
+    def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, _exp_actions=None):
         if self._useLock:
             self._accesLock.acquire()
         cost = 0
@@ -77,6 +77,7 @@ class LearningAgent(AgentInterface):
             tmp_rewards = []
             tmp_falls = []
             tmp_advantage = []
+            tmp_exp_action = []
             # print ("Advantage:", _advantage)
             # print ("rewards:", _rewards)
             # print("Batch size: ", len(_states), len(_actions), len(_result_states), len(_rewards), len(_falls), len(_advantage))
@@ -88,7 +89,8 @@ class LearningAgent(AgentInterface):
                     tmp_rewards.append(reward__)
                     tmp_falls.append(fall__)
                     tmp_advantage.append(advantage__)
-                    tup = (state__, action__, next_state__, reward__, fall__, advantage__)
+                    tmp_exp_action.append([0])## Doesn't really matter for on policy methods
+                    tup = (state__, action__, next_state__, reward__, fall__, advantage__, [0])
                     self._expBuff.insertTuple(tup)
                     # print ("self._expBuff.samples(): ", self._expBuff.samples())
                 # else:
@@ -109,21 +111,39 @@ class LearningAgent(AgentInterface):
                 if (self._settings['critic_updates_per_actor_update'] > 1):
                     for i in range(self._settings['critic_updates_per_actor_update']):
                         # print ("Number of samples:", self._expBuff.samples())
-                        states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
+                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
                         cost = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                         # cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                 else:
                     # print ("Number of samples:", self._expBuff.samples())
-                    states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
+                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
                     # cost = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                     cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                 # self._expBuff.clear()
             if (self._settings['train_actor']):
-                cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
+                for i in range(self._settings['critic_updates_per_actor_update']):
+                    if ( 'use_multiple_policy_updates' in self._settings and ( self._settings['use_multiple_policy_updates']) ):
+                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
+                        # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
+                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
             dynamicsLoss = 0 
             if (self._settings['train_forward_dynamics']):
-                    dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
-        else:
+                for i in range(self._settings['critic_updates_per_actor_update']):
+                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
+                    dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__)
+                if (self._settings['train_critic_on_fd_output'] and 
+                        (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
+                        ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
+                        ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
+                        ):
+                        
+                        predicted_result_states__ = self._fd.predict_batch(states=states__, actions=actions__)
+                        cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                        if not np.isfinite(cost) or (cost > 500) :
+                            numpy.set_printoptions(threshold=numpy.nan)
+                            print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
+                            print ("Training cost is Odd: ", cost)
+        else: ## Off-policy
             # print("State Bounds LA:", self._pol.getStateBounds())
             # print("Action Bounds LA:", self._pol.getActionBounds())
             # print("Exp State Bounds LA: ", self._expBuff.getStateBounds())
@@ -131,7 +151,7 @@ class LearningAgent(AgentInterface):
             
             for update in range(self._settings['training_updates_per_sim_action']): ## Even more training options...
                 for i in range(self._settings['critic_updates_per_actor_update']):
-                    _states, _actions, _result_states, _rewards, _falls, _G_ts = self._expBuff.get_batch(self._settings["batch_size"])
+                    _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(self._settings["batch_size"])
                     # print ("Updating Critic")
                     cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                     if not np.isfinite(cost) or (cost > 500) :
@@ -139,7 +159,7 @@ class LearningAgent(AgentInterface):
                         print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                         print ("Training cost is Odd: ", cost)
                 if (self._settings['train_actor']):
-                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
+                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, exp_actions=_exp_actions)
                 dynamicsLoss = 0 
                 if (self._settings['train_forward_dynamics']):
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
@@ -149,8 +169,8 @@ class LearningAgent(AgentInterface):
                         ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
                         ):
                         
-                        result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
-                        cost = self._pol.trainDyna(states=_result_states, actions=_actions, rewards=_rewards, result_states=result_states__, falls=_falls)
+                        predicted_result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
+                        cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         if not np.isfinite(cost) or (cost > 500) :
                             numpy.set_printoptions(threshold=numpy.nan)
                             print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
@@ -290,7 +310,7 @@ class LearningWorker(Process):
             # print ("Learning agent experience size: " + str(self._agent._expBuff.samples()))
             step_ += 1
             if self._agent._expBuff.samples() > self._agent._settings["batch_size"] and ((step_ >= self._agent._settings['sim_action_per_training_update']) ):
-                __states, __actions, __result_states, __rewards, __falls, __G_ts = self._agent._expBuff.get_batch(self._agent._settings["batch_size"])
+                __states, __actions, __result_states, __rewards, __falls, __G_ts, __exp_actions = self._agent._expBuff.get_batch(self._agent._settings["batch_size"])
                 # print ("States: " + str(__states) + " ResultsStates: " + str(__result_states) + " Rewards: " + str(__rewards) + " Actions: " + str(__actions))
                 (cost, dynamicsLoss) = self._agent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls)
                 # print ("Master Agent Running training step, cost: " + str(cost) + " PID " + str(os.getpid()))
@@ -308,6 +328,7 @@ class LearningWorker(Process):
                 # self._learningNamespace.experience = self._agent._expBuff
                 ## put and do not block
                 try:
+                    # print ("Sending network params:")
                     if (not (self._output_message_queue.full())):
                         self._output_message_queue.put(data, False)
                     else:
@@ -318,6 +339,7 @@ class LearningWorker(Process):
                     print ("LearningAgent: output model parameter message queue full: ", self._output_message_queue.qsize())
                 step_=0
             iterations_+=1
+            # print ("Done one update:")
         print ("Learning Worker Complete:")
         
     def updateExperience(self, experience):

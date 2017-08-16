@@ -133,6 +133,14 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
         model = DeepNNWideDropoutCritic(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
         return model  
+    elif (model_type == "Deep_NN_TanH" ):
+        from model.DeepNNTanH import DeepNNTanH
+        print("Creating network model: ", model_type)
+        model = DeepNNTanH(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+        return model  
+    
+    
     elif (model_type == "DumbModel" ):
         model = DumbModel(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
@@ -343,6 +351,25 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = NavGameEnv(exp, settings)
         return exp
     
+    elif env_type == 'openAIGym':
+        import gym
+        from gym import wrappers
+        from gym import envs
+        from sim.OpenAIGymEnv import OpenAIGymEnv
+        # print(envs.registry.all())
+        
+        # env = gym.make('CartPole-v0')
+        env_name = config_file
+        env = gym.make(env_name)
+        # file = open(config_file)
+        # conf = json.load(file)
+        
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = OpenAIGymEnv(env, conf)
+        exp = exp
+        return exp
+    
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D') or 
           (env_type == 'simbiconBiped2DTerrain') or (env_type == 'hopper_2D')):
         import simbiconAdapter
@@ -355,7 +382,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = SimbiconEnv(sim, settings)
         exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
-    elif ((env_type == 'mocapImitation2D')):
+    elif ((env_type == 'mocapImitation2D') or (env_type == 'mocapImitation3D')):
         import simbiconAdapter
         from sim.MocapImitationEnv import MocapImitationEnv
         c = simbiconAdapter.Configuration(config_file)
@@ -458,7 +485,7 @@ def createActor(env_type, settings, experience):
           (env_type == 'simbiconBiped2DTerrain')):
         from actor.SimbiconActor import SimbiconActor
         actor = SimbiconActor(settings, experience)
-    elif ((env_type == 'mocapImitation2D')):
+    elif ((env_type == 'mocapImitation2D') or (env_type == 'mocapImitation3D')):
         from actor.MocapImitationActor import MocapImitationActor
         actor = MocapImitationActor(settings, experience)
     elif ((env_type == 'hopper_2D')):
@@ -479,6 +506,9 @@ def createActor(env_type, settings, experience):
     elif (env_type == 'pendulum'):
         from actor.ActorInterface import ActorInterface
         actor = ActorInterface(settings, experience)
+    elif (env_type == 'openAIGym'):
+        from actor.OpenAIGymActor import OpenAIGymActor
+        actor = OpenAIGymActor(settings, experience)
     else:
         print("Error actor type unknown: ", env_type)
         raise ValueError("Error actor type unknown: ", env_type)
@@ -585,8 +615,13 @@ def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
         from model.ForwardDynamicsCNNDropout import ForwardDynamicsCNNDropout
         print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         forwardDynamicsNetwork = ForwardDynamicsCNNDropout(len(state_bounds[0]), len(action_bounds[0]), 
-                                                        state_bounds, action_bounds, settings)       
-        
+                                                        state_bounds, action_bounds, settings)   
+    elif settings["forward_dynamics_model_type"] == "Deep_Dense_NN_Dropout":
+        from model.ForwardDynamicsDenseNetworkDropout import ForwardDynamicsDenseNetworkDropout
+        print ("Using forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
+        forwardDynamicsNetwork = ForwardDynamicsDenseNetworkDropout(len(state_bounds[0]), len(action_bounds[0]), 
+                                                        state_bounds, action_bounds, settings)   
+            
     else:
         print ("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         raise ValueError("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))

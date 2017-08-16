@@ -227,6 +227,8 @@ class A_CACLA(AlgorithmInterface):
         ### Noisey state updates
         # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._Fallen
         # self._target_dyna = theano.gradient.disconnected_grad(self._q_func)
+        
+        ### _q_valsA because the predicted state is stored in self._model.getStateSymbolicVariable()
         self._diff_dyna = self._dyna_target - self._q_valsNextState
         # loss = 0.5 * self._diff ** 2 
         loss = T.pow(self._diff_dyna, 2)
@@ -301,7 +303,7 @@ class A_CACLA(AlgorithmInterface):
         self._trainDyna = theano.function([], [self._loss_dyna], updates=self._DYNAUpdates, givens=self._givens_dyna)
         self._q_val = theano.function([], self._q_func,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
-        self._q_valTarget = theano.function([], self._q_funcTarget,
+        self._val_TargetState = theano.function([], self._q_funcTarget,
                                        givens={self._model.getStateSymbolicVariable(): self._modelTarget.getStates()})
         # self._q_val_drop = theano.function([], self._q_func_drop,
         #                                givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
@@ -386,6 +388,7 @@ class A_CACLA(AlgorithmInterface):
     def trainCritic(self, states, actions, rewards, result_states, falls):
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
+        # print("Value function rewards: ", rewards)
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
@@ -412,7 +415,7 @@ class A_CACLA(AlgorithmInterface):
         
         return loss
     
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None):
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
         # if (( self._updates % self._weight_update_steps) == 0):
@@ -434,7 +437,13 @@ class A_CACLA(AlgorithmInterface):
         tmp_diff=[]
         """
         for i in range(len(diff_)):
-            if ( diff_[i] > 0.0):
+            if ( (diff_[i] > 0.0)
+                  and 
+                    (
+                      #  (exp_actions == None) or
+                       (exp_actions[i] == 1)
+                    )
+                  ):
                 if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):
                     self._actor_buffer_diff.append([1.0])
                     #  print("Not using advantage")
@@ -490,9 +499,34 @@ class A_CACLA(AlgorithmInterface):
             """
         return lossActor
     
-    def trainDyna(self, states, actions, rewards, result_states, falls):
-        self.setData(states, actions, rewards, result_states, falls)
-        values = self._q_valTarget()
+    def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
+        """
+            Performs a DYNA type update
+            Because I am using target network a direct DYNA update does nothing. 
+            The gradients are not calculated for the target network.
+            L(\theta) = (r + V(s'|\theta')) - V(s|\theta))
+            Instead what is done is this
+            L(\theta) = V(s_1|\theta')) - V(s_2|\theta))
+            Where s1 comes from the simulation and s2 is a predicted and noisey value from an fd model
+            Parameters
+            ----------
+            predicted_states : predicted states, s_1
+            
+            actions : list of actions
+                
+            rewards : rewards for taking action a_i
+            
+            result_states : simulated states, s_2
+            
+            falls: list of flags for whether or not the character fell
+            Returns
+            -------
+            
+            loss: the loss for the DYNA type update
+
+        """
+        self.setData( result_states, actions, rewards, predicted_states, falls)
+        values = self._val_TargetState()
         # print ("Dyna values: ", values)
         self._dyna_target_shared.set_value(values)
         dyna_loss = self._trainDyna()

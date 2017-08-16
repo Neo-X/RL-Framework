@@ -87,7 +87,7 @@ class ForwardDynamicsNNDropout(ModelInterface):
             with_std = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._state_length,
                     nonlinearity=theano.tensor.nnet.softplus)
-            self._forward_dynamics_net = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
+            self._forward_dynamics_net = lasagne.layers.ConcatLayer([self._forward_dynamics_net, with_std], axis=1)
                 
         self._states_shared = theano.shared(
             np.zeros((batch_size, self._state_length),

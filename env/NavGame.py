@@ -69,10 +69,15 @@ class NavGame(object):
         obstacles = []
         obstacles.append([self._state_bounds[0][0]]*self._state_length)
         obstacles.append([self._state_bounds[1][0]]*self._state_length)
+        obstacles.append([4]*self._state_length)
+        obstacles.append([-4]*self._state_length)
+        obstacles.append([4] + ([-4]*(self._state_length-1)))
+        obstacles.append([-4] + ([4]*(self._state_length-1)))
+        """
         num_random_obstacles=5
         for i in range(num_random_obstacles):
             obstacles.append(np.random.random_integers(self._state_bounds[0][0], self._state_bounds[1][0], self._state_length))
-        
+        """
         self._obstacles = np.array(obstacles)
         
         # if self._settings['render'] == True:
@@ -150,12 +155,12 @@ class NavGame(object):
         # loc = self._agent + (move * random.uniform(0.5,1.0))
         loc = self._agent + (move)
         
-        if (((loc[0] < self._state_bounds[0][0]) or (loc[0] > self._state_bounds[1][0]) or 
-            (loc[1] < self._state_bounds[0][1]) or (loc[1] > self._state_bounds[1][1])) or
+        if(
+           (np.any(np.less(loc, self._state_bounds[0])) or np.any(np.greater(loc, self._state_bounds[1]))) or
             self.collision(loc) or
             self.fall(loc)):
-            # Can't move out of map or overlap an obstacle
-            return -2
+            # can't overlap an obstacle
+            return (self._state_bounds[0][0] - self._state_bounds[1][0])/8.0
             
         # if self._map[loc[0]-1][loc[1]-1] == 1:
             # Can't walk onto obstacles
@@ -197,7 +202,7 @@ class NavGame(object):
         # print ("Dist Vector: " + str(a) + " Distance: " + str(d))
         if d < 0.3:
             return 2.0
-        return -d/8.0 # return -1
+        return -d/((self._state_bounds[1][0]- self._state_bounds[0][0])/2.0)
     
     def getState(self):
         return self._agent
@@ -242,8 +247,8 @@ class NavGame(object):
             (self._state_bounds[0][0], self._state_bounds[0][0]),
             (self._state_bounds[1][0]-self._state_bounds[0][0]),
             (self._state_bounds[1][0]-self._state_bounds[0][0]),
-            alpha=0.45,
-            facecolor="#000000"
+            alpha=0.25,
+            facecolor="#999999"
             # fill=False      # remove background
         )
         self._map_ax.add_patch(p)
@@ -256,8 +261,8 @@ class NavGame(object):
             (self._state_bounds[0][0], self._state_bounds[0][0]),
             (self._state_bounds[1][0]-self._state_bounds[0][0]),
             (self._state_bounds[1][0]-self._state_bounds[0][0]),
-            alpha=0.45,
-            facecolor="#000000"
+            alpha=0.25,
+            facecolor="#999999"
             # fill=False      # remove background
         )
         self._policy_ax.add_patch(p)
@@ -289,8 +294,8 @@ class NavGame(object):
         q_max = np.max(Q)
         q_min = np.min(Q)
         Q = (Q - q_min)/ (q_max-q_min)
-        self._policy2 = self._policy_ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
-        self._policy = self._policy_ax.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
+        self._policy2 = self._policy_ax.quiver(X,Y,U,V,Q, alpha=.75, linewidth=0.5, width=0.005, pivot='mid', angles='xy', linestyles='-', scale=50.0)
+        # self._policy = self._policy_ax.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
         
         ### Add value visulization
         # self._value_function = self._policy_ax.hexbin(X.ravel(), Y.ravel(), C=(Q.ravel()*10), gridsize=30, cmap=CM.jet, bins=None)
@@ -309,8 +314,8 @@ class NavGame(object):
             (self._state_bounds[0][0], self._state_bounds[0][0]),
             (self._state_bounds[1][0]-self._state_bounds[0][0]),
             (self._state_bounds[1][0]-self._state_bounds[0][0]),
-            alpha=0.45,
-            facecolor="#000000"
+            alpha=0.25,
+            facecolor="#999999"
             # fill=False      # remove background
         )
         self._policy_mbae.add_patch(p)
@@ -329,14 +334,14 @@ class NavGame(object):
         q_max = np.max(Q)
         q_min = np.min(Q)
         Q = (Q - q_min)/ (q_max-q_min)
-        self._mbae2 = self._policy_mbae.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
-        self._mbae = self._policy_mbae.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
+        self._mbae2 = self._policy_mbae.quiver(X,Y,U,V,Q, alpha=.75, linewidth=0.5, width=0.01, pivot='mid', angles='xy', linestyles='-', scale=25.0)
+        # self._mbae = self._policy_mbae.quiver(X,Y,U,V, linewidth=0.5, width=0.01, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
         
         # Two subplots, unpack the axes array immediately
         self._fig3, (self._fd_error) = plt.subplots(1, 1, sharey=False)
         self._fig3.set_size_inches(8.5, 8.5, forward=True)
-        self._fd2 = self._fd_error.quiver(X,Y,U,V,Q, alpha=.75, linewidth=1.0, pivot='mid', angles='xy', linestyles='-', scale=25.0)
-        self._fd = self._fd_error.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
+        self._fd2 = self._fd_error.quiver(X,Y,U,V,Q, alpha=.75, linewidth=0.5, width=0.005, pivot='mid', angles='xy', linestyles='-', scale=25.0)
+        # self._fd = self._fd_error.quiver(X,Y,U,V, linewidth=0.5, pivot='mid', edgecolor='k', headaxislength=3, facecolor='None', angles='xy', linestyles='-', scale=25.0)
         self._fd_error.set_title('MBAE FD error')
         p = patches.Rectangle(
             (self._state_bounds[0][0], self._state_bounds[0][0]),
@@ -379,7 +384,7 @@ class NavGame(object):
                                                    256)
         self._policy2.cmap._set_extremes()
         """
-        self._policy.set_UVC(U, V)
+        # self._policy.set_UVC(U, V)
         self._fig.canvas.draw()
         
         # self._value_function.set_edgecolors(Q)
@@ -404,7 +409,7 @@ class NavGame(object):
                                                    256)
         self._policy2.cmap._set_extremes()
         """
-        self._mbae.set_UVC(U, V)
+        # self._mbae.set_UVC(U, V)
         self._fig2.canvas.draw()
         
     def updateFD(self, U, V, Q):
@@ -426,7 +431,7 @@ class NavGame(object):
                                                    256)
         self._policy2.cmap._set_extremes()
         """
-        self._fd.set_UVC(U, V)
+        # self._fd.set_UVC(U, V)
         self._fig3.canvas.draw()
         
     def reachedTarget(self):
@@ -445,6 +450,8 @@ class NavGame(object):
         if (self._settings['train_forward_dynamics']):
             self._fig2.savefig(fileName+"_MBAE.svg")
             self._fig2.savefig(fileName+"_MBAE.png")
+            self._fig3.savefig(fileName+"_FD_error.svg")
+            self._fig3.savefig(fileName+"_FD_error.png")
         
     def finish(self):
         pass

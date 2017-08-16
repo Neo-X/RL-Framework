@@ -17,12 +17,15 @@ class SimInterface(object):
         self._exp = exp
         self._settings = settings_
         self._actor = DoNothingActor()
-
+        
     def getSettings(self):
         return self._settings
         
     def getEnvironment(self):
         return self._exp
+    
+    def endOfEpoch(self):
+        return self.getEnvironment().endOfEpoch()
 
     def init(self):
         self.getEnvironment().init()
