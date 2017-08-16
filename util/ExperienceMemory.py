@@ -53,6 +53,7 @@ class ExperienceMemory(object):
             self._reward_history = (np.zeros((self._history_size, 1), dtype='float32'))
             self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
             self._discounted_sum_history = (np.zeros((self._history_size, 1), dtype='float32'))
+            self._exp_action_history = (np.zeros((self._history_size, 1), dtype='int8'))
         else:
             self._state_history = (np.zeros((self._history_size, self._state_length), dtype='float64'))
             if self._continuous_actions:
@@ -63,15 +64,16 @@ class ExperienceMemory(object):
             self._reward_history = (np.zeros((self._history_size, 1), dtype='float64'))
             self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
             self._discounted_sum_history = (np.zeros((self._history_size, 1), dtype='float64'))
+            self._exp_action_history = (np.zeros((self._history_size, 1), dtype='int8'))
         
     def insertTuple(self, tuple):
         
-        (state, action, nextState, reward, fall, G_t) = tuple
-        self.insert(state, action, nextState, reward, fall, G_t)
+        (state, action, nextState, reward, fall, G_t, exp_action) = tuple
+        self.insert(state, action, nextState, reward, fall, G_t, exp_action)
         
     
         
-    def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]]):
+    def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]], exp_action=[[0]]):
         # print "Instert State: " + str(state)
         # state = list(state)
         
@@ -97,6 +99,7 @@ class ExperienceMemory(object):
         self._reward_history[self._history_update_index] = np.array(reward)
         self._fall_history[self._history_update_index] = np.array(fall)
         self._discounted_sum_history[self._history_update_index] = np.array(G_t)
+        self._exp_action_history[self._history_update_index] = np.array(exp_action)
         # print ("fall: ", fall)
         # print ("self._fall_history: ", self._fall_history[self._history_update_index])
         
@@ -124,6 +127,7 @@ class ExperienceMemory(object):
         reward = []
         fall = []
         G_ts = []
+        exp_actions = []
         # scale_state(self._state_history[i], self._state_bounds)
         for i in indices:
             state.append(norm_state(self._state_history[i], self._state_bounds))
@@ -136,6 +140,7 @@ class ExperienceMemory(object):
                 reward.append(self._reward_history[i] * ((1.0-self._settings['discount_factor']))) # scale rewards
             fall.append(self._fall_history[i])
             G_ts.append(self._discounted_sum_history[i])
+            exp_actions.append(self._exp_action_history[i])
             
         # print c
         # print experience[indices]
@@ -160,8 +165,9 @@ class ExperienceMemory(object):
             G_ts = np.array(G_ts, dtype='float64')
         
         fall = np.array(fall, dtype='int8')
+        exp_actions = np.array(exp_actions, dtype='int8')
          
-        return (state, action, resultState, reward, fall, G_ts)
+        return (state, action, resultState, reward, fall, G_ts, exp_actions)
     
     def setStateBounds(self, _state_bounds):
         self._state_bounds = _state_bounds
@@ -189,6 +195,7 @@ class ExperienceMemory(object):
         hf.create_dataset('_reward_history', data=self._reward_history)
         hf.create_dataset('_fall_history', data=self._fall_history)
         hf.create_dataset('_discounted_sum_history', data=self._discounted_sum_history)
+        hf.create_dataset('_exp_action_history', data=self._exp_action_history)
         
         hf.create_dataset('_history_size', data=[self._history_size])
         hf.create_dataset('_history_update_index', data=[self._history_update_index])
@@ -210,6 +217,7 @@ class ExperienceMemory(object):
         self._reward_history = np.array(hf.get('_reward_history'))
         self._fall_history = np.array(hf.get('_fall_history'))
         self._discounted_sum_history = np.array(hf.get('_discounted_sum_history'))
+        self._exp_action_history = np.array(hf.get('_exp_action_history'))
         
         self._history_size = int(hf.get('_history_size')[()])
         self._history_update_index = int(hf.get('_history_update_index')[()])

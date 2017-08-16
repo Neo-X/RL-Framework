@@ -415,7 +415,7 @@ class A_CACLA(AlgorithmInterface):
         
         return loss
     
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None):
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
         # if (( self._updates % self._weight_update_steps) == 0):
@@ -437,7 +437,13 @@ class A_CACLA(AlgorithmInterface):
         tmp_diff=[]
         """
         for i in range(len(diff_)):
-            if ( diff_[i] > 0.0):
+            if ( (diff_[i] > 0.0)
+                  and 
+                    (
+                      #  (exp_actions == None) or
+                       (exp_actions[i] == 1)
+                    )
+                  ):
                 if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):
                     self._actor_buffer_diff.append([1.0])
                     #  print("Not using advantage")

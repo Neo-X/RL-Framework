@@ -477,7 +477,7 @@ def trainModelParallel(settingsFileName):
                     out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
                        print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
                     (tuples, discounted_sum, q_value, evalData) = out
-                    (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__) = tuples
+                    (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__) = tuples
                     # print("**** training states: ", np.array(__states).shape)
                     # print("**** training __result_states: ", np.array(__result_states).shape)
                     # print ("Actions before: ", __actions)
@@ -492,7 +492,7 @@ def trainModelParallel(settingsFileName):
                 # pr.enable()
                 # print ("Current Tuple: " + str(learningNamespace.experience.current()))
                 if masterAgent.getExperience().samples() > batch_size:
-                    states, actions, result_states, rewards, falls, G_ts = masterAgent.getExperience().get_batch(batch_size)
+                    states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
                     print ("Batch size: " + str(batch_size))
                     error = masterAgent.bellman_error(states, actions, rewards, result_states, falls)
                     bellman_errors.append(error)
