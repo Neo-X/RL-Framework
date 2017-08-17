@@ -7,7 +7,6 @@ import sys
 import numpy as np
 import math
 import copy 
-from scipy import signal, misc
 import scipy
 
 anchors__name="anchors"
@@ -32,6 +31,7 @@ def chunks(l, n):
         yield l[i:i+n]
         
 def discounted_rewards(rewards, discount_factor):
+    from scipy import signal, misc
     """
     computes discounted sums along 0th dimension of x.
     inputs
