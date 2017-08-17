@@ -437,10 +437,17 @@ class A_CACLA(AlgorithmInterface):
         tmp_diff=[]
         """
         for i in range(len(diff_)):
-            if ( (diff_[i] > 0.0)
-                  and 
+            if ( ((diff_[i] > 0.0) and 
+                    ((not ('only_use_exp_actions_for_poli_updates' in self.getSettings())) or
+                     (('only_use_exp_actions_for_poli_updates' in self.getSettings())) and
+                     (not self.getSettings()['only_use_exp_actions_for_poli_updates'])
+                     )
+                  )
+                  or 
                     (
-                      #  (exp_actions == None) or
+                     (diff_[i] > 0.0) and 
+                     (('only_use_exp_actions_for_poli_updates' in self.getSettings())) and
+                     (self.getSettings()['only_use_exp_actions_for_poli_updates']) and 
                        (exp_actions[i] == 1)
                     )
                   ):
