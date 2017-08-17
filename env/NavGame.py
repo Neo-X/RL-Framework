@@ -84,7 +84,8 @@ class NavGame(object):
         U = np.zeros((self._state_length * self._state_length))
         V = np.ones((self._state_length * self._state_length))
         Q = np.random.rand((self._state_length * self._state_length))
-        self.initRender(U, V, Q)
+        if self._settings['render']:
+            self.initRender(U, V, Q)
         
     def init(self):
         self._agent = np.array([2]* self._state_length) ## Somewhat random initial spot
@@ -360,79 +361,83 @@ class NavGame(object):
         # update pieces of the animation
         # self._agent = self._agent + np.array([0.1,0.1])
         # print ("Agent loc: " + str(self._agent))
-        self._particles.set_data(self._agent[0], self._agent[1] )
-        self._particles.set_markersize(self._markerSize)
+        if self._settings['render']:
+            self._particles.set_data(self._agent[0], self._agent[1] )
+            self._particles.set_markersize(self._markerSize)
         # self._line1.set_ydata(np.sin(x + phase))
         # self._fig.canvas.draw()
         
     def updatePolicy(self, U, V, Q):
         # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
-        textstr = """$\max V=%.2f$\n$\min V=%.2f$"""%(np.max(Q), np.min(Q))
-        self._policyText.set_text(textstr)
-        q_max = np.max(Q)
-        q_min = np.min(Q)
-        Q = (Q - q_min)/ (q_max-q_min)
-        self._policy2.set_UVC(U, V, Q)
-        # self._policy2.set_vmin(1.0)
-        """
-        self._policy2.update_scalarmappable()
-        print ("cmap " + str(self._policy2.cmap)  )
-        print ("Face colours" + str(self._policy2.get_facecolor()))
-        colours = ['gray','black','blue']
-        cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                   colours,
-                                                   256)
-        self._policy2.cmap._set_extremes()
-        """
-        # self._policy.set_UVC(U, V)
-        self._fig.canvas.draw()
+        if self._settings['render']:
+            textstr = """$\max V=%.2f$\n$\min V=%.2f$"""%(np.max(Q), np.min(Q))
+            self._policyText.set_text(textstr)
+            q_max = np.max(Q)
+            q_min = np.min(Q)
+            Q = (Q - q_min)/ (q_max-q_min)
+            self._policy2.set_UVC(U, V, Q)
+            # self._policy2.set_vmin(1.0)
+            """
+            self._policy2.update_scalarmappable()
+            print ("cmap " + str(self._policy2.cmap)  )
+            print ("Face colours" + str(self._policy2.get_facecolor()))
+            colours = ['gray','black','blue']
+            cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                       colours,
+                                                       256)
+            self._policy2.cmap._set_extremes()
+            """
+            # self._policy.set_UVC(U, V)
+            self._fig.canvas.draw()
         
         # self._value_function.set_edgecolors(Q)
         # self._value_function.set_data(Q)
         
     def updateMBAE(self, U, V, Q):
         # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
-        textstr = """$\max A(s,a)=%.2f$\n$\min A(s,a)=%.2f$"""%(np.max(Q), np.min(Q))
-        self._mbaeText.set_text(textstr)
-        q_max = np.max(Q)
-        q_min = np.min(Q)
-        Q = (Q - q_min)/ (q_max-q_min)
-        self._mbae2.set_UVC(U, V, Q)
-        # self._policy2.set_vmin(1.0)
-        """
-        self._policy2.update_scalarmappable()
-        print ("cmap " + str(self._policy2.cmap)  )
-        print ("Face colours" + str(self._policy2.get_facecolor()))
-        colours = ['gray','black','blue']
-        cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                   colours,
-                                                   256)
-        self._policy2.cmap._set_extremes()
-        """
-        # self._mbae.set_UVC(U, V)
-        self._fig2.canvas.draw()
+        if self._settings['render']:
+            textstr = """$\max A(s,a)=%.2f$\n$\min A(s,a)=%.2f$"""%(np.max(Q), np.min(Q))
+            self._mbaeText.set_text(textstr)
+            q_max = np.max(Q)
+            q_min = np.min(Q)
+            Q = (Q - q_min)/ (q_max-q_min)
+            self._mbae2.set_UVC(U, V, Q)
+            # self._policy2.set_vmin(1.0)
+            """
+            self._policy2.update_scalarmappable()
+            print ("cmap " + str(self._policy2.cmap)  )
+            print ("Face colours" + str(self._policy2.get_facecolor()))
+            colours = ['gray','black','blue']
+            cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                       colours,
+                                                       256)
+            self._policy2.cmap._set_extremes()
+            """
+            # self._mbae.set_UVC(U, V)
+            self._fig2.canvas.draw()
         
     def updateFD(self, U, V, Q):
         # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
         # textstr = """$\max A(s,a)=%.2f$\n$\min A(s,a)=%.2f$"""%(np.max(Q), np.min(Q))
         # self._mbaeText.set_text(textstr)
-        q_max = np.max(Q)
-        q_min = np.min(Q)
-        Q = (Q - q_min)/ (q_max-q_min)
-        self._fd2.set_UVC(U, V, Q)
-        # self._policy2.set_vmin(1.0)
-        """
-        self._policy2.update_scalarmappable()
-        print ("cmap " + str(self._policy2.cmap)  )
-        print ("Face colours" + str(self._policy2.get_facecolor()))
-        colours = ['gray','black','blue']
-        cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
-                                                   colours,
-                                                   256)
-        self._policy2.cmap._set_extremes()
-        """
-        # self._fd.set_UVC(U, V)
-        self._fig3.canvas.draw()
+        if self._settings['render']:
+            q_max = np.max(Q)
+            q_min = np.min(Q)
+            Q = (Q - q_min)/ (q_max-q_min)
+            self._fd2.set_UVC(U, V, Q)
+            # self._policy2.set_vmin(1.0)
+            """
+            self._policy2.update_scalarmappable()
+            print ("cmap " + str(self._policy2.cmap)  )
+            print ("Face colours" + str(self._policy2.get_facecolor()))
+            colours = ['gray','black','blue']
+            cmap2 = mpl.colors.LinearSegmentedColormap.from_list('my_colormap',
+                                                       colours,
+                                                       256)
+            self._policy2.cmap._set_extremes()
+            """
+            # self._fd.set_UVC(U, V)
+            self._fig3.canvas.draw()
         
     def reachedTarget(self):
         # Might be a little touchy because floats are used
@@ -445,13 +450,14 @@ class NavGame(object):
 
     def saveVisual(self, fileName):
         # plt.savefig(fileName+".svg")
-        self._fig.savefig(fileName+".svg")
-        self._fig.savefig(fileName+".png")
-        if (self._settings['train_forward_dynamics']):
-            self._fig2.savefig(fileName+"_MBAE.svg")
-            self._fig2.savefig(fileName+"_MBAE.png")
-            self._fig3.savefig(fileName+"_FD_error.svg")
-            self._fig3.savefig(fileName+"_FD_error.png")
+        if self._settings['render']:
+            self._fig.savefig(fileName+".svg")
+            self._fig.savefig(fileName+".png")
+            if (self._settings['train_forward_dynamics']):
+                self._fig2.savefig(fileName+"_MBAE.svg")
+                self._fig2.savefig(fileName+"_MBAE.png")
+                self._fig3.savefig(fileName+"_FD_error.svg")
+                self._fig3.savefig(fileName+"_FD_error.png")
         
     def finish(self):
         pass
