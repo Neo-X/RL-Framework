@@ -23,6 +23,17 @@ for the pickeling of objects as well as other things.
  8. sudo pip install h5py  
 	This library is used to save and load data from files
 
+## Install On Windows
+
+  1. Install [Anaconda](https://www.continuum.io/downloads)
+  1. Follow the [setup instruction for Theano](http://deeplearning.net/software/theano/install_windows.html#install-requirements-and-optional-packages)
+   which are 
+   ```
+   	conda install numpy scipy mkl-service libpython m2w64-toolchain <nose> <nose-parameterized> <sphinx> <pydot-ng>
+   ```
+
+
+
 ### For GPU training
 
  1. sudo apt-get install nvidia-cuda-toolkit nvidia-cuda-dev nvidia-modprobe  
