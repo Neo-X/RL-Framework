@@ -93,6 +93,13 @@ class PPOCritic(AlgorithmInterface):
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True))
         
+        self._dyna_target = T.col("DYNA_Target")
+        self._dyna_target.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
+        
+        self._dyna_target_shared = theano.shared(
+            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
+            broadcastable=(False, True))
+        
         self._KL_Weight = T.scalar("KL_Weight")
         self._KL_Weight.tag.test_value = np.zeros((1),dtype=np.dtype(self.getSettings()['float_type']))[0]
         
@@ -114,6 +121,7 @@ class PPOCritic(AlgorithmInterface):
         
         self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsA_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
+        self._q_valsNextState = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
         self._q_valsTargetNextState = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
         self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsTarget_drop = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
@@ -252,6 +260,37 @@ class PPOCritic(AlgorithmInterface):
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         }
         
+        ### _q_valsA because the predicted state is stored in self._model.getStateSymbolicVariable()
+        self._diff_dyna = self._dyna_target - self._q_valsNextState
+        # loss = 0.5 * self._diff ** 2 
+        loss = T.pow(self._diff_dyna, 2)
+        self._loss_dyna = T.mean(loss)
+        
+        self._dyna_grad = T.grad(self._loss_dyna + self._critic_regularization ,  self._params)
+        
+        self._givens_dyna = {
+            # self._model.getStateSymbolicVariable(): self._model.getStates(),
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            # self._Fallen: self._fallen_shared
+            # self._model.getActionSymbolicVariable(): self._actions_shared,
+            self._dyna_target: self._dyna_target_shared
+        }
+        if (self.getSettings()['optimizer'] == 'rmsprop'):
+            self._DYNAUpdates = lasagne.updates.rmsprop(self._dyna_grad, self._params, 
+                    self._learning_rate , self._rho, self._rms_epsilon)
+        elif (self.getSettings()['optimizer'] == 'momentum'):
+            self._DYNAUpdates = lasagne.updates.momentum(self._dyna_grad, self._params, 
+                    self._learning_rate , momentum=self._rho)
+        elif ( self.getSettings()['optimizer'] == 'adam'):
+            self._DYNAUpdates = lasagne.updates.adam(self._dyna_grad, self._params, 
+                    self._learning_rate , beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
+        elif ( self.getSettings()['optimizer'] == 'adagrad'):
+            self._DYNAUpdates = lasagne.updates.adagrad(self._dyna_grad, self._params, 
+                    self._learning_rate, epsilon=self._rms_epsilon)
+        else:
+            print ("Unknown optimization method: ", self.getSettings()['optimizer'])
+        
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
         
@@ -307,8 +346,11 @@ class PPOCritic(AlgorithmInterface):
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         self._trainActor = theano.function([], [self._actLoss, self._q_func_drop], updates=self._actionUpdates, givens=self._actGivens)
+        self._trainDyna = theano.function([], [self._loss_dyna], updates=self._DYNAUpdates, givens=self._givens_dyna)
         self._q_val = theano.function([], self._q_func,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+        self._val_TargetState = theano.function([], self._q_funcTarget,
+                                       givens={self._model.getStateSymbolicVariable(): self._modelTarget.getStates()})
         self._q_valTarget = theano.function([], self._q_funcTarget,
                                        givens={self._model.getStateSymbolicVariable(): self._modelTarget.getStates()})
         self._q_val_drop = theano.function([], self._q_func_drop,
@@ -512,6 +554,39 @@ class PPOCritic(AlgorithmInterface):
             # return np.sqrt(lossActor);
         """
         return lossActor
+    
+    def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
+        """
+            Performs a DYNA type update
+            Because I am using target network a direct DYNA update does nothing. 
+            The gradients are not calculated for the target network.
+            L(\theta) = (r + V(s'|\theta')) - V(s|\theta))
+            Instead what is done is this
+            L(\theta) = V(s_1|\theta')) - V(s_2|\theta))
+            Where s1 comes from the simulation and s2 is a predicted and noisey value from an fd model
+            Parameters
+            ----------
+            predicted_states : predicted states, s_1
+            
+            actions : list of actions
+                
+            rewards : rewards for taking action a_i
+            
+            result_states : simulated states, s_2
+            
+            falls: list of flags for whether or not the character fell
+            Returns
+            -------
+            
+            loss: the loss for the DYNA type update
+
+        """
+        self.setData( result_states, actions, rewards, predicted_states, falls)
+        values = self._val_TargetState()
+        # print ("Dyna values: ", values)
+        self._dyna_target_shared.set_value(values)
+        dyna_loss = self._trainDyna()
+        return dyna_loss[0]
     
     def train(self, states, actions, rewards, result_states, falls):
         loss = self.trainCritic(states, actions, rewards, result_states, falls)
