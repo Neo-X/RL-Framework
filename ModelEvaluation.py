@@ -566,17 +566,15 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     baseline = np.array(baseline)
     # print (" G_t_rewards: ", G_t_rewards)
     # print (" baseline: ", baseline)
-    deltas = G_t_rewards + discount_factor*baseline[1:] - baseline[:-1]
+    deltas = (G_t_rewards + discount_factor*baseline[1:]) - baseline[:-1]
     if ('use_GAE' in settings and ( settings['use_GAE'] )): 
         advantage.extend(discounted_rewards(deltas, discount_factor * settings['GAE_lambda']))
     else:
         advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
-    # advantage.append([0.0])
-    # print (" len(advantage): ", len(advantage), " len(G_t_rewards): ", len(G_t_rewards))
-    advantage = np.reshape(advantage, newshape=(len(advantage), 1))
+    advantage.append(0.0)
     if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
-        adv_r = [ [x[0], y] for x,y in zip(advantage, G_t_rewards)]
-        print ("Advantage for Episode: ", np.array(adv_r))
+        adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
+        print("Advantage for episode: ", adv_r)
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage, exp_actions)
     return (tuples, discounted_sum, q_value, evalData)
     
