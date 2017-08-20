@@ -255,5 +255,7 @@
 	"comment__": "Use generalized advantage estimation",
 "use_GAE": true,
 	"comment__": "generalized advantage estimation lambda in [0,1]",
-"GAE_lambda": 0.95
+"GAE_lambda": 0.95,
+	"comment__": "Only use exploratory actions to update the policy",
+"only_use_exp_actions_for_poli_updates": true
 }
