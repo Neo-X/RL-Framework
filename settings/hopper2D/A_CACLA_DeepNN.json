@@ -90,7 +90,7 @@
     "comment__": "Number of treads that can be run in parallel during training",
 "num_available_threads": 5,
     "comment__": "Length of the queues used to pass simulation data between the simulation workers and the learning agent(s).",
-"queue_size_limit": 1000,
+"queue_size_limit": 500,
     "comment__": "Number of actions performed between training updates",
 "sim_action_per_training_update": 8,
     "comment__": "Number of rounds of adaptive sampling",
