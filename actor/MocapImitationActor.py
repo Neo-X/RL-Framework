@@ -92,9 +92,13 @@ class MocapImitationActor(ActorInterface):
             print ("vel_reward: ", vel_reward)
         ## Rewarded for using less torque
         torque_diff = averageTorque
+        if (self._settings["print_level"]== 'debug'):
+            print ("torque_diff: ", torque_diff)
         _bounds = self._settings['controller_parameter_settings']['torque_bounds']
         torque_diff = _scale_reward([torque_diff], _bounds)[0]
         torque_reward = reward_smoother(torque_diff, self._settings, self._target_vel_weight)
+        if (self._settings["print_level"]== 'debug'):
+            print ("torque_reward: ", torque_reward)
         ## Rewarded for keeping the y height of the root at a specific height 
         root_height_diff = (averagePositionError)
         if (self._settings["print_level"]== 'debug'):
