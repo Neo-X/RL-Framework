@@ -15,60 +15,9 @@ import lasagne
 import sys
 import copy
 sys.path.append('../')
-from model.ModelUtil import *
 from algorithm.AlgorithmInterface import AlgorithmInterface
-
-def change_penalty(network1, network2):
-    """
-    The networks should be the same shape and design
-    return ||network1 - network2||_2
-    """
-    return sum(T.sum((x1-x2)**2) for x1,x2 in zip(get_all_params(network1), get_all_params(network2)))
-
-def flatgrad(loss, var_list):
-    grads = T.grad(loss, var_list)
-    return T.concatenate([g.flatten() for g in grads])
-
-def zipsame(*seqs):
-    L = len(seqs[0])
-    assert all(len(seq) == L for seq in seqs[1:])
-    return zip(*seqs)
-
-
-def kl(mean0, std0, mean1, std1, d):
-    """
-        The first districbution should be from a fixed distribution. 
-        The second should be from the distribution that will change from the parameter update.
-        Parameters
-        ----------
-        mean0: mean of fixed distribution
-        std0: standard deviation of fixed distribution
-        mean1: mean of moving distribution
-        std1: standard deviation of moving distribution
-        d: is the dimensionality of the action space
-        
-        Return(s)
-        ----------
-        Vector: Of kl_divergence for each sample/row in the input data
-    """
-    return T.log(std1 / std0).sum(axis=1) + ((T.square(std0) + T.square(mean0 - mean1)) / (2.0 * T.square(std1))).sum(axis=1) - 0.5 * d
-
-def loglikelihood(a, mean0, std0, d):
-    """
-        d is the number of action dimensions
-    """
-    
-    # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
-    return T.reshape(- 0.5 * (T.square(a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(-1, 1))
-    # return (- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1))
-
-
-def likelihood(a, mean0, std0, d):
-    return T.exp(loglikelihood(a, mean0, std0, d))
-
-# For debugging
-# theano.config.mode='FAST_COMPILE'
-# from DeepCACLA import DeepCACLA
+from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std
+from model.LearningUtil import loglikelihood, likelihood, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat 
 
 class PPO(AlgorithmInterface):
     
@@ -93,6 +42,13 @@ class PPO(AlgorithmInterface):
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True))
         
+        self._dyna_target = T.col("DYNA_Target")
+        self._dyna_target.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
+        
+        self._dyna_target_shared = theano.shared(
+            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
+            broadcastable=(False, True))
+        
         self._KL_Weight = T.scalar("KL_Weight")
         self._KL_Weight.tag.test_value = np.zeros((1),dtype=np.dtype(self.getSettings()['float_type']))[0]
         
@@ -114,6 +70,7 @@ class PPO(AlgorithmInterface):
         
         self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsA_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
+        self._q_valsNextState = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
         self._q_valsTargetNextState = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
         self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsTarget_drop = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
@@ -122,10 +79,10 @@ class PPO(AlgorithmInterface):
         self._q_valsActASTD = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)[:,self._action_length:]
         
         ## prevent value from being 0
-        self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 1e-3
+        self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 1e-1
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
-        self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 1e-3
+        self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 1e-1
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -160,18 +117,18 @@ class PPO(AlgorithmInterface):
             self._model.getActionSymbolicVariable(): self._model.getActions(),
             # self._Fallen: self._fallen_shared,
             self._advantage: self._advantage_shared,
-            self._KL_Weight: self._kl_weight_shared
+            # self._KL_Weight: self._kl_weight_shared
         }
         
         self._critic_regularization = (self._critic_regularization_weight * lasagne.regularization.regularize_network_params(
         self._model.getCriticNetwork(), lasagne.regularization.l2))
-        # self._actor_regularization = ( (self._regularization_weight * lasagne.regularization.regularize_network_params(
-        #         self._model.getActorNetwork(), lasagne.regularization.l2)) )
+        self._actor_regularization = (self._regularization_weight * lasagne.regularization.regularize_network_params(
+                self._model.getActorNetwork(), lasagne.regularization.l2))
         self._kl_firstfixed = T.mean(kl(self._q_valsActTarget, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length))
         # self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed )
-        self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (1000*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
-                                                                                     T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
-        
+        # self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (10*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
+        #                                                                              T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
+        self._actor_entropy = 0.5 * T.mean(T.log(2 * np.pi * self._q_valsActASTD ) + 1 )
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
         # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
@@ -197,16 +154,23 @@ class PPO(AlgorithmInterface):
         # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._Fallen)) - self._q_func
         
         # self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
-        self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
-        self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
+        self._Advantage = self._advantage * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
+        # self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        # self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
+        self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        self._prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target).dot(self._Advantage)) )
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target) * (self._Advantage)) )
         # self._actLoss_ = ( ((self._log_prob) * self._Advantage) )
         # self._actLoss_ = ( ((self._log_prob)) )
         ## This does the sum already
         # self._actLoss_ =  ( (self._log_prob).dot( self._Advantage) )
+        self._r = (self._prob / self._prob_target)
+        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
+        ppo_epsilon = self.getSettings()['kl_divergence_threshold']
+        self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - ppo_epsilon, 1+ppo_epsilon), self._Advantage))
+        self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._advantage)
         
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob), self._Advantage)
         # self._actLoss_ = T.mean(self._log_prob) 
@@ -215,10 +179,11 @@ class PPO(AlgorithmInterface):
         # self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._actor_regularization ))
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
-        self._actLoss = (-1.0 * T.mean(self._actLoss_)) + (1.0 *self._actor_regularization)
+        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (1e-2 * self._actor_entropy))) + self._actor_regularization
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
+        self._policy_grad = lasagne.updates.total_norm_constraint(self._policy_grad, 5)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             self._actionUpdates = lasagne.updates.rmsprop(self._policy_grad, self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
@@ -231,6 +196,25 @@ class PPO(AlgorithmInterface):
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
             
+        
+        self._full_loss = (self._loss + 
+                           self._critic_regularization +
+                           (-1.0 * (T.mean(self._actLoss_) + (1e-2 * self._actor_entropy))) 
+                           + self._actor_regularization
+                           )
+        self._both_grad = T.grad(self._actLoss ,  self._actionParams)
+        self._both_grad = lasagne.updates.total_norm_constraint(self._both_grad, 5)
+        if (self.getSettings()['optimizer'] == 'rmsprop'):
+            self._cellectiveUpdates = lasagne.updates.rmsprop(self._both_grad, self._actionParams, 
+                    self._learning_rate , self._rho, self._rms_epsilon)
+        elif (self.getSettings()['optimizer'] == 'momentum'):
+            self._cellectiveUpdates = lasagne.updates.momentum(self._both_grad, self._actionParams, 
+                    self._learning_rate , momentum=self._rho)
+        elif ( self.getSettings()['optimizer'] == 'adam'):
+            self._cellectiveUpdates = lasagne.updates.adam(self._both_grad, self._actionParams, 
+                    self._learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
+        else:
+            print ("Unknown optimization method: ", self.getSettings()['optimizer'])
             
         
         # actionUpdates = lasagne.updates.rmsprop(T.mean(self._q_funcAct_drop) + 
@@ -244,6 +228,37 @@ class PPO(AlgorithmInterface):
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         }
         
+        ### _q_valsA because the predicted state is stored in self._model.getStateSymbolicVariable()
+        self._diff_dyna = self._dyna_target - self._q_valsNextState
+        # loss = 0.5 * self._diff ** 2 
+        loss = T.pow(self._diff_dyna, 2)
+        self._loss_dyna = T.mean(loss)
+        
+        self._dyna_grad = T.grad(self._loss_dyna + self._critic_regularization ,  self._params)
+        
+        self._givens_dyna = {
+            # self._model.getStateSymbolicVariable(): self._model.getStates(),
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            # self._Fallen: self._fallen_shared
+            # self._model.getActionSymbolicVariable(): self._actions_shared,
+            self._dyna_target: self._dyna_target_shared
+        }
+        if (self.getSettings()['optimizer'] == 'rmsprop'):
+            self._DYNAUpdates = lasagne.updates.rmsprop(self._dyna_grad, self._params, 
+                    self._learning_rate , self._rho, self._rms_epsilon)
+        elif (self.getSettings()['optimizer'] == 'momentum'):
+            self._DYNAUpdates = lasagne.updates.momentum(self._dyna_grad, self._params, 
+                    self._learning_rate , momentum=self._rho)
+        elif ( self.getSettings()['optimizer'] == 'adam'):
+            self._DYNAUpdates = lasagne.updates.adam(self._dyna_grad, self._params, 
+                    self._learning_rate , beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
+        elif ( self.getSettings()['optimizer'] == 'adagrad'):
+            self._DYNAUpdates = lasagne.updates.adagrad(self._dyna_grad, self._params, 
+                    self._learning_rate, epsilon=self._rms_epsilon)
+        else:
+            print ("Unknown optimization method: ", self.getSettings()['optimizer'])
+        
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
         
@@ -254,7 +269,7 @@ class PPO(AlgorithmInterface):
         #### Stuff for Debugging #####
         #### Stuff for Debugging #####
         self._get_diff = theano.function([], [self._diff], givens=self._givens_)
-        # self._get_advantage = theano.function([], [self._advantage], givens=self._givens_)
+        self._get_advantage = self._get_diff
         # self._get_advantage = theano.function([], [self._advantage])
         self._get_target = theano.function([], [self._target], givens={
             # self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -266,9 +281,16 @@ class PPO(AlgorithmInterface):
         self._get_critic_regularization = theano.function([], [self._critic_regularization])
         self._get_critic_loss = theano.function([], [self._loss], givens=self._givens_)
         
-        self._get_actor_regularization = theano.function([], [self._actor_regularization],
+        self._get_actor_regularization = theano.function([], [self._actor_regularization]
+                                                            #givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+                                                                    # self._KL_Weight: self._kl_weight_shared
+                                                            #        }
+                                                         )
+        self._get_actor_entropy = theano.function([], [self._actor_entropy],
                                                             givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
-                                                                    self._KL_Weight: self._kl_weight_shared})
+                                                                    # self._KL_Weight: self._kl_weight_shared
+                                                                    }
+                                                         )
         self._get_actor_loss = theano.function([], [self._actLoss], givens=self._actGivens)
         # self._get_actor_diff_ = theano.function([], [self._actDiff], givens= self._actGivens)
         """{
@@ -292,8 +314,11 @@ class PPO(AlgorithmInterface):
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         self._trainActor = theano.function([], [self._actLoss, self._q_func_drop], updates=self._actionUpdates, givens=self._actGivens)
+        self._trainDyna = theano.function([], [self._loss_dyna], updates=self._DYNAUpdates, givens=self._givens_dyna)
         self._q_val = theano.function([], self._q_func,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+        self._val_TargetState = theano.function([], self._q_funcTarget,
+                                       givens={self._model.getStateSymbolicVariable(): self._modelTarget.getStates()})
         self._q_valTarget = theano.function([], self._q_funcTarget,
                                        givens={self._model.getStateSymbolicVariable(): self._modelTarget.getStates()})
         self._q_val_drop = theano.function([], self._q_func_drop,
@@ -304,12 +329,17 @@ class PPO(AlgorithmInterface):
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._q_action_std = theano.function([], self._q_valsActASTD,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
-        self._get_log_prob = theano.function([], self._log_prob,
+        self._get_log_prob = theano.function([], self._prob,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
                                                self._model.getActionSymbolicVariable(): self._model.getActions(),})
-        self._get_log_prob_target = theano.function([], self._log_prob_target,
+        self._get_log_prob_target = theano.function([], self._prob_target,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
                                                self._model.getActionSymbolicVariable(): self._model.getActions(),})
+        
+        self._get_r = theano.function([], self._r,
+                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+                                               self._model.getActionSymbolicVariable(): self._model.getActions(),
+                                               })
         
         self._q_action_target = theano.function([], self._q_valsActTarget,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
@@ -336,7 +366,7 @@ class PPO(AlgorithmInterface):
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_paramsA)
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA) 
-    
+        
     def setData(self, states, actions, rewards, result_states, fallen):
         self._model.setStates(states)
         self._model.setResultStates(result_states)
@@ -384,11 +414,16 @@ class PPO(AlgorithmInterface):
     def trainActor(self, states, actions, rewards, result_states, falls, advantage):
         
         self.setData(states, actions, rewards, result_states, falls)
-        advantage = self._get_diff()[0]
-        self._advantage_shared.set_value(advantage)
         
-        # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
-        # lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
+        if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
+            # self._advantage_shared.set_value(advantage)
+            pass # use given advantage parameter
+        else:
+            advantage = self._get_diff()[0]
+        self._advantage_shared.set_value(advantage)
+        ## Update the network parameters of the target network
+        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+        lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
         # print ("Performing Critic trainning update")
         # if (( self._updates % self._weight_update_steps) == 0):
         #     self.updateTargetModel()
@@ -398,22 +433,34 @@ class PPO(AlgorithmInterface):
         lossActor = 0
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        # print("Advantage: ", np.mean(self._get_advantage()))
-        print("Advantage: ", np.mean(advantage))
-        print("Actions:     ", np.mean(actions, axis=0))
+        print("Advantage, model: ", np.mean(self._get_advantage()), " std: ", np.std(self._get_advantage()))
+        print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
+        print("Actions mean:     ", np.mean(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
         # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
         print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
+        # print("Actions std:  ", np.std((actions), axis=0) )
         print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
         print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
         print( "Actor loss: ", np.mean(self._get_action_diff()))
+        # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
         # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
         ## Sometimes really HUGE losses appear, ocasionally
-        if (np.abs(np.mean(self._get_action_diff())) < 10): 
+        lossActor = np.abs(np.mean(self._get_action_diff()))
+        if (lossActor < 100): 
             lossActor, _ = self._trainActor()
+        else:
+            print ("**********************Did not train actor this time: expected loss to high, ", lossActor)
+    
         print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
+        if (not np.isfinite(np.mean(self._get_log_prob(), axis=0))):
+            np.mean(self._get_log_prob(), axis=0)
+            print ( self._get_log_prob() )
+            all_paramsActA = lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork())
+            lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), all_paramsActA)
+        print("Policy log prob target after: ", np.mean(self._get_log_prob_target(), axis=0))
         # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
-        print( " Actor loss: ", lossActor)
+        # print( " Actor loss: ", lossActor)
         # self._advantage_shared.set_value(diff_)
         # lossActor, _ = self._trainActor()
         kl_after = self.kl_divergence()
@@ -423,22 +470,22 @@ class PPO(AlgorithmInterface):
         else:
             self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()/2.0)
         """  
-    
+        """
         kl_coeff = self._kl_weight_shared.get_value()
         if kl_after > 1.3*self.getSettings()['kl_divergence_threshold']: 
             kl_coeff *= 1.5
-            # if (kl_coeff > 1e-8):
-            self._kl_weight_shared.set_value(kl_coeff)
-            print "Got KL=%.3f (target %.3f). Increasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
+            if (kl_coeff < 1e+8):
+                self._kl_weight_shared.set_value(kl_coeff)
+                print "Got KL=%.3f (target %.3f). Increasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
         elif kl_after < 0.7*self.getSettings()['kl_divergence_threshold']: 
             kl_coeff /= 1.5
-            # if (kl_coeff > 1e-8):
-            self._kl_weight_shared.set_value(kl_coeff)
-            print "Got KL=%.3f (target %.3f). Decreasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
+            if ( kl_coeff > 1e-8 ):
+                self._kl_weight_shared.set_value(kl_coeff)
+                print "Got KL=%.3f (target %.3f). Decreasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
         else:
             print ("KL=%.3f is close enough to target %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold']))
         print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
-        
+        """
         print( "Policy loss: ", lossActor)
         
         
@@ -475,6 +522,39 @@ class PPO(AlgorithmInterface):
             # return np.sqrt(lossActor);
         """
         return lossActor
+    
+    def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
+        """
+            Performs a DYNA type update
+            Because I am using target network a direct DYNA update does nothing. 
+            The gradients are not calculated for the target network.
+            L(\theta) = (r + V(s'|\theta')) - V(s|\theta))
+            Instead what is done is this
+            L(\theta) = V(s_1|\theta')) - V(s_2|\theta))
+            Where s1 comes from the simulation and s2 is a predicted and noisey value from an fd model
+            Parameters
+            ----------
+            predicted_states : predicted states, s_1
+            
+            actions : list of actions
+                
+            rewards : rewards for taking action a_i
+            
+            result_states : simulated states, s_2
+            
+            falls: list of flags for whether or not the character fell
+            Returns
+            -------
+            
+            loss: the loss for the DYNA type update
+
+        """
+        self.setData( result_states, actions, rewards, predicted_states, falls)
+        values = self._val_TargetState()
+        # print ("Dyna values: ", values)
+        self._dyna_target_shared.set_value(values)
+        dyna_loss = self._trainDyna()
+        return dyna_loss[0]
     
     def train(self, states, actions, rewards, result_states, falls):
         loss = self.trainCritic(states, actions, rewards, result_states, falls)
@@ -531,8 +611,8 @@ class PPO(AlgorithmInterface):
     def q_value(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
@@ -543,10 +623,12 @@ class PPO(AlgorithmInterface):
         """
             For returning a vector of q values, state should already be normalized
         """
+        # state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         return self._q_valTarget()
+        # return self._q_val()
     
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
@@ -560,162 +642,3 @@ class PPO(AlgorithmInterface):
         self.setData(states, actions, rewards, result_states, falls)
         return self._bellman_error2()
         # return self._bellman_errorTarget()
-
-
-"""
-class TrpoUpdater(EzFlat, EzPickle):
-    
-    options = [
-        ("cg_damping", float, 1e-3, "Add multiple of the identity to Fisher matrix during CG"),
-        ("max_kl", float, 1e-2, "KL divergence between old and new policy (averaged over state-space)"),
-    ]
-
-    def __init__(self, stochpol, usercfg):
-        EzPickle.__init__(self, stochpol, usercfg)
-        cfg = update_default_config(self.options, usercfg)
-
-        self.stochpol = stochpol
-        self.cfg = cfg
-
-        probtype = stochpol.probtype
-        params = stochpol.trainable_variables
-        EzFlat.__init__(self, params)
-
-        ob_no = stochpol.input
-        act_na = probtype.sampled_variable()
-        adv_n = T.vector("adv_n")
-
-        # Probability distribution:
-        prob_np = stochpol.get_output()
-        oldprob_np = probtype.prob_variable()
-
-        logp_n = probtype.loglikelihood(act_na, prob_np)
-        oldlogp_n = probtype.loglikelihood(act_na, oldprob_np)
-        N = ob_no.shape[0]
-
-        # Policy gradient:
-        surr = (-1.0 / N) * T.exp(logp_n - oldlogp_n).dot(adv_n)
-        pg = flatgrad(surr, params)
-
-        prob_np_fixed = theano.gradient.disconnected_grad(prob_np)
-        kl_firstfixed = probtype.kl(prob_np_fixed, prob_np).sum()/N
-        ## first derivative of kl
-        grads = T.grad(kl_firstfixed, params)
-        flat_tangent = T.fvector(name="flat_tan")
-        shapes = [var.get_value(borrow=True).shape for var in params]
-        start = 0
-        ## Collect the current tangents
-        tangents = []
-        for shape in shapes:
-            size = np.prod(shape)
-            tangents.append(T.reshape(flat_tangent[start:start+size], shape))
-            start += size
-        ## fisher vector product  (gvp: gradient vector product, fvp: fisher vector product)
-        ## grad * tangent = jacobian    
-        gvp = T.add(*[T.sum(g*tangent) for (g, tangent) in zipsame(grads, tangents)]) #pylint: disable=E1111
-        # Fisher-vector product
-        ## I think this computes the jacobian over the dot product between two gradients, resulting in the Hessian
-        fvp = flatgrad(gvp, params)
-
-        ent = probtype.entropy(prob_np).mean()
-        kl = probtype.kl(oldprob_np, prob_np).mean()
-
-        losses = [surr, kl, ent]
-        self.loss_names = ["surr", "kl", "ent"]
-
-        args = [ob_no, act_na, adv_n, oldprob_np]
-
-        self.compute_policy_gradient = theano.function(args, pg, **FNOPTS)
-        self.compute_losses = theano.function(args, losses, **FNOPTS)
-        self.compute_fisher_vector_product = theano.function([flat_tangent] + args, fvp, **FNOPTS)
-
-    def __call__(self, paths):
-        cfg = self.cfg
-        prob_np = concat([path["prob"] for path in paths])
-        ob_no = concat([path["observation"] for path in paths])
-        action_na = concat([path["action"] for path in paths])
-        advantage_n = concat([path["advantage"] for path in paths])
-        args = (ob_no, action_na, advantage_n, prob_np)
-
-        thprev = self.get_params_flat()
-        def fisher_vector_product(p):
-            return self.compute_fisher_vector_product(p, *args)+cfg["cg_damping"]*p #pylint: disable=E1101,W0640
-        g = self.compute_policy_gradient(*args)
-        losses_before = self.compute_losses(*args)
-        if np.allclose(g, 0):
-            print "got zero gradient. not updating"
-        else:
-            stepdir = cg(fisher_vector_product, -g)
-            ## preconditioner, I think
-            shs = .5*stepdir.dot(fisher_vector_product(stepdir))
-            lm = np.sqrt(shs / cfg["max_kl"])
-            print "lagrange multiplier:", lm, "gnorm:", np.linalg.norm(g)
-            fullstep = stepdir / lm
-            neggdotstepdir = -g.dot(stepdir)
-            def loss(th):
-                self.set_params_flat(th)
-                ## Returns surrogate loss
-                return self.compute_losses(*args)[0] #pylint: disable=W0640
-            ## line searcho ver surrogate loss
-            success, theta = linesearch(loss, thprev, fullstep, neggdotstepdir/lm)
-            print "success", success
-            self.set_params_flat(theta)
-        losses_after = self.compute_losses(*args)
-
-        out = OrderedDict()
-        for (lname, lbefore, lafter) in zipsame(self.loss_names, losses_before, losses_after):
-            out[lname+"_before"] = lbefore
-            out[lname+"_after"] = lafter
-        return out
-
-def linesearch(f, x, fullstep, expected_improve_rate, max_backtracks=10, accept_ratio=.1):
-    
-    fval = f(x)
-    print "fval before", fval
-    for (_n_backtracks, stepfrac) in enumerate(.5**np.arange(max_backtracks)):
-        xnew = x + stepfrac*fullstep
-        newfval = f(xnew)
-        actual_improve = fval - newfval
-        expected_improve = expected_improve_rate*stepfrac
-        ratio = actual_improve/expected_improve
-        print "a/e/r", actual_improve, expected_improve, ratio
-        if ratio > accept_ratio and actual_improve > 0:
-            print "fval after", newfval
-            return True, xnew
-    return False, x
-
-def cg(f_Ax, b, cg_iters=10, callback=None, verbose=False, residual_tol=1e-10):
-    
-    ## Copies of policy gradient
-    p = b.copy()
-    r = b.copy()
-    x = np.zeros_like(b)
-    rdotr = r.dot(r)
-
-    fmtstr =  "%10i %10.3g %10.3g"
-    titlestr =  "%10s %10s %10s"
-    if verbose: print titlestr % ("iter", "residual norm", "soln norm")
-
-    for i in xrange(cg_iters):
-        if callback is not None:
-            callback(x)
-        if verbose: print fmtstr % (i, rdotr, np.linalg.norm(x))
-        ## fisher vector product of policy gradient
-        z = f_Ax(p)
-        ## 
-        v = rdotr / p.dot(z)
-        x += v*p
-        r -= v*z
-        newrdotr = r.dot(r)
-        mu = newrdotr/rdotr
-        p = r + mu*p
-
-        rdotr = newrdotr
-        if rdotr < residual_tol:
-            break
-
-    if callback is not None:
-        callback(x)
-    if verbose: print fmtstr % (i+1, rdotr, np.linalg.norm(x))  # pylint: disable=W0631
-    return x
-"""
