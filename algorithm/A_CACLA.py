@@ -436,20 +436,23 @@ class A_CACLA(AlgorithmInterface):
         tmp_falls=[]
         tmp_diff=[]
         """
+        """
+            ((not ('only_use_exp_actions_for_poli_updates' in self.getSettings())) or
+             (('only_use_exp_actions_for_poli_updates' in self.getSettings())) and
+             (not self.getSettings()['only_use_exp_actions_for_poli_updates'])
+             )
+          )
+          or 
+            (
+             (diff_[i] > 0.0) and 
+             (('only_use_exp_actions_for_poli_updates' in self.getSettings())) and
+             (self.getSettings()['only_use_exp_actions_for_poli_updates']) and 
+               (exp_actions[i] == 1)
+            )
+        """
         for i in range(len(diff_)):
             if ( ((diff_[i] > 0.0) and 
-                    ((not ('only_use_exp_actions_for_poli_updates' in self.getSettings())) or
-                     (('only_use_exp_actions_for_poli_updates' in self.getSettings())) and
-                     (not self.getSettings()['only_use_exp_actions_for_poli_updates'])
-                     )
-                  )
-                  or 
-                    (
-                     (diff_[i] > 0.0) and 
-                     (('only_use_exp_actions_for_poli_updates' in self.getSettings())) and
-                     (self.getSettings()['only_use_exp_actions_for_poli_updates']) and 
-                       (exp_actions[i] == 1)
-                    )
+                   (exp_actions[i] == 1))
                   ):
                 if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):
                     self._actor_buffer_diff.append([1.0])

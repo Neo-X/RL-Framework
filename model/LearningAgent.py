@@ -69,6 +69,9 @@ class LearningAgent(AgentInterface):
             self._accesLock.acquire()
         cost = 0
         if self._settings['on_policy']:
+            if ( ('clear_exp_mem_on_poli' in self._settings) and 
+                 self._settings['clear_exp_mem_on_poli']):
+                self._expBuff.clear()
             
             ### Validate data
             tmp_states = []

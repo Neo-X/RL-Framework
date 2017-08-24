@@ -575,6 +575,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
         adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
         print("Advantage for episode: ", adv_r)
+    advantage = np.reshape(np.array([advantage]), newshape=(-1,1))
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage, exp_actions)
     return (tuples, discounted_sum, q_value, evalData)
     

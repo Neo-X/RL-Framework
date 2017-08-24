@@ -10,7 +10,7 @@
 	"comment": "initial probability of selecting a discrete random action",
 "omega": 0.00,
     "comment__": "Batch size used for learning",
-"batch_size": 256,
+"batch_size": 64,
     "comment__": "Learning rate for the actor/policy",
 "learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
@@ -232,5 +232,7 @@
 	"comment__": "generalized advantage estimation lambda in [0,1]",
 "GAE_lambda": 0.95,
 	"comment__": "Whether or not to take a couple of on policy updates",
-"use_multiple_policy_updates": false	
+"use_multiple_policy_updates": false,	
+	"comment__": "Whether or not to clear the experience memory after each update is done, for pure on policy methods",
+"clear_exp_mem_on_poli": true
 }
