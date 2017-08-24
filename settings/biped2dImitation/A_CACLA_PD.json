@@ -202,10 +202,10 @@
 "use_parameterized_control": false,
 	"comment__": "parameter bounds for parameterized controller",
 "controller_parameter_settings": {
-		"velocity_bounds": [[0.0],[1.5]],
+		"velocity_bounds": [[0.5],[1.5]],
 		"root_height_bounds": [[0.7],[1.1]],
 		"torque_bounds": [[0.0],[1.0]],
-		"pose_error_bounds": [[0.0], [0.25]]
+		"pose_error_bounds": [[0.0], [1.0]]
 		},
 	"comment__": "The parameter used to control the average change in the control parameters",
 "average_parameter_change": 0.25,
