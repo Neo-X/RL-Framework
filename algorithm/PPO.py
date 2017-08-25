@@ -202,16 +202,16 @@ class PPO(AlgorithmInterface):
                            (-1.0 * (T.mean(self._actLoss_) + (1e-2 * self._actor_entropy))) 
                            + self._actor_regularization
                            )
-        self._both_grad = T.grad(self._actLoss ,  self._actionParams)
+        self._both_grad = T.grad(self._full_loss ,  self._actionParams)
         self._both_grad = lasagne.updates.total_norm_constraint(self._both_grad, 5)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
-            self._cellectiveUpdates = lasagne.updates.rmsprop(self._both_grad, self._actionParams, 
+            self._collectiveUpdates = lasagne.updates.rmsprop(self._both_grad, self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
         elif (self.getSettings()['optimizer'] == 'momentum'):
-            self._cellectiveUpdates = lasagne.updates.momentum(self._both_grad, self._actionParams, 
+            self._collectiveUpdates = lasagne.updates.momentum(self._both_grad, self._actionParams, 
                     self._learning_rate , momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
-            self._cellectiveUpdates = lasagne.updates.adam(self._both_grad, self._actionParams, 
+            self._collectiveUpdates = lasagne.updates.adam(self._both_grad, self._actionParams, 
                     self._learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
@@ -315,6 +315,8 @@ class PPO(AlgorithmInterface):
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         self._trainActor = theano.function([], [self._actLoss, self._q_func_drop], updates=self._actionUpdates, givens=self._actGivens)
         self._trainDyna = theano.function([], [self._loss_dyna], updates=self._DYNAUpdates, givens=self._givens_dyna)
+        
+        self._trainCollective = theano.function([], [self._full_loss, self._q_func], updates=self._collectiveUpdates, givens=self._givens_)
         self._q_val = theano.function([], self._q_func,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._val_TargetState = theano.function([], self._q_funcTarget,
