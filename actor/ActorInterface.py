@@ -22,6 +22,7 @@ class ActorInterface(object):
         self._experience = experience
         self._reward_sum=0
         self._agent = None
+        self._action_bounds = np.array(self._settings["action_bounds"], dtype=float)
         
         
     def init(self):

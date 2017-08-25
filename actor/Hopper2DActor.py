@@ -3,7 +3,7 @@ import os
 import math
 from actor.ActorInterface import ActorInterface
 import numpy as np
-from model.ModelUtil import clampAction 
+from model.ModelUtil import clampAction, clampActionWarn
 from model.ModelUtil import _scale_reward 
 from model.ModelUtil import randomExporation, randomUniformExporation, reward_smoother
 
@@ -36,6 +36,7 @@ class Hopper2DActor(ActorInterface):
         # print "Action: " + str(action_)
         ## Need to make sure this is an vector of doubles
         action_ = np.array(action_, dtype='float64')
+        (action_, outside_bounds) = clampActionWarn(action_, self._action_bounds)
         # right_hand_pos = np.array(exp.getEnvironment().getActor().getLinkPosition("rLowerarm"))
         position_root = np.array(exp.getEnvironment().getActor().getStateEuler()[0:][:3])
         # print ("Relative Right arm pos: ", right_hand_pos-position_root)
