@@ -210,7 +210,7 @@ class PPO(AlgorithmInterface):
         
         self._full_loss = (self._loss + 
                            self._critic_regularization +
-                           (-1.0 * (T.mean(self._actLoss_) + (1e-2 * self._actor_entropy))) 
+                           (-1.0 * (T.mean(self._actLoss_) + (1e-3 * self._actor_entropy))) 
                            + self._actor_regularization
                            )
         self._both_grad = T.grad(self._full_loss ,  self._params + self._actionParams)
