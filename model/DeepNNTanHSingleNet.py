@@ -66,7 +66,7 @@ class DeepNNTanHSingleNet(ModelInterface):
     
         self._actor = lasagne.layers.DenseLayer(
                 networkMid, num_units=self._action_length,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=lasagne.nonlinearities.linear)
         
         if (self._settings['use_stocastic_policy']):
             with_std = lasagne.layers.DenseLayer(

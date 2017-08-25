@@ -79,10 +79,10 @@ class PPO(AlgorithmInterface):
         self._q_valsActASTD = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)[:,self._action_length:]
         
         ## prevent value from being 0
-        self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 1e-1
+        self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 1e-2
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
-        self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 1e-1
+        self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 1e-2
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -210,7 +210,7 @@ class PPO(AlgorithmInterface):
         
         self._full_loss = (self._loss + 
                            self._critic_regularization +
-                           (-1.0 * (T.mean(self._actLoss_) + (1e-3 * self._actor_entropy))) 
+                           (-1.0 * (T.mean(self._actLoss_) + (1e-2 * self._actor_entropy))) 
                            + self._actor_regularization
                            )
         self._both_grad = T.grad(self._full_loss ,  self._params + self._actionParams)
@@ -507,7 +507,8 @@ class PPO(AlgorithmInterface):
             print ("KL=%.3f is close enough to target %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold']))
         print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
         """
-        print( "Policy loss: ", lossActor)
+        loss = self._get_critic_loss()
+        print( "Policy loss: ", lossActor, " value function loss: ", loss)
         
         
         # print ("Diff")
