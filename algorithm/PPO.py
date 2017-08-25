@@ -120,6 +120,17 @@ class PPO(AlgorithmInterface):
             # self._KL_Weight: self._kl_weight_shared
         }
         
+        self._allGivens = {
+            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            self._Fallen: self._fallen_shared,
+            self._advantage: self._advantage_shared,
+            # self._KL_Weight: self._kl_weight_shared
+        }
+        
+        
         self._critic_regularization = (self._critic_regularization_weight * lasagne.regularization.regularize_network_params(
         self._model.getCriticNetwork(), lasagne.regularization.l2))
         self._actor_regularization = (self._regularization_weight * lasagne.regularization.regularize_network_params(
@@ -202,16 +213,16 @@ class PPO(AlgorithmInterface):
                            (-1.0 * (T.mean(self._actLoss_) + (1e-2 * self._actor_entropy))) 
                            + self._actor_regularization
                            )
-        self._both_grad = T.grad(self._full_loss ,  self._actionParams)
+        self._both_grad = T.grad(self._full_loss ,  self._params + self._actionParams)
         self._both_grad = lasagne.updates.total_norm_constraint(self._both_grad, 5)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
-            self._collectiveUpdates = lasagne.updates.rmsprop(self._both_grad, self._actionParams, 
+            self._collectiveUpdates = lasagne.updates.rmsprop(self._both_grad, self._params + self._actionParams, 
                     self._learning_rate , self._rho, self._rms_epsilon)
         elif (self.getSettings()['optimizer'] == 'momentum'):
-            self._collectiveUpdates = lasagne.updates.momentum(self._both_grad, self._actionParams, 
+            self._collectiveUpdates = lasagne.updates.momentum(self._both_grad, self._params + self._actionParams, 
                     self._learning_rate , momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
-            self._collectiveUpdates = lasagne.updates.adam(self._both_grad, self._actionParams, 
+            self._collectiveUpdates = lasagne.updates.adam(self._both_grad, self._params + self._actionParams, 
                     self._learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
@@ -316,7 +327,7 @@ class PPO(AlgorithmInterface):
         self._trainActor = theano.function([], [self._actLoss, self._q_func_drop], updates=self._actionUpdates, givens=self._actGivens)
         self._trainDyna = theano.function([], [self._loss_dyna], updates=self._DYNAUpdates, givens=self._givens_dyna)
         
-        self._trainCollective = theano.function([], [self._full_loss, self._q_func], updates=self._collectiveUpdates, givens=self._givens_)
+        self._trainCollective = theano.function([], [self._full_loss, self._q_func], updates=self._collectiveUpdates, givens=self._allGivens)
         self._q_val = theano.function([], self._q_func,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._val_TargetState = theano.function([], self._q_funcTarget,
@@ -394,6 +405,7 @@ class PPO(AlgorithmInterface):
         return self._get_grad()
 
     def trainCritic(self, states, actions, rewards, result_states, falls):
+        """
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
         if (( self._updates % self._weight_update_steps) == 0):
@@ -409,13 +421,19 @@ class PPO(AlgorithmInterface):
         # print ("Rewards, Falls, Targets:", [rewards, falls, self._get_target()])
         # print ("Actions: ", actions)
         loss, _ = self._train()
-        print(" Critic loss: ", loss)
+        loss, _ = self._trainCollective
+        print(" loss: ", loss)
+        """
         
-        return loss
+        return 0
     
     def trainActor(self, states, actions, rewards, result_states, falls, advantage):
         
         self.setData(states, actions, rewards, result_states, falls)
+        
+        if (( self._updates % self._weight_update_steps) == 0):
+            self.updateTargetModel()
+        self._updates += 1
         
         if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
             # self._advantage_shared.set_value(advantage)
@@ -450,7 +468,8 @@ class PPO(AlgorithmInterface):
         ## Sometimes really HUGE losses appear, ocasionally
         lossActor = np.abs(np.mean(self._get_action_diff()))
         if (lossActor < 100): 
-            lossActor, _ = self._trainActor()
+            # lossActor, _ = self._trainActor()
+            lossActor, _ = self._trainCollective()
         else:
             print ("**********************Did not train actor this time: expected loss to high, ", lossActor)
     
