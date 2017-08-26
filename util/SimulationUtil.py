@@ -145,6 +145,12 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
         model = DeepNNTanHSingleNet(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
         return model 
+    elif (model_type == "Deep_CNN_TanH_SingleNet" ):
+        from model.DeepCNNTanHSingleNet import DeepCNNTanHSingleNet
+        print("Creating network model: ", model_type)
+        model = DeepCNNTanHSingleNet(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+        return model 
     
     
     elif (model_type == "DumbModel" ):
