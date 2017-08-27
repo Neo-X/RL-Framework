@@ -758,7 +758,7 @@ class GapGame1D(object):
             Generate a single strip of terrain
         """
         terrainLength=length
-        terrainData=np.zeros((terrainLength))
+        terrainData=np.zeros(int(terrainLength))
         # gap_size=random.randint(2,7)
         gap_size=self._terrainParameters['gap_size']
         # gap_start=random.randint(2,7)
