@@ -674,6 +674,12 @@ class DeepCNNTanHSingleNet(ModelInterface):
                     networkAct, num_units=self._action_length,
                     nonlinearity=lasagne.nonlinearities.linear)
         
+        if (self._settings['use_stocastic_policy']):
+            with_std = lasagne.layers.DenseLayer(
+                    networkAct, num_units=self._action_length,
+                    nonlinearity=theano.tensor.nnet.softplus)
+            self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
+        
         
         # networkAct = lasagne.layers.ReshapeLayer(networkAct, (-1, 99))
         # networkAct = lasagne.layers.FlattenLayer(networkAct, 2)
@@ -732,11 +738,6 @@ class DeepCNNTanHSingleNet(ModelInterface):
         """
         self._forward_dynamics_net = networkAct
     
-        if (self._settings['use_stocastic_policy']):
-            with_std = lasagne.layers.DenseLayer(
-                    networkAct, num_units=self._action_length,
-                    nonlinearity=theano.tensor.nnet.softplus)
-            self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
         # self._b_o = init_b_weights((n_out,))
         
         
