@@ -1,6 +1,6 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "Deep_NN_TanH_SingleNet",
+"model_type": "Deep_NN_SingleNet",
     "comment__": "Learning algorithm to use",
 "agent_name": "PPO",
     "comment__": "Folder to store the training data in.",

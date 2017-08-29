@@ -41,33 +41,37 @@ class DeepNNSingleNet(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 inputLayerA, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        """
+        
         network = lasagne.layers.DenseLayer(
                 stateInput, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        """
         network = lasagne.layers.DenseLayer(
-                network, num_units=64,
+                stateInput, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         networkMiddle = lasagne.layers.DenseLayer(
                 network, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        """
         network = lasagne.layers.DenseLayer(
                 networkMiddle, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        """
         
         self._actor = lasagne.layers.DenseLayer(
-                network, num_units=self._action_length,
+                networkMiddle, num_units=self._action_length,
                 nonlinearity=lasagne.nonlinearities.linear)
         
-        network = lasagne.layers.DenseLayer(
-                networkMiddle, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        if (self._settings['use_stocastic_policy']):
+            with_std = lasagne.layers.DenseLayer(
+                    networkMiddle, num_units=self._action_length,
+                    nonlinearity=theano.tensor.nnet.softplus)
+            self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
+        
         
         network = lasagne.layers.DenseLayer(
-                network, num_units=16,
+                networkMiddle, num_units=16,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
         self._critic = lasagne.layers.DenseLayer(
@@ -89,7 +93,7 @@ class DeepNNSingleNet(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.linear)
         
         network = lasagne.layers.DenseLayer(
-                networkMiddleFD, num_units=64,
+                networkMiddleFD, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         self._reward_net = lasagne.layers.DenseLayer(
