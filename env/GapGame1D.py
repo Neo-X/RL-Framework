@@ -745,7 +745,7 @@ class GapGame1D(object):
             # print ("Generating more terrain, translateX: ", self._terrainStartX)
             terrainData_ = self._generateTerrain(self._terrainParameters['terrain_length']/2)
             self._terrainStartX=self._terrainStartX+((len(self._terrainData)*self._terrainScale)/2.0)
-            terrainData_ = np.append(self._terrainData[len(self._terrainData)/2:], terrainData_)
+            terrainData_ = np.append(self._terrainData[int(len(self._terrainData)/2):], terrainData_)
         else:
             print ("Why is the strip index < 0???")
             sys.exit()    
