@@ -16,7 +16,7 @@ import sys
 import copy
 sys.path.append('../')
 from algorithm.AlgorithmInterface import AlgorithmInterface
-from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std
+from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward
 from model.LearningUtil import loglikelihood, likelihood, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat 
 
 class PPO(AlgorithmInterface):
@@ -514,6 +514,7 @@ class PPO(AlgorithmInterface):
         print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
         """
         loss = self._get_critic_loss()
+        # lossActor = self._get_action_diff()
         print( "Policy loss: ", lossActor, " value function loss: ", loss)
         
         
@@ -643,7 +644,7 @@ class PPO(AlgorithmInterface):
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
-        # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
+        return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
         return self._q_valTarget()[0]
         # return self._q_val()[0]
     
@@ -655,7 +656,8 @@ class PPO(AlgorithmInterface):
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
-        return self._q_valTarget()
+        return scale_reward(self._q_valTarget(), self.getRewardBounds())
+        # return self._q_valTarget()
         # return self._q_val()
     
     def q_valueWithDropout(self, state):
