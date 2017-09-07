@@ -586,18 +586,21 @@ class A_CACLA(AlgorithmInterface):
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
-        # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
+        return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()[0]
-        return self._q_val()[0]
+        # return self._q_val()[0]
     
     def q_values(self, state):
         """
             For returning a vector of q values, state should already be normalized
         """
+        # state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
-        return self._q_val()
+        return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # return self._q_valTarget()
+        # return self._q_val()
     
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
@@ -605,7 +608,7 @@ class A_CACLA(AlgorithmInterface):
         state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
-        return scale_reward(self._q_val_drop(), self.getRewardBounds())[0]
+        return scale_reward(self._q_val_drop(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
     
     def bellman_error(self, states, actions, rewards, result_states, falls):
         self.setData(states, actions, rewards, result_states, falls)
