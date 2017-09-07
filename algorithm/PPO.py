@@ -473,7 +473,7 @@ class PPO(AlgorithmInterface):
         # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
         ## Sometimes really HUGE losses appear, ocasionally
         lossActor = np.abs(np.mean(self._get_action_diff()))
-        if (lossActor < 100): 
+        if (lossActor < 1000): 
             # lossActor, _ = self._trainActor()
             lossActor, _ = self._trainCollective()
         else:

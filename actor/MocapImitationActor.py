@@ -73,8 +73,8 @@ class MocapImitationActor(ActorInterface):
         # print ("averageSpeed: ", averageSpeed)
         # if (averageSpeed < 0.0):
         #     return 0.0
-        if (exp.getEnvironment().agentHasFallen()):
-            return 0
+        # if (exp.getEnvironment().agentHasFallen()):
+        #     return 0
         
         # orientation = exp.getEnvironment().getActor().getStateEuler()[3:][:3]
         # position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
