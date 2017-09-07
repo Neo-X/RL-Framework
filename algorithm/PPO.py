@@ -24,8 +24,10 @@ class PPO(AlgorithmInterface):
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
         super(PPO,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
-        
+        # scale = (bounds[1][i]-bounds[0][i])/2.0
         # create a small convolutional neural network
+        
+        self._action_std_scaling = (self._action_bounds[1] - self._action_bounds[0]) / 2.0
         
         self._Fallen = T.bcol("Fallen")
         ## because float64 <= float32 * int32, need to use int16 or int8
@@ -80,15 +82,15 @@ class PPO(AlgorithmInterface):
         
         ## prevent value from being 0
         if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
-            self._q_valsActASTD = T.ones_like(self._q_valsActA) * self.getSettings()['exploration_rate']
+            self._q_valsActASTD = ( self._action_std_scaling * T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
-            self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 1e-2
+            self._q_valsActASTD = ((self._action_std_scaling * self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 1e-2
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
         if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
-            self._q_valsActTargetSTD = T.ones_like(self._q_valsActTarget) * self.getSettings()['exploration_rate']
+            self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else: 
-            self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 1e-2
+            self._q_valsActTargetSTD = (( self._action_std_scaling * self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 1e-2
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -444,6 +446,7 @@ class PPO(AlgorithmInterface):
         if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
             # self._advantage_shared.set_value(advantage)
             pass # use given advantage parameter
+            advantage = advantage * (1.0-self._discount_factor)
         else:
             advantage = self._get_diff()[0]
         self._advantage_shared.set_value(advantage)

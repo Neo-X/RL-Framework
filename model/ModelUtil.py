@@ -224,7 +224,8 @@ def randomExporationSTD(explorationRate, actionV, std, bounds):
     out = []
     for i in range(len(actionV)):
         ## I think this should have a /2.0 want to map 1 - -1 to this interval
-        scale = (bounds[1][i]-bounds[0][i])
+        # scale = (bounds[1][i]-bounds[0][i])/2.0
+        scale = 1.0
         while True:
             ## resample noise that is greater than std*3 away
             n = np.random.normal(0, std[i], 1)[0] 
