@@ -152,16 +152,30 @@ class PPO(AlgorithmInterface):
         # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
         # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
         #                                    self._rms_epsilon)
-        # TD update
+        self._value_grad = T.grad(self._loss + self._critic_regularization
+                                                     , self._params)
+        ## Clipping the max gradient
+        """
+        for x in range(len(self._value_grad)): 
+            self._value_grad[x] = T.clip(self._value_grad[x] ,  -0.1, 0.1)
+        """
         if (self.getSettings()['optimizer'] == 'rmsprop'):
-            self._updates_ = lasagne.updates.rmsprop(T.mean(self._q_func) + self._critic_regularization, self._params, 
-                        self._critic_learning_rate * -T.mean(self._diff), self._rho, self._rms_epsilon)
+            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
+            self._updates_ = lasagne.updates.rmsprop(self._value_grad
+                                                     , self._params, self._learning_rate, self._rho,
+                                           self._rms_epsilon)
         elif (self.getSettings()['optimizer'] == 'momentum'):
-            self._updates_ = lasagne.updates.momentum(T.mean(self._q_func) + self._critic_regularization, self._params, 
-                        self._critic_learning_rate * -T.mean(self._diff), momentum=self._rho)
+            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
+            self._updates_ = lasagne.updates.momentum(self._value_grad
+                                                      , self._params, self._critic_learning_rate , momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
-            self._updates_ = lasagne.updates.adam(T.mean(self._q_func) + self._critic_regularization, self._params, 
-                        self._critic_learning_rate * -T.mean(self._diff), beta1=0.9, beta2=0.999, epsilon=1e-08)
+            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
+            self._updates_ = lasagne.updates.adam(self._value_grad
+                        , self._params, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
+        elif ( self.getSettings()['optimizer'] == 'adagrad'):
+            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
+            self._updates_ = lasagne.updates.adagrad(self._value_grad
+                        , self._params, self._critic_learning_rate, epsilon=self._rms_epsilon)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
             sys.exit(-1)
@@ -218,7 +232,8 @@ class PPO(AlgorithmInterface):
         
         self._full_loss = (self._loss + 
                            self._critic_regularization +
-                           (-1.0 * (T.mean(self._actLoss_) + (1e-2 * self._actor_entropy))) 
+                           (-0.01 * (T.mean(self._actLoss_) + 
+                                    (1e-2 * self._actor_entropy))) 
                            + self._actor_regularization
                            )
         self._both_grad = T.grad(self._full_loss ,  self._params + self._actionParams)
