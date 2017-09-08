@@ -258,6 +258,12 @@
 "use_GAE": true,
 	"comment__": "generalized advantage estimation lambda in [0,1]",
 "GAE_lambda": 0.95,
+	"comment__": "Whether or not to take a couple of on policy updates",
+"use_multiple_policy_updates": true,	
+	"comment__": "Whether or not to clear the experience memory after each update is done, for pure on policy methods",
+"clear_exp_mem_on_poli": true,
 	"comment__": "Used a fixed size std for each action parameters",
-"use_fixed_std": true
+"use_fixed_std": true,
+	"comment__": "Disable scaling for inputs and outputs of networks",
+"disable_parameter_scaling": true
 }
