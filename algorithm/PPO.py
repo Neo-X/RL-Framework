@@ -80,6 +80,8 @@ class PPO(AlgorithmInterface):
         self._q_valsActA = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)[:,:self._action_length]
         self._q_valsActASTD = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)[:,self._action_length:]
         
+        self._encoded_state = lasagne.layers.get_output(self._model.getEncodeNet(), self._model.getStateSymbolicVariable(), deterministic=True)
+        
         ## prevent value from being 0
         if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
             self._q_valsActASTD = ( self._action_std_scaling * T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
@@ -229,8 +231,19 @@ class PPO(AlgorithmInterface):
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
             
+            
+        self._encoding_loss = T.mean(T.pow(self._encoded_state - self._model.getStates(), 2))
         
-        self._full_loss = (self._loss + 
+        if ( ('train_state_encoding' in self.getSettings()) and (self.getSettings()['train_state_encoding'])):
+            self._full_loss = (self._loss + 
+                           self._critic_regularization +
+                           (-0.01 * (T.mean(self._actLoss_) + 
+                                    (1e-2 * self._actor_entropy))) 
+                           + self._actor_regularization
+                           + self._encoding_loss
+                           )
+        else:
+            self._full_loss = (self._loss + 
                            self._critic_regularization +
                            (-0.01 * (T.mean(self._actLoss_) + 
                                     (1e-2 * self._actor_entropy))) 

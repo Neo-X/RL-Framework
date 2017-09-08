@@ -100,6 +100,14 @@ class DeepNNSingleNet(ModelInterface):
                 network, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
+                
+        self._encode_net = lasagne.layers.DenseLayer(
+                networkMiddle, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
+        self._encode_net = lasagne.layers.DenseLayer(
+                self._encode_net, num_units=self._state_length,
+                nonlinearity=lasagne.nonlinearities.linear)
         
         self._states_shared = theano.shared(
             np.zeros((self._batch_size, self._state_length),
@@ -116,3 +124,6 @@ class DeepNNSingleNet(ModelInterface):
         self._actions_shared = theano.shared(
             np.zeros((self._batch_size, self._action_length), dtype=theano.config.floatX),
             )
+    
+    def getEncodeNet(self):
+        return self._encode_net
