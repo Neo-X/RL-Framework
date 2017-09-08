@@ -94,25 +94,116 @@ class AlgorithmInterface(object):
         return self._model
     
     def predict(self, state, deterministic_=True):
-        pass
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            pass
+        else:
+            state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
+        self._model.setStates(state)
+        # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # if deterministic_:
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            action_ = self._q_action()[0]
+        else:
+            action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
+        # else:
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # action_ = q_valsActA[0]
+        return action_
+    
+    def predict_std(self, state, deterministic_=True):
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            pass
+        else:
+            state = norm_state(state, self._state_bounds)   
+        state = np.array(state, dtype=theano.config.floatX)
+        self._model.setStates(state)
+        # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # if deterministic_:
+        # action_std = scale_action(self._q_action_std()[0], self._action_bounds)
+        action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
+        # else:
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # action_ = q_valsActA[0]
+        return action_std
     
     def predictWithDropout(self, state, deterministic_=True):
-        pass
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            pass
+        else:
+            state = np.array(state, dtype=theano.config.floatX)
+        state = norm_state(state, self._state_bounds)
+        self._model.setStates(state)
+        # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # if deterministic_:
+        action_ = scale_action(self._q_action_drop()[0], self._action_bounds)
+        # else:
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # action_ = q_valsActA[0]
+        return action_
     
     def q_value(self, state):
         """
             For returning a vector of q values, state should NOT be normalized
         """
-        pass
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            pass
+        else:
+            state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
+        self._model.setStates(state)
+        self._modelTarget.setStates(state)
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            return (self._q_val())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        else:
+            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # return self._q_valTarget()[0]
+        # return self._q_val()[0]
     
     def q_values(self, state):
         """
             For returning a vector of q values, state should already be normalized
         """
-        pass
+        # state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
+        self._model.setStates(state)
+        self._modelTarget.setStates(state)
+        return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # return self._q_valTarget()
+        # return self._q_val()
     
-    def bellman_error(self, state, action, reward, result_state):
-        pass
+    def q_valueWithDropout(self, state):
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            pass
+        else:
+            state = norm_state(state, self._state_bounds)
+            
+        state = np.array(state, dtype=theano.config.floatX)
+        self._model.setStates(state)
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            return (self._q_val_drop())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        else:
+            return scale_reward(self._q_val_drop(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+    
+    def bellman_error(self, states, actions, rewards, result_states, falls):
+        self.setData(states, actions, rewards, result_states, falls)
+        return self._bellman_error2()
+        # return self._bellman_errorTarget()
+
     
     def train(self, states, actions, rewards, result_states):
         loss = self.trainCritic(states, actions, rewards, result_states)
@@ -156,4 +247,32 @@ class AlgorithmInterface(object):
         pass
     
     def initEpoch(self):
+        pass
+    
+    def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
+        """
+            Performs a DYNA type update
+            Because I am using target network a direct DYNA update does nothing. 
+            The gradients are not calculated for the target network.
+            L(\theta) = (r + V(s'|\theta')) - V(s|\theta))
+            Instead what is done is this
+            L(\theta) = V(s_1|\theta')) - V(s_2|\theta))
+            Where s1 comes from the simulation and s2 is a predicted and noisey value from an fd model
+            Parameters
+            ----------
+            predicted_states : predicted states, s_1
+            
+            actions : list of actions
+                
+            rewards : rewards for taking action a_i
+            
+            result_states : simulated states, s_2
+            
+            falls: list of flags for whether or not the character fell
+            Returns
+            -------
+            
+            loss: the loss for the DYNA type update
+
+        """
         pass
