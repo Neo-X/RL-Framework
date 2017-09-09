@@ -106,6 +106,7 @@ class SimWorker(Process):
         # do some initialization here
         while True:
             eval=False
+            sim_on_poli = False
             # print ("Worker: getting data")
             episodeData = self._input_queue.get()
             # print ("Worker: got data", episodeData)
@@ -115,6 +116,8 @@ class SimWorker(Process):
                 eval=True
                 episodeData = episodeData['data']
                 # "Sim worker evaluating episode"
+            elif ( episodeData['type'] == 'sim_on_policy'):
+                sim_on_poli = True
             else:
                 episodeData = episodeData['data']
             # print("self._p: ", self._p)
@@ -124,6 +127,10 @@ class SimWorker(Process):
                 out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                         anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                         print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
+            elif (sim_on_poli):
+                out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
+                        anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                        print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
             else:    
                 out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                         anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
@@ -136,7 +143,7 @@ class SimWorker(Process):
             # (states, actions, result_states, rewards, falls) = tuples
             ## Hack for now just update after ever episode
             # print ("Worker: send sim results: ")
-            if (eval):
+            if (eval or sim_on_poli):
                 self._eval_episode_data_queue.put(out)
             else:
                 pass
@@ -721,6 +728,67 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
     return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
             mean_eval, std_eval)
 
+# @profile(precision=5)
+def simModelParrallel(input_anchor_queue, eval_episode_data_queue, model, settings, anchors=None):
+    print ("Simulating epochs in Parallel:")
+    j=0
+    discounted_values = []
+    bellman_errors = []
+    reward_over_epocs = []
+    values = []
+    evalDatas = []
+    epoch_=0
+    states = []
+    actions = []
+    result_states = []
+    rewards = []
+    falls = []
+    G_ts = []
+    advantage = [] 
+    exp_actions = []
+    discounted_sum = []
+    value = []
+    evalData = []
+    i = 0 
+    while i < anchors: # half the anchors
+        
+        j = 0
+        while (j < settings['num_available_threads']) and ( (i + j) < anchors):
+            episodeData = {}
+            episodeData['data'] = i
+            episodeData['type'] = 'sim_on_policy'
+            input_anchor_queue.put(episodeData)
+            j += 1
+            
+        # for anchs in anchors: # half the anchors
+        j = 0
+        while (j < settings['num_available_threads']) and ( (i + j) < anchors):
+            (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get()
+            discounted_sum.append(discounted_sum_)
+            value.append(value_)
+            evalData.append(evalData_)
+            j += 1
+            """
+            simEpoch(actor, exp, 
+                    model, discount_factor, anchors=anchs, action_space_continuous=action_space_continuous, 
+                    settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
+                    visualizeEvaluation=visualizeEvaluation)
+            """
+            epoch_ = epoch_ + 1
+            (states_, actions_, result_states_, rewards_, falls_, G_ts_, advantage_, exp_actions_) = tuples
+            states.extend(states_)
+            actions.extend(actions_)
+            result_states.extend(result_states_)
+            rewards.extend(rewards_)
+            falls.extend(rewards_)
+            G_ts.extend(G_ts_)
+            advantage.extend(advantage_)
+            exp_actions.extend(exp_actions_)
+        i += j
+        
+    tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
+    return (tuples, discounted_sum, value, evalData)
+        
 # @profile(precision=5)
 def collectExperience(actor, exp_val, model, settings):
     from util.ExperienceMemory import ExperienceMemory

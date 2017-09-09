@@ -51,7 +51,7 @@ def trainModelParallel(settingsFileName):
         # from ModelEvaluation import *
         # from model.ModelUtil import *
         # print ( "theano.config.mode: ", theano.config.mode)
-        from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience, simEpoch, evalModel
+        from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience, simEpoch, evalModel, simModelParrallel
         from model.ModelUtil import validBounds
         from model.LearningAgent import LearningAgent, LearningWorker
         from util.SimulationUtil import validateSettings
@@ -97,6 +97,9 @@ def trainModelParallel(settingsFileName):
             input_anchor_queue = multiprocessing.Queue(settings['epochs'])
             output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
             eval_episode_data_queue = multiprocessing.Queue(settings['eval_epochs'])
+            
+        if (settings['on_policy']): ## So that off policy agent does not learn
+            output_experience_queue = None
             
         sim_work_queues = []
         
@@ -385,17 +388,18 @@ def trainModelParallel(settingsFileName):
             
             
         # learningNamespace.experience = experience
-            
-        for lw in learning_workers:
-            # lw._agent.setPolicy(copy.deepcopy(model))
-            lw._agent.setPolicy(model)
-            # lw.setLearningNamespace(learningNamespace)
-            lw.setMasterAgentMessageQueue(masterAgent_message_queue)
-            lw.updateExperience(experience)
-            # lw.updateModel()
-            print ("ls policy: ", lw._agent.getPolicy())
-            
-            lw.start()
+        ## If not on policy
+        if ( not settings['on_policy']):
+            for lw in learning_workers:
+                # lw._agent.setPolicy(copy.deepcopy(model))
+                lw._agent.setPolicy(model)
+                # lw.setLearningNamespace(learningNamespace)
+                lw.setMasterAgentMessageQueue(masterAgent_message_queue)
+                lw.updateExperience(experience)
+                # lw.updateModel()
+                print ("ls policy: ", lw._agent.getPolicy())
+                
+                lw.start()
             
         # del learningNamespace.model
         tmp_p=1.0
@@ -474,8 +478,12 @@ def trainModelParallel(settingsFileName):
             # pr = cProfile.Profile()
             for epoch in range(epochs):
                 if (settings['on_policy']):
-                    out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
-                       print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
+                    
+                    out = simModelParrallel( input_anchor_queue=input_anchor_queue,
+                                                               model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['epochs'])
+                    
+                    # out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
+                    #    print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
                     (tuples, discounted_sum, q_value, evalData) = out
                     (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__) = tuples
                     # print("**** training states: ", np.array(__states).shape)
@@ -571,7 +579,8 @@ def trainModelParallel(settingsFileName):
                 # this->_actor->iterate();
             ## This will let me know which part of learning is going slower training updates or simulation
             print ("sim queue size: ", input_anchor_queue.qsize() )
-            print ("exp tuple queue size: ", output_experience_queue.qsize())
+            if ( output_experience_queue != None):
+                print ("exp tuple queue size: ", output_experience_queue.qsize())
             
             if (not settings['on_policy']):
                 # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
@@ -778,16 +787,17 @@ def trainModelParallel(settingsFileName):
         # reward_over_epoc = np.array(reward_over_epoc)
         
         print ("Terminating Workers"        )
-        for sw in sim_workers: # Should update these more offten
+        for sw in sim_workers: # Should update these more often
             input_anchor_queue.put(None)
             
-        for sw in sim_workers: # Should update these more offten
+        for sw in sim_workers: # Should update these more often
             sw.join()
             
-        for lw in learning_workers: # Should update these more offten
-            output_experience_queue.put(None)
+        if ( output_experience_queue != None):
+            for lw in learning_workers: # Should update these more often
+                output_experience_queue.put(None)
             
-        for lw in learning_workers: # Should update these more offten
+        for lw in learning_workers: # Should update these more often
             lw.join()
         
         exp_val.finish()

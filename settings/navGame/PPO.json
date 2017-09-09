@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "PPO",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere",
+"data_folder": "Nav_Sphere_Parallel",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -238,5 +238,5 @@
 	"comment__": "Disable scaling for inputs and outputs of networks",
 "disable_parameter_scaling": true,
 	"comment__": "Train a state encoding as well.",
-"train_state_encoding": true
+"train_state_encoding": false
 }
