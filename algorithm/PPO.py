@@ -214,7 +214,7 @@ class PPO(AlgorithmInterface):
         # self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._actor_regularization ))
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
-        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (1e-2 * self._actor_entropy))) + self._actor_regularization
+        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy))) + self._actor_regularization
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
@@ -237,16 +237,16 @@ class PPO(AlgorithmInterface):
         if ( ('train_state_encoding' in self.getSettings()) and (self.getSettings()['train_state_encoding'])):
             self._full_loss = (self._loss + 
                            self._critic_regularization +
-                           (-0.01 * (T.mean(self._actLoss_) + 
-                                    (1e-2 * self._actor_entropy))) 
+                           (-1.0 * self.getSettings()['policy_loss_weight'] (T.mean(self._actLoss_) + 
+                                    (self.getSettings()['std_entropy_weight'] * self._actor_entropy))) 
                            + self._actor_regularization
                            + self._encoding_loss
                            )
         else:
             self._full_loss = (self._loss + 
                            self._critic_regularization +
-                           (-0.01 * (T.mean(self._actLoss_) + 
-                                    (1e-2 * self._actor_entropy))) 
+                           (-1.0 * self.getSettings()['policy_loss_weight'] * (T.mean(self._actLoss_) + 
+                                    (self.getSettings()['std_entropy_weight'] * self._actor_entropy))) 
                            + self._actor_regularization
                            )
         self._both_grad = T.grad(self._full_loss ,  self._params + self._actionParams)
