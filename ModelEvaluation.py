@@ -109,6 +109,59 @@ class SimWorker(Process):
             sim_on_poli = False
             # print ("Worker: getting data")
             episodeData = self._input_queue.get()
+            ## Check if any messages in the queue
+            if self._message_queue.qsize() > 0:
+                data = None
+                # print ("Getting updated network parameters:")
+                while (not self._message_queue.empty()):
+                    ## Don't block
+                    try:
+                        data_ = self._message_queue.get(False)
+                    except Exception as inst:
+                        print ("SimWorker model parameter message queue empty.")
+                    if (not (data_ == None)):
+                        data = data_
+                # print ("Got updated network parameters:")
+                if (data != None):
+                    message = data[0]## Check if any messages in the queue
+            if self._message_queue.qsize() > 0:
+                data = None
+                # print ("Getting updated network parameters:")
+                while (not self._message_queue.empty()):
+                    ## Don't block
+                    try:
+                        data_ = self._message_queue.get(False)
+                    except Exception as inst:
+                        print ("SimWorker model parameter message queue empty.")
+                    if (not (data_ == None)):
+                        data = data_
+                # print ("Got updated network parameters:")
+                if (data != None):
+                    message = data[0]
+                    if message == "Update_Policy":
+                        print ("Message: ", message)
+                        # print ("New model parameters: ", data[2][1][0])
+                        self._model.getPolicy().setNetworkParameters(data[2])
+                        if (self._settings['train_forward_dynamics']):
+                            self._model.getForwardDynamics().setNetworkParameters(data[3])
+                        p = data[1]
+                        if p < 0.1:
+                            p = 0.1
+                        self._p = p
+                        print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+                        print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
+                    if message == "Update_Policy":
+                        print ("Message: ", message)
+                        # print ("New model parameters: ", data[2][1][0])
+                        self._model.getPolicy().setNetworkParameters(data[2])
+                        if (self._settings['train_forward_dynamics']):
+                            self._model.getForwardDynamics().setNetworkParameters(data[3])
+                        p = data[1]
+                        if p < 0.1:
+                            p = 0.1
+                        self._p = p
+                        print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+                        print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
             # print ("Worker: got data", episodeData)
             if episodeData == None:
                 break
@@ -152,33 +205,6 @@ class SimWorker(Process):
             # all_objects = muppy.get_objects()
             # sum1 = summary.summarize(all_objects)
             # summary.print_(sum1)
-            ## Check if any messages in the queue
-            if self._message_queue.qsize() > 0:
-                data = None
-                # print ("Getting updated network parameters:")
-                while (not self._message_queue.empty()):
-                    ## Don't block
-                    try:
-                        data_ = self._message_queue.get(False)
-                    except Exception as inst:
-                        print ("SimWorker model parameter message queue empty.")
-                    if (not (data_ == None)):
-                        data = data_
-                # print ("Got updated network parameters:")
-                if (data != None):
-                    message = data[0]
-                    if message == "Update_Policy":
-                        print ("Message: ", message)
-                        # print ("New model parameters: ", data[2][1][0])
-                        self._model.getPolicy().setNetworkParameters(data[2])
-                        if (self._settings['train_forward_dynamics']):
-                            self._model.getForwardDynamics().setNetworkParameters(data[3])
-                        p = data[1]
-                        if p < 0.1:
-                            p = 0.1
-                        self._p = p
-                        print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
-                        print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
         print ("Simulation Worker Complete: ")
         self._exp.finish()
         

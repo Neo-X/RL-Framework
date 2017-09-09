@@ -268,7 +268,10 @@ def trainModelParallel(settingsFileName):
                 # forwardDynamicsModel.setEnvironment(exp_)
                 forwardDynamicsModel_.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, exp_, settings)
             """
-            message_queue = multiprocessing.Queue(settings['epochs'])
+            if (settings['on_policy']):
+                message_queue = multiprocessing.Queue(1)
+            else:
+                message_queue = multiprocessing.Queue(settings['epochs'])
             sim_work_queues.append(message_queue)
             w = SimWorker(input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
                     settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process,
@@ -491,6 +494,15 @@ def trainModelParallel(settingsFileName):
                     # print ("Actions before: ", __actions)
                     for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls, _advantage=advantage__)
+                        
+                    data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters())
+                    if (settings['train_forward_dynamics']):
+                        # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
+                        data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters(),
+                                 masterAgent.getForwardDynamics().getNetworkParameters())
+                    for m_q in sim_work_queues:
+                        ## block on full queue
+                        m_q.put(data)
                 else:
                     episodeData = {}
                     episodeData['data'] = epoch
