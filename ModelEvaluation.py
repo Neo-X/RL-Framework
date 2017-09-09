@@ -108,103 +108,132 @@ class SimWorker(Process):
             eval=False
             sim_on_poli = False
             # print ("Worker: getting data")
-            episodeData = self._input_queue.get()
-            ## Check if any messages in the queue
-            if self._message_queue.qsize() > 0:
-                data = None
-                # print ("Getting updated network parameters:")
-                while (not self._message_queue.empty()):
-                    ## Don't block
-                    try:
-                        data_ = self._message_queue.get(False)
-                    except Exception as inst:
-                        print ("SimWorker model parameter message queue empty.")
-                    if (not (data_ == None)):
-                        data = data_
-                # print ("Got updated network parameters:")
-                if (data != None):
-                    message = data[0]## Check if any messages in the queue
-            if self._message_queue.qsize() > 0:
-                data = None
-                # print ("Getting updated network parameters:")
-                while (not self._message_queue.empty()):
-                    ## Don't block
-                    try:
-                        data_ = self._message_queue.get(False)
-                    except Exception as inst:
-                        print ("SimWorker model parameter message queue empty.")
-                    if (not (data_ == None)):
-                        data = data_
-                # print ("Got updated network parameters:")
-                if (data != None):
-                    message = data[0]
-                    if message == "Update_Policy":
-                        print ("Message: ", message)
-                        # print ("New model parameters: ", data[2][1][0])
-                        self._model.getPolicy().setNetworkParameters(data[2])
-                        if (self._settings['train_forward_dynamics']):
-                            self._model.getForwardDynamics().setNetworkParameters(data[3])
-                        p = data[1]
-                        if p < 0.1:
-                            p = 0.1
-                        self._p = p
-                        print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
-                        print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
-                    if message == "Update_Policy":
-                        print ("Message: ", message)
-                        # print ("New model parameters: ", data[2][1][0])
-                        self._model.getPolicy().setNetworkParameters(data[2])
-                        if (self._settings['train_forward_dynamics']):
-                            self._model.getForwardDynamics().setNetworkParameters(data[3])
-                        p = data[1]
-                        if p < 0.1:
-                            p = 0.1
-                        self._p = p
-                        print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
-                        print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
-            # print ("Worker: got data", episodeData)
-            if episodeData == None:
-                break
-            if episodeData['type'] == "eval":
-                eval=True
-                episodeData = episodeData['data']
-                # "Sim worker evaluating episode"
-            elif ( episodeData['type'] == 'sim_on_policy'):
-                sim_on_poli = True
-            else:
-                episodeData = episodeData['data']
-            # print("self._p: ", self._p)
-            # print ("Worker: Evaluating episode")
-            # print ("Nums samples in worker: ", self._namespace.experience.samples())
-            if (eval): ## No action exploration
-                out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
-                        anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
-                        print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
-            elif (sim_on_poli):
-                out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
-                        anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
-                        print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
-            else:    
-                out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
-                        anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
-                        print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
-            self._iteration += 1
-            # if self._p <= 0.0:
-            
-            #    self._output_queue.put(out)
-            (tuples, discounted_sum, q_value, evalData) = out
-            # (states, actions, result_states, rewards, falls) = tuples
-            ## Hack for now just update after ever episode
-            # print ("Worker: send sim results: ")
-            if (eval or sim_on_poli):
-                self._eval_episode_data_queue.put(out)
-            else:
-                pass
+            if (self._settings['on_policy']):
+                episodeData = self._message_queue.get()
+                if episodeData == None:
+                    break
+                elif ( episodeData['type'] == "Update_Policy" ):
+                    print ("Message: ", message)
+                    data = episodeData['data']
+                    # print ("New model parameters: ", data[2][1][0])
+                    self._model.getPolicy().setNetworkParameters(data[2])
+                    if (self._settings['train_forward_dynamics']):
+                        self._model.getForwardDynamics().setNetworkParameters(data[3])
+                    p = data[1]
+                    if p < 0.1:
+                        p = 0.1
+                    self._p = p
+                    print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+                    print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
+                elif episodeData['type'] == "eval":
+                    eval=True
+                    episodeData = episodeData['data']
+                    # "Sim worker evaluating episode"
+                elif ( episodeData['type'] == 'sim_on_policy'):
+                    sim_on_poli = True
+                    episodeData = episodeData['data']
+                else:
+                    episodeData = episodeData['data']
+                # print("self._p: ", self._p)
+                # print ("Worker: Evaluating episode")
+                # print ("Nums samples in worker: ", self._namespace.experience.samples())
+                if (eval): ## No action exploration
+                    out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
+                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                            print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
+                elif (sim_on_poli):
+                    out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
+                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                            print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
+                else:    
+                    out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
+                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                            print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
+                self._iteration += 1
+                # if self._p <= 0.0:
                 
-            # print ("Actions: " + str(actions))
-            # all_objects = muppy.get_objects()
-            # sum1 = summary.summarize(all_objects)
-            # summary.print_(sum1)
+                #    self._output_queue.put(out)
+                (tuples, discounted_sum, q_value, evalData) = out
+                # (states, actions, result_states, rewards, falls) = tuples
+                ## Hack for now just update after ever episode
+                # print ("Worker: send sim results: ")
+                if (eval or sim_on_poli):
+                    self._eval_episode_data_queue.put(out)
+                else:
+                    pass
+            else: ## off policy, all threads sharing the same queue
+                episodeData = self._input_queue.get()
+                ## Check if any messages in the queue
+                # print ("Worker: got data", episodeData)
+                if episodeData == None:
+                    break
+                if episodeData['type'] == "eval":
+                    eval=True
+                    episodeData = episodeData['data']
+                    # "Sim worker evaluating episode"
+                elif ( episodeData['type'] == 'sim_on_policy'):
+                    sim_on_poli = True
+                else:
+                    episodeData = episodeData['data']
+                # print("self._p: ", self._p)
+                # print ("Worker: Evaluating episode")
+                # print ("Nums samples in worker: ", self._namespace.experience.samples())
+                if (eval): ## No action exploration
+                    out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
+                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                            print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
+                elif (sim_on_poli):
+                    out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
+                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                            print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
+                else:    
+                    out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
+                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                            print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
+                self._iteration += 1
+                # if self._p <= 0.0:
+                
+                #    self._output_queue.put(out)
+                (tuples, discounted_sum, q_value, evalData) = out
+                # (states, actions, result_states, rewards, falls) = tuples
+                ## Hack for now just update after ever episode
+                # print ("Worker: send sim results: ")
+                if (eval or sim_on_poli):
+                    self._eval_episode_data_queue.put(out)
+                else:
+                    pass
+                
+                if self._message_queue.qsize() > 0:
+                    data = None
+                    # print ("Getting updated network parameters:")
+                    while (not self._message_queue.empty()):
+                        ## Don't block
+                        try:
+                            data_ = self._message_queue.get(False)
+                        except Exception as inst:
+                            print ("SimWorker model parameter message queue empty.")
+                        if (not (data_ == None)):
+                            data = data_
+                    # print ("Got updated network parameters:")
+                    if (data != None):
+                        message = data[0]## Check if any messages in the queue
+                        if message == "Update_Policy":
+                            print ("Message: ", message)
+                            # print ("New model parameters: ", data[2][1][0])
+                            self._model.getPolicy().setNetworkParameters(data[2])
+                            if (self._settings['train_forward_dynamics']):
+                                self._model.getForwardDynamics().setNetworkParameters(data[3])
+                            p = data[1]
+                            if p < 0.1:
+                                p = 0.1
+                            self._p = p
+                            print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+                            print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
+                    
+                # print ("Actions: " + str(actions))
+                # all_objects = muppy.get_objects()
+                # sum1 = summary.summarize(all_objects)
+                # summary.print_(sum1)
         print ("Simulation Worker Complete: ")
         self._exp.finish()
         
@@ -695,7 +724,10 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             episodeData = {}
             episodeData['data'] = i
             episodeData['type'] = 'eval'
-            input_anchor_queue.put(episodeData)
+            if (settings['on_policy']):
+                input_anchor_queue[j].put(episodeData)
+            else:
+                input_anchor_queue.put(episodeData)
             j += 1
             
         # for anchs in anchors: # half the anchors
@@ -755,7 +787,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             mean_eval, std_eval)
 
 # @profile(precision=5)
-def simModelParrallel(input_anchor_queue, eval_episode_data_queue, model, settings, anchors=None):
+def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None):
     print ("Simulating epochs in Parallel:")
     j=0
     discounted_values = []
@@ -783,7 +815,7 @@ def simModelParrallel(input_anchor_queue, eval_episode_data_queue, model, settin
             episodeData = {}
             episodeData['data'] = i
             episodeData['type'] = 'sim_on_policy'
-            input_anchor_queue.put(episodeData)
+            sw_message_queues[j].put(episodeData)
             j += 1
             
         # for anchs in anchors: # half the anchors

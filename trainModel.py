@@ -482,8 +482,8 @@ def trainModelParallel(settingsFileName):
             for epoch in range(epochs):
                 if (settings['on_policy']):
                     
-                    out = simModelParrallel( input_anchor_queue=input_anchor_queue,
-                                                               model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['epochs'])
+                    out = simModelParrallel( sw_message_queues=sim_work_queues,
+                                                               model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=1)
                     
                     # out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
                     #    print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
@@ -496,13 +496,17 @@ def trainModelParallel(settingsFileName):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls, _advantage=advantage__)
                         
                     data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters())
+                    message = {}
+                    message['type'] = 'Update_Policy'
+                    message['data'] = data
                     if (settings['train_forward_dynamics']):
                         # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
                         data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters(),
                                  masterAgent.getForwardDynamics().getNetworkParameters())
+                        message['data'] = data
                     for m_q in sim_work_queues:
                         ## block on full queue
-                        m_q.put(data)
+                        m_q.put(message)
                 else:
                     episodeData = {}
                     episodeData['data'] = epoch
@@ -613,9 +617,13 @@ def trainModelParallel(settingsFileName):
                 # Running less often helps speed learning up.
                 # Sync up sim actors
                 
-                if (settings['on_policy'] or ((settings['num_available_threads'] == 1))):
-                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp_val, masterAgent, discount_factor, 
-                                                        anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings)
+                # if (settings['on_policy'] or ((settings['num_available_threads'] == 1))):
+                #     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp_val, masterAgent, discount_factor, 
+                #                                         anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings)
+                # else:
+                if (settings['on_policy']):
+                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=sim_work_queues,
+                                                               model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                 else:
                     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue,
                                                                model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
