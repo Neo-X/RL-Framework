@@ -131,7 +131,9 @@ class ExperienceMemory(object):
         # scale_state(self._state_history[i], self._state_bounds)
         for i in indices:
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-                state.append(self._state_history[i])
+                # state.append(self._state_history[i])
+                state.append(norm_state(self._state_history[i], self._state_bounds))
+                
                 action.append(self._action_history[i]) # won't work for discrete actions...
                 resultState.append(self._nextState_history[i])
                 if (('train_reward_predictor' in self._settings) and (self._settings['train_reward_predictor'])):

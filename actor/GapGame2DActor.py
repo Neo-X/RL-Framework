@@ -40,7 +40,8 @@ class GapGame2DActor(ActorInterface):
                 print("velocity diff: ", vel_dif)
                 print("reward: ", reward)
         else:
-            return 0.0
+            return -1.0
+        reward = reward + -1.0
         self._reward_sum = self._reward_sum + reward
         # print("Reward Sum: ", self._reward_sum)
         return reward

@@ -4,6 +4,7 @@ import numpy as np
 import lasagne
 import sys
 sys.path.append('../')
+import copy
 # from ModelUtil import *
 from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward
 from model.LearningUtil import loglikelihood, likelihood, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
@@ -98,10 +99,12 @@ class AlgorithmInterface(object):
     def predict(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        """
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
             pass
         else:
-            state = norm_state(state, self._state_bounds)
+        """
+        state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
@@ -120,10 +123,12 @@ class AlgorithmInterface(object):
     def predict_std(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        """
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
             pass
         else:
-            state = norm_state(state, self._state_bounds)   
+        """
+        state = norm_state(state, self._state_bounds)   
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
@@ -142,10 +147,12 @@ class AlgorithmInterface(object):
     def predictWithDropout(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        """
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
             pass
         else:
-            state = np.array(state, dtype=theano.config.floatX)
+        """
+        state = np.array(state, dtype=theano.config.floatX)
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
@@ -163,10 +170,12 @@ class AlgorithmInterface(object):
         """
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        """
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
             pass
         else:
-            state = norm_state(state, self._state_bounds)
+        """
+        state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
@@ -181,7 +190,12 @@ class AlgorithmInterface(object):
         """
             For returning a vector of q values, state should already be normalized
         """
-        # state = norm_state(state, self._state_bounds)
+        """
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            pass
+        else:
+        """
+        state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
@@ -218,7 +232,7 @@ class AlgorithmInterface(object):
     def getSettings(self):
         return self._settings
     def setSettings(self, settings_):
-        self._settings = settings_
+        self._settings = copy.deepcopy(settings_)
     
     def setStateBounds(self, bounds):
         self._state_bounds = bounds
