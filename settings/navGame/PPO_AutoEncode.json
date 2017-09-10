@@ -242,5 +242,5 @@
 	"comment__": "std entropy weight to help encourage exploration",
 "std_entropy_weight": 0.01,
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
-"policy_loss_weight": 0.001
+"policy_loss_weight": 0.01
 }
