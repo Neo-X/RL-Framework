@@ -237,10 +237,12 @@ class PPO(AlgorithmInterface):
         if ( ('train_state_encoding' in self.getSettings()) and (self.getSettings()['train_state_encoding'])):
             self._full_loss = (self._loss + 
                            self._critic_regularization +
-                           (-1.0 * self.getSettings()['policy_loss_weight'] (T.mean(self._actLoss_) + 
-                                    (self.getSettings()['std_entropy_weight'] * self._actor_entropy))) 
-                           + self._actor_regularization
-                           + self._encoding_loss
+                           (-1.0 * self.getSettings()['policy_loss_weight'] * (T.mean(self._actLoss_) + 
+                                   (self.getSettings()['std_entropy_weight'] * self._actor_entropy)))
+                           + (
+                              self._actor_regularization +
+                                self._encoding_loss 
+                               )
                            )
         else:
             self._full_loss = (self._loss + 
