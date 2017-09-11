@@ -95,11 +95,10 @@ class LearningAgent(AgentInterface):
                     tmp_exp_action.append([0])## Doesn't really matter for on policy methods
                     tup = (state__, action__, next_state__, reward__, fall__, advantage__, [0])
                     self._expBuff.insertTuple(tup)
-                    # print ("self._expBuff.samples(): ", self._expBuff.samples())
                 # else:
                     # print ("Tuple invalid:")
                     
-            
+            print ("self._expBuff.samples(): ", self._expBuff.samples())
             _states = np.array(norm_action(np.array(tmp_states), self._state_bounds), dtype=self._settings['float_type'])
             _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
             _result_states = np.array(norm_action(np.array(tmp_result_states), self._state_bounds), dtype=self._settings['float_type'])

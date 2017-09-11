@@ -246,12 +246,13 @@ class PPO(AlgorithmInterface):
                                )
                            )
         else:
-            self._full_loss = (self._loss + 
-                           self._critic_regularization +
-                           (-1.0 * self.getSettings()['policy_loss_weight'] * (T.mean(self._actLoss_) + 
+            self._full_loss = (
+                            self._loss + 
+                            self._critic_regularization +
+                            (-1.0 * self.getSettings()['policy_loss_weight'] * (T.mean(self._actLoss_) + 
                                     (self.getSettings()['std_entropy_weight'] * self._actor_entropy))) 
-                           + self._actor_regularization
-                           )
+                            + self._actor_regularization
+                            )
         self._both_grad = T.grad(self._full_loss ,  self._params + self._actionParams)
         self._both_grad = lasagne.updates.total_norm_constraint(self._both_grad, 5)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
@@ -494,7 +495,9 @@ class PPO(AlgorithmInterface):
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         print("Advantage, model: ", np.mean(self._get_advantage()), " std: ", np.std(self._get_advantage()))
+        print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
         print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
+        print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
         print("Actions mean:     ", np.mean(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
         # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )

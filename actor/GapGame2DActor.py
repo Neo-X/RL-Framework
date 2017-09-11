@@ -1,7 +1,7 @@
 import sys
 import math
 from actor.ActorInterface import ActorInterface
-from model.ModelUtil import randomExporation, randomUniformExporation, reward_smoother, clampAction
+from model.ModelUtil import randomExporation, randomUniformExporation, reward_smoother, clampAction, clampActionWarn
 import numpy as np
 
 class GapGame2DActor(ActorInterface):
@@ -28,6 +28,9 @@ class GapGame2DActor(ActorInterface):
     def actContinuous(self, exp, action_, bootstrapping=False):
         # Actor should be FIRST here
         # print "Action: " + str(action_)
+        action_ = np.array(action_, dtype='float64')
+        (action_, outside_bounds) = clampActionWarn(action_, self._action_bounds)
+        
         averageSpeed = exp.getEnvironment().actContinuous(action_, bootstrapping=bootstrapping)
         if (self.hasNotFallen(exp)):
             vel_dif = np.abs(self._target_vel - averageSpeed)
@@ -40,8 +43,8 @@ class GapGame2DActor(ActorInterface):
                 print("velocity diff: ", vel_dif)
                 print("reward: ", reward)
         else:
-            return -1.0
-        reward = reward + -1.0
+            return 0.0
+        reward = reward
         self._reward_sum = self._reward_sum + reward
         # print("Reward Sum: ", self._reward_sum)
         return reward
