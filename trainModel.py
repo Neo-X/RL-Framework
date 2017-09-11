@@ -498,13 +498,13 @@ def trainModelParallel(settingsFileName):
                     for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls, _advantage=advantage__)
                         
-                    data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters())
+                    data = ('Update_Policy', 1.0, masterAgent.getPolicy().getNetworkParameters())
                     message = {}
                     message['type'] = 'Update_Policy'
                     message['data'] = data
                     if (settings['train_forward_dynamics']):
                         # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-                        data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters(),
+                        data = ('Update_Policy', 1.0, masterAgent.getPolicy().getNetworkParameters(),
                                  masterAgent.getForwardDynamics().getNetworkParameters())
                         message['data'] = data
                     for m_q in sim_work_queues:

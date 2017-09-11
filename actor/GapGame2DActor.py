@@ -3,6 +3,7 @@ import math
 from actor.ActorInterface import ActorInterface
 from model.ModelUtil import randomExporation, randomUniformExporation, reward_smoother, clampAction, clampActionWarn
 import numpy as np
+import copy
 
 class GapGame2DActor(ActorInterface):
     
@@ -28,6 +29,7 @@ class GapGame2DActor(ActorInterface):
     def actContinuous(self, exp, action_, bootstrapping=False):
         # Actor should be FIRST here
         # print "Action: " + str(action_)
+        action_ = copy.deepcopy(action_)
         action_ = np.array(action_, dtype='float64')
         (action_, outside_bounds) = clampActionWarn(action_, self._action_bounds)
         

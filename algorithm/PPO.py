@@ -83,13 +83,15 @@ class PPO(AlgorithmInterface):
         
         ## prevent value from being 0
         if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
-            self._q_valsActASTD = ( self._action_std_scaling * T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+            # self._q_valsActASTD = ( self._action_std_scaling * T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+            self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
             self._q_valsActASTD = ((self._action_std_scaling * self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 1e-2
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         self._q_valsActTarget = scale_action(self._q_valsActTarget, self._action_bounds)
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
         if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
+            # self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
             self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else: 
             self._q_valsActTargetSTD = (( self._action_std_scaling * self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 1e-2
@@ -502,11 +504,11 @@ class PPO(AlgorithmInterface):
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         print("Advantage, model: ", np.mean(self._get_advantage()), " std: ", np.std(self._get_advantage()))
-        # print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
+        print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
         print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
         # print("Targets: ", np.mean(self._get_target()), " std: ", np.std(self._get_target()))
         # print("Falls: ", np.mean(falls), " std: ", np.std(falls))
-        # print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
+        print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
         print("Actions mean:     ", np.mean(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
         # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )

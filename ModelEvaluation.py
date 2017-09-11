@@ -429,6 +429,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         # print("Action: ", pa)
                         # print ("Action std: ", std)
                         action = randomExporationSTD(settings["exploration_rate"], pa, std, action_bounds)
+                        # print("Action2: ", action)
                     elif ((settings['exploration_method'] == 'thompson')):
                         # print ('Using Thompson sampling')
                         action = thompsonExploration(model, settings["exploration_rate"], state_)
@@ -544,7 +545,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         
         # print ("Agent fell ", agent_not_fell, " with reward: ", reward_, " from action: ", action)
             # reward_=0
-          
+        # print("Action3: ", action)
         if ((reward_ >= settings['reward_lower_bound'] )):
             # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * reward_))) # *(1.0-discount_factor))
             # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * (reward_ * (1.0-discount_factor) )))) # *(1.0-discount_factor))
@@ -642,6 +643,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print("Advantage, rewards, baseline: ", np.concatenate((advantage, G_t_rewards, baseline), axis=1))
     advantage = np.reshape(np.array([advantage]), newshape=(-1,1))
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage, exp_actions)
+    # print("***** Sim Actions std:  ", np.std((actions), axis=0) )
+    # print("***** Sim State mean:  ", np.mean((states), axis=0) )
+    # print("***** Sim Next State mean:  ", np.mean((result_states___), axis=0) )
     return (tuples, discounted_sum, q_value, evalData)
     
 
