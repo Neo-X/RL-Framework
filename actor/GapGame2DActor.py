@@ -29,7 +29,7 @@ class GapGame2DActor(ActorInterface):
     def actContinuous(self, exp, action_, bootstrapping=False):
         # Actor should be FIRST here
         # print "Action: " + str(action_)
-        action_ = copy.deepcopy(action_)
+        # action_ = copy.deepcopy(action_)
         action_ = np.array(action_, dtype='float64')
         (action_, outside_bounds) = clampActionWarn(action_, self._action_bounds)
         
