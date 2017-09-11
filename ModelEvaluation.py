@@ -838,7 +838,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             actions.extend(actions_)
             result_states.extend(result_states_)
             rewards.extend(rewards_)
-            falls.extend(rewards_)
+            falls.extend(falls_)
             G_ts.extend(G_ts_)
             advantage.extend(advantage_)
             exp_actions.extend(exp_actions_)
