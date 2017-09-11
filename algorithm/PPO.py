@@ -259,8 +259,12 @@ class PPO(AlgorithmInterface):
                             + self._actor_regularization
                             )
             
-        self._all_Params = self._params + self._actionParams[-3:]
-        # self._all_Params = self._params + self._actionParams
+        if ( ('train_state_encoding' in self.getSettings()) and (self.getSettings()['train_state_encoding'])):
+            self._encodeParams = lasagne.layers.helper.get_all_params(self._model.getEncodeNet())
+            self._all_Params = self._params + self._actionParams + self._encodeParams 
+        else:
+            # self._all_Params = self._params + self._actionParams[-3:]    
+            self._all_Params = self._params + self._actionParams
         print ("Num params: ", len(self._all_Params), " params: ", len(self._params) , " act params: ", len(self._actionParams))
         self._both_grad = T.grad(self._full_loss ,  self._all_Params)
         self._both_grad = lasagne.updates.total_norm_constraint(self._both_grad, 5)
