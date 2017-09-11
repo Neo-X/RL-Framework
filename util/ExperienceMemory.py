@@ -145,8 +145,8 @@ class ExperienceMemory(object):
                     ## Normalize reward and scale by discount factor, helps make value function gradients nice.
                     # print( "self._reward_history[i]: ", self._reward_history[i], " self._reward_bounds: ", self._reward_bounds, 
                     #      "reward used: ", (norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))))
-                    # reward.append((self._reward_history[i]) * ((1.0-self._settings['discount_factor']))) # scale rewards
-                    reward.append((self._reward_history[i])) # scale rewards
+                    reward.append((self._reward_history[i]) * ((1.0-self._settings['discount_factor']))) # scale rewards
+                    # reward.append((self._reward_history[i])) # scale rewards
             else:
                                 
                 state.append(norm_state(self._state_history[i], self._state_bounds))

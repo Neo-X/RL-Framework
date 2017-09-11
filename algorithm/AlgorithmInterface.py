@@ -180,8 +180,8 @@ class AlgorithmInterface(object):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            # return (self._q_val())[0] * ((1.0-self._settings['discount_factor'])) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-            return (self._q_val())[0]
+            return (self._q_val())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            # return (self._q_val())[0]
         else:
             return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()[0]
@@ -201,8 +201,8 @@ class AlgorithmInterface(object):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            # return (self._q_val())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
-            return (self._q_val())[0] 
+            return (self._q_val())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            # return (self._q_val())[0] 
         else:
             return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()
@@ -219,8 +219,8 @@ class AlgorithmInterface(object):
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            # return (self._q_val_drop())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
-            return (self._q_val_drop())[0]
+            return (self._q_val_drop())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            # return (self._q_val_drop())[0]
         else:
             return scale_reward(self._q_val_drop(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
     
