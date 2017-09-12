@@ -217,7 +217,7 @@ def randomExporation(explorationRate, actionV, bounds):
         out.append(actionV[i] + n)
     return out
 
-def randomExporationSTD(explorationRate, actionV, std, bounds):
+def randomExporationSTD(explorationRate, actionV, std, bounds=None):
     """
         This version scales the exploration noise wrt the action bounds
     """
