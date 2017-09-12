@@ -560,6 +560,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
         # print ("discounted_sum: ", discounted_sum)
         resultState_ = exp.getState()
+        
+        # print ( "Sim state info:", state_)
+        # print ( "Sim result state info:", resultState_)
         # print ("Result State shape: ", (np.array(resultState).shape))
         # _val_act = exp.getActor().getModel().maxExpectedActionForState(resultState)
         # bellman_error.append(val_act[0] - (reward + _val_act[0]))

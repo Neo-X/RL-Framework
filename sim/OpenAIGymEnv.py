@@ -9,6 +9,7 @@ import copy
 import gym
 from gym import wrappers
 from gym import envs
+import roboschool
 print(envs.registry.all())
 
 from model.ModelUtil import getOptimalAction, getMBAEAction
@@ -57,6 +58,7 @@ class OpenAIGymEnv(SimInterface):
         if (self.getSettings()['render']):
             self.getEnvironment().render()
         observation, reward, done, info = self.getEnvironment().step(action_)
+        # print ("observation: ", observation)
         self._end_of_episode = done
         self._previous_observation = observation
         return reward
