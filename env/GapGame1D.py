@@ -577,27 +577,32 @@ class GapGame1D(object):
         self.glut_print( 5 , y_start , GLUT_BITMAP_9_BY_15 , "Target Vel: " + str(self._target_velocity) , 0.0 , 0.0 , 0.0 , 1.0 )
         
     def actContinuous(self, action, bootstrapping=False):
+        """
+            
+        """
         # print ("Action: ", action)
         pos = self._obstacle.getPosition()
         vel = self._obstacle.getLinearVel()
         # print ("Position Before action: ", pos)
-        new_vel = np.array([vel[0] + action[0], 4.0])
+        new_vel = np.array([action[0], 4.0])
         new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
+        # print("New action: ", new_vel)
+        time = (new_vel[1]/9.81)*2 # time for rise and fall
         self._obstacle.setLinearVel((new_vel[0], new_vel[1], 0))
         ## Move forward along X
         self.simulateAction(new_vel)
+        dist = new_vel[0] * time
         self._obstacle.setPosition(pos + np.array([dist, 0.0, 0.0]))
         # print ("Position After action: ", pos + np.array([dist, 0.0, 0.0]))
 
         # print (pos)
-        time = (new_vel[1]/9.81)*2 # time for rise and fall
-        dist = new_vel[0] * time
+
         # self._terrainData = self.generateTerrain()
         self._state_num=self._state_num+1
         # state = self.getState()
         # print ("state length: " + str(len(state)))
         # print (state)
-        return dist
+        return new_vel[0]
         # obstacle.addForce((0.0,100.0,0.0))
         
     def agentHasFallen(self):

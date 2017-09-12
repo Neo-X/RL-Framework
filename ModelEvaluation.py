@@ -336,7 +336,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 advantage.extend(discounted_rewards(deltas, discount_factor * settings['GAE_lambda']))
             else:
                 advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
-            advantage.append(0.0)
+            advantage.append([0.0])
             if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
                 adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
                 print("Advantage: ", adv_r)
@@ -635,13 +635,14 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         advantage.extend(discounted_rewards(deltas, discount_factor * settings['GAE_lambda']))
     else:
         advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
-    advantage.append(0.0)
+    advantage.append([0.0])
     # G_t_rewards.append(0)
     if ( ('print_level' in settings) and (settings["print_level"]== 'info') ):
         adv_r = [ [x, y, z] for x,y,z in zip(advantage, G_t_rewards, baseline)]
         print("Advantage for episode: ", np.array(adv_r))
         # print("Advantage, rewards, baseline: ", np.concatenate((advantage, G_t_rewards, baseline), axis=1))
-    advantage = np.reshape(np.array([advantage]), newshape=(-1,1))
+    # print ("ad: ", advantage)
+    advantage = np.reshape(np.array(advantage), newshape=(-1,1))
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage, exp_actions)
     # print("***** Sim Actions std:  ", np.std((actions), axis=0) )
     # print("***** Sim State mean:  ", np.mean((states), axis=0) )
