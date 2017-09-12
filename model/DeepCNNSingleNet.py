@@ -573,6 +573,7 @@ class InverseLayer(layers.MergeLayer):
         input, layer_out, layer_in = inputs
         return theano.grad(None, wrt=layer_in, known_grads={layer_out: input})
 
+from util.nn import weight_norm
 
 class DeepCNNSingleNet(ModelInterface):
     
@@ -610,18 +611,20 @@ class DeepCNNSingleNet(ModelInterface):
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=16, filter_size=8,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        # network = weight_norm( network )
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
         """
         network = lasagne.layers.Conv1DLayer(
-            network, num_filters=32, filter_size=4,
+            network, num_filters=16, filter_size=4,
             nonlinearity=lasagne.nonlinearities.leaky_rectify,
             W=lasagne.init.GlorotUniform())
+        """
         """
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=32, filter_size=4,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        """
         self._critic_task_part = network 
         
         """
@@ -640,38 +643,49 @@ class DeepCNNSingleNet(ModelInterface):
         networkMiddle = lasagne.layers.ConcatLayer([network, characterFeatures], axis=1)
         
         networkMiddle = lasagne.layers.DenseLayer(
-                networkMiddle, num_units=64,
+                networkMiddle, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        # networkMiddle = weight_norm( networkMiddle )
+        """
         network = lasagne.layers.DenseLayer(
                 networkMiddle, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        """
+        """
         network = lasagne.layers.DenseLayer(
-                network, num_units=32,
+                networkMiddle, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        # network = weight_norm( network )
+        """
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        # network = weight_norm( network )
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
                 
-                
+        """  
         networkAct = lasagne.layers.DenseLayer(
                 networkMiddle, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        """
+        """
         networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=32,
+                networkMiddle, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        networkAct = weight_norm( networkAct )
+        """
         self._actor = lasagne.layers.DenseLayer(
-                    networkAct, num_units=self._action_length,
+                    networkMiddle, num_units=self._action_length,
                     nonlinearity=lasagne.nonlinearities.linear)
+        
+        if (self._settings['use_stocastic_policy']):
+            with_std = lasagne.layers.DenseLayer(
+                    networkMiddle, num_units=self._action_length,
+                    nonlinearity=theano.tensor.nnet.softplus)
+            self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
         
         
         # networkAct = lasagne.layers.ReshapeLayer(networkAct, (-1, 99))
@@ -690,35 +704,42 @@ class DeepCNNSingleNet(ModelInterface):
         
         
         networkAct = lasagne.layers.ReshapeLayer(networkActMiddle, (-1, 1, 1, 64 + self._action_length))
-        
+        """
+        networkAct = Deconv2DLayer(
+            networkAct, num_filters=16, filter_size=(1,8),
+            stride=(1,1),
+            nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        networkAct = weight_norm( networkAct )
+        # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
+        """
+        print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         networkAct = Deconv2DLayer(
             networkAct, num_filters=16, filter_size=(1,4),
             stride=(1,1),
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        # networkAct = weight_norm( networkAct )
         
-        # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
-        print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
-        networkAct = Deconv2DLayer(
-            networkAct, num_filters=32, filter_size=(1,8),
-            stride=(1,1),
-            nonlinearity=lasagne.nonlinearities.leaky_rectify)
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         # networkAct = lasagne.layers.ReshapeLayer(networkAct, (-1, 1, 1, 74))
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._settings['num_terrain_features'],
                 nonlinearity=lasagne.nonlinearities.linear)
+        # networkAct = weight_norm( networkAct )
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
-        
+        """
         networkActChar = lasagne.layers.DenseLayer(
                 networkActMiddle, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        """
+        # networkActChar = weight_norm( networkActChar )
         networkActChar = lasagne.layers.DenseLayer(
-                networkActChar, num_units=64,
+                networkAct, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        # networkActChar = weight_norm( networkActChar )
         networkActChar = lasagne.layers.DenseLayer(
                 networkActChar, num_units=((self._state_length) - self._settings['num_terrain_features']),
                 nonlinearity=lasagne.nonlinearities.linear)
-        
+        networkActChar = weight_norm( networkActChar )
         # networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
         # this should have dimensions (1,self._state_length + self._action_length)...
         ## Put the terrain features together with the character feature predictions
@@ -731,23 +752,21 @@ class DeepCNNSingleNet(ModelInterface):
         """
         self._forward_dynamics_net = networkAct
     
-        if (self._settings['use_stocastic_policy']):
-            with_std = lasagne.layers.DenseLayer(
-                    networkAct, num_units=self._action_length,
-                    nonlinearity=theano.tensor.nnet.softplus)
-            self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
         # self._b_o = init_b_weights((n_out,))
         
-        
+        """
         networkActReward = lasagne.layers.DenseLayer(
                 networkActMiddle, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        networkActReward = weight_norm( networkActReward )
+        """
         networkActReward = lasagne.layers.DenseLayer(
-                networkActReward, num_units=64,
+                networkActMiddle, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        # networkActReward = weight_norm( networkActReward )
         networkActReward = lasagne.layers.DenseLayer(
                 networkActReward, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)        
+                nonlinearity=lasagne.nonlinearities.linear)      
         self._reward_net = networkActReward
         
         
