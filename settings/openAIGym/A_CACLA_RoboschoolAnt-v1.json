@@ -34,20 +34,24 @@
     "comment__": "Whether or not to train a forward dynamics model as well",
 "train_forward_dynamics": false,
     "comment__": "Bounds used for scaling rewards for networks",
-"reward_bounds": [[-3.5],[3.5]],
+"reward_bounds": [[-1.0],[1.0]],
     "comment__": "Max length of the Experience memory",
 "expereince_length": 10000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
-"state_bounds": [[-0.15259701, -0.07355031,  0.88042921, -0.02625405, -0.02294806, -0.04831768,
-				  -0.11942075, -0.05681541,  0.90965903, -0.09690452,  0.57426214, -0.12998194,
-				   0.91068572, -0.09685255, -1.35622883, -0.14823098,  0.81700408, -0.09703907,
-				  -1.28661084, -0.1689292,  -1.4508574 , -0.15330431, -0.7739116 , -0.14289927,
-				   0.79346997, -0.20429528,  0.6960026 ,  0.32251453],
-				 [-0.08509729,  0.16288829,  1.09220791,  0.0376085 ,  0.02214338,  0.03647599,
-				   0.23720677,  0.23530468,  1.07430625,  0.11560068,  1.27785206,  0.17213547,
-				   1.07352161,  0.11583371, -0.39243355,  0.10090454,  1.03923225,  0.11563246,
-				  -0.60522324,  0.1232123 , -0.87282062,  0.12877893,  0.26239386,  0.16907603,
-				   1.1433301,   0.56309527,  1.17939734,  1.18448544]],
+"state_bounds": [[ -4.89999861e-01, -5.83190203e-01,  8.12335610e-01, -2.16239929e-01
+				,  -1.90281749e-01, -9.04436111e-01, -3.69397998e-01, -3.05442035e-01
+				,  -1.01511049e+00, -1.13733721e+00, -2.01852059e+00, -2.83385336e-01
+				,  -1.09623408e+00, -1.31724727e+00,  1.53489137e+00, -2.21512839e-01
+				,  -1.05460358e+00, -1.18944967e+00,  4.96638864e-01, -1.05112863e+00
+				,  -1.06968021e+00, -1.34948170e+00, -2.02058768e+00, -6.29021585e-01
+				,   0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  0.00000000e+00],
+				 [  0.00000000e+00,  1.03078946e-05,  1.00000000e+00,  1.82649612e-01
+				,   2.31652781e-01,  1.07238598e-01,  1.17925904e-03,  1.36437789e-01
+				,   4.63816851e-01,  6.10870957e-01, -3.50086510e-01,  1.17075801e+00
+				,   1.41867608e-01,  4.89411056e-01,  2.37353683e+00,  4.30399895e-01
+				,   3.68270725e-01,  6.26110435e-01,  2.02029943e+00,  3.07529569e-01
+				,   1.42036930e-01,  4.68046039e-01, -9.28612985e-03,  5.53445458e-01
+				,   1.00000000e+00,  1.00000000e+00,  1.00000000e+00,  1.00000000e+00]],
     "comment__": "Action scaling values to be used to scale values for the network",
 "action_bounds": [[-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0],
                   [ 1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0]],
@@ -60,7 +64,7 @@
     "comment__": "Should the method train on the validation set only",
 "train_on_validation_set":false,
     "comment__": "Name of the type of simulator to use",
-"environment_type": "openAIGym",
+"environment_type": "open_AI_Gym",
     "comment__": "Model type to use for the forward dynamics model",
 "forward_dynamics_predictor": "network",
     "comment__": "Method to be used for the forward dynamics model is the model types uses a simulator",
@@ -76,9 +80,9 @@
     "comment__": "How often to save the training data and plotting data",
 "saving_update_freq_num_rounds": 1,
     "comment__": "Number of treads that can be run in parallel during training",
-"num_available_threads": 1,
+"num_available_threads": 3,
     "comment__": "Length of the queues used to pass simulation data between the simulation workers and the learning agent(s).",
-"queue_size_limit": 1,
+"queue_size_limit": 300,
     "comment__": "Number of actions performed between training updates",
 "sim_action_per_training_update": 8,
     "comment__": "Number of rounds of adaptive sampling",
@@ -102,7 +106,7 @@
     "comment__": "Initial factor epsilon in multiplied by (This value will slowly be reduced during training)",
 "epsilon_annealing": 0.8,
     "comment__": "Different ways of calculating the scaling method used normalize the input and outputs of the network from the bootstrapping samples. minmax, input and output are -mean/max-min. variance, input and output are -mean/(std*2), given, use the bounds provided in this file",
-"state_normalization": "variance",
+"state_normalization": "given",
 "load_saved_model": false,
 "critic_updates_per_actor_update": 1,
     "comment__": "weather or not to clamp actions to stay inside the action boundaries",
@@ -112,7 +116,7 @@
     "comment__": "What method to use to select actions during bootstrapping",
 "bootsrap_with_discrete_policy": true,
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
-"max_epoch_length": 500,
+"max_epoch_length": 128,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
 "reward_lower_bound": -300.5,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",

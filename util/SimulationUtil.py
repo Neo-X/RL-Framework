@@ -363,7 +363,7 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = NavGameEnv(exp, settings)
         return exp
     
-    elif env_type == 'openAIGym':
+    elif env_type == 'open_AI_Gym':
         import gym
         from gym import wrappers
         from gym import envs
@@ -518,7 +518,7 @@ def createActor(env_type, settings, experience):
     elif (env_type == 'pendulum'):
         from actor.ActorInterface import ActorInterface
         actor = ActorInterface(settings, experience)
-    elif (env_type == 'openAIGym'):
+    elif (env_type == 'open_AI_Gym'):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
     else:
