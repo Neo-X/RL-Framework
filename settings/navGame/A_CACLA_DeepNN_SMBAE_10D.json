@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere_SMBAE_10D",
+"data_folder": "Nav_Sphere_SMBAE2_10D",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 0.5, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -222,5 +222,9 @@
 	"comment__": "How many gradient steps model based action exploration should take",
 "num_mbae_steps": 1,
 	"comment__": "Whether or not to use a stochastic forward dynamics model",
-"use_stochastic_forward_dynamics": true	
+"use_stochastic_forward_dynamics": true,
+	"comment__": "Multiply the MBAE action by a sample from a uniform distribution, to allow the action to vary in magnitude",
+"randomize_MBAE_action_length": true,
+	"comment__": "The number of stochastic samples of the forward dynamics model to take and average over",
+"num_stochastic_forward_dynamics_samples": 32	
 }

@@ -441,7 +441,13 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
             std = forwardDynamicsModel.predict_std(state, [action])
             if (model.getSettings()["print_level"]== 'debug'):
                 print ("SMBAE std: ", std)
-            next_state = randomExporationSTD(0, next_state, std)
+            if ('num_stochastic_forward_dynamics_samples' in model.getSettings()):
+                next_states = []
+                for ns in range(model.getSettings()['num_stochastic_forward_dynamics_samples']):
+                    next_states.append(randomExporationSTD(0, next_state, std))
+                next_state = np.mean(next_states, axis=0)
+            else:
+                next_state = randomExporationSTD(0, next_state, std)
         value_ = model.q_value(next_state)
         # print ("next state q value: ", value_)
         # print ("Next State: ", next_state.shape)
@@ -484,7 +490,11 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         action_grads = dynamics_grads 
         if (model.getSettings()["print_level"]== 'debug'):
             print( "Raw action grad: ", action_grads)
+        ## Normalize action length
         action_grads = (action_grads/(np.sqrt((action_grads*action_grads).sum()))) * (learning_rate)
+        if ('randomize_MBAE_action_length' in model.getSettings() and ( model.getSettings()['randomize_MBAE_action_length'])):
+            action_grads = action_grads * np.random.uniform(low=0.0, high = 1.0, size=1)[0]
+        ## Scale action by action bounds
         action_grads = rescale_action(action_grads, model.getActionBounds())
         if (model.getSettings()["print_level"]== 'debug'):
             print ("Applied action: ", action_grads)

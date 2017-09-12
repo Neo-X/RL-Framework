@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere_MBAE_5D",
+"data_folder": "Nav_Sphere_random_MBAE_5D",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 0.5, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -162,7 +162,7 @@
     "comment__": "Learning rate use for model based action exploration",
 "action_learning_rate": 0.25,
     "comment__": "During model-based action exploration, Probability of random policy action",
-"model_based_action_omega": 0.25,
+"model_based_action_omega": 0.2,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
 "debug_actor": false,
 	"comment__": "float type to use, if for example you want to train on the GPU use float32",
@@ -232,5 +232,7 @@
 	"comment__": "Whether or not to use random actions for the MBAE exploration",
 "use_random_actions_for_MBAE": false,
 	"comment__": "Only use exploratory actions to update the policy",
-"only_use_exp_actions_for_poli_updates": false	
+"only_use_exp_actions_for_poli_updates": false,
+	"comment__": "Multiply the MBAE action by a sample from a uniform distribution, to allow the action to vary in magnitude",
+"randomize_MBAE_action_length": true
 }
