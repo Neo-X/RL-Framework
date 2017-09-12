@@ -67,7 +67,7 @@
          0.5623523 ,  0.58408904,  0.606969  ,  0.64589256,  0.09200405,
          0.5501107 ]],
     "comment__": "Action scaling values to be used to scale values for the network",
-"action_bounds": [[0.5],
+"action_bounds": [[-2.5],
                   [2.5]],
     "comment__": "Set of discrete actions that can be sampled from",				     
 "discrete_actions": [[-0.92],
@@ -230,7 +230,7 @@
 	"comment__": "Random seed value for the simulation to use",
 "random_seed": 1234,
 	"comment__": "KL divergence threshold between policy updates",
-"kl_divergence_threshold": 0.1,
+"kl_divergence_threshold": 0.02,
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy",
 "on_policy": true,
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
@@ -270,7 +270,7 @@
 	"comment__": "std entropy weight to help encourage exploration",
 "std_entropy_weight": 0.01,
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
-"policy_loss_weight": 1.0,
+"policy_loss_weight": 0.1,
 	"comment__": "number of on policy rollouts to perform per epoch",
 "num_on_policy_rollouts": 5
 }

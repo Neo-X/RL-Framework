@@ -641,7 +641,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         adv_r = [ [x, y, z] for x,y,z in zip(advantage, G_t_rewards, baseline)]
         print("Advantage for episode: ", np.array(adv_r))
         # print("Advantage, rewards, baseline: ", np.concatenate((advantage, G_t_rewards, baseline), axis=1))
-    print ("ad: ", advantage)
+    # print ("ad: ", advantage)
     advantage = np.reshape(np.array([advantage]), newshape=(-1,1))
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage, exp_actions)
     # print("***** Sim Actions std:  ", np.std((actions), axis=0) )
