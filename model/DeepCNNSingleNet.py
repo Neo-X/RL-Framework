@@ -658,7 +658,7 @@ class DeepCNNSingleNet(ModelInterface):
         # network = weight_norm( network )
         """
         network = lasagne.layers.DenseLayer(
-                network, num_units=16,
+                networkMiddle, num_units=16,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         # network = weight_norm( network )
         self._critic = lasagne.layers.DenseLayer(
@@ -703,7 +703,7 @@ class DeepCNNSingleNet(ModelInterface):
         networkActMiddle = lasagne.layers.ConcatLayer([networkMiddle, actionInput])
         
         
-        networkAct = lasagne.layers.ReshapeLayer(networkActMiddle, (-1, 1, 1, 64 + self._action_length))
+        networkAct = lasagne.layers.ReshapeLayer(networkActMiddle, (-1, 1, 1, 32 + self._action_length))
         """
         networkAct = Deconv2DLayer(
             networkAct, num_filters=16, filter_size=(1,8),
@@ -733,7 +733,7 @@ class DeepCNNSingleNet(ModelInterface):
         """
         # networkActChar = weight_norm( networkActChar )
         networkActChar = lasagne.layers.DenseLayer(
-                networkAct, num_units=64,
+                networkActMiddle, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         # networkActChar = weight_norm( networkActChar )
         networkActChar = lasagne.layers.DenseLayer(
