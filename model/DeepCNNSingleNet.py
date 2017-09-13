@@ -714,7 +714,7 @@ class DeepCNNSingleNet(ModelInterface):
         """
         print ("Network Shape:", lasagne.layers.get_output_shape(networkAct))
         networkAct = Deconv2DLayer(
-            networkAct, num_filters=16, filter_size=(1,4),
+            networkAct, num_filters=16, filter_size=(1,8),
             stride=(1,1),
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         # networkAct = weight_norm( networkAct )
@@ -735,11 +735,13 @@ class DeepCNNSingleNet(ModelInterface):
         networkActChar = lasagne.layers.DenseLayer(
                 networkActMiddle, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
+        networkActChar = lasagne.layers.ConcatLayer([networkActChar, characterFeatures], axis=1)
         # networkActChar = weight_norm( networkActChar )
         networkActChar = lasagne.layers.DenseLayer(
                 networkActChar, num_units=((self._state_length) - self._settings['num_terrain_features']),
                 nonlinearity=lasagne.nonlinearities.linear)
-        networkActChar = weight_norm( networkActChar )
+        # networkActChar = weight_norm( networkActChar )
         # networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
         # this should have dimensions (1,self._state_length + self._action_length)...
         ## Put the terrain features together with the character feature predictions
@@ -769,6 +771,22 @@ class DeepCNNSingleNet(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.linear)      
         self._reward_net = networkActReward
         
+        
+        networkMiddle
+        
+        networkActEncode = Deconv2DLayer(
+            networkMiddle, num_filters=16, filter_size=(1,8),
+            stride=(1,1),
+            nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
+        networkActEncode = lasagne.layers.ConcatLayer([networkActEncode, characterFeatures], axis=1)
+        
+        networkActEncode = lasagne.layers.DenseLayer(
+                networkActEncode, num_units=self._settings['num_terrain_features'],
+                nonlinearity=lasagne.nonlinearities.linear)
+        
+        self._encode_net = networkActEncode
+    
         
           # print ("Initial W " + str(self._w_o.get_value()) )
         
