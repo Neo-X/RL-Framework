@@ -175,7 +175,7 @@
 "shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
 "action_learning_rate": 1.0,
-    "comment__": "During model-based action exploration, Probability of random policy action",
+    "comment__": "During model-based action exloration, Probability of a random action being generated from MBAE,",
 "model_based_action_omega": 0.5,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
 "debug_actor": true,
