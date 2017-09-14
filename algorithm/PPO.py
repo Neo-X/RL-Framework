@@ -216,7 +216,8 @@ class PPO(AlgorithmInterface):
         # self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._actor_regularization ))
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
-        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy))) + self._actor_regularization
+        # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy))) + self._actor_regularization
+        self._actLoss = T.mean(self._actLoss_) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
@@ -490,8 +491,9 @@ class PPO(AlgorithmInterface):
         
         if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
             # self._advantage_shared.set_value(advantage)
-            # advantage = advantage * (1.0-self._discount_factor)
-            pass # use given advantage parameter
+            ## Need to scale the advantage by the discount to help keep things normalized
+            advantage = advantage * (1.0-self._discount_factor)
+            # pass # use given advantage parameter
         else:
             advantage = self._get_diff()[0]
         self._advantage_shared.set_value(advantage)
