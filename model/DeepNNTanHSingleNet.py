@@ -44,13 +44,13 @@ class DeepNNTanHSingleNet(ModelInterface):
         networkMid = lasagne.layers.DenseLayer(
                 network, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        """
         network = lasagne.layers.DenseLayer(
                 networkMid, num_units=16,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-    
+        """
         self._critic = lasagne.layers.DenseLayer(
-                network, num_units=1,
+                networkMid, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
         # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
