@@ -85,7 +85,7 @@ if __name__ == "__main__":
     trainingDatas.append(trainData)
     """
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere/Deep_CNN_SingleNet/trainingData_A_CACLA.json'
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/gapgame_2d/A_CACLA/Gaps_Sphere_FD/Deep_CNN_SingleNet/trainingData_A_CACLA.json'
     trainData['name']='Baseline + SingleNet'
     trainingDatas.append(trainData)
     

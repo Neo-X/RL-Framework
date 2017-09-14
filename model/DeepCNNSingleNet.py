@@ -593,6 +593,8 @@ class DeepCNNSingleNet(ModelInterface):
         self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         
+        self._bottleneck_size = 32
+        
         # create a small convolutional neural network
         input = lasagne.layers.InputLayer((None, self._state_length), self._State)
         self._stateInputVar = input.input_var
@@ -643,7 +645,7 @@ class DeepCNNSingleNet(ModelInterface):
         networkMiddle = lasagne.layers.ConcatLayer([network, characterFeatures], axis=1)
         
         networkMiddle = lasagne.layers.DenseLayer(
-                networkMiddle, num_units=32,
+                networkMiddle, num_units=self._bottleneck_size,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         # networkMiddle = weight_norm( networkMiddle )
         """
@@ -703,7 +705,7 @@ class DeepCNNSingleNet(ModelInterface):
         networkActMiddle = lasagne.layers.ConcatLayer([networkMiddle, actionInput])
         
         
-        networkAct = lasagne.layers.ReshapeLayer(networkActMiddle, (-1, 1, 1, 32 + self._action_length))
+        networkAct = lasagne.layers.ReshapeLayer(networkActMiddle, (-1, 1, 1, self._bottleneck_size + self._action_length))
         """
         networkAct = Deconv2DLayer(
             networkAct, num_filters=16, filter_size=(1,8),
@@ -771,8 +773,8 @@ class DeepCNNSingleNet(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.linear)      
         self._reward_net = networkActReward
         
-        
-        networkMiddle
+
+        networkMiddle = lasagne.layers.ReshapeLayer(networkMiddle, (-1, 1, 1, self._bottleneck_size))
         
         networkActEncode = Deconv2DLayer(
             networkMiddle, num_filters=16, filter_size=(1,8),
