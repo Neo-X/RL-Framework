@@ -436,6 +436,8 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
     for i in range(num_updates):
         ## find next state with dynamics model
         next_state = np.reshape(forwardDynamicsModel.predict(state, [action]), (1, model.getStateSize()))
+        if (model.getSettings()["print_level"]== 'debug'):
+            print(" MBAE mean: ", next_state)
         if ('use_stochastic_forward_dynamics' in model.getSettings() and 
             (model.getSettings()['use_stochastic_forward_dynamics'])):
             std = forwardDynamicsModel.predict_std(state, [action])
