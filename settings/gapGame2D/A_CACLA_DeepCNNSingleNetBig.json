@@ -250,5 +250,7 @@
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
 "fix_actor_batch_size": false,
 	"comment__": "Whether or not to weight the actor loss update by the advantage of each action",
-"dont_use_advantage": false
+"dont_use_advantage": false,
+	"comment__": "Enables the training of an encoded version of the state vector",
+"train_state_encoding": true
 }

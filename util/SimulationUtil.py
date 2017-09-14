@@ -585,9 +585,14 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                 fd_net = agentModel.getModel()
             else:
                 fd_net = createForwardDynamicsNetwork(state_bounds, action_bounds, settings)
-            from algorithm.ForwardDynamics import ForwardDynamics
-            forwardDynamicsModel = ForwardDynamics(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 
-                                                   state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+            if ('train_state_encoding' in settings and (settings['train_state_encoding'])):
+                from algorithm.EncodingModel import EncodingModel
+                forwardDynamicsModel = EncodingModel(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 
+                                                       state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+            else:
+                from algorithm.ForwardDynamics import ForwardDynamics
+                forwardDynamicsModel = ForwardDynamics(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 
+                                                       state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
     else:
         print ("Unrecognized forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
         raise ValueError("Unrecognized forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
