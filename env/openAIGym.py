@@ -3,11 +3,12 @@ from gym import wrappers
 from gym import envs
 import roboschool
 import numpy as np
-print(envs.registry.all())
+# print(envs.registry.all())
 # env = gym.make('CartPole-v0')
 # env = gym.make('BipedalWalker-v2')
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
-env = gym.make('RoboschoolReacher-v1')
+print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
+env = gym.make('RoboschoolInvertedPendulumSwingup-v1')
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
 
@@ -27,7 +28,7 @@ for i_episode in range(20):
         # print(observation)
         action = env.action_space.sample()
         observation, reward, done, info = env.step(action)
-        print("Reward: ", reward)
+        # print("Reward: ", reward)
         rewards.append(reward)
         states.append(observation)
         if done:
@@ -38,6 +39,7 @@ for i_episode in range(20):
         
 print("mean reward: ", np.mean(rewards))
 print("std reward: ", np.std(rewards))
+print("reward min: ", np.min(rewards), " max ", np.max(rewards))
 
 print("min state: ", np.mean(states, axis=0) - np.std(states, axis=0))
 print("max reward: ", np.std(states, axis=0) + np.std(states, axis=0))
