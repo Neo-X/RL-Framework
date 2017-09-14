@@ -1,10 +1,10 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "Deep_NN_TanH",
+"model_type": "Deep_NN",
     "comment__": "Learning algorithm to use",
 "agent_name": "A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "RoboschoolAnt-v1",
+"data_folder": "RoboschoolReacher-v1",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -14,11 +14,11 @@
     "comment__": "Learning rate for the actor/policy",
 "learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
-"sim_config_file": "RoboschoolAnt-v1",
+"sim_config_file": "RoboschoolReacher-v1",
     "comment__": "A different config file for the forward dynamics simulator",
-"forwardDynamics_config_file": "RoboschoolAnt-v1",
+"forwardDynamics_config_file": "RoboschoolReacher-v1",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.15,
+"exploration_rate": 0.25,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 50000,
     "comment__": "Number of epochs to perform per round",
@@ -34,27 +34,17 @@
     "comment__": "Whether or not to train a forward dynamics model as well",
 "train_forward_dynamics": false,
     "comment__": "Bounds used for scaling rewards for networks",
-"reward_bounds": [[-0.0],[0.2]],
+"reward_bounds": [[-1.0],[1.0]],
     "comment__": "Max length of the Experience memory",
 "expereince_length": 10000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
-"state_bounds": [[ -4.89999861e-01, -5.83190203e-01,  8.12335610e-01, -2.16239929e-01
-				,  -1.90281749e-01, -9.04436111e-01, -3.69397998e-01, -3.05442035e-01
-				,  -1.01511049e+00, -1.13733721e+00, -2.01852059e+00, -2.83385336e-01
-				,  -1.09623408e+00, -1.31724727e+00,  1.53489137e+00, -2.21512839e-01
-				,  -1.05460358e+00, -1.18944967e+00,  4.96638864e-01, -1.05112863e+00
-				,  -1.06968021e+00, -1.34948170e+00, -2.02058768e+00, -6.29021585e-01
-				,   0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  0.00000000e+00],
-				 [  0.00000000e+00,  1.03078946e-05,  1.00000000e+00,  1.82649612e-01
-				,   2.31652781e-01,  1.07238598e-01,  1.17925904e-03,  1.36437789e-01
-				,   4.63816851e-01,  6.10870957e-01, -3.50086510e-01,  1.17075801e+00
-				,   1.41867608e-01,  4.89411056e-01,  2.37353683e+00,  4.30399895e-01
-				,   3.68270725e-01,  6.26110435e-01,  2.02029943e+00,  3.07529569e-01
-				,   1.42036930e-01,  4.68046039e-01, -9.28612985e-03,  5.53445458e-01
-				,   1.00000000e+00,  1.00000000e+00,  1.00000000e+00,  1.00000000e+00]],
+"state_bounds": [[ -0.14588307, -0.1173664,  -0.16688473, -0.22797201, -0.73200265, -0.70216398,
+ 					-0.46120366, -0.84818639, -0.96956266],
+				 [  0.27895001,  0.31512834,  0.3453724,   0.36820657,  1.40582241,  1.42126397,
+  				1.0778154,   1.38079066,  1.93372183]],
     "comment__": "Action scaling values to be used to scale values for the network",
-"action_bounds": [[-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0],
-                  [ 1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0]],
+"action_bounds": [[-1.0, -1.0],
+                  [ 1.0,  1.0]],
     "comment__": "Set of discrete actions that can be sampled from",				     
 "discrete_actions": [[-0.92, 0.8, -0.92, 0.8, -0.92, 0.8, -0.92, 0.8, -0.92, 0.8],
                     [0.02, 0.0, 0.02, 0.0, 0.02, 0.0, 0.02, 0.0, 0.02, 0.0],
@@ -82,7 +72,7 @@
     "comment__": "Number of treads that can be run in parallel during training",
 "num_available_threads": 3,
     "comment__": "Length of the queues used to pass simulation data between the simulation workers and the learning agent(s).",
-"queue_size_limit": 300,
+"queue_size_limit": 1,
     "comment__": "Number of actions performed between training updates",
 "sim_action_per_training_update": 8,
     "comment__": "Number of rounds of adaptive sampling",
