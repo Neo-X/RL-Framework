@@ -455,7 +455,7 @@ class A_CACLA(AlgorithmInterface):
                    (exp_actions[i] == 1))
                   ):
                 if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):
-                    self._actor_buffer_diff.append([1.0])
+                    self._actor_buffer_diff.append([1.0 * (1.0-self._discount_factor)])
                     #  print("Not using advantage")
                 else:
                     self._actor_buffer_diff.append(diff_[i])
@@ -471,7 +471,7 @@ class A_CACLA(AlgorithmInterface):
             tmp_rewards = self._actor_buffer_rewards[:self.getSettings()['batch_size']]
             tmp_result_states = self._actor_buffer_result_states[:self.getSettings()['batch_size']]
             tmp_falls = self._actor_buffer_falls[:self.getSettings()['batch_size']]
-            tmp_diff = self._actor_buffer_diff[:self.getSettings()['batch_size']]
+            tmp_diff = np.array(self._actor_buffer_diff[:self.getSettings()['batch_size']], dtype=self.getSettings()['float_type'])
             self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
             self._tmp_diff_shared.set_value(tmp_diff)
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))

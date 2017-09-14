@@ -880,7 +880,7 @@ def collectExperience(actor, exp_val, model, settings):
         state_avg = states[:settings['bootsrap_samples']].mean(0)
         state_stddev = states[:settings['bootsrap_samples']].std(0)
         reward_avg = rewards_[:settings['bootsrap_samples']].mean(0)
-        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0)
+        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0) * 0.5
         action_avg = actions[:settings['bootsrap_samples']].mean(0)
         action_stddev = actions[:settings['bootsrap_samples']].std(0)
         print("Computed state min bound: ", state_avg - state_stddev)
@@ -888,15 +888,15 @@ def collectExperience(actor, exp_val, model, settings):
         if (settings['state_normalization'] == "minmax"):
             state_bounds[0] = states[:settings['bootsrap_samples']].min(0)
             state_bounds[1] = states[:settings['bootsrap_samples']].max(0)
-            # reward_bounds[0] = rewards_[:settings['bootsrap_samples']].min(0)
-            # reward_bounds[1] = rewards_[:settings['bootsrap_samples']].max(0)
+            reward_bounds[0] = rewards_[:settings['bootsrap_samples']].min(0)
+            reward_bounds[1] = rewards_[:settings['bootsrap_samples']].max(0)
             # action_bounds[0] = actions[:settings['bootsrap_samples']].min(0)
             # action_bounds[1] = actions[:settings['bootsrap_samples']].max(0)
         elif (settings['state_normalization'] == "variance"):
             state_bounds[0] = state_avg - state_stddev
             state_bounds[1] = state_avg + state_stddev
-            # reward_bounds[0] = reward_avg - reward_stddev
-            # reward_bounds[1] = reward_avg + reward_stddev
+            reward_bounds[0] = reward_avg - reward_stddev
+            reward_bounds[1] = reward_avg + reward_stddev
             # action_bounds[0] = action_avg - action_stddev
             # action_bounds[1] = action_avg + action_stddev
         elif (settings['state_normalization'] == "given"):
