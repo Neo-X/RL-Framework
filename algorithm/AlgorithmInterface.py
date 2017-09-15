@@ -121,6 +121,16 @@ class AlgorithmInterface(object):
         # action_ = q_valsActA[0]
         return action_
     
+    def predict_batch(self, states, deterministic_=True):
+        """
+            These input and output do not need to be normalized/scalled
+        """
+        # state = norm_state(state, self._state_bounds)
+        states = np.array(states, dtype=theano.config.floatX)
+        self._model.setStates(states)
+        actions_ = self._q_action()
+        return actions_
+    
     def predict_std(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state

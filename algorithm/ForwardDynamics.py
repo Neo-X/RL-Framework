@@ -204,10 +204,11 @@ class ForwardDynamics(AlgorithmInterface):
     def setGradTarget(self, grad):
         self._fd_grad_target_shared.set_value(grad)
         
-    def getGrads(self, states, actions, result_states, v_grad=None):
-        states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
-        actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
-        result_states = np.array(norm_state(result_states, self._state_bounds), dtype=self.getSettings()['float_type'])
+    def getGrads(self, states, actions, result_states, v_grad=None, alreadyNormed=False):
+        if ( alreadyNormed == False ):
+            states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
+            actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
+            result_states = np.array(norm_state(result_states, self._state_bounds), dtype=self.getSettings()['float_type'])
         # result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
         self.setData(states, actions, result_states)
         # if (v_grad != None):

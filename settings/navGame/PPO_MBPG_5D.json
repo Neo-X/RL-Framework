@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "PPO",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere_MBAE_5D",
+"data_folder": "Nav_Sphere_MBPG_5D",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -120,7 +120,7 @@
     "comment__": "Use The forward dynamics simulator as a way of sampling suggested actions for exploration",
 "use_sampling_exploration": false,
     "comment__": "Use the forward dyanmics model to perform action exploration wrt to V -> fd > delta Action gradients",
-"use_model_based_action_optimization": true,
+"use_model_based_action_optimization": false,
     "comment__": "Flag for policy evaluation to swap in the task network from one model and the character/robot network from another",
 "use_transfer_task_network": false,
     "comment__": "Add a large cost to actions that are suggested to be outside the action bounds.",
@@ -242,7 +242,7 @@
 	"comment__": "Train a state encoding as well.",
 "train_state_encoding": false,
 	"comment__": "std entropy weight to help encourage exploration",
-"std_entropy_weight": 0.1,
+"std_entropy_weight": 0.01,
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 0.01,
 	"comment__": "number of on policy rollouts to perform per epoch",
@@ -256,5 +256,7 @@
 	"comment__": "Only use exploratory actions to update the policy",
 "only_use_exp_actions_for_poli_updates": true,
 	"comment__": "Multiply the MBAE action by a sample from a uniform distribution, to allow the action to vary in magnitude",
-"randomize_MBAE_action_length": true
+"randomize_MBAE_action_length": true,
+	"comment__": "Use the action gradients from MBAE to update the policy mean (Model-Based Policy Gradient)",
+"use_MBPG": true
 }

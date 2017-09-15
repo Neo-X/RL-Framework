@@ -148,6 +148,13 @@ class LearningAgent(AgentInterface):
                             numpy.set_printoptions(threshold=numpy.nan)
                             print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                             print ("Training cost is Odd: ", cost)
+                if ( 'use_MBPG' in self._settings and (self._settings['use_MBPG'])):
+                    for i in range(self._settings['critic_updates_per_actor_update']):
+                        # if ( 'use_multiple_policy_updates' in self._settings and ( self._settings['use_multiple_policy_updates']) ):
+                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
+                            # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
+                        print "Training MBPG"
+                        cost_ = self._pol.trainActionGrad(states=_states, forwardDynamicsModel=self._fd)
         else: ## Off-policy
             # print("State Bounds LA:", self._pol.getStateBounds())
             # print("Action Bounds LA:", self._pol.getActionBounds())

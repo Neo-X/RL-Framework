@@ -86,7 +86,7 @@ class PPO(AlgorithmInterface):
             self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
-            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 1e-2
+            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 5e-2
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         # self._q_valsActTarget = scale_action(self._q_valsActTarget, self._action_bounds)
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
@@ -94,7 +94,7 @@ class PPO(AlgorithmInterface):
             self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else: 
-            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 1e-2
+            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 5e-2
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -327,6 +327,46 @@ class PPO(AlgorithmInterface):
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
         
+        ## Some cool stuff to backprop action gradients
+        
+        self._action_grad = T.matrix("Action_Grad")
+        self._action_grad.tag.test_value = np.zeros((self._batch_size,self._action_length), dtype=np.dtype(self.getSettings()['float_type']))
+        
+        self._action_grad_shared = theano.shared(
+            np.zeros((self._batch_size, self._action_length),
+                      dtype=self.getSettings()['float_type']))
+        
+        self._action_mean_grads = T.grad(cost=None, wrt=self._actionParams,
+                                                            known_grads={self._q_valsActA: self._action_grad_shared}),
+        # print ("Action grads: ", self._action_mean_grads[0])
+        ## When passing in gradients it needs to be a proper list of gradient expressions
+        self._action_mean_grads = list(self._action_mean_grads[0])
+        # print ("isinstance(self._action_mean_grads, list): ", isinstance(self._action_mean_grads, list))
+        # print ("Action grads: ", self._action_mean_grads)
+        self._actionGRADUpdates = lasagne.updates.adagrad(self._action_mean_grads, self._actionParams, 
+                    self._learning_rate, epsilon=self._rms_epsilon)
+        
+        self._actGradGivens = {
+            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            # self._model.getActionSymbolicVariable(): self._model.getActions(),
+            # self._Fallen: self._fallen_shared,
+            # self._advantage: self._advantage_shared,
+            # self._KL_Weight: self._kl_weight_shared
+        }
+        
+        """
+        self._get_grad = theano.function([], outputs=T.grad(cost=None, wrt=[self._model._actionInputVar] + self._params,
+                                                            known_grads={self._forward: self._fd_grad_target_shared}), 
+                                         allow_input_downcast=True, 
+                                         givens= {
+            self._model.getStateSymbolicVariable() : self._model.getStates(),
+            # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            # self._fd_grad_target : self._fd_grad_target_shared
+        })
+        """
         PPO.compile(self)
         
     def compile(self):
@@ -382,6 +422,8 @@ class PPO(AlgorithmInterface):
         self._trainDyna = theano.function([], [self._loss_dyna], updates=self._DYNAUpdates, givens=self._givens_dyna)
         
         self._trainCollective = theano.function([], [self._full_loss, self._q_func], updates=self._collectiveUpdates, givens=self._allGivens)
+        
+        self._trainActionGRAD  = theano.function([], [], updates=self._actionGRADUpdates, givens=self._actGradGivens)
         self._q_val = theano.function([], self._q_func,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._val_TargetState = theano.function([], self._q_funcTarget,
@@ -452,8 +494,13 @@ class PPO(AlgorithmInterface):
         
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
-    def getGrads(self, states):
+    def getGrads(self, states, alreadyNormed=False):
+        """
+            The states should be normalized
+        """
         # self.setData(states, actions, rewards, result_states)
+        if ( alreadyNormed == False):
+            states = norm_state(states, self._state_bounds)
         states = np.array(states, dtype=theano.config.floatX)
         self._model.setStates(states)
         return self._get_grad()
@@ -646,6 +693,23 @@ class PPO(AlgorithmInterface):
         self._dyna_target_shared.set_value(values)
         dyna_loss = self._trainDyna()
         return dyna_loss[0]
+    
+    def trainActionGrad(self, states, forwardDynamicsModel):
+        
+        actions = self.predict_batch(states)
+        print ("actions shape:", actions.shape)
+        next_states = forwardDynamicsModel.predict_batch(states, actions)
+        print ("next_states shape: ", next_states.shape)
+        next_state_grads = self.getGrads(next_states, alreadyNormed=True)
+        print ("next_state_grads shape: ", next_state_grads.shape)
+        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)
+        print ( "action_grads shape: ", action_grads.shape)
+        
+        ## Set data for gradient
+        self._model.setStates(states)
+        self._modelTarget.setStates(states)
+        self._action_grad_shared.set_value(action_grads)
+        self._trainActionGRAD()
     
     def train(self, states, actions, rewards, result_states, falls):
         loss = self.trainCritic(states, actions, rewards, result_states, falls)
