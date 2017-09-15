@@ -494,17 +494,6 @@ class PPO(AlgorithmInterface):
         
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
-    def getGrads(self, states, alreadyNormed=False):
-        """
-            The states should be normalized
-        """
-        # self.setData(states, actions, rewards, result_states)
-        if ( alreadyNormed == False):
-            states = norm_state(states, self._state_bounds)
-        states = np.array(states, dtype=theano.config.floatX)
-        self._model.setStates(states)
-        return self._get_grad()
-
     def trainCritic(self, states, actions, rewards, result_states, falls):
         
         if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'])):
@@ -700,9 +689,9 @@ class PPO(AlgorithmInterface):
         print ("actions shape:", actions.shape)
         next_states = forwardDynamicsModel.predict_batch(states, actions)
         print ("next_states shape: ", next_states.shape)
-        next_state_grads = self.getGrads(next_states, alreadyNormed=True)
+        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0]
         print ("next_state_grads shape: ", next_state_grads.shape)
-        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)
+        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0]
         print ( "action_grads shape: ", action_grads.shape)
         
         ## Set data for gradient

@@ -86,12 +86,6 @@ class CACLA_KERAS(AlgorithmInterface):
         pass
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
-    def getGrads(self, states):
-        # self.setData(states, actions, rewards, result_states)
-        states = np.array(states, dtype=theano.config.floatX)
-        self._model.setStates(states)
-        return self._get_grad()
-
     def trainCritic(self, states, actions, rewards, result_states, falls):
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")

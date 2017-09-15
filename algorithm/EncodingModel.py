@@ -104,11 +104,12 @@ class EncodingModel(AlgorithmInterface):
     def setData(self, states, actions, result_states, rewards=[]):
         self._model.setStates(states)
         
+    """
     def getGrads(self, states, actions, result_states):
         states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
         self.setData(states, actions, result_states)
         return self._get_grad()
-    
+    """
     def train(self, states, actions, result_states, rewards):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         self.setData(states, actions, result_states, rewards)
