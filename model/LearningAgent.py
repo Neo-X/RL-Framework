@@ -153,7 +153,7 @@ class LearningAgent(AgentInterface):
                         # if ( 'use_multiple_policy_updates' in self._settings and ( self._settings['use_multiple_policy_updates']) ):
                         _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
                             # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
-                        print "Training MBPG"
+                        print ("Training MBPG")
                         cost_ = self._pol.trainActionGrad(states=_states, forwardDynamicsModel=self._fd)
         else: ## Off-policy
             # print("State Bounds LA:", self._pol.getStateBounds())
