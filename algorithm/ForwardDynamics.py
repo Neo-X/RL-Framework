@@ -151,8 +151,6 @@ class ForwardDynamics(AlgorithmInterface):
         self._reward_error = theano.function(inputs=[], outputs=self._reward_diff, allow_input_downcast=True, givens=self._reward_givens_)
         # self._diffs = theano.function(input=[State])
         # self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [lasagne.layers.get_all_layers(self._model.getForwardDynamicsNetwork())[self.getSettings()['action_input_layer_index']].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
-        known_grads_ = dict()
-        known_grads_[self._forward]=2
         self._get_grad = theano.function([], outputs=T.grad(cost=None, wrt=[self._model._actionInputVar] + self._params,
                                                             known_grads={self._forward: self._fd_grad_target_shared}), 
                                          allow_input_downcast=True, 

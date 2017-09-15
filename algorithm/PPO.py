@@ -459,7 +459,7 @@ class PPO(AlgorithmInterface):
         self._bellman_error2 = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         self._bellman_errorTarget = theano.function(inputs=[], outputs=self._bellman, allow_input_downcast=True, givens=self._givens_)
         # self._diffs = theano.function(input=[self._model.getStateSymbolicVariable()])
-        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         # self._get_grad2 = theano.gof.graph.inputs(lasagne.updates.rmsprop(loss, params, self._learning_rate, self._rho, self._rms_epsilon))
         
         # self._compute_fisher_vector_product = theano.function([flat_tangent] + args, fvp, **FNOPTS)
@@ -520,9 +520,9 @@ class PPO(AlgorithmInterface):
         return 0
     
     def trainActor(self, states, actions, rewards, result_states, falls, advantage):
-        
+        if ( 'use_MBPG' in self.getSettings()and (self.getSettings()['use_MBPG'])):
+            return 0
         self.setData(states, actions, rewards, result_states, falls)
-        
         if (( ('ppo_use_seperate_nets' in self.getSettings())) and
              ( self.getSettings()['ppo_use_seperate_nets'])):
             pass
@@ -686,13 +686,22 @@ class PPO(AlgorithmInterface):
     def trainActionGrad(self, states, forwardDynamicsModel):
         
         actions = self.predict_batch(states)
-        print ("actions shape:", actions.shape)
+        # print ("actions shape:", actions.shape)
         next_states = forwardDynamicsModel.predict_batch(states, actions)
-        print ("next_states shape: ", next_states.shape)
-        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0]
-        print ("next_state_grads shape: ", next_state_grads.shape)
-        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0]
-        print ( "action_grads shape: ", action_grads.shape)
+        # print ("next_states shape: ", next_states.shape)
+        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0] * 10.0
+        # print ("next_state_grads shape: ", next_state_grads.shape)
+        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 10.0
+        # print ( "action_grads shape: ", action_grads.shape)
+        
+        # print("Actions mean:     ", np.mean(actions, axis=0))
+        print("Policy mean: ", np.mean(self._q_action(), axis=0))
+        # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
+        # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
+        # print("Actions std:  ", np.std((actions), axis=0) )
+        print("Policy std: ", np.mean(self._q_action_std(), axis=0))
+        print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
+        print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
         
         ## Set data for gradient
         self._model.setStates(states)
