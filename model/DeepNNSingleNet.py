@@ -69,13 +69,13 @@ class DeepNNSingleNet(ModelInterface):
                     nonlinearity=theano.tensor.nnet.softplus)
             self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
         
-        
+        """
         network = lasagne.layers.DenseLayer(
                 networkMiddle, num_units=16,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-    
+        """
         self._critic = lasagne.layers.DenseLayer(
-                network, num_units=1,
+                networkMiddle, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
     

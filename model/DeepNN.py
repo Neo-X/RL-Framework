@@ -33,12 +33,13 @@ class DeepNN(ModelInterface):
                 network, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
+        """
         network = lasagne.layers.DenseLayer(
                 input, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        """
         network = lasagne.layers.DenseLayer(
-                network, num_units=64,
+                input, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         network = lasagne.layers.DenseLayer(
@@ -59,12 +60,13 @@ class DeepNN(ModelInterface):
                 networkAct, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
+        """
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        """
         networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=64,
+                input, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         networkAct = lasagne.layers.DenseLayer(

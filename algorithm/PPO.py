@@ -216,8 +216,8 @@ class PPO(AlgorithmInterface):
         # self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._actor_regularization ))
         # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
         ## - because update computes gradient DESCENT updates
-        # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy))) + self._actor_regularization
-        self._actLoss = T.mean(self._actLoss_) 
+        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy))) + self._actor_regularization
+        # self._actLoss = T.mean(self._actLoss_) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
@@ -459,35 +459,41 @@ class PPO(AlgorithmInterface):
         return self._get_grad()
 
     def trainCritic(self, states, actions, rewards, result_states, falls):
-        """
-        self.setData(states, actions, rewards, result_states, falls)
-        # print ("Performing Critic trainning update")
-        if (( self._updates % self._weight_update_steps) == 0):
-            self.updateTargetModel()
-        self._updates += 1
-        # print ("Falls:", falls)
-        # print ("Ceilinged Rewards: ", np.ceil(rewards))
-        # print ("Target Values: ", self._get_target())
-        # print ("V Values: ", np.mean(self._q_val()))
-        # print ("diff Values: ", np.mean(self._get_diff()))
-        # data = np.append(falls, self._get_target()[0], axis=1)
-        # print ("Rewards, Falls, Targets:", np.append(rewards, data, axis=1))
-        # print ("Rewards, Falls, Targets:", [rewards, falls, self._get_target()])
-        # print ("Actions: ", actions)
-        loss, _ = self._train()
-        loss, _ = self._trainCollective
-        print(" loss: ", loss)
-        """
         
+        if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'])):
+            
+            self.setData(states, actions, rewards, result_states, falls)
+            # print ("Performing Critic trainning update")
+            if (( self._updates % self._weight_update_steps) == 0):
+                self.updateTargetModel()
+            self._updates += 1
+            # print ("Falls:", falls)
+            # print ("Ceilinged Rewards: ", np.ceil(rewards))
+            # print ("Target Values: ", self._get_target())
+            # print ("V Values: ", np.mean(self._q_val()))
+            # print ("diff Values: ", np.mean(self._get_diff()))
+            # data = np.append(falls, self._get_target()[0], axis=1)
+            # print ("Rewards, Falls, Targets:", np.append(rewards, data, axis=1))
+            # print ("Rewards, Falls, Targets:", [rewards, falls, self._get_target()])
+            # print ("Actions: ", actions)
+            loss, _ = self._train()
+            # loss, _ = self._trainCollective
+            print("Value function loss: ", loss)
+            return loss
+            
         return 0
     
     def trainActor(self, states, actions, rewards, result_states, falls, advantage):
         
         self.setData(states, actions, rewards, result_states, falls)
         
-        if (( self._updates % self._weight_update_steps) == 0):
-            self.updateTargetModel()
-        self._updates += 1
+        if (( ('ppo_use_seperate_nets' in self.getSettings())) and
+             ( self.getSettings()['ppo_use_seperate_nets'])):
+            pass
+        else:
+            if (( self._updates % self._weight_update_steps) == 0):
+                self.updateTargetModel()
+            self._updates += 1
         
         if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
             # self._advantage_shared.set_value(advantage)
@@ -528,8 +534,10 @@ class PPO(AlgorithmInterface):
         ## Sometimes really HUGE losses appear, ocasionally
         lossActor = np.abs(np.mean(self._get_action_diff()))
         if (lossActor < 1000): 
-            # lossActor, _ = self._trainActor()
-            lossActor, _ = self._trainCollective()
+            if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'])):
+                lossActor, _ = self._trainActor()
+            else:
+                lossActor, _ = self._trainCollective()
         else:
             print ("**********************Did not train actor this time: expected loss to high, ", lossActor)
     

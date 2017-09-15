@@ -1,6 +1,6 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "Deep_NN_SingleNet",
+"model_type": "Deep_NN",
     "comment__": "Learning algorithm to use",
 "agent_name": "PPO",
     "comment__": "Folder to store the training data in.",
@@ -26,7 +26,7 @@
     "comment__": "Number of epoch/episode to evaluate the policy over",
 "eval_epochs": 10,
     "comment__": "Discount factor used during learning",
-"discount_factor": 0.99,
+"discount_factor": 0.9,
     "comment__": "Should the training be plotted during learning",
 "visualize_learning": true,
     "comment__": "Whether or not to save the plotted data while learning",
@@ -224,7 +224,7 @@
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
 "fix_actor_batch_size": true,
 	"comment__": "Whether or not to put MBAE on the annelling schedule",
-"anneal_mbae": true,
+"anneal_mbae": false,
 	"comment__": "How many value function updates should be done between Dyna updates",
 "dyna_update_lag_steps": 10,
 	"comment__": "Use generalized advantage estimation",
@@ -248,5 +248,7 @@
 	"comment__": "number of on policy rollouts to perform per epoch",
 "num_on_policy_rollouts": 3,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
-"dont_use_advantage": false
+"dont_use_advantage": false,
+	"comment__": "PPO should use seperate networks for the value and policy functions",
+"ppo_use_seperate_nets": true
 }
