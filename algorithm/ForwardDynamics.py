@@ -19,6 +19,7 @@ class ForwardDynamics(AlgorithmInterface):
         self._model = model
         batch_size=32
         self._learning_rate = self.getSettings()["fd_learning_rate"]
+        self._regularization_weight = 1e-4
         # data types for model
         # create a small convolutional neural network
         
