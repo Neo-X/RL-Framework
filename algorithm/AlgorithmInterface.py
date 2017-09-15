@@ -96,7 +96,7 @@ class AlgorithmInterface(object):
     def getModel(self):
         return self._model
     
-    def getGrads(self, statbes, alreadyNormed=False):
+    def getGrads(self, states, alreadyNormed=False):
         """
             The states should be normalized
         """
