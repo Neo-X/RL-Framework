@@ -22,6 +22,13 @@ class ForwardDynamics(AlgorithmInterface):
         # data types for model
         # create a small convolutional neural network
         
+        self._fd_grad_target = T.matrix("FD_Grad")
+        self._fd_grad_target.tag.test_value = np.zeros((self._batch_size,self._state_length), dtype=np.dtype(self.getSettings()['float_type']))
+        
+        self._fd_grad_target_shared = theano.shared(
+            np.zeros((self._batch_size, self._state_length),
+                      dtype=self.getSettings()['float_type']))
+        
         inputs_ = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
@@ -143,7 +150,30 @@ class ForwardDynamics(AlgorithmInterface):
         self._reward_error = theano.function(inputs=[], outputs=self._reward_diff, allow_input_downcast=True, givens=self._reward_givens_)
         # self._diffs = theano.function(input=[State])
         # self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [lasagne.layers.get_all_layers(self._model.getForwardDynamicsNetwork())[self.getSettings()['action_input_layer_index']].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
-        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_)
+        known_grads_ = dict()
+        known_grads_[self._forward]=2
+        self._get_grad = theano.function([], outputs=T.grad(cost=None, wrt=[self._model._actionInputVar] + self._params,
+                                                            known_grads={self._forward: self._fd_grad_target_shared}), 
+                                         allow_input_downcast=True, 
+                                         givens= {
+            self._model.getStateSymbolicVariable() : self._model.getStates(),
+            # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            # self._fd_grad_target : self._fd_grad_target_shared
+        })
+        
+        """
+        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(loss_or_grads=self._fd_grad_target, 
+                                                                                          params=[self._model._actionInputVar] + self._params,
+                                                            ), 
+                                         allow_input_downcast=True, 
+                                         givens= {
+            self._model.getStateSymbolicVariable() : self._model.getStates(),
+            # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            # self._fd_grad_target : self._fd_grad_target_shared
+        })
+        """
         # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads((self._reward_loss_NoDrop), [lasagne.layers.get_all_layers(self._model.getRewardNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True,
         self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [self._model._actionInputVar] + self._reward_params), allow_input_downcast=True, 
                                                 givens={
@@ -169,13 +199,18 @@ class ForwardDynamics(AlgorithmInterface):
         self._model.setActions(actions)
         if (rewards != []):
             self._model.setRewards(rewards)
+            
+    def setGradTarget(self, grad):
+        self._fd_grad_target_shared.set_value(grad)
         
-    def getGrads(self, states, actions, result_states):
+    def getGrads(self, states, actions, result_states, v_grad=None):
         states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
         actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
         result_states = np.array(norm_state(result_states, self._state_bounds), dtype=self.getSettings()['float_type'])
         # result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
         self.setData(states, actions, result_states)
+        # if (v_grad != None):
+        self.setGradTarget(v_grad)
         return self._get_grad()
     
     def getRewardGrads(self, states, actions, rewards):

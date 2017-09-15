@@ -456,14 +456,15 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         ## compute grad for next state wrt model, i.e. how to change the state to improve the value
         next_state_grads = model.getGrads(next_state)[0] # this uses the value function
         ## normalize
-        next_state_grads = (next_state_grads/(np.sqrt((next_state_grads*next_state_grads).sum()))) * (learning_rate)
+        forwardDynamicsModel.setGradTarget(next_state_grads)
+        # next_state_grads = (next_state_grads/(np.sqrt((next_state_grads*next_state_grads).sum()))) * (learning_rate)
         # if (model.getSettings()["print_level"]== 'debug'):
         #    print ("Next State Grad: ", next_state_grads)
-        next_state_grads = rescale_action(next_state_grads, model.getStateBounds())
+        # next_state_grads = rescale_action(next_state_grads, model.getStateBounds())
         # next_state_grads = np.sum(next_state_grads, axis=1)
         # print ("Next State Grad shape: ", next_state_grads.shape)
         ## modify next state wrt increasing grad, this is the direction we want the next state to go towards 
-        next_state = next_state + next_state_grads
+        # next_state = next_state + next_state_grads
         # print ("Next State: ", next_state)
         value_ = model.q_value(next_state)
         # print ("Updated next state q value: ", value_)
@@ -474,8 +475,12 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         # uncertanty = getModelValueUncertanty(model, next_state[0])
         # print ("Uncertanty: ", uncertanty)
         ## Compute the grad to change the input to produce the new target next state
-        ## We will want to use the negative o this grad because the cost funtion is L2, the grad will make thid bigger, user - to pull action towards target action using this loss function 
-        dynamics_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())), np.reshape(action, (1, model.getActionSize())), np.reshape(next_state, (1, model.getStateSize())))
+        ## We will want to use the negative of this grad because the cost function is L2, 
+        ## the grad will make this bigger, user - to pull action towards target action using this loss function 
+        dynamics_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())),
+                                                        np.reshape(action, (1, model.getActionSize())),
+                                                         np.reshape(next_state, (1, model.getStateSize())), 
+                                                         v_grad=np.reshape(next_state_grads, (1, model.getStateSize())))
         """
         if (model.getSettings()["print_level"]== 'debug'):
             print("Fd network parameters: ", forwardDynamicsModel.getNetworkParameters()[0])
@@ -503,7 +508,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         # action_grads = action_grads * learning_rate
         # print ("action_grad2: ", action_grads)
         ## Use grad to update action parameters
-        action = action - action_grads
+        action = action + action_grads
         action = action[0]
         # print ("action_grad: ", action_grads, " new action: ", action)
         # print ( "Action shape: ", action.shape)
