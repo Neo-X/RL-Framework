@@ -581,6 +581,12 @@ class PPO(AlgorithmInterface):
         if (not np.isfinite(np.mean(self._get_log_prob(), axis=0))):
             np.mean(self._get_log_prob(), axis=0)
             print ( self._get_log_prob() )
+            print ( "States: ", states )
+            print ( "Actions: ", actions )
+            print ( "Result states: ", result_states )
+            print ( "Rewards: ", rewards )
+            print ( "Advantage: ", advantage )
+            ## Set network parameters back to previous values
             all_paramsActA = lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork())
             lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), all_paramsActA)
         print("Policy log prob target after: ", np.mean(self._get_log_prob_target(), axis=0))
