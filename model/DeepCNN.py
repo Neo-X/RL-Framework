@@ -136,14 +136,16 @@ class DeepCNN(ModelInterface):
                 networkAct, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
-        self._actor = lasagne.layers.DenseLayer(
-                    networkAct, num_units=self._action_length,
-                    nonlinearity=lasagne.nonlinearities.linear)
+        if (self._settings['use_stocastic_policy']):
+            self._actor = lasagne.layers.DenseLayer(
+                        networkAct, num_units=self._action_length,
+                        nonlinearity=lasagne.nonlinearities.tanh)
+        else:
+            self._actor = lasagne.layers.DenseLayer(
+                        networkAct, num_units=self._action_length,
+                        nonlinearity=lasagne.nonlinearities.linear)
     
         if (self._settings['use_stocastic_policy']):
-            with_std = lasagne.layers.DenseLayer(
-                    networkAct, num_units=self._action_length,
-                    nonlinearity=lasagne.nonlinearities.leaky_rectify)
             with_std = lasagne.layers.DenseLayer(
                     with_std, num_units=self._action_length,
                     nonlinearity=theano.tensor.nnet.softplus)

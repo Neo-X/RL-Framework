@@ -616,7 +616,7 @@ class DeepCNNTanHSingleNet(ModelInterface):
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
         
         network = lasagne.layers.Conv1DLayer(
-            network, num_filters=16, filter_size=4,
+            network, num_filters=8, filter_size=4,
             nonlinearity=lasagne.nonlinearities.leaky_rectify,
             W=lasagne.init.GlorotUniform())
         
