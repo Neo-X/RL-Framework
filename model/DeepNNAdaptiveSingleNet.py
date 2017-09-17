@@ -45,9 +45,9 @@ class DeepNNAdaptiveSingleNet(ModelInterface):
                 network, num_units=int(math.sqrt(10 * self._state_length * 10 * self._action_length)),
                 nonlinearity=lasagne.nonlinearities.tanh)
         
-        network = lasagne.layers.DenseLayer(
-                networkMid, num_units=8,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        networkMid = lasagne.layers.DenseLayer(
+                networkMid, num_units=int(10 * self._action_length),
+                nonlinearity=lasagne.nonlinearities.tanh)
         
         self._critic = lasagne.layers.DenseLayer(
                 networkMid, num_units=1,
@@ -59,12 +59,12 @@ class DeepNNAdaptiveSingleNet(ModelInterface):
                 networkAct, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
-        networkAct = lasagne.layers.DenseLayer(
+        """networkAct = lasagne.layers.DenseLayer(
                 networkMid, num_units=10 * self._action_length,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-    
+        """
         self._actor = lasagne.layers.DenseLayer(
-                networkAct, num_units=self._action_length,
+                networkMid, num_units=self._action_length,
                 nonlinearity=lasagne.nonlinearities.tanh)
         
         if (self._settings['use_stocastic_policy']):

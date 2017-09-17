@@ -52,7 +52,7 @@ class DeepNNAdaptive(ModelInterface):
     
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
+                nonlinearity=lasagne.nonlinearities.tanh)
         # self._b_o = init_b_weights((n_out,))
         # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         """
@@ -74,7 +74,7 @@ class DeepNNAdaptive(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.tanh)
     
         networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=10 * self._action_length,
+                networkAct, num_units=(10 * self._action_length),
                 nonlinearity=lasagne.nonlinearities.tanh)
             
         self._actor = lasagne.layers.DenseLayer(

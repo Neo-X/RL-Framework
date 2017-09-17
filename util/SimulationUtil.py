@@ -170,7 +170,6 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     else:
         from model.ModelInterface import ModelInterface
-        path_ = "model.DeepNNAdaptive.DeepNNAdaptive"
         # modelClass = my_import(path_)
         modelClass = locate(model_type)
         if ( issubclass(modelClass, ModelInterface)): ## Double check this load will work
@@ -319,7 +318,6 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     else:
         from algorithm.AlgorithmInterface import AlgorithmInterface
-        path_ = "model.DeepNNAdaptive.DeepNNAdaptive"
         # modelClass = my_import(path_)
         modelAlgorithm = locate(algorihtm_type)
         if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
