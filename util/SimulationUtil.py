@@ -11,6 +11,7 @@ sys.path.append("../simbiconAdapter/")
 sys.path.append("../simAdapter/")
 import math
 import numpy as np
+from pydoc import locate
 
 from util.ExperienceMemory import ExperienceMemory
 # from ModelEvaluation import *
@@ -46,6 +47,12 @@ def getAgentName(settings):
 def getTaskDataDirectory(settings):
     return settings["environment_type"]+"/"+settings["agent_name"]+"/"+settings["task_data_folder"]+"/"+settings["model_type"]+"/"
 
+def my_import(name):
+    components = name.split('.')
+    mod = __import__(components[0])
+    for comp in components[1:]:
+        mod = getattr(mod, comp)
+    return mod
 
 def validateSettings(settings):
     """
@@ -162,9 +169,20 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
         model = DumbModel(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     else:
-        print ("Unknown network model type: ", str(model_type), " I hope you know what you are doing....")
+        from model.ModelInterface import ModelInterface
+        path_ = "model.DeepNNAdaptive.DeepNNAdaptive"
+        # modelClass = my_import(path_)
+        modelClass = locate(model_type)
+        if ( issubclass(modelClass, ModelInterface)): ## Double check this load will work
+            model = modelClass(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
+                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+            print("Created model: ", model)
+            return model
+        else:
+            
+            print ("Unknown network model type: ", str(model_type), " I hope you know what you are doing....")
         # sys.exit(2)
-        return
+            return
     import lasagne
     print (" network type: ", model_type, " : ", model)
     print ("Number of Critic network parameters", lasagne.layers.count_params(model.getCriticNetwork()))
@@ -300,6 +318,15 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
         model = CACLAEntropy(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     else:
+        from algorithm.AlgorithmInterface import AlgorithmInterface
+        path_ = "model.DeepNNAdaptive.DeepNNAdaptive"
+        # modelClass = my_import(path_)
+        modelAlgorithm = locate(algorihtm_type)
+        if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
+            model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+            print("Created model: ", model)
+            return model
         print ("Unknown learning algorithm type: " + str(algorihtm_type))
         raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
         # sys.exit(2)
