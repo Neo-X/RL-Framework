@@ -893,8 +893,8 @@ def collectExperience(actor, exp_val, model, settings):
             # action_bounds[0] = actions[:settings['bootsrap_samples']].min(0)
             # action_bounds[1] = actions[:settings['bootsrap_samples']].max(0)
         elif (settings['state_normalization'] == "variance"):
-            state_bounds[0] = state_avg - state_stddev
-            state_bounds[1] = state_avg + state_stddev
+            state_bounds[0] = state_avg - (state_stddev * 2.0)
+            state_bounds[1] = state_avg + (state_stddev * 2.0)
             # reward_bounds[0] = reward_avg - reward_stddev
             # reward_bounds[1] = reward_avg + reward_stddev
             # action_bounds[0] = action_avg - action_stddev

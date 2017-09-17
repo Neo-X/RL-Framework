@@ -325,7 +325,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
         if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
             model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
-            print("Created model: ", model)
+            print("Loaded algorithm: ", model)
             return model
         print ("Unknown learning algorithm type: " + str(algorihtm_type))
         raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
@@ -672,8 +672,17 @@ def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
                                                         state_bounds, action_bounds, settings)   
             
     else:
-        print ("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
-        raise ValueError("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
+        from model.ModelInterface import ModelInterface
+        # modelClass = my_import(path_)
+        modelClass = locate(settings["forward_dynamics_model_type"])
+        if ( issubclass(modelClass, ModelInterface)): ## Double check this load will work
+            model = modelClass(len(state_bounds[0]), len(action_bounds[0]), 
+                                                        state_bounds, action_bounds, settings)
+            print("Created model: ", model)
+            return model
+        else:
+            print ("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
+            raise ValueError("Unrecognized forward dynamics network type: " + str(settings["forward_dynamics_model_type"]))
         # sys.exit()
     import lasagne
     print ("Number of Forward Dynamics network parameters", lasagne.layers.count_params(forwardDynamicsNetwork.getForwardDynamicsNetwork()))

@@ -580,6 +580,8 @@ class PPO(AlgorithmInterface):
         print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
         if (not np.isfinite(np.mean(self._get_log_prob(), axis=0))):
             np.mean(self._get_log_prob(), axis=0)
+            print("Policy mean: ", np.mean(self._q_action(), axis=0))
+            print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
             print ( self._get_log_prob() )
             print ( "States: ", states )
             print ( "Actions: ", actions )

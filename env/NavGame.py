@@ -98,7 +98,8 @@ class NavGame(object):
         """
             Reset agent location
         """
-        new_loc = np.random.random_integers(self._state_bounds[0][0], self._state_bounds[1][0], self._state_length)
+        # new_loc = np.random.random_integers(self._state_bounds[0][0], self._state_bounds[1][0], self._state_length)
+        new_loc = np.random.random_integers(-8, 8, self._state_length)
         self._agent = new_loc
         
     def generateValidationEnvironmentSample(self, seed):
@@ -157,7 +158,9 @@ class NavGame(object):
         loc = self._agent + (move)
         
         if(
-           (np.any(np.less(loc, self._state_bounds[0])) or np.any(np.greater(loc, self._state_bounds[1]))) or
+           (
+            # np.any(np.less(loc, self._state_bounds[0])) or np.any(np.greater(loc, self._state_bounds[1]))) or
+            np.any(np.less(loc, -8.0)) or np.any(np.greater(loc, 8.0))) or
             self.collision(loc) or
             self.fall(loc)):
             # can't overlap an obstacle
