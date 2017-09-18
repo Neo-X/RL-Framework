@@ -80,7 +80,7 @@ class DPG(AlgorithmInterface):
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getActionSymbolicVariable(): self._model.getActions()
         }
-        self._q_valsB = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), inputs_2)
+        self._q_valsB_ = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), inputs_2)
         
         self._q_func = self._q_valsA
         # self._q_funcTarget = self._q_valsTarget
@@ -189,7 +189,7 @@ class DPG(AlgorithmInterface):
         self._q_val = theano.function([], self._q_valsA,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
                                                self._model.getActionSymbolicVariable(): self._model.getActions()})
-        self._q_val_Target = theano.function([], self._q_valsB,
+        self._q_val_Target = theano.function([], self._q_valsB_,
                                        givens={self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
                                                self._model.getActionSymbolicVariable(): self._model.getActions()
                                                })
