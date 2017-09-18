@@ -77,12 +77,13 @@ class DPG(AlgorithmInterface):
         }
         self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_1)
         inputs_2 = {
-            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            self._model.getActionSymbolicVariable(): self._model.getActions()
+            self._modelTarget.getStateSymbolicVariable(): self._model.getResultStates(),
+            self._modelTarget.getActionSymbolicVariable(): self._model.getActions()
         }
-        self._q_valsB_ = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), inputs_2)
+        self._q_valsB_ = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), inputs_2, deterministic=True)
         
         self._q_func = self._q_valsA
+        self._q_funcB = self._q_valsB_
         # self._q_funcTarget = self._q_valsTarget
         # self._q_func_drop = self._q_valsA_drop
         # self._q_funcTarget_drop = self._q_valsTarget_drop
@@ -190,11 +191,15 @@ class DPG(AlgorithmInterface):
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
                                                self._model.getActionSymbolicVariable(): self._model.getActions()
                                                })
-        #self._q_val_Target = theano.function([], self._q_valsB_,
-        #                               givens={self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-        #                                       self._model.getActionSymbolicVariable(): self._model.getActions()
-        #                                       })
-        self._q_val_Target = theano.function([], self._q_valsB_, givens=self._givens_grad)
+        self._q_val_Target = theano.function([#self._model.getStateSymbolicVariable(), 
+                                              #self._model.getActionSymbolicVariable()
+                                              ], 
+                                             self._q_valsB_,
+                                       givens={self._modelTarget.getStateSymbolicVariable(): self._model.getResultStates(),
+                                               self._modelTarget.getActionSymbolicVariable(): self._model.getActions()
+                                               }
+                                             )
+        #self._q_val_Target = theano.function([], self._q_valsB_, givens=self._givens_grad)
         self._q_action = theano.function([], self._q_valsActA,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._action_Target = theano.function([], self._q_valsActTarget,
