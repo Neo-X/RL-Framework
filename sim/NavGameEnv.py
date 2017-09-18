@@ -103,6 +103,10 @@ class NavGameEnv(SimInterface):
                         # print ("Predicted reward: ", r)
                         R_mbae.append(value_diff)
                         R_fd.append(value_diff)
+            if (self.getSettings()['print_level'] == 'debug'):
+                print( "U: ", U)
+                print( "V: ", V)
+                print( "Q: ", Q)
             self.getEnvironment().updatePolicy(U, V, Q)
             if (self.getSettings()['train_forward_dynamics']):
                 self.getEnvironment().updateMBAE(U_mbae, V_mbae, R_mbae)
