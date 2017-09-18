@@ -16,6 +16,8 @@ class DeepNNAdaptive(ModelInterface):
 
         super(DeepNNAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
+        # activation_type=lasagne.nonlinearities.tanh
+        activation_type=lasagne.nonlinearities.leaky_rectify
         # data types for model
         self._State = T.matrix("State")
         self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
@@ -40,19 +42,19 @@ class DeepNNAdaptive(ModelInterface):
         """
         network = lasagne.layers.DenseLayer(
                 input, num_units=10 * self._state_length,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=activation_type)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=int(math.sqrt(10 * self._state_length * 8)),
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=activation_type)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=8,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=activation_type)
     
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
         # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         """
@@ -67,19 +69,19 @@ class DeepNNAdaptive(ModelInterface):
         """
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=10 * self._state_length,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=activation_type)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=int(math.sqrt(10 * self._state_length * 10 * self._action_length)),
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=activation_type)
     
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=(10 * self._action_length),
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=activation_type)
             
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=lasagne.nonlinearities.linear)
         
         if (self._settings['use_stocastic_policy']):
             with_std = lasagne.layers.DenseLayer(
