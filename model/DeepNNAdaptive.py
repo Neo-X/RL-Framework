@@ -30,6 +30,8 @@ class DeepNNAdaptive(ModelInterface):
         # create a small convolutional neural network
         input = lasagne.layers.InputLayer((None, self._state_length), self._State)
         self._stateInputVar = input.input_var
+        inputAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
+        self._actionInputVar = inputAction.input_var
         """
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=256,
@@ -65,7 +67,7 @@ class DeepNNAdaptive(ModelInterface):
         
         
         if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
-            input = lasagne.layers.ConcatLayer([input, self._actor])
+            input = lasagne.layers.ConcatLayer([input, inputAction])
             
         """
         network = lasagne.layers.DenseLayer(
