@@ -95,7 +95,7 @@ class DPG(AlgorithmInterface):
             np.zeros((self._batch_size, 1), dtype='int8'),
             broadcastable=(False, True))
 
-        self._Action = T.matrix("Action")
+        self._Action = T.matrix("Action2")
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
                 
         self._modelTarget = copy.deepcopy(model)
