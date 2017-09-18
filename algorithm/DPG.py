@@ -9,70 +9,8 @@ from algorithm.AlgorithmInterface import AlgorithmInterface
 
 
 # For debugging
-# theano.config.mode='FAST_COMPILE'
+theano.config.mode='FAST_COMPILE'
 from collections import OrderedDict
-
-def rmsprop(loss_or_grads, params, learning_rate=1.0, rho=0.9, epsilon=1e-6):
-    """RMSProp updates
-    Scale learning rates by dividing with the moving average of the root mean
-    squared (RMS) gradients. See [1]_ for further description.
-    Parameters
-    ----------
-    loss_or_grads : symbolic expression or list of expressions
-        A scalar loss expression, or a list of gradient expressions
-    params : list of shared variables
-        The variables to generate update expressions for
-    learning_rate : float or symbolic scalar
-        The learning rate controlling the size of update steps
-    rho : float or symbolic scalar
-        Gradient moving average decay factor
-    epsilon : float or symbolic scalar
-        Small value added for numerical stability
-    Returns
-    -------
-    OrderedDict
-        A dictionary mapping each parameter to its update expression
-    Notes
-    -----
-    `rho` should be between 0 and 1. A value of `rho` close to 1 will decay the
-    moving average slowly and a value close to 0 will decay the moving average
-    fast.
-    Using the step size :math:`\\eta` and a decay factor :math:`\\rho` the
-    learning rate :math:`\\eta_t` is calculated as:
-    .. math::
-       r_t &= \\rho r_{t-1} + (1-\\rho)*g^2\\\\
-       \\eta_t &= \\frac{\\eta}{\\sqrt{r_t + \\epsilon}}
-    References
-    ----------
-    .. [1] Tieleman, T. and Hinton, G. (2012):
-           Neural Networks for Machine Learning, Lecture 6.5 - rmsprop.
-           Coursera. http://www.youtube.com/watch?v=O3sxAc4hxZU (formula @5:20)
-    """
-    clip = 2.0
-    grads = lasagne.updates.get_or_compute_grads(loss_or_grads, params)
-    # grads = theano.gradient.grad_clip(grads, -clip, clip) 
-    grads_ = []
-    for grad in grads:
-        grads_.append(theano.gradient.grad_clip(grad, -clip, clip) )
-    grads = grads_
-    
-    print ("Grad Update: " + str(grads[0]) )
-    
-    updates = OrderedDict()
-
-    # Using theano constant to prevent upcasting of float32
-    one = T.constant(1)
-
-    for param, grad in zip(params, grads):
-        value = param.get_value(borrow=True)
-        accu = theano.shared(np.zeros(value.shape, dtype=value.dtype),
-                             broadcastable=param.broadcastable)
-        accu_new = rho * accu + (one - rho) * grad ** 2
-        updates[accu] = accu_new
-        updates[param] = param - (learning_rate * grad /
-                                  T.sqrt(accu_new + epsilon))
-
-    return updates
 
 class DPG(AlgorithmInterface):
     
@@ -98,6 +36,13 @@ class DPG(AlgorithmInterface):
         self._Action = T.matrix("Action2")
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
                 
+        self._Tmp_Target = T.col("Tmp_Target")
+        self._Tmp_Target.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
+        
+        self._tmp_target_shared = theano.shared(
+            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
+            broadcastable=(False, True))
+        
         self._modelTarget = copy.deepcopy(model)
         
             
@@ -128,12 +73,12 @@ class DPG(AlgorithmInterface):
         
         inputs_1 = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            self._model.getActionSymbolicVariable(): self._model.getActions()
         }
         self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_1)
         inputs_2 = {
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            self._Action: self._q_valsActTarget,
+            self._model.getActionSymbolicVariable(): self._model.getActions()
         }
         self._q_valsB = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), inputs_2)
         
@@ -146,8 +91,8 @@ class DPG(AlgorithmInterface):
         
         # self._q_funcAct = theano.function(inputs=[State], outputs=self._q_valsActA, allow_input_downcast=True)
         
-        self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsB )), self._Fallen)
-        self._diff = self._target - self._q_func
+        # self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsB )), self._Fallen)
+        self._diff = self._Tmp_Target - self._q_func
         # self._diff_drop = self._target - self._q_func_drop 
         # loss = 0.5 * self._diff ** 2 
         loss = T.pow(self._diff, 2)
@@ -163,10 +108,11 @@ class DPG(AlgorithmInterface):
         self._givens_ = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getActionSymbolicVariable():  self._model.getActions(),
-            self._Action:  self._q_valsActTarget,
-            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._Fallen: self._fallen_shared
+            # self._Action:  self._q_valsActTarget,
+            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            # self._Fallen: self._fallen_shared
+            self._Tmp_Target: self._tmp_target_shared
         }
         self._actGivens = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -184,26 +130,9 @@ class DPG(AlgorithmInterface):
         ## MSE update
         self._value_grad = T.grad(self._loss + self._critic_regularization
                                                      , self._params)
-        if (self.getSettings()['optimizer'] == 'rmsprop'):
-            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-            self._updates_ = lasagne.updates.rmsprop(self._value_grad
-                                                     , self._params, self._learning_rate, self._rho,
-                                           self._rms_epsilon)
-        elif (self.getSettings()['optimizer'] == 'momentum'):
-            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-            self._updates_ = lasagne.updates.momentum(self._value_grad
-                                                      , self._params, self._critic_learning_rate , momentum=self._rho)
-        elif ( self.getSettings()['optimizer'] == 'adam'):
-            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-            self._updates_ = lasagne.updates.adam(self._value_grad
-                        , self._params, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
-        elif ( self.getSettings()['optimizer'] == 'adagrad'):
-            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-            self._updates_ = lasagne.updates.adagrad(self._value_grad
-                        , self._params, self._critic_learning_rate, epsilon=self._rms_epsilon)
-        else:
-            print ("Unknown optimization method: ", self.getSettings()['optimizer'])
-            sys.exit(-1)
+        print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
+        self._updates_ = lasagne.updates.adam(self._value_grad
+                    , self._params, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         
         self._givens_grad = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -255,12 +184,19 @@ class DPG(AlgorithmInterface):
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         # self._trainActor = theano.function([], [actLoss, self._q_valsActA], updates=actionUpdates, givens=actGivens)
-        self._trainActor = theano.function([], [self._q_func], updates=self._actionUpdates, givens=self._actGivens)
+        # self._trainActor = theano.function([], [self._q_func], updates=self._actionUpdates, givens=self._actGivens)
         self._trainActionGRAD  = theano.function([], [], updates=self._actionGRADUpdates, givens=self._actGradGivens)
         self._q_val = theano.function([], self._q_valsA,
-                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+                                               self._model.getActionSymbolicVariable(): self._model.getActions()})
+        self._q_val_Target = theano.function([], self._q_valsB,
+                                       givens={self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                                               self._model.getActionSymbolicVariable(): self._model.getActions()
+                                               })
         self._q_action = theano.function([], self._q_valsActA,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+        self._action_Target = theano.function([], self._q_valsActTarget,
+                                       givens={self._model.getResultStateSymbolicVariable(): self._model.getResultStates()})
         """
         inputs_ = [
                    self._model.getStateSymbolicVariable(), 
@@ -366,11 +302,23 @@ class DPG(AlgorithmInterface):
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
     def trainCritic(self, states, actions, rewards, result_states, falls):
-        self.setData(states, actions, rewards, result_states, falls)
         
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
+        
+        ## Compute actions for TargetNet
+        target_actions = self._action_Target()
+        self.setData(states, target_actions, rewards, result_states, falls)
+        ## Get next q value
+        q_vals_b = self._q_val_Target()
+        ## Compute target values
+        target_tmp_ = reawrds + ((self._discount_factor* q_vals_b )* falls)
+        self.setData(states, actions, rewards, result_states, falls)
+        self._tmp_target_shared.set_value(target_tmp_)
+        
+        # self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsB )), self._Fallen)
+        
         loss, _ = self._train()
         return loss
         
@@ -414,3 +362,52 @@ class DPG(AlgorithmInterface):
         lossActor = self.trainActor(states, actions, rewards, result_states)
         return loss
     
+    def q_value(self, state):
+        """
+            For returning a vector of q values, state should NOT be normalized
+        """
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        """
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            pass
+        else:
+        """
+        state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
+        self._model.setStates(state)
+        self._modelTarget.setStates(state)
+        action = self._q_action()
+        self._model.setActions(action)
+        self._modelTarget.setActions(action)
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            # return (self._q_val())[0]
+        else:
+            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # return self._q_valTarget()[0]
+        # return self._q_val()[0]
+    
+    def q_values(self, state):
+        """
+            For returning a vector of q values, state should already be normalized
+        """
+        """
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            pass
+        else:
+        """
+        state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
+        self._model.setStates(state)
+        self._modelTarget.setStates(state)
+        action = self._q_action()
+        self._model.setActions(action)
+        self._modelTarget.setActions(action)
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            # return (self._q_val())[0] 
+        else:
+            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # return self._q_valTarget()
+        # return self._q_val()
