@@ -325,8 +325,9 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
             print("Loaded algorithm: ", model)
             return model
-        print ("Unknown learning algorithm type: " + str(algorihtm_type))
-        raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+        else:
+            print ("Unknown learning algorithm type: " + str(algorihtm_type))
+            raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
         # sys.exit(2)
         
     print ("Using model type ", algorihtm_type , " : ", model)

@@ -28,33 +28,7 @@ class DeepNNAdaptive(ModelInterface):
         # create a small convolutional neural network
         input = lasagne.layers.InputLayer((None, self._state_length), self._State)
         self._stateInputVar = input.input_var
-        """
-        network = lasagne.layers.DenseLayer(
-                network, num_units=256,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        """
-        """
-        network = lasagne.layers.DenseLayer(
-                input, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        """
-        network = lasagne.layers.DenseLayer(
-                input, num_units=10 * self._state_length,
-                nonlinearity=lasagne.nonlinearities.tanh)
         
-        network = lasagne.layers.DenseLayer(
-                network, num_units=int(math.sqrt(10 * self._state_length * 8)),
-                nonlinearity=lasagne.nonlinearities.tanh)
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=8,
-                nonlinearity=lasagne.nonlinearities.tanh)
-    
-        self._critic = lasagne.layers.DenseLayer(
-                network, num_units=1,
-                nonlinearity=lasagne.nonlinearities.tanh)
-        # self._b_o = init_b_weights((n_out,))
-        # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         """
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=256,
@@ -88,6 +62,37 @@ class DeepNNAdaptive(ModelInterface):
             self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
         # self._b_o = init_b_weights((n_out,))
         
+        
+        """
+        network = lasagne.layers.DenseLayer(
+                network, num_units=256,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        """
+        """
+        network = lasagne.layers.DenseLayer(
+                input, num_units=128,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        """
+        if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
+            input = lasagne.layers.ConcatLayer([input, self._actor])
+            
+        network = lasagne.layers.DenseLayer(
+                input, num_units=10 * self._state_length,
+                nonlinearity=lasagne.nonlinearities.tanh)
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=int(math.sqrt(10 * self._state_length * 8)),
+                nonlinearity=lasagne.nonlinearities.tanh)
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=8,
+                nonlinearity=lasagne.nonlinearities.tanh)
+    
+        self._critic = lasagne.layers.DenseLayer(
+                network, num_units=1,
+                nonlinearity=lasagne.nonlinearities.tanh)
+        # self._b_o = init_b_weights((n_out,))
+        # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         
           # print "Initial W " + str(self._w_o.get_value()) 
         
