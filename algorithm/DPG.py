@@ -188,11 +188,13 @@ class DPG(AlgorithmInterface):
         self._trainActionGRAD  = theano.function([], [], updates=self._actionGRADUpdates, givens=self._actGradGivens)
         self._q_val = theano.function([], self._q_valsA,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
-                                               self._model.getActionSymbolicVariable(): self._model.getActions()})
-        self._q_val_Target = theano.function([], self._q_valsB_,
-                                       givens={self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
                                                self._model.getActionSymbolicVariable(): self._model.getActions()
                                                })
+        #self._q_val_Target = theano.function([], self._q_valsB_,
+        #                               givens={self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+        #                                       self._model.getActionSymbolicVariable(): self._model.getActions()
+        #                                       })
+        self._q_val_Target = theano.function([], self._q_valsB_, givens=self._givens_grad)
         self._q_action = theano.function([], self._q_valsActA,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._action_Target = theano.function([], self._q_valsActTarget,
@@ -312,8 +314,9 @@ class DPG(AlgorithmInterface):
         self.setData(states, target_actions, rewards, result_states, falls)
         ## Get next q value
         q_vals_b = self._q_val_Target()
+        # q_vals_b = self._q_val()
         ## Compute target values
-        target_tmp_ = reawrds + ((self._discount_factor* q_vals_b )* falls)
+        target_tmp_ = rewards + ((self._discount_factor* q_vals_b )* falls)
         self.setData(states, actions, rewards, result_states, falls)
         self._tmp_target_shared.set_value(target_tmp_)
         
