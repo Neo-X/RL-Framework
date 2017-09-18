@@ -122,12 +122,6 @@ class DPG(AlgorithmInterface):
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
-        self._q_func = self._q_valsA
-        self._q_funcTarget = self._q_valsTarget
-        self._q_func_drop = self._q_valsA_drop
-        self._q_funcTarget_drop = self._q_valsTarget_drop
-        self._q_funcAct = self._q_valsActA
-        self._q_funcAct_drop = self._q_valsActA_drop
         
         inputs_ = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -136,10 +130,16 @@ class DPG(AlgorithmInterface):
         self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_)
         inputs_ = {
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            self._model.getActionSymbolicVariable(): self._q_valsActTarget,
+            self._model.getActionSymbolicVariable(): self._q_valsActA,
         }
         self._q_valsB = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), inputs_)
         
+        self._q_func = self._q_valsA
+        self._q_funcTarget = self._q_valsTarget
+        self._q_func_drop = self._q_valsA_drop
+        self._q_funcTarget_drop = self._q_valsTarget_drop
+        self._q_funcAct = self._q_valsActA
+        self._q_funcAct_drop = self._q_valsActA_drop
         
         # self._q_funcAct = theano.function(inputs=[State], outputs=self._q_valsActA, allow_input_downcast=True)
         
@@ -315,7 +315,11 @@ class DPG(AlgorithmInterface):
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
             all_paramsAct.append(params)
             """
-        lasagne.layers.helper.set_all_param_values(self._l_outB, all_params)
+        lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_params)
+        # all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
+        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+        # lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_paramsA)
+        lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
         # lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsAct) 
         
     def getNetworkParameters(self):
@@ -346,7 +350,7 @@ class DPG(AlgorithmInterface):
         
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
-    def trainCritic(self, states, actions, rewards, result_states):
+    def trainCritic(self, states, actions, rewards, result_states, falls):
         self.setData(states, actions, rewards, result_states, falls)
         
         if (( self._updates % self._weight_update_steps) == 0):
@@ -355,7 +359,7 @@ class DPG(AlgorithmInterface):
         loss, _ = self._train()
         return loss
         
-    def trainActor(self, states, actions, rewards, result_states):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions):
         self.setData(states, actions, rewards, result_states, falls)
         
         loss = self._trainActor()
