@@ -234,11 +234,12 @@ class DPG(AlgorithmInterface):
         """
             Target model updates
         """
+        # return
         ## I guess it is okay to lerp the entire network even though we only really want to 
         ## lerp the value function part of the networks, the target policy is not used for anythings
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork())
-        lerp_weight = 0.001
+        lerp_weight = 0.01
         # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         
         # print ("l_out length: " + str(len(all_paramsA)))
@@ -313,7 +314,7 @@ class DPG(AlgorithmInterface):
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
-        
+        self.setData(states, actions, rewards, result_states, falls)
         ## Compute actions for TargetNet
         target_actions = self._action_Target()
         self.setData(states, target_actions, rewards, result_states, falls)
@@ -338,7 +339,8 @@ class DPG(AlgorithmInterface):
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
         # loss = self._trainActor()
-        
+        print("******** Not learning actor right now *****")
+        return loss
         actions = self.predict_batch(states)
         # print ("actions shape:", actions.shape)
         # next_states = forwardDynamicsModel.predict_batch(states, actions)
