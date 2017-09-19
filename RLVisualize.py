@@ -19,7 +19,10 @@ class RLVisualize(object):
             self._sim_iteration_scale = (settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'])
             self._iteration_scale = ((self._sim_iteration_scale * settings['training_updates_per_sim_action']) / 
                                      settings['sim_action_per_training_update'])
-            
+            if ('on_policy' in settings and (settings['on_policy'])):
+                self._sim_iteration_scale = self._sim_iteration_scale * settings['num_on_policy_rollouts']
+            self._iteration_scale = ((self._sim_iteration_scale / settings['max_epoch_length']) *
+                                     settings['critic_updates_per_actor_update'])
         else:
             self._iteration_scale = 1
             self._sim_iteration_scale = 1

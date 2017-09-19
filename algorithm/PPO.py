@@ -86,7 +86,7 @@ class PPO(AlgorithmInterface):
             self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
-            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 5e-2
+            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 1e-2
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         # self._q_valsActTarget = scale_action(self._q_valsActTarget, self._action_bounds)
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
@@ -94,7 +94,7 @@ class PPO(AlgorithmInterface):
             self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else: 
-            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 5e-2
+            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 1e-2
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -151,7 +151,7 @@ class PPO(AlgorithmInterface):
         # self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed )
         # self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (10*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
         #                                                                              T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
-        self._actor_entropy = 0.5 * T.mean(T.log(2 * np.pi * self._q_valsActASTD ) + 1 )
+        self._actor_entropy = 0.5 * T.mean(T.log(2 * np.pi * self._q_valsActASTD + 1 ) )
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
         # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
