@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "PPO",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere_MBAE_5D",
+"data_folder": "Nav_Sphere_SMBAE_5D",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -256,5 +256,7 @@
 	"comment__": "Only use exploratory actions to update the policy",
 "only_use_exp_actions_for_poli_updates": true,
 	"comment__": "Multiply the MBAE action by a sample from a uniform distribution, to allow the action to vary in magnitude",
-"randomize_MBAE_action_length": true
+"randomize_MBAE_action_length": true,
+	"comment__": "Whether or not to use a stocastic forward dyanmics model",
+"use_stochastic_forward_dynamics": true	
 }
