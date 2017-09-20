@@ -598,7 +598,9 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
         forwardDynamicsModel = dill.load(open(file_name_dynamics))
     elif settings["forward_dynamics_predictor"] == "network":
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
-        if (settings['load_saved_model'] == True):
+        if (settings['load_saved_model'] == True or 
+            ('load_saved_fd_model' in settings and 
+             (settings['load_saved_fd_model']))):
             print ("Loading pre compiled network")
             directory= getDataDirectory(settings)
             file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"

@@ -141,7 +141,7 @@ class LearningAgent(AgentInterface):
                         ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
                         ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
                         ):
-                        
+                        print("Performing Dyna Update")
                         predicted_result_states__ = self._fd.predict_batch(states=states__, actions=actions__)
                         cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                         if not np.isfinite(cost) or (cost > 500) :
