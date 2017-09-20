@@ -296,7 +296,7 @@ class PPO(AlgorithmInterface):
         ### _q_valsA because the predicted state is stored in self._model.getStateSymbolicVariable()
         self._diff_dyna = self._dyna_target - self._q_valsNextState
         # loss = 0.5 * self._diff ** 2 
-        loss = T.pow(self._diff_dyna, 2)
+        loss = 0.5 * T.pow(self._diff_dyna, 2)
         self._loss_dyna = T.mean(loss)
         
         self._dyna_grad = T.grad(self._loss_dyna + self._critic_regularization ,  self._params)
@@ -685,6 +685,7 @@ class PPO(AlgorithmInterface):
 
         """
         self.setData( result_states, actions, rewards, predicted_states, falls)
+        ## Get the estimated value for the true next state
         values = self._val_TargetState()
         # print ("Dyna values: ", values)
         self._dyna_target_shared.set_value(values)

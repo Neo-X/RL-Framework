@@ -151,7 +151,7 @@ def trainForwardDynamics(settingsFileName):
             if mean_dynamicsLosses < best_dynamicsLosses:
                 best_dynamicsLosses = mean_dynamicsLosses
                 print ("Saving BEST current forward dynamics model: " + str(best_dynamicsLosses))
-                file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
+                file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl"
                 f = open(file_name_dynamics, 'wb')
                 dill.dump(model, f)
                 f.close()

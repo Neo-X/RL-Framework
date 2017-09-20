@@ -136,14 +136,16 @@ class LearningAgent(AgentInterface):
                 for i in range(self._settings['critic_updates_per_actor_update']):
                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
                     dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__)
-                if (self._settings['train_critic_on_fd_output'] and 
+                    print ("Forward Dynamics Loss: ", dynamicsLoss)
+                    if (self._settings['train_critic_on_fd_output'] and 
                         (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
                         ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
                         ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
                         ):
-                        print("Performing Dyna Update")
                         predicted_result_states__ = self._fd.predict_batch(states=states__, actions=actions__)
                         cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                        print("Performing Dyna Update, loss: ", cost)
+                        # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
                         if not np.isfinite(cost) or (cost > 500) :
                             numpy.set_printoptions(threshold=numpy.nan)
                             print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
