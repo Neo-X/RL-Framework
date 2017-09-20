@@ -258,5 +258,5 @@
 	"comment__": "Multiply the MBAE action by a sample from a uniform distribution, to allow the action to vary in magnitude",
 "randomize_MBAE_action_length": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
-"load_saved_fd_model": true
+"load_saved_fd_model": false
 }
