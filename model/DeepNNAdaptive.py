@@ -16,8 +16,8 @@ class DeepNNAdaptive(ModelInterface):
 
         super(DeepNNAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
-        activation_type=lasagne.nonlinearities.tanh
-        # activation_type=lasagne.nonlinearities.leaky_rectify
+        # activation_type=lasagne.nonlinearities.tanh
+        activation_type=lasagne.nonlinearities.leaky_rectify
         # data types for model
         self._State = T.matrix("State")
         self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
