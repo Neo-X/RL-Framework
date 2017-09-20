@@ -144,7 +144,7 @@
     "comment__": "critic regularization weight",
 "critic_regularization_weight": 0.000001,
     "comment__": "Critic learning rate",
-"critic_learning_rate": 0.001,
+"critic_learning_rate": 0.0002,
     "comment__": "During evaluation plot of value function",
 "visualize_expected_value": true,
     "comment__": "exponential decay value for use in reward function",

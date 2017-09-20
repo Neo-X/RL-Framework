@@ -14,24 +14,34 @@ if __name__ == "__main__":
     
     # Need to train a better Baseline
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/A_CACLA/Nav_Sphere_10D/Deep_NN/trainingData_A_CACLA.json'
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_5D/Deep_NN_TanH/trainingData_PPO.json'
     trainData['name']='Baseline'
+    trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
     trainingDatas.append(trainData)
     
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/A_CACLA/Nav_Sphere_10D/Deep_NN_Dropout_Critic/trainingData_A_CACLA.json'
-    trainData['name']='Baseline2'
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_5D/Deep_NN_TanH/trainingData_PPO.json'
+    trainData['name']='Baseline'
+    trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
     trainingDatas.append(trainData)
     
     # Final method
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_MBAE_5D/Deep_NN_TanH/trainingData_PPO.json'
     trainData['name']='PPO + MBAE'
+    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
     trainingDatas.append(trainData)
     
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_MBAE_5D/Deep_NN_TanH_2/trainingData_PPO.json'
     trainData['name']='PPO + MBAE'
+    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
+    trainingDatas.append(trainData)
+    
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_MBAE_5D/Deep_NN_TanH_3/trainingData_PPO.json'
+    trainData['name']='PPO + MBAE'
+    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
     trainingDatas.append(trainData)
     
     
@@ -55,7 +65,7 @@ if __name__ == "__main__":
     
     """
     settings = None
-    if (len(sys.argv) == 2):
+    if (len(sys.argv) >= 2):
         settingsFileName = sys.argv[1]
         settingsFile = open(settingsFileName, 'r')
         settings = json.load(settingsFile)

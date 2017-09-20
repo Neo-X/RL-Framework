@@ -51,6 +51,11 @@ class PolicyTrainVisualize(object):
                                       self._settings['training_updates_per_sim_action']) / 
                                      self._settings['sim_action_per_training_update']) * self._bin_size
             
+            if ('on_policy' in self._settings and (self._settings['on_policy'])):
+                self._sim_iteration_scale = self._sim_iteration_scale * self._settings['num_on_policy_rollouts']
+                self._iteration_scale = ((self._sim_iteration_scale / self._settings['max_epoch_length']) *
+                                     self._settings['critic_updates_per_actor_update'])
+            
         else:
             self._iteration_scale = 1 * self._bin_size
             self._sim_iteration_scale = 1 * self._bin_size
@@ -73,9 +78,12 @@ class PolicyTrainVisualize(object):
             mean = np.mean(np.reshape(self._trainingDatas[i]['data']["mean_eval"][:new_length], new_shape), axis=1)
             std = np.mean(np.reshape(self._trainingDatas[i]['data']["std_eval"][:new_length], new_shape), axis=1)
             
+            colour_ = cmap(i)
+            if ('colour' in self._trainingDatas[i]):
+                colour_ = self._trainingDatas[i]['colour']
             self._reward, = self._reward_ax.plot(x_range_, mean, 
                                                  linewidth=3.0, 
-                                                 c=cmap(i),
+                                                 c=colour_,
                                                  label=self._trainingDatas[i]['name'])
             print("Line colour: ", self._reward.get_color())
             self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
@@ -88,7 +96,7 @@ class PolicyTrainVisualize(object):
             std_value = np.mean(np.reshape(self._trainingDatas[i]['data']["std_discount_error"][:new_length], new_shape), axis=1)
             self._value, = self._value_ax.plot(x_range_, mean_value, 
                                                  linewidth=3.0, 
-                                                 c=cmap(i),
+                                                 c=colour_,
                                                  alpha=0.75,
                                                  label=self._trainingDatas[i]['name'])
             print("Line colour: ", self._reward.get_color())
