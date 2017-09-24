@@ -29,11 +29,11 @@ class PPO(AlgorithmInterface):
         
         # self._action_std_scaling = (self._action_bounds[1] - self._action_bounds[0]) / 2.0
         
-        self._Fallen = T.bcol("Fallen")
+        self._NotFallen = T.bcol("Not_Fallen")
         ## because float64 <= float32 * int32, need to use int16 or int8
-        self._Fallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int8'))
+        self._NotFallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int8'))
         
-        self._fallen_shared = theano.shared(
+        self._NotFallen_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype='int8'),
             broadcastable=(False, True))
         
@@ -104,8 +104,9 @@ class PPO(AlgorithmInterface):
         self._q_funcAct = self._q_valsActA
         self._q_funcAct_drop = self._q_valsActA_drop
         
-        # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._Fallen
-        self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsTargetNextState )), self._Fallen)
+        # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._NotFallen
+        # self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsTargetNextState )), self._NotFallen) + (self._NotFallen - 1)
+        self._target = self._model.getRewardSymbolicVariable() +  (self._discount_factor * self._q_valsTargetNextState )
         self._diff = self._target - self._q_func
         self._diff_drop = self._target - self._q_func_drop 
         # loss = 0.5 * self._diff ** 2 
@@ -119,7 +120,7 @@ class PPO(AlgorithmInterface):
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._Fallen: self._fallen_shared
+            # self._NotFallen: self._NotFallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         }
         self._actGivens = {
@@ -127,7 +128,7 @@ class PPO(AlgorithmInterface):
             # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._Fallen: self._fallen_shared,
+            # self._NotFallen: self._NotFallen_shared,
             self._advantage: self._advantage_shared,
             # self._KL_Weight: self._kl_weight_shared
         }
@@ -137,7 +138,7 @@ class PPO(AlgorithmInterface):
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            self._Fallen: self._fallen_shared,
+            # self._NotFallen: self._NotFallen_shared,
             self._advantage: self._advantage_shared,
             # self._KL_Weight: self._kl_weight_shared
         }
@@ -188,7 +189,7 @@ class PPO(AlgorithmInterface):
         #                                                                    theano.tensor.tile((self._advantage * (1.0/(1.0-self._discount_factor))), self._action_length)) # Target network does not work well here?
         
         ## advantage = Q(a,s) - V(s) = (r + gamma*V(s')) - V(s) 
-        # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._Fallen)) - self._q_func
+        # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._NotFallen)) - self._q_func
         
         # self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
         self._Advantage = self._advantage * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
@@ -305,7 +306,7 @@ class PPO(AlgorithmInterface):
             # self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            # self._Fallen: self._fallen_shared
+            # self._NotFallen: self._NotFallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
             self._dyna_target: self._dyna_target_shared
         }
@@ -351,7 +352,7 @@ class PPO(AlgorithmInterface):
             # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             # self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._Fallen: self._fallen_shared,
+            # self._NotFallen: self._NotFallen_shared,
             # self._advantage: self._advantage_shared,
             # self._KL_Weight: self._kl_weight_shared
         }
@@ -380,7 +381,7 @@ class PPO(AlgorithmInterface):
             # self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._Fallen: self._fallen_shared
+            # self._NotFallen: self._NotFallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         })
         self._get_critic_regularization = theano.function([], [self._critic_regularization])
@@ -403,7 +404,7 @@ class PPO(AlgorithmInterface):
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            self._Fallen: self._fallen_shared
+            self._NotFallen: self._NotFallen_shared
         }) """
         
         self._get_action_diff = theano.function([], [self._actLoss_], givens={
@@ -411,7 +412,7 @@ class PPO(AlgorithmInterface):
             # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._Fallen: self._fallen_shared,
+            # self._NotFallen: self._NotFallen_shared,
             self._advantage: self._advantage_shared,
             # self._KL_Weight: self._kl_weight_shared
         })
@@ -486,7 +487,7 @@ class PPO(AlgorithmInterface):
         self._modelTarget.setActions(actions)
         self._modelTarget.setRewards(rewards)
         # print ("Falls: ", fallen)
-        self._fallen_shared.set_value(fallen)
+        self._NotFallen_shared.set_value(fallen)
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         ## Easy fix for computing actor loss
         diff = self._bellman_error2()
@@ -537,7 +538,7 @@ class PPO(AlgorithmInterface):
             advantage = advantage * (1.0-self._discount_factor)
             # pass # use given advantage parameter
         else:
-            advantage = self._get_diff()[0]
+            advantage = self._get_advantage()
         self._advantage_shared.set_value(advantage)
         ## Update the network parameters of the target network
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
@@ -556,6 +557,7 @@ class PPO(AlgorithmInterface):
         print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
         # print("Targets: ", np.mean(self._get_target()), " std: ", np.std(self._get_target()))
         # print("Falls: ", np.mean(falls), " std: ", np.std(falls))
+        print("values, falls: ", np.concatenate((self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor'])), falls), axis=1))
         print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
         print("Actions mean:     ", np.mean(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))

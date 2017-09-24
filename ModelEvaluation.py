@@ -1241,7 +1241,7 @@ def modelEvaluationParallel(settings_file_name):
         sw.join()
         
 
-def modelEvaluation(settings_file_name):
+def modelEvaluation(settings_file_name, runLastModel):
     
     from model.ModelUtil import getSettings
     settings = getSettings(settings_file_name)
@@ -1314,8 +1314,10 @@ def modelEvaluation(settings_file_name):
                                   action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
-    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+    if (runLastModel == True):
+        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+    else:
+        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
     print("Loading model: ", file_name)
     f = open(file_name, 'rb')
     model = dill.load(f)
@@ -1323,8 +1325,10 @@ def modelEvaluation(settings_file_name):
     print ("State Length: ", len(model.getStateBounds()[0]) )
     
     if (settings['train_forward_dynamics']):
-        file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
-        # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+        if (runLastModel == True):
+            file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+        else:
+            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
         f = open(file_name_dynamics, 'rb')
         forwardDynamicsModel = dill.load(f)
         f.close()
@@ -1405,5 +1409,12 @@ def modelEvaluation(settings_file_name):
     
     
 if __name__ == "__main__":
+    """
+        If a third param is specified run in the last saved model not the best model.s
+    """
     
-    modelEvaluation(sys.argv[1])
+    if ( len(sys.argv) == 3):
+        modelEvaluation(sys.argv[1], runLastModel=True)
+    else:
+        modelEvaluation(sys.argv[1])
+    

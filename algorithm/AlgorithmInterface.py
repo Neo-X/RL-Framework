@@ -224,7 +224,7 @@ class AlgorithmInterface(object):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
             # return (self._q_val())[0] 
         else:
             return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))

@@ -29,11 +29,11 @@ class A_CACLA(AlgorithmInterface):
         self._actor_buffer_falls=[]
         self._actor_buffer_diff=[]
         
-        self._Fallen = T.bcol("Fallen")
+        self._NotFallen = T.bcol("Not_Fallen")
         ## because float64 <= float32 * int32, need to use int16 or int8
-        self._Fallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int8'))
+        self._NotFallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int8'))
         
-        self._fallen_shared = theano.shared(
+        self._NotFallen_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype='int8'),
             broadcastable=(False, True))
         
@@ -86,8 +86,8 @@ class A_CACLA(AlgorithmInterface):
         self._q_funcAct = self._q_valsActA
         self._q_funcAct_drop = self._q_valsActA_drop
         
-        # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._Fallen
-        self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsTargetNextState )), self._Fallen)
+        # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._NotFallen
+        self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsTargetNextState )), self._NotFallen) + (self._NotFallen - 1)
         self._diff = self._target - self._q_func
         self._diff_drop = self._target - self._q_func_drop 
         # loss = 0.5 * self._diff ** 2 
@@ -101,7 +101,7 @@ class A_CACLA(AlgorithmInterface):
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._Fallen: self._fallen_shared
+            self._NotFallen: self._NotFallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         }
         self._actGivens = {
@@ -109,7 +109,7 @@ class A_CACLA(AlgorithmInterface):
             # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._Fallen: self._fallen_shared
+            # self._NotFallen: self._NotFallen_shared
             self._tmp_diff: self._tmp_diff_shared
         }
         
@@ -225,7 +225,7 @@ class A_CACLA(AlgorithmInterface):
         }
         
         ### Noisey state updates
-        # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._Fallen
+        # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._NotFallen
         # self._target_dyna = theano.gradient.disconnected_grad(self._q_func)
         
         ### _q_valsA because the predicted state is stored in self._model.getStateSymbolicVariable()
@@ -240,7 +240,7 @@ class A_CACLA(AlgorithmInterface):
             # self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            # self._Fallen: self._fallen_shared
+            # self._NotFallen: self._NotFallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
             self._dyna_target: self._dyna_target_shared
         }
@@ -271,7 +271,7 @@ class A_CACLA(AlgorithmInterface):
             # self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._Fallen: self._fallen_shared
+            self._NotFallen: self._NotFallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         })
         ## Always want this one
@@ -292,7 +292,7 @@ class A_CACLA(AlgorithmInterface):
                 # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
                 # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
                 self._model.getActionSymbolicVariable(): self._model.getActions()
-                # self._Fallen: self._fallen_shared
+                # self._NotFallen: self._NotFallen_shared
             }) 
         
         # self._get_action_diff = theano.function([], [self._actLoss_], givens=self._actGivens)
@@ -370,7 +370,7 @@ class A_CACLA(AlgorithmInterface):
         self._modelTarget.setActions(actions)
         self._modelTarget.setRewards(rewards)
         # print ("Falls: ", fallen)
-        self._fallen_shared.set_value(fallen)
+        self._NotFallen_shared.set_value(fallen)
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         ## Easy fix for computing actor loss
         diff = self._bellman_error2()
