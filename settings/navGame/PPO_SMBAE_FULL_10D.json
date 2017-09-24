@@ -162,7 +162,7 @@
     "comment__": "Learning rate use for model based action exploration",
 "action_learning_rate": 0.20,
     "comment__": "During model-based action exploration, Probability of a random action being generated from MBAE,",
-"model_based_action_omega": 0.25,
+"model_based_action_omega": 0.5,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
 "debug_actor": false,
 	"comment__": "float type to use, if for example you want to train on the GPU use float32",
@@ -258,7 +258,7 @@
 	"comment__": "Multiply the MBAE action by a sample from a uniform distribution, to allow the action to vary in magnitude",
 "randomize_MBAE_action_length": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
-"load_saved_fd_model": false,
+"load_saved_fd_model": true,
 	"comment__": "Whether or not to use a stochastic forward dynamics model",
 "use_stochastic_forward_dynamics": true	
 }

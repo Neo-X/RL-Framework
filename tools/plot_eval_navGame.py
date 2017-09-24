@@ -13,14 +13,16 @@ if __name__ == "__main__":
     trainingDatas = []
     
     # Need to train a better Baseline
+    """
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/A_CACLA/Nav_Sphere_10D/Deep_NN/trainingData_A_CACLA.json'
     trainData['name']='Baseline'
     trainingDatas.append(trainData)
+    """
     
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/A_CACLA/Nav_Sphere_10D/Deep_NN_Dropout_Critic/trainingData_A_CACLA.json'
-    trainData['name']='Baseline2'
+    trainData['name']='Baseline'
     trainingDatas.append(trainData)
     
     # Final method
@@ -32,6 +34,11 @@ if __name__ == "__main__":
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/A_CACLA/Nav_Sphere_MBAE_10D/Deep_NN_Dropout_Critic/trainingData_A_CACLA.json'
     trainData['name']='Baseline + MBAE2'
+    trainingDatas.append(trainData)
+    
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/A_CACLA/Nav_Sphere_MBAE_10D_again/Deep_NN_Dropout_Critic/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + MBAE2 New'
     trainingDatas.append(trainData)
     
     

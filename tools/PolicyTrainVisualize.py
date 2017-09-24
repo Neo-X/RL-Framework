@@ -128,8 +128,8 @@ class PolicyTrainVisualize(object):
         # plt.grid(b=True, which='major', color='black', linestyle='--')
         # plt.grid(b=True, which='minor', color='g', linestyle='--'
         
-        self._fig.set_size_inches(8.0, 5.0, forward=True)
-        self._fig_value.set_size_inches(8.0, 5.0, forward=True)
+        self._fig.set_size_inches(11.0, 6.0, forward=True)
+        self._fig_value.set_size_inches(11.0, 6.0, forward=True)
         plt.show()
         
     def updateRewards(self, trainingDatas):
