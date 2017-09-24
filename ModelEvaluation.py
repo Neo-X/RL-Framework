@@ -1241,7 +1241,7 @@ def modelEvaluationParallel(settings_file_name):
         sw.join()
         
 
-def modelEvaluation(settings_file_name, runLastModel):
+def modelEvaluation(settings_file_name, runLastModel=False):
     
     from model.ModelUtil import getSettings
     settings = getSettings(settings_file_name)
