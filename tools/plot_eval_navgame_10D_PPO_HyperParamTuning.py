@@ -16,26 +16,51 @@ if __name__ == "__main__":
     trainData={}
     trainData['fileName']='./nav_Game/PPO/Nav_Sphere_MBAE_FULL_10D/Deep_NN_TanH/trainingData_PPO.json'
     trainData['name']='Baseline'
-    # trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
+    trainData['colour'] = (0.0, 0.0, 0.0, 1.0)
+    trainingDatas.append(trainData)
+    
+    trainData={}
+    trainData['fileName']='./nav_Game/PPO/Nav_Sphere_MBAE_FULL_10D_2/Deep_NN_TanH/trainingData_PPO.json'
+    trainData['name']='Baseline'
+    trainData['colour'] = (0.0, 0.0, 0.0, 1.0)
     trainingDatas.append(trainData)
     
     # Final method
     trainData={}
     trainData['fileName']='./nav_Game/PPO/Nav_Sphere_MBAE_FULL_10D_LESS_MBAE/Deep_NN_TanH/trainingData_PPO.json'
     trainData['name']='PPO + MBAE Less'
-    # trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
+    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
+    trainingDatas.append(trainData)
+    
+        # Final method
+    trainData={}
+    trainData['fileName']='./nav_Game/PPO/Nav_Sphere_MBAE_FULL_10D_LESS_MBAE_2/Deep_NN_TanH/trainingData_PPO.json'
+    trainData['name']='PPO + MBAE Less'
+    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
     trainingDatas.append(trainData)
     
     trainData={}
     trainData['fileName']='./nav_Game/PPO/Nav_Sphere_MBAE_FULL_10D_MORE_MBAE/Deep_NN_TanH/trainingData_PPO.json'
     trainData['name']='PPO + MBAE More'
-    # trainData['colour'] = (0.0, 1.0, 0.0, 1.0)
+    trainData['colour'] = (0.0, 1.0, 0.0, 1.0)
+    trainingDatas.append(trainData)
+    
+    trainData={}
+    trainData['fileName']='./nav_Game/PPO/Nav_Sphere_MBAE_FULL_10D_MORE_MBAE_2/Deep_NN_TanH/trainingData_PPO.json'
+    trainData['name']='PPO + MBAE More'
+    trainData['colour'] = (0.0, 1.0, 0.0, 1.0)
     trainingDatas.append(trainData)
     
     trainData={}
     trainData['fileName']='./nav_Game/PPO/Nav_Sphere_MBAE_FULL_10D_SMALLER_MBAE/Deep_NN_TanH/trainingData_PPO.json'
     trainData['name']='PPO + MBAE Smaller'
-    # trainData['colour'] = (1.0, 1.0, 0.0, 1.0)
+    trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
+    trainingDatas.append(trainData)
+    
+    trainData={}
+    trainData['fileName']='./nav_Game/PPO/Nav_Sphere_MBAE_FULL_10D_SMALLER_MBAE_2/Deep_NN_TanH/trainingData_PPO.json'
+    trainData['name']='PPO + MBAE Smaller'
+    trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
     trainingDatas.append(trainData)
     
     for i in range(len(trainingDatas)):
