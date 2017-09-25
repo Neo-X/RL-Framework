@@ -55,6 +55,7 @@ class Hopper2DActor(ActorInterface):
             dist_x = dist_x + (position_root_[0] - position_root[0])
             # print ("avgSpeed: ", simData.avgSpeed)
             vel_sum += simData.avgSpeed
+            print ("I don't calculate the velocity properly, should use character::getCOMVelocity() instead")
             torque_sum += math.fabs( self._target_torque - simData.avgTorque)
             
             # orientation = exp.getEnvironment().getActor().getStateEuler()[3:][:3]
