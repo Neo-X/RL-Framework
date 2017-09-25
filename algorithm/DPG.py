@@ -154,7 +154,7 @@ class DPG(AlgorithmInterface):
         ### Maximize wrt q function
         
         self._action_mean_grads = T.grad(cost=None, wrt=self._actionParams,
-                                                            known_grads={self._q_valsActA: self._action_grad_shared}),
+                                                    known_grads={self._q_valsActA: self._action_grad_shared}),
         print ("Action grads: ", self._action_mean_grads[0])
         ## When passing in gradients it needs to be a proper list of gradient expressions
         self._action_mean_grads = list(self._action_mean_grads[0])
