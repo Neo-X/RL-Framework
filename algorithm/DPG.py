@@ -102,7 +102,7 @@ class DPG(AlgorithmInterface):
     
         # assert len(lasagne.layers.helper.get_all_params(self._l_outA)) == 16
         # Need to remove the action layers from these params
-        self._params = lasagne.layers.helper.get_all_params(self._model.getCriticNetwork())[-len(lasagne.layers.helper.get_all_params(self._model.getActorNetwork())):] 
+        self._params = lasagne.layers.helper.get_all_params(self._model.getCriticNetwork()) 
         print ("******Number of Layers is: " + str(len(lasagne.layers.helper.get_all_params(self._model.getCriticNetwork()))))
         print ("******Number of Action Layers is: " + str(len(lasagne.layers.helper.get_all_params(self._model.getActorNetwork()))))
         self._actionParams = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
@@ -340,8 +340,8 @@ class DPG(AlgorithmInterface):
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
         # loss = self._trainActor()
-        print("******** Not learning actor right now *****")
-        return loss
+        # print("******** Not learning actor right now *****")
+        # return loss
         actions = self.predict_batch(states)
         # print ("actions shape:", actions.shape)
         # next_states = forwardDynamicsModel.predict_batch(states, actions)
