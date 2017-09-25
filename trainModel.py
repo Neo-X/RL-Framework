@@ -72,6 +72,49 @@ def trainModelParallel(settingsFileName):
         
         model_type= settings["model_type"]
         directory= getDataDirectory(settings)
+        
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+            
+            
+        # copy settings file
+        file = open(settingsFileName, 'r')
+        out_file_name=directory+os.path.basename(settingsFileName)
+        print ("Saving settings file with data: ", out_file_name)
+        out_file = open(out_file_name, 'w')
+        out_file.write(file.read())
+        file.close()
+        out_file.close()
+        ### Try and save algorithm and model files for reference
+        if "." in settings['model_type']:
+            ### convert . to / and copy file over
+            file_name = settings['model_type']
+            k = file_name.rfind(".")
+            file_name = file_name[:k]
+            file_name_read = file_name.replace(".", "/")
+            file_name_read = file_name_read + ".py"
+            print ("model file name:", file_name)
+            print ("os.path.basename(file_name): ", os.path.basename(file_name))
+            file = open(file_name_read, 'r')
+            out_file = open(directory+file_name+".py", 'w')
+            out_file.write(file.read())
+            file.close()
+            out_file.close()
+        if "." in settings['agent_name']:
+            ### convert . to / and copy file over
+            file_name = settings['agent_name']
+            k = file_name.rfind(".")
+            file_name = file_name[:k]
+            file_name_read = file_name.replace(".", "/")
+            file_name_read = file_name_read + ".py"
+            print ("model file name:", file_name)
+            print ("os.path.basename(file_name): ", os.path.basename(file_name))
+            file = open(file_name_read, 'r')
+            out_file = open(directory+file_name+".py", 'w')
+            out_file.write(file.read())
+            file.close()
+            out_file.close()
+            
         rounds = settings["rounds"]
         epochs = settings["epochs"]
         # num_states=settings["num_states"]
@@ -301,18 +344,6 @@ def trainModelParallel(settingsFileName):
                 print (sw)
                 sw.start()
         
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-            
-            
-        # copy settings file
-        file = open(settingsFileName, 'r')
-        out_file_name=directory+os.path.basename(settingsFileName)
-        print ("Saving settings file with data: ", out_file_name)
-        out_file = open(out_file_name, 'w')
-        out_file.write(file.read())
-        file.close()
-        out_file.close()
         ## This needs to be done after the simulation worker processes are created
         exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'])
         exp_val.setActor(actor)
