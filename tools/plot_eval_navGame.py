@@ -62,7 +62,7 @@ if __name__ == "__main__":
     
     """
     settings = None
-    if (len(sys.argv) == 2):
+    if (len(sys.argv) >= 2):
         settingsFileName = sys.argv[1]
         settingsFile = open(settingsFileName, 'r')
         settings = json.load(settingsFile)

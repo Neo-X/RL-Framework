@@ -86,7 +86,7 @@ class PPO(AlgorithmInterface):
             self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
-            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-1
+            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-2
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         # self._q_valsActTarget = scale_action(self._q_valsActTarget, self._action_bounds)
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
@@ -94,7 +94,7 @@ class PPO(AlgorithmInterface):
             self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else: 
-            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-1
+            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-2
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -553,11 +553,12 @@ class PPO(AlgorithmInterface):
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         print("Advantage, model: ", np.mean(self._get_advantage()), " std: ", np.std(self._get_advantage()))
-        print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
+        print("values: ", np.mean(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))),
+               " std: ", np.std(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))) )
         print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
         # print("Targets: ", np.mean(self._get_target()), " std: ", np.std(self._get_target()))
         # print("Falls: ", np.mean(falls), " std: ", np.std(falls))
-        print("values, falls: ", np.concatenate((self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor'])), falls), axis=1))
+        # print("values, falls: ", np.concatenate((scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor'])), falls), axis=1))
         print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
         print("Actions mean:     ", np.mean(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
@@ -700,9 +701,9 @@ class PPO(AlgorithmInterface):
         # print ("actions shape:", actions.shape)
         next_states = forwardDynamicsModel.predict_batch(states, actions)
         # print ("next_states shape: ", next_states.shape)
-        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0] * 1.0
+        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0] * 10.0
         # print ("next_state_grads shape: ", next_state_grads.shape)
-        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
+        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 10.0
         # print ( "action_grads shape: ", action_grads.shape)
         
         # print("Actions mean:     ", np.mean(actions, axis=0))

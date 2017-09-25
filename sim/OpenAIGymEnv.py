@@ -31,9 +31,11 @@ class OpenAIGymEnv(SimInterface):
 
     def init(self):
         self._previous_observation = self.getEnvironment().reset()
+        self._end_of_episode = False
             
     def initEpoch(self):
         self._previous_observation = self.getEnvironment().reset()
+        self._end_of_episode = False
         
     def endOfEpoch(self):
         return self._end_of_episode

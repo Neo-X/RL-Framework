@@ -322,7 +322,8 @@ class DPG(AlgorithmInterface):
         q_vals_b = self._q_val_Target()
         # q_vals_b = self._q_val()
         ## Compute target values
-        target_tmp_ = rewards + ((self._discount_factor* q_vals_b )* falls)
+        # target_tmp_ = rewards + ((self._discount_factor* q_vals_b )* falls)
+        target_tmp_ = rewards + ((self._discount_factor * q_vals_b ))
         self.setData(states, actions, rewards, result_states, falls)
         self._tmp_target_shared.set_value(target_tmp_)
         
