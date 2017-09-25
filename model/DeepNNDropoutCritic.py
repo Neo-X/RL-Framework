@@ -85,7 +85,7 @@ class DeepNNDropoutCritic(ModelInterface):
         
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
         if (self._settings['use_stocastic_policy']):
             with_std = lasagne.layers.DenseLayer(

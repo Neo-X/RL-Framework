@@ -14,12 +14,21 @@ if __name__ == "__main__":
     
     # Need to train a better Baseline
     trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/mocapImitation2D/A_CACLA/Simple_Walk_PD_Imitate/Deep_NN_Dropout_Critic/trainingData_A_CACLA.json'
+    trainData['name']='Baseline'
+    trainingDatas.append(trainData)
+    trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/mocapImitation2D/A_CACLA/Simple_Walk_Imitate/Deep_NN_Wide_Dropout_Critic/trainingData_A_CACLA.json'
     trainData['name']='Baseline'
     trainingDatas.append(trainData)
     
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/mocapImitation2D/A_CACLA/Simple_Walk_Imitate_MBAE/Deep_NN_Dropout_Critic/trainingData_A_CACLA.json'
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/mocapImitation2D/A_CACLA/Simple_Walk_PD_Imitate_MBAE/Deep_NN_Dropout_Critic/trainingData_A_CACLA.json'
+    trainData['name']='Baseline + MBAE2'
+    trainingDatas.append(trainData)
+    
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/mocapImitation2D/A_CACLA/Simple_Walk_PD_Imitate_MBAE2/Deep_NN_Dropout_Critic/trainingData_A_CACLA.json'
     trainData['name']='Baseline + MBAE2'
     trainingDatas.append(trainData)
     
@@ -44,7 +53,7 @@ if __name__ == "__main__":
     
     """
     settings = None
-    if (len(sys.argv) == 2):
+    if (len(sys.argv) >= 2):
         settingsFileName = sys.argv[1]
         settingsFile = open(settingsFileName, 'r')
         settings = json.load(settingsFile)
@@ -53,7 +62,7 @@ if __name__ == "__main__":
     if (len(sys.argv) == 3):
         length = int(sys.argv[2])
         rlv.setLength(length)
-    rlv.setBinSize(5)
+    rlv.setBinSize(1)
     rlv.updateRewards(trainingDatas)
     rlv.init()
     rlv.saveVisual("2D_LLC_MBAE_Training_curves")
