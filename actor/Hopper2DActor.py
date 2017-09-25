@@ -47,23 +47,26 @@ class Hopper2DActor(ActorInterface):
         pitch_sum = float(0)
         position_sum = float(0)
         right_hand_x_sum = float(0)
+        dist_x = float(0)
         while (not exp.getEnvironment().needUpdatedAction() or (steps_ == 0)):
             exp.getEnvironment().update()
             simData = exp.getEnvironment().getActor().getSimData()
-            position_root = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
+            position_root_ = exp.getEnvironment().getActor().getStateEuler()[0:][:3]
+            dist_x = dist_x + (position_root_[0] - position_root[0])
             # print ("avgSpeed: ", simData.avgSpeed)
             vel_sum += simData.avgSpeed
             torque_sum += math.fabs( self._target_torque - simData.avgTorque)
             
             # orientation = exp.getEnvironment().getActor().getStateEuler()[3:][:3]
             
-            position_sum += math.fabs(self._target_root_height - position_root[1])
+            position_sum += math.fabs(self._target_root_height - position_root_[1])
             
             steps_ += 1
+        
+        # print("vel_x:", dist_x*30.0)
         averageSpeed = vel_sum / steps_
         averageTorque = torque_sum / steps_
         averagePosition = position_sum / steps_
-             
         # averageSpeed = exp.getEnvironment().act(action_)
         # print ("root position: ", position_root)
         # print ("averageSpeed: ", averageSpeed)
