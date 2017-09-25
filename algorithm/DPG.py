@@ -155,7 +155,7 @@ class DPG(AlgorithmInterface):
         
         self._action_mean_grads = T.grad(cost=None, wrt=self._actionParams,
                                                             known_grads={self._q_valsActA: self._action_grad_shared}),
-        # print ("Action grads: ", self._action_mean_grads[0])
+        print ("Action grads: ", self._action_mean_grads[0])
         ## When passing in gradients it needs to be a proper list of gradient expressions
         self._action_mean_grads = list(self._action_mean_grads[0])
         # print ("isinstance(self._action_mean_grads, list): ", isinstance(self._action_mean_grads, list))
@@ -363,7 +363,7 @@ class DPG(AlgorithmInterface):
         ## Set data for gradient
         self._model.setStates(states)
         self._modelTarget.setStates(states)
-        self._action_grad_shared.set_value(action_grads)
+        self._action_grad_shared.set_value(-1.0*action_grads)
         self._trainActionGRAD()
         
         return loss
