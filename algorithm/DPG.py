@@ -363,6 +363,8 @@ class DPG(AlgorithmInterface):
         ## Set data for gradient
         self._model.setStates(states)
         self._modelTarget.setStates(states)
+        ## Why the -1.0??
+        ## Because the SGD method is always performing MINIMIZATION!!
         self._action_grad_shared.set_value(-1.0*action_grads)
         self._trainActionGRAD()
         

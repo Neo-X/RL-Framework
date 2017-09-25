@@ -701,9 +701,9 @@ class PPO(AlgorithmInterface):
         # print ("actions shape:", actions.shape)
         next_states = forwardDynamicsModel.predict_batch(states, actions)
         # print ("next_states shape: ", next_states.shape)
-        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0] * -10.0
+        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0] * 10.0
         # print ("next_state_grads shape: ", next_state_grads.shape)
-        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * -10.0
+        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 10.0
         # print ( "action_grads shape: ", action_grads.shape)
         
         # print("Actions mean:     ", np.mean(actions, axis=0))
@@ -718,7 +718,9 @@ class PPO(AlgorithmInterface):
         ## Set data for gradient
         self._model.setStates(states)
         self._modelTarget.setStates(states)
-        self._action_grad_shared.set_value(action_grads)
+        ## Why the -1.0??
+        ## Because the SGD method is always performing MINIMIZATION!!
+        self._action_grad_shared.set_value(-1.0*action_grads)
         self._trainActionGRAD()
     
     def train(self, states, actions, rewards, result_states, falls):
