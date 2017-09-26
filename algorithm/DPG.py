@@ -337,7 +337,7 @@ class DPG(AlgorithmInterface):
         
         print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
         print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
-        print("Policy mean: ", np.mean(self._q_action(), axis=0))
+        # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
         # loss = self._trainActor()
         # print("******** Not learning actor right now *****")
