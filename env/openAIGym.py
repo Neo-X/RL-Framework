@@ -8,7 +8,7 @@ import numpy as np
 # env = gym.make('BipedalWalker-v2')
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
-env = gym.make('RoboschoolHopper-v1')
+env = gym.make('RoboschoolReacher-v1')
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
 
@@ -42,5 +42,7 @@ print("std reward: ", np.std(rewards))
 print("reward min: ", np.min(rewards), " max ", np.max(rewards))
 
 print("min state: ", np.mean(states, axis=0) - np.std(states, axis=0))
-print("max reward: ", np.std(states, axis=0) + np.std(states, axis=0))
+print("min state: ", np.min(states, axis=0))
+print("max state: ", np.std(states, axis=0) + np.std(states, axis=0))
+print("max state: ", np.max(states, axis=0))
 
