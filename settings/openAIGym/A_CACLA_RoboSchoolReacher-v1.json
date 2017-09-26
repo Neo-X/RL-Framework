@@ -72,7 +72,7 @@
     "comment__": "Number of treads that can be run in parallel during training",
 "num_available_threads": 3,
     "comment__": "Length of the queues used to pass simulation data between the simulation workers and the learning agent(s).",
-"queue_size_limit": 1,
+"queue_size_limit": 300,
     "comment__": "Number of actions performed between training updates",
 "sim_action_per_training_update": 8,
     "comment__": "Number of rounds of adaptive sampling",
@@ -242,5 +242,5 @@
 	"comment__": "number of on policy rollouts to perform per epoch",
 "num_on_policy_rollouts": 5,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
-"dont_use_advantage": true
+"dont_use_advantage": false
 }
