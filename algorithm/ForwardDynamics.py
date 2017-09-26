@@ -150,7 +150,7 @@ class ForwardDynamics(AlgorithmInterface):
         self._bellman_error = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         self._reward_error = theano.function(inputs=[], outputs=self._reward_diff, allow_input_downcast=True, givens=self._reward_givens_)
         # self._diffs = theano.function(input=[State])
-        # self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [lasagne.layers.get_all_layers(self._model.getForwardDynamicsNetwork())[self.getSettings()['action_input_layer_index']].input_var] + self._params), allow_input_downcast=True, givens=self._givens_)
+        self._get_grad_old = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_)
         self._get_grad = theano.function([], outputs=T.grad(cost=None, wrt=[self._model._actionInputVar] + self._params,
                                                             known_grads={self._forward: self._fd_grad_target_shared}), 
                                          allow_input_downcast=True, 
@@ -212,6 +212,14 @@ class ForwardDynamics(AlgorithmInterface):
         # if (v_grad != None):
         self.setGradTarget(v_grad)
         return self._get_grad()
+    
+    def getGradsOld(self, states, actions, result_states):
+        states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
+        actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
+        result_states = np.array(norm_state(result_states, self._state_bounds), dtype=self.getSettings()['float_type'])
+        # result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
+        self.setData(states, actions, result_states)
+        return self._get_grad_old()
     
     def getRewardGrads(self, states, actions, rewards):
         # states = np.array(states, dtype=self.getSettings()['float_type'])

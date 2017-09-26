@@ -47,12 +47,12 @@ if __name__ == '__main__':
     states = np.append(states, np.linspace(-1.0, 5.0, experience_length/2))
     old_states = states
     # print states
-    actions = np.array(map(fNoise, states))
+    actions = np.array(map(f, states))
     actionsNoNoise = np.array(map(f, states))
     
     # states2 = np.transpose(np.repeat([states], 2, axis=0))
     # print states2
-    model = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None)
+    model = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, None)
     
     experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True, settings=settings)
     experience.setStateBounds(state_bounds)
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     
     errors=[]
     for i in range(10000):
-        _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
+        _states, _actions, _result_states, _rewards, fals_, _G_ts, advantage = experience.get_batch(batch_size)
         # print ("Actions: ", _actions)
         # print ("States: ", _states) 
         error = model.train(_states, _states, _result_states, _actions)
@@ -91,12 +91,12 @@ if __name__ == '__main__':
     
     predicted_actions = []
     for i in range(len(states)):
-        # state__ = np.reshape(np.array([states[i]]), (-1,1))
-        state__ = np.array([[states[i]]])
-        # print ("State__: ", state__)
+        state__ = np.reshape(np.array([states[i]]), (1,1))
+        # state__ = np.array([[states[i]]])
+        print ("State__: ", state__)
         predicted_actions.append(model.predict(state__,state__ ))
     
-    predicted_actions_dropout = np.array(map(model.predictWithDropout, states))
+    # predicted_actions_dropout = np.array(map(model.predictWithDropout, states))
     predicted_actions_var = []
     print ("predicted_actions: ", predicted_actions)
     
@@ -139,16 +139,16 @@ if __name__ == '__main__':
     std = 1.0
     # _fig, (_bellman_error_ax, _reward_ax, _discount_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
     _fig, (_bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-    _bellman_error, = _bellman_error_ax.plot(old_states, actions, linewidth=2.0, color='y', label="True function with noise")
-    _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_dropout, linewidth=2.0, color='r', label="Estimated function with dropout")
-    _bellman_error, = _bellman_error_ax.plot(states, predicted_actions, linewidth=2.0, color='g', label="Estimated function")
-    _bellman_error, = _bellman_error_ax.plot(states, actionsNoNoise, linewidth=2.0, label="True function")
-    _bellman_error = _bellman_error_ax.scatter(given_states, given_actions, label="Data trained on")
-    _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_var, linewidth=2.0, label="Variance")
+    _bellman_error, = _bellman_error_ax.plot(old_states, actions, linewidth=3.0, color='y', label="True function with noise")
+    # _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_dropout, linewidth=2.0, color='r', label="Estimated function with dropout")
+    _bellman_error, = _bellman_error_ax.plot(states, predicted_actions, linewidth=3.0, color='g', label="Estimated function")
+    # _bellman_error, = _bellman_error_ax.plot(states, actionsNoNoise, linewidth=2.0, label="True function")
+    # _bellman_error = _bellman_error_ax.scatter(given_states, given_actions, label="Data trained on")
+    # _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_var, linewidth=2.0, label="Variance")
     
     # _bellman_error_std = _bellman_error_ax.fill_between(states, predicted_actions - predicted_actions_var,
     #                                                     predicted_actions + predicted_actions_var, facecolor='green', alpha=0.5)
-    _bellman_error_std = _bellman_error_ax.fill_between(states, lower_var, upper_var, facecolor='green', alpha=0.5)
+    # _bellman_error_std = _bellman_error_ax.fill_between(states, lower_var, upper_var, facecolor='green', alpha=0.5)
     # _bellman_error_ax.set_title("True function")
     _bellman_error_ax.set_ylabel("Absolute Error")
     # Now add the legend with some customizations.
@@ -171,9 +171,11 @@ if __name__ == '__main__':
     _title = "Training function"
     _fig.suptitle(_title, fontsize=18)
     
-    _fig.set_size_inches(8.0, 4.5, forward=True)
-    er = plt.figure(2)
-    plt.plot(range(len(errors)), errors)
+    _fig.set_size_inches(11.0, 6.0, forward=True)
+    
+    _fig2, (_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
+    _error_ax.plot(range(len(errors)), errors, linewidth=3.0, color='b', label="model error")
+    _fig2.set_size_inches(11.0, 6.0, forward=True)
     
     print "Max var: " + str(np.max(predicted_actions_var))
     print "Min var: " + str(np.min(predicted_actions_var))
@@ -186,7 +188,7 @@ if __name__ == '__main__':
         if (s % space) == 0:
             action_ = np.reshape(np.array([predicted_actions[s]-0.01]), (1,1))
             state_ = np.reshape(np.array([states[s]]), (1,1))
-            grads_ = model.getGrads(state_, state_, action_)
+            grads_ = model.getGradsOld(state_, state_, action_)
             print ("Grad: ", grads_[0])
             # diff = model.bellman_error(state_, action_)
             # print ("Diff, ", diff)
@@ -199,7 +201,7 @@ if __name__ == '__main__':
             else:
                 grad_dir = -1.0
                 """
-            grad_dirs.append(grad_dir * 0.05)
+            grad_dirs.append(grad_dir * 1.0)
             old_states_.append(states[s])
             predicted_actions_.append(predicted_actions[s])
     
@@ -208,3 +210,8 @@ if __name__ == '__main__':
     # _fig.show()
     # er.show()
     plt.show()
+    fileName = "modelFit"
+    _fig.savefig(fileName+".svg")
+    _fig.savefig(fileName+".png")
+    _fig2.savefig(fileName+"_error.svg")
+    _fig2.savefig(fileName+"_error.png")
