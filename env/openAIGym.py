@@ -41,8 +41,9 @@ print("mean reward: ", np.mean(rewards))
 print("std reward: ", np.std(rewards))
 print("reward min: ", np.min(rewards), " max ", np.max(rewards))
 
-print("min state: ", np.mean(states, axis=0) - np.std(states, axis=0))
+print("state mean - std: ", np.mean(states, axis=0) - np.std(states, axis=0))
+print("state mean + std: ", np.mean(states, axis=0) + np.std(states, axis=0))
+print("")
 print("min state: ", np.min(states, axis=0))
-print("max state: ", np.std(states, axis=0) + np.std(states, axis=0))
 print("max state: ", np.max(states, axis=0))
 

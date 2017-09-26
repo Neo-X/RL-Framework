@@ -139,7 +139,7 @@ if __name__ == '__main__':
     std = 1.0
     # _fig, (_bellman_error_ax, _reward_ax, _discount_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
     _fig, (_bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-    _bellman_error, = _bellman_error_ax.plot(old_states, actions, linewidth=3.0, color='y', label="True function with noise")
+    _bellman_error, = _bellman_error_ax.plot(old_states, actions, linewidth=3.0, color='y', label="True function")
     # _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_dropout, linewidth=2.0, color='r', label="Estimated function with dropout")
     _bellman_error, = _bellman_error_ax.plot(states, predicted_actions, linewidth=3.0, color='g', label="Estimated function")
     # _bellman_error, = _bellman_error_ax.plot(states, actionsNoNoise, linewidth=2.0, label="True function")
@@ -150,7 +150,7 @@ if __name__ == '__main__':
     #                                                     predicted_actions + predicted_actions_var, facecolor='green', alpha=0.5)
     # _bellman_error_std = _bellman_error_ax.fill_between(states, lower_var, upper_var, facecolor='green', alpha=0.5)
     # _bellman_error_ax.set_title("True function")
-    _bellman_error_ax.set_ylabel("Absolute Error")
+    # _bellman_error_ax.set_ylabel("Absolute Error")
     # Now add the legend with some customizations.
     legend = _bellman_error_ax.legend(loc='lower right', shadow=True)
     plt.grid(b=True, which='major', color='black', linestyle='-')
@@ -174,8 +174,12 @@ if __name__ == '__main__':
     _fig.set_size_inches(11.0, 6.0, forward=True)
     
     _fig2, (_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-    _error_ax.plot(range(len(errors)), errors, linewidth=3.0, color='b', label="model error")
+    _error_ax.plot(range(len(errors)), errors, linewidth=3.0, color='b', label="model loss")
     _fig2.set_size_inches(11.0, 6.0, forward=True)
+    
+    legend = _error_ax.legend(loc='lower right', shadow=True)
+    plt.grid(b=True, which='major', color='black', linestyle='-')
+    plt.grid(b=True, which='minor', color='black', linestyle='--')
     
     print "Max var: " + str(np.max(predicted_actions_var))
     print "Min var: " + str(np.min(predicted_actions_var))
