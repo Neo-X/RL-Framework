@@ -393,6 +393,9 @@ def trainModelParallel(settingsFileName):
             model.setStateBounds(state_bounds)
             model.setActionBounds(action_bounds)
             model.setRewardBounds(reward_bounds)
+            experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
+            experience.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
+            experience.setActionBounds(copy.deepcopy(model.getActionBounds()))
         else: # continuation learning
             experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
             experience.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
@@ -522,6 +525,11 @@ def trainModelParallel(settingsFileName):
             for epoch in range(epochs):
                 if (settings['on_policy']):
                     
+                    print ("masterAgent State Bounds: ", masterAgent.getPolicy().getStateBounds())
+                    masterAgent.getExperience()
+                    if (settings['train_forward_dynamics']):
+                        print ("masterAgent FD State Bounds: ", masterAgent.getForwardDynamics().getStateBounds())
+                        
                     out = simModelParrallel( sw_message_queues=sim_work_queues,
                                                                model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['num_on_policy_rollouts'])
                     

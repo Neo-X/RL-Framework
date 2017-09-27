@@ -120,6 +120,7 @@ class ExperienceMemory(object):
         # indices = list(nprnd.randint(low=0, high=len(experience), size=batch_size))
         indices = (random.sample(range(0, min(self._history_size, self.samples())), batch_size))
         # print ("Indicies: " , indices)
+        # print("Exp buff state bounds: ", self._state_bounds)
 
         state = []
         action = []

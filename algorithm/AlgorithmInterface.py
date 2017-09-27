@@ -115,7 +115,9 @@ class AlgorithmInterface(object):
             pass
         else:
         """
+        # print ("Agent state bounds: ", self._state_bounds)
         state = norm_state(state, self._state_bounds)
+        # print ("Agent normalized state: ", state)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
@@ -126,6 +128,7 @@ class AlgorithmInterface(object):
             action_ = scale_action(self._q_action()[0], self._action_bounds)
         else:
             action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # print ("Agent Scaled action: ", action_)
         # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -198,15 +201,19 @@ class AlgorithmInterface(object):
             pass
         else:
         """
+        # print ("Agent state bounds: ", self._state_bounds)
         state = norm_state(state, self._state_bounds)
+        # print ("Agent normalized state: ", state)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            value =  scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
             # return (self._q_val())[0]
         else:
-            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            value = scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+#         print ("Agent scaled value: ", value)
+        return value
         # return self._q_valTarget()[0]
         # return self._q_val()[0]
     

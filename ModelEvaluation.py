@@ -100,6 +100,7 @@ class SimWorker(Process):
             self._model.setStateBounds(data[2])
             self._model.setActionBounds(data[3])
             self._model.setRewardBounds(data[4])
+            print ("Sim Worker State Bounds: ", self._model.getStateBounds())
             print ("Initial policy ready:")
             # print ("sim worker p: " + str(self._p))
         print ('Worker: started')
@@ -882,7 +883,7 @@ def collectExperience(actor, exp_val, model, settings):
         state_avg = states[:settings['bootsrap_samples']].mean(0)
         state_stddev = states[:settings['bootsrap_samples']].std(0)
         reward_avg = rewards_[:settings['bootsrap_samples']].mean(0)
-        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0) * 2.0
+        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0)
         action_avg = actions[:settings['bootsrap_samples']].mean(0)
         action_stddev = actions[:settings['bootsrap_samples']].std(0)
         print("Computed state min bound: ", state_avg - state_stddev)
@@ -897,8 +898,8 @@ def collectExperience(actor, exp_val, model, settings):
         elif (settings['state_normalization'] == "variance"):
             state_bounds[0] = state_avg - (state_stddev * 2.0)
             state_bounds[1] = state_avg + (state_stddev * 2.0)
-            # reward_bounds[0] = reward_avg - reward_stddev
-            # reward_bounds[1] = reward_avg + reward_stddev
+            reward_bounds[0] = reward_avg - (reward_stddev * 2.0)
+            reward_bounds[1] = reward_avg + (reward_stddev * 2.0)
             # action_bounds[0] = action_avg - action_stddev
             # action_bounds[1] = action_avg + action_stddev
         elif (settings['state_normalization'] == "given"):
