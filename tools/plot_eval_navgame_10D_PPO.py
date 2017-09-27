@@ -26,11 +26,13 @@ if __name__ == "__main__":
     # trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
     trainingDatas.append(trainData)
     
+    
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_MBAE_FULL_10D/Deep_NN_TanH/trainingData_PPO.json'
     trainData['name']='PPO + MBAE + pre training'
     # trainData['colour'] = (0.0, 1.0, 0.0, 1.0)
     trainingDatas.append(trainData)
+    
     
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_SMBAE_FULL_10D/Deep_NN_TanH/trainingData_PPO.json'
@@ -38,11 +40,13 @@ if __name__ == "__main__":
     # trainData['colour'] = (1.0, 1.0, 0.0, 1.0)
     trainingDatas.append(trainData)
     
+    
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_SMBAE_FULL_10D_pretained/Deep_NN_TanH/trainingData_PPO.json'
     trainData['name']='PPO + SMBAE + pre-training'
     # trainData['colour'] = (1.0, 1.0, 0.0, 1.0)
     trainingDatas.append(trainData)
+    
     
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_SMBAE_FULL_10D_MORE_SMBAE/Deep_NN_TanH/trainingData_PPO.json'
