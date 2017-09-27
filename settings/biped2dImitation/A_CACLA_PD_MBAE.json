@@ -1,8 +1,8 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "Deep_NN_Dropout_Critic",
+"model_type": "model.DeepNNDropoutCritic.DeepNNDropoutCritic",
     "comment__": "Learning algorithm to use",
-"agent_name": "A_CACLA",
+"agent_name": "algorithm.A_CACLA.A_CACLA",
     "comment__": "Folder to store the training data in.",
 "data_folder": "Simple_Walk_PD_Imitate_MBAE2/",
 	"comment": "initial probability of selecting a random action",
