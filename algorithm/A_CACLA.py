@@ -87,7 +87,8 @@ class A_CACLA(AlgorithmInterface):
         self._q_funcAct_drop = self._q_valsActA_drop
         
         # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._NotFallen
-        self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsTargetNextState )), self._NotFallen) + (self._NotFallen - 1)
+        # self._target = self._model.getRewardSymbolicVariable() + ((self._discount_factor * self._q_valsTargetNextState ) * self._NotFallen) + (self._NotFallen - 1)
+        self._target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState ) 
         self._diff = self._target - self._q_func
         self._diff_drop = self._target - self._q_func_drop 
         # loss = 0.5 * self._diff ** 2 
@@ -101,7 +102,7 @@ class A_CACLA(AlgorithmInterface):
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._NotFallen: self._NotFallen_shared
+            # self._NotFallen: self._NotFallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         }
         self._actGivens = {
@@ -271,7 +272,7 @@ class A_CACLA(AlgorithmInterface):
             # self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._NotFallen: self._NotFallen_shared
+            # self._NotFallen: self._NotFallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         })
         ## Always want this one
@@ -305,6 +306,9 @@ class A_CACLA(AlgorithmInterface):
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._val_TargetState = theano.function([], self._q_funcTarget,
                                        givens={self._model.getStateSymbolicVariable(): self._modelTarget.getStates()})
+        self.get_q_valsTargetNextState = theano.function([], self._q_valsTargetNextState,
+                                       givens={self._model.getResultStateSymbolicVariable(): self._model.getResultStates()})
+        
         # self._q_val_drop = theano.function([], self._q_func_drop,
         #                                givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         # self._q_action_drop = theano.function([], self._q_valsActA_drop,
@@ -419,8 +423,8 @@ class A_CACLA(AlgorithmInterface):
         lossActor = 0
         
         diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        # print ("Diff")
-        # print (diff_)
+        # print ("Rewards, Values, NextValues, Diff, new Diff")
+        # print (np.concatenate((rewards, self._q_val(), self.get_q_valsTargetNextState(),  diff_, self._q_val() - (rewards + (self._discount_factor * self.get_q_valsTargetNextState()))), axis=1))
         """
         tmp_states=[]
         tmp_result_states=[]
