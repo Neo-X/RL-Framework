@@ -612,7 +612,7 @@ def fixBounds(bounds):
     """
         
     # bounds not too close to each other
-    epsilon = 0.01
+    epsilon = 0.1
     bounds = np.array(bounds)
     diff = bounds[1]-bounds[0]
     for i in range(len(diff)):

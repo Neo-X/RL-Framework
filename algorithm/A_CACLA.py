@@ -452,7 +452,8 @@ class A_CACLA(AlgorithmInterface):
                    (exp_actions[i] == 1))
                   ):
                 if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):
-                    self._actor_buffer_diff.append([1.0 * (1.0-self._discount_factor)])
+                    # self._actor_buffer_diff.append([1.0 * (1.0-self._discount_factor)])
+                    self._actor_buffer_diff.append([1.0])
                     #  print("Not using advantage")
                 else:
                     self._actor_buffer_diff.append(diff_[i])

@@ -281,5 +281,7 @@
 	"comment__": "number of on policy rollouts to perform per epoch",
 "num_on_policy_rollouts": 5,
 	"comment__": "Whether or not to use a stochastic forward dynamics model",
-"use_stochastic_forward_dynamics": true	
+"use_stochastic_forward_dynamics": true,
+	"comment__": "Don't weight policy updates wrt the advantage of the action",
+"dont_use_advantage": true	
 }

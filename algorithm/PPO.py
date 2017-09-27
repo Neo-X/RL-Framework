@@ -567,7 +567,9 @@ class PPO(AlgorithmInterface):
         # print("Actions std:  ", np.std((actions), axis=0) )
         print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
         print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
-        print( "Actor loss: ", np.mean(self._get_action_diff()))
+        print("Actor loss: ", np.mean(self._get_action_diff()))
+        print("States mean:     ", np.mean(states, axis=0))
+        print("States std:     ", np.std(states, axis=0))
         # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
         # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
         ## Sometimes really HUGE losses appear, ocasionally
