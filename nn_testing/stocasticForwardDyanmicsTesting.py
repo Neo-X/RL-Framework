@@ -47,8 +47,8 @@ if __name__ == '__main__':
     states = np.append(states, np.linspace(-1.0, 5.0, experience_length/2))
     old_states = states
     # print states
-    actions = np.array(map(f, states))
-    actionsNoNoise = np.array(map(f, states))
+    actions = np.array(list(map(f, states)))
+    actionsNoNoise = np.array(list(map(f, states)))
     
     # states2 = np.transpose(np.repeat([states], 2, axis=0))
     # print states2
@@ -59,13 +59,14 @@ if __name__ == '__main__':
     experience.setRewardBounds(reward_bounds)
     experience.setActionBounds(action_bounds)
     experience.setSettings(settings)
-    arr = range(experience_length)
+    arr = list(range(experience_length))
     random.shuffle(arr)
     num_samples_to_keep=300
     given_actions=[]
     given_states=[]
     for i in range(num_samples_to_keep):
-        action_ = np.array([actions[arr[i]]])
+        a = actions[arr[i]]
+        action_ = np.array([a])
         given_actions.append(action_)
         state_ = np.array([states[arr[i]]])
         given_states.append(state_)
@@ -73,7 +74,7 @@ if __name__ == '__main__':
         experience.insert(state_, state_, action_, np.array([0]))
     
     errors=[]
-    for i in range(10000):
+    for i in range(1000):
         _states, _actions, _result_states, _rewards, fals_, _G_ts, advantage = experience.get_batch(batch_size)
         # print ("Actions: ", _actions)
         # print ("States: ", _states) 
@@ -118,9 +119,9 @@ if __name__ == '__main__':
     # states=np.reshape(states, (experience_length,1))
     predicted_actions = np.reshape(predicted_actions, (experience_length,))
     print ("predicted_actions_var: ", predicted_actions_var)
-    print "states shape: " + str(states.shape)
-    print "var shape: " + str(predicted_actions_var.shape)
-    print "act shape: " + str(predicted_actions.shape)
+    print ("states shape: " + str(states.shape))
+    print ("var shape: " + str(predicted_actions_var.shape))
+    print ("act shape: " + str(predicted_actions.shape))
     
     # print "var : " + str(predicted_actions_var)
     # print "act : " + str(predicted_actions)
@@ -181,8 +182,8 @@ if __name__ == '__main__':
     plt.grid(b=True, which='major', color='black', linestyle='-')
     plt.grid(b=True, which='minor', color='black', linestyle='--')
     
-    print "Max var: " + str(np.max(predicted_actions_var))
-    print "Min var: " + str(np.min(predicted_actions_var))
+    print ("Max var: " + str(np.max(predicted_actions_var)))
+    print ("Min var: " + str(np.min(predicted_actions_var)))
     grad_dirs=[]
     old_states_=[]
     predicted_actions_=[]

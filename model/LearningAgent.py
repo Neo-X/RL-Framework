@@ -203,6 +203,7 @@ class LearningAgent(AgentInterface):
                 dynamicsLoss = 0 
                 if (self._settings['train_forward_dynamics']):
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
+                    print ("Forward Dynamics Loss: ", dynamicsLoss)
                     if (self._settings['train_critic_on_fd_output'] and 
                         (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
                         ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and

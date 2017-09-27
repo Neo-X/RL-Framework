@@ -86,7 +86,7 @@ class PPO(AlgorithmInterface):
             self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
-            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-1
+            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-2
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         # self._q_valsActTarget = scale_action(self._q_valsActTarget, self._action_bounds)
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
@@ -94,7 +94,7 @@ class PPO(AlgorithmInterface):
             self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else: 
-            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-1
+            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-2
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -552,7 +552,7 @@ class PPO(AlgorithmInterface):
         lossActor = 0
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        print("Advantage, model: ", np.mean(self._get_advantage()), " std: ", np.std(self._get_advantage()))
+        # print("Advantage, model: ", np.mean(self._get_advantage()), " std: ", np.std(self._get_advantage()))
         print("values: ", np.mean(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))),
                " std: ", np.std(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))) )
         print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
@@ -561,15 +561,15 @@ class PPO(AlgorithmInterface):
         # print("values, falls: ", np.concatenate((scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor'])), falls), axis=1))
         print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
         print("Actions mean:     ", np.mean(actions, axis=0))
-        print("Policy mean: ", np.mean(self._q_action(), axis=0))
+        # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
         print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
         # print("Actions std:  ", np.std((actions), axis=0) )
-        print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
-        print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
+        # print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
+        # print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
         print("Actor loss: ", np.mean(self._get_action_diff()))
-        print("States mean:     ", np.mean(states, axis=0))
-        print("States std:     ", np.std(states, axis=0))
+        # print("States mean:     ", np.mean(states, axis=0))
+        # print("States std:     ", np.std(states, axis=0))
         # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
         # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
         ## Sometimes really HUGE losses appear, ocasionally
