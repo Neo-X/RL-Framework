@@ -52,7 +52,7 @@ def trainModelParallel(settingsFileName):
         # from model.ModelUtil import *
         # print ( "theano.config.mode: ", theano.config.mode)
         from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience, simEpoch, evalModel, simModelParrallel
-        from model.ModelUtil import validBounds
+        from model.ModelUtil import validBounds, fixBounds
         from model.LearningAgent import LearningAgent, LearningWorker
         from util.SimulationUtil import validateSettings
         from util.SimulationUtil import createEnvironment
@@ -160,6 +160,9 @@ def trainModelParallel(settingsFileName):
         if (not validBounds(state_bounds)):
             # Probably did not collect enough bootstrapping samples to get good state bounds.
             print("State bounds invalid: ", state_bounds)
+            state_bounds = fixBounds(state_bounds)
+            bound_fixed = validBounds(state_bounds)
+            print("State bounds fixed: ", bound_fixed)
             sys.exit()
         if (not validBounds(reward_bounds)):
             print("Reward bounds invalid: ", reward_bounds)
@@ -360,7 +363,10 @@ def trainModelParallel(settingsFileName):
         if (not validBounds(state_bounds)):
             # Probably did not collect enough bootstrapping samples to get good state bounds.
             print("State bounds invalid: ", state_bounds)
-            sys.exit()
+            state_bounds = fixBounds(state_bounds)
+            bound_fixed = validBounds(state_bounds)
+            print("State bounds fixed: ", bound_fixed)
+            # sys.exit()
         if (not validBounds(reward_bounds)):
             print("Reward bounds invalid: ", reward_bounds)
             sys.exit()

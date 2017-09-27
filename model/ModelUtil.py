@@ -578,6 +578,7 @@ def validBounds(bounds):
     """
         Checks to make sure bounds are valid
         max is > min
+        and max - min > epsilon
     """
     valid = np.all(np.less(bounds[0], bounds[1]))
     if (not valid):
@@ -588,7 +589,7 @@ def validBounds(bounds):
         print ("Invalid bounds: ", bad_indecies )
         print ("Bad Values:", bad_values_low, bad_values_high)
         
-    # bounds not too close to each other
+    ##  bounds not too close to each other
     epsilon = 0.01
     bounds = np.array(bounds)
     diff = bounds[1]-bounds[0]
@@ -603,6 +604,23 @@ def validBounds(bounds):
         print ("Bounds to small:", np.greater(diff, epsilon))
         
     return valid
+
+def fixBounds(bounds):
+    """
+        Fixes bounds that are too close together
+        pre-req all(bounds[1] is > bounds[0])
+    """
+        
+    # bounds not too close to each other
+    epsilon = 0.01
+    bounds = np.array(bounds)
+    diff = bounds[1]-bounds[0]
+    for i in range(len(diff)):
+        if (diff[i] < epsilon):
+            bounds[1][i] = bounds[1][i] + epsilon
+            bounds[0][i] = bounds[0][i] - epsilon
+    print("Bounds fixed: ", bounds)
+    return bounds
 
 def checkDataIsValid(data):
         """

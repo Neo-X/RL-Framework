@@ -415,7 +415,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("Discrete action choice: ", action, " epsilon * p: ", epsilon * p)
                 else : # add noise to current policy
                     # return ra1
-                    if ( ((settings['exploration_method'] == 'gaussian_random') or (bootstrapping)) 
+                    if ( ((settings['exploration_method'] == 'gaussian_random') 
+                          # or (bootstrapping)
+                          ) 
                          and (not sampling)):
                         # print ("Random Guassian sample, state bounds", model.getStateBounds())
                         pa = model.predict(state_)
@@ -880,7 +882,7 @@ def collectExperience(actor, exp_val, model, settings):
         state_avg = states[:settings['bootsrap_samples']].mean(0)
         state_stddev = states[:settings['bootsrap_samples']].std(0)
         reward_avg = rewards_[:settings['bootsrap_samples']].mean(0)
-        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0) * 0.5
+        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0) * 2.0
         action_avg = actions[:settings['bootsrap_samples']].mean(0)
         action_stddev = actions[:settings['bootsrap_samples']].std(0)
         print("Computed state min bound: ", state_avg - state_stddev)
