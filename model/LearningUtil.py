@@ -101,13 +101,20 @@ def loglikelihood(a, mean0, std0, d):
 def likelihood(a, mean0, std0, d):
     return T.exp(loglikelihood(a, mean0, std0, d))
 
+def likelihoodMEAN(a, mean0, std0, d):
+    return T.exp(loglikelihoodMEAN(a, mean0, std0, d))
+
 
 def loglikelihoodMEAN(a, mean0, std0, d):
     """
         d is the number of action dimensions
+        This version is an attempted more numically stable version.
+        It should not scale with the number of action dimensions or the number of 
+        data samples computed over.
     """
+    d=1
     # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
-    return T.reshape(- 0.5 * (T.square(a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(-1, 1))
+    return T.reshape(- 0.5 * (T.square(a - mean0) / std0).mean(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).mean(axis=1), newshape=(-1, 1))
     # return (- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1))
 
 

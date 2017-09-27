@@ -17,7 +17,7 @@ import copy
 sys.path.append('../')
 from algorithm.AlgorithmInterface import AlgorithmInterface
 from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward
-from model.LearningUtil import loglikelihood, likelihood, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat 
+from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat 
 
 class PPO(AlgorithmInterface):
     
@@ -86,7 +86,7 @@ class PPO(AlgorithmInterface):
             self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
-            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-2
+            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-1
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         # self._q_valsActTarget = scale_action(self._q_valsActTarget, self._action_bounds)
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
@@ -94,7 +94,7 @@ class PPO(AlgorithmInterface):
             self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else: 
-            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-2
+            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-1
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -152,7 +152,7 @@ class PPO(AlgorithmInterface):
         # self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed )
         # self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (10*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
         #                                                                              T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
-        self._actor_entropy = 0.5 * T.mean(T.log(2 * np.pi * self._q_valsActASTD + 1 ) )
+        self._actor_entropy = 0.5 * T.mean((2 * np.pi * self._q_valsActASTD ) )
         # SGD update
         # self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
         # self._model.getCriticNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho,
@@ -195,8 +195,10 @@ class PPO(AlgorithmInterface):
         self._Advantage = self._advantage * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
         # self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         # self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
-        self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
-        self._prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
+        # self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        # self._prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
+        self._prob = likelihoodMEAN(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        self._prob_target = likelihoodMEAN(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target).dot(self._Advantage)) )
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target) * (self._Advantage)) )
         # self._actLoss_ = ( ((self._log_prob) * self._Advantage) )
@@ -392,7 +394,7 @@ class PPO(AlgorithmInterface):
                                                                     # self._KL_Weight: self._kl_weight_shared
                                                             #        }
                                                          )
-        self._get_actor_entropy = theano.function([], [self._actor_entropy],
+        self._get_actor_entropy = theano.function([], [self.getSettings()['std_entropy_weight'] * self._actor_entropy],
                                                             givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
                                                                     # self._KL_Weight: self._kl_weight_shared
                                                                     }
@@ -568,6 +570,8 @@ class PPO(AlgorithmInterface):
         # print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
         # print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
         print("Actor loss: ", np.mean(self._get_action_diff()))
+        print("Actor entropy: ", np.mean(self._get_actor_entropy()))
+        self._get_actor_entropy
         # print("States mean:     ", np.mean(states, axis=0))
         # print("States std:     ", np.std(states, axis=0))
         # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))

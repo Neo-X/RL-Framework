@@ -11,14 +11,29 @@ from PolicyTrainVisualize import PolicyTrainVisualize
 if __name__ == "__main__":
     
     trainingDatas = []
+    otherDatas = []
     
     # Need to train a better Baseline
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_10D/Deep_NN_TanH/trainingData_algorithm.PPO.PPO.json'
     trainData['name']='Baseline'
-    # trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
+    trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
     trainingDatas.append(trainData)
     
+    # Need to train a better Baseline
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_10D/model.DeepNNTanH.DeepNNTanH/trainingData_algorithm.PPO.PPO.json'
+    trainData['name']='Baseline'
+    trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
+    trainingDatas.append(trainData)
+    
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_10D/Deep_NN_TanH_2/trainingData_algorithm.PPO.PPO.json'
+    trainData['name']='Baseline'
+    trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
+    trainingDatas.append(trainData)
+  
+    """ 
     # Final method
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_MBAE_10D/Deep_NN_TanH/trainingData_algorithm.PPO.PPO.json'
@@ -32,32 +47,45 @@ if __name__ == "__main__":
     trainData['name']='PPO + MBAE + pre training'
     # trainData['colour'] = (0.0, 1.0, 0.0, 1.0)
     trainingDatas.append(trainData)
-    
+    """
     
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_SMBAE_FULL_10D/Deep_NN_TanH/trainingData_PPO.json'
-    trainData['name']='PPO + SMBAE'
-    # trainData['colour'] = (1.0, 1.0, 0.0, 1.0)
-    trainingDatas.append(trainData)
+    trainData['name']='PPO + MBAE'
+    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
+    otherDatas.append(trainData)
     
     
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_SMBAE_FULL_10D_pretained/Deep_NN_TanH/trainingData_PPO.json'
-    trainData['name']='PPO + SMBAE + pre-training'
-    # trainData['colour'] = (1.0, 1.0, 0.0, 1.0)
-    trainingDatas.append(trainData)
+    trainData['name']='PPO + MBAE + pre-training'
+    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
+    otherDatas.append(trainData)
     
     
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_SMBAE_FULL_10D_MORE_SMBAE/Deep_NN_TanH/trainingData_PPO.json'
-    trainData['name']='PPO + SMBAE More + pre-training'
-    # trainData['colour'] = (1.0, 1.0, 0.0, 1.0)
-    trainingDatas.append(trainData)
+    trainData['name']='PPO + MBAE More + pre-training'
+    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
+    otherDatas.append(trainData)
+    
+    trainData={}
+    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_SMBAE_10D/Deep_NN_TanH/trainingData_PPO.json'
+    trainData['name']='PPO + MBAE'
+    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
+    otherDatas.append(trainData)
     
     for i in range(len(trainingDatas)):
         datafile = trainingDatas[i]['fileName']
         file = open(datafile)
         trainingDatas[i]['data'] = json.load(file)
+        # print "Training data: " + str(trainingData)
+        file.close()
+        
+    for i in range(len(otherDatas)):
+        datafile = otherDatas[i]['fileName']
+        file = open(datafile)
+        otherDatas[i]['data'] = json.load(file)
         # print "Training data: " + str(trainingData)
         file.close()
     
@@ -83,7 +111,7 @@ if __name__ == "__main__":
     if (len(sys.argv) == 3):
         length = int(sys.argv[2])
         rlv.setLength(length)
-    rlv.updateRewards(trainingDatas)
+    rlv.updateRewards(trainingDatas, otherDatas)
     rlv.init()
     rlv.saveVisual("MBAE_Training_curves")
     rlv.show()
