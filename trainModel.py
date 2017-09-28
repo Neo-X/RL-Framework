@@ -974,10 +974,24 @@ def signal_handler(signal, frame):
 
 if (__name__ == "__main__"):
     
+    """
+        python trainModel.py <sim_settings_file>
+        Example:
+        python trainModel.py settings/navGame/PPO_5D.json 
+    """
     
-    file = open(sys.argv[1])
-    settings = json.load(file)
-    print ("Settings: " + str(json.dumps(settings)))
-    file.close()
-    
-    trainModelParallel(sys.argv[1], settings)
+    if (len(sys.argv) == 1):
+        print("Please incluse sim settings file")
+        print("python trainModel.py <sim_settings_file>")
+        sys.exit()
+    elif (len(sys.argv) == 2):
+        file = open(sys.argv[1])
+        settings = json.load(file)
+        print ("Settings: " + str(json.dumps(settings)))
+        file.close()
+        
+        trainModelParallel(sys.argv[1], settings)
+    else:
+        print("Please specify arguments properly, ")
+        print(sys.argv)
+        print("python trainModel.py <sim_settings_file>")
