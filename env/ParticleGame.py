@@ -209,7 +209,7 @@ class ParticleGame(object):
         d = np.sqrt((a*a).sum(axis=0))
         # print ("Dist Vector: " + str(a) + " Distance: " + str(d))
         reward = 0
-        if d < 0.3:
+        if d < 0.1:
             reward = 2.0
             # print ("Reward: ", reward)
             return reward
@@ -243,7 +243,7 @@ class ParticleGame(object):
         self._map_ax.set_title('Map')
         self._particles, = self._map_ax.plot([self._agent[0]], [self._agent[1]], 'bo', ms=self._markerSize)
         
-        self._map_ax.plot([self._target[0]], [self._target[1]], 'ro', ms=self._markerSize)
+        self._plot_targets, = self._map_ax.plot([self._target[0]], [self._target[1]], 'ro', ms=self._markerSize)
         
         self._map_ax.plot(self._obstacles[:,0], self._obstacles[:,1], 'gs', ms=28)
         # self._line1, = self._ax.plot(x, y, 'r-') # Returns a tuple of line objects, thus the comma        
@@ -376,6 +376,8 @@ class ParticleGame(object):
         if self._settings['render']:
             self._particles.set_data(self._agent[0], self._agent[1] )
             self._particles.set_markersize(self._markerSize)
+            self._plot_targets.set_data(self._target[0], self._target[1] )
+            self._plot_targets.set_markersize(self._markerSize)
         # self._line1.set_ydata(np.sin(x + phase))
         # self._fig.canvas.draw()
         
@@ -400,6 +402,7 @@ class ParticleGame(object):
             self._policy2.cmap._set_extremes()
             """
             # self._policy.set_UVC(U, V)
+            self.update()
             self._fig.canvas.draw()
         
         # self._value_function.set_edgecolors(Q)
@@ -455,7 +458,7 @@ class ParticleGame(object):
         # Might be a little touchy because floats are used
         a=(self._agent - self._target)
         d = np.sqrt((a*a).sum(axis=0))
-        return d <= 0.3
+        return d <= 0.1
     
     def endOfEpoch(self):
         return self.reachedTarget()
