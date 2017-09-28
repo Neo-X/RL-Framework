@@ -916,6 +916,7 @@ def trainModelParallel(settingsFileName, settings):
                 actor_loss_viz.finish()
                 actor_regularization_viz.finish()
         
+        gc.collect()
         
 import inspect
 def print_full_stack(tb=None):
