@@ -72,7 +72,7 @@ if __name__ == "__main__":
     trainData={}
     trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_SMBAE_10D/Deep_NN_TanH/trainingData_PPO.json'
     trainData['name']='PPO + MBAE'
-    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
+    # trainData['colour'] = (1.0, 1.0, 0.0, 1.0)
     otherDatas.append(trainData)
     
     for i in range(len(trainingDatas)):

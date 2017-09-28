@@ -123,6 +123,14 @@ class RLVisualize(object):
         self._fig.savefig(fileName+".svg")
         self._fig.savefig(fileName+".png")
         
+    def finish(self):
+        """
+            Closes the figure window
+        """
+        plt.close(self._fig)
+        plt.close()
+        
+        
 if __name__ == "__main__":
     
     datafile = sys.argv[1]

@@ -35,15 +35,11 @@ _sim_work_queues = []
 
 # python -m memory_profiler example.py
 # @profile(precision=5)
-def trainModelParallel(settingsFileName):
+def trainModelParallel(settingsFileName, settings):
         
     # pr = cProfile.Profile()
     # pr.enable()
     # try:
-        file = open(settingsFileName)
-        settings = json.load(file)
-        print ("Settings: " + str(json.dumps(settings)))
-        file.close()
         import os    
         os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
         
@@ -853,32 +849,40 @@ def trainModelParallel(settingsFileName):
         # print ("Discounted reward difference Avg: " +  str(np.mean(np.fabs(discounted_values - values))))
         # print ("Discounted reward difference STD: " +  str(np.std(np.fabs(discounted_values - values))))
         # reward_over_epoc = np.array(reward_over_epoc)
-        
         print ("Terminating Workers"        )
+        if (settings['on_policy']):
+            for m_q in sim_work_queues:
+                ## block on full queue
+                m_q.put(None)
         for sw in sim_workers: # Should update these more often
             input_anchor_queue.put(None)
-            
+        print ("Joining Workers"        )
         for sw in sim_workers: # Should update these more often
             sw.join()
-            
-        if ( output_experience_queue != None):
-            for lw in learning_workers: # Should update these more often
-                output_experience_queue.put(None)
-            
-        for lw in learning_workers: # Should update these more often
-            lw.join()
         
+        if (not settings['on_policy']):    
+            print ("Terminating learners"        )
+            if ( output_experience_queue != None):
+                for lw in learning_workers: # Should update these more often
+                    output_experience_queue.put(None)
+            print ("Joining learners"        )    
+            for lw in learning_workers: # Should update these more often
+                lw.join()
+        
+        
+        print ("Finish sim")
         exp_val.finish()
         
+        print ("Save last versions of files.")
         file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
         f = open(file_name, 'wb')
         dill.dump(masterAgent.getPolicy(), f)
         f.close()
-        
+        """
         f = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", "w")
         json.dump(trainData, f, sort_keys=True, indent=4)
         f.close()
-        
+        """
         if (settings['train_forward_dynamics']):
             file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
             f = open(file_name_dynamics, 'wb')
@@ -891,6 +895,27 @@ def trainModelParallel(settingsFileName):
         print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward))
         
         """ 
+        
+        print("Delete any plots being used")
+        
+        if settings['visualize_learning']:    
+            rlv.finish()
+        if (settings['train_forward_dynamics']):
+            if settings['visualize_learning']:
+                nlv.finish()
+        if (settings['train_reward_predictor']):
+            if settings['visualize_learning']:
+                rewardlv.finish()
+                 
+        if (settings['debug_critic']):
+            if (settings['visualize_learning']):
+                critic_loss_viz.finish()
+                critic_regularization_viz.finish()
+        if (settings['debug_actor']):
+            if (settings['visualize_learning']):
+                actor_loss_viz.finish()
+                actor_regularization_viz.finish()
+        
         
 import inspect
 def print_full_stack(tb=None):
@@ -948,4 +973,10 @@ def signal_handler(signal, frame):
 
 if (__name__ == "__main__"):
     
-    trainModelParallel(sys.argv[1])
+    
+    file = open(sys.argv[1])
+    settings = json.load(file)
+    print ("Settings: " + str(json.dumps(settings)))
+    file.close()
+    
+    trainModelParallel(sys.argv[1], settings)
