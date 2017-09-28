@@ -393,6 +393,18 @@ def createEnvironment(config_file, env_type, settings, render=False):
         exp = NavGame(conf)
         exp = NavGameEnv(exp, settings)
         return exp
+    elif env_type == 'Particle_Sim':
+        from env.ParticleGame import ParticleGame
+        from sim.ParticleSimEnv import ParticleSimEnv
+        # file = open(config_file)
+        # conf = json.load(file)
+        conf = copy.deepcopy(settings)
+        # print ("Settings: " + str(json.dumps(conf)))
+        # file.close()
+        conf['render'] = render
+        exp = ParticleGame(conf)
+        exp = ParticleSimEnv(exp, settings)
+        return exp
     
     elif env_type == 'open_AI_Gym':
         import gym
@@ -524,6 +536,9 @@ def createActor(env_type, settings, experience):
     elif (env_type == 'nav_Game'):
         from actor.NavGameActor import NavGameActor
         actor = NavGameActor(settings, experience)
+    elif (env_type == 'Particle_Sim'):
+        from actor.ParticleSimActor import ParticleSimActor
+        actor = ParticleSimActor(settings, experience)
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or
           (env_type == 'simbiconBiped2DTerrain')):
         from actor.SimbiconActor import SimbiconActor

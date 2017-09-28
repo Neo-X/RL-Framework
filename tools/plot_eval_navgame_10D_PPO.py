@@ -15,64 +15,62 @@ if __name__ == "__main__":
     
     # Need to train a better Baseline
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_10D/Deep_NN_TanH/trainingData_algorithm.PPO.PPO.json'
+    trainData['fileName']='/Cluster/Documents/Research/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_10D_0/model.DeepNNTanH.DeepNNTanH/trainingData_algorithm.PPO.PPO.json'
     trainData['name']='Baseline'
     trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
     trainingDatas.append(trainData)
     
     # Need to train a better Baseline
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_10D/model.DeepNNTanH.DeepNNTanH/trainingData_algorithm.PPO.PPO.json'
+    trainData['fileName']='/Cluster/Documents/Research/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_10D_1/model.DeepNNTanH.DeepNNTanH/trainingData_algorithm.PPO.PPO.json'
     trainData['name']='Baseline'
     trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
     trainingDatas.append(trainData)
     
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_10D/Deep_NN_TanH_2/trainingData_algorithm.PPO.PPO.json'
+    trainData['fileName']='/Cluster/Documents/Research/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_10D_2/model.DeepNNTanH.DeepNNTanH/trainingData_algorithm.PPO.PPO.json'
     trainData['name']='Baseline'
     trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
     trainingDatas.append(trainData)
-  
-    """ 
-    # Final method
+
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_MBAE_10D/Deep_NN_TanH/trainingData_algorithm.PPO.PPO.json'
-    trainData['name']='PPO + MBAE'
-    # trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
+    trainData['fileName']='/Cluster/Documents/Research/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_10D_3/model.DeepNNTanH.DeepNNTanH/trainingData_algorithm.PPO.PPO.json'
+    trainData['name']='Baseline'
+    trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
     trainingDatas.append(trainData)
     
-    
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_MBAE_FULL_10D/Deep_NN_TanH/trainingData_PPO.json'
-    trainData['name']='PPO + MBAE + pre training'
-    # trainData['colour'] = (0.0, 1.0, 0.0, 1.0)
+    trainData['fileName']='/Cluster/Documents/Research/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_10D_4/model.DeepNNTanH.DeepNNTanH/trainingData_algorithm.PPO.PPO.json'
+    trainData['name']='Baseline'
+    trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
     trainingDatas.append(trainData)
-    """
     
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_SMBAE_FULL_10D/Deep_NN_TanH/trainingData_PPO.json'
+    trainData['fileName']='/Cluster/Documents/Research/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_10D_5/model.DeepNNTanH.DeepNNTanH/trainingData_algorithm.PPO.PPO.json'
+    trainData['name']='Baseline'
+    trainData['colour'] = (1.0, 0.0, 0.0, 1.0)
+    trainingDatas.append(trainData)
+      
+    ##### Other method to compare against
+    
+    trainData={}
+    trainData['fileName']='/Cluster/Documents/Research/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_SMBAE_10D_0/model.DeepNNTanH.DeepNNTanH/trainingData_algorithm.PPO.PPO.json'
     trainData['name']='PPO + MBAE'
     trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
     otherDatas.append(trainData)
     
     
     trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_SMBAE_FULL_10D_pretained/Deep_NN_TanH/trainingData_PPO.json'
-    trainData['name']='PPO + MBAE + pre-training'
-    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
-    otherDatas.append(trainData)
-    
-    
-    trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_SMBAE_FULL_10D_MORE_SMBAE/Deep_NN_TanH/trainingData_PPO.json'
-    trainData['name']='PPO + MBAE More + pre-training'
-    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
-    otherDatas.append(trainData)
-    
-    trainData={}
-    trainData['fileName']='../../../Dropbox/Research/Projects/CharacterAnimation/Data/nav_Game/PPO/Nav_Sphere_SMBAE_10D/Deep_NN_TanH/trainingData_PPO.json'
+    trainData['fileName']='/Cluster/Documents/Research/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_SMBAE_10D_1/model.DeepNNTanH.DeepNNTanH/trainingData_algorithm.PPO.PPO.json'
     trainData['name']='PPO + MBAE'
-    # trainData['colour'] = (1.0, 1.0, 0.0, 1.0)
+    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
+    otherDatas.append(trainData)
+    
+    
+    trainData={}
+    trainData['fileName']='/Cluster/Documents/Research/CharacterAnimation/Data/nav_Game/algorithm.PPO.PPO/Nav_Sphere_SMBAE_10D_2/model.DeepNNTanH.DeepNNTanH/trainingData_algorithm.PPO.PPO.json'
+    trainData['name']='PPO + MBAE'
+    trainData['colour'] = (0.0, 0.0, 1.0, 1.0)
     otherDatas.append(trainData)
     
     for i in range(len(trainingDatas)):
