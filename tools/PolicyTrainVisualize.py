@@ -134,100 +134,57 @@ class PolicyTrainVisualize(object):
             plt.show()
         else:
             means_ = []
-            cmap = get_cmap(len(self._trainingDatas)+1)
+            cmap = get_cmap(len(self._otherDatas)+1)
             self._fig, (self._reward_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
             self._fig_value, (self._value_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-            for i in range(0, len(self._trainingDatas), 1):
-                if ( (self._length) > 0 ): ## potentially reduce the range of data plotted
-                    if ( (self._length) < (len(self._trainingDatas[i]['data']["mean_eval"]) ) ):
-                        x_range = range(0, self._length, 1)
+            for j in range(len(self._otherDatas)):
+                for i in range(0, len(self._otherDatas[j]), 1):
+                    if ( (self._length) > 0 ): ## potentially reduce the range of data plotted
+                        if ( (self._length) < (len(self._otherDatas[j][i]['data']["mean_eval"]) ) ):
+                            x_range = range(0, self._length, 1)
+                        else:
+                            x_range = range(len(self._otherDatas[j][i]['data']["mean_eval"]))
                     else:
-                        x_range = range(len(self._trainingDatas[i]['data']["mean_eval"]))
-                else:
-                    x_range = range(len(self._trainingDatas[i]['data']["mean_eval"]))
-                new_shape = (int(len(x_range)/self._bin_size), int(self._bin_size))
-                new_length = new_shape[0]*new_shape[1]
-                x_range_ = range(int(new_shape[0]))
-                # self._length = self._length/self._bin_size
-                mean = np.mean(np.reshape(self._trainingDatas[i]['data']["mean_eval"][:new_length], new_shape), axis=1)
-                # std = np.mean(np.reshape(self._trainingDatas[i]['data']["std_eval"][:new_length], new_shape), axis=1)
-                means_.append(mean)
-            
-            mean = np.mean(means_, axis=0)
-            std = np.std(means_, axis=0)
-            colour_ = cmap(i)
-            if ('colour' in self._trainingDatas[i]):
-                colour_ = self._trainingDatas[i]['colour']
-            self._reward, = self._reward_ax.plot(x_range_, mean, 
-                                                 linewidth=3.0, 
-                                                 c=colour_,
-                                                 label=self._trainingDatas[i]['name'])
-            print("Line colour: ", self._reward.get_color())
-            self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
-                                                                          np.array(mean) - std, 
-                                                                          np.array(mean) + std,
-                                                                          facecolor=self._reward.get_color(),
-                                                                          alpha=0.25)
-            
-            mean_value = np.mean(np.reshape(self._trainingDatas[i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
-            std_value = np.mean(np.reshape(self._trainingDatas[i]['data']["std_discount_error"][:new_length], new_shape), axis=1)
-            self._value, = self._value_ax.plot(x_range_, mean_value, 
-                                                 linewidth=3.0, 
-                                                 c=colour_,
-                                                 alpha=0.75,
-                                                 label=self._trainingDatas[i]['name'])
-            print("Line colour: ", self._reward.get_color())
-            self._discounted_error_std = self._value_ax.fill_between(x_range_, 
-                                                                          np.array(mean_value) - std_value, 
-                                                                          np.array(mean_value) + std_value,
-                                                                          facecolor=self._reward.get_color(),
-                                                                          alpha=0.25)
+                        x_range = range(len(self._otherDatas[j][i]['data']["mean_eval"]))
+                    new_shape = (int(len(x_range)/self._bin_size), int(self._bin_size))
+                    new_length = new_shape[0]*new_shape[1]
+                    x_range_ = range(int(new_shape[0]))
+                    # self._length = self._length/self._bin_size
+                    mean = np.mean(np.reshape(self._otherDatas[j][i]['data']["mean_eval"][:new_length], new_shape), axis=1)
+                    # std = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_eval"][:new_length], new_shape), axis=1)
+                    means_.append(mean)
+                
+                mean = np.mean(means_, axis=0)
+                std = np.std(means_, axis=0)
+                colour_ = cmap(j)
+                if ('colour' in self._otherDatas[j][i]):
+                    colour_ = self._otherDatas[j][i]['colour']
+                self._reward, = self._reward_ax.plot(x_range_, mean, 
+                                                     linewidth=3.0, 
+                                                     c=colour_,
+                                                     label=self._otherDatas[j][i]['name'])
+                print("Line colour: ", self._reward.get_color())
+                self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
+                                                                              np.array(mean) - std, 
+                                                                              np.array(mean) + std,
+                                                                              facecolor=self._reward.get_color(),
+                                                                              alpha=0.25)
+                
+                mean_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
+                std_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_discount_error"][:new_length], new_shape), axis=1)
+                self._value, = self._value_ax.plot(x_range_, mean_value, 
+                                                     linewidth=3.0, 
+                                                     c=colour_,
+                                                     alpha=0.75,
+                                                     label=self._otherDatas[j][i]['name'])
+                print("Line colour: ", self._reward.get_color())
+                self._discounted_error_std = self._value_ax.fill_between(x_range_, 
+                                                                              np.array(mean_value) - std_value, 
+                                                                              np.array(mean_value) + std_value,
+                                                                              facecolor=self._reward.get_color(),
+                                                                              alpha=0.25)
             means_ = []
-            for i in range(0, len(self._otherDatas), 1):
-                if ( (self._length) > 0 ): ## potentially reduce the range of data plotted
-                    if ( (self._length) < (len(self._otherDatas[i]['data']["mean_eval"]) ) ):
-                        x_range = range(0, self._length, 1)
-                    else:
-                        x_range = range(len(self._otherDatas[i]['data']["mean_eval"]))
-                else:
-                    x_range = range(len(self._otherDatas[i]['data']["mean_eval"]))
-                new_shape = (int(len(x_range)/self._bin_size), int(self._bin_size))
-                new_length = new_shape[0]*new_shape[1]
-                x_range_ = range(int(new_shape[0]))
-                # self._length = self._length/self._bin_size
-                mean = np.mean(np.reshape(self._otherDatas[i]['data']["mean_eval"][:new_length], new_shape), axis=1)
-                # std = np.mean(np.reshape(self._otherDatas[i]['data']["std_eval"][:new_length], new_shape), axis=1)
-                means_.append(mean)
             
-            mean = np.mean(means_, axis=0)
-            std = np.std(means_, axis=0)
-            colour_ = cmap(i)
-            if ('colour' in self._otherDatas[i]):
-                colour_ = self._otherDatas[i]['colour']
-            self._reward, = self._reward_ax.plot(x_range_, mean, 
-                                                 linewidth=3.0, 
-                                                 c=colour_,
-                                                 label=self._otherDatas[i]['name'])
-            print("Line colour: ", self._reward.get_color())
-            self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
-                                                                          np.array(mean) - std, 
-                                                                          np.array(mean) + std,
-                                                                          facecolor=self._reward.get_color(),
-                                                                          alpha=0.25)
-            
-            mean_value = np.mean(np.reshape(self._otherDatas[i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
-            std_value = np.mean(np.reshape(self._otherDatas[i]['data']["std_discount_error"][:new_length], new_shape), axis=1)
-            self._value, = self._value_ax.plot(x_range_, mean_value, 
-                                                 linewidth=3.0, 
-                                                 c=colour_,
-                                                 alpha=0.75,
-                                                 label=self._otherDatas[i]['name'])
-            print("Line colour: ", self._reward.get_color())
-            self._discounted_error_std = self._value_ax.fill_between(x_range_, 
-                                                                          np.array(mean_value) - std_value, 
-                                                                          np.array(mean_value) + std_value,
-                                                                          facecolor=self._reward.get_color(),
-                                                                          alpha=0.25)
             # self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
             leng = self._reward_ax.legend(loc="lower right",
                          ncol=1, shadow=True, fancybox=True)
