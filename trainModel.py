@@ -865,9 +865,11 @@ def trainModelParallel(settingsFileName, settings):
             if ( output_experience_queue != None):
                 for lw in learning_workers: # Should update these more often
                     output_experience_queue.put(None)
+                    output_experience_queue.put(None)
             print ("Joining learners"        )    
-            for lw in learning_workers: # Should update these more often
-                lw.join()
+            for i in range(len(learning_workers)): # Should update these more often
+                print ("Joining learning worker ", i , " of ", len(learning_workers))
+                learning_workers[i].join()
         
         
         print ("Finish sim")

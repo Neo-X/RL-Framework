@@ -382,6 +382,7 @@ class LearningWorker(Process):
             iterations_+=1
             # print ("Done one update:")
         print ("Learning Worker Complete:")
+        return
         
     def updateExperience(self, experience):
         self._agent._expBuff = experience

@@ -237,6 +237,7 @@ class SimWorker(Process):
                 # summary.print_(sum1)
         print ("Simulation Worker Complete: ")
         self._exp.finish()
+        return
         
     def simEpochParallel(self, actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, p=0.0, validation=False, epoch=0, evaluation=False):
         out = simEpoch(actor, exp, model, discount_factor, anchors=anchors, action_space_continuous=action_space_continuous, settings=settings, 
