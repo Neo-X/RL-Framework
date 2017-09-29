@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "PPO",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere_MBAE_FULL_10D",
+"data_folder": "Nav_Sphere_MBAE_FULL_10D_SMALLER_MBAE",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -160,7 +160,7 @@
     "comment__": "Whether or not to draw/render the simulation",
 "shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
-"action_learning_rate": 0.20,
+"action_learning_rate": 0.10,
     "comment__": "During model-based action exploration, Probability of a random action being generated from MBAE,",
 "model_based_action_omega": 0.25,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
@@ -258,5 +258,5 @@
 	"comment__": "Multiply the MBAE action by a sample from a uniform distribution, to allow the action to vary in magnitude",
 "randomize_MBAE_action_length": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
-"load_saved_fd_model": false
+"load_saved_fd_model": true
 }

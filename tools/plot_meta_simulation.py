@@ -48,6 +48,13 @@ if __name__ == "__main__":
     settingsFiles = ['settings/particleSim/A_CACLA_10D.json', 
                      'settings/particleSim/A_CACLA_MBAE_10D.json', 
                      'settings/particleSim/A_CACLA_SMBAE_10D.json']
+	"""
+    settingsFiles = ['settings/particleSim/PPO_10D.json', 
+                     'settings/particleSim/PPO_MBAE_10D.json', 
+                     'settings/particleSim/PPO_SMBAE_10D.json',
+		     'settings/particleSim/PPO_Dropout_SMBAE_10D.json']
+
+	"""
     for settingsFile_ in settingsFiles:
     
         settingsFile_ = open(settingsFile_, 'r')
