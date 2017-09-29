@@ -381,6 +381,8 @@ class LearningWorker(Process):
                 step_=0
             iterations_+=1
             # print ("Done one update:")
+        self._output_message_queue.close()
+        self._output_message_queue.cancel_join_thread()
         print ("Learning Worker Complete:")
         return
         

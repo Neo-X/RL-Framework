@@ -866,7 +866,19 @@ def trainModelParallel(settingsFileName, settings):
                 for lw in learning_workers: # Should update these more often
                     output_experience_queue.put(None)
                     output_experience_queue.put(None)
-            print ("Joining learners"        )    
+                output_experience_queue.close()
+            print ("Joining learners"        )  
+            """
+            for m_q in sim_work_queues:  
+                print(masterAgent_message_queue.get(False))
+                # print(masterAgent_message_queue.get(False))
+            while (not masterAgent_message_queue.empty()):
+                ## Don't block
+                try:
+                    data = masterAgent_message_queue.get(False)
+                except Exception as inst:
+                    print ("training: In model parameter message queue empty: ", masterAgent_message_queue.qsize())
+            """
             for i in range(len(learning_workers)): # Should update these more often
                 print ("Joining learning worker ", i , " of ", len(learning_workers))
                 learning_workers[i].join()
