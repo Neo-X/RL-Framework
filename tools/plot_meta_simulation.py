@@ -9,6 +9,11 @@ from PolicyTrainVisualize import PolicyTrainVisualize
 import os
 import re
 
+"""
+    plot_meta_simulation.py <settings_file_name> <path_to_data>
+    Example:
+"""
+
 def getDataFolderNames(prefixPath, folderPrefix, settings):
     path = prefixPath
     folder_ = folderPrefix
@@ -29,8 +34,13 @@ if __name__ == "__main__":
         settings = json.load(settingsFile)
         settingsFile.close()
         rlv = PolicyTrainVisualize("Training Curves", settings=settings)
-        length = int(sys.argv[2])
-        rlv.setLength(length)
+        path = sys.argv[2]
+        # length = int(sys.argv[2])
+        # rlv.setLength(length)
+    else:
+        print ("Please specify arguments properly")
+        print ("python plot_meta_simulation.py <settings_file_name> <path_to_data>")
+        sys.exit()
     
     
     otherDatas = []
@@ -38,7 +48,6 @@ if __name__ == "__main__":
     settingsFiles = ['settings/particleSim/A_CACLA_10D.json', 
                      'settings/particleSim/A_CACLA_MBAE_10D.json', 
                      'settings/particleSim/A_CACLA_SMBAE_10D.json']
-    path = "/home/gberseth/backup/Particle_Sim/A_CACLA/"
     for settingsFile_ in settingsFiles:
     
         settingsFile_ = open(settingsFile_, 'r')
@@ -68,8 +77,6 @@ if __name__ == "__main__":
             # print "Training data: " + str(trainingData)
             file.close()
         
-    if (len(sys.argv) == 3):
-        length = int(sys.argv[2])
     
     """
     trainData["mean_reward"]=[]
@@ -80,10 +87,6 @@ if __name__ == "__main__":
     trainData["std_discount_error"]=[]
     
     """
-    rlv = PolicyTrainVisualize("Training Curves", settings=settings)
-    if (len(sys.argv) == 3):
-        length = int(sys.argv[2])
-        rlv.setLength(length)
     rlv.updateRewards(trainingDatas, otherDatas)
     rlv.init()
     rlv.saveVisual("MBAE_Training_curves")
