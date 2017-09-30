@@ -216,5 +216,9 @@
 	"comment__": "How many gradient steps model based action exploration should take",
 "num_mbae_steps": 1,
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
-"fix_actor_batch_size": false
+"fix_actor_batch_size": false,
+	"comment__": "Use generalized advantage estimation",
+"use_GAE": true,
+	"comment__": "generalized advantage estimation lambda in [0,1]",
+"GAE_lambda": 0.95,
 }
