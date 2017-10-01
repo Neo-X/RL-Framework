@@ -29,37 +29,10 @@ class DeepNNDropoutCritic(ModelInterface):
         # create a small convolutional neural network
         input = lasagne.layers.InputLayer((None, self._state_length), self._State)
         self._stateInputVar = input.input_var
+        inputAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
+        self._actionInputVar = inputAction.input_var
         # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        """
-        network = lasagne.layers.DenseLayer(
-                network, num_units=256,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        """
-        network = lasagne.layers.DenseLayer(
-                input, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
-        network = lasagne.layers.DenseLayer(
-                network, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=32,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=16,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-    
-        self._critic = lasagne.layers.DenseLayer(
-                network, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
-        # self._b_o = init_b_weights((n_out,))
         # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         # networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         """
@@ -94,6 +67,39 @@ class DeepNNDropoutCritic(ModelInterface):
             self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
         
         
+        if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
+            input = lasagne.layers.ConcatLayer([input, inputAction])
+        
+        """
+        network = lasagne.layers.DenseLayer(
+                network, num_units=256,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        """
+        network = lasagne.layers.DenseLayer(
+                input, num_units=128,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=32,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=16,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+    
+        self._critic = lasagne.layers.DenseLayer(
+                network, num_units=1,
+                nonlinearity=lasagne.nonlinearities.linear)
+        # self._b_o = init_b_weights((n_out,))
           # print "Initial W " + str(self._w_o.get_value()) 
         
         self._states_shared = theano.shared(
