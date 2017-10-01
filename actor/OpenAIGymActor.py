@@ -12,6 +12,11 @@ class OpenAIGymActor(ActorInterface):
         self._target_vel = self._settings["target_velocity"]
         # self._target_vel = self._settings["target_velocity"]
         self._end_of_episode=False
+        self._param_mask = [    False,        True,        True,        False,        False,    
+        True,        True,        True,        True,        True,        True,        True,    
+        True,        True,        True,        True,        True,        True,        True,    
+        False,        True,        True,        True,        True,        True,        True,    
+        False,        True,        True,        True,        True,        True,        True]
         
     
     # @profile(precision=5)
