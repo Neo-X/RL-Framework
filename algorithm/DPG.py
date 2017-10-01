@@ -217,7 +217,7 @@ class DPG(AlgorithmInterface):
         
         self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         
-    def getGrads(self, states, actions, alreadyNormed=False):
+    def getGrads(self, states, actions=None, alreadyNormed=False):
         """
             The states should be normalized
         """
@@ -226,6 +226,8 @@ class DPG(AlgorithmInterface):
             states = norm_state(states, self._state_bounds)
         states = np.array(states, dtype=theano.config.floatX)
         self._model.setStates(states)
+        if ( actions is None ):
+            actions = self.predict_batch(states)
         self._model.setActions(actions)
         return self._get_grad()
     
