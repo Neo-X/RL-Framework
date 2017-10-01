@@ -43,7 +43,7 @@ class ForwardDynamicsDenseNetworkDropout(ModelInterface):
         network = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
 
         network = lasagne.layers.DenseLayer(
-                network, num_units=256,
+                input, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
@@ -67,7 +67,7 @@ class ForwardDynamicsDenseNetworkDropout(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
                 
-        # networkAct = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
+        networkAct = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=256,
                 nonlinearity=elu_mine)
@@ -87,7 +87,7 @@ class ForwardDynamicsDenseNetworkDropout(ModelInterface):
                 networkAct, num_units=128,
                 nonlinearity=elu_mine)
         networkAct = weight_norm(networkAct)
-        # networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         layersAct.append(networkAct)
         networkAct = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
     
