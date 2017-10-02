@@ -605,15 +605,15 @@ class MBPG(AlgorithmInterface):
         # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
         # print("Actions std:  ", np.std((actions), axis=0) )
         print("Policy std: ", np.mean(self._q_action_std(), axis=0))
-        print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
-        print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
+        print("Mean Next State Grad grad: ", np.mean(np.fabs(next_state_grads), axis=0), " std ", np.std(next_state_grads, axis=0))
+        print("Mean action grad size: ", np.mean(np.fabs(action_grads), axis=0), " std ", np.std(action_grads, axis=0))
         
         ## Set data for gradient
         self._model.setStates(states)
         self._modelTarget.setStates(states)
         ## Why the -1.0??
         ## Because the SGD method is always performing MINIMIZATION!!
-        self._action_grad_shared.set_value(-1.0*action_grads)
+        self._action_grad_shared.set_value(-100.0*action_grads)
         self._trainActionGRAD()
         return 0
     
