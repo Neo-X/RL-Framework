@@ -32,7 +32,7 @@ def getDataFolderNames(prefixPath, folderPrefix, settings):
     for filename in os.listdir(path):
         print ("Testing path: ", filename)
         print ("Testing patern: ", folder_ + "\d+")
-        if re.match(folder_ + "\d+", filename):
+        if re.match(folder_[-1:] + "\d+", filename):
             folderNames.append(prefixPath + filename + name_suffix)
             print ("Folder Name: ", prefixPath + filename + name_suffix)
     return folderNames
