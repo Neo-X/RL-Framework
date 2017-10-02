@@ -92,10 +92,11 @@ if __name__ == "__main__":
     
     
     for j in range(len(otherDatas)):
-        for i in range(len(trainingDatas)):
+        for i in range(len(otherDatas[j])):
             datafile = otherDatas[j][i]['fileName']
             file = open(datafile)
             otherDatas[j][i]['data'] = json.load(file)
+            # print ("otherDatas[j][i]['data']: ", otherDatas[j][i]['data'])
             # print "Training data: " + str(trainingData)
             file.close()
         
