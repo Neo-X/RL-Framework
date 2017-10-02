@@ -28,18 +28,18 @@ def getDataFolderNames(prefixPath, folderPrefix, settings):
 if __name__ == "__main__":
     
     settings = None
-    if (len(sys.argv) == 3):
-        settingsFileName = sys.argv[1]
+    if (len(sys.argv) > 2 ):
+        settingsFileName = sys.argv[2]
         settingsFile = open(settingsFileName, 'r')
         settings = json.load(settingsFile)
         settingsFile.close()
         rlv = PolicyTrainVisualize("Training Curves", settings=settings)
-        path = sys.argv[2]
+        path = sys.argv[1]
         # length = int(sys.argv[2])
         # rlv.setLength(length)
     else:
         print ("Please specify arguments properly")
-        print ("python plot_meta_simulation.py <settings_file_name> <path_to_data>")
+        print ("python plot_meta_simulation.py <path_to_data> <settings_file_name> <settings_file_name> ...")
         sys.exit()
     
     
@@ -56,6 +56,7 @@ if __name__ == "__main__":
 		     'settings/particleSim/PPO_Dropout_SMBAE_10D.json']
 
     """
+    settingsFile = sys.argv[2:]
     for settingsFile_ in settingsFiles:
     
         settingsFile_ = open(settingsFile_, 'r')
