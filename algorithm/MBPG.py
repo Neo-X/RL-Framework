@@ -613,7 +613,7 @@ class MBPG(AlgorithmInterface):
         self._modelTarget.setStates(states)
         ## Why the -1.0??
         ## Because the SGD method is always performing MINIMIZATION!!
-        self._action_grad_shared.set_value(-100.0*action_grads)
+        self._action_grad_shared.set_value(-1.0*action_grads)
         self._trainActionGRAD()
         return 0
     
