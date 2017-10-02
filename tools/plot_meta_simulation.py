@@ -29,7 +29,7 @@ def getDataFolderNames(prefixPath, folderPrefix, settings):
     ## For the case where I put a slash at the end of the path name...
     path = path + folder_[:-1]
     print ("New path: ", path)
-    for filename in os.listdir(path + folder_[:-1]):
+    for filename in os.listdir(path):
         if re.match(folder_ + "\d+", filename):
             folderNames.append(prefixPath + filename + name_suffix)
             print ("Folder Name: ", prefixPath + filename + name_suffix)
