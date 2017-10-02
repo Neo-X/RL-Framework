@@ -32,7 +32,7 @@ for i_episode in range(20):
         # print("Reward: ", reward)
         rewards.append(reward)
         states.append(observation)
-        if (t > (time_limit-1)) and done:
+        if (t >= (time_limit-1)) and done:
             print("Episode finished after {} timesteps".format(t+1))
             print("mean reward: ", np.mean(rewards))
             print("std reward: ", np.std(rewards))
