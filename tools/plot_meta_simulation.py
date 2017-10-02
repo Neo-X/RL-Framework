@@ -31,10 +31,10 @@ def getDataFolderNames(prefixPath, folderPrefix, settings):
     print ("New path: ", path)
     for filename in os.listdir(path):
         print ("Testing path: ", filename)
-        print ("Testing patern: ", folder_ + "\d+")
+        print ("Testing patern: ", folder_[-1:] + "\d+")
         if re.match(folder_[-1:] + "\d+", filename):
-            folderNames.append(prefixPath + filename + name_suffix)
-            print ("Folder Name: ", prefixPath + filename + name_suffix)
+            folderNames.append(path + filename + name_suffix)
+            print ("Folder Name: ", path + filename + name_suffix)
     return folderNames
         
 if __name__ == "__main__":
