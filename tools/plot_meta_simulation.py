@@ -56,7 +56,7 @@ if __name__ == "__main__":
 		     'settings/particleSim/PPO_Dropout_SMBAE_10D.json']
 
     """
-    settingsFile = sys.argv[2:]
+    settingsFiles = sys.argv[2:]
     for settingsFile_ in settingsFiles:
     
         settingsFile_ = open(settingsFile_, 'r')
