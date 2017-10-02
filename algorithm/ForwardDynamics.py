@@ -243,6 +243,7 @@ class ForwardDynamics(AlgorithmInterface):
             # print ("self._reward_bounds: ", self._reward_bounds)
             # print( "Rewards, predicted_reward, difference: ", np.concatenate((rewards, self._predict_reward(), rewards - self._predict_reward()), axis=1))
             lossReward = self._train_reward()
+            print ("Loss Reward: ", lossReward)
         # This undoes the Actor parameter updates as a result of the Critic update.
         # print (diff_)
         return loss
@@ -279,7 +280,8 @@ class ForwardDynamics(AlgorithmInterface):
         self._model.setStates(state)
         self._model.setActions(action)
         predicted_reward = self._predict_reward()[0]
-        reward_ = scale_state(predicted_reward, self._reward_bounds)
+        reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # reward_ = scale_state(predicted_reward, self._reward_bounds)
         # print ("reward, predicted reward: ", reward_, predicted_reward)
         return reward_
     

@@ -40,34 +40,37 @@ class ForwardDynamicsDenseNetworkDropout(ModelInterface):
         self._actionInputVar = actionInput.input_var
         input = lasagne.layers.ConcatLayer([stateInput, actionInput])
         
-        network = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
+        # network = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
 
         network = lasagne.layers.DenseLayer(
                 input, num_units=256,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=elu_mine)
+        network = weight_norm(network)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        layersAct = [network]
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=elu_mine)
+        network = weight_norm(network)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        layersAct.append(network)
+        network = lasagne.layers.ConcatLayer([layersAct[1], layersAct[0]])
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=elu_mine)
+        network = weight_norm(network)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        layersAct.append(network)
+        network = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
         ## This can be used to model the reward function
         self._reward_net = lasagne.layers.DenseLayer(
                 network, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
                 
-        networkAct = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
+        # networkAct = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=256,
                 nonlinearity=elu_mine)
