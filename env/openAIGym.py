@@ -21,9 +21,10 @@ print( "State Spance low: ", env.observation_space.low)
 
 rewards = []
 states = []
+time_limit=128
 for i_episode in range(20):
     observation = env.reset()
-    for t in range(100):
+    for t in range(time_limit):
         env.render()
         # print(observation)
         action = env.action_space.sample()
@@ -31,7 +32,7 @@ for i_episode in range(20):
         # print("Reward: ", reward)
         rewards.append(reward)
         states.append(observation)
-        if done:
+        if (t > (time_limit-1)) and done:
             print("Episode finished after {} timesteps".format(t+1))
             print("mean reward: ", np.mean(rewards))
             print("std reward: ", np.std(rewards))
