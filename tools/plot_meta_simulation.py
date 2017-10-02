@@ -31,6 +31,7 @@ def getDataFolderNames(prefixPath, folderPrefix, settings):
     print ("New path: ", path)
     for filename in os.listdir(path):
         print ("Testing path: ", filename)
+        print ("Testing patern: ", folder_ + "\d+")
         if re.match(folder_ + "\d+", filename):
             folderNames.append(prefixPath + filename + name_suffix)
             print ("Folder Name: ", prefixPath + filename + name_suffix)
