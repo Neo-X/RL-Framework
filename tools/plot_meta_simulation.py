@@ -69,6 +69,7 @@ if __name__ == "__main__":
 
     """
     settingsFiles = sys.argv[2:]
+    print("settingsFiles: ", settingsFiles)
     for settingsFile_ in settingsFiles:
         print ("Loading settings file: ", settingsFile_)
         settingsFile_ = open(settingsFile_, 'r')
