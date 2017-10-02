@@ -19,6 +19,9 @@ def getDataFolderNames(prefixPath, folderPrefix, settings):
     folder_ = folderPrefix
     name_suffix = "/"+settings["model_type"]+"/"+"trainingData_" + str(settings['agent_name']) + ".json"
     folderNames = []
+    print ("path: ", path)
+    print ("folder_: ", folder_)
+    print ("name_suffix: ", name_suffix)
     for filename in os.listdir(path):
         if re.match(folder_ + "\d+", filename):
             folderNames.append(prefixPath + filename + name_suffix)
@@ -58,7 +61,7 @@ if __name__ == "__main__":
     """
     settingsFiles = sys.argv[2:]
     for settingsFile_ in settingsFiles:
-    
+        print ("Loading settings file: ", settingsFile_)
         settingsFile_ = open(settingsFile_, 'r')
         settings = json.load(settingsFile_)
         settingsFile_.close()
