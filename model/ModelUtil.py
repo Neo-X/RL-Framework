@@ -526,6 +526,11 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         
         # print ("Next_state: ", next_state_.shape, " values ", next_state_)
     final_value = model.q_value(next_state_)
+    if ( model.getSettings()['train_reward_predictor']):
+        reward = forwardDynamicsModel.predict_reward(state, [action])
+        final_value = reward + (model.getSettings()['discount_factor'] * final_value)
+
+    
         # print ("Final Estimated Value: ", final_value)
         
         # repeat
