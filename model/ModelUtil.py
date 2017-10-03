@@ -399,7 +399,7 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
     final_reward = forwardDynamicsModel.predict_reward(state, action)
         
         # repeat
-    if (model.getSettings()["print_level"]== 'debug'):
+    if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
         print ("New action: ", action, " action diff: ", (action - init_action), " reward change: ", 
            (final_reward - init_reward))
     action = clampAction(action, model._action_bounds)
@@ -436,12 +436,12 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
     for i in range(num_updates):
         ## find next state with dynamics model
         next_state = np.reshape(forwardDynamicsModel.predict(state, [action]), (1, model.getStateSize()))
-        if (model.getSettings()["print_level"]== 'debug'):
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print(" MBAE mean: ", next_state)
         if ('use_stochastic_forward_dynamics' in model.getSettings() and 
             (model.getSettings()['use_stochastic_forward_dynamics'])):
             std = forwardDynamicsModel.predict_std(state, [action])
-            if (model.getSettings()["print_level"]== 'debug'):
+            if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
                 print ("SMBAE std: ", std)
             if ('num_stochastic_forward_dynamics_samples' in model.getSettings()):
                 next_states = []
@@ -458,7 +458,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         ## normalize
         forwardDynamicsModel.setGradTarget(next_state_grads)
         # next_state_grads = (next_state_grads/(np.sqrt((next_state_grads*next_state_grads).sum()))) * (learning_rate)
-        # if (model.getSettings()["print_level"]== 'debug'):
+        # if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug'])::
         #    print ("Next State Grad: ", next_state_grads)
         # next_state_grads = rescale_action(next_state_grads, model.getStateBounds())
         # next_state_grads = np.sum(next_state_grads, axis=1)
@@ -482,14 +482,14 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
                                                          np.reshape(next_state, (1, model.getStateSize())), 
                                                          v_grad=np.reshape(next_state_grads, (1, model.getStateSize())))
         """
-        if (model.getSettings()["print_level"]== 'debug'):
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print("Fd network parameters: ", forwardDynamicsModel.getNetworkParameters()[0])
             print ("Full fd grads: ", dynamics_grads)
         """
         dynamics_grads = dynamics_grads[0]
         # print ("action_grad1: ", action_grads)
         """
-        if (model.getSettings()["print_level"]== 'debug'):
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print ("fd dynamics_grads: ", dynamics_grads)
         """
         if ( model.getSettings()['train_reward_predictor']):
@@ -497,12 +497,12 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
                                                         np.reshape(action, (1, model.getActionSize())))[0]
             ## Need to shrink this grad down to the same scale as the value function                                        
             dynamics_grads =  (reward_grad * (1.0 - model.getSettings()['discount_factor'])) + (dynamics_grads *  model.getSettings()['discount_factor'])
-            if (model.getSettings()["print_level"]== 'debug'):
+            if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
                 print("Reward_Grad Raw: ", reward_grad)
         ## Grab the part of the grads that is the action
         # action_grads = dynamics_grads[:, state_length:] * learning_rate
         action_grads = dynamics_grads 
-        if (model.getSettings()["print_level"]== 'debug'):
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print( "Raw action grad: ", action_grads)
         ## Normalize action length
         action_grads = (action_grads/(np.sqrt((action_grads*action_grads).sum()))) * (learning_rate)
@@ -512,7 +512,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
             
         ## Scale action by action bounds
         action_grads = rescale_action(action_grads, model.getActionBounds())
-        if (model.getSettings()["print_level"]== 'debug'):
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print ("Applied action: ", action_grads)
             print ("Action magnitude: ", np.sqrt((action_grads*action_grads).sum()))
         # action_grads = action_grads * learning_rate
@@ -537,7 +537,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         
         # repeat
     value_diff = final_value - init_value
-    # if (model.getSettings()["print_level"]== 'debug'):
+    # if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug'])::
     #    print ("New action: ", action, " action diff: ", (action - init_action), " value change: ", 
     #           (value_diff))
     #    print ("dynamics_grads: ", dynamics_grads)

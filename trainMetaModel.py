@@ -4,19 +4,34 @@ from trainModel import trainModelParallel
 import sys
 import json
 import copy
+from multiprocess import Pool
 
 def trainMetaModel(settingsFileName, samples=10, settings=None):
+    
     
     if (settings is None):
         file = open(settingsFileName)
         settings = json.load(file)
         print ("Settings: " + str(json.dumps(settings)))
         file.close()
+    
     data_name = settings['data_folder']
+    sim_settings=[]
+    sim_settingFileNames=[]
+    sim_data = []
     for i in range(samples):
         settings['data_folder'] = data_name + "_" + str(i)
-        settings['random_seed'] = int(settings['random_seed']) + ((int(settings['num_available_threads']) + 1) * i) 
-        trainModelParallel(settingsFileName, copy.deepcopy(settings))
+        settings['random_seed'] = int(settings['random_seed']) + ((int(settings['num_available_threads']) + 1) * i)
+        sim_settings.append(copy.deepcopy(settings))
+        sim_settingFileNames.append(settingsFileName)
+        sim_data.append((settingsFileName,copy.deepcopy(settings)))
+        
+    p = Pool(2)
+    result = p.map_async(trainModelParallel, sim_data)
+    print (result.get())
+    # trainModelParallel(settingsFileName, copy.deepcopy(settings))
+        
+    
 
 if (__name__ == "__main__"):
     """
@@ -24,6 +39,7 @@ if (__name__ == "__main__"):
         Example:
         python trainMetaModel.py settings/navGame/PPO_5D.json 10
     """
+    
     
     if (len(sys.argv) == 1):
         print("Please incluse sim settings file")

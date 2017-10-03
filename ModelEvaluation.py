@@ -114,7 +114,8 @@ class SimWorker(Process):
                 if episodeData == None:
                     break
                 elif ( episodeData['type'] == "Update_Policy" ):
-                    print ("Message: ", message)
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print ("Message: ", message)
                     data = episodeData['data']
                     # print ("New model parameters: ", data[2][1][0])
                     self._model.getPolicy().setNetworkParameters(data[2])
@@ -124,8 +125,9 @@ class SimWorker(Process):
                     if p < 0.1:
                         p = 0.1
                     self._p = p
-                    print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
-                    print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+                        print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
                 elif episodeData['type'] == "eval":
                     eval=True
                     episodeData = episodeData['data']
@@ -219,7 +221,8 @@ class SimWorker(Process):
                     if (data != None):
                         message = data[0]## Check if any messages in the queue
                         if message == "Update_Policy":
-                            print ("Message: ", message)
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print ("Message: ", message)
                             # print ("New model parameters: ", data[2][1][0])
                             self._model.getPolicy().setNetworkParameters(data[2])
                             if (self._settings['train_forward_dynamics']):
@@ -228,8 +231,9 @@ class SimWorker(Process):
                             if p < 0.1:
                                 p = 0.1
                             self._p = p
-                            print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
-                            print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+                                print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
                     
                 # print ("Actions: " + str(actions))
                 # all_objects = muppy.get_objects()
@@ -1003,8 +1007,9 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out
         (states_, actions_, result_states_, rewards_, falls_, G_t_, advantage, exp_actions_) = tuples
-        print ("Shape other states_: ", np.array(states_).shape)
-        print ("Shape other action_: ", np.array(actions_).shape)
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+            print ("Shape other states_: ", np.array(states_).shape)
+            print ("Shape other action_: ", np.array(actions_).shape)
         # print ("States: ", states_)
         states.extend(states_)
         actions.extend(actions_)
@@ -1017,7 +1022,8 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         i=i+len(states_)
         episode_ += 1
         episode_ = episode_ % settings["epochs"]
-        print("Number of Experience samples so far: ", i)
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+            print("Number of Experience samples so far: ", i)
         # print ("States: ", states)
         # print ("Actions: ", actions)
         # print ("Rewards: ", rewards)

@@ -35,8 +35,11 @@ _sim_work_queues = []
 
 # python -m memory_profiler example.py
 # @profile(precision=5)
-def trainModelParallel(settingsFileName, settings):
-        
+# def trainModelParallel(settingsFileName, settings):
+def trainModelParallel(inputData):
+        # (sys.argv[1], settings)
+        settingsFileName = inputData[0]
+        settings = inputData[1]
     # pr = cProfile.Profile()
     # pr.enable()
     # try:
@@ -521,10 +524,11 @@ def trainModelParallel(settingsFileName, settings):
             for epoch in range(epochs):
                 if (settings['on_policy']):
                     
-                    print ("masterAgent State Bounds: ", masterAgent.getPolicy().getStateBounds())
-                    masterAgent.getExperience()
-                    if (settings['train_forward_dynamics']):
-                        print ("masterAgent FD State Bounds: ", masterAgent.getForwardDynamics().getStateBounds())
+                    # if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                        # print ("masterAgent State Bounds: ", masterAgent.getPolicy().getStateBounds())
+                        # masterAgent.getExperience()
+                        # if (settings['train_forward_dynamics']):
+                            # print ("masterAgent FD State Bounds: ", masterAgent.getForwardDynamics().getStateBounds())
                         
                     out = simModelParrallel( sw_message_queues=sim_work_queues,
                                                                model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['num_on_policy_rollouts'])
@@ -561,7 +565,7 @@ def trainModelParallel(settingsFileName, settings):
                 # print ("Current Tuple: " + str(learningNamespace.experience.current()))
                 if masterAgent.getExperience().samples() > batch_size:
                     states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
-                    print ("Batch size: " + str(batch_size))
+                    # print ("Batch size: " + str(batch_size))
                     error = masterAgent.bellman_error(states, actions, rewards, result_states, falls)
                     bellman_errors.append(error)
                     if (settings['debug_critic']):
@@ -606,8 +610,8 @@ def trainModelParallel(settingsFileName, settings):
                         print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
                     # discounted_values.append(discounted_sum)
                     
-
-                print ("Master agent experience size: " + str(masterAgent.getExperience().samples()))
+                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                    print ("Master agent experience size: " + str(masterAgent.getExperience().samples()))
                 # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
                 
                 if (not settings['on_policy']):
@@ -638,7 +642,8 @@ def trainModelParallel(settingsFileName, settings):
             
                 # this->_actor->iterate();
             ## This will let me know which part of learning is going slower training updates or simulation
-            print ("sim queue size: ", input_anchor_queue.qsize() )
+            if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                print ("sim queue size: ", input_anchor_queue.qsize() )
             if ( output_experience_queue != None):
                 print ("exp tuple queue size: ", output_experience_queue.qsize())
             
@@ -1004,7 +1009,7 @@ if (__name__ == "__main__"):
         print ("Settings: " + str(json.dumps(settings, indent=4)))
         file.close()
         
-        trainModelParallel(sys.argv[1], settings)
+        trainModelParallel((sys.argv[1], settings))
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)

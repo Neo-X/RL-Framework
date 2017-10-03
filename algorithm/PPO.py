@@ -470,7 +470,8 @@ class PPO(AlgorithmInterface):
                                              givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         
     def updateTargetModel(self):
-        print ("Updating target Model")
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Updating target Model")
         """
             Target model updates
         """
@@ -517,7 +518,8 @@ class PPO(AlgorithmInterface):
             # print ("Actions: ", actions)
             loss, _ = self._train()
             # loss, _ = self._trainCollective
-            print("Value function loss: ", loss)
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print("Value function loss: ", loss)
             return loss
             
         return 0
@@ -555,28 +557,29 @@ class PPO(AlgorithmInterface):
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print("Advantage, model: ", np.mean(self._get_advantage()), " std: ", np.std(self._get_advantage()))
-        print("values: ", np.mean(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))),
-               " std: ", np.std(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))) )
-        print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
-        # print("Targets: ", np.mean(self._get_target()), " std: ", np.std(self._get_target()))
-        # print("Falls: ", np.mean(falls), " std: ", np.std(falls))
-        # print("values, falls: ", np.concatenate((scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor'])), falls), axis=1))
-        print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
-        print("Actions mean:     ", np.mean(actions, axis=0))
-        # print("Policy mean: ", np.mean(self._q_action(), axis=0))
-        # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-        print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
-        # print("Actions std:  ", np.std((actions), axis=0) )
-        # print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
-        # print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
-        print("Actor loss: ", np.mean(self._get_action_diff()))
-        print("Actor entropy: ", np.mean(self._get_actor_entropy()))
-        self._get_actor_entropy
-        # print("States mean:     ", np.mean(states, axis=0))
-        # print("States std:     ", np.std(states, axis=0))
-        # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
-        # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
-        ## Sometimes really HUGE losses appear, ocasionally
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("values: ", np.mean(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))),
+                   " std: ", np.std(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))) )
+            print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
+            # print("Targets: ", np.mean(self._get_target()), " std: ", np.std(self._get_target()))
+            # print("Falls: ", np.mean(falls), " std: ", np.std(falls))
+            # print("values, falls: ", np.concatenate((scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor'])), falls), axis=1))
+            print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
+            print("Actions mean:     ", np.mean(actions, axis=0))
+            # print("Policy mean: ", np.mean(self._q_action(), axis=0))
+            # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
+            print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
+            # print("Actions std:  ", np.std((actions), axis=0) )
+            # print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
+            # print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
+            print("Actor loss: ", np.mean(self._get_action_diff()))
+            print("Actor entropy: ", np.mean(self._get_actor_entropy()))
+            self._get_actor_entropy
+            # print("States mean:     ", np.mean(states, axis=0))
+            # print("States std:     ", np.std(states, axis=0))
+            # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
+            # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
+            ## Sometimes really HUGE losses appear, ocasionally
         lossActor = np.abs(np.mean(self._get_action_diff()))
         if (lossActor < 1000): 
             if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'])):
@@ -585,8 +588,8 @@ class PPO(AlgorithmInterface):
                 lossActor, _ = self._trainCollective()
         else:
             print ("**********************Did not train actor this time: expected loss to high, ", lossActor)
-    
-        print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
         if (not np.isfinite(np.mean(self._get_log_prob(), axis=0))):
             np.mean(self._get_log_prob(), axis=0)
             print("Policy mean: ", np.mean(self._q_action(), axis=0))
@@ -600,7 +603,8 @@ class PPO(AlgorithmInterface):
             ## Set network parameters back to previous values
             all_paramsActA = lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork())
             lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), all_paramsActA)
-        print("Policy log prob target after: ", np.mean(self._get_log_prob_target(), axis=0))
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("Policy log prob target after: ", np.mean(self._get_log_prob_target(), axis=0))
         # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
         # print( " Actor loss: ", lossActor)
         # self._advantage_shared.set_value(diff_)
@@ -630,7 +634,8 @@ class PPO(AlgorithmInterface):
         """
         loss = self._get_critic_loss()
         # lossActor = self._get_action_diff()
-        print( "Policy loss: ", lossActor, " value function loss: ", loss)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print( "Policy loss: ", lossActor, " value function loss: ", loss)
         
         
         # print ("Diff")

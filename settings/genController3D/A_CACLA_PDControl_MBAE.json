@@ -218,6 +218,12 @@
 "use_previous_value_regularization": false,
 	"comment__": "Controls the level of information that is printed to the terminal",
 "print_level": "train",
+	"comment__": "print level descriptions",
+"print_levels": {
+		"debug": 1,
+		"train": 0,
+		"hyper_train": -1
+		},
 	"comment__": "The type of function to apply over the controller target values [gaussian|abs]",
 "reward_smoother": "gaussian",
 	"comment__": "Weights for different components of the reward function",
