@@ -495,7 +495,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         if ( model.getSettings()['train_reward_predictor']):
             reward_grad = forwardDynamicsModel.getRewardGrads(np.reshape(state, (1, model.getStateSize())),
                                                         np.reshape(action, (1, model.getActionSize())))[0]
-            dynamics_grads = dynamics_grads + (reward_grad * (1.0 - model.getSettings()['discount_factor']))
+            dynamics_grads =  (reward_grad * (1.0 - model.getSettings()['discount_factor'])) + (dynamics_grads *  model.getSettings()['discount_factor'])
             if (model.getSettings()["print_level"]== 'debug'):
                 print("Reward_Grad Raw: ", reward_grad)
         ## Grab the part of the grads that is the action
