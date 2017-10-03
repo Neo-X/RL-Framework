@@ -49,14 +49,19 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         In order to find a more optimal configuration.
     """
     import os
-    num_sim_samples=2
     file = open(simsettingsFileName)
     settings = json.load(file)
     print ("Settings: " + str(json.dumps(settings, indent=4)))
     file.close()
-    samples = 5
-    param_of_interest = 'action_learning_rate'
-    range_ = [0.05, 1.0]
+    file = open(Hypersettings)
+    hyper_settings = json.load(file)
+    print ("Settings: " + str(json.dumps(settings, indent=4)))
+    file.close()
+    num_sim_samples = hyper_settings['meta_sim_samples']
+    
+    samples = hyper_settings['num_param_samples'] - 1
+    param_of_interest = hyper_settings['param_to_tune']
+    range_ = hyper_settings['param_bounds']
     data_name = settings['data_folder']
     sim_data = []
     for i in range(samples+1):
@@ -74,12 +79,12 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         out_file.write(json.dumps(settings, indent=4))
         # file.close()
         out_file.close()
-        sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), num_sim_samples))
+        sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads']))
         
     
     p = ProcessingPool(2)
     result = p.map(_trainMetaModel, sim_data)
-    print (result.get())
+    print (result)
     
 
 if (__name__ == "__main__"):
