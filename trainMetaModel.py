@@ -4,8 +4,18 @@ from trainModel import trainModelParallel
 import sys
 import json
 import copy
-from multiprocess import Pool
+from pathos.threading import ThreadPool
+from pathos.multiprocessing import ProcessingPool
+# from threading import ThreadPool
 
+def _trainMetaModel(input):
+    settingsFileName_ = input[0]
+    samples_ = input[1]
+    settings_ = input[2]
+    numThreads_ = input[3]
+    return trainMetaModel(settingsFileName_, samples=samples_, settings=settings_, numThreads=numThreads_)
+    
+    
 def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1):
     
     
@@ -26,8 +36,9 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1):
         sim_settingFileNames.append(settingsFileName)
         sim_data.append((settingsFileName,copy.deepcopy(settings)))
         
-    p = Pool(numThreads)
-    result = p.map_async(trainModelParallel, sim_data)
+    p = ThreadPool(numThreads)
+    # p = ProcessingPool(numThreads)
+    result = p.map(trainModelParallel, sim_data)
     print (result.get())
     # trainModelParallel(settingsFileName, copy.deepcopy(settings))
         
