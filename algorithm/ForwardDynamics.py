@@ -111,25 +111,25 @@ class ForwardDynamics(AlgorithmInterface):
             self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
                     self._model.getForwardDynamicsNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho, self._rms_epsilon)
             self._reward_updates_ = lasagne.updates.rmsprop(self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                    self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, self._rho, self._rms_epsilon)
+                    self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate * 0.2, self._rho, self._rms_epsilon)
         elif (self.getSettings()['optimizer'] == 'momentum'):
             print ("Optimizing Forward Dynamics with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.momentum(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getForwardDynamicsNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, momentum=self._rho)
             self._reward_updates_ = lasagne.updates.momentum(self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, momentum=self._rho)
+                self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate * 0.2, momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
             print ("Optimizing Forward Dynamics with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.adam(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getForwardDynamicsNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
             self._reward_updates_ = lasagne.updates.adam(self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
+                self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate * 0.2, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
         elif ( self.getSettings()['optimizer'] == 'adagrad'):
             print ("Optimizing Forward Dynamics with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.adagrad(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getForwardDynamicsNetwork(), lasagne.regularization.l2)), self._params, self._learning_rate, epsilon=self._rms_epsilon)
             self._reward_updates_ = lasagne.updates.adagrad(self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, epsilon=self._rms_epsilon)
+                self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate * 0.2, epsilon=self._rms_epsilon)
         else:
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
         self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
