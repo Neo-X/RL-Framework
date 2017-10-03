@@ -6,7 +6,7 @@ import json
 import copy
 from multiprocess import Pool
 
-def trainMetaModel(settingsFileName, samples=10, settings=None):
+def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1):
     
     
     if (settings is None):
@@ -26,7 +26,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None):
         sim_settingFileNames.append(settingsFileName)
         sim_data.append((settingsFileName,copy.deepcopy(settings)))
         
-    p = Pool(2)
+    p = Pool(numThreads)
     result = p.map_async(trainModelParallel, sim_data)
     print (result.get())
     # trainModelParallel(settingsFileName, copy.deepcopy(settings))

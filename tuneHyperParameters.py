@@ -13,7 +13,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         In order to find a more optimal configuration.
     """
     import os
-    
+    num_sim_samples=5
     file = open(simsettingsFileName)
     settings = json.load(file)
     print ("Settings: " + str(json.dumps(settings, indent=4)))
@@ -38,7 +38,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         # file.close()
         out_file.close()
         
-        trainMetaModel(simsettingsFileName, samples=5, settings=copy.deepcopy(settings))
+        trainMetaModel(simsettingsFileName, samples=num_sim_samples, settings=copy.deepcopy(settings), numThreads=num_sim_samples)
 
 if (__name__ == "__main__"):
     """
