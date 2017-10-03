@@ -51,7 +51,7 @@ class DeepNNAdaptiveDropout(ModelInterface):
                 nonlinearity=activation_type)
     
         networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=(10 * self._action_length),
+                networkAct, num_units=(5 * self._action_length),
                 nonlinearity=activation_type)
             
         self._actor = lasagne.layers.DenseLayer(

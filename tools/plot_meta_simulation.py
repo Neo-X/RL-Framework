@@ -22,19 +22,21 @@ def getDataFolderNames(prefixPath, folderPrefix, settings):
     print ("path: ", path)
     print ("folder_: ", folder_)
     print ("name_suffix: ", name_suffix)
-    for filename in os.listdir(path):
-        if re.match(folder_ + "\d+", filename):
-            folderNames.append(prefixPath + filename + name_suffix)
-            print ("Folder Name: ", prefixPath + filename + name_suffix)
+    if os.path.exists(path):
+        for filename in os.listdir(path):
+            if re.match(folder_ + "\d+", filename):
+                folderNames.append(prefixPath + filename + name_suffix)
+                print ("Folder Name: ", prefixPath + filename + name_suffix)
     ## For the case where I put a slash at the end of the path name...
     path = path + folder_[:-1]
     print ("New path: ", path)
-    for filename in os.listdir(path):
-        print ("Testing path: ", filename)
-        print ("Testing patern: ", folder_[-1:] + "\d+")
-        if re.match(folder_[-1:] + "\d+", filename):
-            folderNames.append(path + filename + name_suffix)
-            print ("Folder Name: ", path + filename + name_suffix)
+    if os.path.exists(path):
+        for filename in os.listdir(path):
+            print ("Testing path: ", filename)
+            print ("Testing patern: ", folder_[-1:] + "\d+")
+            if re.match(folder_[-1:] + "\d+", filename):
+                folderNames.append(path + filename + name_suffix)
+                print ("Folder Name: ", path + filename + name_suffix)
     return folderNames
         
 if __name__ == "__main__":
