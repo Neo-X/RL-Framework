@@ -18,7 +18,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
     settings = json.load(file)
     print ("Settings: " + str(json.dumps(settings, indent=4)))
     file.close()
-    samples = 2
+    samples = 5
     param_of_interest = 'action_learning_rate'
     range_ = [0.05, 1.0]
     data_name = settings['data_folder']
@@ -38,7 +38,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         # file.close()
         out_file.close()
         
-        trainMetaModel(simsettingsFileName, samples=2, settings=copy.deepcopy(settings))
+        trainMetaModel(simsettingsFileName, samples=5, settings=copy.deepcopy(settings))
 
 if (__name__ == "__main__"):
     """
