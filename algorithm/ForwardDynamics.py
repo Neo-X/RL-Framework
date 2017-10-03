@@ -78,13 +78,17 @@ class ForwardDynamics(AlgorithmInterface):
         
         ## Scale the reward value back to proper values.
         ## because rewards are noramlized then scaled by the discount factor to the value stay between -1,1.
-        self._reward_diff = (self._model.getRewardSymbolicVariable()* (1.0 / (1.0- self.getSettings()['discount_factor']))) - self._reward_drop
-        self._reward_loss = T.mean(T.pow(self._reward_diff, 2),axis=1)
-        self._reward_loss = T.mean(self._reward_loss)
+        self._reward_diff = (self._model.getRewardSymbolicVariable() * (1.0 / (1.0 - self.getSettings()['discount_factor']))) - self._reward_drop
+        self.__Reward = self._model.getRewardSymbolicVariable()
+        print ("self.__Reward", self.__Reward)
+        # self._reward_diff = (self._model.getRewardSymbolicVariable()) - self._reward_drop
+        self._reward_loss_ = T.mean(T.pow(self._reward_diff, 2),axis=1)
+        self._reward_loss = T.mean(self._reward_loss_)
         
         self._reward_diff_NoDrop = (self._model.getRewardSymbolicVariable()* (1.0 / (1.0- self.getSettings()['discount_factor']))) - self._reward
-        self._reward_loss_NoDrop = T.mean(T.pow(self._reward_diff_NoDrop, 2),axis=1)
-        self._reward_loss_NoDrop = T.mean(self._reward_loss_NoDrop)
+        # self._reward_diff_NoDrop = (self._model.getRewardSymbolicVariable()) - self._reward
+        self._reward_loss_NoDrop_ = T.mean(T.pow(self._reward_diff_NoDrop, 2),axis=1)
+        self._reward_loss_NoDrop = T.mean(self._reward_loss_NoDrop_)
         
         self._params = lasagne.layers.helper.get_all_params(self._model.getForwardDynamicsNetwork())
         self._reward_params = lasagne.layers.helper.get_all_params(self._model.getRewardNetwork())
@@ -150,6 +154,13 @@ class ForwardDynamics(AlgorithmInterface):
         
         self._bellman_error = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         self._reward_error = theano.function(inputs=[], outputs=self._reward_diff, allow_input_downcast=True, givens=self._reward_givens_)
+        self._reward_values = theano.function(inputs=[], outputs=self.__Reward, allow_input_downcast=True, givens={
+                                # self._model.getStateSymbolicVariable() : self._model.getStates(),
+                                # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
+                                # self._model.getActionSymbolicVariable(): self._model.getActions(),
+                                self._model.getRewardSymbolicVariable() : self._model.getRewards(),
+                            })
+        
         # self._diffs = theano.function(input=[State])
         self._get_grad_old = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._loss_NoDrop, [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_)
         self._get_grad = theano.function([], outputs=T.grad(cost=None, wrt=[self._model._actionInputVar] + self._params,
@@ -193,12 +204,12 @@ class ForwardDynamics(AlgorithmInterface):
         lasagne.layers.helper.set_all_param_values(self._model.getForwardDynamicsNetwork(), params[0])
         lasagne.layers.helper.set_all_param_values(self._model.getRewardNetwork(), params[1])
         
-    def setData(self, states, actions, result_states=[], rewards=[]):
+    def setData(self, states, actions, result_states=None, rewards=None):
         self._model.setStates(states)
-        if (result_states != []):
+        if not (result_states is None):
             self._model.setResultStates(result_states)
         self._model.setActions(actions)
-        if (rewards != []):
+        if not (rewards is None):
             self._model.setRewards(rewards)
             
     def setGradTarget(self, grad):
@@ -244,7 +255,7 @@ class ForwardDynamics(AlgorithmInterface):
         loss = self._train()
         if ( self.getSettings()['train_reward_predictor']):
             # print ("self._reward_bounds: ", self._reward_bounds)
-            # print( "Rewards, predicted_reward, difference: ", np.concatenate((rewards, self._predict_reward(), rewards - self._predict_reward()), axis=1))
+            # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
             lossReward = self._train_reward()
             print ("Loss Reward: ", lossReward)
         # This undoes the Actor parameter updates as a result of the Critic update.
@@ -284,6 +295,7 @@ class ForwardDynamics(AlgorithmInterface):
         self._model.setActions(action)
         predicted_reward = self._predict_reward()[0]
         reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_state(predicted_reward, self._reward_bounds)
         # print ("reward, predicted reward: ", reward_, predicted_reward)
         return reward_

@@ -482,15 +482,15 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # exp.visualizeNextState(state_[0], [0,0]) # visualize current state
                 exp.visualizeNextState(predicted_next_state, action)
                 
-                action = model.predict(state_)
+                action__ = model.predict(state_)
                 actions_ = []
                 dirs = []
                 deltas = np.linspace(-0.5,0.5,10)
                 for d in range(len(deltas)):
-                    action_ = np.zeros_like(action)
+                    action_ = np.zeros_like(action__)
                     for i in range(len(action_)):
-                        action_[i] = action[i]
-                    action_[0] = action[0] + deltas[d] 
+                        action_[i] = action__[i]
+                    action_[0] = action__[0] + deltas[d] 
                     if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
                         mbae_lr = p * settings["action_learning_rate"]
                     else:
@@ -509,7 +509,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # action_ = _getOptimalAction(model.getForwardDynamics(), model.getPolicy(), action, state_)
                 exp.getEnvironment().visualizeActions(actions_, dirs)
                 ## The perfect action?
-                exp.getEnvironment().visualizeAction(action)
+                exp.getEnvironment().visualizeAction(action__)
                 
             
             if (not settings["train_actor"]): # hack to use debug critic only
@@ -524,6 +524,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 pass
                 # action=[0.2]
             reward_ = actor.actContinuous(exp,action)
+            """
+            if ( settings['train_reward_predictor'] and (not bootstrapping)):
+                predicted_reward = model.getForwardDynamics().predict_reward(state_, [action])
+                print ("Actual Reward: ", reward_, " Predicted reward: ", predicted_reward)
+            """
             agent_not_fell = actor.hasNotFallen(exp)
             if (outside_bounds and settings['penalize_actions_outside_bounds']):
                 reward_ = reward_ + settings['reward_lower_bound'] # TODO: this penalty should really be a function of the distance the action was outside the bounds 
@@ -581,7 +586,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             value__ = 0
             if ( not bootstrapping ):
                 value__ = model.q_value(state_)
-            print ("Value: ", value__, " Action " + str(pa) + " Reward: " + str(reward_) ) 
+            print ("Value: ", value__, " Action " + str(pa) + " Reward: " + str(reward_) )
+            if ( settings['train_reward_predictor']):
+                predicted_reward = model.getForwardDynamics().predict_reward(state_, [action])
+                print ("Predicted reward: ", predicted_reward) 
             print ("Agent has fallen: ", not agent_not_fell )
             # print ("Python Reward: " + str(reward(state_, resultState)))
             
@@ -1414,7 +1422,7 @@ def modelEvaluation(settings_file_name, runLastModel=False):
     
 if __name__ == "__main__":
     """
-        If a third param is specified run in the last saved model not the best model.s
+        If a third param is specified run in the last saved model not the best model.
     """
     
     if ( len(sys.argv) == 3):

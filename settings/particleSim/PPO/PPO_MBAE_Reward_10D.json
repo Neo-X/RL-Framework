@@ -1,6 +1,6 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "model.DeepNNDropoutCritic.DeepNNDropoutCritic",
+"model_type": "model.DeepNNAdaptiveDropout.DeepNNAdaptiveDropout",
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO.PPO",
     "comment__": "Folder to store the training data in.",
@@ -34,7 +34,7 @@
     "comment__": "Whether or not to train a forward dynamics model as well",
 "train_forward_dynamics": true,
     "comment__": "Bounds used for scaling rewards for networks",
-"reward_bounds": [[-2.0],[2.0]],
+"reward_bounds": [[-3.0],[3.0]],
         "comment__": "Max length of the Experience memory",
 "expereince_length": 2000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
