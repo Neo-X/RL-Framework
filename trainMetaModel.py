@@ -36,8 +36,8 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1):
         sim_settingFileNames.append(settingsFileName)
         sim_data.append((settingsFileName,copy.deepcopy(settings)))
         
-    p = ThreadPool(numThreads)
-    # p = ProcessingPool(numThreads)
+    # p = ThreadPool(numThreads)
+    p = ProcessingPool(numThreads)
     result = p.map(trainModelParallel, sim_data)
     print (result)
     # trainModelParallel(settingsFileName, copy.deepcopy(settings))
