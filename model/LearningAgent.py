@@ -171,7 +171,8 @@ class LearningAgent(AgentInterface):
                             print ("States: " + str(states__) + " ResultsStates: " + str(result_states__) + " Rewards: " + str(rewards__) + " Actions: " + str(actions__))
                             print ("Training cost is Odd: ", cost)
                         """
-                        print("Performing Dyna Update, loss: ", cost)
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                            print("Performing Dyna Update, loss: ", cost)
                         # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
                 if ( 'use_MBPG' in self._settings and (self._settings['use_MBPG'])):
                     for i in range(self._settings['critic_updates_per_actor_update']):
