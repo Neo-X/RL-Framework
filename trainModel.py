@@ -707,10 +707,10 @@ def trainModelParallel(settingsFileName, settings):
                     trainData["std_eval"].append(std_eval)
                     if (settings['train_forward_dynamics']):
                         trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
-                        trainData["std_forward_dynamics_loss"].append(mean_dynamicsLosses)
+                        trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
                     if (settings['train_reward_predictor']):
                         trainData["mean_forward_dynamics_reward_loss"].append(mean_dynamicsRewardLosses)
-                        trainData["std_forward_dynamics_reward_loss"].append(mean_dynamicsRewardLosses)
+                        trainData["std_forward_dynamics_reward_loss"].append(std_dynamicsRewardLosses)
                     if settings['visualize_learning']:
                         rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
                         rlv.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))

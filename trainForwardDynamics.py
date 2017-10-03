@@ -89,6 +89,11 @@ def trainForwardDynamics(settingsFileName):
             nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(settings["model_type"]))
             nlv.setInteractive()
             nlv.init()
+    if (settings['train_reward_predictor']):
+        if settings['visualize_learning']:
+            rewardlv = NNVisualize(title=str("Reward Model") + " with " + str(settings["model_type"]), settings=settings)
+            rewardlv.setInteractive()
+            rewardlv.init()
     
     # experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True)
     """
@@ -108,6 +113,8 @@ def trainForwardDynamics(settingsFileName):
     trainData["std_discount_error"]=[]
     trainData["mean_forward_dynamics_loss"]=[]
     trainData["std_forward_dynamics_loss"]=[]
+    trainData["mean_forward_dynamics_reward_loss"]=[]
+    trainData["std_forward_dynamics_reward_loss"]=[]
     trainData["mean_eval"]=[]
     trainData["std_eval"]=[]
     # dynamicsLosses=[]
@@ -130,23 +137,42 @@ def trainForwardDynamics(settingsFileName):
             model.train(_states, _actions, _result_states, _rewards)
             dynamicsLoss = model._train()
         t1 = time.time()
-        dynamicsLoss_ = model.bellman_error(_states, _actions, _result_states, _rewards)
-        # dynamicsLoss_ = model.bellman_error((_states), (_actions), (_result_states))
-        dynamicsLoss = np.mean(np.fabs(dynamicsLoss_))
-        if (settings['train_forward_dynamics'] and ((round_ % settings['plotting_update_freq_num_rounds']) == 0)):
-            # dynamicsLosses.append(dynamicsLoss)
-            mean_dynamicsLosses = dynamicsLoss
-            std_dynamicsLosses = np.std((dynamicsLoss_))
-            if (settings['train_forward_dynamics']):
-                trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
-                trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
-            print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " ForwardPredictionLoss: " + str(dynamicsLoss) + " in " + str(t1-t0) + " seconds")
-            if (settings['visualize_learning']):
-                nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
-                nlv.redraw()
-                nlv.setInteractiveOff()
-                nlv.saveVisual(directory+"trainingGraphNN")
-                nlv.setInteractive()
+        if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
+            dynamicsLoss_ = model.bellman_error(_states, _actions, _result_states, _rewards)
+            # dynamicsLoss_ = model.bellman_error((_states), (_actions), (_result_states))
+            dynamicsLoss = np.mean(np.fabs(dynamicsLoss_))
+            if (settings['train_reward_predictor']):
+                dynamicsRewardLoss_ = model.reward_error(_states, _actions, _result_states, _rewards)
+                dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss_))
+                # dynamicsRewardLosses.append(dynamicsRewardLoss)
+                dynamicsRewardLosses = dynamicsRewardLoss
+            if (settings['train_forward_dynamics'] and ((round_ % settings['plotting_update_freq_num_rounds']) == 0)):
+                # dynamicsLosses.append(dynamicsLoss)
+                mean_dynamicsLosses = dynamicsLoss
+                std_dynamicsLosses = np.std((dynamicsLoss_))
+                if (settings['train_forward_dynamics']):
+                    trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
+                    trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
+                print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " ForwardPredictionLoss: " + str(dynamicsLoss) + " in " + str(t1-t0) + " seconds")
+                if (settings['visualize_learning']):
+                    nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
+                    nlv.redraw()
+                    nlv.setInteractiveOff()
+                    nlv.saveVisual(directory+"trainingGraphNN")
+                    nlv.setInteractive()
+            if (settings['train_reward_predictor']):
+                mean_dynamicsRewardLosses = np.mean(dynamicsRewardLoss)
+                std_dynamicsRewardLosses = np.std(dynamicsRewardLoss_)
+                dynamicsRewardLosses = []
+                trainData["mean_forward_dynamics_reward_loss"].append(mean_dynamicsRewardLosses)
+                trainData["std_forward_dynamics_reward_loss"].append(std_dynamicsRewardLosses)
+            if (settings['train_reward_predictor'] and settings['visualize_learning']):
+                rewardlv.updateLoss(np.array(trainData["mean_forward_dynamics_reward_loss"]), np.array(trainData["std_forward_dynamics_reward_loss"]))
+                rewardlv.redraw()
+                rewardlv.setInteractiveOff()
+                rewardlv.saveVisual(directory+"rewardTrainingGraph")
+                rewardlv.setInteractive()
+        
         if (round_ % settings['saving_update_freq_num_rounds']) == 0:
             if mean_dynamicsLosses < best_dynamicsLosses:
                 best_dynamicsLosses = mean_dynamicsLosses
@@ -155,6 +181,16 @@ def trainForwardDynamics(settingsFileName):
                 f = open(file_name_dynamics, 'wb')
                 dill.dump(model, f)
                 f.close()
+            
+            if settings['save_trainData']:
+                fp = open(directory+"FD_trainingData_" + str(settings['agent_name']) + ".json", 'w')
+                # print ("Train data: ", trainData)
+                ## because json does not serialize np.float32 
+                for key in trainData:
+                    trainData[key] = [float(i) for i in trainData[key]]
+                json.dump(trainData, fp)
+                fp.close()
+                # draw data
         # print "Error: " + str(error)
     
 
