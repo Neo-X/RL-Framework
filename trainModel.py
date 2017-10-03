@@ -74,12 +74,12 @@ def trainModelParallel(settingsFileName, settings):
             
             
         # copy settings file
-        file = open(settingsFileName, 'r')
+        # file = open(settingsFileName, 'r')
         out_file_name=directory+os.path.basename(settingsFileName)
         print ("Saving settings file with data: ", out_file_name)
         out_file = open(out_file_name, 'w')
-        out_file.write(file.read())
-        file.close()
+        out_file.write(json.dumps(settings, indent=4))
+        # file.close()
         out_file.close()
         ### Try and save algorithm and model files for reference
         if "." in settings['model_type']:
@@ -1001,7 +1001,7 @@ if (__name__ == "__main__"):
     elif (len(sys.argv) == 2):
         file = open(sys.argv[1])
         settings = json.load(file)
-        print ("Settings: " + str(json.dumps(settings)))
+        print ("Settings: " + str(json.dumps(settings, indent=4)))
         file.close()
         
         trainModelParallel(sys.argv[1], settings)

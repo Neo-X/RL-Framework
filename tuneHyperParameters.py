@@ -16,7 +16,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
     
     file = open(simsettingsFileName)
     settings = json.load(file)
-    print ("Settings: " + str(json.dumps(settings)))
+    print ("Settings: " + str(json.dumps(settings, indent=4)))
     file.close()
     samples = 2
     param_of_interest = 'action_learning_rate'
@@ -34,7 +34,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         
         print ("Saving settings file with data to: ", out_file_name)
         out_file = open(out_file_name, 'w')
-        out_file.write(json.dumps(settings))
+        out_file.write(json.dumps(settings, indent=4))
         # file.close()
         out_file.close()
         
