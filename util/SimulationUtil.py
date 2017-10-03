@@ -39,7 +39,10 @@ import gc
 from model.ModelUtil import scale_action
 
 def getDataDirectory(settings):
-    return settings["environment_type"]+"/"+settings["agent_name"]+"/"+settings["data_folder"]+"/"+settings["model_type"]+"/"
+    return getBaseDataDirectory(settings)+settings["model_type"]+"/"
+
+def getBaseDataDirectory(settings):
+    return settings["environment_type"]+"/"+settings["agent_name"]+"/"+settings["data_folder"]+"/"
 
 def getAgentName(settings):
     return 'pendulum_agent'

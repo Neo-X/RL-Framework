@@ -1,5 +1,5 @@
 
-import theano
+# import theano
 # from theano import tensor as T
 import numpy as np
 import random

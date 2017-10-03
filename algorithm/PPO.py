@@ -56,7 +56,7 @@ class PPO(AlgorithmInterface):
         
         self._kl_weight_shared = theano.shared(
             np.ones((1), dtype=self.getSettings()['float_type'])[0])
-        self._kl_weight_shared.set_value(self.getSettings()['previous_value_regularization_weight'])
+        self._kl_weight_shared.set_value(np.array(self.getSettings()['previous_value_regularization_weight'], dtype=np.dtype(self.getSettings()['float_type'])))
         
         """
         self._target_shared = theano.shared(

@@ -3,18 +3,20 @@
 from trainModel import trainModelParallel
 import sys
 import json
+import copy
 
-def trainMetaModel(settingsFileName, samples=10):
+def trainMetaModel(settingsFileName, samples=10, settings=None):
     
-    file = open(sys.argv[1])
-    settings = json.load(file)
-    print ("Settings: " + str(json.dumps(settings)))
-    file.close()
+    if (settings is None):
+        file = open(settingsFileName)
+        settings = json.load(file)
+        print ("Settings: " + str(json.dumps(settings)))
+        file.close()
     data_name = settings['data_folder']
     for i in range(samples):
         settings['data_folder'] = data_name + "_" + str(i)
         settings['random_seed'] = int(settings['random_seed']) + ((int(settings['num_available_threads']) + 1) * i) 
-        trainModelParallel(settingsFileName, settings)
+        trainModelParallel(settingsFileName, copy.deepcopy(settings))
 
 if (__name__ == "__main__"):
     """

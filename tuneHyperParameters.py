@@ -1,39 +1,66 @@
 
 
-from trainModel import trainModelParallel
+from trainMetaModel import trainMetaModel
 import sys
 import json
+import copy
 
-def trainMetaModel(settingsFileName, samples=10):
+from util.SimulationUtil import getDataDirectory, getBaseDataDirectory
+
+def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
+    """
+        For some set of parameters the functino will sample a number of them
+        In order to find a more optimal configuration.
+    """
+    import os
     
-    file = open(sys.argv[1])
+    file = open(simsettingsFileName)
     settings = json.load(file)
     print ("Settings: " + str(json.dumps(settings)))
     file.close()
+    samples = 2
+    param_of_interest = 'action_learning_rate'
+    range_ = [0.05, 1.0]
     data_name = settings['data_folder']
-    for i in range(samples):
-        settings['data_folder'] = data_name + "_" + str(i)
-        settings['random_seed'] = int(settings['random_seed']) + ((int(settings['num_available_threads']) + 1) * i) 
-        trainModelParallel(settingsFileName, settings)
+    for i in range(samples+1):
+        param_value = ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0]
+        settings['data_folder'] = data_name + "_" + str(param_value) + "/"
+        settings['action_learning_rate'] = param_value
+        directory= getBaseDataDirectory(settings)
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        # file = open(settingsFileName, 'r')
+        out_file_name=directory+os.path.basename(simsettingsFileName)
+        
+        print ("Saving settings file with data to: ", out_file_name)
+        out_file = open(out_file_name, 'w')
+        out_file.write(json.dumps(settings))
+        # file.close()
+        out_file.close()
+        
+        trainMetaModel(simsettingsFileName, samples=2, settings=copy.deepcopy(settings))
 
 if (__name__ == "__main__"):
     """
-        python trainMetaModel.py <sim_settings_file> <num_samples>
+        python tuneHyperParameters.py <sim_settings_file> <tuning_settings_file>
         Example:
-        python trainMetaModel.py settings/navGame/PPO_5D.json 10
+        python tuneHyperParameters.py settings/navGame/PPO_5D.json settings/navGame/PPO_5D_hyper.json 
     """
     
     if (len(sys.argv) == 1):
         print("Please incluse sim settings file")
-        print("python trainMetaModel.py <sim_settings_file> <num_samples>")
+        print("python tuneHyperParameters.py <sim_settings_file> <tuning_settings_file>")
         sys.exit()
     elif (len(sys.argv) == 2):
         print("Please incluse sim settings file")
-        print("python trainMetaModel.py <sim_settings_file> <num_samples>")
+        print("python tuneHyperParameters.py <sim_settings_file> <tuning_settings_file>")
         sys.exit()
     elif (len(sys.argv) == 3):
-        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]))
+        tuneHyperParameters(sys.argv[1], sys.argv[2])
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)
-        print("python trainMetaModel.py <sim_settings_file> <num_samples>")
+        print("python tuneHyperParameters.py <sim_settings_file> <tuning_settings_file>")
+        
+        
+        
