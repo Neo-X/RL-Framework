@@ -76,12 +76,13 @@ class ForwardDynamics(AlgorithmInterface):
             ## mean over batch
             self._loss_NoDrop = T.mean(self._loss_NoDrop)
         
-        
-        self._reward_diff = self._model.getRewardSymbolicVariable() - self._reward_drop
+        ## Scale the reward value back to proper values.
+        ## because rewards are noramlized then scaled by the discount factor to the value stay between -1,1.
+        self._reward_diff = (self._model.getRewardSymbolicVariable()* (1.0 / (1.0- self.getSettings()['discount_factor']))) - self._reward_drop
         self._reward_loss = T.mean(T.pow(self._reward_diff, 2),axis=1)
         self._reward_loss = T.mean(self._reward_loss)
         
-        self._reward_diff_NoDrop = self._model.getRewardSymbolicVariable() - self._reward
+        self._reward_diff_NoDrop = (self._model.getRewardSymbolicVariable()* (1.0 / (1.0- self.getSettings()['discount_factor']))) - self._reward
         self._reward_loss_NoDrop = T.mean(T.pow(self._reward_diff_NoDrop, 2),axis=1)
         self._reward_loss_NoDrop = T.mean(self._reward_loss_NoDrop)
         
@@ -192,9 +193,10 @@ class ForwardDynamics(AlgorithmInterface):
         lasagne.layers.helper.set_all_param_values(self._model.getForwardDynamicsNetwork(), params[0])
         lasagne.layers.helper.set_all_param_values(self._model.getRewardNetwork(), params[1])
         
-    def setData(self, states, actions, result_states, rewards=[]):
+    def setData(self, states, actions, result_states=[], rewards=[]):
         self._model.setStates(states)
-        self._model.setResultStates(result_states)
+        if (result_states != []):
+            self._model.setResultStates(result_states)
         self._model.setActions(actions)
         if (rewards != []):
             self._model.setRewards(rewards)
@@ -221,13 +223,14 @@ class ForwardDynamics(AlgorithmInterface):
         self.setData(states, actions, result_states)
         return self._get_grad_old()
     
-    def getRewardGrads(self, states, actions, rewards):
+    def getRewardGrads(self, states, actions, alreadyNormed=False):
         # states = np.array(states, dtype=self.getSettings()['float_type'])
         # actions = np.array(actions, dtype=self.getSettings()['float_type'])
-        states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
-        actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
-        rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
-        self.setData(states, actions, None, rewards)
+        if ( alreadyNormed is False ):
+            states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
+            actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
+            # rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
+        self.setData(states, actions)
         return self._get_grad_reward()
                 
     def train(self, states, actions, result_states, rewards):
@@ -280,7 +283,7 @@ class ForwardDynamics(AlgorithmInterface):
         self._model.setStates(state)
         self._model.setActions(action)
         predicted_reward = self._predict_reward()[0]
-        reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] # * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_state(predicted_reward, self._reward_bounds)
         # print ("reward, predicted reward: ", reward_, predicted_reward)
         return reward_
