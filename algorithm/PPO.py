@@ -192,7 +192,7 @@ class PPO(AlgorithmInterface):
         # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._NotFallen)) - self._q_func
         
         # self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
-        self._Advantage = self._advantage * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
+        self._Advantage = self._advantage # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
         # self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         # self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)

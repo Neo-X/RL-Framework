@@ -33,13 +33,13 @@ class TRPO(AlgorithmInterface):
         
         # create a small convolutional neural network
         
-        self._Fallen = T.bcol("Fallen")
+        # self._Fallen = T.bcol("Fallen")
         ## because float64 <= float32 * int32, need to use int16 or int8
-        self._Fallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int8'))
+        # self._Fallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int8'))
         
-        self._fallen_shared = theano.shared(
-            np.zeros((self._batch_size, 1), dtype='int8'),
-            broadcastable=(False, True))
+        # self._fallen_shared = theano.shared(
+        #     np.zeros((self._batch_size, 1), dtype='int8'),
+        #     broadcastable=(False, True))
         
         self._advantage = T.col("Advantage")
         self._advantage.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
@@ -95,7 +95,7 @@ class TRPO(AlgorithmInterface):
         self._q_funcAct_drop = self._q_valsActA_drop
         
         # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._Fallen
-        self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsTargetNextState )), self._Fallen)
+        self._target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState )
         self._diff = self._target - self._q_func
         self._diff_drop = self._target - self._q_func_drop 
         # loss = 0.5 * self._diff ** 2 
@@ -109,7 +109,7 @@ class TRPO(AlgorithmInterface):
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._Fallen: self._fallen_shared
+            # self._Fallen: self._fallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         }
         self._actGivens = {
@@ -154,7 +154,7 @@ class TRPO(AlgorithmInterface):
         
         ## advantage = Q(a,s) - V(s) = (r + gamma*V(s')) - V(s) 
         # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._Fallen)) - self._q_func
-        
+        self._Advantage = self._advantage # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
         # self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
         self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
@@ -165,7 +165,7 @@ class TRPO(AlgorithmInterface):
         ## This does the sum already
         # self._actLoss_ =  ( (self._log_prob).dot( self._Advantage) )
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._advantage)
+        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
         
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob), self._Advantage)
         # self._actLoss_ = T.mean(self._log_prob) 
@@ -256,7 +256,7 @@ class TRPO(AlgorithmInterface):
             # self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._Fallen: self._fallen_shared
+            # self._Fallen: self._fallen_shared
             # self._model.getActionSymbolicVariable(): self._actions_shared,
         })
         self._get_critic_regularization = theano.function([], [self._critic_regularization])
@@ -272,7 +272,7 @@ class TRPO(AlgorithmInterface):
             self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
             self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
-            self._Fallen: self._fallen_shared
+            # self._Fallen: self._fallen_shared
         }) """
         
         self._get_action_diff = theano.function([], [self._actLoss_], givens={
@@ -347,7 +347,7 @@ class TRPO(AlgorithmInterface):
         self._modelTarget.setActions(actions)
         self._modelTarget.setRewards(rewards)
         # print ("Falls: ", fallen)
-        self._fallen_shared.set_value(fallen)
+        # self._fallen_shared.set_value(fallen)
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         ## Easy fix for computing actor loss
         diff = self._bellman_error2()
@@ -377,6 +377,14 @@ class TRPO(AlgorithmInterface):
     
     def trainActor(self, states, actions, rewards, result_states, falls, advantage):
         
+        if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
+            # self._advantage_shared.set_value(advantage)
+            ## Need to scale the advantage by the discount to help keep things normalized
+            advantage = advantage * (1.0-self._discount_factor)
+            # pass # use given advantage parameter
+        else:
+            advantage = self._get_advantage()
+            
         self.setData(states, actions, rewards, result_states, falls)
         # advantage = self._get_diff()[0]
         self._advantage_shared.set_value(advantage)
@@ -393,19 +401,20 @@ class TRPO(AlgorithmInterface):
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print("Advantage: ", np.mean(self._get_advantage()))
-        print("Advantage: ", np.mean(advantage))
-        print("Advantage, reward: ", np.concatenate((advantage, rewards), axis=1))
-        print("Actions:     ", np.mean(actions, axis=0))
-        print("Policy mean: ", np.mean(self._q_action(), axis=0))
-        # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-        print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
-        print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
-        print("Policy log prob before: ", np.mean(self._get_log_prob(), axis=0))
-        # print( "Actor loss: ", np.mean(self._get_action_diff()))
-        # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
-        ## Sometimes really HUGE losses appear, ocasionally
-        # if (np.abs(np.mean(self._get_action_diff())) < 10): 
-        #     lossActor, _ = self._trainActor()
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("Advantage: ", np.mean(advantage))
+            # print("Advantage, reward: ", np.concatenate((advantage, rewards), axis=1))
+            print("Actions:     ", np.mean(actions, axis=0))
+            print("Policy mean: ", np.mean(self._q_action(), axis=0))
+            # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
+            print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
+            print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
+            print("Policy log prob before: ", np.mean(self._get_log_prob(), axis=0))
+            # print( "Actor loss: ", np.mean(self._get_action_diff()))
+            # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
+            ## Sometimes really HUGE losses appear, ocasionally
+            # if (np.abs(np.mean(self._get_action_diff())) < 10): 
+            #     lossActor, _ = self._trainActor()
         
         self.getSettings()['cg_damping'] = 1e-3
         """
