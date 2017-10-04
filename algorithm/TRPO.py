@@ -328,7 +328,8 @@ class TRPO(AlgorithmInterface):
         self.compute_fisher_vector_product = theano.function([self.flat_tangent] + self.args_fvp, self.fvp)
         
     def updateTargetModel(self):
-        print ("Updating target Model")
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Updating target Model")
         """
             Target model updates
         """
@@ -371,7 +372,8 @@ class TRPO(AlgorithmInterface):
         # print ("Rewards, Falls, Targets:", [rewards, falls, self._get_target()])
         # print ("Actions: ", actions)
         loss, _ = self._train()
-        print(" Critic loss: ", loss)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print(" Critic loss: ", loss)
         
         return loss
     
@@ -438,7 +440,8 @@ class TRPO(AlgorithmInterface):
             stepdir = cg(fisher_vector_product, -g)
             shs = .5*stepdir.dot(fisher_vector_product(stepdir))
             lm = np.sqrt(shs / np.float32(self.getSettings()['kl_divergence_threshold']))
-            print "lagrange multiplier:", lm, "gnorm:", np.linalg.norm(g)
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("lagrange multiplier:", lm, "gnorm:", np.linalg.norm(g))
             fullstep = stepdir / lm
             neggdotstepdir = -g.dot(stepdir)
             def loss(th):
@@ -447,13 +450,14 @@ class TRPO(AlgorithmInterface):
                 lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params_tmp)
                 return self.compute_losses(*args)[0] #pylint: disable=W0640
             success, theta = linesearch(loss, thprev, fullstep, neggdotstepdir/lm)
-            print "success", success
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("success", success)
             params_tmp = setFromFlat(all_paramsActA, theta)
             lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params_tmp)
             # self.set_params_flat(theta)
         losses_after = self.compute_losses(*args)
-        
-        print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
 
         out = OrderedDict()
         for (lname, lbefore, lafter) in zipsame(self.loss_names, losses_before, losses_after):
@@ -461,8 +465,9 @@ class TRPO(AlgorithmInterface):
             out[lname+"_after"] = lafter
         return out
     
-        print( "Losses before: ", self.loss_names, ", ", losses_before)
-        print( "Losses after: ", self.loss_names, ", ", losses_after)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):    
+            print( "Losses before: ", self.loss_names, ", ", losses_before)
+            print( "Losses after: ", self.loss_names, ", ", losses_after)
         
         # print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
         # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
@@ -490,16 +495,17 @@ def linesearch(f, x, fullstep, expected_improve_rate, max_backtracks=10, accept_
     Backtracking linesearch, where expected_improve_rate is the slope dy/dx at the initial point
     """
     fval = f(x)
-    print "fval before", fval
+    
+    # print "fval before", fval
     for (_n_backtracks, stepfrac) in enumerate(.5**np.arange(max_backtracks)):
         xnew = x + stepfrac*fullstep
         newfval = f(xnew)
         actual_improve = fval - newfval
         expected_improve = expected_improve_rate*stepfrac
         ratio = actual_improve/expected_improve
-        print "a/e/r", actual_improve, expected_improve, ratio
+        # print "a/e/r", actual_improve, expected_improve, ratio
         if ratio > accept_ratio and actual_improve > 0:
-            print "fval after", newfval
+            # print "fval after", newfval
             return True, xnew
     return False, x
 
