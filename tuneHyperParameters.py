@@ -83,7 +83,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         
     
     # p = ProcessingPool(2)
-    p = ThreadPool(2)
+    p = ThreadPool(hyper_settings['tuning_threads'])
     result = p.map(_trainMetaModel, sim_data)
     print (result)
     
