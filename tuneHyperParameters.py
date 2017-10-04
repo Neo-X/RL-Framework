@@ -67,7 +67,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
     for i in range(samples+1):
         param_value = ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0]
         settings['data_folder'] = data_name + "_" + param_of_interest + "_"+ str(param_value) + "/"
-        settings['action_learning_rate'] = param_value
+        settings[param_of_interest] = param_value
         directory= getBaseDataDirectory(settings)
         if not os.path.exists(directory):
             os.makedirs(directory)
