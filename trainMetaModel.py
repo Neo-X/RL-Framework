@@ -25,6 +25,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1):
         print ("Settings: " + str(json.dumps(settings)))
         file.close()
     
+    print ( "Running ", samples, " simulation(s) over ", numThreads, " Thread(s)")
     data_name = settings['data_folder']
     sim_settings=[]
     sim_settingFileNames=[]
@@ -46,7 +47,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1):
 
 if (__name__ == "__main__"):
     """
-        python trainMetaModel.py <sim_settings_file> <num_samples>
+        python trainMetaModel.py <sim_settings_file> <num_samples> <num_threads>
         Example:
         python trainMetaModel.py settings/navGame/PPO_5D.json 10
     """
@@ -62,6 +63,9 @@ if (__name__ == "__main__"):
         sys.exit()
     elif (len(sys.argv) == 3):
         trainMetaModel(sys.argv[1], samples=int(sys.argv[2]))
+    elif (len(sys.argv) == 4):
+        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]), numThreads=int(sys.argv[3]))    
+    
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)
