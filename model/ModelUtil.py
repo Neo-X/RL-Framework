@@ -410,7 +410,10 @@ def getOptimalAction(forwardDynamicsModel, model, state, action_lr, use_random_a
     if ( use_random_action ):
         action_bounds = np.array(model.getSettings()["action_bounds"], dtype=float)
         action = randomExporation(model.getSettings()["exploration_rate"], action, action_bounds)
-    return getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr)
+    new_action = getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr)
+    diff__ = new_action[0] - action
+    print ("MBAE action change: ", (np.sqrt((diff__*diff__).sum())), " values: ",  new_action[0] - action)
+    return new_action
 
 def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
     """

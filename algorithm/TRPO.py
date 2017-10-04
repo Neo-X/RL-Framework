@@ -382,8 +382,8 @@ class TRPO(AlgorithmInterface):
         if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
             # self._advantage_shared.set_value(advantage)
             ## Need to scale the advantage by the discount to help keep things normalized
-            advantage = advantage * (1.0-self._discount_factor)
-            # pass # use given advantage parameter
+            # advantage = advantage * (1.0-self._discount_factor)
+            pass # use given advantage parameter
         else:
             advantage = self._get_advantage()
             
@@ -435,7 +435,7 @@ class TRPO(AlgorithmInterface):
         g = self.compute_policy_gradient(*args)
         losses_before = self.compute_losses(*args)
         if np.allclose(g, 0):
-            print "got zero gradient. not updating"
+            print ("got zero gradient. not updating")
         else:
             stepdir = cg(fisher_vector_product, -g)
             shs = .5*stepdir.dot(fisher_vector_product(stepdir))
@@ -520,12 +520,13 @@ def cg(f_Ax, b, cg_iters=10, callback=None, verbose=False, residual_tol=1e-10):
 
     fmtstr =  "%10i %10.3g %10.3g"
     titlestr =  "%10s %10s %10s"
-    if verbose: print titlestr % ("iter", "residual norm", "soln norm")
+    if verbose: 
+        print (titlestr % ("iter", "residual norm", "soln norm"))
 
-    for i in xrange(cg_iters):
+    for i in range(cg_iters):
         if callback is not None:
             callback(x)
-        if verbose: print fmtstr % (i, rdotr, np.linalg.norm(x))
+        if verbose: print (fmtstr % (i, rdotr, np.linalg.norm(x)))
         z = f_Ax(p)
         v = rdotr / p.dot(z)
         x += v*p
@@ -540,5 +541,6 @@ def cg(f_Ax, b, cg_iters=10, callback=None, verbose=False, residual_tol=1e-10):
         
     if callback is not None:
         callback(x)
-    if verbose: print fmtstr % (i+1, rdotr, np.linalg.norm(x)) # pylint: disable=W0631
+    if verbose: 
+        print (fmtstr % (i+1, rdotr, np.linalg.norm(x))) # pylint: disable=W0631
     return x

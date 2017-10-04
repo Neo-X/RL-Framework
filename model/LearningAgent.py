@@ -84,6 +84,7 @@ class LearningAgent(AgentInterface):
             # print ("Advantage:", _advantage)
             # print ("rewards:", _rewards)
             # print("Batch size: ", len(_states), len(_actions), len(_result_states), len(_rewards), len(_falls), len(_advantage))
+            num_samples_=0
             for (state__, action__, next_state__, reward__, fall__, advantage__) in zip(_states, _actions, _result_states, _rewards, _falls, _advantage):
                 if (checkValidData(state__, action__, next_state__, reward__)):
                     tmp_states.append(state__)
@@ -95,6 +96,7 @@ class LearningAgent(AgentInterface):
                     tmp_exp_action.append([0])## Doesn't really matter for on policy methods
                     tup = (state__, action__, next_state__, reward__, fall__, advantage__, [0])
                     self._expBuff.insertTuple(tup)
+                    num_samples_ = num_samples_ + 1
                 # else:
                     # print ("Tuple invalid:")
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):        
@@ -116,7 +118,7 @@ class LearningAgent(AgentInterface):
                 if (self._settings['critic_updates_per_actor_update'] > 1):
                     for i in range(self._settings['critic_updates_per_actor_update']):
                         # print ("Number of samples:", self._expBuff.samples())
-                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
+                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(self._settings["batch_size"], self._expBuff.samples()))
                         cost = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                         # cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         if not np.isfinite(cost) or (cost > 500) :

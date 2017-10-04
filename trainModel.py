@@ -505,11 +505,11 @@ def trainModelParallel(inputData):
         if (settings['on_policy']):
             sim_epochs_ = epochs
             # epochs = 1
-        for round_ in range(2,rounds+2):
+        for round_ in range(0,rounds):
             # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
             # p = (settings['initial_temperature'] / (math.log(round_))) 
             # p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds))
-            p = ((settings['initial_temperature']/math.log(round_))) 
+            p = ((settings['initial_temperature']/math.log(round_+2))) 
             # p = ((rounds - round_)/rounds) ** 2
             p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
             if ( settings['load_saved_model'] ):

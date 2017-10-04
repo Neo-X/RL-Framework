@@ -539,8 +539,8 @@ class PPO(AlgorithmInterface):
         if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
             # self._advantage_shared.set_value(advantage)
             ## Need to scale the advantage by the discount to help keep things normalized
-            advantage = advantage * (1.0-self._discount_factor)
-            # pass # use given advantage parameter
+            # advantage = advantage * (1.0-self._discount_factor)
+            pass # use given advantage parameter
         else:
             advantage = self._get_advantage()
         self._advantage_shared.set_value(advantage)
