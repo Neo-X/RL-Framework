@@ -49,6 +49,10 @@ class DeepNNTanH(ModelInterface):
                 network, num_units=16,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
+        network = lasagne.layers.DenseLayer(
+                network, num_units=8,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)

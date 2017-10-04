@@ -10,6 +10,7 @@ import random
 import math
 import sys
 import time
+from model.ModelUtil import clampAction
 
 
 def loadMap():
@@ -164,12 +165,18 @@ class ParticleGame(object):
         if(
            (
             # np.any(np.less(loc, self._state_bounds[0])) or np.any(np.greater(loc, self._state_bounds[1]))) or
-            np.any(np.less(loc, -8.0)) or np.any(np.greater(loc, 8.0))) or
-            self.collision(loc) or
-            self.fall(loc)):
-            # can't overlap an obstacle
-            return (self._state_bounds[0][0] - self._state_bounds[1][0])/8.0
+            np.any(np.less(loc, -8.0)) or np.any(np.greater(loc, 8.0)))
+            ):
+            ## Don't let agent move off board
+            # print ("Agent trying to walk off board", loc)
             
+            loc = clampAction(loc, [[-8.0] * self._state_length, [8.0] * self._state_length])
+            # print ("clamped pos", loc)
+            # can't overlap an obstacle
+            return -((self._state_bounds[1][0] - self._state_bounds[0][0])/8.0) + self.reward(loc)
+    
+        if (self.collision(loc)):
+            return -((self._state_bounds[1][0] - self._state_bounds[0][0])/8.0) + self.reward(loc)
         # if self._map[loc[0]-1][loc[1]-1] == 1:
             # Can't walk onto obstacles
         #     return self.reward() +-5
@@ -196,16 +203,19 @@ class ParticleGame(object):
         for obs in self._obstacles:
             a=(loc - obs)
             d = np.sqrt((a*a).sum(axis=0))
-            if d < 0.3:
+            if d < 0.1:
                 # print ("Found collision")
                 return True
         return False
     
-    def reward(self):
+    def reward(self, tmp_loc=None):
         # More like a cost function for distance away from target
         # print ("Agent Loc: " + str(self._agent))
         # print ("Target Loc: " + str(self._target))
-        a=(self._agent - self._target)
+        if (tmp_loc is None):
+            tmp_loc = self._agent
+            
+        a=(tmp_loc - self._target)
         d = np.sqrt((a*a).sum(axis=0))
         # print ("Dist Vector: " + str(a) + " Distance: " + str(d))
         reward = 0

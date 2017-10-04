@@ -466,8 +466,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                             else: 
                                 use_rand_act = False
                             (action, value_diff) = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_, action_lr=mbae_lr, use_random_action=use_rand_act)
+                            print("MBAE action:")
                     # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
-            else: # exploit policy
+            else: ## exploit policy
                 exp_action = int(0) 
                 # return pa1
                 ## For sampling method to skip sampling during evaluation.
@@ -573,6 +574,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
         # print ("discounted_sum: ", discounted_sum)
         resultState_ = exp.getState()
+        
+        
+        print("Advantage of action: ", (reward_ + (discount_factor * model.q_value(resultState_)[0])) - model.q_value(state_)[0])
         
         # print ( "Sim state info:", state_)
         # print ( "Sim result state info:", resultState_)
