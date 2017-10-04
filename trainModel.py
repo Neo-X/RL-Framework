@@ -555,6 +555,9 @@ def trainModelParallel(inputData):
                     for m_q in sim_work_queues:
                         ## block on full queue
                         m_q.put(message)
+                    
+                    # states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
+                    # print ("Batch size: " + str(batch_size))
                 else:
                     episodeData = {}
                     episodeData['data'] = epoch
@@ -563,10 +566,12 @@ def trainModelParallel(inputData):
                 
                 # pr.enable()
                 # print ("Current Tuple: " + str(learningNamespace.experience.current()))
-                if masterAgent.getExperience().samples() > batch_size:
+                # print ("masterAgent.getExperience().samples() >= batch_size: ", masterAgent.getExperience().samples(), " >= ", batch_size)
+                if masterAgent.getExperience().samples() >= batch_size:
                     states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
                     error = masterAgent.bellman_error(states, actions, rewards, result_states, falls)
+                    # print ("Error: ", error)
                     bellman_errors.append(error)
                     if (settings['debug_critic']):
                         loss__ = masterAgent.getPolicy()._get_critic_loss() # uses previous call batch data
@@ -700,11 +705,13 @@ def trainModelParallel(inputData):
                     trainData["mean_reward"].append(mean_reward)
                     # print ("Mean Rewards: " + str(mean_rewards))
                     trainData["std_reward"].append(std_reward)
-                    bellman_errors
+                    # bellman_errors
                     # trainData["mean_bellman_error"].append(mean_bellman_error)
                     # trainData["std_bellman_error"].append(std_bellman_error)
+                    # trainData["mean_bellman_error"].append(np.mean(np.fabs(mean_bellman_error)))
                     trainData["mean_bellman_error"].append(np.mean(np.fabs(bellman_errors)))
                     trainData["std_bellman_error"].append(np.std(bellman_errors))
+                    # trainData["std_bellman_error"].append(std_bellman_error)
                     bellman_errors=[]
                     trainData["mean_discount_error"].append(mean_discount_error)
                     trainData["std_discount_error"].append(std_discount_error)

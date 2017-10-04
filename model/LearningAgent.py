@@ -134,10 +134,13 @@ class LearningAgent(AgentInterface):
                         print ("Training cost is Odd: ", cost)
                 # self._expBuff.clear()
             if (self._settings['train_actor']):
-                for i in range(self._settings['critic_updates_per_actor_update']):
-                    if ( 'use_multiple_policy_updates' in self._settings and ( self._settings['use_multiple_policy_updates']) ):
+                if ( 'use_multiple_policy_updates' in self._settings and ( self._settings['use_multiple_policy_updates']) ):
+                    for i in range(self._settings['critic_updates_per_actor_update']):
+                    
                         _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
                         # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
+                        cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
+                else:
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
                     """
                     if not np.isfinite(cost_) or (cost_ > 500) :
@@ -339,6 +342,8 @@ class LearningWorker(Process):
             #if len(tmp) == 6:
                 # self._input_queue.put(tmp)
             if tmp == "clear":
+                if (self._agent._settings["print_levels"][self._agent._settings["print_level"]] >= self._agent._settings["print_levels"]['train']):
+                    print ("Clearing exp memory")
                 self._agent._expBuff.clear()
                 continue
             #    continue # don't learn from eval tuples

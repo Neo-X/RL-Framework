@@ -691,12 +691,12 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         # print (states, actions, rewards, result_states, discounted_sum, value)
         # print ("Evaluated Actions: ", actions)
         # print ("Evaluated Rewards: ", rewards)
-        if model.getExperience().samples() > settings['batch_size']:
+        if model.getExperience().samples() >= settings['batch_size']:
             _states, _actions, _result_states, _rewards, falls, _G_ts, exp_actions = model.getExperience().get_batch(settings['batch_size'])
             error = model.bellman_error(_states, _actions, _rewards, _result_states, falls)
         else :
             error = [[0]]
-            print ("Error: not enough samples in experience to check bellman error" )
+            print ("Error: not enough samples in experience to check bellman error: ", model.getExperience().samples(), " needed " , settings['batch_size'] )
         # states, actions, result_states, rewards = experience.get_batch(64)
         # error = model.bellman_error(states, actions, rewards, result_states)
         # print (states, actions, rewards, result_states, discounted_sum, value)
@@ -770,12 +770,13 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             # print (states, actions, rewards, result_states, discounted_sum, value)
             # print ("Evaluated Actions: ", actions)
             # print ("Evaluated Rewards: ", rewards)
-            if model.getExperience().samples() > settings['batch_size']:
+            if model.getExperience().samples() >= settings['batch_size']:
                 _states, _actions, _result_states, _rewards, falls, _G_ts, exp_actions = model.getExperience().get_batch(settings['batch_size'])
                 error = model.bellman_error(_states, _actions, _rewards, _result_states, falls)
+                # print("Episode bellman error: ", error)
             else :
                 error = [[0]]
-                print ("Error: not enough samples in experience to check bellman error" )
+                print ("Error: not enough samples in experience to check bellman error: ", model.getExperience().samples(), " needed " , settings['batch_size'])
             # states, actions, result_states, rewards = experience.get_batch(64)
             # error = model.bellman_error(states, actions, rewards, result_states)
             # print (states, actions, rewards, result_states, discounted_sum, value)
