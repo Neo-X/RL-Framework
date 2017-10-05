@@ -9,7 +9,7 @@ from algorithm.AlgorithmInterface import AlgorithmInterface
 
 
 # For debugging
-theano.config.mode='FAST_COMPILE'
+# theano.config.mode='FAST_COMPILE'
 from collections import OrderedDict
 
 class DPG(AlgorithmInterface):
@@ -232,7 +232,8 @@ class DPG(AlgorithmInterface):
         return self._get_grad()
     
     def updateTargetModel(self):
-        # print ("Updating target Model")
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Updating target Model")
         """
             Target model updates
         """
@@ -336,9 +337,9 @@ class DPG(AlgorithmInterface):
         
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions):
         self.setData(states, actions, rewards, result_states, falls)
-        
-        print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
-        print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
+            print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
         # loss = self._trainActor()
@@ -353,14 +354,15 @@ class DPG(AlgorithmInterface):
         # action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
         # print ( "action_grads shape: ", action_grads.shape)
         
-        # print("Actions mean:     ", np.mean(actions, axis=0))
-        print("Policy mean: ", np.mean(self._q_action(), axis=0))
-        # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-        # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
-        # print("Actions std:  ", np.std((actions), axis=0) )
-        # print("Policy std: ", np.mean(self._q_action_std(), axis=0))
-        # print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
-        print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            # print("Actions mean:     ", np.mean(actions, axis=0))
+            print("Policy mean: ", np.mean(self._q_action(), axis=0))
+            # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
+            # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
+            # print("Actions std:  ", np.std((actions), axis=0) )
+            # print("Policy std: ", np.mean(self._q_action_std(), axis=0))
+            # print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
+            print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
         
         ## Set data for gradient
         self._model.setStates(states)
@@ -420,7 +422,7 @@ class DPG(AlgorithmInterface):
         self._model.setActions(action)
         self._modelTarget.setActions(action)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
             # return (self._q_val())[0] 
         else:
             return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
