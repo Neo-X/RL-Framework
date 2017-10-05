@@ -372,8 +372,6 @@ class TRPO(AlgorithmInterface):
         # print ("Rewards, Falls, Targets:", [rewards, falls, self._get_target()])
         # print ("Actions: ", actions)
         loss, _ = self._train()
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print(" Critic loss: ", loss)
         
         return loss
     

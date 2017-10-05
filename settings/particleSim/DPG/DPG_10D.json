@@ -1,6 +1,6 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "model.DeepNNAdaptive.DeepNNAdaptive",
+"model_type": "model.DeepNNTanH.DeepNNTanH",
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.DPG.DPG",
     "comment__": "Folder to store the training data in.",

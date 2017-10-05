@@ -409,8 +409,6 @@ class A_CACLA(AlgorithmInterface):
         # print("Critic loss before: ", pre_loss)
         if ( pre_loss < 10.0): ## To protect the critic from odd losses
             loss, _ = self._train()
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print(" Critic loss: ", loss)
         
         return loss
     

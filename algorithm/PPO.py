@@ -518,8 +518,6 @@ class PPO(AlgorithmInterface):
             # print ("Actions: ", actions)
             loss, _ = self._train()
             # loss, _ = self._trainCollective
-            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                print("Value function loss: ", loss)
             return loss
             
         return 0

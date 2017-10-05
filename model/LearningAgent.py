@@ -121,6 +121,8 @@ class LearningAgent(AgentInterface):
                         states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(self._settings["batch_size"], self._expBuff.samples()))
                         cost = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                         # cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                            print("Value function loss: ", loss)
                         if not np.isfinite(cost) or (cost > 500) :
                             numpy.set_printoptions(threshold=numpy.nan)
                             print ("States: " + str(states__) + " ResultsStates: " + str(result_states__) + " Rewards: " + str(rewards__) + " Actions: " + str(actions__))
@@ -202,6 +204,8 @@ class LearningAgent(AgentInterface):
                     _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(self._settings["batch_size"])
                     # print ("Updating Critic")
                     cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print("Value function loss: ", loss)
                     if not np.isfinite(cost) or (cost > 500) :
                         numpy.set_printoptions(threshold=numpy.nan)
                         print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
