@@ -40,6 +40,7 @@ def trainModelParallel(inputData):
         # (sys.argv[1], settings)
         settingsFileName = inputData[0]
         settings = inputData[1]
+        np.random.seed(settings['random_seed'])
     # pr = cProfile.Profile()
     # pr.enable()
     # try:
@@ -319,7 +320,7 @@ def trainModelParallel(inputData):
                 message_queue = multiprocessing.Queue(settings['epochs'])
             sim_work_queues.append(message_queue)
             w = SimWorker(input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
-                    settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process,
+                    settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process + 1,
                     message_que=message_queue )
             # w.start()
             sim_workers.append(w)
