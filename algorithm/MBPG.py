@@ -3,7 +3,7 @@
 # from modular_rl import *
 
 # ================================================================
-# Proximal Policy Optimization
+# Model Based Policy Optimization
 # ================================================================
 
 
@@ -110,7 +110,7 @@ class MBPG(AlgorithmInterface):
         self._diff = self._target - self._q_func
         self._diff_drop = self._target - self._q_func_drop 
         # loss = 0.5 * self._diff ** 2 
-        loss = T.pow(self._diff, 2)
+        loss = 0.5 * T.pow(self._diff, 2)
         self._loss = T.mean(loss)
         self._loss_drop = T.mean(0.5 * self._diff_drop ** 2)
         
@@ -531,10 +531,16 @@ class MBPG(AlgorithmInterface):
         # print ("actions shape:", actions.shape)
         next_states = forwardDynamicsModel.predict_batch(states, actions)
         # print ("next_states shape: ", next_states.shape)
-        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0] * 25.0
+        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0] * 1.0
         # print ("next_state_grads shape: ", next_state_grads.shape)
-        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 25.0
+        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
         # print ( "action_grads shape: ", action_grads.shape)
+        if ( self.getSettings()['train_reward_predictor']):
+            reward_grad = forwardDynamicsModel.getRewardGrads(state, action)
+            ## Need to shrink this grad down to the same scale as the value function                                        
+            action_grads =  (reward_grad * (1.0 - model.getSettings()['discount_factor'])) + (action_grads *  model.getSettings()['discount_factor'])
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+                print("Reward_Grad Raw: ", reward_grad)
         
         # print("Actions mean:     ", np.mean(actions, axis=0))
         print("Policy mean: ", np.mean(self._q_action(), axis=0))
