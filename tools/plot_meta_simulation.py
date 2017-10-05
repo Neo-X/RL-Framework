@@ -12,6 +12,7 @@ import re
 """
     plot_meta_simulation.py <settings_file_name> <path_to_data>
     Example:
+    python3 tools/plot_meta_simulation.py ../../../backup/Particle_Sim/algorithm.PPO.PPO/ ../../../backup/Particle_Sim/algorithm.PPO.PPO/Nav_Sphere_SMBAE_10D_Hyper_action_learning_rate_0.025/PPO_SMBAE_10D_Hyper.json
 """
 
 def getDataFolderNames(prefixPath, folderPrefix, settings):

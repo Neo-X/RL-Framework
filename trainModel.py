@@ -254,7 +254,7 @@ def trainModelParallel(inputData):
             # learningNamespace.agentPoly = agent.getPolicy().getNetworkParameters()
             # learningNamespace.experience = experience
             
-            lw = LearningWorker(output_experience_queue, agent)
+            lw = LearningWorker(output_experience_queue, agent, random_seed_=settings['random_seed']+process + 1)
             # lw.start()
             learning_workers.append(lw)  
         masterAgent = agent

@@ -323,11 +323,12 @@ class LearningAgent(AgentInterface):
 import copy
 # class LearningWorker(threading.Thread):
 class LearningWorker(Process):
-    def __init__(self, input_exp_queue, agent):
+    def __init__(self, input_exp_queue, agent, random_seed_=23):
         super(LearningWorker, self).__init__()
         self._input_queue= input_exp_queue
         # self._namespace = namespace
         self._agent = agent
+        self._process_random_seed = random_seed_
         
     def setLearningNamespace(self, learningNamespace):    
         self._learningNamespace = learningNamespace
@@ -335,6 +336,7 @@ class LearningWorker(Process):
     # @profile(precision=5)    
     def run(self):
         print ('Worker started')
+        np.random.seed(self._process_random_seed)
         if (self._agent._settings['on_policy']):
             self._agent._expBuff.clear()
         # do some initialization here
