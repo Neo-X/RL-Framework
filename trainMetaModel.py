@@ -7,6 +7,8 @@ import copy
 from pathos.threading import ThreadPool
 from pathos.multiprocessing import ProcessingPool
 # from threading import ThreadPool
+import time
+import datetime
 
 def _trainMetaModel(input):
     settingsFileName_ = input[0]
@@ -44,7 +46,10 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1):
         
     # p = ThreadPool(numThreads)
     p = ProcessingPool(numThreads)
+    t0 = time.time()
     result = p.map(trainModelParallel, sim_data)
+    t1 = time.time()
+    print ("Meta model training complete in " + str(t1-t0) + " seconds")
     print (result)
     # trainModelParallel(settingsFileName, copy.deepcopy(settings))
         
