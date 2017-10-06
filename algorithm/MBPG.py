@@ -465,7 +465,8 @@ class MBPG(AlgorithmInterface):
                                              givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         
     def updateTargetModel(self):
-        print ("Updating target Model")
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Updating target Model")
         """
             Target model updates
         """
