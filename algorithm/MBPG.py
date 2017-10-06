@@ -541,15 +541,15 @@ class MBPG(AlgorithmInterface):
             action_grads =  (reward_grad * (1.0 - model.getSettings()['discount_factor'])) + (action_grads *  model.getSettings()['discount_factor'])
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
                 print("Reward_Grad Raw: ", reward_grad)
-        
-        # print("Actions mean:     ", np.mean(actions, axis=0))
-        print("Policy mean: ", np.mean(self._q_action(), axis=0))
-        # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-        # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
-        # print("Actions std:  ", np.std((actions), axis=0) )
-        print("Policy std: ", np.mean(self._q_action_std(), axis=0))
-        print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
-        print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            # print("Actions mean:     ", np.mean(actions, axis=0))
+            print("Policy mean: ", np.mean(self._q_action(), axis=0))
+            # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
+            # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
+            # print("Actions std:  ", np.std((actions), axis=0) )
+            print("Policy std: ", np.mean(self._q_action_std(), axis=0))
+            print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
+            print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
         
         ## Set data for gradient
         self._model.setStates(states)
@@ -604,15 +604,15 @@ class MBPG(AlgorithmInterface):
         # print ("next_state_grads shape: ", next_state_grads.shape)
         action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
         # print ( "action_grads shape: ", action_grads.shape)
-        
-        # print("Actions mean:     ", np.mean(actions, axis=0))
-        print("Policy mean: ", np.mean(self._q_action(), axis=0))
-        # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-        # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
-        # print("Actions std:  ", np.std((actions), axis=0) )
-        print("Policy std: ", np.mean(self._q_action_std(), axis=0))
-        print("Mean Next State Grad grad: ", np.mean(np.fabs(next_state_grads), axis=0), " std ", np.std(next_state_grads, axis=0))
-        print("Mean action grad size: ", np.mean(np.fabs(action_grads), axis=0), " std ", np.std(action_grads, axis=0))
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            # print("Actions mean:     ", np.mean(actions, axis=0))
+            print("Policy mean: ", np.mean(self._q_action(), axis=0))
+            # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
+            # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
+            # print("Actions std:  ", np.std((actions), axis=0) )
+            print("Policy std: ", np.mean(self._q_action_std(), axis=0))
+            print("Mean Next State Grad grad: ", np.mean(np.fabs(next_state_grads), axis=0), " std ", np.std(next_state_grads, axis=0))
+            print("Mean action grad size: ", np.mean(np.fabs(action_grads), axis=0), " std ", np.std(action_grads, axis=0))
         
         ## Set data for gradient
         self._model.setStates(states)
