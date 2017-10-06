@@ -183,7 +183,7 @@ class PolicyTrainVisualize(object):
                                                                               np.array(mean_value) + std_value,
                                                                               facecolor=self._reward.get_color(),
                                                                               alpha=0.25)
-            means_ = []
+                means_ = []
             
             # self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
             leng = self._reward_ax.legend(loc="lower right",
