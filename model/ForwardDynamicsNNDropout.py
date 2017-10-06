@@ -62,22 +62,23 @@ class ForwardDynamicsNNDropout(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
                 
-        """
+        
         networkAct = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
+        """
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         """
         networkAct = lasagne.layers.DenseLayer(
-                input, num_units=128,
+                networkAct, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        # networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
     
         self._forward_dynamics_net = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._state_length,

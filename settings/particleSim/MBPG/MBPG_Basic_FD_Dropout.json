@@ -1,10 +1,10 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "model.DeepNNTanH.DeepNNTanH",
+"model_type": "model.DeepNNTanHDropoutCritic.DeepNNTanHDropoutCritic",
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.MBPG.MBPG",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere_Basic_FD",
+"data_folder": "Nav_Sphere_Basic_FD_Dropout",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
