@@ -74,7 +74,7 @@ class DeepNNTanHDropoutCritic(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         """
-        input = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
+        # input = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
         network = lasagne.layers.DenseLayer(
                 input, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)

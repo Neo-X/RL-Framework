@@ -7,6 +7,7 @@ import copy
 from pathos.threading import ThreadPool
 from pathos.multiprocessing import ProcessingPool
 import time
+import datetime
 
 from util.SimulationUtil import getDataDirectory, getBaseDataDirectory
 """
@@ -88,7 +89,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
     t0 = time.time()
     result = p.map(_trainMetaModel, sim_data)
     t1 = time.time()
-    print ("Hyper parameter tuning complete in " + str(t1-t0) + " seconds")
+    print ("Hyper parameter tuning complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
     print (result)
     
 

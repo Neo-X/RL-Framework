@@ -49,7 +49,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1):
     t0 = time.time()
     result = p.map(trainModelParallel, sim_data)
     t1 = time.time()
-    print ("Meta model training complete in " + str(t1-t0) + " seconds")
+    print ("Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
     print (result)
     # trainModelParallel(settingsFileName, copy.deepcopy(settings))
         

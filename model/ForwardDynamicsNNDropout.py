@@ -71,7 +71,7 @@ class ForwardDynamicsNNDropout(ModelInterface):
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         """
         networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=128,
+                input, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         

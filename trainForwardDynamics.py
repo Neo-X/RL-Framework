@@ -154,8 +154,10 @@ def trainForwardDynamics(settingsFileName):
                 if (settings['train_forward_dynamics']):
                     trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
                     trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
-                print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " ForwardPredictionLoss: " + str(dynamicsLoss) + " in " + str(t1-t0) + " seconds")
-                print (str(datetime.timedelta(seconds=(t1-t0))))
+                print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " ForwardPredictionLoss: " + str(dynamicsLoss) + " in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
+                # print ("State Bounds: ", model.getStateBounds(), " exp: ", experience.getStateBounds())
+                # print ("Action Bounds: ", model.getActionBounds(), " exp: ", experience.getActionBounds())
+                # print (str(datetime.timedelta(seconds=(t1-t0))))
                 if (settings['visualize_learning']):
                     nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
                     nlv.redraw()
