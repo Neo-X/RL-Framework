@@ -11,6 +11,7 @@ import json
 sys.path.append('../')
 import dill
 import datetime
+import os
 
 def trainForwardDynamics(settingsFileName):
     """
@@ -31,7 +32,7 @@ def trainForwardDynamics(settingsFileName):
     # import lasagne
     from util.SimulationUtil import validateSettings
     from util.SimulationUtil import getDataDirectory
-    from util.SimulationUtil import createForwardDynamicsModel
+    from util.SimulationUtil import createForwardDynamicsModel, createRLAgent
     from model.NeuralNetwork import NeuralNetwork
     from util.ExperienceMemory import ExperienceMemory
     import matplotlib.pyplot as plt
@@ -49,6 +50,10 @@ def trainForwardDynamics(settingsFileName):
     train_forward_dynamics=True
     model_type= settings["model_type"]
     directory= getDataDirectory(settings)
+        
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+            
     discrete_actions = np.array(settings['discrete_actions'])
     num_actions= discrete_actions.shape[0] # number of rows
     rounds = settings["rounds"]
@@ -81,10 +86,17 @@ def trainForwardDynamics(settingsFileName):
     experience.loadFromFile(file_name)
     state_bounds = experience._state_bounds
     
+    
     if (settings['train_forward_dynamics']):
-        print ("Created forward dynamics network")
-        # model = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
-        model = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None)
+        if ( settings['forward_dynamics_model_type'] == "SingleNet"):
+            print ("Creating forward dynamics network: Using single network model")
+            model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model)
+            # forwardDynamicsModel = model
+        else:
+            print ("Creating forward dynamics network")
+            # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None)
         if settings['visualize_learning']:
             from NNVisualize import NNVisualize
             nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(settings["model_type"]))
@@ -127,23 +139,23 @@ def trainForwardDynamics(settingsFileName):
     _result_states = theano.shared(np.array(_result_states, dtype=theano.config.floatX))
     _rewards = theano.shared(np.array(_rewards, dtype=theano.config.floatX))
     """
-    model.setData(_states, _actions, _result_states)
+    forwardDynamicsModel.setData(_states, _actions, _result_states)
     for round_ in range(rounds):
         t0 = time.time()
         for epoch in range(epochs):
             _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__ = experience.get_batch(batch_size)
             # print _actions 
-            # dynamicsLoss = model.train(states=_states, actions=_actions, result_states=_result_states)
-            # model.setData(_states, _actions, _result_states)
-            model.train(_states, _actions, _result_states, _rewards)
-            dynamicsLoss = model._train()
+            # dynamicsLoss = forwardDynamicsModel.train(states=_states, actions=_actions, result_states=_result_states)
+            # forwardDynamicsModel.setData(_states, _actions, _result_states)
+            dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
+            # dynamicsLoss = forwardDynamicsModel._train()
         t1 = time.time()
         if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
-            dynamicsLoss_ = model.bellman_error(_states, _actions, _result_states, _rewards)
-            # dynamicsLoss_ = model.bellman_error((_states), (_actions), (_result_states))
+            dynamicsLoss_ = forwardDynamicsModel.bellman_error(_states, _actions, _result_states, _rewards)
+            # dynamicsLoss_ = forwardDynamicsModel.bellman_error((_states), (_actions), (_result_states))
             dynamicsLoss = np.mean(np.fabs(dynamicsLoss_))
             if (settings['train_reward_predictor']):
-                dynamicsRewardLoss_ = model.reward_error(_states, _actions, _result_states, _rewards)
+                dynamicsRewardLoss_ = forwardDynamicsModel.reward_error(_states, _actions, _result_states, _rewards)
                 dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss_))
                 # dynamicsRewardLosses.append(dynamicsRewardLoss)
                 dynamicsRewardLosses = dynamicsRewardLoss
@@ -155,8 +167,8 @@ def trainForwardDynamics(settingsFileName):
                     trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
                     trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
                 print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " ForwardPredictionLoss: " + str(dynamicsLoss) + " in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
-                # print ("State Bounds: ", model.getStateBounds(), " exp: ", experience.getStateBounds())
-                # print ("Action Bounds: ", model.getActionBounds(), " exp: ", experience.getActionBounds())
+                # print ("State Bounds: ", forwardDynamicsModel.getStateBounds(), " exp: ", experience.getStateBounds())
+                # print ("Action Bounds: ", forwardDynamicsModel.getActionBounds(), " exp: ", experience.getActionBounds())
                 # print (str(datetime.timedelta(seconds=(t1-t0))))
                 if (settings['visualize_learning']):
                     nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
@@ -183,7 +195,7 @@ def trainForwardDynamics(settingsFileName):
                 print ("Saving BEST current forward dynamics model: " + str(best_dynamicsLosses))
                 file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl"
                 f = open(file_name_dynamics, 'wb')
-                dill.dump(model, f)
+                dill.dump(forwardDynamicsModel, f)
                 f.close()
             
             if settings['save_trainData']:
