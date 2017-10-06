@@ -514,7 +514,7 @@ class MBPG(AlgorithmInterface):
         return loss
             
     
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None):
         if ( 'use_MBPG' in self.getSettings()and (self.getSettings()['use_MBPG'])):
             return 0
         

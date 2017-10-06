@@ -430,7 +430,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         # print ("Exploration Action: ", pa)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         action = randomExporation(settings["exploration_rate"], pa, action_bounds)
-                    elif (settings['exploration_method'] == 'gaussian_network'):
+                    elif (settings['exploration_method'] == 'gaussian_network' or 
+                          (settings['use_stocastic_policy'] == True)):
                         pa = model.predict(state_)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         std = model.predict_std(state_)

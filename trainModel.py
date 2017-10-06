@@ -115,6 +115,22 @@ def trainModelParallel(inputData):
             file.close()
             out_file.close()
             
+        if (settings['train_forward_dynamics']):
+            if "." in settings['forward_dynamics_model_type']:
+                ### convert . to / and copy file over
+                file_name = settings['forward_dynamics_model_type']
+                k = file_name.rfind(".")
+                file_name = file_name[:k]
+                file_name_read = file_name.replace(".", "/")
+                file_name_read = file_name_read + ".py"
+                print ("model file name:", file_name)
+                print ("os.path.basename(file_name): ", os.path.basename(file_name))
+                file = open(file_name_read, 'r')
+                out_file = open(directory+file_name+".py", 'w')
+                out_file.write(file.read())
+                file.close()
+                out_file.close()
+            
         rounds = settings["rounds"]
         epochs = settings["epochs"]
         # num_states=settings["num_states"]
