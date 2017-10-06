@@ -260,5 +260,5 @@
 	"comment__": "Use the action gradients from MBAE to update the policy mean (Model-Based Policy Gradient)",
 "use_MBPG": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
-"load_saved_fd_model": true
+"load_saved_fd_model": false
 }
