@@ -158,7 +158,7 @@
     "comment__": "epsilon lower limit",
 "min_epsilon": 0.25,
     "comment__": "Whether or not to draw/render the simulation",
-"shouldRender": false,
+"shouldRender": true,
     "comment__": "Learning rate use for model based action exploration",
 "action_learning_rate": 0.20,
     "comment__": "During model-based action exploration, Probability of a random action being generated from MBAE,",
