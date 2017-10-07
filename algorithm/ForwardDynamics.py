@@ -257,7 +257,8 @@ class ForwardDynamics(AlgorithmInterface):
             # print ("self._reward_bounds: ", self._reward_bounds)
             # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
             lossReward = self._train_reward()
-            print ("Loss Reward: ", lossReward)
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("Loss Reward: ", lossReward)
         # This undoes the Actor parameter updates as a result of the Critic update.
         # print (diff_)
         return loss
