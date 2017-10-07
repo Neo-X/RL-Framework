@@ -154,6 +154,7 @@ class PolicyTrainVisualize(object):
                     # std = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_eval"][:new_length], new_shape), axis=1)
                     means_.append(mean)
                 
+                
                 mean = np.mean(means_, axis=0)
                 std = np.std(means_, axis=0)
                 colour_ = cmap(j)
