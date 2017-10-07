@@ -93,12 +93,14 @@ if __name__ == "__main__":
         otherDatas.append(trainingDatas)
     
     
-    
+    min_length = 1000000000
     for j in range(len(otherDatas)):
         for i in range(len(otherDatas[j])):
             datafile = otherDatas[j][i]['fileName']
             file = open(datafile)
             otherDatas[j][i]['data'] = json.load(file)
+            if min_length > (len(otherDatas[j][i]['data']["mean_eval"])):
+                min_length = len(otherDatas[j][i]['data']["mean_eval"])
             # print ("otherDatas[j][i]['data']: ", otherDatas[j][i]['data'])
             # print "Training data: " + str(trainingData)
             file.close()
@@ -113,6 +115,7 @@ if __name__ == "__main__":
     trainData["std_discount_error"]=[]
     
     """
+    rlv.setLength(min_length)
     rlv.updateRewards(trainingDatas, otherDatas)
     rlv.init()
     rlv.saveVisual("MBAE_Training_curves")
