@@ -41,7 +41,7 @@ class ForwardDynamicsDenseNetworkDropout(ModelInterface):
         input = lasagne.layers.ConcatLayer([stateInput, actionInput])
         
         # network = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
-        """
+        
         network = lasagne.layers.DenseLayer(
                 input, num_units=128,
                 nonlinearity=elu_mine)
@@ -61,7 +61,7 @@ class ForwardDynamicsDenseNetworkDropout(ModelInterface):
                 network, num_units=32,
                 nonlinearity=elu_mine)
         network = weight_norm(network)
-        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         layersAct.append(network)
         network = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
         ## This can be used to model the reward function
@@ -106,7 +106,7 @@ class ForwardDynamicsDenseNetworkDropout(ModelInterface):
                 network, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
-                      
+        """              
         # networkAct = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=256,

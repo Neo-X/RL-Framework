@@ -100,7 +100,10 @@ def trainForwardDynamics(settingsFileName):
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None)
         if settings['visualize_learning']:
             from NNVisualize import NNVisualize
-            nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(settings["model_type"]))
+            title = file_name = settings['forward_dynamics_model_type']
+            k = file_name.rfind(".")
+            file_name = file_name[k:]
+            nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(file_name))
             nlv.setInteractive()
             nlv.init()
     if (settings['train_reward_predictor']):

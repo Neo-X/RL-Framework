@@ -120,6 +120,10 @@ class DeepNNTanHDropoutSingleNet(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 network, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        networkMid = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        network = lasagne.layers.DenseLayer(
+                networkMid, num_units=16,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         ## This can be used to model the reward function
         self._reward_net = lasagne.layers.DenseLayer(
@@ -146,14 +150,14 @@ class DeepNNTanHDropoutSingleNet(ModelInterface):
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         """
         self._forward_dynamics_net = lasagne.layers.DenseLayer(
-                network, num_units=self._state_length,
+                networkMid, num_units=self._state_length,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
                 
         if (('use_stochastic_forward_dynamics' in self._settings) and 
             self._settings['use_stochastic_forward_dynamics']):
             with_std = lasagne.layers.DenseLayer(
-                    network, num_units=self._state_length,
+                    networkMid, num_units=self._state_length,
                     nonlinearity=theano.tensor.nnet.softplus)
             self._forward_dynamics_net = lasagne.layers.ConcatLayer([self._forward_dynamics_net, with_std], axis=1)
                 
