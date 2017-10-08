@@ -4,13 +4,13 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO.TRPO",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere_SMBAE_10D_Hyper",
+"data_folder": "Nav_Sphere_MBAE_10D_Hyper",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
 "omega": 0.00,
     "comment__": "Batch size used for learning",
-"batch_size": 128,
+"batch_size": 64,
     "comment__": "Learning rate for the actor/policy",
 "learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
@@ -262,7 +262,5 @@
 	"comment__": "Only use exploratory actions to update the policy",
 "only_use_exp_actions_for_poli_updates": true,
 	"comment__": "Multiply the MBAE action by a sample from a uniform distribution, to allow the action to vary in magnitude",
-"randomize_MBAE_action_length": true,
-	"comment__": "Whether or not to use a stochastic forward dynamics model",
-"use_stochastic_forward_dynamics": true	
+"randomize_MBAE_action_length": true
 }
