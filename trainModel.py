@@ -394,6 +394,7 @@ def trainModelParallel(inputData):
         print ("Reward History: ", experience._reward_history)
         print ("Action History: ", experience._action_history)
         print ("Action Mean: ", np.mean(experience._action_history))
+        print ("Experience Samples: ", (experience.samples()))
         
         if (settings["save_experience_memory"]):
             print ("Saving initial experience memory")

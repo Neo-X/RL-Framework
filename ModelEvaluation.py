@@ -898,6 +898,13 @@ def collectExperience(actor, exp_val, model, settings):
         # states = np.array(states)
         # states = np.append(states, state_bounds,0) # Adding that already specified bounds will ensure the final calculated is beyond these
         print (" Shape states: ", states.shape)
+        print (" Shape Actions: ", actions.shape)
+        print (" Shape result states: ", resultStates.shape)
+        print (" Shape rewards_: ", rewards_.shape)
+        print (" Shape falls: ", falls_.shape)
+        print (" Shape advantage: ", G_ts_.shape)
+        print (" Shape exp_actions: ", exp_actions.shape)
+        
         state_bounds = np.ones((2,states.shape[1]))
         
         state_avg = states[:settings['bootsrap_samples']].mean(0)
@@ -1039,7 +1046,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
 
     print ("Done collecting experience.")
     return (np.array(states), np.array(actions), np.array(resultStates), np.array(rewards), 
-            np.array(falls_), np.array(G_ts), np.array(exp_actions))  
+            np.array(falls), np.array(G_ts), np.array(exp_actions))  
 
 
 def modelEvaluationParallel(settings_file_name):

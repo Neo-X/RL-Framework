@@ -85,6 +85,7 @@ def trainForwardDynamics(settingsFileName):
     # experience.saveToFile(file_name)
     experience.loadFromFile(file_name)
     state_bounds = experience._state_bounds
+    print ("Samples in experience: ", experience.samples())
     
     
     if (settings['train_forward_dynamics']):

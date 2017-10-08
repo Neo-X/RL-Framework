@@ -476,6 +476,8 @@ class A_CACLA(AlgorithmInterface):
             lossActor, _ = self._trainActor()
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor, " actor buffer size: ", len(self._actor_buffer_actions))
+                actions_ = self._q_action()
+                print("Mean action grad: ", np.mean(actions_, axis=0), " std ", np.std(actions_, axis=0))
             ### Remove batch from buffer
             self._actor_buffer_states=self._actor_buffer_states[self.getSettings()['batch_size']:]
             self._actor_buffer_actions = self._actor_buffer_actions[self.getSettings()['batch_size']:]

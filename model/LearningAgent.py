@@ -68,6 +68,11 @@ class LearningAgent(AgentInterface):
         if self._useLock:
             self._accesLock.acquire()
         cost = 0
+        
+        if ("value_function_batch_size" in self._settings):
+            value_function_batch_size = self._settings['value_function_batch_size']
+        else:
+            value_function_batch_size = self._settings["batch_size"]
         if self._settings['on_policy']:
             if ( ('clear_exp_mem_on_poli' in self._settings) and 
                  self._settings['clear_exp_mem_on_poli']):
@@ -118,7 +123,7 @@ class LearningAgent(AgentInterface):
                 if (self._settings['critic_updates_per_actor_update'] > 1):
                     for i in range(self._settings['critic_updates_per_actor_update']):
                         # print ("Number of samples:", self._expBuff.samples())
-                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(self._settings["batch_size"], self._expBuff.samples()))
+                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
                         loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                         # cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -129,7 +134,7 @@ class LearningAgent(AgentInterface):
                             print ("Training cost is Odd: ", cost)
                 else:
                     # print ("Number of samples:", self._expBuff.samples())
-                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
+                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(value_function_batch_size)
                     # cost = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                     cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                     if not np.isfinite(cost) or (cost > 500) :
@@ -155,7 +160,7 @@ class LearningAgent(AgentInterface):
             dynamicsLoss = 0 
             if (self._settings['train_forward_dynamics']):
                 for i in range(self._settings['critic_updates_per_actor_update']):
-                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
+                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(value_function_batch_size)
                     dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__)
                     """
                     if not np.isfinite(dynamicsLoss) or (dynamicsLoss > 500) :
@@ -184,7 +189,7 @@ class LearningAgent(AgentInterface):
                 if ( 'use_MBPG' in self._settings and (self._settings['use_MBPG'])):
                     for i in range(self._settings['critic_updates_per_actor_update']):
                         # if ( 'use_multiple_policy_updates' in self._settings and ( self._settings['use_multiple_policy_updates']) ):
-                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
+                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(value_function_batch_size)
                             # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print ("Training MBPG")
@@ -201,7 +206,7 @@ class LearningAgent(AgentInterface):
             
             for update in range(self._settings['training_updates_per_sim_action']): ## Even more training options...
                 for i in range(self._settings['critic_updates_per_actor_update']):
-                    _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(self._settings["batch_size"])
+                    _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
                     # print ("Updating Critic")
                     loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
