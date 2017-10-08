@@ -29,18 +29,26 @@ class ForwardDynamics(AlgorithmInterface):
         self._fd_grad_target_shared = theano.shared(
             np.zeros((self._batch_size, self._state_length),
                       dtype=self.getSettings()['float_type']))
-        
-        inputs_ = {
+        condition_reward_on_result_state = False
+        self._inputs_ = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
             self._model.getActionSymbolicVariable(): self._model.getActions(),
         }
-        self._forward = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_, deterministic=True)[:,:self._state_length]
+        if (condition_reward_on_result_state):
+            self._inputs_reward_ = {
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
+            }
+        else:
+            self._inputs_reward_ = self._inputs_
+        self._forward = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._inputs_, deterministic=True)[:,:self._state_length]
         ## This drops to ~ 0 so fast.
-        self._forward_std = (lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate'] )+ 1e-2
-        self._forward_std_drop = (lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate']) + 1e-2
-        self._forward_drop = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_, deterministic=False)[:,:self._state_length]
-        self._reward = lasagne.layers.get_output(self._model.getRewardNetwork(), inputs_, deterministic=True)
-        self._reward_drop = lasagne.layers.get_output(self._model.getRewardNetwork(), inputs_, deterministic=False)
+        self._forward_std = (lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate'] )+ 1e-2
+        self._forward_std_drop = (lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate']) + 1e-2
+        self._forward_drop = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._inputs_, deterministic=False)[:,:self._state_length]
+        self._reward = lasagne.layers.get_output(self._model.getRewardNetwork(), self._inputs_reward_, deterministic=True)
+        self._reward_drop = lasagne.layers.get_output(self._model.getRewardNetwork(), self._inputs_reward_, deterministic=False)
         
         l2_loss = True
         
@@ -98,12 +106,20 @@ class ForwardDynamics(AlgorithmInterface):
             self._model.getActionSymbolicVariable(): self._model.getActions(),
         }
         
-        self._reward_givens_ = {
-            self._model.getStateSymbolicVariable() : self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
-            self._model.getActionSymbolicVariable(): self._model.getActions(),
-            self._model.getRewardSymbolicVariable() : self._model.getRewards(),
-        }
+        if (condition_reward_on_result_state):
+            self._reward_givens_ = {
+                self._model.getStateSymbolicVariable() : self._model.getStates(),
+                self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                self._model.getRewardSymbolicVariable() : self._model.getRewards(),
+            }
+        else:
+            self._reward_givens_ = {
+                self._model.getStateSymbolicVariable() : self._model.getStates(),
+                # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                self._model.getRewardSymbolicVariable() : self._model.getRewards(),
+            }
 
         # SGD update
         if (self.getSettings()['optimizer'] == 'rmsprop'):
@@ -146,11 +162,9 @@ class ForwardDynamics(AlgorithmInterface):
                                        givens={self._model.getStateSymbolicVariable() : self._model.getStates(),
                                                 self._model.getActionSymbolicVariable(): self._model.getActions()})
         self._forwardDynamics_std = theano.function([], self._forward_std,
-                                       givens={self._model.getStateSymbolicVariable() : self._model.getStates(),
-                                                self._model.getActionSymbolicVariable(): self._model.getActions()})
+                                       givens=self._inputs_)
         self._predict_reward = theano.function([], self._reward,
-                                       givens={self._model.getStateSymbolicVariable() : self._model.getStates(),
-                                                self._model.getActionSymbolicVariable(): self._model.getActions()})
+                                       givens=self._inputs_reward_)
         
         self._bellman_error = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         self._reward_error = theano.function(inputs=[], outputs=self._reward_diff, allow_input_downcast=True, givens=self._reward_givens_)
@@ -166,12 +180,7 @@ class ForwardDynamics(AlgorithmInterface):
         self._get_grad = theano.function([], outputs=T.grad(cost=None, wrt=[self._model._actionInputVar] + self._params,
                                                             known_grads={self._forward: self._fd_grad_target_shared}), 
                                          allow_input_downcast=True, 
-                                         givens= {
-            self._model.getStateSymbolicVariable() : self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
-            self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._fd_grad_target : self._fd_grad_target_shared
-        })
+                                         givens= self._inputs_)
         
         """
         self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(loss_or_grads=self._fd_grad_target, 
@@ -187,12 +196,7 @@ class ForwardDynamics(AlgorithmInterface):
         """
         # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads((self._reward_loss_NoDrop), [lasagne.layers.get_all_layers(self._model.getRewardNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True,
         self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [self._model._actionInputVar] + self._reward_params), allow_input_downcast=True, 
-                                                givens={
-            self._model.getStateSymbolicVariable() : self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
-            self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._model.getRewardSymbolicVariable() : self._model.getRewards(),
-        })
+                                                givens=self._inputs_reward_)
 
     def getNetworkParameters(self):
         params = []

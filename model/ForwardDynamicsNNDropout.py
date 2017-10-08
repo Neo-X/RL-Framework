@@ -32,6 +32,9 @@ class ForwardDynamicsNNDropout(ModelInterface):
         self._stateInputVar = stateInput.input_var
         actionInput = lasagne.layers.InputLayer((None, self._action_length), self._Action)
         self._actionInputVar = actionInput.input_var
+        resultStateInput = lasagne.layers.InputLayer((None, self._state_length), self._ResultState)
+        # self._actionInputVar = actionInput.input_var
+        # input = lasagne.layers.ConcatLayer([stateInput, actionInput, resultStateInput])
         input = lasagne.layers.ConcatLayer([stateInput, actionInput])
         
         network = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
@@ -55,6 +58,11 @@ class ForwardDynamicsNNDropout(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 network, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        network = lasagne.layers.DenseLayer(
+                network, num_units=8,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         ## This can be used to model the reward function
         self._reward_net = lasagne.layers.DenseLayer(
@@ -62,7 +70,7 @@ class ForwardDynamicsNNDropout(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
                 
-        
+        input = lasagne.layers.ConcatLayer([stateInput, actionInput])
         networkAct = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
         """
         networkAct = lasagne.layers.DenseLayer(
