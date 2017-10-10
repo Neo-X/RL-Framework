@@ -72,7 +72,7 @@
     "comment__": "How often to save the training data and plotting data",
 "saving_update_freq_num_rounds": 10,
     "comment__": "Number of treads that can be run in parallel during training",
-"num_available_threads": 1,
+"num_available_threads": 3,
     "comment__": "Length of the queues used to pass simulation data between the simulation workers and the learning agent(s).",
 "queue_size_limit": 100,
     "comment__": "Number of actions performed between training updates",
@@ -186,7 +186,7 @@
 	"comment__": "Use to add an additional regularization term to prevent the network from moving to far from its previous values",
 "use_previous_value_regularization": false,
 	"comment__": "Controls the level of information that is printed to the terminal",
-"print_level": "debug",
+"print_level": "train",
 	"comment__": "print level descriptions",
 "print_levels": {
 		"debug": 1,
@@ -250,5 +250,5 @@
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy rollouts to perform per epoch",
-"num_on_policy_rollouts": 1
+"num_on_policy_rollouts": 3
 }
