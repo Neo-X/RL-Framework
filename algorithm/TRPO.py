@@ -78,13 +78,20 @@ class TRPO(AlgorithmInterface):
         
         
         ## prevent value from being 0
-        # self._q_valsActASTD = (self._q_valsActASTD * self.getSettings()['exploration_rate']) + 1e-3
-        self._q_valsActASTD = (T.ones_like(self._q_valsActA) * self.getSettings()['exploration_rate']) + 1e-3
+        ## prevent value from being 0
+        if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
+            self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+            # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+        else:
+            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-2
         self._q_valsActTarget_ = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())
         self._q_valsActTarget = self._q_valsActTarget_[:,:self._action_length]
         self._q_valsActTargetSTD = self._q_valsActTarget_[:,self._action_length:]
-        # self._q_valsActTargetSTD = (self._q_valsActTargetSTD  * self.getSettings()['exploration_rate']) + 1e-3
-        self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)  * self.getSettings()['exploration_rate']) + 1e-3
+        if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
+            self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
+            # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
+        else: 
+            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-2
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -414,10 +421,10 @@ class TRPO(AlgorithmInterface):
             print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
             
             # print("Advantage, reward: ", np.concatenate((advantage, rewards), axis=1))
-            print("Actions:     ", np.mean(actions, axis=0))
-            print("Policy mean: ", np.mean(self._q_action(), axis=0))
+            print("Actions:     ", np.mean(actions, axis=0), " shape: ", actions.shape)
+            print("Policy mean: ", np.mean(self._q_action(), axis=0), " shape: ", self._q_action().shape)
             # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-            print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
+            print("Actions std:  ", np.std(actions - self._q_action(), axis=0) )
             print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
             print("Policy log prob before: ", np.mean(self._get_log_prob(), axis=0))
             # print( "Actor loss: ", np.mean(self._get_action_diff()))
@@ -471,12 +478,12 @@ class TRPO(AlgorithmInterface):
         for (lname, lbefore, lafter) in zipsame(self.loss_names, losses_before, losses_after):
             out[lname+"_before"] = lbefore
             out[lname+"_after"] = lafter
-        return out
     
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):    
             print( "Losses before: ", self.loss_names, ", ", losses_before)
             print( "Losses after: ", self.loss_names, ", ", losses_after)
         
+        return out
         # print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
         # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
         # print( " Actor loss: ", lossActor)

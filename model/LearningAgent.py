@@ -77,7 +77,10 @@ class LearningAgent(AgentInterface):
             if ( ('clear_exp_mem_on_poli' in self._settings) and 
                  self._settings['clear_exp_mem_on_poli']):
                 self._expBuff.clear()
-            
+            print("Start of Learning Agent Update")
+            _actions__ = np.array(_actions)
+            print("Actions:     ", np.mean(_actions__, axis=0), " shape: ", _actions__.shape)
+            print("Actions std:  ", np.std(_actions__, axis=0) )
             ### Validate data
             tmp_states = []
             tmp_actions = []

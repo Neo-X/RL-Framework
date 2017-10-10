@@ -124,8 +124,8 @@ class AlgorithmInterface(object):
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            # action_ = self._q_action()[0]
-            action_ = scale_action(self._q_action()[0], self._action_bounds)
+            action_ = self._q_action()[0]
+            # action_ = scale_action(self._q_action()[0], self._action_bounds)
         else:
             action_ = scale_action(self._q_action()[0], self._action_bounds)
         # print ("Agent Scaled action: ", action_)
