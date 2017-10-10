@@ -20,7 +20,7 @@
     "comment__": "Exploration rate use when randomly generating new actions",
 "exploration_rate": 1.0,
     "comment__": "Number of rounds to perform before termination",
-"rounds": 5000,
+"rounds": 500000,
     "comment__": "Number of epochs to perform per round",
 "epochs": 10,
     "comment__": "Number of epoch/episode to evaluate the policy over",
@@ -181,7 +181,7 @@
     "comment__": "epsilon lower limit",
 "min_epsilon": 0.15,
     "comment__": "Whether or not to draw/render the simulation",
-"shouldRender": true,
+"shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
 "action_learning_rate": 1.0,
     "comment__": "During model-based action exloration, Probability of a random action being generated from MBAE,",
@@ -202,7 +202,10 @@
 "use_parameterized_control": false,
 	"comment__": "parameter bounds for parameterized controller",
 "controller_parameter_settings": {
-		"velocity_bounds": [[0.5],[2.5]]
+		"velocity_bounds": [[0.5],[1.5]],
+		"root_height_bounds": [[0.7],[1.1]],
+		"torque_bounds": [[0.0],[1.0]],
+		"pose_error_bounds": [[0.0], [1.0]]
 		},
 	"comment__": "The parameter used to control the average change in the control parameters",
 "average_parameter_change": 0.25,
