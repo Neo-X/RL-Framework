@@ -246,6 +246,8 @@
 "collect_tuples_in_batches": false,
 	"comment__": "Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occured",
 "reset_on_fall": true,
+	"comment__": "The path to a file containing a motion the character should imitate",
+"motion_file": "../data/mocap/walk/two_steps.json",
 	"comment__": "Whether a model of the reward r <- R(s,a) should be trained",
 "train_reward_predictor": true,
 	"comment__": "How many gradient steps model based action exploration should take",
