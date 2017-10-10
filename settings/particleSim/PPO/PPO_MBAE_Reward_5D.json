@@ -262,5 +262,7 @@
 	"comment__": "Only use exploratory actions to update the policy",
 "only_use_exp_actions_for_poli_updates": true,
 	"comment__": "Multiply the MBAE action by a sample from a uniform distribution, to allow the action to vary in magnitude",
-"randomize_MBAE_action_length": true
+"randomize_MBAE_action_length": true,
+	"comment__": "Load a saved and pre-trained forward dynamics model",
+"load_saved_fd_model": true
 }

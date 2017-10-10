@@ -10,6 +10,8 @@ from pathos.multiprocessing import ProcessingPool
 import time
 import datetime
 
+from util.SimulationUtil import getDataDirectory, getBaseDataDirectory
+
 def _trainMetaModel(input):
     settingsFileName_ = input[0]
     samples_ = input[1]
@@ -25,6 +27,7 @@ def _trainMetaModel(input):
     
 def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, HyperSettings=None):
     import shutil
+    import os
     
     if (settings is None):
         file = open(settingsFileName)
@@ -51,10 +54,11 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, Hy
         
         ## Create data directory and copy any desired files to these folders .
         if ( not (HyperSettings is None) ):
-            directory= getBaseDataDirectory(settings)
+            directory= getDataDirectory(settings)
             if not os.path.exists(directory):
                 os.makedirs(directory)
             if ('saved_fd_model_path' in HyperSettings):
+                print ("Copying fd model: ", HyperSettings['saved_fd_model_path'])
                 shutil.copy2(HyperSettings['saved_fd_model_path'], directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl" )
         
     # p = ThreadPool(numThreads)
@@ -91,7 +95,7 @@ if (__name__ == "__main__"):
     elif (len(sys.argv) == 5):
         settings = {}
         settings['saved_fd_model_path'] = sys.argv[4]
-        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]), numThreads=int(sys.argv[3]))      
+        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]), numThreads=int(sys.argv[3]), HyperSettings=settings)      
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)
