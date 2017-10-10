@@ -15,11 +15,16 @@ def _trainMetaModel(input):
     samples_ = input[1]
     settings_ = input[2]
     numThreads_ = input[3]
-    return trainMetaModel(settingsFileName_, samples=samples_, settings=settings_, numThreads=numThreads_)
+    if (len(input) > 4 ):
+        hyperSettings_ = input[4]
+        return trainMetaModel(settingsFileName_, samples=samples_, settings=settings_, numThreads=numThreads_, 
+                              hyperSettings=hyperSettings_)
+    else:
+        return trainMetaModel(settingsFileName_, samples=samples_, settings=settings_, numThreads=numThreads_)
     
     
-def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1):
-    
+def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, HyperSettings=None):
+    import shutil
     
     if (settings is None):
         file = open(settingsFileName)
@@ -44,6 +49,14 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1):
         sim_settingFileNames.append(settingsFileName)
         sim_data.append((settingsFileName,copy.deepcopy(settings)))
         
+        ## Create data directory and copy any desired files to these folders .
+        if ( not (HyperSettings is None) ):
+            directory= getBaseDataDirectory(settings)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            if ('saved_fd_model_path' in HyperSettings):
+                shutil.copy2(HyperSettings['saved_fd_model_path'], directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl" )
+        
     # p = ThreadPool(numThreads)
     p = ProcessingPool(numThreads)
     t0 = time.time()
@@ -57,7 +70,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1):
 
 if (__name__ == "__main__"):
     """
-        python trainMetaModel.py <sim_settings_file> <num_samples> <num_threads>
+        python trainMetaModel.py <sim_settings_file> <num_samples> <num_threads> <saved_fd_model_path>
         Example:
         python trainMetaModel.py settings/navGame/PPO_5D.json 10
     """
@@ -75,7 +88,10 @@ if (__name__ == "__main__"):
         trainMetaModel(sys.argv[1], samples=int(sys.argv[2]))
     elif (len(sys.argv) == 4):
         trainMetaModel(sys.argv[1], samples=int(sys.argv[2]), numThreads=int(sys.argv[3]))    
-    
+    elif (len(sys.argv) == 5):
+        settings = {}
+        settings['saved_fd_model_path'] = sys.argv[4]
+        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]), numThreads=int(sys.argv[3]))      
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)

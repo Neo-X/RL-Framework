@@ -47,7 +47,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
 
 def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
     """
-        For some set of parameters the functino will sample a number of them
+        For some set of parameters the function will sample a number of them
         In order to find a more optimal configuration.
     """
     import os
@@ -60,6 +60,13 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
     print ("Settings: " + str(json.dumps(settings, indent=4)))
     file.close()
     num_sim_samples = hyper_settings['meta_sim_samples']
+    
+    ## Check to see if there exists a saved fd model, if so save the path in the hyper settings
+    directory= getDataDirectory(settings)
+    file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl" 
+    if not os.path.exists(directory):
+        Hypersettings['saved_fd_model_path'] = file_name_dynamics
+            
     
     samples = hyper_settings['num_param_samples'] - 1
     param_of_interest = hyper_settings['param_to_tune']
@@ -81,7 +88,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         out_file.write(json.dumps(settings, indent=4))
         # file.close()
         out_file.close()
-        sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads']))
+        sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads'], copy.deepcopy(Hypersettings)))
         
     
     # p = ProcessingPool(2)
