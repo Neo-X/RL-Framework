@@ -112,7 +112,8 @@ class LearningAgent(AgentInterface):
             else:
                 _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
             _result_states = np.array(norm_action(np.array(tmp_result_states), self._state_bounds), dtype=self._settings['float_type'])
-            _rewards = np.array(tmp_rewards, dtype=self._settings['float_type'])
+            # reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
+            _rewards = np.array(norm_state(tmp_rewards , self._reward_bounds ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type'])
             _falls = np.array(tmp_falls, dtype='int8')
             _advantage = np.array(tmp_advantage, dtype=self._settings['float_type'])
             # print("Not Falls: ", _falls)

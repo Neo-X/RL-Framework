@@ -16,8 +16,8 @@ import lasagne
 import sys
 import copy
 sys.path.append('../')
-from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std
-from model.LearningUtil import loglikelihood, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
+from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward
+from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
 from algorithm.AlgorithmInterface import AlgorithmInterface
 
 
@@ -401,8 +401,18 @@ class TRPO(AlgorithmInterface):
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print("Advantage: ", np.mean(self._get_advantage()))
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+            print("Rewards: ", np.mean(scale_reward(rewards, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(scale_reward(rewards, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))), " shape: ", np.array(rewards).shape)
+            # print("Targets: ", np.mean(self._get_target()), " std: ", np.std(self._get_target()))
+            print("Falls: ", np.mean(falls), " std: ", np.std(falls))
+            # print("values, falls: ", np.concatenate((scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor'])), falls), axis=1))
+            print("values: ", np.mean(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))),
+                   " std: ", np.std(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))) )
+            print("Model Advantage: ", np.mean(self._get_diff()), " std: ", np.std(self._get_diff()))
+            
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("Advantage: ", np.mean(advantage))
+            print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
+            
             # print("Advantage, reward: ", np.concatenate((advantage, rewards), axis=1))
             print("Actions:     ", np.mean(actions, axis=0))
             print("Policy mean: ", np.mean(self._q_action(), axis=0))
