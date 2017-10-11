@@ -115,7 +115,7 @@ if __name__ == "__main__":
     trainData["std_discount_error"]=[]
     
     """
-    rlv.setLength(min_length)
+    rlv.setLength(50)
     rlv.updateRewards(trainingDatas, otherDatas)
     rlv.init()
     rlv.saveVisual("MBAE_Training_curves")

@@ -1364,7 +1364,7 @@ def modelEvaluation(settings_file_name, runLastModel=False):
     
     if (settings['train_forward_dynamics']):
         if (runLastModel == True):
-            file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
         else:
             file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
         f = open(file_name_dynamics, 'rb')
