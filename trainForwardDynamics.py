@@ -101,7 +101,9 @@ def trainForwardDynamics(settingsFileName):
         if settings['visualize_learning']:
             from NNVisualize import NNVisualize
             title = file_name = settings['forward_dynamics_model_type']
-            k = file_name.rfind(".")
+            k = title.rfind(".") + 1
+            if (k > len(title)): ## name does not contain a .
+                k = 0 
             file_name = file_name[k:]
             nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(file_name))
             nlv.setInteractive()

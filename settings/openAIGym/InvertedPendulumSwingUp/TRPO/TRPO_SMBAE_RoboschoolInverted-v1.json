@@ -1,5 +1,4 @@
 {
-    "comment__": "Type of model/network to use for the actor and critic",
 "model_type": "model.DeepNNAdaptiveDropout.DeepNNAdaptiveDropout",
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO.TRPO",

@@ -191,18 +191,34 @@ def trainModelParallel(inputData):
             
         experience.setSettings(settings)
         
-        if settings['visualize_learning']:    
-            rlv = RLVisualize(directory+str(settings['agent_name']), settings)
+        if settings['visualize_learning']:
+            title = settings['agent_name']
+            k = title.rfind(".") + 1
+            if (k > len(title)): ## name does not contain a .
+                k = 0 
+            title = title[k:]    
+            rlv = RLVisualize(title=title + " agent", settings=settings)
             rlv.setInteractive()
             rlv.init()
         if (settings['train_forward_dynamics']):
             if settings['visualize_learning']:
-                nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(settings["model_type"]), settings=settings)
+                title = settings['forward_dynamics_model_type']
+                k = title.rfind(".") + 1
+                if (k > len(title)): ## name does not contain a .
+                    k = 0 
+                title = title[k:]
+                nlv = NNVisualize(title=str("Dynamics Model") + " with " + title, settings=settings)
                 nlv.setInteractive()
                 nlv.init()
         if (settings['train_reward_predictor']):
             if settings['visualize_learning']:
-                rewardlv = NNVisualize(title=str("Reward Model") + " with " + str(settings["model_type"]), settings=settings)
+                title = settings['forward_dynamics_model_type']
+                k = title.rfind(".") + 1
+                if (k > len(title)): ## name does not contain a .
+                    k = 0 
+                
+                title = title[k:]
+                rewardlv = NNVisualize(title=str("Reward Model") + " with " + title, settings=settings)
                 rewardlv.setInteractive()
                 rewardlv.init()
                  
@@ -210,10 +226,15 @@ def trainModelParallel(inputData):
             criticLosses = []
             criticRegularizationCosts = [] 
             if (settings['visualize_learning']):
-                critic_loss_viz = NNVisualize(title=str("Critic Loss") + " with " + str(settings["model_type"]))
+                title = settings['agent_name']
+                k = title.rfind(".") + 1
+                if (k > len(title)): ## name does not contain a .
+                    k = 0 
+                title = title[k:]
+                critic_loss_viz = NNVisualize(title=str("Critic Loss") + " with " + title)
                 critic_loss_viz.setInteractive()
                 critic_loss_viz.init()
-                critic_regularization_viz = NNVisualize(title=str("Critic Regularization Cost") + " with " + str(settings["model_type"]))
+                critic_regularization_viz = NNVisualize(title=str("Critic Reg Cost") + " with " + title)
                 critic_regularization_viz.setInteractive()
                 critic_regularization_viz.init()
             
@@ -221,10 +242,15 @@ def trainModelParallel(inputData):
             actorLosses = []
             actorRegularizationCosts = []            
             if (settings['visualize_learning']):
-                actor_loss_viz = NNVisualize(title=str("Actor Loss") + " with " + str(settings["model_type"]))
+                title = settings['agent_name']
+                k = title.rfind(".") + 1
+                if (k > len(title)): ## name does not contain a .
+                    k = 0 
+                title = title[k:]
+                actor_loss_viz = NNVisualize(title=str("Actor Loss") + " with " + title)
                 actor_loss_viz.setInteractive()
                 actor_loss_viz.init()
-                actor_regularization_viz = NNVisualize(title=str("Actor Regularization Cost") + " with " + str(settings["model_type"]))
+                actor_regularization_viz = NNVisualize(title=str("Actor Reg Cost") + " with " + title)
                 actor_regularization_viz.setInteractive()
                 actor_regularization_viz.init()
 
