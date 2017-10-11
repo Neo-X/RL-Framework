@@ -10,7 +10,7 @@
 	"comment": "initial probability of selecting a discrete random action",
 "omega": 0.00,
     "comment__": "Batch size used for learning",
-"batch_size": 512,
+"batch_size": 256,
     "comment__": "Learning rate for the actor/policy",
 "learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
@@ -26,7 +26,7 @@
     "comment__": "Number of epoch/episode to evaluate the policy over",
 "eval_epochs": 10,
     "comment__": "Discount factor used during learning",
-"discount_factor": 0.975,
+"discount_factor": 0.99,
     "comment__": "Should the training be plotted during learning",
 "visualize_learning": true,
     "comment__": "Whether or not to save the plotted data while learning",
@@ -72,7 +72,7 @@
     "comment__": "How often to save the training data and plotting data",
 "saving_update_freq_num_rounds": 10,
     "comment__": "Number of treads that can be run in parallel during training",
-"num_available_threads": 3,
+"num_available_threads": 5,
     "comment__": "Length of the queues used to pass simulation data between the simulation workers and the learning agent(s).",
 "queue_size_limit": 100,
     "comment__": "Number of actions performed between training updates",
@@ -250,5 +250,5 @@
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy rollouts to perform per epoch",
-"num_on_policy_rollouts": 3
+"num_on_policy_rollouts": 5
 }
