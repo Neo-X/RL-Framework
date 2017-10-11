@@ -432,12 +432,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         action = randomExporation(settings["exploration_rate"], pa, action_bounds)
                     elif (settings['exploration_method'] == 'gaussian_network' or 
                           (settings['use_stocastic_policy'] == True)):
-                        pa = model.predict(state_)
+                        pa_ = model.predict(state_)
                         # action = randomExporation(settings["exploration_rate"], pa)
-                        std = model.predict_std(state_)
+                        std_ = model.predict_std(state_)
                         # print("Action: ", pa)
                         # print ("Action std: ", std)
-                        action = randomExporationSTD(settings["exploration_rate"], pa, std, action_bounds)
+                        action = randomExporationSTD(settings["exploration_rate"], pa_, std_, action_bounds)
                         # print("Action2: ", action)
                     elif ((settings['exploration_method'] == 'thompson')):
                         # print ('Using Thompson sampling')
@@ -669,10 +669,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # print ("ad: ", advantage)
     advantage = np.reshape(np.array([advantage]), newshape=(-1,1))
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage, exp_actions)
+    """
     print("End of episode")
     actions_ = np.array(actions)
     print("Actions:     ", np.mean(actions_, axis=0), " shape: ", actions_.shape)
     print("Actions std:  ", np.std(actions_, axis=0) )
+    """
     # print("***** Sim Actions std:  ", np.std((actions), axis=0) )
     # print("***** Sim State mean:  ", np.mean((states), axis=0) )
     # print("***** Sim Next State mean:  ", np.mean((result_states___), axis=0) )

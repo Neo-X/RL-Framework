@@ -77,10 +77,12 @@ class LearningAgent(AgentInterface):
             if ( ('clear_exp_mem_on_poli' in self._settings) and 
                  self._settings['clear_exp_mem_on_poli']):
                 self._expBuff.clear()
+            """
             print("Start of Learning Agent Update")
             _actions__ = np.array(_actions)
             print("Actions:     ", np.mean(_actions__, axis=0), " shape: ", _actions__.shape)
             print("Actions std:  ", np.std(_actions__, axis=0) )
+            """
             ### Validate data
             tmp_states = []
             tmp_actions = []
@@ -92,6 +94,7 @@ class LearningAgent(AgentInterface):
             # print ("Advantage:", _advantage)
             # print ("rewards:", _rewards)
             # print("Batch size: ", len(_states), len(_actions), len(_result_states), len(_rewards), len(_falls), len(_advantage))
+            ### validate every tuples before giving them to the learning method
             num_samples_=0
             for (state__, action__, next_state__, reward__, fall__, advantage__) in zip(_states, _actions, _result_states, _rewards, _falls, _advantage):
                 if (checkValidData(state__, action__, next_state__, reward__)):
@@ -111,7 +114,7 @@ class LearningAgent(AgentInterface):
                 print ("self._expBuff.samples(): ", self._expBuff.samples())
             _states = np.array(norm_action(np.array(tmp_states), self._state_bounds), dtype=self._settings['float_type'])
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-                _actions = np.array((np.array(tmp_actions)), dtype=self._settings['float_type'])
+                _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
             else:
                 _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
             _result_states = np.array(norm_action(np.array(tmp_result_states), self._state_bounds), dtype=self._settings['float_type'])
@@ -138,7 +141,7 @@ class LearningAgent(AgentInterface):
                             print ("Training cost is Odd: ", cost)
                 else:
                     # print ("Number of samples:", self._expBuff.samples())
-                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(value_function_batch_size)
+                    # states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(value_function_batch_size)
                     # cost = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                     cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                     if not np.isfinite(cost) or (cost > 500) :
@@ -154,6 +157,8 @@ class LearningAgent(AgentInterface):
                         # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
                         cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
                 else:
+                    ## Hack because for some reason Not pulling data from the buffer leads to the policy mean being odd...
+                    _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(_actions.shape[0])
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
                     """
                     if not np.isfinite(cost_) or (cost_ > 500) :
@@ -192,7 +197,6 @@ class LearningAgent(AgentInterface):
                         # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
                 if ( 'use_MBPG' in self._settings and (self._settings['use_MBPG'])):
                     for i in range(self._settings['critic_updates_per_actor_update']):
-                        # if ( 'use_multiple_policy_updates' in self._settings and ( self._settings['use_multiple_policy_updates']) ):
                         _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(value_function_batch_size)
                             # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
