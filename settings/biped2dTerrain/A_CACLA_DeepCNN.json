@@ -179,7 +179,7 @@
 "use_transfer_task_network": false,
 "penalize_actions_outside_bounds": false,
 "use_transfer_task_network": false,
-"forward_dynamics_model_type": "Deep_NN",
+"forward_dynamics_model_type": "model.ForwardDynamicsDenseNetworkDropout.ForwardDynamicsDenseNetworkDropout",
 "save_experience_memory": false,
 "train_rl_learning": true,
 "use_back_on_track_forcing": false,
