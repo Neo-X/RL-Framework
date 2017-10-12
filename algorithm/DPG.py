@@ -353,7 +353,22 @@ class DPG(AlgorithmInterface):
         # print ("next_state_grads shape: ", next_state_grads.shape)
         # action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
         # print ( "action_grads shape: ", action_grads.shape)
-        
+        """
+            From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
+            Hausknecht, Matthew and Stone, Peter
+            
+            actions.shape == action_grads.shape
+        """
+        use_parameter_grad_inversion=True
+        if ( use_parameter_grad_inversion ):
+            for i in range(action_grads.shape[0]):
+                for j in range(action_grads.shape[1]):
+                    if (action_grads[i,j] > 0):
+                        inversion = (1.0 - actions[i,j]) / 2.0
+                    else:
+                        inversion = ( actions[i,j] - (-1.0)) / 2.0
+                    action_grads[i,j] = action_grads[i,j] * inversion
+                    
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
             print("Policy mean: ", np.mean(self._q_action(), axis=0))
