@@ -542,6 +542,25 @@ class MBPG(AlgorithmInterface):
             action_grads =  (reward_grad * (1.0 - model.getSettings()['discount_factor'])) + (action_grads *  model.getSettings()['discount_factor'])
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
                 print("Reward_Grad Raw: ", reward_grad)
+        
+        """
+        
+            From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
+            Hausknecht, Matthew and Stone, Peter
+            
+            actions.shape == action_grads.shape
+            
+        """
+        use_parameter_grad_inversion=True
+        if ( use_parameter_grad_inversion ):
+            for i in range(action_grads.shape[0]):
+                for j in range(action_grads.shape[1]):
+                    if (action_grads[i,j] > 0):
+                        inversion = (1.0 - actions[i,j]) / 2.0
+                    else:
+                        inversion = ( actions[i,j] - (-1.0)) / 2.0
+                    action_grads[i,j] = action_grads[i,j] * inversion
+                    
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
             print("Policy mean: ", np.mean(self._q_action(), axis=0))
@@ -601,10 +620,40 @@ class MBPG(AlgorithmInterface):
         # print ("actions shape:", actions.shape)
         next_states = forwardDynamicsModel.predict_batch(states, actions)
         # print ("next_states shape: ", next_states.shape)
-        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0] * 1.0
+        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0]
         # print ("next_state_grads shape: ", next_state_grads.shape)
-        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
+        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0]
         # print ( "action_grads shape: ", action_grads.shape)
+        use_parameter_grad_inversion=True
+        
+        if ( self.getSettings()['train_reward_predictor']):
+            reward_grad = forwardDynamicsModel.getRewardGrads(states, actions)[0]
+            ## Need to shrink this reward grad down to the same scale as the value function
+            reward_grad = np.array(reward_grad, dtype=self.getSettings()['float_type'])
+            action_grads = np.array(action_grads, dtype=self.getSettings()['float_type'])
+            action_grads =  (reward_grad * (1.0 - self.getSettings()['discount_factor'])) + (action_grads *  self.getSettings()['discount_factor'])
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+                print("Reward_Grad Raw: ", reward_grad)
+        
+        """
+        
+            From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
+            Hausknecht, Matthew and Stone, Peter
+            
+            actions.shape == action_grads.shape
+            
+        """
+        if ( use_parameter_grad_inversion ):
+            # print ("Performing param inversion")
+            for i in range(action_grads.shape[0]):
+                for j in range(action_grads.shape[1]):
+                    if (action_grads[i,j] > 0):
+                        inversion = (1.0 - actions[i,j]) / 2.0
+                    else:
+                        inversion = ( actions[i,j] - (-1.0)) / 2.0
+                    action_grads[i,j] = action_grads[i,j] * inversion
+        
+        
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
             print("Policy mean: ", np.mean(self._q_action(), axis=0))
