@@ -337,7 +337,7 @@ class DPG(AlgorithmInterface):
         
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions):
         self.setData(states, actions, rewards, result_states, falls)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
             print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))

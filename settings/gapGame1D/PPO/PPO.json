@@ -1,6 +1,6 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "Deep_CNN",
+"model_type": "model.DeepCNNDropoutCritic.DeepCNNDropoutCritic",
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO.PPO",
     "comment__": "Folder to store the training data in.",
