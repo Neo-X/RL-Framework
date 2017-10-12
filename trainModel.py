@@ -197,7 +197,7 @@ def trainModelParallel(inputData):
             if (k > len(title)): ## name does not contain a .
                 k = 0 
             title = title[k:]    
-            rlv = RLVisualize(title=title + " agent", settings=settings)
+            rlv = RLVisualize(title=title + " agent on " + str(settings['environment_type']), settings=settings)
             rlv.setInteractive()
             rlv.init()
         if (settings['train_forward_dynamics']):
