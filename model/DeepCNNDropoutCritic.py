@@ -34,71 +34,16 @@ class DeepCNNDropoutCritic(ModelInterface):
         # create a small convolutional neural network
         input = lasagne.layers.InputLayer((None, self._state_length), self._State)
         self._stateInputVar = input.input_var
+        inputAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
+        self._actionInputVar = inputAction.input_var
         
         taskFeatures = lasagne.layers.SliceLayer(input, indices=slice(0, self._settings['num_terrain_features']), axis=1)
         characterFeatures = lasagne.layers.SliceLayer(input, indices=slice(self._settings['num_terrain_features'], self._state_length), axis=1)
         print ("taskFeatures Shape:", lasagne.layers.get_output_shape(taskFeatures))
         print ("characterFeatures Shape:", lasagne.layers.get_output_shape(characterFeatures))
         print ("State length: ", self._state_length)
-        # taskFeatures = lasagne.layers.DropoutLayer(taskFeatures, p=self._dropout_p, rescale=True)
-        network = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['num_terrain_features']))
         
-        network = lasagne.layers.Conv1DLayer(
-            network, num_filters=16, filter_size=8,
-            nonlinearity=lasagne.nonlinearities.leaky_rectify,
-            W=lasagne.init.GlorotUniform())
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
-        # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
-        """
-        network = lasagne.layers.Conv1DLayer(
-            network, num_filters=32, filter_size=4,
-            nonlinearity=lasagne.nonlinearities.leaky_rectify,
-            W=lasagne.init.GlorotUniform())
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        """
-        network = lasagne.layers.Conv1DLayer(
-            network, num_filters=32, filter_size=4,
-            nonlinearity=lasagne.nonlinearities.leaky_rectify,
-            W=lasagne.init.GlorotUniform())
-        
-        self._critic_task_part = network 
-        
-        """
-        # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
-        
-        network = lasagne.layers.Conv1DLayer(
-            network, num_filters=32, filter_size=4,
-            nonlinearity=lasagne.nonlinearities.leaky_rectify,
-            W=lasagne.init.GlorotUniform())
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        """
-        network = lasagne.layers.FlattenLayer(network, outdim=2)
-        network = lasagne.layers.ConcatLayer([network, characterFeatures], axis=1)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=32,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=16,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        
-        self._critic = lasagne.layers.DenseLayer(
-                network, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
-        # self._b_o = init_b_weights((n_out,))
         networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         
         # taskFeaturesAct = lasagne.layers.SliceLayer(networkAct, indices=slice(0, self._settings['num_terrain_features']), axis=1)
@@ -122,7 +67,7 @@ class DeepCNNDropoutCritic(ModelInterface):
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         """
         networkAct = lasagne.layers.Conv1DLayer(
-            networkAct, num_filters=32, filter_size=4,
+            networkAct, num_filters=8, filter_size=4,
             nonlinearity=lasagne.nonlinearities.leaky_rectify,
             W=lasagne.init.GlorotUniform())
         
@@ -157,9 +102,68 @@ class DeepCNNDropoutCritic(ModelInterface):
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
                 nonlinearity=lasagne.nonlinearities.linear)
-        # self._b_o = init_b_weights((n_out,))
-
-          # print "Initial W " + str(self._w_o.get_value()) 
+        
+        if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
+            characterFeatures = lasagne.layers.ConcatLayer([characterFeatures, inputAction])
+        
+        # taskFeatures = lasagne.layers.DropoutLayer(taskFeatures, p=self._dropout_p, rescale=True)
+        network = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['num_terrain_features']))
+        
+        network = lasagne.layers.Conv1DLayer(
+            network, num_filters=16, filter_size=8,
+            nonlinearity=lasagne.nonlinearities.leaky_rectify,
+            W=lasagne.init.GlorotUniform())
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        
+        # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
+        """
+        network = lasagne.layers.Conv1DLayer(
+            network, num_filters=32, filter_size=4,
+            nonlinearity=lasagne.nonlinearities.leaky_rectify,
+            W=lasagne.init.GlorotUniform())
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        """
+        network = lasagne.layers.Conv1DLayer(
+            network, num_filters=8, filter_size=4,
+            nonlinearity=lasagne.nonlinearities.leaky_rectify,
+            W=lasagne.init.GlorotUniform())
+        
+        self._critic_task_part = network 
+        
+        """
+        # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
+        
+        network = lasagne.layers.Conv1DLayer(
+            network, num_filters=32, filter_size=4,
+            nonlinearity=lasagne.nonlinearities.leaky_rectify,
+            W=lasagne.init.GlorotUniform())
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=128,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        """
+        network = lasagne.layers.FlattenLayer(network, outdim=2)
+        network = lasagne.layers.ConcatLayer([network, characterFeatures], axis=1)
+        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=32,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=16,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        
+        self._critic = lasagne.layers.DenseLayer(
+                network, num_units=1,
+                nonlinearity=lasagne.nonlinearities.linear)
         
         self._states_shared = theano.shared(
             np.zeros((self._batch_size, self._state_length),
