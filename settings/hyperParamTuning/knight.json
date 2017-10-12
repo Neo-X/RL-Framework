@@ -10,5 +10,9 @@
 	"comment__": "Parameter bounds, for which values will be sampled",
 "param_bounds": [0.05, 1.0],
 	"comment__": "Number of samples to evaluation between the given bounds",
-"num_param_samples": 5	
+"num_param_samples": 5,
+	"comment__": "The fully qualified name of the mail server to use",
+"mail_server_name": "mail.cs.ubc.ca",
+	"comment__": "from email address",
+"from_email_address": "gberseth@cs.ubc.ca"
 }

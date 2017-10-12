@@ -74,37 +74,58 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, Hy
 
 if (__name__ == "__main__"):
     """
-        python trainMetaModel.py <sim_settings_file> <num_samples> <num_threads> <saved_fd_model_path>
+        python trainMetaModel.py <hyper_settings_file> <sim_settings_file> <num_samples> <num_threads> <saved_fd_model_path>
         Example:
         python trainMetaModel.py settings/navGame/PPO_5D.json 10
     """
     from sendEmail import sendEmail
-    
+    import json
     
     if (len(sys.argv) == 1):
         print("Please incluse sim settings file")
-        print("python trainMetaModel.py <sim_settings_file> <num_samples>")
+        print("python trainMetaModel.py <hyper_settings_file> <sim_settings_file> <num_samples>")
         sys.exit()
     elif (len(sys.argv) == 2):
         print("Please incluse sim settings file")
-        print("python trainMetaModel.py <sim_settings_file> <num_samples>")
+        print("python trainMetaModel.py <hyper_settings_file> <sim_settings_file> <num_samples>")
         sys.exit()
     elif (len(sys.argv) == 3):
-        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]))
-        ## Send an email so I know this has completed
-        sendEmail("Simulation complete", sys.argv[1])
+        print("Please incluse sim settings file")
+        print("python trainMetaModel.py <hyper_settings_file> <sim_settings_file> <num_samples>")
+        sys.exit()
     elif (len(sys.argv) == 4):
-        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]), numThreads=int(sys.argv[3]))
+        
+        settingsFileName = sys.argv[1] 
+        file = open(settingsFileName)
+        settings_ = json.load(file)
+        print ("Settings: " + str(json.dumps(settings_)))
+        file.close()
+        
+        trainMetaModel(sys.argv[2], samples=int(sys.argv[3]))
+        ## Send an email so I know this has completed
+        sendEmail("Simulation complete", sys.argv[1], settings=settings)
+    elif (len(sys.argv) == 4):
+        settingsFileName = sys.argv[1] 
+        file = open(settingsFileName)
+        settings_ = json.load(file)
+        print ("Settings: " + str(json.dumps(settings_)))
+        file.close()
+        
+        trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]))
         ## Send an email so I know this has completed
         sendEmail("Simulation complete", sys.argv[1])    
     elif (len(sys.argv) == 5):
-        settings = {}
-        settings['saved_fd_model_path'] = sys.argv[4]
-        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]), numThreads=int(sys.argv[3]), HyperSettings=settings)
+        settingsFileName = sys.argv[1] 
+        file = open(settingsFileName)
+        settings_ = json.load(file)
+        print ("Settings: " + str(json.dumps(settings_)))
+        file.close()
+        settings_['saved_fd_model_path'] = sys.argv[4]
+        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]), numThreads=int(sys.argv[3]), HyperSettings=settings_)
         ## Send an email so I know this has completed
-        sendEmail("Simulation complete", sys.argv[1])      
+        sendEmail("Simulation complete", sys.argv[1], settings=settings_)      
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)
-        print("python trainMetaModel.py <sim_settings_file> <num_samples>")
+        print("python trainMetaModel.py <hyper_settings_file> <sim_settings_file> <num_samples>")
         
