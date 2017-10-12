@@ -159,7 +159,10 @@ def trainForwardDynamics(settingsFileName):
         if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
             dynamicsLoss_ = forwardDynamicsModel.bellman_error(_states, _actions, _result_states, _rewards)
             # dynamicsLoss_ = forwardDynamicsModel.bellman_error((_states), (_actions), (_result_states))
-            dynamicsLoss = np.mean(np.fabs(dynamicsLoss_))
+            if ( settings['use_stochastic_forward_dynamics'] ):
+                dynamicsLoss = np.mean(dynamicsLoss_)
+            else:
+                dynamicsLoss = np.mean(np.fabs(dynamicsLoss_))
             if (settings['train_reward_predictor']):
                 dynamicsRewardLoss_ = forwardDynamicsModel.reward_error(_states, _actions, _result_states, _rewards)
                 dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss_))

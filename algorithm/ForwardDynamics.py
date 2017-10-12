@@ -154,7 +154,7 @@ class ForwardDynamics(AlgorithmInterface):
         self._predict_reward = theano.function([], self._reward,
                                        givens=self._inputs_reward_)
         
-        self._bellman_error = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
+        self._bellman_error = theano.function(inputs=[], outputs=self._loss, allow_input_downcast=True, givens=self._givens_)
         self._reward_error = theano.function(inputs=[], outputs=self._reward_diff, allow_input_downcast=True, givens=self._reward_givens_)
         self._reward_values = theano.function(inputs=[], outputs=self.__Reward, allow_input_downcast=True, givens={
                                 # self._model.getStateSymbolicVariable() : self._model.getStates(),
