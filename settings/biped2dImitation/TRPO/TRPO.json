@@ -281,5 +281,7 @@
 	"comment__": "number of on policy rollouts to perform per epoch",
 "num_on_policy_rollouts": 5,
 	"comment__": "PPO should use seperate networks for the value and policy functions",
-"ppo_use_seperate_nets": true
+"ppo_use_seperate_nets": true,
+	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
+"normalize_advantage": true
 }

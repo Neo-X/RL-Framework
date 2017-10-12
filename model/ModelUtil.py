@@ -115,7 +115,7 @@ def scale_reward(reward, reward_bounds):
     return scale_action(reward, reward_bounds)
 
 def _scale_reward(diff, reward_bounds):
-    var = (np.array(reward_bounds[1]) - np.array(reward_bounds[0]))
+    var = (np.array(reward_bounds[1]) - np.array(reward_bounds[0]))/2.0
     return diff/var
 
 def norm_state(state, max_state):
