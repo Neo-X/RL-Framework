@@ -78,6 +78,7 @@ if (__name__ == "__main__"):
         Example:
         python trainMetaModel.py settings/navGame/PPO_5D.json 10
     """
+    from sendEmail import sendEmail
     
     
     if (len(sys.argv) == 1):
@@ -90,13 +91,20 @@ if (__name__ == "__main__"):
         sys.exit()
     elif (len(sys.argv) == 3):
         trainMetaModel(sys.argv[1], samples=int(sys.argv[2]))
+        ## Send an email so I know this has completed
+        sendEmail("Simulation complete", sys.argv[1])
     elif (len(sys.argv) == 4):
-        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]), numThreads=int(sys.argv[3]))    
+        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]), numThreads=int(sys.argv[3]))
+        ## Send an email so I know this has completed
+        sendEmail("Simulation complete", sys.argv[1])    
     elif (len(sys.argv) == 5):
         settings = {}
         settings['saved_fd_model_path'] = sys.argv[4]
-        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]), numThreads=int(sys.argv[3]), HyperSettings=settings)      
+        trainMetaModel(sys.argv[1], samples=int(sys.argv[2]), numThreads=int(sys.argv[3]), HyperSettings=settings)
+        ## Send an email so I know this has completed
+        sendEmail("Simulation complete", sys.argv[1])      
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)
         print("python trainMetaModel.py <sim_settings_file> <num_samples>")
+        

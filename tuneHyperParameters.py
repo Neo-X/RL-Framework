@@ -117,10 +117,12 @@ if (__name__ == "__main__"):
         sys.exit()
     elif (len(sys.argv) == 3):
         tuneHyperParameters(sys.argv[1], sys.argv[2])
+        ## Send an email so I know this has completed
+        sendEmail("Simulation complete", sys.argv[1])
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)
         print("python tuneHyperParameters.py <sim_settings_file> <tuning_settings_file>")
-        
+    
         
         
