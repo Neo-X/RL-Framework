@@ -34,6 +34,7 @@ def sendEmail(subject, contents, testing=False):
     s = smtplib.SMTP('localhost')
     s.send_message(msg)
     s.quit()
+    print ("Email sent.")
     
 
 
