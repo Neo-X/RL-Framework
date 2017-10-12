@@ -23,7 +23,8 @@ def sendEmail(subject, contents, testing=False):
     # me == the sender's email address
     # you == the recipient's email address
     msg['Subject'] = subject
-    msg['From'] = 'csguestn@dyn.cs.sfu.ca'
+    # msg['From'] = 'csguestn@dyn.cs.sfu.ca'
+    msg['From'] = username
     msg['To'] = 'gberseth@cs.ubc.ca'
     
     if ( testing ):
@@ -38,4 +39,7 @@ def sendEmail(subject, contents, testing=False):
 
 if __name__ == '__main__':
     
-    sendEmail("Testing", "Nothing", testing=True)
+    if (len(sys.argv) > 2):
+        sendEmail("Testing", "Nothing", testing=False)
+    else:
+        sendEmail("Testing", "Nothing", testing=True)
