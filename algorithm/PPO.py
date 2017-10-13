@@ -17,7 +17,7 @@ import copy
 sys.path.append('../')
 from algorithm.AlgorithmInterface import AlgorithmInterface
 from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward
-from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat 
+from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl, kl_D, entropy, flatgrad, zipsame, get_params_flat, setFromFlat 
 
 class PPO(AlgorithmInterface):
     
@@ -149,6 +149,7 @@ class PPO(AlgorithmInterface):
         self._actor_regularization = (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getActorNetwork(), lasagne.regularization.l2))
         self._kl_firstfixed = T.mean(kl(self._q_valsActTarget, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length))
+        self._kl = T.mean(kl(self._q_valsActTarget, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length))
         # self._actor_regularization = (( self.getSettings()['previous_value_regularization_weight']) * self._kl_firstfixed )
         # self._actor_regularization = (( self._KL_Weight ) * self._kl_firstfixed ) + (10*(self._kl_firstfixed>self.getSettings()['kl_divergence_threshold'])*
         #                                                                              T.square(self._kl_firstfixed-self.getSettings()['kl_divergence_threshold']))
@@ -466,7 +467,7 @@ class PPO(AlgorithmInterface):
         # self._get_grad2 = theano.gof.graph.inputs(lasagne.updates.rmsprop(loss, params, self._learning_rate, self._rho, self._rms_epsilon))
         
         # self._compute_fisher_vector_product = theano.function([flat_tangent] + args, fvp, **FNOPTS)
-        self.kl_divergence = theano.function([], self._kl_firstfixed,
+        self.kl_divergence = theano.function([], self._kl,
                                              givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         
     def updateTargetModel(self):
@@ -592,7 +593,9 @@ class PPO(AlgorithmInterface):
             print ("**********************Did not train actor this time: expected loss to high, ", lossActor)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
-            print("KL Divergence: ", np.sum(self.kl_divergence()))
+            # print("KL Divergence: ", np.sum(self.kl_divergence()))
+            print("KL Divergence: ", self.kl_divergence())
+            
         if (not np.isfinite(np.mean(self._get_log_prob(), axis=0))):
             np.mean(self._get_log_prob(), axis=0)
             print("Policy mean: ", np.mean(self._q_action(), axis=0))

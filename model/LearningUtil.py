@@ -33,6 +33,24 @@ def kl(mean0, std0, mean1, std1, d):
     """
     return T.log(std1 / std0).sum(axis=1) + ((T.square(std0) + T.square(mean0 - mean1)) / (2.0 * T.square(std1))).sum(axis=1) - 0.5 * d
 
+def kl_D(mean0, std0, mean1, std1, d):
+    """
+        The first districbution should be from a fixed distribution. 
+        The second should be from the distribution that will change from the parameter update.
+        Parameters
+        ----------
+        mean0: mean of fixed distribution
+        std0: standard deviation of fixed distribution
+        mean1: mean of moving distribution
+        std1: standard deviation of moving distribution
+        d: is the dimensionality of the action space
+        
+        Return(s)
+        ----------
+        Vector: Of kl_divergence for each sample/row in the input data
+    """
+    return T.exp(kl(mean0, std0, mean1, std1, d))
+
 def change_penalty(network1, network2):
     """
     The networks should be the same shape and design
