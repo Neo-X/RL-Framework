@@ -114,7 +114,8 @@ class LearningAgent(AgentInterface):
                 print ("self._expBuff.samples(): ", self._expBuff.samples())
             _states = np.array(norm_action(np.array(tmp_states), self._state_bounds), dtype=self._settings['float_type'])
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-                _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
+                _actions = np.array(tmp_actions, dtype=self._settings['float_type'])
+                # _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
             else:
                 _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
             _result_states = np.array(norm_action(np.array(tmp_result_states), self._state_bounds), dtype=self._settings['float_type'])
