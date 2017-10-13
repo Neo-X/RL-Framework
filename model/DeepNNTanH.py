@@ -43,11 +43,11 @@ class DeepNNTanH(ModelInterface):
         """
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=lasagne.nonlinearities.tanh)
         
         networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=32,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                networkAct, num_units=64,
+                nonlinearity=lasagne.nonlinearities.tanh)
     
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
@@ -73,12 +73,12 @@ class DeepNNTanH(ModelInterface):
         """
         network = lasagne.layers.DenseLayer(
                 input, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=lasagne.nonlinearities.tanh)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=32,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+                nonlinearity=lasagne.nonlinearities.tanh)
+        """
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
@@ -86,10 +86,10 @@ class DeepNNTanH(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 network, num_units=8,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        """
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
+                nonlinearity=lasagne.nonlinearities.tanh)
         
           # print "Initial W " + str(self._w_o.get_value()) 
         
