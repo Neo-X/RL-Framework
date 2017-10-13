@@ -545,8 +545,8 @@ class PPO(AlgorithmInterface):
             advantage = self._get_advantage()
         self._advantage_shared.set_value(advantage)
         ## Update the network parameters of the target network
-        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
+        # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+        # lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
         # print ("Performing Critic trainning update")
         # if (( self._updates % self._weight_update_steps) == 0):
         #     self.updateTargetModel()
@@ -577,7 +577,6 @@ class PPO(AlgorithmInterface):
             print("Actor loss: ", np.mean(self._get_action_diff()))
             print("Actor entropy: ", np.mean(self._get_actor_entropy()))
             # self._get_actor_entropy
-            print("KL Divergence: ", np.mean(self.kl_divergence()))
             # print("States mean:     ", np.mean(states, axis=0))
             # print("States std:     ", np.std(states, axis=0))
             # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
@@ -593,6 +592,7 @@ class PPO(AlgorithmInterface):
             print ("**********************Did not train actor this time: expected loss to high, ", lossActor)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
+            print("KL Divergence: ", np.sum(self.kl_divergence()))
         if (not np.isfinite(np.mean(self._get_log_prob(), axis=0))):
             np.mean(self._get_log_prob(), axis=0)
             print("Policy mean: ", np.mean(self._q_action(), axis=0))
