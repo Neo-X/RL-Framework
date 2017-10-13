@@ -576,7 +576,8 @@ class PPO(AlgorithmInterface):
             # print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
             print("Actor loss: ", np.mean(self._get_action_diff()))
             print("Actor entropy: ", np.mean(self._get_actor_entropy()))
-            self._get_actor_entropy
+            # self._get_actor_entropy
+            print("KL Divergence: ", np.mean(self.kl_divergence()))
             # print("States mean:     ", np.mean(states, axis=0))
             # print("States std:     ", np.std(states, axis=0))
             # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
