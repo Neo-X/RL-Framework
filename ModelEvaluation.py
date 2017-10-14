@@ -313,6 +313,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     result_states___ = []
     exp_actions = []
     evalDatas=[]
+    stds=[]
     
     # while not exp.endOfEpoch():
     for i_ in range(settings['max_epoch_length']):
@@ -437,6 +438,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         std_ = model.predict_std(state_)
                         # print("Action: ", pa)
                         # print ("Action std: ", std)
+                        stds.append(std_)
                         action = randomExporationSTD(settings["exploration_rate"], pa_, std_, action_bounds)
                         # print("Action2: ", action)
                     elif ((settings['exploration_method'] == 'thompson')):
@@ -669,12 +671,14 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # print ("ad: ", advantage)
     advantage = np.reshape(np.array([advantage]), newshape=(-1,1))
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage, exp_actions)
-    """
-    print("End of episode")
-    actions_ = np.array(actions)
-    print("Actions:     ", np.mean(actions_, axis=0), " shape: ", actions_.shape)
-    print("Actions std:  ", np.std(actions_, axis=0) )
-    """
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
+        print("End of episode")
+        actions_ = np.array(actions)
+        print("Actions:     ", np.mean(actions_, axis=0), " shape: ", actions_.shape)
+        print("Actions std:  ", np.std(actions_, axis=0) )
+        if ( len(stds) > 0):
+            print("Mean actions std:  ", np.mean(stds, axis=0) )
+    
     # print("***** Sim Actions std:  ", np.std((actions), axis=0) )
     # print("***** Sim State mean:  ", np.mean((states), axis=0) )
     # print("***** Sim Next State mean:  ", np.mean((result_states___), axis=0) )

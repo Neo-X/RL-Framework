@@ -16,7 +16,7 @@ import lasagne
 import sys
 import copy
 sys.path.append('../')
-from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward
+from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward, randomExporationSTD
 from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
 from algorithm.AlgorithmInterface import AlgorithmInterface
 
@@ -83,7 +83,7 @@ class TRPO(AlgorithmInterface):
             self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
-            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-1
+            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-2
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         # self._q_valsActTarget = scale_action(self._q_valsActTarget, self._action_bounds)
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
@@ -91,7 +91,7 @@ class TRPO(AlgorithmInterface):
             self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else: 
-            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-1
+            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-2
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -258,6 +258,7 @@ class TRPO(AlgorithmInterface):
         #### Stuff for Debugging #####
         #### Stuff for Debugging #####
         self._get_diff = theano.function([], [self._diff], givens=self._givens_)
+        self._get_advantage = self._get_diff
         # self._get_advantage = theano.function([], [self._advantage], givens=self._givens_)
         # self._get_advantage = theano.function([], [self._advantage])
         self._get_target = theano.function([], [self._target], givens={
@@ -392,12 +393,14 @@ class TRPO(AlgorithmInterface):
                 # advantage = advantage * (1.0-self._discount_factor)
                 advantage = advantage * (1.0-self._discount_factor) 
             # pass # use given advantage parameter
+            self.setData(states, actions, rewards, result_states, falls)
+            # advantage = self._get_advantage()[0] * (1.0/(1.0-self._discount_factor))
+            self._advantage_shared.set_value(advantage)
         else:
-            advantage = self._get_advantage()
+            self.setData(states, actions, rewards, result_states, falls)
+            # advantage = self._get_advantage()[0] * (1.0/(1.0-self._discount_factor))
+            self._advantage_shared.set_value(advantage)
             
-        self.setData(states, actions, rewards, result_states, falls)
-        # advantage = self._get_diff()[0]
-        self._advantage_shared.set_value(advantage)
         
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
@@ -425,10 +428,10 @@ class TRPO(AlgorithmInterface):
             
             # print("Advantage, reward: ", np.concatenate((advantage, rewards), axis=1))
             print("Actions:     ", np.mean(actions, axis=0), " shape: ", actions.shape)
-            print("Policy mean: ", np.mean(self._q_action(), axis=0), " shape: ", self._q_action().shape)
+            print("Policy mean: ", np.mean(self._q_action(), axis=0)," std ", np.std(self._q_action(), axis=0), " shape: ", self._q_action().shape)
             # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
             # print("Actions std:  ", np.std(actions - self._q_action(), axis=0) )
-            print("Actions std:  ", np.std(actions, axis=0) )
+            print("Actions std:  ", np.std(actions - self._q_action(), axis=0) )
             print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
             print("Policy log prob before: ", np.mean(self._get_log_prob(), axis=0))
             # print( "Actor loss: ", np.mean(self._get_action_diff()))
@@ -436,6 +439,17 @@ class TRPO(AlgorithmInterface):
             ## Sometimes really HUGE losses appear, ocasionally
             # if (np.abs(np.mean(self._get_action_diff())) < 10): 
             #     lossActor, _ = self._trainActor()
+            
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+            print("Policy   std2: ", np.mean(self._q_action_std(), axis=0) + np.std(self._q_action(), axis=0))
+            new_actions = self._q_action()
+            new_action_stds = self._q_action_std()
+            new_actions_ = []
+            for i in range(new_actions.shape[0]):
+                action__ = randomExporationSTD(0.0, new_actions[i], new_action_stds[i])
+                new_actions_.append(action__)
+            print ("New action mean: ", np.mean(new_actions_, axis=0) )
+            print ("New action std: ", np.std(new_actions_, axis=0) )
         
         self.getSettings()['cg_damping'] = 1e-3
         """

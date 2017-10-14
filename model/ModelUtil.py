@@ -54,7 +54,7 @@ def compute_advantage(discounted_rewards, rewards, discount_factor):
     adv = []
     for i in range(len(discounted_rewards)-1):
         # adv.append([((discount_factor * discounted_rewards[i+1]) + (rewards[i])) - discounted_rewards[j]])
-        adv.append([((discounted_rewards[i+1])) - discounted_rewards[i]])
+        adv.append(((discounted_rewards[i+1])) - discounted_rewards[i])
         # adv.append([discounted_rewards[i] - (discounted_rewards[i+1] )])
         # print ("computing advantage discounts: ", adv)
     return adv
@@ -229,7 +229,8 @@ def randomExporationSTD(explorationRate, actionV, std, bounds=None):
         scale = 1.0
         # while True:
             ## resample noise that is greater than std*3 away
-        n = np.random.normal(0, std[i], 1)[0] 
+        # n = np.random.normal(0, std[i], 1)[0]
+        n = (np.random.randn() * std[i]) 
             ## Scale std wrt action bounds
         # n = n * scale
         #    if (np.abs(n) < (std[i]*3)):
