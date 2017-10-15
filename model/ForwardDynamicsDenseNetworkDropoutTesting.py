@@ -38,11 +38,16 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
         self._stateInputVar = input.input_var
         actionInput = lasagne.layers.InputLayer((None, self._action_length), self._Action)
         self._actionInputVar = actionInput.input_var
-        # input = lasagne.layers.ConcatLayer([stateInput, actionInput])
+        
+        insert_action_later = True
+        double_insert_action = False
+        add_layers_after_action = False
+        if (not insert_action_later or (double_insert_action)):
+            input = lasagne.layers.ConcatLayer([input, actionInput])
         ## Activation types
         # activation_type = elu_mine
-        activation_type=lasagne.nonlinearities.tanh
-        # activation_type=lasagne.nonlinearities.leaky_rectify
+        # activation_type=lasagne.nonlinearities.tanh
+        activation_type=lasagne.nonlinearities.leaky_rectify
         # activation_type=lasagne.nonlinearities.rectify
         # network = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
         """
@@ -82,6 +87,16 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         # layersAct = [network]
         
+        if ( insert_action_later ):
+            ### Lets try adding the action input later on in the network
+            if ( add_layers_after_action ):
+                networkA = lasagne.layers.DenseLayer(
+                        actionInput, num_units=32,
+                        nonlinearity=activation_type)
+                network = lasagne.layers.ConcatLayer([network, networkA])
+            else:
+                network = lasagne.layers.ConcatLayer([network, actionInput])
+        
         network = lasagne.layers.DenseLayer(
                 network, num_units=64,
                 nonlinearity=activation_type)
@@ -96,10 +111,7 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
                 nonlinearity=activation_type)
         # network = weight_norm(network)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        networkA = lasagne.layers.DenseLayer(
-                actionInput, num_units=32,
-                nonlinearity=activation_type)
-        network = lasagne.layers.ConcatLayer([network, networkA])
+        
         
         # layersAct.append(network)
         # network = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
@@ -133,12 +145,16 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
         networkAct = weight_norm(networkAct)
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
-        
-        networkActA = lasagne.layers.DenseLayer(
-            actionInput, num_units=64,
-            nonlinearity=activation_type)
-        networkAct = lasagne.layers.ConcatLayer([networkAct, networkActA])
-        
+        if ( insert_action_later ):
+            ### Lets try adding the action input later on in the network
+            if ( add_layers_after_action ):
+                networkActA = lasagne.layers.DenseLayer(
+                    actionInput, num_units=64,
+                    nonlinearity=activation_type)
+                networkAct = lasagne.layers.ConcatLayer([networkAct, networkActA])
+            else:
+                networkAct = lasagne.layers.ConcatLayer([networkAct, actionInput])
+            
         
         layersAct.append(networkAct)
         networkAct = lasagne.layers.ConcatLayer([layersAct[1], layersAct[0]])
