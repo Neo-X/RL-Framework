@@ -28,27 +28,31 @@ class DeepNN(ModelInterface):
         # create a small convolutional neural network
         input = lasagne.layers.InputLayer((None, self._state_length), self._State)
         self._stateInputVar = input.input_var
+        
+        # activation_type = lasagne.nonlinearities.tanh
+        # activation_type = lasagne.nonlinearities.leaky_rectify
+        activation_type = lasagne.nonlinearities.rectify
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=256,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
         """
         """
         network = lasagne.layers.DenseLayer(
                 input, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
         """
         network = lasagne.layers.DenseLayer(
                 input, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=32,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
     
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
@@ -58,24 +62,24 @@ class DeepNN(ModelInterface):
         """
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=256,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
         """
         """
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
         """
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
     
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
-                nonlinearity=lasagne.nonlinearities.linear)
+                nonlinearity=lasagne.nonlinearities.tanh)
         
         if (self._settings['use_stocastic_policy']):
             with_std = lasagne.layers.DenseLayer(
