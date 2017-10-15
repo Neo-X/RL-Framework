@@ -42,11 +42,11 @@ class DeepNNTanH(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
         networkAct = lasagne.layers.DenseLayer(
-                input, num_units=64,
+                input, num_units=32,
                 nonlinearity=lasagne.nonlinearities.tanh)
         
         networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=64,
+                networkAct, num_units=32,
                 nonlinearity=lasagne.nonlinearities.tanh)
     
         self._actor = lasagne.layers.DenseLayer(
@@ -72,7 +72,7 @@ class DeepNNTanH(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
         network = lasagne.layers.DenseLayer(
-                input, num_units=64,
+                input, num_units=32,
                 nonlinearity=lasagne.nonlinearities.tanh)
         
         network = lasagne.layers.DenseLayer(
