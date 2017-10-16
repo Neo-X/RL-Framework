@@ -191,38 +191,21 @@ class MBPG(AlgorithmInterface):
         ## advantage = Q(a,s) - V(s) = (r + gamma*V(s')) - V(s) 
         # self._advantage = (((self._model.getRewardSymbolicVariable() + (self._discount_factor * self._q_valsTargetNextState)) * self._NotFallen)) - self._q_func
         
-        # self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
-        self._Advantage = self._advantage * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
+        self._Advantage = self._advantage #  * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
         # self._log_prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         # self._log_prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
-        self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        ### Only change the std
+        self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActASTD, self._action_length)
         self._prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
-        # self._prob = likelihoodMEAN(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
-        # self._prob_target = likelihoodMEAN(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
-        # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target).dot(self._Advantage)) )
-        # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target) * (self._Advantage)) )
-        # self._actLoss_ = ( ((self._log_prob) * self._Advantage) )
-        # self._actLoss_ = ( ((self._log_prob)) )
         ## This does the sum already
-        # self._actLoss_ =  ( (self._log_prob).dot( self._Advantage) )
         self._r = (self._prob / self._prob_target)
         self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
         ppo_epsilon = self.getSettings()['kl_divergence_threshold']
         self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - ppo_epsilon, 1+ppo_epsilon), self._Advantage))
         self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
-        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
-        
-        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._log_prob), self._Advantage)
-        # self._actLoss_ = T.mean(self._log_prob) 
-        # self._policy_entropy = 0.5 * T.mean(T.log(2 * np.pi * self._q_valsActASTD ) + 1 )
-        ## - because update computes gradient DESCENT updates
-        # self._actLoss = -1.0 * ((T.mean(self._actLoss_)) + (self._actor_regularization ))
-        # self._entropy = -1. * T.sum(T.log(self._q_valsActA + 1e-8) * self._q_valsActA, axis=1, keepdims=True)
-        ## - because update computes gradient DESCENT updates
+
         self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy))) + self._actor_regularization
-        # self._actLoss = T.mean(self._actLoss_) 
-        # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
-        # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
+
         self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
         self._policy_grad = lasagne.updates.total_norm_constraint(self._policy_grad, 5)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
@@ -515,9 +498,7 @@ class MBPG(AlgorithmInterface):
         return loss
             
     
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None):
-        if ( 'use_MBPG' in self.getSettings()and (self.getSettings()['use_MBPG'])):
-            return 0
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, forwardDynamicsModel=None):
         
         self.setData(states, actions, rewards, result_states, falls)
         if (( ('ppo_use_seperate_nets' in self.getSettings())) and
@@ -527,94 +508,47 @@ class MBPG(AlgorithmInterface):
             if (( self._updates % self._weight_update_steps) == 0):
                 self.updateTargetModel()
             self._updates += 1
-        
-        actions = self.predict_batch(states)
-        # print ("actions shape:", actions.shape)
-        next_states = forwardDynamicsModel.predict_batch(states, actions)
-        # print ("next_states shape: ", next_states.shape)
-        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0] * 1.0
-        # print ("next_state_grads shape: ", next_state_grads.shape)
-        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
-        # print ( "action_grads shape: ", action_grads.shape)
-        if ( self.getSettings()['train_reward_predictor']):
-            reward_grad = forwardDynamicsModel.getRewardGrads(state, action)
-            ## Need to shrink this grad down to the same scale as the value function                                        
-            action_grads =  (reward_grad * (1.0 - model.getSettings()['discount_factor'])) + (action_grads *  model.getSettings()['discount_factor'])
-            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
-                print("Reward_Grad Raw: ", reward_grad)
-        
-        """
-        
-            From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
-            Hausknecht, Matthew and Stone, Peter
             
-            actions.shape == action_grads.shape
+        if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
+            # self._advantage_shared.set_value(advantage)
+            ## Need to scale the advantage by the discount to help keep things normalized
+            if (('normalize_advantage' in self.getSettings()) and self.getSettings()['normalize_advantage']):
+                # advantage = advantage * (1.0-self._discount_factor)
+                advantage = advantage * (1.0-self._discount_factor) 
+            # pass # use given advantage parameter
+        else:
+            advantage = self._get_advantage()
+        self._advantage_shared.set_value(advantage)
             
-        """
-        use_parameter_grad_inversion=True
-        if ( use_parameter_grad_inversion ):
-            for i in range(action_grads.shape[0]):
-                for j in range(action_grads.shape[1]):
-                    if (action_grads[i,j] > 0):
-                        inversion = (1.0 - actions[i,j]) / 2.0
-                    else:
-                        inversion = ( actions[i,j] - (-1.0)) / 2.0
-                    action_grads[i,j] = action_grads[i,j] * inversion
-                    
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            # print("Actions mean:     ", np.mean(actions, axis=0))
+            print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
+            print("Actions mean:     ", np.mean(actions, axis=0))
             print("Policy mean: ", np.mean(self._q_action(), axis=0))
             # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-            # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
+            print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
             # print("Actions std:  ", np.std((actions), axis=0) )
-            print("Policy std: ", np.mean(self._q_action_std(), axis=0))
-            print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
-            print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
-        
-        ## Set data for gradient
-        self._model.setStates(states)
-        self._modelTarget.setStates(states)
-        ## Why the -1.0??
-        ## Because the SGD method is always performing MINIMIZATION!!
-        self._action_grad_shared.set_value(-1.0*action_grads)
-        lossActor = self._trainActionGRAD()
-        return lossActor
-    
-    def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
-        """
-            Performs a DYNA type update
-            Because I am using target network a direct DYNA update does nothing. 
-            The gradients are not calculated for the target network.
-            L(\theta) = (r + V(s'|\theta')) - V(s|\theta))
-            Instead what is done is this
-            L(\theta) = V(s_1|\theta')) - V(s_2|\theta))
-            Where s1 comes from the simulation and s2 is a predicted and noisey value from an fd model
-            Parameters
-            ----------
-            predicted_states : predicted states, s_1
-            
-            actions : list of actions
-                
-            rewards : rewards for taking action a_i
-            
-            result_states : simulated states, s_2
-            
-            falls: list of flags for whether or not the character fell
-            Returns
-            -------
-            
-            loss: the loss for the DYNA type update
-
-        """
-        self.setData( result_states, actions, rewards, predicted_states, falls)
-        ## Get the estimated value for the true next state
-        values = self._val_TargetState()
-        # print ("Dyna values: ", values)
-        self._dyna_target_shared.set_value(values)
-        dyna_loss = self._trainDyna()
-        return dyna_loss[0]
-    
-    def trainActionGrad(self, states, forwardDynamicsModel):
+            print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
+            # print("Policy log prob target: ", np.mean(self._get_log_prob_target(), axis=0))
+            print("Actor loss: ", np.mean(self._get_action_diff()))
+            print("Actor entropy: ", np.mean(self._get_actor_entropy()))
+            # self._get_actor_entropy
+            # print("States mean:     ", np.mean(states, axis=0))
+            # print("States std:     ", np.std(states, axis=0))
+            # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
+            # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
+            ## Sometimes really HUGE losses appear, occasionally
+        lossActor = np.abs(np.mean(self._get_action_diff()))
+        if (lossActor < 1000): 
+            if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'])):
+                lossActor, _ = self._trainActor()
+            else:
+                lossActor, _ = self._trainCollective()
+        else:
+            print ("**********************Did not train actor this time: expected loss to high, ", lossActor)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
+            # print("KL Divergence: ", np.sum(self.kl_divergence()))
+            print("KL Divergence: ", self.kl_divergence())
         
         actions = self.predict_batch(states)
         # print ("actions shape:", actions.shape)
@@ -672,6 +606,41 @@ class MBPG(AlgorithmInterface):
         self._action_grad_shared.set_value(-1.0*action_grads)
         self._trainActionGRAD()
         return 0
+    
+    def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
+        """
+            Performs a DYNA type update
+            Because I am using target network a direct DYNA update does nothing. 
+            The gradients are not calculated for the target network.
+            L(\theta) = (r + V(s'|\theta')) - V(s|\theta))
+            Instead what is done is this
+            L(\theta) = V(s_1|\theta')) - V(s_2|\theta))
+            Where s1 comes from the simulation and s2 is a predicted and noisey value from an fd model
+            Parameters
+            ----------
+            predicted_states : predicted states, s_1
+            
+            actions : list of actions
+                
+            rewards : rewards for taking action a_i
+            
+            result_states : simulated states, s_2
+            
+            falls: list of flags for whether or not the character fell
+            Returns
+            -------
+            
+            loss: the loss for the DYNA type update
+
+        """
+        self.setData( result_states, actions, rewards, predicted_states, falls)
+        ## Get the estimated value for the true next state
+        values = self._val_TargetState()
+        # print ("Dyna values: ", values)
+        self._dyna_target_shared.set_value(values)
+        dyna_loss = self._trainDyna()
+        return dyna_loss[0]
+    
     
     def train(self, states, actions, rewards, result_states, falls):
         loss = self.trainCritic(states, actions, rewards, result_states, falls)

@@ -536,9 +536,7 @@ class PPO(AlgorithmInterface):
             
         return 0
     
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage):
-        if ( 'use_MBPG' in self.getSettings()and (self.getSettings()['use_MBPG'])):
-            return 0
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, forwardDynamicsModel=None):
         self.setData(states, actions, rewards, result_states, falls)
         if (( ('ppo_use_seperate_nets' in self.getSettings())) and
              ( self.getSettings()['ppo_use_seperate_nets'])):
@@ -726,36 +724,6 @@ class PPO(AlgorithmInterface):
         return dyna_loss[0]
     
 
-    def trainActionGrad(self, states, forwardDynamicsModel):
-        
-        actions = self.predict_batch(states)
-        # print ("actions shape:", actions.shape)
-        next_states = forwardDynamicsModel.predict_batch(states, actions)
-        # print ("next_states shape: ", next_states.shape)
-        next_state_grads = self.getGrads(next_states, alreadyNormed=True)[0] * 50.0
-        # print ("next_state_grads shape: ", next_state_grads.shape)
-        action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 50.0
-        # print ( "action_grads shape: ", action_grads.shape)
-        
-        # print("Actions mean:     ", np.mean(actions, axis=0))
-        print("Policy mean: ", np.mean(self._q_action(), axis=0))
-        # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-        # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
-        # print("Actions std:  ", np.std((actions), axis=0) )
-        print("Policy std: ", np.mean(self._q_action_std(), axis=0))
-        print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
-        print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
-        
-        ## Set data for gradient
-        self._model.setStates(states)
-        self._modelTarget.setStates(states)
-        ## Why the -1.0??
-        ## Because the SGD method is always performing MINIMIZATION!!
-        self._action_grad_shared.set_value(-1.0*action_grads)
-        self._trainActionGRAD()
-        return 0
-    
-    
     def train(self, states, actions, rewards, result_states, falls):
         loss = self.trainCritic(states, actions, rewards, result_states, falls)
         lossActor = self.trainActor(states, actions, rewards, result_states, falls)

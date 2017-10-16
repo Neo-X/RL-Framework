@@ -384,7 +384,7 @@ class TRPO(AlgorithmInterface):
         
         return loss
     
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, forwardDynamicsModel=None):
         
         if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
             # self._advantage_shared.set_value(advantage)

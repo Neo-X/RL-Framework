@@ -156,11 +156,11 @@ class LearningAgent(AgentInterface):
                     
                         _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
                         # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
-                        cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
+                        cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, forwardDynamicsModel=self._fd)
                 else:
                     ## Hack because for some reason Not pulling data from the buffer leads to the policy mean being odd...
                     _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(_actions.shape[0])
-                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage)
+                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, forwardDynamicsModel=self._fd)
                     """
                     if not np.isfinite(cost_) or (cost_ > 500) :
                         numpy.set_printoptions(threshold=numpy.nan)
@@ -196,17 +196,6 @@ class LearningAgent(AgentInterface):
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Performing Dyna Update, loss: ", cost)
                         # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
-                if ( 'use_MBPG' in self._settings and (self._settings['use_MBPG'])):
-                    for i in range(self._settings['critic_updates_per_actor_update']):
-                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(value_function_batch_size)
-                            # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
-                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                            print ("Training MBPG")
-                        cost_ = self._pol.trainActionGrad(states=_states, forwardDynamicsModel=self._fd)
-                        if not np.isfinite(cost_) or (cost_ > 500) :
-                            numpy.set_printoptions(threshold=numpy.nan)
-                            print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
-                            print ("Training cost is Odd: ", cost_)
         else: ## Off-policy
             # print("State Bounds LA:", self._pol.getStateBounds())
             # print("Action Bounds LA:", self._pol.getActionBounds())
@@ -225,7 +214,7 @@ class LearningAgent(AgentInterface):
                         print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                         print ("Training cost is Odd: ", cost)
                 if (self._settings['train_actor']):
-                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, exp_actions=_exp_actions)
+                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, exp_actions=_exp_actions, forwardDynamicsModel=self._fd)
                 dynamicsLoss = 0 
                 if (self._settings['train_forward_dynamics']):
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)

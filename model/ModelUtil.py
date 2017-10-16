@@ -461,6 +461,10 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         ## compute grad for next state wrt model, i.e. how to change the state to improve the value
         if ( 'optimize_advantage_for_MBAE' in model.getSettings() and  model.getSettings()['optimize_advantage_for_MBAE'] ):
             next_state_grads = model.getAdvantageGrads(state, next_state)[0] # this uses the value function
+            if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+                print ( "Advantage grad: ", next_state_grads)
+                next_state_grads__ = model.getGrads(next_state)[0] # this uses the value function
+                print ( "Q-function grad: ", next_state_grads__)
         else:
             next_state_grads = model.getGrads(next_state)[0] # this uses the value function
         next_state_grads = model.getGrads(next_state)[0] # this uses the value function
