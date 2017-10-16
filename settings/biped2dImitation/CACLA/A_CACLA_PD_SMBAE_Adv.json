@@ -275,7 +275,7 @@
 	"comment__": "Whether or not to use a stochastic forward dynamics model",
 "use_stochastic_forward_dynamics": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
-"load_saved_fd_model": true,
+"load_saved_fd_model": false,
 	"comment__": "Whether ot not MBAE should optimize the q function or the advantage function",
 "optimize_advantage_for_MBAE": true	
 }
