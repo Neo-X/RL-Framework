@@ -48,8 +48,8 @@ class ForwardDynamics(AlgorithmInterface):
             self._inputs_reward_ = self._inputs_
         self._forward = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._inputs_, deterministic=True)[:,:self._state_length]
         ## This drops to ~ 0 so fast.
-        self._forward_std = (lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate'] )+ 1e-2
-        self._forward_std_drop = (lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate']) + 1e-2
+        self._forward_std = (lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate'] )+ 5e-3
+        self._forward_std_drop = (lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._inputs_, deterministic=True)[:,self._state_length:] * self.getSettings()['exploration_rate']) + 5e-3
         self._forward_drop = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._inputs_, deterministic=False)[:,:self._state_length]
         self._reward = lasagne.layers.get_output(self._model.getRewardNetwork(), self._inputs_reward_, deterministic=True)
         self._reward_drop = lasagne.layers.get_output(self._model.getRewardNetwork(), self._inputs_reward_, deterministic=False)
@@ -61,7 +61,7 @@ class ForwardDynamics(AlgorithmInterface):
             
             self._diff = loglikelihood(self._model.getResultStateSymbolicVariable(), self._forward_drop, self._forward_std_drop, self._state_length)
             self._policy_entropy = 0.5 * T.mean(T.log(2 * np.pi * self._forward_std + 1 ) )
-            self._loss = -1.0 * (T.mean(self._diff) + (self._policy_entropy * 1e-2))
+            self._loss = -1.0 * (T.mean(self._diff) + (self._policy_entropy * 1e-3))
             # self._loss = -1.0 * (T.mean(self._diff) ) 
             
             ### Not used dropout stuff
