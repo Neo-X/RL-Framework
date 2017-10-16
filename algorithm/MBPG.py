@@ -537,18 +537,19 @@ class MBPG(AlgorithmInterface):
             # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
             ## Sometimes really HUGE losses appear, occasionally
-        lossActor = np.abs(np.mean(self._get_action_diff()))
-        if (lossActor < 1000): 
-            if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'])):
-                lossActor, _ = self._trainActor()
+        if ( False ): # whether or not to update the std of policy as well.
+            lossActor = np.abs(np.mean(self._get_action_diff()))
+            if (lossActor < 1000): 
+                if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'])):
+                    lossActor, _ = self._trainActor()
+                else:
+                    lossActor, _ = self._trainCollective()
             else:
-                lossActor, _ = self._trainCollective()
-        else:
-            print ("**********************Did not train actor this time: expected loss to high, ", lossActor)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
-            # print("KL Divergence: ", np.sum(self.kl_divergence()))
-            print("KL Divergence: ", self.kl_divergence())
+                print ("**********************Did not train actor this time: expected loss to high, ", lossActor)
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
+                # print("KL Divergence: ", np.sum(self.kl_divergence()))
+                print("KL Divergence: ", self.kl_divergence())
         
         actions = self.predict_batch(states)
         # print ("actions shape:", actions.shape)
