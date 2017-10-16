@@ -573,12 +573,12 @@ def trainModelParallel(inputData):
                         # masterAgent.getExperience()
                         # if (settings['train_forward_dynamics']):
                             # print ("masterAgent FD State Bounds: ", masterAgent.getForwardDynamics().getStateBounds())
-                    if ( settings['num_available_threads'] > 1 ):  
-                        out = simModelParrallel( sw_message_queues=sim_work_queues,
+                    # if ( settings['num_available_threads'] > 1 ):  
+                    out = simModelParrallel( sw_message_queues=sim_work_queues,
                                                                model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['num_on_policy_rollouts'])
-                    else:
-                        out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
-                                       print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
+                    #else:
+                    #    out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
+                    #                   print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
                     (tuples, discounted_sum, q_value, evalData) = out
                     (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__) = tuples
                     # print("**** training states: ", np.array(__states).shape)
