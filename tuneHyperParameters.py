@@ -117,8 +117,14 @@ if (__name__ == "__main__"):
         sys.exit()
     elif (len(sys.argv) == 3):
         tuneHyperParameters(sys.argv[1], sys.argv[2])
+        
+        settingsFileName = sys.argv[1] 
+        file = open(settingsFileName)
+        settings_ = json.load(file)
+        print ("Settings: " + str(json.dumps(settings_)))
+        file.close()
         ## Send an email so I know this has completed
-        sendEmail("Simulation complete", sys.argv[1])
+        sendEmail(subject="Simulation complete", contents=sys.argv[1], settings=settings_, simSettings=sys.argv[1])
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)

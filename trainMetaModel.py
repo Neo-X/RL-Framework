@@ -103,7 +103,8 @@ if (__name__ == "__main__"):
         
         trainMetaModel(sys.argv[2], samples=int(sys.argv[3]))
         ## Send an email so I know this has completed
-        sendEmail("Simulation complete", sys.argv[1], settings=settings)
+        sendEmail("Simulation complete", sys.argv[1], settings=settings_)
+        sendEmail(subject="Simulation complete", contents=sys.argv[2], settings=settings_, simSettings=sys.argv[2])
     elif (len(sys.argv) == 5):
         settingsFileName = sys.argv[1] 
         file = open(settingsFileName)
@@ -113,7 +114,7 @@ if (__name__ == "__main__"):
         
         trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]))
         ## Send an email so I know this has completed
-        sendEmail("Simulation complete", sys.argv[1], settings=settings_)    
+        sendEmail(subject="Simulation complete", contents=sys.argv[2], settings=settings_, simSettings=sys.argv[2])    
     elif (len(sys.argv) == 6):
         settingsFileName = sys.argv[1] 
         file = open(settingsFileName)
@@ -123,7 +124,7 @@ if (__name__ == "__main__"):
         settings_['saved_fd_model_path'] = sys.argv[5]
         trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]), HyperSettings=settings_)
         ## Send an email so I know this has completed
-        sendEmail("Simulation complete", sys.argv[1], settings=settings_)      
+        sendEmail(subject="Simulation complete", contents=sys.argv[2], settings=settings_, simSettings=sys.argv[2])      
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)

@@ -10,9 +10,10 @@ from email.mime.text import MIMEText
 # Open a plain text file for reading.  For this example, assume that
 # the text file contains only ASCII characters.
 # with open(textfile) as fp:
-def sendEmail(subject, contents, settings, testing=False):
+def sendEmail(subject, contents, settings, simSettings=None, testing=False):
     # Create a text/plain message
-    msg = MIMEText(contents)
+    messageBody = contents + "\n" + simSettings
+    msg = MIMEText(messageBody)
     
     hostname = socket.getfqdn()
     
@@ -29,6 +30,8 @@ def sendEmail(subject, contents, settings, testing=False):
     # msg['From'] = 'csguestn@dyn.cs.sfu.ca'
     msg['From'] = fromEmail
     msg['To'] = 'gberseth@cs.ubc.ca'
+    
+    print("Email message: ", msg)
     
     if ( testing ):
         return
@@ -59,6 +62,16 @@ if __name__ == '__main__':
         print ("Settings: " + str(json.dumps(settings_)))
         file.close()
         
-        sendEmail("Testing", "Nothing", settings=settings_, testing=False)
+        sendEmail("Testing", "Nothing", settings=settings_, testing=True)
+    
+    elif (len(sys.argv) == 4):
+        settingsFileName = sys.argv[1] 
+        file = open(settingsFileName)
+        settings_ = json.load(file)
+        print ("Settings: " + str(json.dumps(settings_)))
+        file.close()
+        
+        sendEmail("Testing", "Nothing", settings=settings_, simSettings=sys.argv[2], testing=True)
+        
     else:
         sendEmail("Testing", "Nothing", testing=True)

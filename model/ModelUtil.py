@@ -459,6 +459,10 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         # print ("next state q value: ", value_)
         # print ("Next State: ", next_state.shape)
         ## compute grad for next state wrt model, i.e. how to change the state to improve the value
+        if ( model.getSettings()['optimize_advantage_for_MBAE'] ):
+            next_state_grads = model.getAdvantageGrads(state, next_state)[0] # this uses the value function
+        else:
+            next_state_grads = model.getGrads(next_state)[0] # this uses the value function
         next_state_grads = model.getGrads(next_state)[0] # this uses the value function
         ## normalize
         forwardDynamicsModel.setGradTarget(next_state_grads)
@@ -493,17 +497,30 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         """
         dynamics_grads = dynamics_grads[0]
         # print ("action_grad1: ", action_grads)
-        """
+        
         if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print ("fd dynamics_grads: ", dynamics_grads)
-        """
+            print ("fd dynamics_grads magnitude: ", np.sqrt((dynamics_grads*dynamics_grads).sum()))
+        
         if ( model.getSettings()['train_reward_predictor']):
             reward_grad = forwardDynamicsModel.getRewardGrads(np.reshape(state, (1, model.getStateSize())),
                                                         np.reshape(action, (1, model.getActionSize())))[0]
-            ## Need to shrink this grad down to the same scale as the value function                                        
-            dynamics_grads =  (reward_grad * (1.0 - model.getSettings()['discount_factor'])) + (dynamics_grads *  model.getSettings()['discount_factor'])
+            ## Need to shrink this grad down to the same scale as the value function
+            reward_grad = (reward_grad * (1.0 - model.getSettings()['discount_factor']))
+            """
+            if ( model.getSettings()['optimize_advantage_for_MBAE'] ):
+                state_grads_ = model.getGrads(state)[0] # this uses the value function
+                if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+                    print("State_Grad Raw: ", state_grads_)
+                    print ("State_Grad magnitude: ", np.sqrt((state_grads_*state_grads_).sum()))
+                dynamics_grads =  ((reward_grad) + (dynamics_grads *  model.getSettings()['discount_factor']) -
+                                   state_grads_ * model.getSettings()['discount_factor'])
+            else:    
+            """                                    
+            dynamics_grads =  (reward_grad) + (dynamics_grads *  model.getSettings()['discount_factor'])
             if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
                 print("Reward_Grad Raw: ", reward_grad)
+                print ("Reward_Grad magnitude: ", np.sqrt((reward_grad*reward_grad).sum()))
         ## Grab the part of the grads that is the action
         # action_grads = dynamics_grads[:, state_length:] * learning_rate
         action_grads = dynamics_grads 

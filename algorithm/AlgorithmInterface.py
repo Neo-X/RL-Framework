@@ -107,6 +107,20 @@ class AlgorithmInterface(object):
         self._model.setStates(states)
         return self._get_grad()
     
+    def getAdvantageGrads(self, states, next_states, alreadyNormed=False):
+        """
+            The states should be normalized
+        """
+        # self.setData(states, actions, rewards, result_states)
+        if ( alreadyNormed == False):
+            states = norm_state(states, self._state_bounds)
+            next_states = norm_state(next_states, self._state_bounds)
+        states = np.array(states, dtype=theano.config.floatX)
+        self._model.setStates(states)
+        self._model.setResultStates(next_states)
+        return self._get_grad()
+    
+    
     def predict(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state

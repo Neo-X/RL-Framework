@@ -32,8 +32,8 @@ class DeepNNTanH(ModelInterface):
         self._actionInputVar = inputAction.input_var
         # self._b_o = init_b_weights((n_out,))
         # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
-        activation_type = lasagne.nonlinearities.tanh
-        # activation_type = lasagne.nonlinearities.leaky_rectify
+        # activation_type = lasagne.nonlinearities.tanh
+        activation_type = lasagne.nonlinearities.leaky_rectify
         """
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=256,
@@ -64,7 +64,7 @@ class DeepNNTanH(ModelInterface):
         
         if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
             input = lasagne.layers.ConcatLayer([input, inputAction])
-        activation_type = lasagne.nonlinearities.leaky_rectify
+        # activation_type = lasagne.nonlinearities.leaky_rectify
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=256,
