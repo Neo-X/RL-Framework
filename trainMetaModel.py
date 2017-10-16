@@ -68,6 +68,13 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, Hy
     t1 = time.time()
     print ("Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
     print (result)
+    result_data = {}
+    result_data['sim_time'] = "Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds"
+    result_data['raw_sim_time_in_seconds'] = t1-t0
+    result_data['Number_of_simulations_sampled'] = samples
+    result_data['Number_of_threads_used'] = numThreads
+    
+    return result_data
     # trainModelParallel(settingsFileName, copy.deepcopy(settings))
         
     
@@ -122,9 +129,9 @@ if (__name__ == "__main__"):
         print ("Settings: " + str(json.dumps(settings_)))
         file.close()
         settings_['saved_fd_model_path'] = sys.argv[5]
-        trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]), HyperSettings=settings_)
+        result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]), HyperSettings=settings_)
         ## Send an email so I know this has completed
-        sendEmail(subject="Simulation complete", contents=sys.argv[2], settings=settings_, simSettings=sys.argv[2])      
+        sendEmail(subject="Simulation complete", contents=json.dumps(result), settings=settings_, simSettings=sys.argv[2])      
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)
