@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.A_CACLA.A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Simple_Walk_PD_Imitate_SMBAE/",
+"data_folder": "Simple_Walk_PD_Imitate_SMBAE_DenseFD/",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 0.55, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -149,7 +149,7 @@
     "comment__": "Add a large cost to actions that are suggested to be outside the action bounds.",
 "penalize_actions_outside_bounds": false,
     "comment__": "Network type to use for the forward dynamics model",
-"forward_dynamics_model_type": "model.ForwardDynamicsDenseNetworkDropout.ForwardDynamicsDenseNetworkDropout",
+"forward_dynamics_model_type": "model.ForwardDynamicsDenseNetworkDropoutTesting.ForwardDynamicsDenseNetworkDropoutTesting",
     "comment__": "Whether or not to save the Experience memory after bootstrapping",
 "save_experience_memory": true,
     "comment__": "Whether or not to train the policy and critic?",
@@ -275,5 +275,7 @@
 	"comment__": "Whether or not to use a stochastic forward dynamics model",
 "use_stochastic_forward_dynamics": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
-"load_saved_fd_model": true	
+"load_saved_fd_model": false,
+	"comment__": "Whether ot not MBAE should optimize the q function or the advantage function",
+"optimize_advantage_for_MBAE": true	
 }
