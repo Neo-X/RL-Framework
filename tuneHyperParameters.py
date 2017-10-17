@@ -45,7 +45,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         trainMetaModel(simsettingsFileName, samples=num_sim_samples, settings=copy.deepcopy(settings), numThreads=num_sim_samples)
 """
 
-def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
+def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_path=None):
     """
         For some set of parameters the function will sample a number of them
         In order to find a more optimal configuration.
@@ -55,17 +55,18 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
     settings = json.load(file)
     print ("Settings: " + str(json.dumps(settings, indent=4)))
     file.close()
-    file = open(Hypersettings)
+    file = open(hyperSettings)
     hyper_settings = json.load(file)
     print ("Settings: " + str(json.dumps(settings, indent=4)))
     file.close()
     num_sim_samples = hyper_settings['meta_sim_samples']
     
     ## Check to see if there exists a saved fd model, if so save the path in the hyper settings
-    directory= getDataDirectory(settings)
-    file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl" 
-    if not os.path.exists(directory):
-        Hypersettings['saved_fd_model_path'] = file_name_dynamics
+    if ( not ( saved_fd_model_path in None )):
+        directory= getDataDirectory(settings)
+        # file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl" 
+        if not os.path.exists(directory):
+            hyper_settings['saved_fd_model_path'] = saved_fd_model_path
             
     
     samples = hyper_settings['num_param_samples'] - 1
@@ -91,7 +92,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         out_file.write(json.dumps(settings, indent=4))
         # file.close()
         out_file.close()
-        sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads'], copy.deepcopy(Hypersettings)))
+        sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads'], copy.deepcopy(hyperSettings)))
         
     
     # p = ProcessingPool(2)
