@@ -50,13 +50,17 @@ def getAgentName(settings):
 def getTaskDataDirectory(settings):
     return settings["environment_type"]+"/"+settings["agent_name"]+"/"+settings["task_data_folder"]+"/"+settings["model_type"]+"/"
 
-def addDataToTarBall(tarfile_, settings):
+def addDataToTarBall(tarfile_, settings, fileName=None):
     import os
     import tarfile
     dir = getDataDirectory(settings)
     fileName_ = dir+"trainingData_" + str(settings['agent_name']) + ".json"
     if os.path.exists(fileName_):
         tarfile_.add(fileName_)
+    
+    if ( not ( fileName is None) ):
+        if os.path.exists(fileName):
+            tarfile_.add(fileName)
     
         
     # tarfile.add('/README.md')

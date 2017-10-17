@@ -51,6 +51,9 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
         In order to find a more optimal configuration.
     """
     import os
+    
+    result_data = {}
+    
     file = open(simsettingsFileName)
     settings = json.load(file)
     print ("Settings: " + str(json.dumps(settings, indent=4)))
@@ -74,6 +77,7 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
     range_ = hyper_settings['param_bounds']
     data_name = settings['data_folder']
     sim_data = []
+    result_data['hyper_param_settings_files'] = []
     for i in range(samples+1):
         if (hyper_settings['param_data_type'] == "int"):
             param_value = int( ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0] )
@@ -86,7 +90,7 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
             os.makedirs(directory)
         # file = open(settingsFileName, 'r')
         out_file_name=directory+os.path.basename(simsettingsFileName)
-        
+        result_data['hyper_param_settings_files'].append(out_file_name)
         print ("Saving settings file with data to: ", out_file_name)
         out_file = open(out_file_name, 'w')
         out_file.write(json.dumps(settings, indent=4))
@@ -101,7 +105,6 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
     result = p.map(_trainMetaModel, sim_data)
     t1 = time.time()
     print ("Hyper parameter tuning complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
-    result_data = {}
     result_data['sim_time'] = "Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds"
     result_data['meta_sim_result'] = result
     result_data['raw_sim_time_in_seconds'] = t1-t0
@@ -151,6 +154,9 @@ if (__name__ == "__main__"):
             print (meta_result)
             for simsettings_tmp in meta_result['settings_files']:
                 addDataToTarBall(dataTar, simsettings_tmp)
+            
+        for hyperSetFile in result['hyper_param_settings_files']:
+            addDataToTarBall(dataTar, simsettings_tmp, fileName=hyperSetFile)
         dataTar.close()
         
         
