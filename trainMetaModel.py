@@ -20,12 +20,12 @@ def _trainMetaModel(input):
     if (len(input) > 4 ):
         hyperSettings_ = input[4]
         return trainMetaModel(settingsFileName_, samples=samples_, settings=settings_, numThreads=numThreads_, 
-                              HyperSettings=hyperSettings_)
+                              hyperSettings=hyperSettings_)
     else:
         return trainMetaModel(settingsFileName_, samples=samples_, settings=settings_, numThreads=numThreads_)
     
     
-def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, HyperSettings=None):
+def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hyperSettings=None):
     import shutil
     import os
     
@@ -53,13 +53,13 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, Hy
         sim_data.append((settingsFileName,copy.deepcopy(settings)))
         
         ## Create data directory and copy any desired files to these folders .
-        if ( not (HyperSettings is None) ):
+        if ( not (hyperSettings is None) ):
             directory= getDataDirectory(settings)
             if not os.path.exists(directory):
                 os.makedirs(directory)
-            if ('saved_fd_model_path' in HyperSettings):
-                print ("Copying fd model: ", HyperSettings['saved_fd_model_path'])
-                shutil.copy2(HyperSettings['saved_fd_model_path'], directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl" )
+            if ('saved_fd_model_path' in hyperSettings):
+                print ("Copying fd model: ", hyperSettings['saved_fd_model_path'])
+                shutil.copy2(hyperSettings['saved_fd_model_path'], directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl" )
         
     # p = ThreadPool(numThreads)
     p = ProcessingPool(numThreads)
@@ -128,7 +128,7 @@ if (__name__ == "__main__"):
         print ("Settings: " + str(json.dumps(settings_)))
         file.close()
         settings_['saved_fd_model_path'] = sys.argv[5]
-        result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]), HyperSettings=settings_)
+        result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]), hyperSettings=settings_)
         ## Send an email so I know this has completed
         sendEmail(subject="Simulation complete", contents=json.dumps(result, indent=4, sort_keys=True), settings=settings_, simSettings=sys.argv[2])      
     else:
