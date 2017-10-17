@@ -95,15 +95,19 @@ if __name__ == "__main__":
     
     min_length = 1000000000
     for j in range(len(otherDatas)):
+        tmp_min_length = 1000000000
         for i in range(len(otherDatas[j])):
             datafile = otherDatas[j][i]['fileName']
             file = open(datafile)
             otherDatas[j][i]['data'] = json.load(file)
             if min_length > (len(otherDatas[j][i]['data']["mean_eval"])):
                 min_length = len(otherDatas[j][i]['data']["mean_eval"])
+            if tmp_min_length > (len(otherDatas[j][i]['data']["mean_eval"])):
+                tmp_min_length = len(otherDatas[j][i]['data']["mean_eval"])
             # print ("otherDatas[j][i]['data']: ", otherDatas[j][i]['data'])
             # print "Training data: " + str(trainingData)
             file.close()
+        print ("Min length for ", otherDatas[j][0]['fileName'], " is ", tmp_min_length)
         
     
     """
