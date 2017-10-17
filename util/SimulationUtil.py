@@ -58,13 +58,13 @@ def addDataToTarBall(tarfile_, settings, fileName=None):
     if os.path.exists(fileName_):
         tarfile_.add(fileName_)
     else:
-        print ( "Filename does not exists: ", fileName_)
+        print ( "File does not exists: ", fileName_)
     
     if ( not ( fileName is None) ):
         if os.path.exists(fileName):
             tarfile_.add(fileName)
         else:
-            print ( "Filename does not exists: ", fileName)
+            print ( "File does not exists: ", fileName)
     
         
     # tarfile.add('/README.md')
