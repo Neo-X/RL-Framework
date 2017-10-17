@@ -108,10 +108,9 @@ if (__name__ == "__main__"):
         print ("Settings: " + str(json.dumps(settings_)))
         file.close()
         
-        trainMetaModel(sys.argv[2], samples=int(sys.argv[3]))
+        result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]))
         ## Send an email so I know this has completed
-        sendEmail("Simulation complete", sys.argv[1], settings=settings_)
-        sendEmail(subject="Simulation complete", contents=sys.argv[2], settings=settings_, simSettings=sys.argv[2])
+        sendEmail(subject="Simulation complete", contents=json.dumps(result), settings=settings_, simSettings=sys.argv[2])
     elif (len(sys.argv) == 5):
         settingsFileName = sys.argv[1] 
         file = open(settingsFileName)
@@ -119,9 +118,9 @@ if (__name__ == "__main__"):
         print ("Settings: " + str(json.dumps(settings_)))
         file.close()
         
-        trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]))
+        result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]))
         ## Send an email so I know this has completed
-        sendEmail(subject="Simulation complete", contents=sys.argv[2], settings=settings_, simSettings=sys.argv[2])    
+        sendEmail(subject="Simulation complete", contents=json.dumps(result), settings=settings_, simSettings=sys.argv[2])    
     elif (len(sys.argv) == 6):
         settingsFileName = sys.argv[1] 
         file = open(settingsFileName)
