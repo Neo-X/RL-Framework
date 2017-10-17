@@ -20,7 +20,7 @@ def _trainMetaModel(input):
     if (len(input) > 4 ):
         hyperSettings_ = input[4]
         return trainMetaModel(settingsFileName_, samples=samples_, settings=settings_, numThreads=numThreads_, 
-                              hyperSettings=hyperSettings_)
+                              HyperSettings=hyperSettings_)
     else:
         return trainMetaModel(settingsFileName_, samples=samples_, settings=settings_, numThreads=numThreads_)
     
