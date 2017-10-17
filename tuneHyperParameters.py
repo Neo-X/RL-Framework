@@ -62,7 +62,7 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
     num_sim_samples = hyper_settings['meta_sim_samples']
     
     ## Check to see if there exists a saved fd model, if so save the path in the hyper settings
-    if ( not ( saved_fd_model_path in None )):
+    if ( not ( saved_fd_model_path is None )):
         directory= getDataDirectory(settings)
         # file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl" 
         if not os.path.exists(directory):
