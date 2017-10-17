@@ -11,7 +11,7 @@
 "param_bounds": [0.05, 1.5],
 	"comment__": "Number of samples to evaluation between the given bounds",
 "num_param_samples": 6,
-	"comment__": "parameter value type ["int"|"float"]",
+	"comment__": "parameter value type [int|float]",
 "param_data_type": "float",
 	"comment__": "The fully qualified name of the mail server to use",
 "mail_server_name": "mail.cs.ubc.ca",
