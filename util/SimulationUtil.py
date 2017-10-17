@@ -57,10 +57,14 @@ def addDataToTarBall(tarfile_, settings, fileName=None):
     fileName_ = dir+"trainingData_" + str(settings['agent_name']) + ".json"
     if os.path.exists(fileName_):
         tarfile_.add(fileName_)
+    else:
+        print ( "Filename does not exists: ", fileName_)
     
     if ( not ( fileName is None) ):
         if os.path.exists(fileName):
             tarfile_.add(fileName)
+        else:
+            print ( "Filename does not exists: ", fileName)
     
         
     # tarfile.add('/README.md')
