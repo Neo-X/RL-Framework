@@ -74,7 +74,10 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
     data_name = settings['data_folder']
     sim_data = []
     for i in range(samples+1):
-        param_value = ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0]
+        if (hyper_settings['param_data_type'] == "int"):
+            param_value = int( ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0] )
+        else:
+            param_value = ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0]
         settings['data_folder'] = data_name + "_" + param_of_interest + "_"+ str(param_value) + "/"
         settings[param_of_interest] = param_value
         directory= getBaseDataDirectory(settings)
@@ -97,6 +100,12 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
     result = p.map(_trainMetaModel, sim_data)
     t1 = time.time()
     print ("Hyper parameter tuning complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
+    result_data = {}
+    result_data['sim_time'] = "Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds"
+    result_data['meta_sim_result'] = result
+    result_data['raw_sim_time_in_seconds'] = t1-t0
+    result_data['Number_of_simulations_sampled'] = samples
+    result_data['Number_of_threads_used'] = hyper_settings['tuning_threads'] 
     print (result)
     
 
@@ -116,15 +125,15 @@ if (__name__ == "__main__"):
         print("python tuneHyperParameters.py <sim_settings_file> <tuning_settings_file>")
         sys.exit()
     elif (len(sys.argv) == 3):
-        tuneHyperParameters(sys.argv[1], sys.argv[2])
+        result = tuneHyperParameters(sys.argv[1], sys.argv[2])
         
-        settingsFileName = sys.argv[1] 
-        file = open(settingsFileName)
-        settings_ = json.load(file)
+        hyperSettingsFileName = sys.argv[2] 
+        file = open(hyperSettingsFileName)
+        hyperSettings_ = json.load(file)
         print ("Settings: " + str(json.dumps(settings_)))
         file.close()
         ## Send an email so I know this has completed
-        sendEmail(subject="Simulation complete", contents=sys.argv[1], settings=settings_, simSettings=sys.argv[1])
+        sendEmail(subject="Simulation complete", contents=json.dumps(result, indent=4, sort_keys=True), settings=hyperSettings_, simSettings=sys.argv[1])
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)

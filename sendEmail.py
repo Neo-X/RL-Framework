@@ -10,7 +10,7 @@ from email.mime.text import MIMEText
 # Open a plain text file for reading.  For this example, assume that
 # the text file contains only ASCII characters.
 # with open(textfile) as fp:
-def sendEmail(subject, contents, settings, simSettings=None, testing=False):
+def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False):
     # Create a text/plain message
     messageBody = contents + "\n" + simSettings
     msg = MIMEText(messageBody)
@@ -22,7 +22,7 @@ def sendEmail(subject, contents, settings, simSettings=None, testing=False):
     username = getpass.getuser()
     print ("username: ", username)
     
-    fromEmail = settings['from_email_address']
+    fromEmail = hyperSettings['from_email_address']
     print("From email: ", fromEmail)
     # me == the sender's email address
     # you == the recipient's email address
@@ -37,7 +37,7 @@ def sendEmail(subject, contents, settings, simSettings=None, testing=False):
         return
     
     # Send the message via our own SMTP server.
-    s = smtplib.SMTP(settings['mail_server_name'])
+    s = smtplib.SMTP(hyperSettings['mail_server_name'])
     s.send_message(msg)
     s.quit()
     print ("Email sent.")
