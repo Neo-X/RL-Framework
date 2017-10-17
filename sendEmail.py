@@ -6,14 +6,22 @@ import getpass
 
 # Import the email modules we'll need
 from email.mime.text import MIMEText
+from email import encoders
+from email.message import Message
+from email.mime.audio import MIMEAudio
+from email.mime.base import MIMEBase
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
 
 # Open a plain text file for reading.  For this example, assume that
 # the text file contains only ASCII characters.
 # with open(textfile) as fp:
-def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False):
+def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False, dataFile=None):
     # Create a text/plain message
     messageBody = contents + "\n" + simSettings
-    msg = MIMEText(messageBody)
+    msg = MIMEMultipart()
+    msgBody = MIMEText(messageBody)
+    msg.attach(msgBody)
     
     hostname = socket.getfqdn()
     
@@ -35,6 +43,29 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False)
     
     if ( testing ):
         return
+    
+    ### attach a compressed file
+    if ( not (dataFile is None) ):
+        fileName_ = './tarfile_add.tar.gz'
+        fp = open(fileName_, 'rb')
+        ctype = 'application/octet-stream'
+        maintype, subtype = ctype.split('/', 1)
+        msgFiles = MIMEBase(maintype, subtype)
+        msgFiles.set_payload(fp.read())
+        # Encode the payload using Base64
+        encoders.encode_base64(msgFiles)
+        # Set the filename parameter
+        msgFiles.add_header('Content-Disposition', 'attachment', filename=fileName_)
+        msg.attach(msgFiles)
+    """
+    # Assume we know that the image files are all in PNG format
+    for file in pngfiles:
+        # Open the files in binary mode.  Let the MIMEImage class automatically
+        # guess the specific image type.
+        with open(file, 'rb') as fp:
+            img = MIMEImage(fp.read())
+        msg.attach(img)
+    """
     
     # Send the message via our own SMTP server.
     s = smtplib.SMTP(hyperSettings['mail_server_name'])

@@ -108,6 +108,7 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
     result_data['Number_of_simulations_sampled'] = samples
     result_data['Number_of_threads_used'] = hyper_settings['tuning_threads'] 
     print (result)
+    return result_data
     
 
 if (__name__ == "__main__"):
@@ -116,6 +117,9 @@ if (__name__ == "__main__"):
         Example:
         python tuneHyperParameters.py settings/navGame/PPO_5D.json settings/navGame/PPO_5D_hyper.json 
     """
+    import tarfile
+    from util.SimulationUtil import addDataToTarBall
+    from sendEmail import sendEmail
     
     if (len(sys.argv) == 1):
         print("Please incluse sim settings file")
@@ -131,11 +135,28 @@ if (__name__ == "__main__"):
         hyperSettingsFileName = sys.argv[2] 
         file = open(hyperSettingsFileName)
         hyperSettings_ = json.load(file)
-        print ("Settings: " + str(json.dumps(settings_)))
+        print ("Settings: " + str(json.dumps(hyperSettings_)))
         file.close()
+        
+        simsettingsFileName = sys.argv[1]
+        file = open(simsettingsFileName)
+        simSettings_ = json.load(file)
+        print ("Settings: " + str(json.dumps(simSettings_, indent=4)))
+        file.close()
+        
+        ### Create a tar file of all the sim data
+        tarFileName = simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz'
+        dataTar = tarfile.open(tarFileName, mode='w:gz')
+        for meta_result in result['meta_sim_result']:
+            print (meta_result)
+            for simsettings_tmp in meta_result['settings_files']:
+                addDataToTarBall(dataTar, simsettings_tmp)
+        dataTar.close()
+        
+        
         ## Send an email so I know this has completed
         contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
-        sendEmail(subject="Simulation complete", contents=contents_, settings=hyperSettings_, simSettings=sys.argv[1])
+        sendEmail(subject="Simulation complete", contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1])
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)

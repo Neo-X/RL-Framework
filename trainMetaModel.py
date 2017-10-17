@@ -29,6 +29,9 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     import shutil
     import os
     
+    result_data = {}
+    result_data['settings_files'] = []
+    
     if (settings is None):
         file = open(settingsFileName)
         settings = json.load(file)
@@ -47,6 +50,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         settings['print_level'] = "hyper_train"
         settings['shouldRender'] = False
         settings['visualize_learning'] = False
+        result_data['settings_files'].append(copy.deepcopy(settings))
         
         sim_settings.append(copy.deepcopy(settings))
         sim_settingFileNames.append(settingsFileName)
@@ -68,7 +72,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     t1 = time.time()
     print ("Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
     print (result)
-    result_data = {}
+
     result_data['sim_time'] = "Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds"
     result_data['raw_sim_time_in_seconds'] = t1-t0
     result_data['Number_of_simulations_sampled'] = samples
@@ -87,6 +91,8 @@ if (__name__ == "__main__"):
     """
     from sendEmail import sendEmail
     import json
+    import tarfile
+    from util.SimulationUtil import addDataToTarBall
     
     if (len(sys.argv) == 1):
         print("Please incluse sim settings file")
@@ -100,40 +106,56 @@ if (__name__ == "__main__"):
         print("Please incluse sim settings file")
         print("python trainMetaModel.py <hyper_settings_file> <sim_settings_file> <num_samples>")
         sys.exit()
-    elif (len(sys.argv) == 4):
-        
-        settingsFileName = sys.argv[1] 
-        file = open(settingsFileName)
-        settings_ = json.load(file)
-        print ("Settings: " + str(json.dumps(settings_)))
-        file.close()
-        
-        result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]))
-        ## Send an email so I know this has completed
-        contents_ = json.dumps(settings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
-        sendEmail(subject="Simulation complete", contents=contents_, settings=settings_, simSettings=sys.argv[2])
     elif (len(sys.argv) == 5):
         settingsFileName = sys.argv[1] 
         file = open(settingsFileName)
-        settings_ = json.load(file)
-        print ("Settings: " + str(json.dumps(settings_)))
+        hyperSettings_ = json.load(file)
+        print ("Settings: " + str(json.dumps(hyperSettings_)))
         file.close()
         
-        result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]))
+        simsettingsFileName = sys.argv[2]
+        file = open(simsettingsFileName)
+        simSettings_ = json.load(file)
+        print ("Settings: " + str(json.dumps(simSettings_, indent=4)))
+        file.close()
+        
+        result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), settings=copy.deepcopy(simSettings_), numThreads=int(sys.argv[4]))
+        
+        ### Create a tar file of all the sim data
+        tarFileName = simSettings_['data_folder']+'.tar.gz'
+        dataTar = tarfile.open(tarFileName, mode='w:gz')
+        for simsettings_tmp in result['settings_files']:
+            addDataToTarBall(dataTar, simsettings_tmp)
+        dataTar.close()
         ## Send an email so I know this has completed
-        contents_ = json.dumps(settings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
-        sendEmail(subject="Simulation complete", contents=contents_, settings=settings_, simSettings=sys.argv[2])    
+        contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
+        sendEmail(subject="Simulation complete", contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[2])    
     elif (len(sys.argv) == 6):
         settingsFileName = sys.argv[1] 
         file = open(settingsFileName)
-        settings_ = json.load(file)
-        print ("Settings: " + str(json.dumps(settings_)))
+        hyperSettings_ = json.load(file)
+        print ("Settings: " + str(json.dumps(hyperSettings_)))
         file.close()
+        
+        simsettingsFileName = sys.argv[2]
+        file = open(simsettingsFileName)
+        simSettings_ = json.load(file)
+        print ("Settings: " + str(json.dumps(simSettings_, indent=4)))
+        file.close()
+        
         settings_['saved_fd_model_path'] = sys.argv[5]
-        result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]), hyperSettings=settings_)
+        result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), settings=copy.deepcopy(simSettings_), numThreads=int(sys.argv[4]), hyperSettings=hyperSettings_)
+        
+        ### Create a tar file of all the sim data
+        tarFileName = simSettings_['data_folder']+'.tar.gz'
+        dataTar = tarfile.open(tarFileName, mode='w:gz')
+        for simsettings_tmp in result['settings_files']:
+            addDataToTarBall(dataTar, simsettings_tmp)
+        dataTar.close()
+        
         ## Send an email so I know this has completed
-        contents_ = json.dumps(settings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
-        sendEmail(subject="Simulation complete", contents=contents_, settings=settings_, simSettings=sys.argv[2])      
+        contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
+        sendEmail(subject="Simulation complete", contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[2])      
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)
