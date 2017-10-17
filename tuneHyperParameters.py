@@ -156,7 +156,7 @@ if (__name__ == "__main__"):
         
         ## Send an email so I know this has completed
         contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
-        sendEmail(subject="Simulation complete", contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1])
+        sendEmail(subject="Simulation complete", contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1], dataFile=tarFileName)
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)

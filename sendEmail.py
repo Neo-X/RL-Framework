@@ -46,7 +46,7 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False,
     
     ### attach a compressed file
     if ( not (dataFile is None) ):
-        fileName_ = './tarfile_add.tar.gz'
+        fileName_ = dataFile
         fp = open(fileName_, 'rb')
         ctype = 'application/octet-stream'
         maintype, subtype = ctype.split('/', 1)
