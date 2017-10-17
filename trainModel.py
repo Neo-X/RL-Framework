@@ -587,19 +587,19 @@ def trainModelParallel(inputData):
                     for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls, _advantage=advantage__)
                     
-                    if ( settings['num_available_threads'] > 1 ):   
-                        data = ('Update_Policy', 1.0, masterAgent.getPolicy().getNetworkParameters())
-                        message = {}
-                        message['type'] = 'Update_Policy'
+                    # if ( settings['num_available_threads'] > 1 ):   
+                    data = ('Update_Policy', 1.0, masterAgent.getPolicy().getNetworkParameters())
+                    message = {}
+                    message['type'] = 'Update_Policy'
+                    message['data'] = data
+                    if (settings['train_forward_dynamics']):
+                        # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
+                        data = ('Update_Policy', 1.0, masterAgent.getPolicy().getNetworkParameters(),
+                                 masterAgent.getForwardDynamics().getNetworkParameters())
                         message['data'] = data
-                        if (settings['train_forward_dynamics']):
-                            # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-                            data = ('Update_Policy', 1.0, masterAgent.getPolicy().getNetworkParameters(),
-                                     masterAgent.getForwardDynamics().getNetworkParameters())
-                            message['data'] = data
-                        for m_q in sim_work_queues:
-                            ## block on full queue
-                            m_q.put(message)
+                    for m_q in sim_work_queues:
+                        ## block on full queue
+                        m_q.put(message)
                     
                     # states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
