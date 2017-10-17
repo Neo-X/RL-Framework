@@ -534,7 +534,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         action_grads = (action_grads/(np.sqrt((action_grads*action_grads).sum()))) * (learning_rate)
         if ('randomize_MBAE_action_length' in model.getSettings() and ( model.getSettings()['randomize_MBAE_action_length'])):
             # action_grads = action_grads * np.random.uniform(low=0.0, high = 1.0, size=1)[0]
-            action_grads = action_grads * (np.fabs(np.random.normal(loc=0.0, scale = 0.5, size=1)[0]) + 0.5)
+            action_grads = action_grads * (np.fabs(np.random.normal(loc=0.0, scale = 0.5, size=1)[0]))
             
         ## Scale action by action bounds
         action_grads = rescale_action(action_grads, model.getActionBounds())

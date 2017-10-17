@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.A_CACLA.A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Simple_Walk_PD_Imitate_SMBAE_Adv/",
+"data_folder": "Simple_Walk_PD_Imitate_SMBAE_aneal/",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 0.55, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -255,7 +255,7 @@
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
 "fix_actor_batch_size": true,
 	"comment__": "Whether or not to put MBAE on the annelling schedule",
-"anneal_mbae": false,
+"anneal_mbae": true,
 	"comment__": "The number of critic updates that are done between every dyna update step.",
 "dyna_update_lag_steps": 1,
 	"comment__": "Whether or not to use random actions for the MBAE exploration",
@@ -277,5 +277,5 @@
 	"comment__": "Load a saved and pre-trained forward dynamics model",
 "load_saved_fd_model": false,
 	"comment__": "Whether ot not MBAE should optimize the q function or the advantage function",
-"optimize_advantage_for_MBAE": true	
+"optimize_advantage_for_MBAE": false	
 }

@@ -183,7 +183,7 @@
     "comment__": "Whether or not to draw/render the simulation",
 "shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
-"action_learning_rate": 0.20,
+"action_learning_rate": 0.50,
     "comment__": "During model-based action exloration, Probability of a random action being generated from MBAE,",
 "model_based_action_omega": 0.20,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
@@ -287,7 +287,7 @@
 	"comment__": "number of on policy rollouts to perform per epoch",
 "num_on_policy_rollouts": 1,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
-"dont_use_advantage": false,
+"dont_use_advantage": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
 "load_saved_fd_model": false
 }
