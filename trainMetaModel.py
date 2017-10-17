@@ -110,7 +110,8 @@ if (__name__ == "__main__"):
         
         result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]))
         ## Send an email so I know this has completed
-        sendEmail(subject="Simulation complete", contents=json.dumps(result, indent=4, sort_keys=True), settings=settings_, simSettings=sys.argv[2])
+        contents_ = json.dumps(settings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
+        sendEmail(subject="Simulation complete", contents=contents_, settings=settings_, simSettings=sys.argv[2])
     elif (len(sys.argv) == 5):
         settingsFileName = sys.argv[1] 
         file = open(settingsFileName)
@@ -120,7 +121,8 @@ if (__name__ == "__main__"):
         
         result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]))
         ## Send an email so I know this has completed
-        sendEmail(subject="Simulation complete", contents=json.dumps(result, indent=4, sort_keys=True), settings=settings_, simSettings=sys.argv[2])    
+        contents_ = json.dumps(settings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
+        sendEmail(subject="Simulation complete", contents=contents_, settings=settings_, simSettings=sys.argv[2])    
     elif (len(sys.argv) == 6):
         settingsFileName = sys.argv[1] 
         file = open(settingsFileName)
@@ -130,7 +132,8 @@ if (__name__ == "__main__"):
         settings_['saved_fd_model_path'] = sys.argv[5]
         result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), numThreads=int(sys.argv[4]), hyperSettings=settings_)
         ## Send an email so I know this has completed
-        sendEmail(subject="Simulation complete", contents=json.dumps(result, indent=4, sort_keys=True), settings=settings_, simSettings=sys.argv[2])      
+        contents_ = json.dumps(settings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
+        sendEmail(subject="Simulation complete", contents=contents_, settings=settings_, simSettings=sys.argv[2])      
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)

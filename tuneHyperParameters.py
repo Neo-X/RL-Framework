@@ -134,7 +134,8 @@ if (__name__ == "__main__"):
         print ("Settings: " + str(json.dumps(settings_)))
         file.close()
         ## Send an email so I know this has completed
-        sendEmail(subject="Simulation complete", contents=json.dumps(result, indent=4, sort_keys=True), settings=hyperSettings_, simSettings=sys.argv[1])
+        contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
+        sendEmail(subject="Simulation complete", contents=contents_, settings=hyperSettings_, simSettings=sys.argv[1])
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)
