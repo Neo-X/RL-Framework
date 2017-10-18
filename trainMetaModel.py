@@ -143,7 +143,7 @@ if (__name__ == "__main__"):
         print ("Settings: " + str(json.dumps(simSettings_, indent=4)))
         file.close()
         
-        settings_['saved_fd_model_path'] = sys.argv[5]
+        hyperSettings_['saved_fd_model_path'] = sys.argv[5]
         result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), settings=copy.deepcopy(simSettings_), numThreads=int(sys.argv[4]), hyperSettings=hyperSettings_)
         
         ### Create a tar file of all the sim data
