@@ -53,13 +53,22 @@ def getTaskDataDirectory(settings):
 def addDataToTarBall(tarfile_, settings, fileName=None):
     import os
     import tarfile
-    dir = getDataDirectory(settings)
+    ## add all json and py files
+    if ( fileName is None ):
+        dir = getDataDirectory(settings)
+        for filename_tmp in os.listdir(dir):
+            print("Possible include file: ", os.path.splitext(filename_tmp))
+            split_ = os.path.splitext(filename_tmp)
+            if (split_[1] in ['.py', '.json']):
+                print("Adding file: ", filename_tmp)
+                tarfile_.add(dir+filename_tmp)
+    """
     fileName_ = dir+"trainingData_" + str(settings['agent_name']) + ".json"
     if os.path.exists(fileName_):
         tarfile_.add(fileName_)
     else:
         print ( "File does not exists: ", fileName_)
-    
+    """
     if ( not ( fileName is None) ):
         if os.path.exists(fileName):
             tarfile_.add(fileName)

@@ -156,6 +156,7 @@ if (__name__ == "__main__"):
                 addDataToTarBall(dataTar, simsettings_tmp)
             
         for hyperSetFile in result['hyper_param_settings_files']:
+            print("adding ", hyperSetFile, " to tar file")
             addDataToTarBall(dataTar, simsettings_tmp, fileName=hyperSetFile)
         dataTar.close()
         

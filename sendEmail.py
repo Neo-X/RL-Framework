@@ -39,7 +39,7 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False,
     msg['From'] = fromEmail
     msg['To'] = 'gberseth@cs.ubc.ca'
     
-    print("Email message: ", msg)
+    # print("Email message: ", msg)
     
     if ( testing ):
         return
