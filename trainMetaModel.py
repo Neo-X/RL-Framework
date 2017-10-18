@@ -39,17 +39,18 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         file.close()
     
     print ( "Running ", samples, " simulation(s) over ", numThreads, " Thread(s)")
-    data_name = settings['data_folder']
+    settings_original = copy.deepcopy(settings)
     sim_settings=[]
     sim_settingFileNames=[]
     sim_data = []
     for i in range(samples):
-        settings['data_folder'] = data_name + "_" + str(i)
+        settings['data_folder'] = settings_original['data_folder'] + "_" + str(i)
         settings['random_seed'] = int(settings['random_seed']) + ((int(settings['num_available_threads']) + 1) * i)
         ## Change some other settings to reduce memory usage and train faster
         settings['print_level'] = "hyper_train"
         settings['shouldRender'] = False
         settings['visualize_learning'] = False
+        settings['saving_update_freq_num_rounds'] = settings_original['saving_update_freq_num_rounds'] * 10
         result_data['settings_files'].append(copy.deepcopy(settings))
         
         sim_settings.append(copy.deepcopy(settings))
