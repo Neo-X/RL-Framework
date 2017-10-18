@@ -123,7 +123,7 @@ if (__name__ == "__main__"):
         result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), settings=copy.deepcopy(simSettings_), numThreads=int(sys.argv[4]))
         
         ### Create a tar file of all the sim data
-        tarFileName = simSettings_['data_folder']+'.tar.gz'
+        tarFileName = simSettings_['agent_name']+simSettings_['data_folder']+'.tar.gz'
         dataTar = tarfile.open(tarFileName, mode='w:gz')
         for simsettings_tmp in result['settings_files']:
             addDataToTarBall(dataTar, simsettings_tmp)
@@ -148,7 +148,7 @@ if (__name__ == "__main__"):
         result = trainMetaModel(sys.argv[2], samples=int(sys.argv[3]), settings=copy.deepcopy(simSettings_), numThreads=int(sys.argv[4]), hyperSettings=hyperSettings_)
         
         ### Create a tar file of all the sim data
-        tarFileName = simSettings_['data_folder']+'.tar.gz'
+        tarFileName = simSettings_['agent_name']+simSettings_['data_folder']+'.tar.gz'
         dataTar = tarfile.open(tarFileName, mode='w:gz')
         for simsettings_tmp in result['settings_files']:
             addDataToTarBall(dataTar, simsettings_tmp)

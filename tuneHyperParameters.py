@@ -148,7 +148,7 @@ if (__name__ == "__main__"):
         file.close()
         
         ### Create a tar file of all the sim data
-        tarFileName = simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz'
+        tarFileName = simSettings_['agent_name']+simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz'
         dataTar = tarfile.open(tarFileName, mode='w:gz')
         for meta_result in result['meta_sim_result']:
             print (meta_result)
