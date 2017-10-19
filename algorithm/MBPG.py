@@ -537,7 +537,7 @@ class MBPG(AlgorithmInterface):
             # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
             ## Sometimes really HUGE losses appear, occasionally
-        if ( False ): # whether or not to update the std of policy as well.
+        if ( not self.getSettings()['use_fixed_std'] ): # whether or not to update the std of policy as well.
             lossActor = np.abs(np.mean(self._get_action_diff()))
             if (lossActor < 1000): 
                 if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'])):
