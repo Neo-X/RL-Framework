@@ -9,6 +9,8 @@
 "param_to_tune": "dropout_p",
 	"comment__": "Parameter bounds, for which values will be sampled",
 "param_bounds": [0.025, 0.7],
+	"comment__": "parameter value type [int|float]",
+"param_data_type": "float",
 	"comment__": "Number of samples to evaluation between the given bounds",
 "num_param_samples": 10,
 	"comment__": "The fully qualified name of the mail server to use",
