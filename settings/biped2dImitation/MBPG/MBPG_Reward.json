@@ -1,6 +1,6 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "model.DeepNNTanHDropoutSingleNet.DeepNNTanHDropoutSingleNet",
+"model_type": "model.DeepNNDropoutCritic.DeepNNDropoutCritic",
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.MBPG.MBPG",
     "comment__": "Folder to store the training data in.",
