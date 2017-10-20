@@ -1,6 +1,6 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "model.DeepNNTanH.DeepNNTanH",
+"model_type": "model.DeepNNDropoutCritic.DeepNNDropoutCritic",
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.MBPG.MBPG",
     "comment__": "Folder to store the training data in.",
@@ -242,7 +242,7 @@
 	"comment__": "Whether or not to clear the experience memory after each update is done, for pure on policy methods",
 "clear_exp_mem_on_poli": true,
 	"comment__": "fix the std used for action parameters",
-"use_fixed_std": false,
+"use_fixed_std": true,
 	"comment__": "Disable scaling for inputs and outputs of networks",
 "disable_parameter_scaling": true,
 	"comment__": "Train a state encoding as well.",
