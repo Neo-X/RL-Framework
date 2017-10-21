@@ -1,6 +1,6 @@
 {
     "comment__": "Number of threads to use for hyper parameter tuning",
-"tuning_threads": 3,
+"tuning_threads": 2,
 	"comment__": "Number of threads to use for Meta simulation, running a number of simulations and taking the average of them",
 "meta_sim_threads": 5,
 	"comment__": "Number of threads to use for Meta simulation, running a number of simulations and taking the average of them",
