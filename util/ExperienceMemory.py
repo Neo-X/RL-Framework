@@ -5,6 +5,7 @@ import numpy as np
 import random
 import h5py
 from model.ModelUtil import *
+import sys
 
 
 class ExperienceMemory(object):
@@ -118,7 +119,14 @@ class ExperienceMemory(object):
         len(experience > batch_size
         """
         # indices = list(nprnd.randint(low=0, high=len(experience), size=batch_size))
-        indices = (random.sample(range(0, min(self._history_size, self.samples())), batch_size))
+        try:
+            max_size = min(self._history_size, self.samples())
+            indices = (random.sample(range(0, max_size), batch_size))
+        except ValueError as e:
+            print("Batch size: ", batch_size, " exp size: ", max_size)
+            print ("I/O error({0}): {1}".format(e.errno, e.strerror))
+            # print "Unexpected error:", sys.exc_info()[0]
+            raise e
         # print ("Indicies: " , indices)
         # print("Exp buff state bounds: ", self._state_bounds)
 
