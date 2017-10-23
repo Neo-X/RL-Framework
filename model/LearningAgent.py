@@ -159,7 +159,7 @@ class LearningAgent(AgentInterface):
                         cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, forwardDynamicsModel=self._fd)
                 else:
                     ## Hack because for some reason Not pulling data from the buffer leads to the policy mean being odd...
-                    _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(_actions.shape[0])
+                    _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(min(_actions.shape[0], self._expBuff.samples()))
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, forwardDynamicsModel=self._fd)
                     """
                     if not np.isfinite(cost_) or (cost_ > 500) :
