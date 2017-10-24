@@ -5,7 +5,7 @@ import numpy as np
 import random
 import sys
 import json
-from PolicyTrainVisualize import PolicyTrainVisualize
+from tools.PolicyTrainVisualize import PolicyTrainVisualize
 import os
 import re
 
@@ -40,7 +40,7 @@ def getDataFolderNames(prefixPath, folderPrefix, settings):
                 print ("Folder Name: ", path + filename + name_suffix)
     return folderNames
         
-def plotMetaDataSimulation(data_path, settings, settingsFiles):   
+def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):   
     
     rlv = PolicyTrainVisualize("Training Curves", settings=settings)
     otherDatas = []
@@ -53,7 +53,7 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles):
         settingsFile_.close()
     
         folder_ = settings['data_folder'] + "_"
-        folderNames_ = getDataFolderNames(path, folder_, settings)
+        folderNames_ = getDataFolderNames(data_path, folder_, settings)
         trainingDatas = []
         # Need to train a better Baseline
         for folderName in folderNames_:
@@ -95,8 +95,10 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles):
     rlv.setLength(min_length)
     rlv.updateRewards(trainingDatas, otherDatas)
     rlv.init()
-    rlv.saveVisual("MBAE_Training_curves")
-    rlv.show()
+    rlv.saveVisual(folder+"MBAE_Training_curves")
+    # rlv.show()
+    
+    return rlv
 
 
 if __name__ == "__main__":
@@ -108,9 +110,10 @@ if __name__ == "__main__":
         settings = json.load(settingsFile)
         settingsFile.close()
         path = sys.argv[1]
-        plotMetaDataSimulation(path, settings, sys.argv[2:])
+        rlv = plotMetaDataSimulation(path, settings, sys.argv[2:])
         # length = int(sys.argv[2])
         # rlv.setLength(length)
+        rlv.show()
     else:
         print ("Please specify arguments properly")
         print ("python plot_meta_simulation.py <path_to_data> <settings_file_name> <settings_file_name> ...")

@@ -42,7 +42,10 @@ def getDataDirectory(settings):
     return getBaseDataDirectory(settings)+settings["model_type"]+"/"
 
 def getBaseDataDirectory(settings):
-    return settings["environment_type"]+"/"+settings["agent_name"]+"/"+settings["data_folder"]+"/"
+    return getRootDataDirectory(settings)+"/"+settings["data_folder"]+"/"
+
+def getRootDataDirectory(settings):
+    return settings["environment_type"]+"/"+settings["agent_name"]
 
 def getAgentName(settings):
     return 'pendulum_agent'
@@ -78,6 +81,22 @@ def addDataToTarBall(tarfile_, settings, fileName=None):
         
     # tarfile.add('/README.md')
 
+def addPicturesToTarBall(tarfile_, settings, fileName=None):
+    import os
+    import tarfile
+    ## add all json and py files
+    if ( fileName is None ):
+        dir = getRootDataDirectory(settings)+"/"
+        # dir = getDataDirectory(settings)
+        for filename_tmp in os.listdir(dir):
+            print("Possible include file: ", os.path.splitext(filename_tmp))
+            split_ = os.path.splitext(filename_tmp)
+            if (split_[1] in ['.png', '.svg']):
+                print("Adding file: ", filename_tmp)
+                tarfile_.add(dir+filename_tmp)
+    
+        
+    # tarfile.add('/README.md')
 
 def my_import(name):
     components = name.split('.')

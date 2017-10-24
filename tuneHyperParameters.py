@@ -8,8 +8,9 @@ from pathos.threading import ThreadPool
 from pathos.multiprocessing import ProcessingPool
 import time
 import datetime
+from tools.plot_meta_simulation import plotMetaDataSimulation
 
-from util.SimulationUtil import getDataDirectory, getBaseDataDirectory
+from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory
 """
 def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
 """
@@ -121,7 +122,7 @@ if (__name__ == "__main__"):
         python tuneHyperParameters.py settings/navGame/PPO_5D.json settings/navGame/PPO_5D_hyper.json 
     """
     import tarfile
-    from util.SimulationUtil import addDataToTarBall
+    from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
     from sendEmail import sendEmail
     
     if (len(sys.argv) == 1):
@@ -158,14 +159,17 @@ if (__name__ == "__main__"):
         for hyperSetFile in result['hyper_param_settings_files']:
             print("adding ", hyperSetFile, " to tar file")
             addDataToTarBall(dataTar, simsettings_tmp, fileName=hyperSetFile)
-            polt_settings_files.append(simsettings_tmp)
-        dataTar.close()
+            polt_settings_files.append(hyperSetFile)
         
-        root_data_dir = getBaseDataDirectory(simsettings_tmp)
+        root_data_dir = getRootDataDirectory(simSettings_)+"/"
+        figure_file_name = root_data_dir + simSettings_['data_folder'] + "_" + hyperSettings_['param_to_tune'] + '_'
         
         print("root_data_dir: ", root_data_dir)
         
-        # plotMetaDataSimulation(root_data_dir, simSettings_, polt_settings_files)
+        plotMetaDataSimulation(root_data_dir, simSettings_, polt_settings_files, folder=figure_file_name)
+        ## Add pictures to tar file
+        addPicturesToTarBall(dataTar, simSettings_)
+        dataTar.close()
         
         ## Send an email so I know this has completed
         contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)

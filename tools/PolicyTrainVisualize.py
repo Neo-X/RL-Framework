@@ -131,7 +131,7 @@ class PolicyTrainVisualize(object):
             
             self._fig.set_size_inches(11.0, 6.0, forward=True)
             self._fig_value.set_size_inches(11.0, 6.0, forward=True)
-            plt.show()
+            # plt.show()
         else:
             means_ = []
             cmap = get_cmap(len(self._otherDatas)+1)
@@ -211,7 +211,7 @@ class PolicyTrainVisualize(object):
             
             self._fig.set_size_inches(11.0, 6.0, forward=True)
             self._fig_value.set_size_inches(11.0, 6.0, forward=True)
-            plt.show()
+            # plt.show()
     def updateRewards(self, trainingDatas, otherDatas=None):
         self._trainingDatas = trainingDatas
         self._otherDatas = otherDatas
