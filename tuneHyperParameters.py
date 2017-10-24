@@ -154,12 +154,18 @@ if (__name__ == "__main__"):
             print (meta_result)
             for simsettings_tmp in meta_result['settings_files']:
                 addDataToTarBall(dataTar, simsettings_tmp)
-            
+        polt_settings_files = []    
         for hyperSetFile in result['hyper_param_settings_files']:
             print("adding ", hyperSetFile, " to tar file")
             addDataToTarBall(dataTar, simsettings_tmp, fileName=hyperSetFile)
+            polt_settings_files.append(simsettings_tmp)
         dataTar.close()
         
+        root_data_dir = getBaseDataDirectory(simsettings_tmp)
+        
+        print("root_data_dir: ", root_data_dir)
+        
+        # plotMetaDataSimulation(root_data_dir, simSettings_, polt_settings_files)
         
         ## Send an email so I know this has completed
         contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)

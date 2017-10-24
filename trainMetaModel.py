@@ -69,10 +69,10 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     # p = ThreadPool(numThreads)
     p = ProcessingPool(numThreads)
     t0 = time.time()
-    result = p.map(trainModelParallel, sim_data)
+    # result = p.map(trainModelParallel, sim_data)
     t1 = time.time()
     print ("Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
-    print (result)
+    # print (result)
 
     result_data['sim_time'] = "Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds"
     result_data['raw_sim_time_in_seconds'] = t1-t0

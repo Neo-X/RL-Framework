@@ -40,38 +40,11 @@ def getDataFolderNames(prefixPath, folderPrefix, settings):
                 print ("Folder Name: ", path + filename + name_suffix)
     return folderNames
         
-if __name__ == "__main__":
+def plotMetaDataSimulation(data_path, settings, settingsFiles):   
     
-    settings = None
-    if (len(sys.argv) > 2 ):
-        settingsFileName = sys.argv[2]
-        settingsFile = open(settingsFileName, 'r')
-        settings = json.load(settingsFile)
-        settingsFile.close()
-        rlv = PolicyTrainVisualize("Training Curves", settings=settings)
-        path = sys.argv[1]
-        # length = int(sys.argv[2])
-        # rlv.setLength(length)
-    else:
-        print ("Please specify arguments properly")
-        print ("python plot_meta_simulation.py <path_to_data> <settings_file_name> <settings_file_name> ...")
-        sys.exit()
-    
-    
+    rlv = PolicyTrainVisualize("Training Curves", settings=settings)
     otherDatas = []
-    
-    settingsFiles = ['settings/particleSim/A_CACLA_10D.json', 
-                     'settings/particleSim/A_CACLA_MBAE_10D.json', 
-                     'settings/particleSim/A_CACLA_SMBAE_10D.json',
-                     'settings/particleSim/A_CACLA_MBAE_10D.json']
-    """
-    settingsFiles = ['settings/particleSim/PPO_10D.json', 
-                     'settings/particleSim/PPO_MBAE_10D.json', 
-                     'settings/particleSim/PPO_SMBAE_10D.json',
-		     'settings/particleSim/PPO_Dropout_SMBAE_10D.json']
-
-    """
-    settingsFiles = sys.argv[2:]
+    # settingsFiles = sys.argv[2:]
     print("settingsFiles: ", settingsFiles)
     for settingsFile_ in settingsFiles:
         print ("Loading settings file: ", settingsFile_)
@@ -124,3 +97,21 @@ if __name__ == "__main__":
     rlv.init()
     rlv.saveVisual("MBAE_Training_curves")
     rlv.show()
+
+
+if __name__ == "__main__":
+    
+    settings = None
+    if (len(sys.argv) > 2 ):
+        settingsFileName = sys.argv[2]
+        settingsFile = open(settingsFileName, 'r')
+        settings = json.load(settingsFile)
+        settingsFile.close()
+        path = sys.argv[1]
+        plotMetaDataSimulation(path, settings, sys.argv[2:])
+        # length = int(sys.argv[2])
+        # rlv.setLength(length)
+    else:
+        print ("Please specify arguments properly")
+        print ("python plot_meta_simulation.py <path_to_data> <settings_file_name> <settings_file_name> ...")
+        sys.exit()
