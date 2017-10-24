@@ -149,7 +149,8 @@ if (__name__ == "__main__"):
         file.close()
         
         ### Create a tar file of all the sim data
-        tarFileName = simSettings_['agent_name']+simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz'
+        tarFileName = (simSettings_['agent_name']+simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz').replace('/', '')
+        # tarFileName = (simSettings_['agent_name']+simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz')
         dataTar = tarfile.open(tarFileName, mode='w:gz')
         for meta_result in result['meta_sim_result']:
             print (meta_result)
@@ -173,7 +174,12 @@ if (__name__ == "__main__"):
         
         ## Send an email so I know this has completed
         contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
-        sendEmail(subject="Simulation complete", contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1], dataFile=tarFileName)
+        if ( ('testing' in hyperSettings_ and (hyperSettings_['testing']))):
+            print("Not simulating, this is a testing run:")
+            testing_ = True
+        else:
+            testing_ = False 
+        sendEmail(subject="Simulation complete", contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1], dataFile=tarFileName, testing=testing_)
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)

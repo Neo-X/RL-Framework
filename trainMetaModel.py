@@ -59,6 +59,10 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         
         ## Create data directory and copy any desired files to these folders .
         if ( not (hyperSettings is None) ):
+            file = open(hyperSettings)
+            hyper_settings = json.load(file)
+            print ("Settings: " + str(json.dumps(settings)))
+            file.close()
             directory= getDataDirectory(settings)
             if not os.path.exists(directory):
                 os.makedirs(directory)
@@ -69,7 +73,11 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     # p = ThreadPool(numThreads)
     p = ProcessingPool(numThreads)
     t0 = time.time()
-    result = p.map(trainModelParallel, sim_data)
+    # print ("hyperSettings: ", hyper_settings)
+    if ( ('testing' in hyper_settings and (hyper_settings['testing']))):
+        print("Not simulating, this is a testing run:")
+    else:
+        result = p.map(trainModelParallel, sim_data)
     t1 = time.time()
     print ("Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
     # print (result)
