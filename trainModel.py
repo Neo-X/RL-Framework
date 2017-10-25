@@ -756,6 +756,7 @@ def trainModelParallel(inputData):
                     trainData["mean_reward"].append(mean_reward)
                     # print ("Mean Rewards: " + str(mean_rewards))
                     trainData["std_reward"].append(std_reward)
+                    trainData["anneal_p"].append(p)
                     # bellman_errors
                     # trainData["mean_bellman_error"].append(mean_bellman_error)
                     # trainData["std_bellman_error"].append(std_bellman_error)
