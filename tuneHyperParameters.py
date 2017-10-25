@@ -166,10 +166,12 @@ if (__name__ == "__main__"):
         figure_file_name = root_data_dir + simSettings_['data_folder'] + "_" + hyperSettings_['param_to_tune'] + '_'
         
         print("root_data_dir: ", root_data_dir)
-        
-        plotMetaDataSimulation(root_data_dir, simSettings_, polt_settings_files, folder=figure_file_name)
-        ## Add pictures to tar file
-        addPicturesToTarBall(dataTar, simSettings_)
+        try:
+            plotMetaDataSimulation(root_data_dir, simSettings_, polt_settings_files, folder=figure_file_name)
+            ## Add pictures to tar file
+            addPicturesToTarBall(dataTar, simSettings_)
+        except Exception as e:
+            print("Error plotting data there my not be a DISPLAY available.")
         dataTar.close()
         
         ## Send an email so I know this has completed

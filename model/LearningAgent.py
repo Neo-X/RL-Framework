@@ -96,7 +96,7 @@ class LearningAgent(AgentInterface):
             # print("Batch size: ", len(_states), len(_actions), len(_result_states), len(_rewards), len(_falls), len(_advantage))
             ### validate every tuples before giving them to the learning method
             num_samples_=0
-            for (state__, action__, next_state__, reward__, fall__, advantage__) in zip(_states, _actions, _result_states, _rewards, _falls, _advantage):
+            for (state__, action__, next_state__, reward__, fall__, advantage__, exp_action__) in zip(_states, _actions, _result_states, _rewards, _falls, _advantage, _exp_actions):
                 if (checkValidData(state__, action__, next_state__, reward__)):
                     tmp_states.append(state__)
                     tmp_actions.append(action__)
@@ -104,7 +104,7 @@ class LearningAgent(AgentInterface):
                     tmp_rewards.append(reward__)
                     tmp_falls.append(fall__)
                     tmp_advantage.append(advantage__)
-                    tmp_exp_action.append([0])## Doesn't really matter for on policy methods
+                    tmp_exp_action.append(exp_action__)
                     tup = (state__, action__, next_state__, reward__, fall__, advantage__, [0])
                     self._expBuff.insertTuple(tup)
                     num_samples_ = num_samples_ + 1

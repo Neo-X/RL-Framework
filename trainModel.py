@@ -537,6 +537,7 @@ def trainModelParallel(inputData):
         trainData["std_actor_loss"]=[]
         trainData["mean_actor_regularization_cost"]=[]
         trainData["std_actor_regularization_cost"]=[]
+        trainData["anneal_p"]=[]
         
         if (False ):
             print("State Bounds:", masterAgent.getStateBounds())
@@ -553,7 +554,7 @@ def trainModelParallel(inputData):
             # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
             # p = (settings['initial_temperature'] / (math.log(round_))) 
             # p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds))
-            p = ((settings['initial_temperature']/math.log(round_+2))) 
+            p = ((settings['initial_temperature']/math.log(round_+1))) 
             # p = ((rounds - round_)/rounds) ** 2
             p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
             if ( settings['load_saved_model'] ):
@@ -587,14 +588,18 @@ def trainModelParallel(inputData):
                     for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls, _advantage=advantage__)
                     
-                    # if ( settings['num_available_threads'] > 1 ):   
-                    data = ('Update_Policy', 1.0, masterAgent.getPolicy().getNetworkParameters())
+                    # if ( settings['num_available_threads'] > 1 ):
+                    if ( ('anneal_on_policy' in settings) and settings['anneal_on_policy']):  
+                        p_tmp_ = p 
+                    else:
+                        p_tmp_ = 1.0
+                    data = ('Update_Policy', p_tmp_, masterAgent.getPolicy().getNetworkParameters())
                     message = {}
                     message['type'] = 'Update_Policy'
                     message['data'] = data
                     if (settings['train_forward_dynamics']):
                         # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-                        data = ('Update_Policy', 1.0, masterAgent.getPolicy().getNetworkParameters(),
+                        data = ('Update_Policy', p_tmp_, masterAgent.getPolicy().getNetworkParameters(),
                                  masterAgent.getForwardDynamics().getNetworkParameters())
                         message['data'] = data
                     for m_q in sim_work_queues:

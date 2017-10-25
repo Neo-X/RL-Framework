@@ -114,7 +114,10 @@ class ExperienceMemory(object):
     def history_size(self):
         return self._history_size
         
-    def get_batch(self, batch_size=32):
+    def get_exporation_action_batch(self, batch_size=32):
+        get_batch(self, batch_size=batch_size, exp_actions_only=True)
+            
+    def get_batch(self, batch_size=32, exp_actions_only=False):
         """
         len(experience > batch_size
         """
@@ -139,6 +142,9 @@ class ExperienceMemory(object):
         exp_actions = []
         # scale_state(self._state_history[i], self._state_bounds)
         for i in indices:
+            ## skip tuples that were not exploration actions
+            if (exp_actions_only and (self._exp_action_history[i] == 1)):
+                continue
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
                 # state.append(self._state_history[i])
                 state.append(norm_state(self._state_history[i], self._state_bounds))
