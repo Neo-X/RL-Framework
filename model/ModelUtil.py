@@ -819,11 +819,11 @@ if __name__ == '__main__':
         print (" Exploration action: ", action_)
             
     # data = actions_
-    """
+    
     for k in range(len(actions_)):
         plt.hist(actions_[k], bins=20)
         plt.show()
-    """
+    
     reward=np.array([-9.0])
     """
     print ("Norm Reward: " + str(norm_reward(reward, reward_bounds)) )

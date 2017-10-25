@@ -579,7 +579,7 @@ class PPO(AlgorithmInterface):
             
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
-            print("Actions mean:     ", np.mean(actions, axis=0))
+            print("Actions mean:     ", np.mean(actions, axis=0), " shape: ", np.array(actions).shape)
             print("Policy mean: ", np.mean(self._q_action(), axis=0))
             # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
             print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
