@@ -409,6 +409,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 0 <= e < omega < 1.0
             """
             r = np.random.rand(1)[0]
+            # print(" Action p: ", p)
             if r < (epsilon * p): # explore random actions
                 exp_action = int(1)
                 r2 = np.random.rand(1)[0]

@@ -1,3 +1,7 @@
+## Don't use Xwindows backend for this
+import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 # from matplotlib import mpl
 import numpy as np

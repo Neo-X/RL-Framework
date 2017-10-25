@@ -172,6 +172,7 @@ if (__name__ == "__main__"):
             addPicturesToTarBall(dataTar, simSettings_)
         except Exception as e:
             print("Error plotting data there my not be a DISPLAY available.")
+            print("Error: ", e)
         dataTar.close()
         
         ## Send an email so I know this has completed
