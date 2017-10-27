@@ -5,7 +5,10 @@ import numpy as np
 import random
 import sys
 import json
-from tools.PolicyTrainVisualize import PolicyTrainVisualize
+try:
+    from PolicyTrainVisualize import PolicyTrainVisualize
+except Exception as e:
+    from tools.PolicyTrainVisualize import PolicyTrainVisualize
 import os
 import re
 
