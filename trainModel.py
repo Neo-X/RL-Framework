@@ -40,7 +40,7 @@ def trainModelParallel(inputData):
         # (sys.argv[1], settings)
         settingsFileName = inputData[0]
         settings = inputData[1]
-        np.random.seed(settings['random_seed'])
+        np.random.seed(int(settings['random_seed']))
     # pr = cProfile.Profile()
     # pr.enable()
     # try:
