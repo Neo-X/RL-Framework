@@ -896,9 +896,6 @@ def trainModelParallel(inputData):
                 dill.dump(masterAgent.getPolicy(), f)
                 f.close()
                 
-                f = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", "w")
-                json.dump(trainData, f, sort_keys=True, indent=4)
-                f.close()
             gc.collect()    
             # print (h.heap())
             
@@ -956,11 +953,13 @@ def trainModelParallel(inputData):
         f = open(file_name, 'wb')
         dill.dump(masterAgent.getPolicy(), f)
         f.close()
-        """
+        
         f = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", "w")
+        for key in trainData:
+            trainData[key] = [float(i) for i in trainData[key]]
         json.dump(trainData, f, sort_keys=True, indent=4)
         f.close()
-        """
+        
         if (settings['train_forward_dynamics']):
             file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
             f = open(file_name_dynamics, 'wb')

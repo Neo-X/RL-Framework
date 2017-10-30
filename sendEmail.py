@@ -16,7 +16,7 @@ from email.mime.multipart import MIMEMultipart
 # Open a plain text file for reading.  For this example, assume that
 # the text file contains only ASCII characters.
 # with open(textfile) as fp:
-def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False, dataFile=None):
+def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False, dataFile=None, pictureFile=None):
     # Create a text/plain message
     messageBody = contents + "\n" + simSettings
     msg = MIMEMultipart()
@@ -41,9 +41,6 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False,
     
     # print("Email message: ", msg)
     
-    if ( testing ):
-        return
-    
     ### attach a compressed file
     if ( not (dataFile is None) ):
         fileName_ = dataFile
@@ -57,16 +54,20 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False,
         # Set the filename parameter
         msgFiles.add_header('Content-Disposition', 'attachment', filename=fileName_)
         msg.attach(msgFiles)
-    """
+    
     # Assume we know that the image files are all in PNG format
-    for file in pngfiles:
+    if ( (pictureFile is not None) ):
+        # for file in pngfiles:
         # Open the files in binary mode.  Let the MIMEImage class automatically
         # guess the specific image type.
-        with open(file, 'rb') as fp:
-            img = MIMEImage(fp.read())
+        print ("Attaching image: ", pictureFile)
+        fp = open(pictureFile, 'rb')
+        img = MIMEImage(fp.read())
+        fp.close()
         msg.attach(img)
-    """
     
+    if ( testing ):
+        return
     # Send the message via our own SMTP server.
     s = smtplib.SMTP(hyperSettings['mail_server_name'])
     s.send_message(msg)

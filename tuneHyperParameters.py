@@ -156,8 +156,10 @@ if (__name__ == "__main__"):
         print ("Settings: " + str(json.dumps(simSettings_, indent=4)))
         file.close()
         
+        root_data_dir = getRootDataDirectory(simSettings_)+"/"
+        
         ### Create a tar file of all the sim data
-        tarFileName = (simSettings_['agent_name']+simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz').replace('/', '')
+        tarFileName = (root_data_dir + simSettings_['data_folder'] + "/_" +hyperSettings_['param_to_tune']+'.tar.gz')
         # tarFileName = (simSettings_['agent_name']+simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz')
         dataTar = tarfile.open(tarFileName, mode='w:gz')
         for meta_result in result['meta_sim_result']:
@@ -170,14 +172,15 @@ if (__name__ == "__main__"):
             addDataToTarBall(dataTar, simsettings_tmp, fileName=hyperSetFile)
             polt_settings_files.append(hyperSetFile)
         
-        root_data_dir = getRootDataDirectory(simSettings_)+"/"
         figure_file_name = root_data_dir + simSettings_['data_folder'] + "/_" + hyperSettings_['param_to_tune'] + '_'
         
         print("root_data_dir: ", root_data_dir)
+        pictureFileName=None
         try:
             plotMetaDataSimulation(root_data_dir, simSettings_, polt_settings_files, folder=figure_file_name)
             ## Add pictures to tar file
             addPicturesToTarBall(dataTar, simSettings_)
+            pictureFileName=figure_file_name + "MBAE_Training_curves.png"
         except Exception as e:
             print("Error plotting data there my not be a DISPLAY available.")
             print("Error: ", e)
@@ -190,7 +193,8 @@ if (__name__ == "__main__"):
             testing_ = True
         else:
             testing_ = False 
-        sendEmail(subject="Simulation complete", contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1], dataFile=tarFileName, testing=testing_)
+        sendEmail(subject="Simulation complete", contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1], dataFile=tarFileName, testing=testing_, 
+                  pictureFile=pictureFileName)
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)
