@@ -193,7 +193,7 @@ if (__name__ == "__main__"):
             testing_ = True
         else:
             testing_ = False 
-        sendEmail(subject="Simulation complete", contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1], dataFile=tarFileName, testing=testing_, 
+        sendEmail(subject="Simulation complete: " + result['sim_time'], contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1], dataFile=tarFileName, testing=testing_, 
                   pictureFile=pictureFileName)
     else:
         print("Please specify arguments properly, ")

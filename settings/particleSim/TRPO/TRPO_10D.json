@@ -252,5 +252,5 @@
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy rollouts to perform per epoch",
-"num_on_policy_rollouts": 3
+"num_on_policy_rollouts": 5
 }
