@@ -461,7 +461,7 @@ class A_CACLA(AlgorithmInterface):
             )
         """
         for i in range(len(diff_)):
-            if ( ((diff_[i] > 0.0) and 
+            if ( (((diff_[i] > 0.0) or ( 'use_advantage_instaed_of_ptd' in self.getSettings() and self.getSettings()['use_advantage_instaed_of_ptd'])) and 
                    (exp_actions[i] == 1))
                   ):
                 if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):

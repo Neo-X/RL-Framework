@@ -287,7 +287,9 @@
 	"comment__": "number of on policy rollouts to perform per epoch",
 "num_on_policy_rollouts": 1,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
-"dont_use_advantage": true,
+"dont_use_advantage": false,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
-"load_saved_fd_model": false
+"load_saved_fd_model": false,
+	"comment__": "Use advantage for CACLA with MSE, not just PTD",
+"use_advantage_instaed_of_ptd": true
 }

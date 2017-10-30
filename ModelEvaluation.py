@@ -454,7 +454,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         sys.exit(1)
                     # randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # randomAction = random.choice(action_selection)
-                    if (settings["use_model_based_action_optimization"] ):
+                    if (settings["use_model_based_action_optimization"] and settings["train_forward_dynamics"] ):
                         """
                         if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
                             mbae_omega = p * settings["model_based_action_omega"]
