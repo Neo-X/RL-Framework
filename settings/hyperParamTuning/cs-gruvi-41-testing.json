@@ -14,9 +14,9 @@
 	"comment__": "parameter value type [int|float]",
 "param_data_type": "float",
 	"comment__": "The fully qualified name of the mail server to use",
-"mail_server_name": "mail.cs.ubc.ca",
+"mail_server_name": "localhost",
 	"comment__": "from email address",
-"from_email_address": "gberseth@cs.ubc.ca",
+"from_email_address": "csguestn",
 	"comment__": "Flag to say this is a testing run",
-"testing": true 	
+"testing": false 	
 }
