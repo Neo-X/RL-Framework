@@ -92,7 +92,7 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
                 sys.exit()
         else:
             param_value = ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0]
-        settings['data_folder'] = data_name + "_" + param_of_interest + "_"+ str(param_value) + "/"
+        settings['data_folder'] = data_name + "/_" + param_of_interest + "_"+ str(param_value) + "/"
         settings[param_of_interest] = param_value
         directory= getBaseDataDirectory(settings)
         if not os.path.exists(directory):
