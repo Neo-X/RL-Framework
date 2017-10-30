@@ -74,7 +74,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     p = ProcessingPool(numThreads)
     t0 = time.time()
     # print ("hyperSettings: ", hyper_settings)
-    if ( (hyper_settings is not None) and ('testing' in hyper_settings and (hyper_settings['testing']))):
+    if ( (hyperSettings is not None) and ('testing' in hyper_settings and (hyper_settings['testing']))):
         print("Not simulating, this is a testing run:")
     else:
         result = p.map(trainModelParallel, sim_data)
