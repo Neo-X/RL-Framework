@@ -82,6 +82,14 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
     for i in range(samples+1):
         if (hyper_settings['param_data_type'] == "int"):
             param_value = int( ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0] )
+        elif (hyper_settings['param_data_type'] == "bool"):
+            if ( i == 0):
+                param_value = True
+            elif ( i == 1):
+                param_value = False
+            else:
+                print("Error to many samples for bool type:")
+                sys.exit()
         else:
             param_value = ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0]
         settings['data_folder'] = data_name + "_" + param_of_interest + "_"+ str(param_value) + "/"
