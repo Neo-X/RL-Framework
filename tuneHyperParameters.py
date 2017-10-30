@@ -171,7 +171,7 @@ if (__name__ == "__main__"):
             polt_settings_files.append(hyperSetFile)
         
         root_data_dir = getRootDataDirectory(simSettings_)+"/"
-        figure_file_name = root_data_dir + simSettings_['data_folder'] + "_" + hyperSettings_['param_to_tune'] + '_'
+        figure_file_name = root_data_dir + simSettings_['data_folder'] + "/_" + hyperSettings_['param_to_tune'] + '_'
         
         print("root_data_dir: ", root_data_dir)
         try:
