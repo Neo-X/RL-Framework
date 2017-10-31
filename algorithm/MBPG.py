@@ -88,7 +88,7 @@ class MBPG(AlgorithmInterface):
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
         """
-        self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-1
+        self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-2
        
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         # self._q_valsActTarget = scale_action(self._q_valsActTarget, self._action_bounds)
@@ -99,7 +99,7 @@ class MBPG(AlgorithmInterface):
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else:
         """ 
-        self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-1
+        self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-2
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
