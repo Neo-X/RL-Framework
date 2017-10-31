@@ -210,7 +210,7 @@
 	"comment__": "Random seed value for the simulation to use",
 "random_seed": 1234,
 	"comment__": "KL divergence threshold between policy updates",
-"kl_divergence_threshold": 0.01,
+"kl_divergence_threshold": 0.001,
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy",
 "on_policy": true,
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
@@ -256,5 +256,7 @@
 	"comment__": "type of activation to use",
 "activation_type": "relu",
 	"comment__": "last policy type of activation to use",
-"last_policy_layer_activation_type": "tanh"
+"last_policy_layer_activation_type": "tanh",
+	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
+"normalize_advantage": false
 }

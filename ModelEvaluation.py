@@ -331,6 +331,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             discounted_sums.append(discounted_sum)
             discounted_sum=0
             state_num=0
+            """
             discounted_reward = discounted_rewards(np.array(G_t_rewards), discount_factor)
             # baseline = model.model.q_value(state_)
             # print("discounted reward: ", discounted_reward)
@@ -344,6 +345,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             else:
                 advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
             advantage.append(0.0)
+            """
+            path = {}
+            path['states'] = copy.deepcopy(states [last_epoch_end:])
+            path['reward'] = np.array(G_t_rewards)
+            path["terminated"] = True
+            advantage = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
+                                           
             if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
                 adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
                 print("Advantage: ", adv_r)
@@ -655,6 +663,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             for state__, action__, reward__, result_state__, fall__, G_t__, exp_actions__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts, tmp_exp_actions):
                 _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__, exp_actions__))
     ## Compute Advantage
+    """
     discounted_reward = discounted_rewards(np.array(G_t_rewards), discount_factor)
     baseline.append(0)
     baseline = np.array(baseline)
@@ -666,6 +675,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     else:
         advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
     advantage.append(0.0)
+    """
+    path = {}
+    path['states'] = copy.deepcopy(states [last_epoch_end:])
+    path['reward'] = np.array(G_t_rewards)
+    path["terminated"] = True
+    advantage = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
     # G_t_rewards.append(0)
     if ( ('print_level' in settings) and (settings["print_level"]== 'info') ):
         adv_r = [ [x, y, z] for x,y,z in zip(advantage, G_t_rewards, baseline)]
