@@ -90,8 +90,10 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
             else:
                 print("Error to many samples for bool type:")
                 sys.exit()
-        else:
-            param_value = ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0]
+        else: #float
+            delta_ = ((range_[1] - range_[0])/float(samples)) * (float(i))
+            # print ("detla: ", delta_)
+            param_value = (delta_) + range_[0]
         settings['data_folder'] = data_name + "/_" + param_of_interest + "_"+ str(param_value) + "/"
         settings[param_of_interest] = param_value
         directory= getBaseDataDirectory(settings)

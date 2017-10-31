@@ -16,5 +16,7 @@
 	"comment__": "The fully qualified name of the mail server to use",
 "mail_server_name": "mail.cs.ubc.ca",
 	"comment__": "from email address",
-"from_email_address": "gberseth@cs.ubc.ca" 	
+"from_email_address": "gberseth@cs.ubc.ca"
+	"comment__": "Flag to say this is a testing run",
+"testing": false
 }
