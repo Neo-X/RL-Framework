@@ -12,7 +12,7 @@
     "comment__": "Batch size used for learning",
 "batch_size": 64,
     "comment__": "Learning rate for the actor/policy",
-"learning_rate": 0.001,
+"learning_rate": 0.0005,
     "comment__": "Config file for the simulator",
 "sim_config_file": "./settings/gapGame2D/ballgame_settings_gaps.json",
     "comment__": "A different config file for the forward dynamics simulator",
@@ -158,7 +158,7 @@
     "comment__": "epsilon lower limit",
 "min_epsilon": 0.15,
     "comment__": "Whether or not to draw/render the simulation",
-"shouldRender": true,
+"shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
 "action_learning_rate": 1.0,
     "comment__": "During model-based action exloration, Probability of a random action being generated from MBAE,",
@@ -260,5 +260,7 @@
 	"comment__": "Use the action gradients from MBAE to update the policy mean (Model-Based Policy Gradient)",
 "use_MBPG": true,
 	"comment__": "type of activation to use",
-"activation_type": "relu"
+"activation_type": "relu",
+	"comment__": "last policy type of activation to use",
+"last_policy_layer_activation_type": "linear"
 }

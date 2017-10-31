@@ -40,6 +40,18 @@ class DeepNNTanH(ModelInterface):
             activation_type = lasagne.nonlinearities.rectify
         elif ("activation_type" in settings_ and (settings_['activation_type'] == 'tanh')):
             activation_type = lasagne.nonlinearities.tanh
+        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'linear')):
+            activation_type = lasagne.nonlinearities.linear
+            
+        last_policy_layer_activation_type = lasagne.nonlinearities.tanh
+        if ('last_policy_layer_activation_type' in settings_ and (settings_['last_policy_layer_activation_type']) == 'linear'):
+            last_policy_layer_activation_type=lasagne.nonlinearities.linear
+        if ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'leaky_rectify')):
+            last_policy_layer_activation_type = lasagne.nonlinearities.leaky_rectify
+        elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'relu')):
+            last_policy_layer_activation_type = lasagne.nonlinearities.rectify
+        elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'tanh')):
+            last_policy_layer_activation_type = lasagne.nonlinearities.tanh
         
         """
         networkAct = lasagne.layers.DenseLayer(
@@ -60,7 +72,7 @@ class DeepNNTanH(ModelInterface):
     
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=last_policy_layer_activation_type)
         
         if (self._settings['use_stocastic_policy']):
             with_std = lasagne.layers.DenseLayer(

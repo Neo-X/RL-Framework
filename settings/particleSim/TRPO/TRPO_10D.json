@@ -254,5 +254,7 @@
 	"comment__": "number of on policy rollouts to perform per epoch",
 "num_on_policy_rollouts": 5,
 	"comment__": "type of activation to use",
-"activation_type": "relu"
+"activation_type": "relu",
+	"comment__": "last policy type of activation to use",
+"last_policy_layer_activation_type": "tanh"
 }
