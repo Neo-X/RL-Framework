@@ -289,6 +289,14 @@ class LearningAgent(AgentInterface):
             self._accesLock.release()
         return q
     
+    def q_values(self, state):
+        if self._useLock:
+            self._accesLock.acquire()
+        q = self._pol.q_values(state)
+        if self._useLock:
+            self._accesLock.release()
+        return q
+    
     def bellman_error(self, state, action, reward, result_state, fall):
         if self._useLock:
             self._accesLock.acquire()

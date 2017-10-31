@@ -679,7 +679,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     path = {}
     path['states'] = copy.deepcopy(states [last_epoch_end:])
     path['reward'] = np.array(G_t_rewards)
-    path["terminated"] = True
+    path["terminated"] = False
     advantage = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
     # G_t_rewards.append(0)
     if ( ('print_level' in settings) and (settings["print_level"]== 'info') ):

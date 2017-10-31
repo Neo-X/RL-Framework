@@ -65,7 +65,10 @@ def compute_advantage_(vf, paths, gamma, lam):
     # Compute return, baseline, advantage
     for path in paths:
         path["return"] = discounted_rewards(path["reward"], gamma)
-        b = path["baseline"] = vf.q_value(path['states'])
+        # q_values
+        # print("States: ", path['states'])
+        b = path["baseline"] = vf.q_values(path['states'])
+        # print("Baseline: ", b)
         b1 = np.append(b, 0 if path["terminated"] else b[-1])
         deltas = path["reward"] + gamma*b1[1:] - b1[:-1] 
         path["advantage"] = discounted_rewards(deltas, gamma * lam)
