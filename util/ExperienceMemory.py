@@ -127,8 +127,8 @@ class ExperienceMemory(object):
             indices = (random.sample(range(0, max_size), batch_size))
         except ValueError as e:
             print("Batch size: ", batch_size, " exp size: ", max_size)
-            print ("I/O error({0}): {1}".format(e.errno, e.strerror))
-            # print "Unexpected error:", sys.exc_info()[0]
+            # print ("I/O error({0}): {1}".format(e.errno, e.strerror))
+            print ("Unexpected ValueError:", e)
             raise e
         # print ("Indicies: " , indices)
         # print("Exp buff state bounds: ", self._state_bounds)
