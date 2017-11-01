@@ -189,6 +189,8 @@ if (__name__ == "__main__"):
         dataTar.close()
         
         ## Send an email so I know this has completed
+        ## This prints too much data
+        result["meta_sim_result"] = None
         contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
         if ( ('testing' in hyperSettings_ and (hyperSettings_['testing']))):
             print("Not simulating, this is a testing run:")
