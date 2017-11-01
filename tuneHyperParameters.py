@@ -46,6 +46,20 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         trainMetaModel(simsettingsFileName, samples=num_sim_samples, settings=copy.deepcopy(settings), numThreads=num_sim_samples)
 """
 
+def compute_next_val(settings,i,samples):
+    """
+    
+    """
+    range_ = settings['param_bounds']
+    if ('curve_scheme' not in settings or (settings["curve_scheme"] == 'linear')):
+        delta_ = ((float(i)) / float(samples))
+    elif (settings["curve_scheme"] == "squared"):
+        delta_ = ((float(i)) / float(samples))
+        delta_ = delta_**4 
+        
+    delta_ = delta_ * (range_[1] - range_[0]) 
+    return delta_
+
 def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_path=None):
     """
         For some set of parameters the function will sample a number of them
@@ -91,7 +105,7 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
                 print("Error to many samples for bool type:")
                 sys.exit()
         else: #float
-            delta_ = ((range_[1] - range_[0])/float(samples)) * (float(i))
+            delta_ = compute_next_val(hyper_settings, i, samples)
             # print ("detla: ", delta_)
             param_value = (delta_) + range_[0]
         settings['data_folder'] = data_name + "/_" + param_of_interest + "_"+ str(param_value) + "/"
