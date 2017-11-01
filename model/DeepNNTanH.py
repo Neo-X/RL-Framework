@@ -81,8 +81,6 @@ class DeepNNTanH(ModelInterface):
             self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
         # self._b_o = init_b_weights((n_out,))
         
-        if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
-            input = lasagne.layers.ConcatLayer([input, inputAction])
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=256,
@@ -95,6 +93,9 @@ class DeepNNTanH(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 input, num_units=64,
                 nonlinearity=activation_type)
+        
+        if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
+            network = lasagne.layers.ConcatLayer([network, inputAction])
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=32,

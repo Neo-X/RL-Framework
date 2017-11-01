@@ -35,7 +35,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     if (settings is None):
         file = open(settingsFileName)
         settings = json.load(file)
-        print ("Settings: " + str(json.dumps(settings)))
+        # print ("Settings: " + str(json.dumps(settings)))
         file.close()
     
     print ( "Running ", samples, " simulation(s) over ", numThreads, " Thread(s)")
@@ -61,7 +61,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         if ( not (hyperSettings is None) ):
             file = open(hyperSettings)
             hyper_settings = json.load(file)
-            print ("Settings: " + str(json.dumps(settings)))
+            # print ("Settings: " + str(json.dumps(settings)))
             file.close()
             directory= getDataDirectory(settings)
             if not os.path.exists(directory):
