@@ -600,7 +600,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             """
             path = {}
             path['states'] = copy.deepcopy(states [last_epoch_end:])
-            path['reward'] = np.array(G_t_rewards)
+            path['reward'] = np.array(rewards[last_epoch_end:])
             path["terminated"] = True
             advantage = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
                                            
@@ -653,7 +653,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print ("Current Tuple: " + str(experience.current()))
     if (use_batched_exp):
         if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
-            tmp_states = copy.deepcopy(states [last_epoch_end:])
+            tmp_states = copy.deepcopy(states[last_epoch_end:])
             tmp_actions = copy.deepcopy(actions[last_epoch_end:])
             tmp_rewards = copy.deepcopy(rewards[last_epoch_end:])
             tmp_falls = copy.deepcopy(falls[last_epoch_end:])
@@ -678,8 +678,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     advantage.append(0.0)
     """
     path = {}
-    path['states'] = copy.deepcopy(states [last_epoch_end:])
-    path['reward'] = np.array(G_t_rewards)
+    path['states'] = copy.deepcopy(states)
+    path['reward'] = np.array(rewards)
     path["terminated"] = False
     advantage = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
     # G_t_rewards.append(0)
