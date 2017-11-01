@@ -161,7 +161,7 @@ if (__name__ == "__main__"):
         root_data_dir = getRootDataDirectory(simSettings_)+"/"
         
         ### Create a tar file of all the sim data
-        tarFileName = (root_data_dir + simSettings_['data_folder'] + "/_" +hyperSettings_['param_to_tune']+'.tar.gz')
+        tarFileName = (root_data_dir + simSettings_['data_folder'] + "/_" +hyperSettings_['param_to_tune']+'.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
         # tarFileName = (simSettings_['agent_name']+simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz')
         dataTar = tarfile.open(tarFileName, mode='w:gz')
         for meta_result in result['meta_sim_result']:
