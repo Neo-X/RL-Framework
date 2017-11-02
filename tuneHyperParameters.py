@@ -55,7 +55,10 @@ def compute_next_val(settings,i,samples):
         delta_ = ((float(i)) / float(samples))
     elif (settings["curve_scheme"] == "squared"):
         delta_ = ((float(i)) / float(samples))
-        delta_ = delta_**4 
+        delta_ = delta_**2
+    elif (settings["curve_scheme"] == "exponential"):
+        delta_ = ((float(i)) / float(samples))
+        delta_ = delta_**(samples-i) 
         
     delta_ = delta_ * (range_[1] - range_[0]) 
     return delta_

@@ -19,6 +19,6 @@
 "from_email_address": "csguestn",
 	"comment__": "Flag to say this is a testing run",
 "testing": false,
-	"comment__": "Type of curve to blend values along [linear|squared]",
-"curve_scheme": "squared"
+	"comment__": "Type of curve to blend values along [linear|squared|exponential]",
+"curve_scheme": "exponential"
 }
