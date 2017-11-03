@@ -268,7 +268,7 @@
 	"comment__": "PPO should use seperate networks for the value and policy functions",
 "ppo_use_seperate_nets": true,
 	"comment__": "Whether or not to use a stochastic forward dynamics model",
-"use_stochastic_forward_dynamics": true"ppo_use_seperate_nets": true,
+"use_stochastic_forward_dynamics": true,
 	"comment__": "type of activation to use",
 "activation_type": "relu",
 	"comment__": "last policy type of activation to use",
