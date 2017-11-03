@@ -82,8 +82,43 @@ class DeepNNTanH(ModelInterface):
         # self._b_o = init_b_weights((n_out,))
         
         if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
-            input = lasagne.layers.ConcatLayer([input, inputAction])
             
+            if ('train_extra_value_function' in settings_ and (settings_['train_extra_value_function'])):
+                ## create an extra value function
+                network = lasagne.layers.DenseLayer(
+                        input, num_units=128,
+                        nonlinearity=activation_type)
+                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+                
+                network = lasagne.layers.DenseLayer(
+                        input, num_units=64,
+                        nonlinearity=activation_type)
+                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+                """
+                if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
+                    network = lasagne.layers.ConcatLayer([network, inputAction])
+                """
+                network = lasagne.layers.DenseLayer(
+                        network, num_units=32,
+                        nonlinearity=activation_type)
+                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+                
+                network = lasagne.layers.DenseLayer(
+                        network, num_units=16,
+                        nonlinearity=activation_type)
+                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+                """
+                network = lasagne.layers.DenseLayer(
+                        network, num_units=8,
+                        nonlinearity=activation_type)
+                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+                """
+                self._value_function = lasagne.layers.DenseLayer(
+                        network, num_units=1,
+                        nonlinearity=lasagne.nonlinearities.linear)
+                
+            ## put inputs together for DPG
+            input = lasagne.layers.ConcatLayer([input, inputAction])
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=256,
