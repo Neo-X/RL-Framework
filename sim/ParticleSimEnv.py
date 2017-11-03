@@ -81,7 +81,7 @@ class ParticleSimEnv(SimInterface):
                     ## action1 = action1/(np.sqrt((action1*action1).sum(axis=0)))
                     U.append(action1[0])
                     V.append(action1[1])
-                    v = agent.q_value(state_)
+                    v = agent.q_value(state_)[0]
                     Q.append(v)
                     if (self.getSettings()['train_forward_dynamics']):
                         (action_, value_diff) = getOptimalAction(agent.getForwardDynamics(),
@@ -95,14 +95,25 @@ class ParticleSimEnv(SimInterface):
                         # print ("forward_dynamics error: ", action_)
                         action_ = action_/(np.sqrt((action_*action_).sum(axis=0)))
                         # action_ = action_ - action1
-                        U_mbae.append(action_[0])
-                        V_mbae.append(action_[1])
-                        U_fd.append(fd_error_[0])
-                        V_fd.append(fd_error_[1])
-                        # r = agent.getForwardDynamics().predict_reward(state_, np.array(action1_cp))
-                        # print ("Predicted reward: ", r)
-                        R_mbae.append(value_diff)
-                        R_fd.append(value_diff)
+                        if ( np.all(np.isfinite(action_))):
+                            U_mbae.append(action_[0])
+                            V_mbae.append(action_[1])
+                            U_fd.append(fd_error_[0])
+                            V_fd.append(fd_error_[1])
+                            # r = agent.getForwardDynamics().predict_reward(state_, np.array(action1_cp))
+                            # print ("Predicted reward: ", r)
+                            R_mbae.append(value_diff[0])
+                            R_fd.append(value_diff[0])
+                        else:
+                            U_mbae.append(0.0)
+                            V_mbae.append(0.0)
+                            U_fd.append(0.0)
+                            V_fd.append(0.0)
+                            # r = agent.getForwardDynamics().predict_reward(state_, np.array(action1_cp))
+                            # print ("Predicted reward: ", r)
+                            R_mbae.append(0.0)
+                            R_fd.append(0.0)
+                            
             U = np.array(U)
             V = np.array(V)
             Q = np.array(Q)
@@ -119,9 +130,9 @@ class ParticleSimEnv(SimInterface):
             self.getEnvironment().updatePolicy(U, V, Q)
             if (self.getSettings()['train_forward_dynamics']):
                 if (self.getSettings()['print_level'] == 'debug'):
-                    print( "U: ", U_mbae)
-                    print( "V: ", V_mbae)
-                    print( "Q: ", R_mbae)
+                    print( "U_mbae: ", U_mbae)
+                    print( "V_mbae: ", V_mbae)
+                    print( "R_mbae: ", R_mbae)
                 self.getEnvironment().updateMBAE(U_mbae, V_mbae, R_mbae)
                 self.getEnvironment().updateFD(U_fd, V_fd, R_fd)
             self.getEnvironment().saveVisual(directory+"/navAgent")

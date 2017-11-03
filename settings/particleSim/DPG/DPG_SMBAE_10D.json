@@ -188,7 +188,7 @@
 	"comment__": "Use to add an additional regularization term to prevent the network from moving to far from its previous values",
 "use_previous_value_regularization": false,
 	"comment__": "Controls the level of information that is printed to the terminal",
-"print_level": "debug",
+"print_level": "train",
 	"comment__": "print level descriptions",
 "print_levels": {
 		"debug": 1,
