@@ -229,7 +229,7 @@
 "num_mbae_steps": 1,
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
 "fix_actor_batch_size": true,
-	"comment__": "Whether or not to put MBAE on the annelling schedule",
+	"comment__": "Whether or not to put MBAE on the annealling schedule",
 "anneal_mbae": false,
 	"comment__": "How many value function updates should be done between Dyna updates",
 "dyna_update_lag_steps": 5,
@@ -252,5 +252,11 @@
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy rollouts to perform per epoch",
-"num_on_policy_rollouts": 5
+"num_on_policy_rollouts": 5,
+	"comment__": "type of activation to use",
+"activation_type": "relu",
+	"comment__": "last policy type of activation to use",
+"last_policy_layer_activation_type": "tanh",
+	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
+"normalize_advantage": true
 }

@@ -551,7 +551,10 @@ class PPO(AlgorithmInterface):
             ## Need to scale the advantage by the discount to help keep things normalized
             if (('normalize_advantage' in self.getSettings()) and self.getSettings()['normalize_advantage']):
                 # advantage = advantage * (1.0-self._discount_factor)
-                advantage = advantage * (1.0-self._discount_factor) 
+                std = np.std(advantage)
+                mean = np.mean(advantage)
+                advantage = (advantage - mean) / std
+                # advantage = advantage * (1.0-self._discount_factor) 
             # pass # use given advantage parameter
         else:
             advantage = self._get_advantage()

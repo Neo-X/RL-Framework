@@ -74,11 +74,12 @@ def compute_advantage_(vf, paths, gamma, lam):
         path["advantage"] = discounted_rewards(deltas, gamma * lam)
     alladv = np.concatenate([path["advantage"] for path in paths])    
     # Standardize advantage
+    """
     std = alladv.std()
     mean = alladv.mean()
     for path in paths:
         path["advantage"] = (path["advantage"] - mean) / std
-
+    """
     return paths[0]["advantage"]
 
 def btVectorToNumpy(vec):

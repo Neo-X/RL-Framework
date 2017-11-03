@@ -690,6 +690,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # print ("ad: ", advantage)
     advantage = np.reshape(np.array([advantage]), newshape=(-1,1))
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage, exp_actions)
+    """
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
         print("End of episode")
         actions_ = np.array(actions)
@@ -697,7 +698,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         print("Actions std:  ", np.std(actions_, axis=0) )
         if ( len(stds) > 0):
             print("Mean actions std:  ", np.mean(stds, axis=0) )
-    
+    """
     # print("***** Sim Actions std:  ", np.std((actions), axis=0) )
     # print("***** Sim State mean:  ", np.mean((states), axis=0) )
     # print("***** Sim Next State mean:  ", np.mean((result_states___), axis=0) )

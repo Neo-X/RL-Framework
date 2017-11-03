@@ -524,6 +524,14 @@ class MBPG(AlgorithmInterface):
         else:
             advantage = self._get_advantage()
         self._advantage_shared.set_value(advantage)
+        
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+            print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
+            print("Targets: ", np.mean(self._get_target()), " std: ", np.std(self._get_target()))
+            print("Falls: ", np.mean(falls), " std: ", np.std(falls))
+            # print("values, falls: ", np.concatenate((scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor'])), falls), axis=1))
+            print("values: ", np.mean(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))),
+                   " std: ", np.std(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))) )
             
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
