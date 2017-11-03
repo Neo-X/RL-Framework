@@ -594,6 +594,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         ### Because there are some nan values coming out of here.
         return (action, value_diff)
     else:
+        print("MBAE, action invalid: ", action)
         return (init_action, 0)
 
 def getModelPredictionUncertanty(model, state, length=4.1, num_samples=32):
