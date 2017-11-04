@@ -8,7 +8,7 @@ from pathos.threading import ThreadPool
 from pathos.multiprocessing import ProcessingPool
 import time
 import datetime
-from tools.plot_meta_simulation import plotMetaDataSimulation
+from tools.PlotMetadataSimulation import plotMetaDataSimulation
 
 from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory
 """
@@ -124,7 +124,7 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
         out_file.write(json.dumps(settings, indent=4))
         # file.close()
         out_file.close()
-        sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads'], copy.deepcopy(hyperSettings)))
+        sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads'], copy.deepcopy(hyper_settings)))
         
     
     # p = ProcessingPool(2)
@@ -201,6 +201,7 @@ if (__name__ == "__main__"):
             addPicturesToTarBall(dataTar, simSettings_)
             pictureFileName=figure_file_name + "MBAE_Training_curves.png"
         except Exception as e:
+            dataTar.close()
             print("Error plotting data there my not be a DISPLAY available.")
             print("Error: ", e)
         dataTar.close()
