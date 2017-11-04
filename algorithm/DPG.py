@@ -192,13 +192,34 @@ class DPG(AlgorithmInterface):
             self._v_target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self._valsTargetNextState ) 
             self._v_diff = self._v_target - self._valsA
             # loss = 0.5 * self._diff ** 2 
-            loss = T.pow(self._v_diff, 2)
-            self._v_loss = T.mean(loss)
+            loss_v = T.pow(self._v_diff, 2)
+            self._v_loss = T.mean(loss_v)
+            
+            self._params_value = lasagne.layers.helper.get_all_params(self._model._value_function)
+            self._givens_value = {
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+                # self._NotFallen: self._NotFallen_shared
+                # self._model.getActionSymbolicVariable(): self._actions_shared,
+            }
+            self._value_regularization = (self._critic_regularization_weight * 
+                                          lasagne.regularization.regularize_network_params(
+                                        self._model._value_function, lasagne.regularization.l2))
+            
+            self._value_grad = T.grad(self._v_loss + self._value_regularization
+                                                     , self._params_value)
+            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
+            self._updates_value = lasagne.updates.adam(self._value_grad
+                        , self._params_value, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
+            ## TD update
         DPG.compile(self)
         
     def compile(self):
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
+            self._train_value = theano.function([], [self._v_loss, self._valsA], updates=self._updates_value, givens=self._givens_value)
         # self._trainActor = theano.function([], [actLoss, self._q_valsActA], updates=actionUpdates, givens=actGivens)
         # self._trainActor = theano.function([], [self._q_func], updates=self._actionUpdates, givens=self._actGivens)
         self._trainActionGRAD  = theano.function([], [], updates=self._actionGRADUpdates, givens=self._actGradGivens)
@@ -232,7 +253,17 @@ class DPG(AlgorithmInterface):
         
         self._get_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         
-        self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
+            self._givens_grad = {
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+                # self._model.getActionSymbolicVariable(): self._model.getActions(),
+            }
+            self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._valsA), [self._model._stateInputVar] + self._params_value), allow_input_downcast=True, givens=self._givens_grad)
+        else:
+            self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        
         
     def getGrads(self, states, actions=None, alreadyNormed=False):
         """
@@ -310,7 +341,18 @@ class DPG(AlgorithmInterface):
         # lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_paramsA)
         # lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
         # lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsAct) 
-        
+    
+    def updateTargetModelValue(self):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Updating target Model")
+        """
+            Target model updates
+        """
+        all_paramsA = lasagne.layers.helper.get_all_param_values(self._model._value_function)
+        # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+        lasagne.layers.helper.set_all_param_values(self._modelTarget._value_function, all_paramsA)
+        # lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
+            
     def getNetworkParameters(self):
         params = []
         params.append(lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork()))
@@ -345,10 +387,16 @@ class DPG(AlgorithmInterface):
         
     def trainCritic(self, states, actions, rewards, result_states, falls):
         
+        self.setData(states, actions, rewards, result_states, falls)
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
+            loss_v, _ = self._train_value()
+            
+            if (( self._updates % 500) == 0):
+                self.updateTargetModelValue()
+            
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
-        self.setData(states, actions, rewards, result_states, falls)
         ## Compute actions for TargetNet
         target_actions = self._action_Target()
         self.setData(states, target_actions, rewards, result_states, falls)

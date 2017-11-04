@@ -272,7 +272,7 @@
 	"comment__": "type of activation to use",
 "activation_type": "relu",
 	"comment__": "last policy type of activation to use",
-"last_policy_layer_activation_type": "linear"
+"last_policy_layer_activation_type": "linear",
 	"comment__": "Train extra value function, this is helpful for DPG. Having a seperate value function could make MBAE more stable",
 "train_extra_value_function": true	
 }
