@@ -103,6 +103,7 @@ if (__name__ == "__main__"):
     import tarfile
     from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
     from tools.PlotMetadataSimulation import plotMetaDataSimulation
+    import os
     
     if (len(sys.argv) == 1):
         print("Please incluse sim settings file")
@@ -138,14 +139,22 @@ if (__name__ == "__main__"):
         else:
             result = trainMetaModel(sys.argv[1], samples=int(sys.argv[3]), settings=copy.deepcopy(simSettings_), numThreads=int(sys.argv[4]), hyperSettings=hyperSettings_)
         
+        directory= getBaseDataDirectory(simSettings_)
+        out_file_name=directory+os.path.basename(simsettingsFileName)
+        print ("Saving settings file with data to: ", out_file_name)
+        out_file = open(out_file_name, 'w')
+        out_file.write(json.dumps(simSettings_, indent=4))
+        # file.close()
+        out_file.close()
         ### Create a tar file of all the sim data
         tarFileName = (root_data_dir + simSettings_['data_folder'] + '.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
         dataTar = tarfile.open(tarFileName, mode='w:gz')
         for simsettings_tmp in result['settings_files']:
+            print ("root_data dir for result: ", getDataDirectory(simsettings_tmp))
             addDataToTarBall(dataTar, simsettings_tmp)
             
         polt_settings_files = []
-        polt_settings_files.append(simsettingsFileName)
+        polt_settings_files.append(out_file_name)
         # for hyperSetFile in result['hyper_param_settings_files']:
         #     print("adding ", hyperSetFile, " to tar file")
         #     addDataToTarBall(dataTar, simsettings_tmp, fileName=hyperSetFile)
