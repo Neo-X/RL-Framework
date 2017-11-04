@@ -164,20 +164,22 @@ if (__name__ == "__main__"):
         
         print("root_data_dir: ", root_data_dir)
         pictureFileName=None
-        # try:
-        plotMetaDataSimulation(root_data_dir, simSettings_, polt_settings_files, folder=figure_file_name)
-        ## Add pictures to tar file
-        addPicturesToTarBall(dataTar, simSettings_)
-        pictureFileName=figure_file_name + "MBAE_Training_curves.png"
-        # except Exception as e:
-        #     print("Error plotting data there my not be a DISPLAY available.")
-        #     print("Error: ", e)
+        try:
+            plotMetaDataSimulation(root_data_dir, simSettings_, polt_settings_files, folder=figure_file_name)
+            ## Add pictures to tar file
+            addPicturesToTarBall(dataTar, simSettings_)
+            pictureFileName=figure_file_name + "MBAE_Training_curves.png"
+        except Exception as e:
+            dataTar.close()
+            print("Error plotting data there my not be a DISPLAY available.")
+            print("Error: ", e)
         dataTar.close()
         
         
         ## Send an email so I know this has completed
         contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
-        sendEmail(subject="Simulation complete: " + result['sim_time'], contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[2], dataFile=tarFileName)    
+        sendEmail(subject="Simulation complete: " + result['sim_time'], contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[2], dataFile=tarFileName,
+                  pictureFile=pictureFileName)    
           
     else:
         print("Please specify arguments properly, ")
