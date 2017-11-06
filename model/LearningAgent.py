@@ -166,7 +166,7 @@ class LearningAgent(AgentInterface):
                     if ( ('anneal_on_policy' in self._settings) and self._settings['anneal_on_policy']):
                         _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
                     else:
-                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
+                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(len(_actions))
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, forwardDynamicsModel=self._fd)
                     """
                     if not np.isfinite(cost_) or (cost_ > 500) :
@@ -285,6 +285,14 @@ class LearningAgent(AgentInterface):
         if self._useLock:
             self._accesLock.acquire()
         q = self._pol.q_value(state)
+        if self._useLock:
+            self._accesLock.release()
+        return q
+    
+    def q_values(self, state):
+        if self._useLock:
+            self._accesLock.acquire()
+        q = self._pol.q_values(state)
         if self._useLock:
             self._accesLock.release()
         return q

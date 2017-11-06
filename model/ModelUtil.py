@@ -46,6 +46,8 @@ def discounted_rewards(rewards, discount_factor):
     """
     assert rewards.ndim >= 1
     return scipy.signal.lfilter([1],[1,-discount_factor],rewards[::-1], axis=0)[::-1]
+
+
     
 def compute_advantage(discounted_rewards, rewards, discount_factor):
     """
@@ -58,6 +60,27 @@ def compute_advantage(discounted_rewards, rewards, discount_factor):
         # adv.append([discounted_rewards[i] - (discounted_rewards[i+1] )])
         # print ("computing advantage discounts: ", adv)
     return adv
+
+def compute_advantage_(vf, paths, gamma, lam):
+    # Compute return, baseline, advantage
+    for path in paths:
+        path["return"] = discounted_rewards(path["reward"], gamma)
+        # q_values
+        # print("States: ", path['states'])
+        b = path["baseline"] = vf.q_values(path['states'])
+        # print("Baseline: ", b)
+        b1 = np.append(b, 0 if path["terminated"] else b[-1])
+        deltas = path["reward"] + gamma*b1[1:] - b1[:-1] 
+        path["advantage"] = discounted_rewards(deltas, gamma * lam)
+    alladv = np.concatenate([path["advantage"] for path in paths])    
+    # Standardize advantage
+    """
+    std = alladv.std()
+    mean = alladv.mean()
+    for path in paths:
+        path["advantage"] = (path["advantage"] - mean) / std
+    """
+    return paths[0]["advantage"]
 
 def btVectorToNumpy(vec):
     return np.array([vec.x(), vec.y(), vec.z()])
@@ -572,6 +595,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         ### Because there are some nan values coming out of here.
         return (action, value_diff)
     else:
+        print("MBAE, action invalid: ", action)
         return (init_action, 0)
 
 def getModelPredictionUncertanty(model, state, length=4.1, num_samples=32):

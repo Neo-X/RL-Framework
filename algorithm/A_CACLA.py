@@ -461,7 +461,7 @@ class A_CACLA(AlgorithmInterface):
             )
         """
         for i in range(len(diff_)):
-            if ( ((diff_[i] > 0.0) and 
+            if ( (((diff_[i] > 0.0) or ( 'use_advantage_instaed_of_ptd' in self.getSettings() and self.getSettings()['use_advantage_instaed_of_ptd'])) and 
                    (exp_actions[i] == 1))
                   ):
                 if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):
@@ -490,7 +490,7 @@ class A_CACLA(AlgorithmInterface):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor, " actor buffer size: ", len(self._actor_buffer_actions))
                 actions_ = self._q_action()
-                print("Mean action grad: ", np.mean(actions_, axis=0), " std ", np.std(actions_, axis=0))
+                print("Mean action: ", np.mean(actions_, axis=0), " std ", np.std(actions_, axis=0))
             ### Remove batch from buffer
             self._actor_buffer_states=self._actor_buffer_states[self.getSettings()['batch_size']:]
             self._actor_buffer_actions = self._actor_buffer_actions[self.getSettings()['batch_size']:]

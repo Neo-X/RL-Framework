@@ -319,66 +319,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     for i_ in range(settings['max_epoch_length']):
         
         # if (exp.endOfEpoch() or (reward_ < settings['reward_lower_bound'])):
-        if ((exp.endOfEpoch() and settings['reset_on_fall'])  or ((reward_ < settings['reward_lower_bound']) 
-                                                  and
-                                                  (not evaluation))):
-            evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
-            """
-            if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
-                # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
-                _output_queue.put((state_, action, [reward_], resultState, [agent_not_fell]))
-            """
-            discounted_sums.append(discounted_sum)
-            discounted_sum=0
-            state_num=0
-            discounted_reward = discounted_rewards(np.array(G_t_rewards), discount_factor)
-            # baseline = model.model.q_value(state_)
-            # print("discounted reward: ", discounted_reward)
-            baseline.append(0)
-            baseline = np.array(baseline)
-            # print (" G_t_rewards: ", G_t_rewards)
-            # print (" baseline: ", baseline)
-            deltas = (G_t_rewards + discount_factor*baseline[1:]) - baseline[:-1]
-            if ('use_GAE' in settings and ( settings['use_GAE'] )): 
-                advantage.extend(discounted_rewards(deltas, discount_factor * settings['GAE_lambda']))
-            else:
-                advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
-            advantage.append(0.0)
-            if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
-                adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
-                print("Advantage: ", adv_r)
-            # print ("Advantage: ", advantage)
-            G_ts.extend(copy.deepcopy(G_t))
-            if (use_batched_exp):
-                if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
-                    tmp_states = copy.deepcopy(states [last_epoch_end:])
-                    tmp_actions = copy.deepcopy(actions[last_epoch_end:])
-                    tmp_rewards = copy.deepcopy(rewards[last_epoch_end:])
-                    tmp_falls = copy.deepcopy(falls[last_epoch_end:])
-                    tmp_result_states = copy.deepcopy(result_states___[last_epoch_end:])
-                    tmp_G_ts = copy.deepcopy(G_ts[last_epoch_end:])
-                    tmp_exp_actions = copy.deepcopy(exp_actions[last_epoch_end:])
-                    
-                    for state__, action__, reward__, result_state__, fall__, G_t__, exp_actions__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts, tmp_exp_actions):
-                        _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__, exp_actions__))
-            
-            last_epoch_end=i_
-            
-            G_t = []
-            G_t_rewards = []
-            baseline = []
-            exp.getActor().initEpoch()
-            if validation:
-                exp.generateValidation(anchors, (epoch * settings['max_epoch_length']) + i_)
-            else:
-                exp.generateEnvironmentSample()
-                
-            exp.initEpoch()
-            # actor.init() ## This should be removed and only exp.getActor() should be used
-            # model.initEpoch()
-            state_ = exp.getState()
-            if (not bootstrapping):
-                q_values_.append(model.q_value(state_))
         # state = exp.getState()
         state_ = exp.getState()
         if (not (visualizeEvaluation == None)):
@@ -454,7 +394,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         sys.exit(1)
                     # randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # randomAction = random.choice(action_selection)
-                    if (settings["use_model_based_action_optimization"] ):
+                    if (settings["use_model_based_action_optimization"] and settings["train_forward_dynamics"] ):
                         """
                         if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
                             mbae_omega = p * settings["model_based_action_omega"]
@@ -631,6 +571,75 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         pa = None
         i_ += 1
         
+        if ((exp.endOfEpoch() and settings['reset_on_fall'])  or ((reward_ < settings['reward_lower_bound']) 
+                                                  and
+                                                  (not evaluation))):
+            evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
+            """
+            if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
+                # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
+                _output_queue.put((state_, action, [reward_], resultState, [agent_not_fell]))
+            """
+            discounted_sums.append(discounted_sum)
+            discounted_sum=0
+            state_num=0
+            """
+            discounted_reward = discounted_rewards(np.array(G_t_rewards), discount_factor)
+            # baseline = model.model.q_value(state_)
+            # print("discounted reward: ", discounted_reward)
+            baseline.append(0)
+            baseline = np.array(baseline)
+            # print (" G_t_rewards: ", G_t_rewards)
+            # print (" baseline: ", baseline)
+            deltas = (G_t_rewards + discount_factor*baseline[1:]) - baseline[:-1]
+            if ('use_GAE' in settings and ( settings['use_GAE'] )): 
+                advantage.extend(discounted_rewards(deltas, discount_factor * settings['GAE_lambda']))
+            else:
+                advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
+            advantage.append(0.0)
+            """
+            path = {}
+            path['states'] = copy.deepcopy(states [last_epoch_end:])
+            path['reward'] = np.array(rewards[last_epoch_end:])
+            path["terminated"] = True
+            advantage = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
+                                           
+            if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
+                adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
+                print("Advantage: ", adv_r)
+            # print ("Advantage: ", advantage)
+            G_ts.extend(copy.deepcopy(G_t))
+            if (use_batched_exp):
+                if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
+                    tmp_states = copy.deepcopy(states [last_epoch_end:])
+                    tmp_actions = copy.deepcopy(actions[last_epoch_end:])
+                    tmp_rewards = copy.deepcopy(rewards[last_epoch_end:])
+                    tmp_falls = copy.deepcopy(falls[last_epoch_end:])
+                    tmp_result_states = copy.deepcopy(result_states___[last_epoch_end:])
+                    tmp_G_ts = copy.deepcopy(G_ts[last_epoch_end:])
+                    tmp_exp_actions = copy.deepcopy(exp_actions[last_epoch_end:])
+                    
+                    for state__, action__, reward__, result_state__, fall__, G_t__, exp_actions__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts, tmp_exp_actions):
+                        _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__, exp_actions__))
+            
+            last_epoch_end=i_
+            
+            G_t = []
+            G_t_rewards = []
+            baseline = []
+            exp.getActor().initEpoch()
+            if validation:
+                exp.generateValidation(anchors, (epoch * settings['max_epoch_length']) + i_)
+            else:
+                exp.generateEnvironmentSample()
+                
+            exp.initEpoch()
+            # actor.init() ## This should be removed and only exp.getActor() should be used
+            # model.initEpoch()
+            state_ = exp.getState()
+            if (not bootstrapping):
+                q_values_.append(model.q_value(state_))
+        
     evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
     evalData = [np.mean(evalDatas)]
     discounted_sums.append(discounted_sum)
@@ -644,7 +653,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print ("Current Tuple: " + str(experience.current()))
     if (use_batched_exp):
         if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
-            tmp_states = copy.deepcopy(states [last_epoch_end:])
+            tmp_states = copy.deepcopy(states[last_epoch_end:])
             tmp_actions = copy.deepcopy(actions[last_epoch_end:])
             tmp_rewards = copy.deepcopy(rewards[last_epoch_end:])
             tmp_falls = copy.deepcopy(falls[last_epoch_end:])
@@ -655,6 +664,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             for state__, action__, reward__, result_state__, fall__, G_t__, exp_actions__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts, tmp_exp_actions):
                 _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__, exp_actions__))
     ## Compute Advantage
+    """
     discounted_reward = discounted_rewards(np.array(G_t_rewards), discount_factor)
     baseline.append(0)
     baseline = np.array(baseline)
@@ -666,6 +676,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     else:
         advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
     advantage.append(0.0)
+    """
+    path = {}
+    path['states'] = copy.deepcopy(states)
+    path['reward'] = np.array(rewards)
+    path["terminated"] = False
+    advantage = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
     # G_t_rewards.append(0)
     if ( ('print_level' in settings) and (settings["print_level"]== 'info') ):
         adv_r = [ [x, y, z] for x,y,z in zip(advantage, G_t_rewards, baseline)]
@@ -674,6 +690,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # print ("ad: ", advantage)
     advantage = np.reshape(np.array([advantage]), newshape=(-1,1))
     tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage, exp_actions)
+    """
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
         print("End of episode")
         actions_ = np.array(actions)
@@ -681,7 +698,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         print("Actions std:  ", np.std(actions_, axis=0) )
         if ( len(stds) > 0):
             print("Mean actions std:  ", np.mean(stds, axis=0) )
-    
+    """
     # print("***** Sim Actions std:  ", np.std((actions), axis=0) )
     # print("***** Sim State mean:  ", np.mean((states), axis=0) )
     # print("***** Sim Next State mean:  ", np.mean((result_states___), axis=0) )

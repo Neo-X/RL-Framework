@@ -86,7 +86,7 @@ def addPicturesToTarBall(tarfile_, settings, fileName=None):
     import tarfile
     ## add all json and py files
     if ( fileName is None ):
-        dir = getRootDataDirectory(settings)+"/"
+        dir = getRootDataDirectory(settings)+"/" + settings['data_folder'] + "/"
         # dir = getDataDirectory(settings)
         for filename_tmp in os.listdir(dir):
             print("Possible include file: ", os.path.splitext(filename_tmp))

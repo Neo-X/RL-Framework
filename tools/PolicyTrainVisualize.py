@@ -216,6 +216,7 @@ class PolicyTrainVisualize(object):
             self._fig.set_size_inches(11.0, 6.0, forward=True)
             self._fig_value.set_size_inches(11.0, 6.0, forward=True)
             # plt.show()
+            
     def updateRewards(self, trainingDatas, otherDatas=None):
         self._trainingDatas = trainingDatas
         self._otherDatas = otherDatas
@@ -227,12 +228,13 @@ class PolicyTrainVisualize(object):
     def redraw(self):
         self._fig.canvas.draw()
         
+    """
     def setInteractive(self):
         plt.ion()
         
     def setInteractiveOff(self):
         plt.ioff()
-        
+    """ 
     def saveVisual(self, fileName):
         self._fig.savefig(fileName+".svg")
         self._fig.savefig(fileName+".png")

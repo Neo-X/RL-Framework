@@ -88,7 +88,7 @@ class MBPG(AlgorithmInterface):
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
         """
-        self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-1
+        self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-2
        
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         # self._q_valsActTarget = scale_action(self._q_valsActTarget, self._action_bounds)
@@ -99,7 +99,7 @@ class MBPG(AlgorithmInterface):
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else:
         """ 
-        self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-1
+        self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-2
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -524,6 +524,14 @@ class MBPG(AlgorithmInterface):
         else:
             advantage = self._get_advantage()
         self._advantage_shared.set_value(advantage)
+        
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+            print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
+            print("Targets: ", np.mean(self._get_target()), " std: ", np.std(self._get_target()))
+            print("Falls: ", np.mean(falls), " std: ", np.std(falls))
+            # print("values, falls: ", np.concatenate((scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor'])), falls), axis=1))
+            print("values: ", np.mean(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))),
+                   " std: ", np.std(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))) )
             
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
@@ -564,7 +572,9 @@ class MBPG(AlgorithmInterface):
         # print ("next_state_grads shape: ", next_state_grads.shape)
         action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0]
         # print ( "action_grads shape: ", action_grads.shape)
+        
         use_parameter_grad_inversion=True
+        self.setData(states, actions, rewards, result_states, falls)
         
         if ( self.getSettings()['train_reward_predictor']):
             reward_grad = forwardDynamicsModel.getRewardGrads(states, actions)[0]
@@ -572,7 +582,7 @@ class MBPG(AlgorithmInterface):
             reward_grad = np.array(reward_grad, dtype=self.getSettings()['float_type'])
             action_grads = np.array(action_grads, dtype=self.getSettings()['float_type'])
             action_grads =  (reward_grad * (1.0 - self.getSettings()['discount_factor'])) + (action_grads *  self.getSettings()['discount_factor'])
-            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("Reward_Grad Raw: ", reward_grad)
         
         """
@@ -605,12 +615,13 @@ class MBPG(AlgorithmInterface):
             print("Mean action grad size: ", np.mean(np.fabs(action_grads), axis=0), " std ", np.std(action_grads, axis=0))
         
         ## Set data for gradient
-        self._model.setStates(states)
-        self._modelTarget.setStates(states)
+        # self._model.setStates(states)
+        # self._modelTarget.setStates(states)
         ## Why the -1.0??
         ## Because the SGD method is always performing MINIMIZATION!!
-        self._action_grad_shared.set_value(-1.0*action_grads)
-        self._trainActionGRAD()
+        if (np.all(np.isfinite(action_grads))): ## Check these are not bad grads...
+            self._action_grad_shared.set_value(-1.0*action_grads)
+            self._trainActionGRAD()
         return 0
     
     def trainDyna(self, predicted_states, actions, rewards, result_states, falls):

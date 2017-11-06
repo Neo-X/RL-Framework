@@ -8,7 +8,7 @@ from pathos.threading import ThreadPool
 from pathos.multiprocessing import ProcessingPool
 import time
 import datetime
-from tools.plot_meta_simulation import plotMetaDataSimulation
+from tools.PlotMetadataSimulation import plotMetaDataSimulation
 
 from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory
 """
@@ -46,6 +46,23 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         trainMetaModel(simsettingsFileName, samples=num_sim_samples, settings=copy.deepcopy(settings), numThreads=num_sim_samples)
 """
 
+def compute_next_val(settings,i,samples):
+    """
+    
+    """
+    range_ = settings['param_bounds']
+    if ('curve_scheme' not in settings or (settings["curve_scheme"] == 'linear')):
+        delta_ = ((float(i)) / float(samples))
+    elif (settings["curve_scheme"] == "squared"):
+        delta_ = ((float(i)) / float(samples))
+        delta_ = delta_**2
+    elif (settings["curve_scheme"] == "exponential"):
+        delta_ = ((float(i)) / float(samples))
+        delta_ = delta_**(samples-i) 
+        
+    delta_ = delta_ * (range_[1] - range_[0]) 
+    return delta_
+
 def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_path=None):
     """
         For some set of parameters the function will sample a number of them
@@ -82,9 +99,19 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
     for i in range(samples+1):
         if (hyper_settings['param_data_type'] == "int"):
             param_value = int( ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0] )
-        else:
-            param_value = ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0]
-        settings['data_folder'] = data_name + "_" + param_of_interest + "_"+ str(param_value) + "/"
+        elif (hyper_settings['param_data_type'] == "bool"):
+            if ( i == 0):
+                param_value = True
+            elif ( i == 1):
+                param_value = False
+            else:
+                print("Error to many samples for bool type:")
+                sys.exit()
+        else: #float
+            delta_ = compute_next_val(hyper_settings, i, samples)
+            # print ("detla: ", delta_)
+            param_value = (delta_) + range_[0]
+        settings['data_folder'] = data_name + "/_" + param_of_interest + "_"+ str(param_value) + "/"
         settings[param_of_interest] = param_value
         directory= getBaseDataDirectory(settings)
         if not os.path.exists(directory):
@@ -97,7 +124,7 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
         out_file.write(json.dumps(settings, indent=4))
         # file.close()
         out_file.close()
-        sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads'], copy.deepcopy(hyperSettings)))
+        sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads'], copy.deepcopy(hyper_settings)))
         
     
     # p = ProcessingPool(2)
@@ -148,8 +175,10 @@ if (__name__ == "__main__"):
         print ("Settings: " + str(json.dumps(simSettings_, indent=4)))
         file.close()
         
+        root_data_dir = getRootDataDirectory(simSettings_)+"/"
+        
         ### Create a tar file of all the sim data
-        tarFileName = (simSettings_['agent_name']+simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz').replace('/', '')
+        tarFileName = (root_data_dir + simSettings_['data_folder'] + "/_" +hyperSettings_['param_to_tune']+'.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
         # tarFileName = (simSettings_['agent_name']+simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz')
         dataTar = tarfile.open(tarFileName, mode='w:gz')
         for meta_result in result['meta_sim_result']:
@@ -162,27 +191,32 @@ if (__name__ == "__main__"):
             addDataToTarBall(dataTar, simsettings_tmp, fileName=hyperSetFile)
             polt_settings_files.append(hyperSetFile)
         
-        root_data_dir = getRootDataDirectory(simSettings_)+"/"
-        figure_file_name = root_data_dir + simSettings_['data_folder'] + "_" + hyperSettings_['param_to_tune'] + '_'
+        figure_file_name = root_data_dir + simSettings_['data_folder'] + "/_" + hyperSettings_['param_to_tune'] + '_'
         
         print("root_data_dir: ", root_data_dir)
+        pictureFileName=None
         try:
             plotMetaDataSimulation(root_data_dir, simSettings_, polt_settings_files, folder=figure_file_name)
             ## Add pictures to tar file
             addPicturesToTarBall(dataTar, simSettings_)
+            pictureFileName=figure_file_name + "MBAE_Training_curves.png"
         except Exception as e:
+            dataTar.close()
             print("Error plotting data there my not be a DISPLAY available.")
             print("Error: ", e)
         dataTar.close()
         
         ## Send an email so I know this has completed
+        ## This prints too much data
+        result["meta_sim_result"] = None
         contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
         if ( ('testing' in hyperSettings_ and (hyperSettings_['testing']))):
             print("Not simulating, this is a testing run:")
             testing_ = True
         else:
             testing_ = False 
-        sendEmail(subject="Simulation complete", contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1], dataFile=tarFileName, testing=testing_)
+        sendEmail(subject="Simulation complete: " + result['sim_time'], contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1], dataFile=tarFileName, testing=testing_, 
+                  pictureFile=pictureFileName)
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)

@@ -32,61 +32,128 @@ class DeepNNTanH(ModelInterface):
         self._actionInputVar = inputAction.input_var
         # self._b_o = init_b_weights((n_out,))
         # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        
+        activation_type=lasagne.nonlinearities.leaky_rectify
+        if ("activation_type" in settings_ and (settings_['activation_type'] == 'leaky_rectify')):
+            activation_type = lasagne.nonlinearities.leaky_rectify
+        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'relu')):
+            activation_type = lasagne.nonlinearities.rectify
+        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'tanh')):
+            activation_type = lasagne.nonlinearities.tanh
+        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'linear')):
+            activation_type = lasagne.nonlinearities.linear
+            
+        last_policy_layer_activation_type = lasagne.nonlinearities.tanh
+        if ('last_policy_layer_activation_type' in settings_ and (settings_['last_policy_layer_activation_type']) == 'linear'):
+            last_policy_layer_activation_type=lasagne.nonlinearities.linear
+        if ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'leaky_rectify')):
+            last_policy_layer_activation_type = lasagne.nonlinearities.leaky_rectify
+        elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'relu')):
+            last_policy_layer_activation_type = lasagne.nonlinearities.rectify
+        elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'tanh')):
+            last_policy_layer_activation_type = lasagne.nonlinearities.tanh
+        
         """
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
-        networkAct = lasagne.layers.DenseLayer(
-                input, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
         networkAct = lasagne.layers.DenseLayer(
+                input, num_units=128,
+                nonlinearity=activation_type)
+        
+        networkAct = lasagne.layers.DenseLayer(
                 input, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
     
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=last_policy_layer_activation_type)
         
-        if (self._settings['use_stocastic_policy']):
+        if (self._settings['use_stocastic_policy'] and ( not ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])))):
+            print ("Adding stochastic layer")
             with_std = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._action_length,
                     nonlinearity=theano.tensor.nnet.softplus)
             self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
         # self._b_o = init_b_weights((n_out,))
-        
+        else:
+            print ("NOT Adding stochastic layer")
         if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
+            
+            if ('train_extra_value_function' in settings_ and (settings_['train_extra_value_function'])):
+                ## create an extra value function
+                network = lasagne.layers.DenseLayer(
+                        input, num_units=128,
+                        nonlinearity=activation_type)
+                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+                
+                network = lasagne.layers.DenseLayer(
+                        input, num_units=64,
+                        nonlinearity=activation_type)
+                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+                """
+                if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
+                    network = lasagne.layers.ConcatLayer([network, inputAction])
+                """
+                network = lasagne.layers.DenseLayer(
+                        network, num_units=32,
+                        nonlinearity=activation_type)
+                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+                
+                network = lasagne.layers.DenseLayer(
+                        network, num_units=16,
+                        nonlinearity=activation_type)
+                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+                """
+                network = lasagne.layers.DenseLayer(
+                        network, num_units=8,
+                        nonlinearity=activation_type)
+                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+                """
+                self._value_function = lasagne.layers.DenseLayer(
+                        network, num_units=1,
+                        nonlinearity=lasagne.nonlinearities.linear)
+                
+            ## put inputs together for DPG
             input = lasagne.layers.ConcatLayer([input, inputAction])
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=256,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
-        network = lasagne.layers.DenseLayer(
-                input, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
         """
         network = lasagne.layers.DenseLayer(
-                input, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                input, num_units=128,
+                nonlinearity=activation_type)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         network = lasagne.layers.DenseLayer(
+                input, num_units=64,
+                nonlinearity=activation_type)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        """
+        if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
+            network = lasagne.layers.ConcatLayer([network, inputAction])
+        """
+        network = lasagne.layers.DenseLayer(
                 network, num_units=32,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                nonlinearity=activation_type)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+                nonlinearity=activation_type)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        """
         network = lasagne.layers.DenseLayer(
                 network, num_units=8,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+                nonlinearity=activation_type)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        """
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)

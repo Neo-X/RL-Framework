@@ -179,11 +179,47 @@ class DPG(AlgorithmInterface):
         #       self._model.getActorNetwork(), lasagne.regularization.l2)), self._params + self._actionParams, 
         #           self._learning_rate, beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         
+        
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
+            self._valsA = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=True)
+            self._valsA_drop = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=False)
+            self._valsNextState = lasagne.layers.get_output(self._model._value_function, self._model.getResultStateSymbolicVariable(), deterministic=True)
+            self._valsTargetNextState = lasagne.layers.get_output(self._modelTarget._value_function, self._model.getResultStateSymbolicVariable(), deterministic=True)
+            self._valsTarget = lasagne.layers.get_output(self._modelTarget._value_function, self._model.getStateSymbolicVariable(), deterministic=True)
+            
+            # self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsB )), self._Fallen)
+            # self._target = self._model.getRewardSymbolicVariable() + ((self._discount_factor * self._q_valsTargetNextState ) * self._NotFallen) + (self._NotFallen - 1)
+            self._v_target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self._valsTargetNextState ) 
+            self._v_diff = self._v_target - self._valsA
+            # loss = 0.5 * self._diff ** 2 
+            loss_v = T.pow(self._v_diff, 2)
+            self._v_loss = T.mean(loss_v)
+            
+            self._params_value = lasagne.layers.helper.get_all_params(self._model._value_function)
+            self._givens_value = {
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+                # self._NotFallen: self._NotFallen_shared
+                # self._model.getActionSymbolicVariable(): self._actions_shared,
+            }
+            self._value_regularization = (self._critic_regularization_weight * 
+                                          lasagne.regularization.regularize_network_params(
+                                        self._model._value_function, lasagne.regularization.l2))
+            
+            self._value_grad = T.grad(self._v_loss + self._value_regularization
+                                                     , self._params_value)
+            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
+            self._updates_value = lasagne.updates.adam(self._value_grad
+                        , self._params_value, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
+            ## TD update
         DPG.compile(self)
         
     def compile(self):
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
+            self._train_value = theano.function([], [self._v_loss, self._valsA], updates=self._updates_value, givens=self._givens_value)
         # self._trainActor = theano.function([], [actLoss, self._q_valsActA], updates=actionUpdates, givens=actGivens)
         # self._trainActor = theano.function([], [self._q_func], updates=self._actionUpdates, givens=self._actGivens)
         self._trainActionGRAD  = theano.function([], [], updates=self._actionGRADUpdates, givens=self._actGradGivens)
@@ -215,7 +251,19 @@ class DPG(AlgorithmInterface):
         # self._diffs = theano.function(input=[State])
         self._bellman_error2 = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         
-        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        self._get_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
+            self._givens_grad = {
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+                # self._model.getActionSymbolicVariable(): self._model.getActions(),
+            }
+            self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._valsA), [self._model._stateInputVar] + self._params_value), allow_input_downcast=True, givens=self._givens_grad)
+        else:
+            self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        
         
     def getGrads(self, states, actions=None, alreadyNormed=False):
         """
@@ -229,7 +277,21 @@ class DPG(AlgorithmInterface):
         if ( actions is None ):
             actions = self.predict_batch(states)
         self._model.setActions(actions)
-        return self._get_grad()
+        return self._get_state_grad()
+    
+    def getActionGrads(self, states, actions=None, alreadyNormed=False):
+        """
+            The states should be normalized
+        """
+        # self.setData(states, actions, rewards, result_states)
+        if ( alreadyNormed == False):
+            states = norm_state(states, self._state_bounds)
+        states = np.array(states, dtype=theano.config.floatX)
+        self._model.setStates(states)
+        if ( actions is None ):
+            actions = self.predict_batch(states)
+        self._model.setActions(actions)
+        return self._get_action_grad()
     
     def updateTargetModel(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -242,7 +304,7 @@ class DPG(AlgorithmInterface):
         ## lerp the value function part of the networks, the target policy is not used for anythings
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork())
-        lerp_weight = 0.01
+        lerp_weight = 0.001
         # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         
         # print ("l_out length: " + str(len(all_paramsA)))
@@ -279,7 +341,18 @@ class DPG(AlgorithmInterface):
         # lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_paramsA)
         # lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
         # lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsAct) 
-        
+    
+    def updateTargetModelValue(self):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Updating MBAE target Model")
+        """
+            Target model updates
+        """
+        all_paramsA = lasagne.layers.helper.get_all_param_values(self._model._value_function)
+        # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+        lasagne.layers.helper.set_all_param_values(self._modelTarget._value_function, all_paramsA)
+        # lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
+            
     def getNetworkParameters(self):
         params = []
         params.append(lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork()))
@@ -314,10 +387,17 @@ class DPG(AlgorithmInterface):
         
     def trainCritic(self, states, actions, rewards, result_states, falls):
         
+        self.setData(states, actions, rewards, result_states, falls)
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
+            loss_v, _ = self._train_value()
+            print ("MBAE Value function loss: ", loss_v)
+            
+            if (( self._updates % 500) == 0):
+                self.updateTargetModelValue()
+            
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
-        self.setData(states, actions, rewards, result_states, falls)
         ## Compute actions for TargetNet
         target_actions = self._action_Target()
         self.setData(states, target_actions, rewards, result_states, falls)
@@ -349,7 +429,7 @@ class DPG(AlgorithmInterface):
         # print ("actions shape:", actions.shape)
         # next_states = forwardDynamicsModel.predict_batch(states, actions)
         # print ("next_states shape: ", next_states.shape)
-        action_grads = self.getGrads(states, actions, alreadyNormed=True)[0] * 1.0
+        action_grads = self.getActionGrads(states, actions, alreadyNormed=True)[0] * 1.0
         # print ("next_state_grads shape: ", next_state_grads.shape)
         # action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
         # print ( "action_grads shape: ", action_grads.shape)
@@ -369,7 +449,7 @@ class DPG(AlgorithmInterface):
                         inversion = ( actions[i,j] - (-1.0)) / 2.0
                     action_grads[i,j] = action_grads[i,j] * inversion
                     
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
             print("Policy mean: ", np.mean(self._q_action(), axis=0))
             # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
@@ -437,7 +517,7 @@ class DPG(AlgorithmInterface):
         self._model.setActions(action)
         self._modelTarget.setActions(action)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
             # return (self._q_val())[0] 
         else:
             return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))

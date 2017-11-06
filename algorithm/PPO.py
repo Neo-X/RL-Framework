@@ -549,9 +549,15 @@ class PPO(AlgorithmInterface):
         if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
             # self._advantage_shared.set_value(advantage)
             ## Need to scale the advantage by the discount to help keep things normalized
-            if (('normalize_advantage' in self.getSettings()) and self.getSettings()['normalize_advantage']):
+            if (('normalize_advantage' in self.getSettings()) and (not self.getSettings()['normalize_advantage'])):
                 # advantage = advantage * (1.0-self._discount_factor)
-                advantage = advantage * (1.0-self._discount_factor) 
+                # advantage = advantage * (1.0-self._discount_factor)
+                ## Standardize advantage 
+                pass
+            else:
+                std = np.std(advantage)
+                mean = np.mean(advantage)
+                advantage = (advantage - mean) / std 
             # pass # use given advantage parameter
         else:
             advantage = self._get_advantage()
@@ -612,11 +618,11 @@ class PPO(AlgorithmInterface):
             print("Policy mean: ", np.mean(self._q_action(), axis=0))
             print("Policy   std: ", np.mean(self._q_action_std(), axis=0))
             print ( self._get_log_prob() )
-            print ( "States: ", states )
-            print ( "Actions: ", actions )
-            print ( "Result states: ", result_states )
-            print ( "Rewards: ", rewards )
-            print ( "Advantage: ", advantage )
+            print ( "States: ", np.mean(states, axis=0), ", std: ", np.std(states, axis=0) )
+            print ( "Actions: ", np.mean(actions, axis=0), ", std: ", np.std(actions, axis=0) )
+            print ( "Result states: ", np.mean(result_states, axis=0), ", std: ", np.std(result_states, axis=0) )
+            print ( "Rewards: ", np.mean(rewards, axis=0), ", std: ", np.std(rewards, axis=0) )
+            print ( "Advantage: ", np.mean(advantage, axis=0), ", std: ", np.std(advantage, axis=0) )
             ## Set network parameters back to previous values
             all_paramsActA = lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork())
             lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), all_paramsActA)

@@ -112,6 +112,9 @@ class TRPO(AlgorithmInterface):
         self._loss_drop = T.mean(0.5 * self._diff_drop ** 2)
         
         self._params = lasagne.layers.helper.get_all_params(self._model.getCriticNetwork())
+        #if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])):
+        #    self._actionParams = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
+        #else:
         self._actionParams = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
         self._givens_ = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -389,9 +392,15 @@ class TRPO(AlgorithmInterface):
         if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
             # self._advantage_shared.set_value(advantage)
             ## Need to scale the advantage by the discount to help keep things normalized
-            if (('normalize_advantage' in self.getSettings()) and self.getSettings()['normalize_advantage']):
+            if (('normalize_advantage' in self.getSettings()) and (not self.getSettings()['normalize_advantage'])):
                 # advantage = advantage * (1.0-self._discount_factor)
-                advantage = advantage * (1.0-self._discount_factor) 
+                # advantage = advantage * (1.0-self._discount_factor)
+                ## Standardize advantage 
+                pass
+            else:
+                std = np.std(advantage)
+                mean = np.mean(advantage)
+                advantage = (advantage - mean) / std
             # pass # use given advantage parameter
             self.setData(states, actions, rewards, result_states, falls)
             # advantage = self._get_advantage()[0] * (1.0/(1.0-self._discount_factor))
