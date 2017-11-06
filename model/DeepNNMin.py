@@ -74,12 +74,15 @@ class DeepNNMin(ModelInterface):
                 networkAct, num_units=self._action_length,
                 nonlinearity=last_policy_layer_activation_type)
         
-        if (self._settings['use_stocastic_policy']):
+        if (self._settings['use_stocastic_policy'] and ( not ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])))):
+            print ("Adding stochastic layer")
             with_std = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._action_length,
                     nonlinearity=theano.tensor.nnet.softplus)
             self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
         # self._b_o = init_b_weights((n_out,))
+        else:
+            print ("NOT Adding stochastic layer")
         
         if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
             input = lasagne.layers.ConcatLayer([input, inputAction])

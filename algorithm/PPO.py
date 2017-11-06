@@ -549,12 +549,15 @@ class PPO(AlgorithmInterface):
         if ('use_GAE' in self.getSettings() and ( self.getSettings()['use_GAE'] )):
             # self._advantage_shared.set_value(advantage)
             ## Need to scale the advantage by the discount to help keep things normalized
-            if (('normalize_advantage' in self.getSettings()) and self.getSettings()['normalize_advantage']):
+            if (('normalize_advantage' in self.getSettings()) and (not self.getSettings()['normalize_advantage'])):
                 # advantage = advantage * (1.0-self._discount_factor)
+                # advantage = advantage * (1.0-self._discount_factor)
+                ## Standardize advantage 
+                pass
+            else:
                 std = np.std(advantage)
                 mean = np.mean(advantage)
-                advantage = (advantage - mean) / std
-                # advantage = advantage * (1.0-self._discount_factor) 
+                advantage = (advantage - mean) / std 
             # pass # use given advantage parameter
         else:
             advantage = self._get_advantage()
