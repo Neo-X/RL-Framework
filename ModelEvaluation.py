@@ -604,9 +604,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 path['reward'] = np.array(rewards[last_epoch_end:])
                 path["terminated"] = True
                 ## Extend so that we can preserve the paths/trajectory structure.
-                advantage.extend(compute_advantage_(model, [path], discount_factor, settings['GAE_lambda']))
+                if (len(rewards[last_epoch_end:]) > 0):
+                    advantage.extend(compute_advantage_(model, [path], discount_factor, settings['GAE_lambda']))
             else:
-                advantage.extend(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
+                if (len(rewards[last_epoch_end:]) > 0):
+                    advantage.extend(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
                                            
             if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
                 adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
@@ -687,9 +689,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         path['reward'] = np.array(rewards[last_epoch_end:])
         path["terminated"] = False
         ## Extend so that we can preserve the paths/trajectory structure.
-        advantage.extend(compute_advantage_(model, [path], discount_factor, settings['GAE_lambda']))
+        if (len(rewards[last_epoch_end:]) > 0):
+            advantage.extend(compute_advantage_(model, [path], discount_factor, settings['GAE_lambda']))
     else:
-        advantage.extend(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
+        if (len(rewards[last_epoch_end:]) > 0):
+            advantage.extend(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
         
     # G_t_rewards.append(0)
     if ( ('print_level' in settings) and (settings["print_level"]== 'info') ):
