@@ -1,0 +1,44 @@
+import matplotlib.pyplot as plt
+# from matplotlib import mpl
+import numpy as np
+# import matplotlib.animation as animation
+import random
+import sys
+import json
+from NNVisualize import NNVisualize
+import math
+
+
+
+
+if __name__ == '__main__':
+    
+    file = open(sys.argv[1])
+    settings = json.load(file)
+    print ("Settings: " + str(json.dumps(settings, indent=4)))
+    file.close()
+    
+    nv = NNVisualize("annealing schedule", settings=settings)
+    
+    rounds = 1000
+    x = range(rounds)
+    ps = []
+    
+    anneal_type = 'linear'
+    
+    for round_ in range(0,rounds):
+        # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
+        # p = (settings['initial_temperature'] / (math.log(round_))) 
+        # p = ((settings['initial_temperature']/math.log(round_+2))/math.log(rounds))
+        if (anneal_type == 'linear'):
+            p = 1 - (rounds - round_)
+        # p = ((settings['initial_temperature']/math.log(round_+2))) 
+        # p = ((rounds - round_)/rounds) ** 2
+        p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
+        if ( settings['load_saved_model'] ):
+            p = settings['min_epsilon']
+        ps.append(p)
+    nv.init()    
+    nv.updateLoss(ps, np.zeros(len(ps)))
+    
+    nv.show()
