@@ -272,5 +272,5 @@
 	"comment__": "last policy type of activation to use",
 "last_policy_layer_activation_type": "tanh",
 	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
-"normalize_advantage": false	
+"normalize_advantage": true	
 }
