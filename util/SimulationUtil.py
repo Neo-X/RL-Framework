@@ -606,7 +606,7 @@ def createActor(env_type, settings, experience):
     elif env_type == 'terrainRLBiped2D' or (env_type == 'terrainRLFlatBiped2D'):
         from actor.TerrainRLActor import TerrainRLActor
         actor = TerrainRLActor(settings, experience)
-    elif (env_type == 'terrainRLImitateBiped2D'):
+    elif (env_type == 'terrainRLImitateBiped2D' or (env_type == 'terrainRLImitateBiped3D')):
         from actor.TerrainRLImitationActor import TerrainRLImitationActor
         actor = TerrainRLImitationActor(settings, experience)
     elif (env_type == 'paperGibbon_env'):
