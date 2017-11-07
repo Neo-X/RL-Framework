@@ -70,7 +70,7 @@ class SimContainer(object):
         """
         current_time = glutGet(GLUT_ELAPSED_TIME);
         print ("Current sim time: ", current_time)
-        num_substeps = 1
+        num_substeps = 5
         for i in range(num_substeps):
             # print ("End of Epoch: ", self._exp.getEnvironment().endOfEpoch())
             if (self._exp.getEnvironment().endOfEpoch() and 
@@ -91,6 +91,7 @@ class SimContainer(object):
             """
             if (self._exp.needUpdatedAction()):
                 state_ = self._exp.getState()
+                print ("State: ", state_)
                 ## Update value function visualization
                 if ( True ):
                     self._viz_q_values_.append(self._agent.q_value(state_)[0])
@@ -115,6 +116,8 @@ class SimContainer(object):
                 self._grad_sum += np.abs(grad_)
                 self._num_actions +=1
                 print ("Input grad: ", repr(self._grad_sum/self._num_actions))
+                # print ("Input grad: ", str(self._grad_sum/self._num_actions))
+                print ("Input grad: ", self._grad_sum/self._num_actions)
                 
                 
                 # action_[1] = 1.0
