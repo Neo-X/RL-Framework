@@ -26,67 +26,87 @@ class DeepNNSingleNet(ModelInterface):
         self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         # create a small convolutional neural network
-        # inputLayer = lasagne.layers.InputLayer((None, self._state_length), self._State)
-        # new_state = theano.tensor.concatenate([self._State, self._Action], axis=1)
-        # input = lasagne.layers.InputLayer((None, self._state_length + self._action_length), new_state)
-        # stateInput = lasagne.layers.SliceLayer(input, indices=slice(0, self._state_length), axis=1)
-        # actionInput = lasagne.layers.SliceLayer(input, indices=slice(self._state_length+1, self._state_length + self._action_length), axis=1)
-        stateInput = lasagne.layers.InputLayer((None, self._state_length), self._State)
-        self._stateInputVar = stateInput.input_var
-        actionInput = lasagne.layers.InputLayer((None, self._action_length), self._Action)
-        self._actionInputVar = actionInput.input_var
+        input = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        self._stateInputVar = input.input_var
+        inputAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
+        self._actionInputVar = inputAction.input_var
+        # self._b_o = init_b_weights((n_out,))
+        # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         
+        activation_type=lasagne.nonlinearities.leaky_rectify
+        if ("activation_type" in settings_ and (settings_['activation_type'] == 'leaky_rectify')):
+            activation_type = lasagne.nonlinearities.leaky_rectify
+        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'relu')):
+            activation_type = lasagne.nonlinearities.rectify
+        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'tanh')):
+            activation_type = lasagne.nonlinearities.tanh
+        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'linear')):
+            activation_type = lasagne.nonlinearities.linear
+            
+        last_policy_layer_activation_type = lasagne.nonlinearities.tanh
+        if ('last_policy_layer_activation_type' in settings_ and (settings_['last_policy_layer_activation_type']) == 'linear'):
+            last_policy_layer_activation_type=lasagne.nonlinearities.linear
+        if ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'leaky_rectify')):
+            last_policy_layer_activation_type = lasagne.nonlinearities.leaky_rectify
+        elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'relu')):
+            last_policy_layer_activation_type = lasagne.nonlinearities.rectify
+        elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'tanh')):
+            last_policy_layer_activation_type = lasagne.nonlinearities.tanh
         
         """
-        network = lasagne.layers.DenseLayer(
-                inputLayerA, num_units=256,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
-        network = lasagne.layers.DenseLayer(
-                stateInput, num_units=128,
+        networkAct = lasagne.layers.DenseLayer(
+                networkAct, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
-        network = lasagne.layers.DenseLayer(
-                stateInput, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        networkAct = lasagne.layers.DenseLayer(
+                input, num_units=128,
+                nonlinearity=activation_type)
+        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        
+        networkAct = lasagne.layers.DenseLayer(
+                networkAct, num_units=64,
+                nonlinearity=activation_type)
+        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
         networkMiddle = lasagne.layers.DenseLayer(
-                network, num_units=32,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        """
-        network = lasagne.layers.DenseLayer(
-                networkMiddle, num_units=64,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        """
+                networkAct, num_units=32,
+                nonlinearity=activation_type)
+        networkMiddle = lasagne.layers.DropoutLayer(networkMiddle, p=self._dropout_p, rescale=True)
         
+        networkMiddleFD = lasagne.layers.ConcatLayer([networkMiddle, inputAction], axis=1)
+        # networkMiddle = lasagne.layers.ConcatLayer([networkMiddle, actionInput], axis=1)
+    
         self._actor = lasagne.layers.DenseLayer(
                 networkMiddle, num_units=self._action_length,
-                nonlinearity=lasagne.nonlinearities.linear)
+                nonlinearity=last_policy_layer_activation_type)
         
-        if (self._settings['use_stocastic_policy']):
+        if (self._settings['use_stocastic_policy'] and ( not ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])))):
+            print ("Adding stochastic layer")
             with_std = lasagne.layers.DenseLayer(
                     networkMiddle, num_units=self._action_length,
                     nonlinearity=theano.tensor.nnet.softplus)
             self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
-        
-        """
+        # self._b_o = init_b_weights((n_out,))
+        else:
+            print ("NOT Adding stochastic layer")
+        if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
+            
+            
+            input = lasagne.layers.ConcatLayer([networkMiddle, inputAction])
+
         network = lasagne.layers.DenseLayer(
                 networkMiddle, num_units=16,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        """
-        self._critic = lasagne.layers.DenseLayer(
-                networkMiddle, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
-        # self._b_o = init_b_weights((n_out,))
-    
-        # print "Initial W " + str(self._w_o.get_value()) 
+                nonlinearity=activation_type)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
 
-        # actionInput = lasagne.layers.InputLayer((None, self._action_length), self._Action)        
-        networkMiddleFD = lasagne.layers.ConcatLayer([networkMiddle, actionInput], axis=1)
+        self._critic = lasagne.layers.DenseLayer(
+                network, num_units=1,
+                nonlinearity=lasagne.nonlinearities.linear)        
         
         network = lasagne.layers.DenseLayer(
                 networkMiddleFD, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         self._forward_dynamics_net = lasagne.layers.DenseLayer(
                 network, num_units=self._state_length,
@@ -95,6 +115,7 @@ class DeepNNSingleNet(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 networkMiddleFD, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         self._reward_net = lasagne.layers.DenseLayer(
                 network, num_units=1,
@@ -104,6 +125,12 @@ class DeepNNSingleNet(ModelInterface):
         self._encode_net = lasagne.layers.DenseLayer(
                 networkMiddle, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        self._encode_net = lasagne.layers.DropoutLayer(self._encode_net, p=self._dropout_p, rescale=True)
+        
+        self._encode_net = lasagne.layers.DenseLayer(
+                self._encode_net, num_units=128,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        self._encode_net = lasagne.layers.DropoutLayer(self._encode_net, p=self._dropout_p, rescale=True)
         
         self._encode_net = lasagne.layers.DenseLayer(
                 self._encode_net, num_units=self._state_length,

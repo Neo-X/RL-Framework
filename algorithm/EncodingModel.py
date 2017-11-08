@@ -58,19 +58,19 @@ class EncodingModel(AlgorithmInterface):
         
         # SGD update
         if (self.getSettings()['optimizer'] == 'rmsprop'):
-            print ("Optimizing Forward Dynamics with ", self.getSettings()['optimizer'], " method")
+            print ("Optimizing Encoding Model with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.rmsprop(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-                    self._model.getEncodeNet(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho, self._rms_epsilon)
+                self._model.getEncodeNet(), lasagne.regularization.l2)), self._params, self._learning_rate, self._rho, self._rms_epsilon)
         elif (self.getSettings()['optimizer'] == 'momentum'):
-            print ("Optimizing Forward Dynamics with ", self.getSettings()['optimizer'], " method")
+            print ("Optimizing Encoding Model with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.momentum(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getEncodeNet(), lasagne.regularization.l2)), self._params, self._learning_rate, momentum=self._rho)
         elif ( self.getSettings()['optimizer'] == 'adam'):
-            print ("Optimizing Forward Dynamics with ", self.getSettings()['optimizer'], " method")
+            print ("Optimizing Encoding Model with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.adam(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getEncodeNet(), lasagne.regularization.l2)), self._params, self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
         elif ( self.getSettings()['optimizer'] == 'adagrad'):
-            print ("Optimizing Forward Dynamics with ", self.getSettings()['optimizer'], " method")
+            print ("Optimizing Encoding Model with ", self.getSettings()['optimizer'], " method")
             self._updates_ = lasagne.updates.adagrad(self._loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getEncodeNet(), lasagne.regularization.l2)), self._params, self._learning_rate, epsilon=self._rms_epsilon)
         else:
@@ -119,10 +119,7 @@ class EncodingModel(AlgorithmInterface):
         self._updates += 1
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         loss = self._train()
-        if ( self.getSettings()['train_reward_predictor']):
-            # print ("self._reward_bounds: ", self._reward_bounds)
-            # print( "Rewards, predicted_reward, difference: ", np.concatenate((rewards, self._predict_reward(), rewards - self._predict_reward()), axis=1))
-            lossReward = self._train_reward()
+
         # This undoes the Actor parameter updates as a result of the Critic update.
         # print (diff_)
         return loss

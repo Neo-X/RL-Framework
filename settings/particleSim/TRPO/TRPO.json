@@ -254,5 +254,5 @@
 	"comment__": "number of on policy rollouts to perform per epoch",
 "num_on_policy_rollouts": 5,
 	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
-"normalize_advantage": false
+"normalize_advantage": true
 }

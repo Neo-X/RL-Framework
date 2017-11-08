@@ -195,10 +195,14 @@ class PPO(AlgorithmInterface):
         # self._Advantage = self._diff # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
         self._Advantage = self._advantage # * (1.0/(1.0-self._discount_factor)) ## scale back to same as rewards
         ### I found using log likelihood to be more numerically stable (A value of exp(100) would result in nan for _r)
-        self._prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
-        self._prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
-        # self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
-        # self._prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
+        #self._prob = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        # self._prob_target = loglikelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
+        l_bound = 5e-5
+        u_bound = 5e5 
+        self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        # self._prob = theano.tensor.clip(self._prob, l_bound, u_bound)
+        self._prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
+        # self._prob_target = theano.tensor.clip(self._prob_target, l_bound, u_bound)
         # self._prob = likelihoodMEAN(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         # self._prob_target = likelihoodMEAN(self._model.getActionSymbolicVariable(), self._q_valsActTarget, self._q_valsActTargetSTD, self._action_length)
         # self._actLoss_ = ( (T.exp(self._log_prob - self._log_prob_target).dot(self._Advantage)) )
@@ -240,7 +244,7 @@ class PPO(AlgorithmInterface):
             print ("Unknown optimization method: ", self.getSettings()['optimizer'])
             
             
-        
+        """
         if ( ('train_state_encoding' in self.getSettings()) and (self.getSettings()['train_state_encoding'])):
             self._encoded_state = lasagne.layers.get_output(self._model.getEncodeNet(), self._model.getStateSymbolicVariable(), deterministic=True)
             self._encoding_loss = T.mean(T.pow(self._encoded_state - self._model.getStates(), 2))
@@ -254,23 +258,26 @@ class PPO(AlgorithmInterface):
                                )
                            )
         else:
-            self._full_loss = (
-                            self._loss + 
-                            self._critic_regularization +
-                            (-1.0 * self.getSettings()['policy_loss_weight'] * (
-                                        T.mean(self._actLoss_) + 
-                                    (self.getSettings()['std_entropy_weight'] * self._actor_entropy)
-                                    )
-                             ) 
-                            + self._actor_regularization
-                            )
-            
+        """
+        self._full_loss = (
+                        self._loss + 
+                        self._critic_regularization +
+                        (-1.0 * self.getSettings()['policy_loss_weight'] * (
+                                    T.mean(self._actLoss_) + 
+                                (self.getSettings()['std_entropy_weight'] * self._actor_entropy)
+                                )
+                         ) 
+                        + self._actor_regularization
+                        )
+        """    
         if ( ('train_state_encoding' in self.getSettings()) and (self.getSettings()['train_state_encoding'])):
             self._encodeParams = lasagne.layers.helper.get_all_params(self._model.getEncodeNet())
             self._all_Params = self._params + self._actionParams + self._encodeParams 
         else:
-            # self._all_Params = self._params + self._actionParams[-3:]    
-            self._all_Params = self._params + self._actionParams
+        """
+        # self._all_Params = self._params + self._actionParams[-3:]    
+        self._all_Params = self._params + self._actionParams
+        
         print ("Num params: ", len(self._all_Params), " params: ", len(self._params) , " act params: ", len(self._actionParams))
         self._both_grad = T.grad(self._full_loss ,  self._all_Params)
         self._both_grad = lasagne.updates.total_norm_constraint(self._both_grad, 5)

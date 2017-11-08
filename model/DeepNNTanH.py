@@ -63,7 +63,7 @@ class DeepNNTanH(ModelInterface):
                 nonlinearity=activation_type)
         
         networkAct = lasagne.layers.DenseLayer(
-                input, num_units=64,
+                networkAct, num_units=64,
                 nonlinearity=activation_type)
         
         networkAct = lasagne.layers.DenseLayer(
@@ -93,7 +93,7 @@ class DeepNNTanH(ModelInterface):
                 network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
                 
                 network = lasagne.layers.DenseLayer(
-                        input, num_units=64,
+                        network, num_units=64,
                         nonlinearity=activation_type)
                 network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
                 """
@@ -132,7 +132,7 @@ class DeepNNTanH(ModelInterface):
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         network = lasagne.layers.DenseLayer(
-                input, num_units=64,
+                network, num_units=64,
                 nonlinearity=activation_type)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         """

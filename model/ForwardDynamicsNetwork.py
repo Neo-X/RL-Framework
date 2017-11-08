@@ -47,7 +47,7 @@ class ForwardDynamicsNetwork(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         l_hid4ActA = lasagne.layers.DenseLayer(
-                l_hid3ActA, num_units=128,
+                l_hid3ActA, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
     
         self._forward_dynamics_net = lasagne.layers.DenseLayer(
@@ -78,6 +78,33 @@ class ForwardDynamicsNetwork(ModelInterface):
                 l_hid4ActA, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
+                
+                
+        encode_net = lasagne.layers.DenseLayer(
+                stateInput, num_units=128,
+                nonlinearity=lasagne.nonlinearities.rectify)
+        
+        encode_net = lasagne.layers.DenseLayer(
+                encode_net, num_units=32,
+                nonlinearity=lasagne.nonlinearities.rectify)
+        
+        encode_net = lasagne.layers.DenseLayer(
+                encode_net, num_units=8,
+                nonlinearity=lasagne.nonlinearities.rectify)
+    
+        encode_net = lasagne.layers.DenseLayer(
+                encode_net, num_units=32,
+                nonlinearity=lasagne.nonlinearities.rectify)
+        
+        encode_net = lasagne.layers.DenseLayer(
+                encode_net, num_units=128,
+                nonlinearity=lasagne.nonlinearities.rectify)
+        
+        self._state_encoding_net = lasagne.layers.DenseLayer(
+                encode_net, num_units=self._state_length,
+                nonlinearity=lasagne.nonlinearities.linear)
+                # print ("Initial W " + str(self._w_o.get_value()) )
+                
         
         self._states_shared = theano.shared(
             np.zeros((batch_size, self._state_length),
