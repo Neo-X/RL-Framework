@@ -350,7 +350,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             """
             r = np.random.rand(1)[0]
             # print(" Action p: ", p)
-            if r < (epsilon * p): # explore random actions
+            if r < (epsilon * p) or (settings['on_policy']): # explore random actions
                 exp_action = int(1)
                 r2 = np.random.rand(1)[0]
                 if ((r2 < (omega * p))) and (not sampling) :# explore hand crafted actions

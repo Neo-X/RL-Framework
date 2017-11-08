@@ -30,6 +30,28 @@ def chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i+n]
         
+        
+def anneal_value(d, settings_):
+    """
+        d is a value between 0 and 1.0 that is an indicator to 
+        how close something is to the end or from the begining
+        0 being the start and 1.0 being the end.
+    """
+    d = float(d)
+    anneal_type = settings_['annealing_schedule']
+    if (anneal_type == 'linear'):
+        p = 1.0 - (d)
+    elif (anneal_type == "log"):
+        # p = ((0.1/math.log(((d))+1)))
+        p = (1.0 - (math.log((d)+1.0)))**4
+    elif (anneal_type == "square"):
+        d = 1.0 - (d)
+        p = (d**2)
+    elif (anneal_type == "exp"):
+        d = 1.0 - (d)
+        p = (d**round_)
+        
+    return p
 def discounted_rewards(rewards, discount_factor):
     from scipy import signal, misc
     """

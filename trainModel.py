@@ -52,7 +52,7 @@ def trainModelParallel(inputData):
         # from model.ModelUtil import *
         # print ( "theano.config.mode: ", theano.config.mode)
         from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience, simEpoch, evalModel, simModelParrallel
-        from model.ModelUtil import validBounds, fixBounds
+        from model.ModelUtil import validBounds, fixBounds, anneal_value
         from model.LearningAgent import LearningAgent, LearningWorker
         from util.SimulationUtil import validateSettings
         from util.SimulationUtil import createEnvironment
@@ -554,7 +554,10 @@ def trainModelParallel(inputData):
             # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
             # p = (settings['initial_temperature'] / (math.log(round_))) 
             # p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds))
-            p = ((settings['initial_temperature']/math.log(round_+2))) 
+            if ( 'annealing_schedule' in settings):
+                p = anneal_value(float(round_/rounds), settings_=settings)
+            else:
+                p = ((settings['initial_temperature']/math.log(round_+2))) 
             # p = ((rounds - round_)/rounds) ** 2
             p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
             if ( settings['load_saved_model'] ):

@@ -162,7 +162,7 @@
     "comment__": "Learning rate use for model based action exploration",
 "action_learning_rate": 1.50,
     "comment__": "During model-based action exploration, Probability of a random action being generated from MBAE,",
-"model_based_action_omega": 0.30,
+"model_based_action_omega": 0.25,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
 "debug_actor": false,
 	"comment__": "float type to use, if for example you want to train on the GPU use float32",
@@ -230,7 +230,7 @@
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
 "fix_actor_batch_size": true,
 	"comment__": "Whether or not to put MBAE on the annelling schedule",
-"anneal_mbae": false,
+"anneal_mbae": true,
 	"comment__": "How many value function updates should be done between Dyna updates",
 "dyna_update_lag_steps": 1,
 	"comment__": "Use generalized advantage estimation",
@@ -272,5 +272,9 @@
 	"comment__": "last policy type of activation to use",
 "last_policy_layer_activation_type": "tanh",
 	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
-"normalize_advantage": true	
+"normalize_advantage": true,
+	"comment__": "use a special annealing schedule that will being at 1 and end at 0",
+"annealing_schedule": "log",
+	"comment__": "Use the annealing schedule in on policy learning",
+"anneal_on_policy": true 	
 }

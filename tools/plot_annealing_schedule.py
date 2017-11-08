@@ -7,6 +7,7 @@ import sys
 import json
 from NNVisualize import NNVisualize
 import math
+from model.ModelUtil import anneal_value
 
 
 
@@ -24,14 +25,18 @@ if __name__ == '__main__':
     x = range(rounds)
     ps = []
     
-    anneal_type = 'linear'
+    # anneal_type = 'linear'
+    anneal_type = 'log'
+    # anneal_type = 'square'
+    
+    settings['annealing_schedule'] = 'log'
     
     for round_ in range(0,rounds):
         # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
         # p = (settings['initial_temperature'] / (math.log(round_))) 
         # p = ((settings['initial_temperature']/math.log(round_+2))/math.log(rounds))
-        if (anneal_type == 'linear'):
-            p = 1 - (rounds - round_)
+        
+        p = anneal_value(float(round_/rounds), settings_=settings)
         # p = ((settings['initial_temperature']/math.log(round_+2))) 
         # p = ((rounds - round_)/rounds) ** 2
         p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
