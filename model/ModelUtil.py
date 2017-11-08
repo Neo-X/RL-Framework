@@ -43,7 +43,7 @@ def anneal_value(d, settings_):
         p = 1.0 - (d)
     elif (anneal_type == "log"):
         # p = ((0.1/math.log(((d))+1)))
-        p = (1.0 - (math.log((d)+1.0)))**4
+        p = (1.0 - (math.log((d)+1.0)))**settings_['initial_temperature']
     elif (anneal_type == "square"):
         d = 1.0 - (d)
         p = (d**2)
