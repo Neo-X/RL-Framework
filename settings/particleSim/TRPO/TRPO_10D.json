@@ -234,7 +234,7 @@
 	"comment__": "How many value function updates should be done between Dyna updates",
 "dyna_update_lag_steps": 1,
 	"comment__": "Use generalized advantage estimation",
-"use_GAE": true,
+"use_GAE": false,
 	"comment__": "generalized advantage estimation lambda in [0,1]",
 "GAE_lambda": 0.95,
 	"comment__": "Whether or not to take a couple of on policy updates",
