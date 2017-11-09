@@ -614,8 +614,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                                            
             if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
                 adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
+                R_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(path['reward'], G_t_rewards, G_t)]
                 # print ("Adv: ", advantage)
                 print("Advantage, R: ", adv_r)
+                print ("Lengths: ", len(rewards[last_epoch_end:]), len(G_t_rewards), len(G_t))
+                print ("Rewards: ", R_r)
                 
             # print ("Advantage: ", advantage)
             G_ts.extend(copy.deepcopy(G_t))
@@ -702,9 +705,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             advantage.extend(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
         
     # G_t_rewards.append(0)
-    if ( ('print_level' in settings) and (settings["print_level"]== 'info') ):
-        adv_r = [ [x, y, z] for x,y,z in zip(advantage, G_t_rewards, baseline)]
-        print("Advantage for episode: ", np.array(adv_r))
+    if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
+        adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
+        R_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(path['reward'], G_t_rewards, G_t)]
+        # print ("Adv: ", advantage)
+        print("Advantage, R: ", adv_r)
+        print ("Lengths: ", len(rewards[last_epoch_end:]), len(G_t_rewards), len(G_t))
+        print ("Rewards: ", R_r)
         # print("Advantage, rewards, baseline: ", np.concatenate((advantage, G_t_rewards, baseline), axis=1))
     # print ("ad: ", advantage)
     advantage = np.reshape(np.array([advantage]), newshape=(-1,1))
