@@ -239,7 +239,7 @@
 	"comment__": "fix the std used for action parameters",
 "use_fixed_std": false,
 	"comment__": "Disable scaling for inputs and outputs of networks",
-"disable_parameter_scaling": true,
+"disable_parameter_scaling": false,
 	"comment__": "Train a state encoding as well.",
 "train_state_encoding": false,
 	"comment__": "std entropy weight to help encourage exploration",
