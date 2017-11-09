@@ -54,7 +54,8 @@ class ForwardDynamics(AlgorithmInterface):
         self._reward = lasagne.layers.get_output(self._model.getRewardNetwork(), self._inputs_reward_, deterministic=True)
         self._reward_drop = lasagne.layers.get_output(self._model.getRewardNetwork(), self._inputs_reward_, deterministic=False)
         
-        self._forward_state_encode = lasagne.layers.get_output(self.model._state_encoding_net, self._model.getStates(), deterministic=False)
+        if ( 'train_state_encoding' in self.getSettings() and (self.getSettings()['train_state_encoding'])):    
+            self._forward_state_encode = lasagne.layers.get_output(self._model._state_encoding_net, self._model.getStates(), deterministic=False)
         
         l2_loss = True
         
@@ -104,13 +105,14 @@ class ForwardDynamics(AlgorithmInterface):
         self._reward_loss_NoDrop_ = T.mean(T.pow(self._reward_diff_NoDrop, 2),axis=1)
         self._reward_loss_NoDrop = T.mean(self._reward_loss_NoDrop_)
         
-        
-        self._state_encode_diff = self._forward_state_encode - self._model.getStateSymbolicVariable()
-        self._state_encode_loss = T.mean(T.mean(T.pow(self._reward_diff, 2),axis=1))
+        if ( 'train_state_encoding' in self.getSettings() and (self.getSettings()['train_state_encoding'])):
+            self._state_encode_diff = self._forward_state_encode - self._model.getStateSymbolicVariable()
+            self._state_encode_loss = T.mean(T.mean(T.pow(self._reward_diff, 2),axis=1))
         
         self._params = lasagne.layers.helper.get_all_params(self._model.getForwardDynamicsNetwork())
         self._reward_params = lasagne.layers.helper.get_all_params(self._model.getRewardNetwork())
-        self._encode_params = lasagne.layers.helper.get_all_params(self._model._state_encoding_net)
+        if ( 'train_state_encoding' in self.getSettings() and (self.getSettings()['train_state_encoding'])):
+            self._encode_params = lasagne.layers.helper.get_all_params(self._model._state_encoding_net)
         self._givens_ = {
             self._model.getStateSymbolicVariable() : self._model.getStates(),
             self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
@@ -131,10 +133,10 @@ class ForwardDynamics(AlgorithmInterface):
                 self._model.getActionSymbolicVariable(): self._model.getActions(),
                 self._model.getRewardSymbolicVariable() : self._model.getRewards(),
             }
-            
-        self._state_encode_givens_ = {
-            self._model.getStateSymbolicVariable() : self._model.getStates(),
-        }
+        if ( 'train_state_encoding' in self.getSettings() and (self.getSettings()['train_state_encoding'])):
+            self._state_encode_givens_ = {
+                self._model.getStateSymbolicVariable() : self._model.getStates(),
+            }
 
         # SGD update
         print ("Optimizing Forward Dynamics with ", self.getSettings()['optimizer'], " method")
@@ -144,9 +146,9 @@ class ForwardDynamics(AlgorithmInterface):
             self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
         self._combined_updates_ = lasagne.updates.adam(self._loss + self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
             self._model.getForwardDynamicsNetwork(), lasagne.regularization.l2)), self._params + self._reward_params , self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
-        
-        self._state_encoding_updates_ = lasagne.updates.adam(self._encode_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-            self._model._state_encoding_net, lasagne.regularization.l2)), self._encode_params, self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
+        if ( 'train_state_encoding' in self.getSettings() and (self.getSettings()['train_state_encoding'])):
+            self._state_encoding_updates_ = lasagne.updates.adam(self._encode_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
+                self._model._state_encoding_net, lasagne.regularization.l2)), self._encode_params, self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
         
         self._combined_givens_ = {
             self._model.getStateSymbolicVariable() : self._model.getStates(),
@@ -160,7 +162,8 @@ class ForwardDynamics(AlgorithmInterface):
         self._train = theano.function([], [self._loss], updates=self._updates_, givens=self._givens_)
         self._train_reward = theano.function([], [self._reward_loss], updates=self._reward_updates_, givens=self._reward_givens_)
         self._train_combined = theano.function([], [self._reward_loss], updates=self._combined_updates_, givens=self._combined_givens_)
-        self._train_state_encoding = theano.function([], [self._encoding_loss], updates=self._state_encoding_updates_, givens=self._state_encode_givens_)
+        if ( 'train_state_encoding' in self.getSettings() and (self.getSettings()['train_state_encoding'])):
+            self._train_state_encoding = theano.function([], [self._encoding_loss], updates=self._state_encoding_updates_, givens=self._state_encode_givens_)
         self._forwardDynamics = theano.function([], self._forward,
                                        givens={self._model.getStateSymbolicVariable() : self._model.getStates(),
                                                 self._model.getActionSymbolicVariable(): self._model.getActions()})

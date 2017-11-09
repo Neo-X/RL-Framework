@@ -588,6 +588,7 @@ def trainModelParallel(inputData):
                     # print("**** training states: ", np.array(__states).shape)
                     # print("**** training __result_states: ", np.array(__result_states).shape)
                     # print ("Actions before: ", __actions)
+                    # print("Adv: ", advantage__)
                     for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
                                            _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__)

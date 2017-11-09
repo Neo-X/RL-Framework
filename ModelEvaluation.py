@@ -552,7 +552,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print("Shape of states: ", np.array(states).shape, " state shape, ", np.array(state_).shape)
             states.extend(state_)
             actions.append(action)
-            rewards.append([reward_])
+            rewards.append(reward_)
             # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)
             # print("result states: ", result_states___)
             result_states___.extend(resultState_)
@@ -569,7 +569,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         else:
             print ("****Reward was to bad: ", reward_)
         pa = None
-        i_ += 1
         
         if ((exp.endOfEpoch() and settings['reset_on_fall'])  or ((reward_ < settings['reward_lower_bound']) 
                                                   and
@@ -603,6 +602,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 path['states'] = copy.deepcopy(states [last_epoch_end:])
                 path['reward'] = np.array(rewards[last_epoch_end:])
                 path["terminated"] = True
+                print("rewards: ", rewards[last_epoch_end:])
                 ## Extend so that we can preserve the paths/trajectory structure.
                 if (len(rewards[last_epoch_end:]) > 0):
                     advantage.extend(compute_advantage_(model, [path], discount_factor, settings['GAE_lambda']))
@@ -612,7 +612,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                                            
             if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
                 adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
-                print("Advantage: ", adv_r)
+                # print ("Adv: ", advantage)
+                print("Advantage, R: ", adv_r)
+                
             # print ("Advantage: ", advantage)
             G_ts.extend(copy.deepcopy(G_t))
             if (use_batched_exp):
@@ -645,6 +647,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             state_ = exp.getState()
             if (not bootstrapping):
                 q_values_.append(model.q_value(state_))
+        
+        i_ += 1
         
     evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
     evalData = [np.mean(evalDatas)]

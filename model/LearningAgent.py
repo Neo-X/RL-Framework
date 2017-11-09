@@ -106,6 +106,7 @@ class LearningAgent(AgentInterface):
                     tmp_falls.append(fall__)
                     tmp_advantage.append(advantage__)
                     tmp_exp_action.append(exp_action__)
+                    # print("adv__:", advantage__)
                     tup = (state__, action__, next_state__, reward__, fall__, advantage__, exp_action__)
                     self._expBuff.insertTuple(tup)
                     num_samples_ = num_samples_ + 1
