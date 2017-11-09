@@ -507,18 +507,20 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print ("Agent fell ", agent_not_fell, " with reward: ", reward_, " from action: ", action)
             # reward_=0
         # print("Action3: ", action)
-        if ((reward_ >= settings['reward_lower_bound'] )):
-            # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * reward_))) # *(1.0-discount_factor))
-            # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * (reward_ * (1.0-discount_factor) )))) # *(1.0-discount_factor))
-            discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * (reward_ )))) # *(1.0-discount_factor))
-            baseline.append(model.q_value(state_)[0])
-            # G_t.append((math.pow(discount_factor,0) * (reward_ * (1.0-discount_factor) ))) # *(1.0-discount_factor)))
-            G_t_rewards.append(reward_)
-            G_t.append(0) # *(1.0-discount_factor)))
-            for i in range(len(G_t)):
-                G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ * (1.0-discount_factor) ))))
-            # print ("discounted sum: ", discounted_sum, " G_t: ", G_t[0])
-            # print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
+        # if ((reward_ >= settings['reward_lower_bound'] )):
+        
+        # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * reward_))) # *(1.0-discount_factor))
+        # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * (reward_ * (1.0-discount_factor) )))) # *(1.0-discount_factor))
+        discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * (reward_ )))) # *(1.0-discount_factor))
+        baseline.append(model.q_value(state_)[0])
+        # G_t.append((math.pow(discount_factor,0) * (reward_ * (1.0-discount_factor) ))) # *(1.0-discount_factor)))
+        G_t_rewards.append(reward_)
+        G_t.append(0) # *(1.0-discount_factor)))
+        for i in range(len(G_t)):
+            G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ * (1.0-discount_factor) ))))
+        # print ("discounted sum: ", discounted_sum, " G_t: ", G_t[0])
+        # print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
+        
         # print ("discounted_sum: ", discounted_sum)
         resultState_ = exp.getState()
         
@@ -548,31 +550,31 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             print ("Agent has fallen: ", not agent_not_fell )
             # print ("Python Reward: " + str(reward(state_, resultState)))
             
-        if ( (reward_ >= settings['reward_lower_bound'] ) or evaluation):
+        # if ( (reward_ >= settings['reward_lower_bound'] ) or evaluation):
             # print("Shape of states: ", np.array(states).shape, " state shape, ", np.array(state_).shape)
-            states.extend(state_)
-            actions.append(action)
-            rewards.append(reward_)
-            # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)
-            # print("result states: ", result_states___)
-            result_states___.extend(resultState_)
-            falls.append([agent_not_fell])
-            exp_actions.append([exp_action])
-            # print ("falls: ", falls)
-            # values.append(value)
-            if (not use_batched_exp):
-                if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
-                    # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
-                    _output_queue.put((state_, action, resultState_, [reward_],  [agent_not_fell], [0], [exp_action]))
-            
-            state_num += 1
-        else:
-            print ("****Reward was to bad: ", reward_)
+        states.extend(state_)
+        actions.append(action)
+        rewards.append(reward_)
+        # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)
+        # print("result states: ", result_states___)
+        result_states___.extend(resultState_)
+        falls.append([agent_not_fell])
+        exp_actions.append([exp_action])
+        # print ("falls: ", falls)
+        # values.append(value)
+        if (not use_batched_exp):
+            if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
+                # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
+                _output_queue.put((state_, action, resultState_, [reward_],  [agent_not_fell], [0], [exp_action]))
+        
+        state_num += 1
+        # else:
+            # print ("****Reward was to bad: ", reward_)
         pa = None
         
-        if ((exp.endOfEpoch() and settings['reset_on_fall'])  or ((reward_ < settings['reward_lower_bound']) 
-                                                  and
-                                                  (not evaluation))):
+        if ((exp.endOfEpoch() and settings['reset_on_fall'])  
+            # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
+                ):
             evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
             """
             if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
@@ -1018,14 +1020,14 @@ def collectExperience(actor, exp_val, model, settings):
         experience.setActionBounds(action_bounds)
         
         for state, action, resultState, reward_, fall_, G_t, exp_action in zip(states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions):
-            if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
-                if settings['action_space_continuous']:
-                    # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
-                    experience.insertTuple((state, action, resultState, [reward_], [fall_], G_t, [exp_action]))
-                else:
-                    experience.insertTuple((state, [action], resultState, [reward_], [falls_], G_t, [exp_action]))
+            # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
+            if settings['action_space_continuous']:
+                # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
+                experience.insertTuple((state, action, resultState, [reward_], [fall_], G_t, [exp_action]))
             else:
-                print ("Tuple with reward: " + str(reward_) + " skipped")
+                experience.insertTuple((state, [action], resultState, [reward_], [falls_], G_t, [exp_action]))
+            # else:
+                # print ("Tuple with reward: " + str(reward_) + " skipped")
         # sys.exit()
     else: ## Most likely performing continuation learning
         if settings['action_space_continuous']:
