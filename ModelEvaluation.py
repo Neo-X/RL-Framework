@@ -602,7 +602,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 path['states'] = copy.deepcopy(states [last_epoch_end:])
                 path['reward'] = np.array(rewards[last_epoch_end:])
                 path["terminated"] = True
-                print("rewards: ", rewards[last_epoch_end:])
+                # print("rewards: ", rewards[last_epoch_end:])
                 ## Extend so that we can preserve the paths/trajectory structure.
                 if (len(rewards[last_epoch_end:]) > 0):
                     advantage.extend(compute_advantage_(model, [path], discount_factor, settings['GAE_lambda']))
