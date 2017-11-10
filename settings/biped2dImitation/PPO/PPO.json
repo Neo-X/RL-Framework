@@ -273,7 +273,7 @@
 	"comment__": "Train a state encoding as well.",
 "train_state_encoding": false,
 	"comment__": "std entropy weight to help encourage exploration",
-"std_entropy_weight": 0.1,
+"std_entropy_weight": 0.005,
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy rollouts to perform per epoch",
