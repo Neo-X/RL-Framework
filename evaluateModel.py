@@ -91,11 +91,12 @@ class SimContainer(object):
             """
             if (self._exp.needUpdatedAction()):
                 state_ = self._exp.getState()
-                print ("State: ", state_)
+                # print ("State: ", state_)
                 ## Update value function visualization
                 if ( True ):
                     self._viz_q_values_.append(self._agent.q_value(state_)[0])
-                    if (len(self._viz_q_values_)>30):
+                    # self._viz_q_values_.append(0)
+                    if (len(self._viz_q_values_)>100):
                          self._viz_q_values_.pop(0)
                     # print ("viz_q_values_: ", viz_q_values_ )
                     # print ("np.zeros(len(viz_q_values_)): ", np.zeros(len(viz_q_values_)))
@@ -112,12 +113,13 @@ class SimContainer(object):
                 """
                 action_ = np.array(self._agent.predict(state_), dtype='float64')
                 
-                grad_ = self._agent.getPolicy().getGrads(state_)[0]
+                # grad_ = self._agent.getPolicy().getGrads(state_)[0]
+                grad_ = [0]
                 self._grad_sum += np.abs(grad_)
                 self._num_actions +=1
-                print ("Input grad: ", repr(self._grad_sum/self._num_actions))
+                # print ("Input grad: ", repr(self._grad_sum/self._num_actions))
                 # print ("Input grad: ", str(self._grad_sum/self._num_actions))
-                print ("Input grad: ", self._grad_sum/self._num_actions)
+                # print ("Input grad: ", self._grad_sum/self._num_actions)
                 
                 
                 # action_[1] = 1.0
@@ -141,7 +143,11 @@ class SimContainer(object):
     
         global SloMo, Paused
         print ("onKey type: ", type(list(c)[0]))
+        print ("onKey type: ", type(c))
+        print ("onKey type: ", c)
+        print ("onKey type: ", c.decode("utf-8"))
         # set simulation speed
+        c = c.decode("utf-8")
         if c >= '0' and c <= '9':
             SloMo = 4 * int(c) + 1
             print ("SLowmo")
