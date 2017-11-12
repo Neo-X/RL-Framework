@@ -575,7 +575,8 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         action_grads = dynamics_grads 
         if ('use_dpg_grads_for_MBAE' in model.getSettings() and model.getSettings()['use_dpg_grads_for_MBAE']):
             action_grads = model.getActionGrads(state)[0]
-            # print("Using DPG action grads for MBAE")
+            if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+                print("Using DPG action grads for MBAE")
             
         if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print( "Raw action grad: ", action_grads)

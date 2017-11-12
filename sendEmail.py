@@ -64,6 +64,7 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False,
         fp = open(pictureFile, 'rb')
         img = MIMEImage(fp.read())
         fp.close()
+        img.add_header('Content-Disposition', 'attachment', filename=pictureFile)
         msg.attach(img)
     
     if ( testing ):
