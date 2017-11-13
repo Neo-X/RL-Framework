@@ -554,7 +554,7 @@ def trainModelParallel(inputData):
             # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
             # p = (settings['initial_temperature'] / (math.log(round_))) 
             # p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds))
-            if ( 'annealing_schedule' in settings):
+            if ( 'annealing_schedule' in settings and (settings['annealing_schedule'] != False)):
                 p = anneal_value(float(round_/rounds), settings_=settings)
             else:
                 p = ((settings['initial_temperature']/math.log(round_+2))) 
