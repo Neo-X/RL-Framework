@@ -240,14 +240,15 @@ class GAN(AlgorithmInterface):
         self._updates += 1
         ## Compute actions for TargetNet
         generated_samples = self._generate()
-        print("Rewards: ", rewards)
         tmp_states = copy.deepcopy(states)
         tmp_rewards = copy.deepcopy(rewards)
         ## replace half of the samples with generated ones...
-        for i in range(self.getSettings()["batch_size"]/2):
-            tmp_states[i] = generated_samples
-            tmp_rewards[i] = [0] 
+        for i in range(int(states.shape[0]/2)):
             
+            tmp_states[i] = generated_samples[i]
+            tmp_rewards[i] = [0] 
+
+        # print("Rewards: ", tmp_rewards)            
         self.setData(tmp_states, actions, tmp_rewards, result_states, falls)
         
         loss, _ = self._train()
@@ -272,6 +273,7 @@ class GAN(AlgorithmInterface):
         # print ("next_state_grads shape: ", next_state_grads.shape)
         # action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
         # print ( "action_grads shape: ", action_grads.shape)
+        discriminator_value = self._bellman_error2() 
         """
             From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
             Hausknecht, Matthew and Stone, Peter
@@ -281,28 +283,56 @@ class GAN(AlgorithmInterface):
                     
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
-            print("Policy mean: ", np.mean(self._q_action(), axis=0))
+            print("Policy mean: ", np.mean(self._generate(), axis=0))
             # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
             # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
             # print("Actions std:  ", np.std((actions), axis=0) )
             # print("Policy std: ", np.mean(self._q_action_std(), axis=0))
             # print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
-            print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
+            print("Mean action grad: ", np.mean(state_grads, axis=0), " std ", np.std(action_grads, axis=0))
         
         ## Set data for gradient
         self._model.setStates(states)
         self._modelTarget.setStates(states)
         ## Why the -1.0??
         ## Because the SGD method is always performing MINIMIZATION!!
-        self._action_grad_shared.set_value(-1.0*state_grads)
+        self._state_grad_shared.set_value(-1.0*state_grads)
         self._trainGenerator()
         
-        return loss
+        return np.mean(discriminator_value)
         
     def train(self, states, actions, rewards, result_states, falls, advantage_, exp_actions__):
         loss = self.trainCritic(states, actions, rewards, result_states, falls)
         lossActor = self.trainActor(states, actions, rewards, result_states, falls, advantage_, exp_actions__)
-        return loss
+        return (loss, lossActor)
+    
+    def predict(self, state, deterministic_=True):
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        """
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            pass
+        else:
+        """
+        # print ("Agent state bounds: ", self._state_bounds)
+        state = norm_state(state, self._state_bounds)
+        # print ("Agent normalized state: ", state)
+        state = np.array(state, dtype=theano.config.floatX)
+        self._model.setStates(state)
+        # if deterministic_:
+        # action_ = self._generate()[0]
+        action_ = scale_state(self._generate()[0], self._state_bounds)
+        return action_
+    
+    def predict_batch(self, states, deterministic_=True):
+        """
+            These input and output do not need to be normalized/scalled
+        """
+        # state = norm_state(state, self._state_bounds)
+        states = np.array(states, dtype=theano.config.floatX)
+        self._model.setStates(states)
+        actions_ = self._generate()
+        return actions_
     
     def q_value(self, state):
         """
@@ -322,11 +352,7 @@ class GAN(AlgorithmInterface):
         action = self._q_action()
         self._model.setActions(action)
         self._modelTarget.setActions(action)
-        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
-            # return (self._q_val())[0]
-        else:
-            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()[0]
         # return self._q_val()[0]
     
@@ -346,10 +372,6 @@ class GAN(AlgorithmInterface):
         action = self._q_action()
         self._model.setActions(action)
         self._modelTarget.setActions(action)
-        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-            # return (self._q_val())[0] 
-        else:
-            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()
         # return self._q_val()

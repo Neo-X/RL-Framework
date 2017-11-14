@@ -55,13 +55,13 @@ if __name__ == '__main__':
     
     trajectory_length = 100
         
-    state_bounds = np.array([[-5.0]*trajectory_length,[5.0]*trajectory_length])
-    action_bounds = np.array([[-5.0]*trajectory_length,[5.0]*trajectory_length])
+    state_bounds = np.array([[-20.0]*trajectory_length,[20.0]*trajectory_length])
+    action_bounds = np.array([[-20.0]*trajectory_length,[20.0]*trajectory_length])
     reward_bounds = np.array([[0.0],[1.0]])
     experience_length = 500
-    batch_size=32
+    batch_size=64
     # states = np.repeat([np.linspace(-5.0, 5.0, experience_length)],2, axis=0)
-    velocities = np.linspace(1.0, 5.0, experience_length)
+    velocities = np.linspace(1.0, 15.0, experience_length)
     actions = []
     states = []
     dt = 0.025
@@ -75,6 +75,7 @@ if __name__ == '__main__':
             traj.append(pos)
             
         states.append(traj)
+        print ("traj length: ", len(traj))
             
 
     # print states
@@ -104,22 +105,29 @@ if __name__ == '__main__':
         experience.insert(state_, action_, next_state_, np.array([1]))
     
     errors=[]
-    for i in range(1000):
+    for i in range(10000):
         _states, _actions, _result_states, _rewards, falls_, advantage, exp_actions__ = experience.get_batch(batch_size)
         # print ("Actions: ", _actions)
         # print ("States: ", _states) 
-        error = model.train(_states, _actions, _rewards, _result_states, falls_, advantage, exp_actions__)
+        (error, lossActor) = model.train(_states, _actions, _rewards, _result_states, falls_, advantage, exp_actions__)
         errors.append(error)
+        if (i % 100 == 0):
+            print ("Iteration: ", i)
+            print ("discriminator loss: ", error, " generator loss: ", lossActor)
         # print "Error: " + str(error)
     
     
-    states = np.linspace(-5.0, 5.0, experience_length)
+    # states = np.linspace(-5.0, 5.0, experience_length)
+    test_index = 400
+    states = np.array(states)
+    print(states[test_index])
     
-    gen_state = model.predict(states[0])
+    
+    gen_state = model.predict([states[test_index]])
     _fig, (_bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-    _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), gen_state, linewidth=3.0, color='y', label="True function")
+    _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), states[test_index], linewidth=3.0, color='y', label="True function")
     # _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_dropout, linewidth=2.0, color='r', label="Estimated function with dropout")
-    # _bellman_error, = _bellman_error_ax.plot(states, predicted_actions, linewidth=3.0, color='g', label="Estimated function")
+    _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), gen_state, linewidth=3.0, color='g', label="Estimated function")
     # _bellman_error, = _bellman_error_ax.plot(states, actionsNoNoise, linewidth=2.0, label="True function")
     # _bellman_error = _bellman_error_ax.scatter(given_states, given_actions, label="Data trained on")
     # _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_var, linewidth=2.0, label="Variance")
@@ -150,6 +158,7 @@ if __name__ == '__main__':
     _fig.suptitle(_title, fontsize=18)
     
     _fig.set_size_inches(11.0, 6.0, forward=True)
-    
+    plt.show()
+    fileName="gantesting"
     _fig.savefig(fileName+".svg")
     _fig.savefig(fileName+".png")
