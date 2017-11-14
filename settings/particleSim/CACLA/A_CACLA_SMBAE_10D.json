@@ -260,5 +260,7 @@
 	"comment__": "PPO should use seperate networks for the value and policy functions",
 "ppo_use_seperate_nets": true,
 	"comment__": "Whether ot not MBAE should optimize the q function or the advantage function",
-"optimize_advantage_for_MBAE": true	
+"optimize_advantage_for_MBAE": true,
+	"comment__": "Use a different off-policy experience memory for the fd learning",
+"keep_seperate_fd_exp_buffer": true
 }

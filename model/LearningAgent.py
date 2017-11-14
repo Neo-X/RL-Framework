@@ -23,6 +23,8 @@ class LearningAgent(AgentInterface):
         self._pol = None
         self._fd = None
         self._sampler = None
+        self._expBuff = None
+        self._expBuff_FD = None
         
     def getPolicy(self):
         if self._useLock:
@@ -62,7 +64,12 @@ class LearningAgent(AgentInterface):
     def setExperience(self, experienceBuffer):
         self._expBuff = experienceBuffer 
     def getExperience(self):
-        return self._expBuff 
+        return self._expBuff
+    
+    def setFDExperience(self, experienceBuffer):
+        self._expBuff_FD = experienceBuffer 
+    def getFDExperience(self):
+        return self._expBuff_FD  
     
     def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, _exp_actions=None):
         if self._useLock:
@@ -108,7 +115,9 @@ class LearningAgent(AgentInterface):
                     tmp_exp_action.append(exp_action__)
                     # print("adv__:", advantage__)
                     tup = (state__, action__, next_state__, reward__, fall__, advantage__, exp_action__)
-                    self._expBuff.insertTuple(tup)
+                    self.getExperience().insertTuple(tup)
+                    if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
+                        self.getFDExperience().insertTuple(tup)
                     num_samples_ = num_samples_ + 1
                 # else:
                     # print ("Tuple invalid:")
@@ -178,7 +187,11 @@ class LearningAgent(AgentInterface):
             dynamicsLoss = 0 
             if (self._settings['train_forward_dynamics']):
                 for i in range(self._settings['critic_updates_per_actor_update']):
-                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(value_function_batch_size)
+                    if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
+                        print ("Using seperate (off-policy) exp mem for FD model")
+                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self.getFDExperience().get_batch(value_function_batch_size)
+                    else:
+                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self.getExperience().get_batch(value_function_batch_size)
                     dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__)
                     """
                     if not np.isfinite(dynamicsLoss) or (dynamicsLoss > 500) :
@@ -225,6 +238,10 @@ class LearningAgent(AgentInterface):
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, exp_actions=_exp_actions, forwardDynamicsModel=self._fd)
                 dynamicsLoss = 0 
                 if (self._settings['train_forward_dynamics']):
+                    if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
+                        print ("Using seperate (off-policy) exp mem for FD model")
+                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self.getFDExperience().get_batch(value_function_batch_size)
+                        
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Forward Dynamics Loss: ", dynamicsLoss)
@@ -381,11 +398,15 @@ class LearningWorker(Process):
                 # self._agent._expBuff.insert(norm_state(state_, self._agent._state_bounds), 
                 #                            norm_action(action, self._agent._action_bounds), norm_state(resultState, self._agent._state_bounds), [reward])
                 self._agent._expBuff.insertTuple(tmp)
+                if ( 'keep_seperate_fd_exp_buffer' in self._agent._settings and (self._agent._settings['keep_seperate_fd_exp_buffer'])):
+                    self._agent._expBuff_FD.insertTuple(tmp)
                 # print ("Experience buffer size: " + str(self.__learningNamespace.experience.samples()))
                 # print ("Reward Scale: ", self._agent._reward_bounds)
                 # print ("Reward Scale Model: ", self._agent._pol.getRewardBounds())
             else:
                 self._agent._expBuff.insertTuple(tmp)
+                if ( 'keep_seperate_fd_exp_buffer' in self._agent._settings and (self._agent._settings['keep_seperate_fd_exp_buffer'])):
+                    self._agent._expBuff_FD.insertTuple(tmp)
             # print ("Learning agent experience size: " + str(self._agent._expBuff.samples()))
             step_ += 1
             if self._agent._expBuff.samples() > self._agent._settings["batch_size"] and ((step_ >= self._agent._settings['sim_action_per_training_update']) ):
@@ -404,6 +425,8 @@ class LearningWorker(Process):
                 if (self._agent._settings['train_forward_dynamics']):
                     # self._learningNamespace.forwardNN = self._agent.getForwardDynamics().getNetworkParameters()
                     data = (self._agent._expBuff, self._agent.getPolicy().getNetworkParameters(), self._agent.getForwardDynamics().getNetworkParameters())
+                    if ( 'keep_seperate_fd_exp_buffer' in self._agent._settings and (self._agent._settings['keep_seperate_fd_exp_buffer'])):
+                        data = (self._agent._expBuff, self._agent.getPolicy().getNetworkParameters(), self._agent.getForwardDynamics().getNetworkParameters(), self._agent._expBuff_FD)
                 # self._learningNamespace.experience = self._agent._expBuff
                 ## put and do not block
                 try:

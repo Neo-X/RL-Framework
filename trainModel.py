@@ -397,6 +397,8 @@ def trainModelParallel(inputData):
         
         experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings)
         masterAgent.setExperience(experience)
+        if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
+            masterAgent.setFDExperience(copy.deepcopy(experience))
         
         if (not validBounds(action_bounds)):
             # Check that the action bounds are spcified correctly
@@ -689,7 +691,8 @@ def trainModelParallel(inputData):
                         masterAgent.getPolicy().setNetworkParameters(data[1])
                         if (settings['train_forward_dynamics']):
                             masterAgent.getForwardDynamics().setNetworkParameters(data[2])
-                
+                            if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
+                                masterAgent.setFDExperience(data[3])
                         
                 # experience = learningNamespace.experience
                 # actor.setExperience(experience)
