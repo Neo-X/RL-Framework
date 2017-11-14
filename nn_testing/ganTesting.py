@@ -75,7 +75,7 @@ if __name__ == '__main__':
             traj.append(pos)
             
         states.append(traj)
-        print ("traj length: ", len(traj))
+        # print ("traj length: ", len(traj))
             
 
     # print states
@@ -105,7 +105,7 @@ if __name__ == '__main__':
         experience.insert(state_, action_, next_state_, np.array([1]))
     
     errors=[]
-    for i in range(10000):
+    for i in range(settings['rounds']):
         _states, _actions, _result_states, _rewards, falls_, advantage, exp_actions__ = experience.get_batch(batch_size)
         # print ("Actions: ", _actions)
         # print ("States: ", _states) 
@@ -127,7 +127,9 @@ if __name__ == '__main__':
     _fig, (_bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
     _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), states[test_index], linewidth=3.0, color='y', label="True function")
     # _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_dropout, linewidth=2.0, color='r', label="Estimated function with dropout")
-    _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), gen_state, linewidth=3.0, color='g', label="Estimated function")
+    for i in range(5):
+        gen_state = model.predict([states[test_index]])
+        _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), gen_state, linewidth=2.0, label="Estimated function")
     # _bellman_error, = _bellman_error_ax.plot(states, actionsNoNoise, linewidth=2.0, label="True function")
     # _bellman_error = _bellman_error_ax.scatter(given_states, given_actions, label="Data trained on")
     # _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_var, linewidth=2.0, label="Variance")
