@@ -30,13 +30,6 @@ class GAN(AlgorithmInterface):
         self._Action = T.matrix("Action2")
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
                 
-        self._Tmp_Target = T.col("Tmp_Target")
-        self._Tmp_Target.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
-        
-        self._tmp_target_shared = theano.shared(
-            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
-            broadcastable=(False, True))
-        
         self._modelTarget = copy.deepcopy(model)
         
             
@@ -137,7 +130,7 @@ class GAN(AlgorithmInterface):
         ### Maximize wrt q function
         
         self._state_mean_grads = T.grad(cost=None, wrt=self._actionParams,
-                                                    known_grads={self._q_valsActA: self._state_grad_shared}),
+                                                    known_grads={self._generator: self._state_grad_shared}),
         print ("Action grads: ", self._state_mean_grads[0])
         ## When passing in gradients it needs to be a proper list of gradient expressions
         self._state_mean_grads = list(self._state_mean_grads[0])
@@ -173,15 +166,13 @@ class GAN(AlgorithmInterface):
         # self._trainActor = theano.function([], [actLoss, self._q_valsActA], updates=actionUpdates, givens=actGivens)
         # self._trainActor = theano.function([], [self._q_func], updates=self._actionUpdates, givens=self._actGivens)
         self._trainGenerator  = theano.function([], [], updates=self._generatorGRADUpdates, givens=self._actGradGivens)
-        self._q_val = theano.function([], self._q_valsA,
+        self._q_val = theano.function([], self._discriminator,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()
                                                })
         
         #self._q_val_Target = theano.function([], self._q_valsB_, givens=self._givens_grad)
-        self._q_action = theano.function([], self._q_valsActA,
+        self._generate = theano.function([], self._generator,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
-        self._action_Target = theano.function([], self._q_valsActTarget,
-                                       givens={self._model.getResultStateSymbolicVariable(): self._model.getResultStates()})
         """
         inputs_ = [
                    self._model.getStateSymbolicVariable(), 
@@ -193,12 +184,12 @@ class GAN(AlgorithmInterface):
         # self._diffs = theano.function(input=[State])
         self._bellman_error2 = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         
-        self._get_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        # self._get_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         
-        self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         
         
-    def getGrads(self, states, actions=None, alreadyNormed=False):
+    def getStateGrads(self, states, actions=None, alreadyNormed=False):
         """
             The states should be normalized
         """
@@ -207,85 +198,10 @@ class GAN(AlgorithmInterface):
             states = norm_state(states, self._state_bounds)
         states = np.array(states, dtype=theano.config.floatX)
         self._model.setStates(states)
-        if ( actions is None ):
-            actions = self.predict_batch(states)
-        self._model.setActions(actions)
+        
         return self._get_state_grad()
     
-    def getActionGrads(self, states, actions=None, alreadyNormed=False):
-        """
-            The states should be normalized
-        """
-        # self.setData(states, actions, rewards, result_states)
-        if ( alreadyNormed == False):
-            states = norm_state(states, self._state_bounds)
-        states = np.array(states, dtype=theano.config.floatX)
-        self._model.setStates(states)
-        if ( actions is None ):
-            actions = self.predict_batch(states)
-        self._model.setActions(actions)
-        return self._get_action_grad()
-    
-    def updateTargetModel(self):
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print ("Updating target Model")
-        """
-            Target model updates
-        """
-        # return
-        ## I guess it is okay to lerp the entire network even though we only really want to 
-        ## lerp the value function part of the networks, the target policy is not used for anythings
-        all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
-        all_paramsB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork())
-        lerp_weight = 0.001
-        # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
-        
-        # print ("l_out length: " + str(len(all_paramsA)))
-        # print ("l_out length: " + str(all_paramsA[-6:]))
-        # print ("l_out[0] length: " + str(all_paramsA[0]))
-        # print ("l_out[4] length: " + str(all_paramsA[4]))
-        # print ("l_out[5] length: " + str(all_paramsA[5]))
-        # print ("l_out[6] length: " + str(all_paramsA[6]))
-        # print ("l_out[7] length: " + str(all_paramsA[7]))
-        # print ("l_out[11] length: " + str(all_paramsA[11]))
-        # print ("param Values")
-        all_params = []
-        for paramsA, paramsB in zip(all_paramsA, all_paramsB):
-            # print ("paramsA: " + str(paramsA))
-            # print ("paramsB: " + str(paramsB))
-            params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
-            all_params.append(params)
-        """
-        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
-        all_paramsActB = lasagne.layers.helper.get_all_param_values(self._l_outActB)
-        # print ("l_outAct[0] length: " + str(all_paramsActA[0]))
-        # print ("l_outAct[4] length: " + str(all_paramsActA[4]))
-        # print ("l_outAct[5] length: " + str(all_paramsActA[5]))
-        all_paramsAct = []
-        for paramsA, paramsB in zip(all_paramsActA, all_paramsActB):
-            # print ("paramsA: " + str(paramsA))
-            # print ("paramsB: " + str(paramsB))
-            params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
-            all_paramsAct.append(params)
-            """
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_params)
-        # all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
-        # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
-        # lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_paramsA)
-        # lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
-        # lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsAct) 
-    
-    def updateTargetModelValue(self):
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print ("Updating MBAE target Model")
-        """
-            Target model updates
-        """
-        all_paramsA = lasagne.layers.helper.get_all_param_values(self._model._value_function)
-        # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
-        lasagne.layers.helper.set_all_param_values(self._modelTarget._value_function, all_paramsA)
-        # lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
-            
+
     def getNetworkParameters(self):
         params = []
         params.append(lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork()))
@@ -321,28 +237,25 @@ class GAN(AlgorithmInterface):
     def trainCritic(self, states, actions, rewards, result_states, falls):
         
         self.setData(states, actions, rewards, result_states, falls)
-        if (( self._updates % self._weight_update_steps) == 0):
-            self.updateTargetModel()
         self._updates += 1
         ## Compute actions for TargetNet
-        target_actions = self._action_Target()
-        self.setData(states, target_actions, rewards, result_states, falls)
-        ## Get next q value
-        q_vals_b = self._q_val_Target()
-        # q_vals_b = self._q_val()
-        ## Compute target values
-        # target_tmp_ = rewards + ((self._discount_factor* q_vals_b )* falls)
-        target_tmp_ = rewards + ((self._discount_factor * q_vals_b ))
-        self.setData(states, actions, rewards, result_states, falls)
-        self._tmp_target_shared.set_value(target_tmp_)
-        
-        # self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsB )), self._Fallen)
+        generated_samples = self._generate()
+        print("Rewards: ", rewards)
+        tmp_states = copy.deepcopy(states)
+        tmp_rewards = copy.deepcopy(rewards)
+        ## replace half of the samples with generated ones...
+        for i in range(self.getSettings()["batch_size"]/2):
+            tmp_states[i] = generated_samples
+            tmp_rewards[i] = [0] 
+            
+        self.setData(tmp_states, actions, tmp_rewards, result_states, falls)
         
         loss, _ = self._train()
         return loss
         
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions, forwardDynamicsModel=None):
         self.setData(states, actions, rewards, result_states, falls)
+        
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
             print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
@@ -351,11 +264,11 @@ class GAN(AlgorithmInterface):
         # loss = self._trainActor()
         # print("******** Not learning actor right now *****")
         # return loss
-        actions = self.predict_batch(states)
+        generated_samples = self.predict_batch(states)
         # print ("actions shape:", actions.shape)
         # next_states = forwardDynamicsModel.predict_batch(states, actions)
         # print ("next_states shape: ", next_states.shape)
-        state_grads = self.getStateGrads(states, actions, alreadyNormed=True)[0] * 1.0
+        state_grads = self.getStateGrads(generated_samples, actions, alreadyNormed=True)[0] * 1.0
         # print ("next_state_grads shape: ", next_state_grads.shape)
         # action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
         # print ( "action_grads shape: ", action_grads.shape)
@@ -386,9 +299,9 @@ class GAN(AlgorithmInterface):
         
         return loss
         
-    def train(self, states, actions, rewards, result_states):
-        loss = self.trainCritic(states, actions, rewards, result_states)
-        lossActor = self.trainActor(states, actions, rewards, result_states)
+    def train(self, states, actions, rewards, result_states, falls, advantage_, exp_actions__):
+        loss = self.trainCritic(states, actions, rewards, result_states, falls)
+        lossActor = self.trainActor(states, actions, rewards, result_states, falls, advantage_, exp_actions__)
         return loss
     
     def q_value(self, state):
