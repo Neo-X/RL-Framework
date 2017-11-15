@@ -14,10 +14,10 @@ from collections import OrderedDict
 
 class GAN(AlgorithmInterface):
     
-    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self,  model, state_length, action_length, state_bounds, action_bounds, settings_):
 
         
-        super(GAN,self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(GAN,self).__init__(model, state_length, action_length, state_bounds, action_bounds, 0, settings_)
 
         self._noise_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
@@ -54,7 +54,7 @@ class GAN(AlgorithmInterface):
                 self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
                 self._model._Noise: self._noise_shared
             }
-            self._generator = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_1, deterministic=True)
+            self._generator = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_1, deterministic=True)
         else:
             inputs_1 = {
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -62,9 +62,9 @@ class GAN(AlgorithmInterface):
                 self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
                 # self._model._Noise: self._noise_shared
             }
-            self._generator = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_1, deterministic=False)
-        # self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
-        # self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
+            self._generator = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_1, deterministic=False)
+        # self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getForwardDynamicsNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
+        # self._q_valsActA_drop = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         inputs_ = {
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -96,8 +96,8 @@ class GAN(AlgorithmInterface):
         # Need to remove the action layers from these params
         self._params = lasagne.layers.helper.get_all_params(self._model.getCriticNetwork()) 
         print ("******Number of Layers is: " + str(len(lasagne.layers.helper.get_all_params(self._model.getCriticNetwork()))))
-        print ("******Number of Action Layers is: " + str(len(lasagne.layers.helper.get_all_params(self._model.getActorNetwork()))))
-        self._actionParams = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
+        print ("******Number of Action Layers is: " + str(len(lasagne.layers.helper.get_all_params(self._model.getForwardDynamicsNetwork()))))
+        self._actionParams = lasagne.layers.helper.get_all_params(self._model.getForwardDynamicsNetwork())
         self._givens_ = {
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
                 self._model.getActionSymbolicVariable(): self._model.getActions(),
@@ -146,7 +146,7 @@ class GAN(AlgorithmInterface):
         
         self._actor_regularization = (self._regularization_weight * 
                                        lasagne.regularization.regularize_network_params(
-                                            self._model.getActorNetwork(), lasagne.regularization.l2))
+                                            self._model.getForwardDynamicsNetwork(), lasagne.regularization.l2))
         ## MSE update
         self._gen_grad = T.grad(self._loss_g + self._actor_regularization
                                                      , self._actionParams)
@@ -255,16 +255,16 @@ class GAN(AlgorithmInterface):
     def getNetworkParameters(self):
         params = []
         params.append(lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork()))
-        params.append(lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork()))
+        params.append(lasagne.layers.helper.get_all_param_values(self._model.getForwardDynamicsNetwork()))
         params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork()))
-        params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork()))
+        params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getForwardDynamicsNetwork()))
         return params
         
     def setNetworkParameters(self, params):
         lasagne.layers.helper.set_all_param_values(self._model.getCriticNetwork(), params[0])
-        lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params[1])
+        lasagne.layers.helper.set_all_param_values(self._model.getForwardDynamicsNetwork(), params[1])
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), params[2])
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), params[3])
+        lasagne.layers.helper.set_all_param_values(self._modelTarget.getForwardDynamicsNetwork(), params[3])
         
     def setData(self, states, actions, rewards, result_states, fallen):
         self._model.setStates(states)

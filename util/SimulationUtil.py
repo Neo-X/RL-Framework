@@ -689,6 +689,10 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                 from algorithm.EncodingModel import EncodingModel
                 forwardDynamicsModel = EncodingModel(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 
                                                        state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+            elif ('train_gan' in settings and (settings['train_gan'])):
+                from algorithm.GAN import GAN
+                forwardDynamicsModel = GAN(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 
+                                                       state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
             else:
                 from algorithm.ForwardDynamics import ForwardDynamics
                 forwardDynamicsModel = ForwardDynamics(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 

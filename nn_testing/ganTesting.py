@@ -85,8 +85,8 @@ if __name__ == '__main__':
     # print states
     # states2 = np.transpose(np.repeat([states], 2, axis=0))
     # print states2
-    model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
-    # model = createModel(settings, state_bounds, action_bounds, None, None, None)
+    # model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+    model = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, None)
     
     experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True, settings=settings, result_state_length=trajectory_length)
     experience.setStateBounds(state_bounds)

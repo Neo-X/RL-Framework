@@ -12,9 +12,9 @@ from model.ModelInterface import ModelInterface
 
 class DeepNNUNet(ModelInterface):
     
-    def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, state_length, action_length, state_bounds, action_bounds, settings_):
 
-        super(DeepNNUNet,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(DeepNNUNet,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
         
         self._result_state_length=20
         # data types for model
@@ -97,7 +97,7 @@ class DeepNNUNet(ModelInterface):
                 nonlinearity=activation_type)
         # networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
-        self._actor = lasagne.layers.DenseLayer(
+        self._forward_dynamics_net = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._result_state_length,
                 nonlinearity=last_policy_layer_activation_type)
         
@@ -137,6 +137,45 @@ class DeepNNUNet(ModelInterface):
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         """
         self._critic = lasagne.layers.DenseLayer(
+                network, num_units=1,
+                nonlinearity=lasagne.nonlinearities.linear)
+        
+        
+        inputReward = lasagne.layers.ConcatLayer([inputState, inputAction])
+        network = lasagne.layers.DenseLayer(
+                inputReward, num_units=128,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        # network = weight_norm(network)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        # layersAct = [network]
+        """
+        network = lasagne.layers.DenseLayer(
+                input, num_units=64,
+                nonlinearity=elu_mine)
+        # network = weight_norm(network)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        # layersAct.append(network)
+        # network = lasagne.layers.ConcatLayer([layersAct[1], layersAct[0]])
+        """
+        network = lasagne.layers.DenseLayer(
+                network, num_units=32,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        # network = weight_norm(network)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        # layersAct.append(network)
+        # network = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
+        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        network = lasagne.layers.DenseLayer(
+                network, num_units=8,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        """
+        network = lasagne.layers.DenseLayer(
+                network, num_units=8,
+                nonlinearity=elu_mine)
+        """
+        ## This can be used to model the reward function
+        self._reward_net = lasagne.layers.DenseLayer(
                 network, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
         
