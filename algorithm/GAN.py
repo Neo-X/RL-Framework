@@ -50,17 +50,31 @@ class GAN(AlgorithmInterface):
         if ("train_gan_with_gaussian_noise" in self.getSettings() and (self.getSettings()["train_gan_with_gaussian_noise"])):
             inputs_1 = {
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
                 self._model._Noise: self._noise_shared
             }
             self._generator = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_1, deterministic=True)
         else:
-            self._generator = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
+            inputs_1 = {
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                # self._model._Noise: self._noise_shared
+            }
+            self._generator = lasagne.layers.get_output(self._model.getActorNetwork(), inputs_1, deterministic=False)
         # self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
         # self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
-        
-        self._discriminator = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
-        self._discriminator_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
+        inputs_ = {
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+                # self._model._Noise: self._noise_shared
+            }
+        self._discriminator = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=True)
+        self._discriminator_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=False)
         """
         inputs_2 = {
             self._modelTarget.getStateSymbolicVariable(): self._model.getResultStates(),
@@ -74,7 +88,7 @@ class GAN(AlgorithmInterface):
         self._loss = T.mean(loss)
         
         
-        self._diff_g = self._model.getStateSymbolicVariable() - self._generator
+        self._diff_g = self._model.getResultStateSymbolicVariable() - self._generator
         loss_g = T.pow(self._diff_g, 2)
         self._loss_g = T.mean(loss_g)
     
@@ -85,9 +99,12 @@ class GAN(AlgorithmInterface):
         print ("******Number of Action Layers is: " + str(len(lasagne.layers.helper.get_all_params(self._model.getActorNetwork()))))
         self._actionParams = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
         self._givens_ = {
-            self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-        }
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+                # self._model._Noise: self._noise_shared
+            }
         
         self._critic_regularization = (self._critic_regularization_weight * 
                                        lasagne.regularization.regularize_network_params(
@@ -103,11 +120,28 @@ class GAN(AlgorithmInterface):
         if ("train_gan_with_gaussian_noise" in settings_ and (settings_["train_gan_with_gaussian_noise"])):
             self._actGivens = {
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model._Noise: self._noise_shared,
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                self._model._Noise: self._noise_shared
+            }
+            self._actGivens_MSE = {
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                self._model._Noise: self._noise_shared
             }
         else:
             self._actGivens = {
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                # self._model._Noise: self._noise_shared
+            }
+            self._actGivens_MSE = {
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                # self._model._Noise: self._noise_shared
             }
         
         self._actor_regularization = (self._regularization_weight * 
@@ -122,27 +156,30 @@ class GAN(AlgorithmInterface):
         
         ## Some cool stuff to backprop action gradients
         
-        self._state_grad = T.matrix("Action_Grad")
-        self._state_grad.tag.test_value = np.zeros((self._batch_size,self._state_length), dtype=np.dtype(self.getSettings()['float_type']))
+        self._result_state_grad = T.matrix("Action_Grad")
+        self._result_state_grad.tag.test_value = np.zeros((self._batch_size,self._state_length), dtype=np.dtype(self.getSettings()['float_type']))
         
-        self._state_grad_shared = theano.shared(
+        self._result_state_grad_shared = theano.shared(
             np.zeros((self._batch_size, self._state_length),
                       dtype=self.getSettings()['float_type']))
         
         ### Maximize wrt q function
         
-        self._state_mean_grads = T.grad(cost=None, wrt=self._actionParams,
-                                                    known_grads={self._generator: self._state_grad_shared}),
-        print ("Action grads: ", self._state_mean_grads[0])
+        self._result_state_mean_grads = T.grad(cost=None, wrt=self._actionParams,
+                                                    known_grads={self._generator: self._result_state_grad_shared}),
+        print ("Action grads: ", self._result_state_mean_grads[0])
         ## When passing in gradients it needs to be a proper list of gradient expressions
-        self._state_mean_grads = list(self._state_mean_grads[0])
+        self._result_state_mean_grads = list(self._result_state_mean_grads[0])
         # print ("isinstance(self._action_mean_grads, list): ", isinstance(self._action_mean_grads, list))
         # print ("Action grads: ", self._action_mean_grads)
-        self._generatorGRADUpdates = lasagne.updates.adam(self._state_mean_grads, self._actionParams, 
+        self._generatorGRADUpdates = lasagne.updates.adam(self._result_state_mean_grads, self._actionParams, 
                     self._learning_rate,  beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         
         self._givens_grad = {
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             }
         
         GAN.compile(self)
@@ -154,19 +191,26 @@ class GAN(AlgorithmInterface):
         # self._trainActor = theano.function([], [actLoss, self._q_valsActA], updates=actionUpdates, givens=actGivens)
         # self._trainActor = theano.function([], [self._q_func], updates=self._actionUpdates, givens=self._actGivens)
         self._trainGenerator  = theano.function([], [], updates=self._generatorGRADUpdates, givens=self._actGivens)
-        self._trainGenerator_MSE = theano.function([], [], updates=self._updates_generator, givens=self._actGivens)
+        self._trainGenerator_MSE = theano.function([], [], updates=self._updates_generator, givens=self._actGivens_MSE)
         self._q_val = theano.function([], self._discriminator,
-                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates()
+                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+                                               self._model.getActionSymbolicVariable(): self._model.getActions(),
+                                               self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
                                                })
         
         #self._q_val_Target = theano.function([], self._q_valsB_, givens=self._givens_grad)
         if ("train_gan_with_gaussian_noise" in self.getSettings() and (self.getSettings()["train_gan_with_gaussian_noise"])):
             self._generate = theano.function([], self._generator,
                    givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+                           self._model.getActionSymbolicVariable(): self._model.getActions(),
+                           # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
                            self._model._Noise: self._noise_shared})
         else:
             self._generate = theano.function([], self._generator,
-                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
+                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
+                                               self._model.getActionSymbolicVariable(): self._model.getActions(),
+                                               # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                                               self._model._Noise: self._noise_shared})
         """
         inputs_ = [
                    self._model.getStateSymbolicVariable(), 
@@ -179,8 +223,8 @@ class GAN(AlgorithmInterface):
         self._bellman_error2 = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         
         # self._get_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
-        
         self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        self._get_result_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._resultStateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         
         
     def getStateGrads(self, states, actions=None, alreadyNormed=False):
@@ -194,6 +238,18 @@ class GAN(AlgorithmInterface):
         self._model.setStates(states)
         
         return self._get_state_grad()
+    
+    def getResultStateGrads(self, result_states, actions=None, alreadyNormed=False):
+        """
+            The states should be normalized
+        """
+        # self.setData(states, actions, rewards, result_states)
+        if ( alreadyNormed == False):
+            result_states = norm_state(result_states, self._state_bounds)
+        result_states = np.array(result_states, dtype=theano.config.floatX)
+        self._model.setResultStates(result_states)
+        
+        return self._get_result_state_grad()
     
 
     def getNetworkParameters(self):
@@ -231,20 +287,22 @@ class GAN(AlgorithmInterface):
     def trainCritic(self, states, actions, rewards, result_states, falls):
         
         self.setData(states, actions, rewards, result_states, falls)
-        self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
+        noise = np.random.normal(0,0.5, size=(states.shape[0],1))
+        # print ("Shapes: ", states.shape, actions.shape, rewards.shape, result_states.shape, falls.shape, noise.shape)
+        self._noise_shared.set_value(noise)
         self._updates += 1
         ## Compute actions for TargetNet
         generated_samples = self._generate()
-        tmp_states = copy.deepcopy(states)
+        tmp_result_states = copy.deepcopy(result_states)
         tmp_rewards = copy.deepcopy(rewards)
         ## replace half of the samples with generated ones...
         for i in range(int(states.shape[0]/2)):
             
-            tmp_states[i] = generated_samples[i]
+            tmp_result_states[i] = generated_samples[i]
             tmp_rewards[i] = [0] 
 
         # print("Rewards: ", tmp_rewards)            
-        self.setData(tmp_states, actions, tmp_rewards, result_states, falls)
+        self.setData(states, actions, tmp_rewards, tmp_result_states, falls)
         
         loss, _ = self._train()
         return loss
@@ -261,41 +319,22 @@ class GAN(AlgorithmInterface):
         self._trainGenerator_MSE()
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
-        # loss = self._trainActor()
         # print("******** Not learning actor right now *****")
         # return loss
-        generated_samples = self.predict_batch(states)
-        # print ("actions shape:", actions.shape)
-        # next_states = forwardDynamicsModel.predict_batch(states, actions)
-        # print ("next_states shape: ", next_states.shape)
-        state_grads = self.getStateGrads(generated_samples, actions, alreadyNormed=True)[0] * 1.0
-        # print ("next_state_grads shape: ", next_state_grads.shape)
-        # action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
-        # print ( "action_grads shape: ", action_grads.shape)
+        generated_samples = self.predict_batch(states, actions)
+        result_state_grads = self.getResultStateGrads(generated_samples, actions, alreadyNormed=True)[0] * 1.0
         discriminator_value = self._bellman_error2() 
-        """
-            From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
-            Hausknecht, Matthew and Stone, Peter
-            
-            actions.shape == action_grads.shape
-        """
                     
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
-            # print("Actions mean:     ", np.mean(actions, axis=0))
             print("Policy mean: ", np.mean(self._generate(), axis=0))
-            # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-            # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
-            # print("Actions std:  ", np.std((actions), axis=0) )
-            # print("Policy std: ", np.mean(self._q_action_std(), axis=0))
-            # print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
             print("Mean action grad: ", np.mean(state_grads, axis=0), " std ", np.std(action_grads, axis=0))
         
         ## Set data for gradient
-        self._model.setStates(states)
-        self._modelTarget.setStates(states)
+        self._model.setResultStates(result_states)
+        self._modelTarget.setResultStates(result_states)
         ## Why the -1.0??
         ## Because the SGD method is always performing MINIMIZATION!!
-        self._state_grad_shared.set_value(-1.0*state_grads)
+        self._result_state_grad_shared.set_value(-1.0*result_state_grads)
         self._trainGenerator()
         
         return np.mean(discriminator_value)
@@ -306,34 +345,39 @@ class GAN(AlgorithmInterface):
         return (loss, lossActor)
     
     def predict(self, state, deterministic_=True):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
-        # states[0, ...] = state
-        """
-        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            pass
-        else:
-        """
-        # print ("Agent state bounds: ", self._state_bounds)
-        state = norm_state(state, self._state_bounds)
-        # print ("Agent normalized state: ", state)
-        state = np.array(state, dtype=theano.config.floatX)
-        self._model.setStates(state)
-        self._noise_shared.set_value(np.random.normal(0,0.5, size=(1,1)))
-        # if deterministic_:
-        # action_ = self._generate()[0]
-        action_ = scale_state(self._generate()[0], self._state_bounds)
-        return action_
+        pass
     
     def predict_batch(self, states, deterministic_=True):
-        """
-            These input and output do not need to be normalized/scalled
-        """
-        # state = norm_state(state, self._state_bounds)
-        states = np.array(states, dtype=theano.config.floatX)
-        self._model.setStates(states)
-        self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
-        actions_ = self._generate()
-        return actions_
+        pass
+    
+    def predict(self, state, action):
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        # print ("fd state: ", state)
+        action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        self._model.setStates(state)
+        self._model.setActions(action)
+        self._noise_shared.set_value(np.random.normal(0,0.5, size=(1,1)))
+        # print ("State bounds: ", self._state_bounds)
+        # print ("fd output: ", self._forwardDynamics()[0])
+        state_ = scale_state(self._generate()[0], self._state_bounds)
+        return state_
+    
+    def predict_batch(self, state, action):
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        # state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        # print ("fd state: ", state)
+        # action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        self._model.setStates(state)
+        self._model.setActions(action)
+        self._noise_shared.set_value(np.random.normal(0,0.5, size=(state.shape[0],1)))
+        # print ("State bounds: ", self._state_bounds)
+        # print ("fd output: ", self._forwardDynamics()[0])
+        # state_ = scale_state(self._generate(), self._state_bounds)
+        state_ = self._generate()
+        return state_
     
     def q_value(self, state):
         """

@@ -52,10 +52,11 @@ if __name__ == '__main__':
     from util.SimulationUtil import createForwardDynamicsModel, createRLAgent
     discrete_actions = np.array(settings['discrete_actions'])
     
-    trajectory_length = 100
+    trajectory_length = 20
         
-    state_bounds = np.array([[-20.0]*trajectory_length,[20.0]*trajectory_length])
-    action_bounds = np.array([[-20.0]*trajectory_length,[20.0]*trajectory_length])
+    state_bounds = np.array([[0.0],[20.0]])
+    action_bounds = np.array([[-10.0],[10.0]])
+    result_state_bounds = np.array([[-20.0]*trajectory_length,[20.0]*trajectory_length])
     reward_bounds = np.array([[0.0],[1.0]])
     experience_length = 500
     batch_size=64
@@ -64,14 +65,15 @@ if __name__ == '__main__':
     actions = []
     next_states_ = []
     states_ = []
-    dt = 0.025
+    dt = 0.1
     for v_ in velocities:
         traj = []
         pos = 0
         vel_ = v_
-        states_.append(vel_)
+        states_.append([vel_])
         accel = np.random.normal(0,5.0)
-        actions.append(accel)
+        # print("accel: ", accel)
+        actions.append([accel])
         for t_ in range(trajectory_length):
             (pos, vel_) = integrate(dt, pos, vel_, gravity=accel)
             traj.append(pos)
@@ -86,7 +88,7 @@ if __name__ == '__main__':
     model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
     # model = createModel(settings, state_bounds, action_bounds, None, None, None)
     
-    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True, settings=settings)
+    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True, settings=settings, result_state_length=trajectory_length)
     experience.setStateBounds(state_bounds)
     experience.setRewardBounds(reward_bounds)
     experience.setActionBounds(action_bounds)
@@ -121,19 +123,18 @@ if __name__ == '__main__':
     
     # states = np.linspace(-5.0, 5.0, experience_length)
     test_index = 400
-    states = np.array(states)
-    print(states[test_index])
+    states_ = np.array(states_)
+    print(states_[test_index])
     
     
-    gen_state = model.predict([states[test_index]])
+    gen_state = model.predict([states_[test_index]], [actions[test_index]])
     _fig, (_bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
     for j in range(5):
-        test_index = int(states.shape[0]/5) * j
+        test_index = int(states_.shape[0]/5) * j
         print ("test_index: ",  test_index)
-        _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), states[test_index], linewidth=3.0, color='y', label="True function")
-        # _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_dropout, linewidth=2.0, color='r', label="Estimated function with dropout")
+        _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), next_states_[test_index], linewidth=3.0, color='y', label="True function")
         for i in range(3):
-            gen_state = model.predict([states[test_index]])
+            gen_state = model.predict([states_[test_index]], [actions[test_index]])
             _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), gen_state, linewidth=2.0, label="Estimated function", linestyle='--')
     # Now add the legend with some customizations.
     legend = _bellman_error_ax.legend(loc='lower right', shadow=True, ncol=1, fancybox=True)

@@ -19,7 +19,7 @@ class ExperienceMemory(object):
         when performing training updates.
     """
     
-    def __init__(self, state_length, action_length, memory_length, continuous_actions=False, settings=None):
+    def __init__(self, state_length, action_length, memory_length, continuous_actions=False, settings=None, result_state_length=None):
         
         if (settings == None):
             self._settings = {}
@@ -32,6 +32,10 @@ class ExperienceMemory(object):
         self._state_length = state_length
         self._action_length = action_length
         self._continuous_actions = continuous_actions
+        if ( result_state_length == None ):
+            self._result_state_length = state_length
+        else:
+            self._result_state_length = result_state_length
         # self._settings = settings
         self.clear()
         # self._state_history = theano.shared(np.zeros((self._history_size, state_length)))
@@ -50,7 +54,7 @@ class ExperienceMemory(object):
                 self._action_history = (np.zeros((self._history_size, self._action_length), dtype='float32'))
             else:
                 self._action_history = (np.zeros((self._history_size, self._action_length), dtype='int8'))
-            self._nextState_history = (np.zeros((self._history_size, self._state_length), dtype='float32'))
+            self._nextState_history = (np.zeros((self._history_size, self._result_state_length), dtype='float32'))
             self._reward_history = (np.zeros((self._history_size, 1), dtype='float32'))
             self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
             self._discounted_sum_history = (np.zeros((self._history_size, 1), dtype='float32'))
@@ -61,7 +65,7 @@ class ExperienceMemory(object):
                 self._action_history = (np.zeros((self._history_size, self._action_length), dtype='float64'))
             else:
                 self._action_history = (np.zeros((self._history_size, self._action_length), dtype='int8'))
-            self._nextState_history = (np.zeros((self._history_size, self._state_length), dtype='float64'))
+            self._nextState_history = (np.zeros((self._history_size, self._result_state_length), dtype='float64'))
             self._reward_history = (np.zeros((self._history_size, 1), dtype='float64'))
             self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
             self._discounted_sum_history = (np.zeros((self._history_size, 1), dtype='float64'))
@@ -152,7 +156,7 @@ class ExperienceMemory(object):
                 
                 action.append(self._action_history[i]) # won't work for discrete actions...
                 # action.append(norm_action(self._action_history[i], self._action_bounds)) # won't work for discrete actions...
-                resultState.append(norm_state(self._nextState_history[i], self._state_bounds))
+                resultState.append(norm_state(self._nextState_history[i], self._result_state_bounds))
                 # resultState.append(self._nextState_history[i])
                 if (('train_reward_predictor' in self._settings) and (self._settings['train_reward_predictor'])):
                     # print ("normalizing reward: ", self._reward_history[i], " to ", norm_state(self._reward_history[i] , self._reward_bounds ))
@@ -168,7 +172,7 @@ class ExperienceMemory(object):
                                 
                 state.append(norm_state(self._state_history[i], self._state_bounds))
                 action.append(norm_action(self._action_history[i], self._action_bounds)) # won't work for discrete actions...
-                resultState.append(norm_state(self._nextState_history[i], self._state_bounds))
+                resultState.append(norm_state(self._nextState_history[i], self._result_state_bounds))
                 if (('train_reward_predictor' in self._settings) and (self._settings['train_reward_predictor'])):
                     # print ("normalizing reward: ", self._reward_history[i], " to ", norm_state(self._reward_history[i] , self._reward_bounds ))
                     reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
@@ -211,16 +215,23 @@ class ExperienceMemory(object):
     
     def setStateBounds(self, _state_bounds):
         self._state_bounds = _state_bounds
+        self.setResultStateBounds(_state_bounds)
+        
     def setRewardBounds(self, _reward_bounds):
         self._reward_bounds = _reward_bounds
     def setActionBounds(self, _action_bounds):
         self._action_bounds = _action_bounds
+    def setResultStateBounds(self, _result_state_bounds):
+        self._result_state_bounds = _result_state_bounds
+        
     def getStateBounds(self):
         return self._state_bounds
     def getRewardBounds(self):
         return self._reward_bounds
     def getActionBounds(self):
         return self._action_bounds
+    def getResultStateBounds(self):
+        return self._result_state_bounds
     
     def setSettings(self, settings):
         self._settings = settings
@@ -245,6 +256,7 @@ class ExperienceMemory(object):
         hf.create_dataset('_state_bounds', data=self._state_bounds)
         hf.create_dataset('_reward_bounds', data=self._reward_bounds)
         hf.create_dataset('_action_bounds', data=self._action_bounds)
+        hf.create_dataset('_result_state_bounds', data=self._result_state_bounds)
         
         hf.flush()
         hf.close()
@@ -267,6 +279,7 @@ class ExperienceMemory(object):
         self._state_bounds = np.array(hf.get('_state_bounds'))
         self._reward_bounds = np.array(hf.get('_reward_bounds'))
         self._action_bounds = np.array(hf.get('_action_bounds'))
+        self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
         
         hf.close()
         
