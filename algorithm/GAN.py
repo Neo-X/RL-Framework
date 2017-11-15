@@ -30,6 +30,7 @@ class GAN(AlgorithmInterface):
         # print ("Initial W " + str(self._w_o.get_value()) )
         
         self._learning_rate = self.getSettings()['learning_rate']
+        # self._learning_rate = 1e-5
         self._discount_factor= self.getSettings()['discount_factor']
         self._rho = self.getSettings()['rho']
         self._rms_epsilon = self.getSettings()['rms_epsilon']
@@ -39,6 +40,7 @@ class GAN(AlgorithmInterface):
         self._decay_weight=self.getSettings()['regularization_weight']
         self._critic_regularization_weight = self.getSettings()["critic_regularization_weight"]
         self._critic_learning_rate = self.getSettings()["critic_learning_rate"]
+        # self._critic_learning_rate = 1e-4
         
         # self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         # self._q_valsA_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
