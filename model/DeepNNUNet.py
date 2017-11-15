@@ -16,7 +16,8 @@ class DeepNNUNet(ModelInterface):
 
         super(DeepNNUNet,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
         
-        self._result_state_length=20
+        # self._result_state_length=20
+        self._result_state_length=state_length
         # data types for model
         self._State = T.matrix("State")
         self._State.tag.test_value = np.random.rand(self._batch_size, self._state_length)

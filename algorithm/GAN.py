@@ -182,6 +182,36 @@ class GAN(AlgorithmInterface):
                 # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
             }
         
+        
+        ### Some other stuff to learn a reward function
+        self._inputs_reward_ = {
+            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+        }
+        self._reward = lasagne.layers.get_output(self._model.getRewardNetwork(), self._inputs_reward_, deterministic=True)
+        self._reward_drop = lasagne.layers.get_output(self._model.getRewardNetwork(), self._inputs_reward_, deterministic=False)
+        ## because rewards are noramlized then scaled by the discount factor to the value stay between -1,1.
+        self._reward_diff = (self._model.getRewardSymbolicVariable() * (1.0 / (1.0 - self.getSettings()['discount_factor']))) - self._reward_drop
+        self.__Reward = self._model.getRewardSymbolicVariable()
+        print ("self.__Reward", self.__Reward)
+        # self._reward_diff = (self._model.getRewardSymbolicVariable()) - self._reward_drop
+        self._reward_loss_ = T.mean(T.pow(self._reward_diff, 2),axis=1)
+        self._reward_loss = T.mean(self._reward_loss_)
+        
+        self._reward_diff_NoDrop = (self._model.getRewardSymbolicVariable()* (1.0 / (1.0- self.getSettings()['discount_factor']))) - self._reward
+        # self._reward_diff_NoDrop = (self._model.getRewardSymbolicVariable()) - self._reward
+        self._reward_loss_NoDrop_ = T.mean(T.pow(self._reward_diff_NoDrop, 2),axis=1)
+        self._reward_loss_NoDrop = T.mean(self._reward_loss_NoDrop_)
+        self._reward_params = lasagne.layers.helper.get_all_params(self._model.getRewardNetwork())
+        self._reward_givens_ = {
+                self._model.getStateSymbolicVariable() : self._model.getStates(),
+                # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                self._model.getRewardSymbolicVariable() : self._model.getRewards(),
+            }
+        self._reward_updates_ = lasagne.updates.adam(self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
+            self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
+        
         GAN.compile(self)
         
     def compile(self):
@@ -220,12 +250,30 @@ class GAN(AlgorithmInterface):
         self._bellman_error = theano.function(inputs=inputs_, outputs=self._diff, allow_input_downcast=True)
         """
         # self._diffs = theano.function(input=[State])
-        self._bellman_error2 = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
+        self._bellman_error = theano.function(inputs=[], outputs=self._loss, allow_input_downcast=True, givens=self._givens_)
         
         # self._get_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         self._get_result_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._resultStateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        self._get_action_grad = theano.function([], outputs=T.grad(cost=None, wrt=[self._model._actionInputVar] + self._actionParams,
+                                                            known_grads={self._generator: self._result_state_grad_shared}), 
+                                         allow_input_downcast=True, 
+                                         givens= self._actGivens)
         
+        # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads((self._reward_loss_NoDrop), [lasagne.layers.get_all_layers(self._model.getRewardNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True,
+        self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [self._model._actionInputVar] + self._reward_params), allow_input_downcast=True, 
+                                                givens=self._inputs_reward_)
+        
+        self._train_reward = theano.function([], [self._reward_loss], updates=self._reward_updates_, givens=self._reward_givens_)
+        self._predict_reward = theano.function([], self._reward,
+                                       givens=self._inputs_reward_)
+        self._reward_error = theano.function(inputs=[], outputs=self._reward_diff, allow_input_downcast=True, givens=self._reward_givens_)
+        self._reward_values = theano.function(inputs=[], outputs=self.__Reward, allow_input_downcast=True, givens={
+                                # self._model.getStateSymbolicVariable() : self._model.getStates(),
+                                # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
+                                # self._model.getActionSymbolicVariable(): self._model.getActions(),
+                                self._model.getRewardSymbolicVariable() : self._model.getRewards(),
+                            })
         
     def getStateGrads(self, states, actions=None, alreadyNormed=False):
         """
@@ -251,6 +299,30 @@ class GAN(AlgorithmInterface):
         
         return self._get_result_state_grad()
     
+    def setGradTarget(self, grad):
+        self._result_state_grad_shared.set_value(grad)
+        
+    def getGrads(self, states, actions, result_states, v_grad=None, alreadyNormed=False):
+        if ( alreadyNormed == False ):
+            states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
+            actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
+            result_states = np.array(norm_state(result_states, self._state_bounds), dtype=self.getSettings()['float_type'])
+        # result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
+        self.setData(states, actions, result_states)
+        # if (v_grad != None):
+        self.setGradTarget(v_grad)
+        return self._get_action_grad()
+    
+    
+    def getRewardGrads(self, states, actions, alreadyNormed=False):
+        # states = np.array(states, dtype=self.getSettings()['float_type'])
+        # actions = np.array(actions, dtype=self.getSettings()['float_type'])
+        if ( alreadyNormed is False ):
+            states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
+            actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
+            # rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
+        self.setData(states, actions)
+        return self._get_grad_reward()
 
     def getNetworkParameters(self):
         params = []
@@ -266,27 +338,17 @@ class GAN(AlgorithmInterface):
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), params[2])
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getForwardDynamicsNetwork(), params[3])
         
-    def setData(self, states, actions, rewards, result_states, fallen):
+    def setData(self, states, actions, result_states=None, rewards=None):
         self._model.setStates(states)
-        self._model.setResultStates(result_states)
+        if not (result_states is None):
+            self._model.setResultStates(result_states)
         self._model.setActions(actions)
-        self._model.setRewards(rewards)
-        self._modelTarget.setStates(states)
-        self._modelTarget.setResultStates(result_states)
-        self._modelTarget.setActions(actions)
-        self._modelTarget.setRewards(rewards)
-        # print ("Falls: ", fallen)
-        # self._fallen_shared.set_value(fallen)
-        # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        ## Easy fix for computing actor loss
-        # diff = self._bellman_error2()
-        # self._tmp_diff_shared.set_value(diff)
+        if not (rewards is None):
+            self._model.setRewards(rewards)
         
-        # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
+    def trainCritic(self, states, actions, result_states, rewards):
         
-    def trainCritic(self, states, actions, rewards, result_states, falls):
-        
-        self.setData(states, actions, rewards, result_states, falls)
+        self.setData(states, actions, result_states, rewards)
         noise = np.random.normal(0,0.5, size=(states.shape[0],1))
         # print ("Shapes: ", states.shape, actions.shape, rewards.shape, result_states.shape, falls.shape, noise.shape)
         self._noise_shared.set_value(noise)
@@ -302,13 +364,13 @@ class GAN(AlgorithmInterface):
             tmp_rewards[i] = [0] 
 
         # print("Rewards: ", tmp_rewards)            
-        self.setData(states, actions, tmp_rewards, tmp_result_states, falls)
+        self.setData(states, actions, tmp_result_states, tmp_rewards)
         
         loss, _ = self._train()
         return loss
         
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions, forwardDynamicsModel=None):
-        self.setData(states, actions, rewards, result_states, falls)
+    def trainActor(self, states, actions, result_states, rewards):
+        self.setData(states, actions, result_states, rewards)
         
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
@@ -323,7 +385,7 @@ class GAN(AlgorithmInterface):
         # return loss
         generated_samples = self.predict_batch(states, actions)
         result_state_grads = self.getResultStateGrads(generated_samples, actions, alreadyNormed=True)[0] * 1.0
-        discriminator_value = self._bellman_error2() 
+        discriminator_value = self._bellman_error() 
                     
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("Policy mean: ", np.mean(self._generate(), axis=0))
@@ -339,9 +401,9 @@ class GAN(AlgorithmInterface):
         
         return np.mean(discriminator_value)
         
-    def train(self, states, actions, rewards, result_states, falls, advantage_, exp_actions__):
-        loss = self.trainCritic(states, actions, rewards, result_states, falls)
-        lossActor = self.trainActor(states, actions, rewards, result_states, falls, advantage_, exp_actions__)
+    def train(self, states, actions, result_states, rewards):
+        loss = self.trainCritic(states, actions, result_states, rewards)
+        lossActor = self.trainActor(states, actions, result_states, rewards)
         return (loss, lossActor)
     
     def predict(self, state, deterministic_=True):
@@ -364,15 +426,11 @@ class GAN(AlgorithmInterface):
         state_ = scale_state(self._generate()[0], self._state_bounds)
         return state_
     
-    def predict_batch(self, state, action):
-        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
-        # states[0, ...] = state
-        # state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        # print ("fd state: ", state)
-        # action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        self._model.setStates(state)
-        self._model.setActions(action)
-        self._noise_shared.set_value(np.random.normal(0,0.5, size=(state.shape[0],1)))
+    def predict_batch(self, states, actions):
+        ## These input should already be normalized.
+        self._model.setStates(states)
+        self._model.setActions(actions)
+        self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
         # print ("State bounds: ", self._state_bounds)
         # print ("fd output: ", self._forwardDynamics()[0])
         # state_ = scale_state(self._generate(), self._state_bounds)
@@ -420,3 +478,39 @@ class GAN(AlgorithmInterface):
         return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()
         # return self._q_val()
+        
+    def predict_std(self, state, deterministic_=True):
+        """
+            This does nothing for a GAN...
+        """
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        action_std = np.array([0] * len(self._action_bounds))
+        # np.zeros((state.shape[0], len(self._action_bounds)))
+        # else:
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # action_ = q_valsActA[0]
+        return action_std
+    
+    def predict_reward(self, state, action):
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        self._model.setStates(state)
+        self._model.setActions(action)
+        predicted_reward = self._predict_reward()[0]
+        reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # reward_ = scale_state(predicted_reward, self._reward_bounds)
+        # print ("reward, predicted reward: ", reward_, predicted_reward)
+        return reward_
+    
+    def bellman_error(self, states, actions, result_states, rewards):
+        self.setData(states, actions, result_states, rewards)
+        return self._bellman_error()
+    
+    def reward_error(self, states, actions, result_states, rewards):
+        # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
+        self.setData(states, actions, result_states, rewards)
+        return self._reward_error()
