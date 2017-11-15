@@ -24,14 +24,13 @@ def _computeTime(self, velocity_y):
     seconds_ = velocity_y/-self._gravity
     return seconds_
 
-def integrate(dt,pos,vel):
+def integrate(dt,pos,vel, gravity = -9.8):
     """
         Perform simple Euler integration
         assume G = -9.8
         return pos, new_vel
     """ 
     
-    gravity = -9.8
     new_pos = pos + ( vel * dt )
     new_vel =  vel + (gravity * dt)
     return (new_pos, new_vel)
@@ -63,18 +62,21 @@ if __name__ == '__main__':
     # states = np.repeat([np.linspace(-5.0, 5.0, experience_length)],2, axis=0)
     velocities = np.linspace(1.0, 15.0, experience_length)
     actions = []
-    states = []
+    next_states_ = []
+    states_ = []
     dt = 0.025
     for v_ in velocities:
         traj = []
         pos = 0
         vel_ = v_
-        actions.append(vel_)
+        states_.append(vel_)
+        accel = np.random.normal(0,5.0)
+        actions.append(accel)
         for t_ in range(trajectory_length):
-            (pos, vel_) = integrate(dt, pos, vel_)
+            (pos, vel_) = integrate(dt, pos, vel_, gravity=accel)
             traj.append(pos)
             
-        states.append(traj)
+        next_states_.append(traj)
         # print ("traj length: ", len(traj))
             
 
@@ -98,8 +100,8 @@ if __name__ == '__main__':
         a = actions[arr[i]]
         action_ = np.array([a])
         given_actions.append(action_)
-        state_ = np.array([states[arr[i]]])
-        next_state_ = state_
+        state_ = np.array([states_[arr[i]]])
+        next_state_ = np.array([next_states_[arr[i]]])
         given_states.append(state_)
         # print "Action: " + str([actions[i]])
         experience.insert(state_, action_, next_state_, np.array([1]))

@@ -30,10 +30,12 @@ class DeepNNUNet(ModelInterface):
         self._Noise.tag.test_value = np.random.rand(self._batch_size,1)
         
         # create a small convolutional neural network
-        input = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        inputState = lasagne.layers.InputLayer((None, self._state_length), self._State)
         self._stateInputVar = input.input_var
         inputAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
         self._actionInputVar = inputAction.input_var
+        inputNextState = lasagne.layers.InputLayer((None, self._state_length), self._ResultState)
+        self._resultStateInputVar = inputNextState.input_var
         # self._b_o = init_b_weights((n_out,))
         # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         
@@ -57,12 +59,17 @@ class DeepNNUNet(ModelInterface):
         elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'tanh')):
             last_policy_layer_activation_type = lasagne.nonlinearities.tanh
         
-        inputGenerator = input
+        inputGenerator = lasagne.layers.ConcatLayer([inputState, inputAction])
+        if ("train_gan_with_gaussian_noise" in settings_ and (settings_["train_gan_with_gaussian_noise"])):
+            ## Add noise input
+            inputNoise = lasagne.layers.InputLayer((None, 1), self._Noise)
+            networkAct = lasagne.layers.ConcatLayer([inputGenerator, inputNoise])
         """
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
+        inputGenerator = lasagne.layers.ConcatLayer([inputState, inputAction])
         networkAct = lasagne.layers.DenseLayer(
                 inputGenerator, num_units=128,
                 nonlinearity=activation_type)
@@ -76,10 +83,6 @@ class DeepNNUNet(ModelInterface):
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,
                 nonlinearity=activation_type)
-        if ("train_gan_with_gaussian_noise" in settings_ and (settings_["train_gan_with_gaussian_noise"])):
-            ## Add noise input
-            inputNoise = lasagne.layers.InputLayer((None, 1), self._Noise)
-            networkAct = lasagne.layers.ConcatLayer([networkAct, inputNoise])
             
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
@@ -97,53 +100,8 @@ class DeepNNUNet(ModelInterface):
                 networkAct, num_units=self._action_length,
                 nonlinearity=last_policy_layer_activation_type)
         
-        if (self._settings['use_stocastic_policy'] and ( not ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])))):
-            print ("Adding stochastic layer")
-            with_std = lasagne.layers.DenseLayer(
-                    networkAct, num_units=self._action_length,
-                    nonlinearity=theano.tensor.nnet.softplus)
-            self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
-        # self._b_o = init_b_weights((n_out,))
-        else:
-            print ("NOT Adding stochastic layer")
-        if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
-            
-            if ('train_extra_value_function' in settings_ and (settings_['train_extra_value_function'])):
-                ## create an extra value function
-                network = lasagne.layers.DenseLayer(
-                        input, num_units=128,
-                        nonlinearity=activation_type)
-                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-                
-                network = lasagne.layers.DenseLayer(
-                        network, num_units=64,
-                        nonlinearity=activation_type)
-                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-                """
-                if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
-                    network = lasagne.layers.ConcatLayer([network, inputAction])
-                """
-                network = lasagne.layers.DenseLayer(
-                        network, num_units=32,
-                        nonlinearity=activation_type)
-                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-                
-                network = lasagne.layers.DenseLayer(
-                        network, num_units=16,
-                        nonlinearity=activation_type)
-                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-                """
-                network = lasagne.layers.DenseLayer(
-                        network, num_units=8,
-                        nonlinearity=activation_type)
-                network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-                """
-                self._value_function = lasagne.layers.DenseLayer(
-                        network, num_units=1,
-                        nonlinearity=lasagne.nonlinearities.linear)
-                
-            ## put inputs together for DPG
-            input = lasagne.layers.ConcatLayer([input, inputAction])
+        
+        inputDiscriminator = lasagne.layers.ConcatLayer([inputState, inputAction, inputNextState])
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=256,
