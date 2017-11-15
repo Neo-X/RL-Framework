@@ -24,6 +24,12 @@ def _computeTime(self, velocity_y):
     seconds_ = velocity_y/-self._gravity
     return seconds_
 
+def OUNoise():
+    
+    dx_t = theta (mu - x_t)* dt + (sigma * dWt)
+    
+    
+
 def integrate(dt,pos,vel, gravity = -9.8):
     """
         Perform simple Euler integration
