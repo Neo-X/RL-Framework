@@ -58,11 +58,6 @@ class DeepNNUNet(ModelInterface):
             last_policy_layer_activation_type = lasagne.nonlinearities.tanh
         
         inputGenerator = input
-        if ("train_gan_with_gaussian_noise" in settings_ and (settings_["train_gan_with_gaussian_noise"])):
-            ## Add noise input
-            inputNoise = lasagne.layers.InputLayer((None, 1), self._Noise)
-            
-            inputGenerator = lasagne.layers.ConcatLayer([inputGenerator, inputNoise])
         """
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=256,
@@ -71,29 +66,33 @@ class DeepNNUNet(ModelInterface):
         networkAct = lasagne.layers.DenseLayer(
                 inputGenerator, num_units=128,
                 nonlinearity=activation_type)
-        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        # networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
                 nonlinearity=activation_type)
-        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        # networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,
                 nonlinearity=activation_type)
-        """
+        if ("train_gan_with_gaussian_noise" in settings_ and (settings_["train_gan_with_gaussian_noise"])):
+            ## Add noise input
+            inputNoise = lasagne.layers.InputLayer((None, 1), self._Noise)
+            networkAct = lasagne.layers.ConcatLayer([networkAct, inputNoise])
+            
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
                 nonlinearity=activation_type)
-        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        # networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=128,
                 nonlinearity=activation_type)
-        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
-        """
+        # networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
                 nonlinearity=last_policy_layer_activation_type)

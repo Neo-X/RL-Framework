@@ -125,22 +125,17 @@ if __name__ == '__main__':
     
     gen_state = model.predict([states[test_index]])
     _fig, (_bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-    _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), states[test_index], linewidth=3.0, color='y', label="True function")
-    # _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_dropout, linewidth=2.0, color='r', label="Estimated function with dropout")
-    for i in range(5):
-        gen_state = model.predict([states[test_index]])
-        _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), gen_state, linewidth=2.0, label="Estimated function")
-    # _bellman_error, = _bellman_error_ax.plot(states, actionsNoNoise, linewidth=2.0, label="True function")
-    # _bellman_error = _bellman_error_ax.scatter(given_states, given_actions, label="Data trained on")
-    # _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_var, linewidth=2.0, label="Variance")
-    
-    # _bellman_error_std = _bellman_error_ax.fill_between(states, predicted_actions - predicted_actions_var,
-    #                                                     predicted_actions + predicted_actions_var, facecolor='green', alpha=0.5)
-    # _bellman_error_std = _bellman_error_ax.fill_between(states, lower_var, upper_var, facecolor='green', alpha=0.5)
-    # _bellman_error_ax.set_title("True function")
-    # _bellman_error_ax.set_ylabel("Absolute Error")
+    for j in range(5):
+        test_index = int(states.shape[0]/5) * j
+        print ("test_index: ",  test_index)
+        _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), states[test_index], linewidth=3.0, color='y', label="True function")
+        # _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_dropout, linewidth=2.0, color='r', label="Estimated function with dropout")
+        for i in range(3):
+            gen_state = model.predict([states[test_index]])
+            _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), gen_state, linewidth=2.0, label="Estimated function", linestyle='--')
     # Now add the legend with some customizations.
-    legend = _bellman_error_ax.legend(loc='lower right', shadow=True)
+    legend = _bellman_error_ax.legend(loc='lower right', shadow=True, ncol=1, fancybox=True)
+    legend.get_frame().set_alpha(0.25)
     plt.grid(b=True, which='major', color='black', linestyle='-')
     plt.grid(b=True, which='minor', color='g', linestyle='--')
 
