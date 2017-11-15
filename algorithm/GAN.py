@@ -29,7 +29,8 @@ class GAN(AlgorithmInterface):
             
         # print ("Initial W " + str(self._w_o.get_value()) )
         
-        self._learning_rate = self.getSettings()['learning_rate']
+        self._learning_rate = self.getSettings()["fd_learning_rate"]
+        self._regularization_weight = 1e-6
         # self._learning_rate = 1e-5
         self._discount_factor= self.getSettings()['discount_factor']
         self._rho = self.getSettings()['rho']
@@ -39,7 +40,7 @@ class GAN(AlgorithmInterface):
         self._updates=0
         self._decay_weight=self.getSettings()['regularization_weight']
         self._critic_regularization_weight = self.getSettings()["critic_regularization_weight"]
-        self._critic_learning_rate = self.getSettings()["critic_learning_rate"]
+        self._critic_learning_rate = self._learning_rate * 10.0
         # self._critic_learning_rate = 1e-4
         
         # self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
@@ -252,7 +253,12 @@ class GAN(AlgorithmInterface):
         self._bellman_error = theano.function(inputs=inputs_, outputs=self._diff, allow_input_downcast=True)
         """
         # self._diffs = theano.function(input=[State])
-        self._bellman_error = theano.function(inputs=[], outputs=self._loss, allow_input_downcast=True, givens=self._givens_)
+        self._bellman_error = theano.function(inputs=[], outputs=self._loss_g, allow_input_downcast=True, givens={
+                self._model.getStateSymbolicVariable(): self._model.getStates(),
+                self._model.getActionSymbolicVariable(): self._model.getActions(),
+                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+                self._model._Noise: self._noise_shared
+            })
         
         # self._get_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
