@@ -125,10 +125,10 @@ class LearningAgent(AgentInterface):
             self.setStateBounds(self.getExperience().getStateBounds())
             self.setActionBounds(self.getExperience().getActionBounds())
             self.setRewardBounds(self.getExperience().getRewardBounds())
-            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                print("Learner, Scaling State params: ", self.getStateBounds())
-                print("Learner, Scaling Action params: ", self.getActionBounds())
-                print("Learner, Scaling Reward params: ", self.getRewardBounds())
+            # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            #     print("Learner, Scaling State params: ", self.getStateBounds())
+            #     print("Learner, Scaling Action params: ", self.getActionBounds())
+            #     print("Learner, Scaling Reward params: ", self.getRewardBounds())
             
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):        
                 print ("self._expBuff.samples(): ", self._expBuff.samples())
