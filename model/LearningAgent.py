@@ -104,6 +104,7 @@ class LearningAgent(AgentInterface):
             # print("Batch size: ", len(_states), len(_actions), len(_result_states), len(_rewards), len(_falls), len(_advantage))
             ### validate every tuples before giving them to the learning method
             num_samples_=0
+            self.getExperience()._settings["keep_running_mean_std_for_scaling"] = False
             for (state__, action__, next_state__, reward__, fall__, advantage__, exp_action__) in zip(_states, _actions, _result_states, _rewards, _falls, _advantage, _exp_actions):
                 if (checkValidData(state__, action__, next_state__, reward__)):
                     tmp_states.append(state__)
@@ -114,22 +115,14 @@ class LearningAgent(AgentInterface):
                     tmp_advantage.append(advantage__)
                     tmp_exp_action.append(exp_action__)
                     # print("adv__:", advantage__)
-                    tup = (state__, action__, next_state__, reward__, fall__, advantage__, exp_action__)
+                    tup = ([state__], [action__], [next_state__], [reward__], [fall__], [advantage__], [exp_action__])
                     self.getExperience().insertTuple(tup)
                     if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                         self.getFDExperience().insertTuple(tup)
                     num_samples_ = num_samples_ + 1
                 # else:
                     # print ("Tuple invalid:")
-            ## Update scaling values
-            self.setStateBounds(self.getExperience().getStateBounds())
-            self.setActionBounds(self.getExperience().getActionBounds())
-            self.setRewardBounds(self.getExperience().getRewardBounds())
-            # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-            #     print("Learner, Scaling State params: ", self.getStateBounds())
-            #     print("Learner, Scaling Action params: ", self.getActionBounds())
-            #     print("Learner, Scaling Reward params: ", self.getRewardBounds())
-            
+                        
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):        
                 print ("self._expBuff.samples(): ", self._expBuff.samples())
             _states = np.array(norm_action(np.array(tmp_states), self._state_bounds), dtype=self._settings['float_type'])
@@ -226,6 +219,18 @@ class LearningAgent(AgentInterface):
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Performing Dyna Update, loss: ", cost)
                         # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
+                        
+            ## Update scaling values
+            ### Updateing the scaling values after the update(s) will help make things more accurate
+            if ('keep_running_mean_std_for_scaling' in self._settings and (self._settings["keep_running_mean_std_for_scaling"])):
+                self.getExperience()._updateScaling()
+                self.setStateBounds(self.getExperience().getStateBounds())
+                self.setActionBounds(self.getExperience().getActionBounds())
+                self.setRewardBounds(self.getExperience().getRewardBounds())
+                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    print("Learner, Scaling State params: ", self.getStateBounds())
+                    print("Learner, Scaling Action params: ", self.getActionBounds())
+                    print("Learner, Scaling Reward params: ", self.getRewardBounds())
         else: ## Off-policy
             # print("State Bounds LA:", self._pol.getStateBounds())
             # print("Action Bounds LA:", self._pol.getActionBounds())

@@ -278,5 +278,5 @@
 	"comment__": "Use the annealing schedule in on policy learning",
 "anneal_on_policy": false,
 	"comment__": "Compute a running mean and std for network input/output scaling",
-"keep_running_mean_std_for_scaling": false 
+"keep_running_mean_std_for_scaling": true 
 }

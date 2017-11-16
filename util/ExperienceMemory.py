@@ -159,8 +159,11 @@ class ExperienceMemory(object):
             self._action_var = (self._action_var/float(self.samples()-1))
             
         if (self._settings["keep_running_mean_std_for_scaling"]):
-            # print("Running mean: ", self._state_mean)
-            # print("Running std: ", np.sqrt(self._state_var))
+            self._updateScaling()
+            
+    def _updateScaling(self):
+            print("Running mean: ", self._state_mean)
+            print("Running std: ", np.sqrt(self._state_var))
             low = self._state_mean[0] - np.sqrt(self._state_var[0])
             high = self._state_mean[0] + np.sqrt(self._state_var[0])
             self.setStateBounds(np.array([low,high]))
