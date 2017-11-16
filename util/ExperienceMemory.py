@@ -37,6 +37,8 @@ class ExperienceMemory(object):
         else:
             self._result_state_length = result_state_length
         # self._settings = settings
+        self._history_update_index=0 # where the next experience should write
+        self._inserts=0
         self.clear()
         # self._state_history = theano.shared(np.zeros((self._history_size, state_length)))
         # self._action_history = theano.shared(np.zeros((self._history_size, action_length)))
@@ -45,7 +47,7 @@ class ExperienceMemory(object):
         
     def clear(self):
         self._history_update_index=0 # where the next experience should write
-        self._inserts=0
+        # self._inserts=0
         
         if (self._settings['float_type'] == 'float32'):
             
@@ -111,6 +113,7 @@ class ExperienceMemory(object):
         
         self._inserts+=1
         self._history_update_index+=1
+        self.updateScalling(state, action, nextState, reward)
         
         
     def samples(self):
@@ -118,6 +121,63 @@ class ExperienceMemory(object):
     
     def history_size(self):
         return self._history_size
+    
+    def updateScalling(self, state, action, nextState, reward):
+        
+        if (self.samples() == 1):
+            self._state_mean =  self._state_history[0]
+            self._state_var = np.zeros_like(state)
+            
+            self._reward_mean =  self._reward_history[0]
+            self._reward_var = np.zeros_like(reward)
+            
+            self._action_mean =  self._action_history[0]
+            self._action_var = np.zeros_like(action)
+        else:
+            x_mean_old = self._state_mean
+            self._state_mean = self._state_mean + ((state - self._state_mean)/self.samples())
+            
+            reward_mean_old = self._reward_mean
+            self._reward_mean = self._reward_mean + ((reward - self._reward_mean)/self.samples())
+            
+            action_mean_old = self._action_mean
+            self._action_mean = self._action_mean + ((action - self._action_mean)/self.samples())
+        
+        if ( self.samples() == 2):
+            self._state_var = (self._state_history[1] - ((self._state_history[0]+self._state_history[1])/2.0)**2)/2.0
+            self._reward_var = (self._reward_history[1] - ((self._reward_history[0]+self._reward_history[1])/2.0)**2)/2.0
+            self._action_var = (self._action_history[1] - ((self._action_history[0]+self._action_history[1])/2.0)**2)/2.0
+            
+        elif (self.samples() > 2):
+            self._state_var = (((self.samples()-2)*self._state_var) + ((self.samples()-1)*(x_mean_old - self._state_mean)**2) + ((state - self._state_mean)**2))
+            self._state_var = (self._state_var/float(self.samples()-1))
+            
+            self._reward_var = (((self.samples()-2)*self._reward_var) + ((self.samples()-1)*(reward_mean_old - self._reward_mean)**2) + ((reward - self._reward_mean)**2))
+            self._reward_var = (self._reward_var/float(self.samples()-1))
+            
+            self._action_var = (((self.samples()-2)*self._action_var) + ((self.samples()-1)*(action_mean_old - self._action_mean)**2) + ((action - self._action_mean)**2))
+            self._action_var = (self._action_var/float(self.samples()-1))
+            
+        if (self._settings["keep_running_mean_std_for_scaling"]):
+            # print("Running mean: ", self._state_mean)
+            # print("Running std: ", np.sqrt(self._state_var))
+            low = self._state_mean[0] - np.sqrt(self._state_var[0])
+            high = self._state_mean[0] + np.sqrt(self._state_var[0])
+            self.setStateBounds(np.array([low,high]))
+            
+            # print("New scaling parameters: ", self.getStateBounds())
+            
+            # print("Running reward mean: ", self._reward_mean)
+            # print("Running reward std: ", np.sqrt(self._reward_var))
+            low = self._reward_mean[0] - np.sqrt(self._reward_var[0])
+            high = self._reward_mean[0] + np.sqrt(self._reward_var[0])
+            self.setRewardBounds(np.array([low,high]))
+            # print("New scaling parameters: ", self.getStateBounds())
+            """
+            low = self._action_mean[0] - np.sqrt(self._action_var[0])
+            high = self._action_mean[0] + np.sqrt(self._action_var[0])
+            self.setActionBounds(np.array([low,high]))
+            """
         
     def get_exporation_action_batch(self, batch_size=32):
         return self.get_batch(batch_size=batch_size, exp_actions_only=True)

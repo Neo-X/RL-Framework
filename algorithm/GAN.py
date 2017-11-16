@@ -389,7 +389,7 @@ class GAN(AlgorithmInterface):
             
         self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
         ## Add MSE term
-        # self._trainGenerator_MSE()
+        self._trainGenerator_MSE()
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
         # print("******** Not learning actor right now *****")

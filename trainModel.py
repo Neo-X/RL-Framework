@@ -600,13 +600,21 @@ def trainModelParallel(inputData):
                         p_tmp_ = p 
                     else:
                         p_tmp_ = 1.0
-                    data = ('Update_Policy', p_tmp_, masterAgent.getPolicy().getNetworkParameters())
+                    data = ('Update_Policy', p_tmp_, 
+                            masterAgent.getStateBounds(),
+                            masterAgent.getActionBounds(),
+                            masterAgent.getRewardBounds(),
+                            masterAgent.getPolicy().getNetworkParameters())
                     message = {}
                     message['type'] = 'Update_Policy'
                     message['data'] = data
                     if (settings['train_forward_dynamics']):
                         # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-                        data = ('Update_Policy', p_tmp_, masterAgent.getPolicy().getNetworkParameters(),
+                        data = ('Update_Policy', p_tmp_, 
+                                masterAgent.getStateBounds(),
+                                masterAgent.getActionBounds(),
+                                masterAgent.getRewardBounds(),
+                                masterAgent.getPolicy().getNetworkParameters(),
                                  masterAgent.getForwardDynamics().getNetworkParameters())
                         message['data'] = data
                     for m_q in sim_work_queues:
@@ -689,6 +697,9 @@ def trainModelParallel(inputData):
                         # print ("Data: ", data)
                         masterAgent.setExperience(data[0])
                         masterAgent.getPolicy().setNetworkParameters(data[1])
+                        masterAgent.setStateBounds(masterAgent.getExperience().getStateBounds())
+                        masterAgent.setActionBounds(masterAgent.getExperience().getActionBounds())
+                        masterAgent.setRewardBounds(masterAgent.getExperience().getRewardBounds())
                         if (settings['train_forward_dynamics']):
                             masterAgent.getForwardDynamics().setNetworkParameters(data[2])
                             if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
@@ -713,10 +724,18 @@ def trainModelParallel(inputData):
             if (not settings['on_policy']):
                 # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
                 # masterAgent.setExperience(learningNamespace.experience)
-                data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters())
+                data = ('Update_Policy', p,
+                        masterAgent.getStateBounds(),
+                        masterAgent.getActionBounds(),
+                        masterAgent.getRewardBounds(),
+                        masterAgent.getPolicy().getNetworkParameters())
                 if (settings['train_forward_dynamics']):
                     # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-                    data = ('Update_Policy', p, masterAgent.getPolicy().getNetworkParameters(),
+                    data = ('Update_Policy', p, 
+                            masterAgent.getStateBounds(),
+                            masterAgent.getActionBounds(),
+                            masterAgent.getRewardBounds(),
+                            masterAgent.getPolicy().getNetworkParameters(),
                              masterAgent.getForwardDynamics().getNetworkParameters())
                 for m_q in sim_work_queues:
                     ## Don't block on full queue

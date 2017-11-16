@@ -121,6 +121,15 @@ class LearningAgent(AgentInterface):
                     num_samples_ = num_samples_ + 1
                 # else:
                     # print ("Tuple invalid:")
+            ## Update scaling values
+            self.setStateBounds(self.getExperience().getStateBounds())
+            self.setActionBounds(self.getExperience().getActionBounds())
+            self.setRewardBounds(self.getExperience().getRewardBounds())
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                print("Learner, Scaling State params: ", self.getStateBounds())
+                print("Learner, Scaling Action params: ", self.getActionBounds())
+                print("Learner, Scaling Reward params: ", self.getRewardBounds())
+            
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):        
                 print ("self._expBuff.samples(): ", self._expBuff.samples())
             _states = np.array(norm_action(np.array(tmp_states), self._state_bounds), dtype=self._settings['float_type'])
@@ -428,13 +437,20 @@ class LearningWorker(Process):
                     if ( 'keep_seperate_fd_exp_buffer' in self._agent._settings and (self._agent._settings['keep_seperate_fd_exp_buffer'])):
                         data = (self._agent._expBuff, self._agent.getPolicy().getNetworkParameters(), self._agent.getForwardDynamics().getNetworkParameters(), self._agent._expBuff_FD)
                 # self._learningNamespace.experience = self._agent._expBuff
+                self._agent.setStateBounds(self._agent.getExperience().getStateBounds())
+                self._agent.setActionBounds(self._agent.getExperience().getActionBounds())
+                self._agent.setRewardBounds(self._agent.getExperience().getRewardBounds())
+                # if (self._agent._settings["print_levels"][self._agent._settings["print_level"]] >= self._agent._settings["print_levels"]['train']):
+                    # print("Learner, Scaling State params: ", self._agent.getStateBounds())
+                    # print("Learner, Scaling Action params: ", self._agent.getActionBounds())
+                    # print("Learner, Scaling Reward params: ", self._agent.getRewardBounds())
                 ## put and do not block
                 try:
                     # print ("Sending network params:")
                     if (not (self._output_message_queue.full())):
                         self._output_message_queue.put(data, False)
                     else:
-                        ## Pull out an old one
+                        ## Pull out (discard) an old one
                         self._output_message_queue.get(False)
                         self._output_message_queue.put(data, False)
                 except Exception as inst:

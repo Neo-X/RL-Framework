@@ -118,9 +118,14 @@ class SimWorker(Process):
                         print ("Message: ", message)
                     data = episodeData['data']
                     # print ("New model parameters: ", data[2][1][0])
-                    self._model.getPolicy().setNetworkParameters(data[2])
+                    ### Update scaling parameters
+                    self._model.setStateBounds(data[2])
+                    self._model.setActionBounds(data[3])
+                    self._model.setRewardBounds(data[4])
+                    print("Scaling params: ", self._model.getStateBounds())        
+                    self._model.getPolicy().setNetworkParameters(data[5])
                     if (self._settings['train_forward_dynamics']):
-                        self._model.getForwardDynamics().setNetworkParameters(data[3])
+                        self._model.getForwardDynamics().setNetworkParameters(data[6])
                     p = data[1]
                     if p < 0.1:
                         p = 0.1
@@ -224,12 +229,17 @@ class SimWorker(Process):
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Message: ", message)
                             # print ("New model parameters: ", data[2][1][0])
-                            self._model.getPolicy().setNetworkParameters(data[2])
+                            self._model.setStateBounds(data[2])
+                            self._model.setActionBounds(data[3])
+                            self._model.setRewardBounds(data[4])
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print("Scaling State params: ", self._model.getStateBounds())
+                                print("Scaling Action params: ", self._model.getActionBounds())
+                                print("Scaling Reward params: ", self._model.getRewardBounds())
+                            self._model.getPolicy().setNetworkParameters(data[5])
                             if (self._settings['train_forward_dynamics']):
-                                self._model.getForwardDynamics().setNetworkParameters(data[3])
+                                self._model.getForwardDynamics().setNetworkParameters(data[6])
                             p = data[1]
-                            if p < 0.1:
-                                p = 0.1
                             self._p = p
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
