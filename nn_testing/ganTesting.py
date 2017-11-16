@@ -24,10 +24,16 @@ def _computeTime(self, velocity_y):
     seconds_ = velocity_y/-self._gravity
     return seconds_
 
-def OUNoise():
+def OUNoise(theta, sigma, x_t, dt):
+    """
+        Ornstein–Uhlenbeck process
     
-    dx_t = theta (mu - x_t)* dt + (sigma * dWt)
+        d x t = θ ( μ − x t ) d t + σ d W t {\displaystyle dx_{t}=\theta (\mu -x_{t})\,dt+\sigma \,dW_{t}} {\displaystyle dx_{t}=\theta (\mu -x_{t})\,dt+\sigma \,dW_{t}}  
+    """
     
+    dWt = np.random.normal(0.0,0.1)
+    dx_t = theta *(0.0 - x_t)* dt + (sigma * dWt)
+    return dx_t
     
 
 def integrate(dt,pos,vel, gravity = -9.8):
@@ -62,9 +68,10 @@ if __name__ == '__main__':
         
     state_bounds = np.array([[0.0],[20.0]])
     action_bounds = np.array([[-10.0],[10.0]])
-    result_state_bounds = np.array([[-20.0]*trajectory_length,[20.0]*trajectory_length])
+    result_state_bounds = np.array([[-50.0]*trajectory_length,[50.0]*trajectory_length])
     reward_bounds = np.array([[0.0],[1.0]])
-    experience_length = 500
+    experience_length = 50
+    num_samples = 10
     batch_size=64
     # states = np.repeat([np.linspace(-5.0, 5.0, experience_length)],2, axis=0)
     velocities = np.linspace(1.0, 15.0, experience_length)
@@ -73,38 +80,43 @@ if __name__ == '__main__':
     states_ = []
     dt = 0.1
     for v_ in velocities:
-        traj = []
-        pos = 0
-        vel_ = v_
-        states_.append([vel_])
-        accel = np.random.normal(0,5.0)
-        # print("accel: ", accel)
-        actions.append([accel])
-        for t_ in range(trajectory_length):
-            (pos, vel_) = integrate(dt, pos, vel_, gravity=accel)
-            traj.append(pos)
-            
-        next_states_.append(traj)
+        accel = np.random.normal(0,2.5)
+        for samples in range(num_samples):
+            traj = []
+            pos = 0
+            vel_ = v_
+            states_.append([vel_])
+            # print("accel: ", accel)
+            actions.append([accel])
+            noise = 0.0
+            for t_ in range(trajectory_length):
+                (pos, vel_) = integrate(dt, pos, vel_, gravity=accel)
+                noise = noise + OUNoise(0.2, 0.5, noise, dt)
+                pos = pos + noise
+                traj.append(pos)
+                
+            next_states_.append(traj)
         # print ("traj length: ", len(traj))
             
 
+    print("trag mean", np.mean(next_states_, axis=0))
+    print("trag std", np.std(next_states_, axis=0))
     # print states
     # states2 = np.transpose(np.repeat([states], 2, axis=0))
     # print states2
     # model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
     model = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, None)
     
-    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True, settings=settings, result_state_length=trajectory_length)
+    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length*num_samples, continuous_actions=True, settings=settings, result_state_length=trajectory_length)
     experience.setStateBounds(state_bounds)
     experience.setRewardBounds(reward_bounds)
     experience.setActionBounds(action_bounds)
     experience.setSettings(settings)
-    arr = list(range(experience_length))
+    arr = list(range(len(states_)))
     random.shuffle(arr)
-    num_samples_to_keep=500
     given_actions=[]
     given_states=[]
-    for i in range(num_samples_to_keep):
+    for i in range(len(states_)):
         a = actions[arr[i]]
         action_ = np.array([a])
         given_actions.append(action_)
@@ -113,13 +125,14 @@ if __name__ == '__main__':
         given_states.append(state_)
         # print "Action: " + str([actions[i]])
         experience.insert(state_, action_, next_state_, np.array([1]))
+        # print ("Added tuple: ", i)
     
     errors=[]
     for i in range(settings['rounds']):
         _states, _actions, _result_states, _rewards, falls_, advantage, exp_actions__ = experience.get_batch(batch_size)
         # print ("Actions: ", _actions)
         # print ("States: ", _states) 
-        (error, lossActor) = model.train(_states, _actions, _rewards, _result_states, falls_, advantage, exp_actions__)
+        (error, lossActor) = model.train(_states, _actions, _result_states, _rewards)
         errors.append(error)
         if (i % 100 == 0):
             print ("Iteration: ", i)
@@ -138,7 +151,7 @@ if __name__ == '__main__':
     for j in range(5):
         test_index = int(states_.shape[0]/5) * j
         print ("test_index: ",  test_index)
-        _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), next_states_[test_index], linewidth=3.0, color='y', label="True function")
+        _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), next_states_[test_index], linewidth=3.0, color='b', label="True function", linestyle='-', marker='o')
         for i in range(3):
             gen_state = model.predict([states_[test_index]], [actions[test_index]])
             _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), gen_state, linewidth=2.0, label="Estimated function", linestyle='--')

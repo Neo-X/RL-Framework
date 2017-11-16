@@ -30,7 +30,7 @@ class GAN(AlgorithmInterface):
         # print ("Initial W " + str(self._w_o.get_value()) )
         
         self._learning_rate = self.getSettings()["fd_learning_rate"]
-        self._regularization_weight = 1e-6
+        self._regularization_weight = 1e-5
         # self._learning_rate = 1e-5
         self._discount_factor= self.getSettings()['discount_factor']
         self._rho = self.getSettings()['rho']
@@ -225,7 +225,7 @@ class GAN(AlgorithmInterface):
         # self._trainActor = theano.function([], [self._q_func], updates=self._actionUpdates, givens=self._actGivens)
         self._trainGenerator  = theano.function([], [], updates=self._generatorGRADUpdates, givens=self._actGivens)
         self._trainGenerator_MSE = theano.function([], [], updates=self._updates_generator, givens=self._actGivens_MSE)
-        self._q_val = theano.function([], self._discriminator,
+        self._discriminate = theano.function([], self._discriminator,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
                                                self._model.getActionSymbolicVariable(): self._model.getActions(),
                                                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
@@ -393,7 +393,7 @@ class GAN(AlgorithmInterface):
         # return loss
         generated_samples = self.predict_batch(states, actions)
         result_state_grads = self.getResultStateGrads(generated_samples, actions, alreadyNormed=True)[0] * 1.0
-        discriminator_value = self._bellman_error() 
+        discriminator_value = self._discriminate() 
                     
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("Policy mean: ", np.mean(self._generate(), axis=0))
@@ -406,8 +406,8 @@ class GAN(AlgorithmInterface):
         ## Because the SGD method is always performing MINIMIZATION!!
         self._result_state_grad_shared.set_value(-1.0*result_state_grads)
         self._trainGenerator()
-        
-        return np.mean(discriminator_value)
+        error_MSE = self._bellman_error() 
+        return (np.mean(discriminator_value), error_MSE)
         
     def train(self, states, actions, result_states, rewards):
         loss = self.trainCritic(states, actions, result_states, rewards)

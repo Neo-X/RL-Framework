@@ -96,6 +96,7 @@ class ExperienceMemory(object):
         
         if ( (self._history_update_index % (self._history_size-1) ) == 0):
             self._history_update_index=0
+            # print("Reset history index in exp buffer:")
         
         # print "Tuple: " + str(state) + ", " + str(action) + ", " + str(nextState) + ", " + str(reward)
         self._state_history[self._history_update_index] = np.array(state)
