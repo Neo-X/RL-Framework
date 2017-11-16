@@ -73,7 +73,7 @@ class GAN(AlgorithmInterface):
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
                 self._model.getActionSymbolicVariable(): self._model.getActions(),
                 self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+                # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
                 # self._model._Noise: self._noise_shared
             }
         self._discriminator = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=True)
@@ -155,7 +155,7 @@ class GAN(AlgorithmInterface):
                                                      , self._actionParams)
         print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
         self._updates_generator = lasagne.updates.adam(self._gen_grad
-                    , self._actionParams, self._learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
+                    , self._actionParams, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         
         ## Some cool stuff to backprop action gradients
         
@@ -353,6 +353,9 @@ class GAN(AlgorithmInterface):
         self._model.setActions(actions)
         if not (rewards is None):
             self._model.setRewards(rewards)
+        noise = np.random.normal(0,0.5, size=(states.shape[0],1))
+        self._noise_shared.set_value(noise)
+            
         
     def trainCritic(self, states, actions, result_states, rewards):
         
@@ -386,13 +389,13 @@ class GAN(AlgorithmInterface):
             
         self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
         ## Add MSE term
-        self._trainGenerator_MSE()
+        # self._trainGenerator_MSE()
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
         # print("******** Not learning actor right now *****")
         # return loss
         generated_samples = self.predict_batch(states, actions)
-        result_state_grads = self.getResultStateGrads(generated_samples, actions, alreadyNormed=True)[0] * 1.0
+        result_state_grads = self.getResultStateGrads(generated_samples, actions, alreadyNormed=True)[0]
         discriminator_value = self._discriminate() 
                     
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
@@ -406,6 +409,7 @@ class GAN(AlgorithmInterface):
         ## Because the SGD method is always performing MINIMIZATION!!
         self._result_state_grad_shared.set_value(-1.0*result_state_grads)
         self._trainGenerator()
+        self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
         error_MSE = self._bellman_error() 
         return (np.mean(discriminator_value), error_MSE)
         
