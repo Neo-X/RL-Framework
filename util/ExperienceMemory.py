@@ -5,6 +5,7 @@ import numpy as np
 import random
 import h5py
 from model.ModelUtil import *
+from model.ModelUtil import validBounds, fixBounds, anneal_value
 import sys
 
 
@@ -162,11 +163,12 @@ class ExperienceMemory(object):
             self._updateScaling()
             
     def _updateScaling(self):
+        
             print("Running mean: ", self._state_mean)
             print("Running std: ", np.sqrt(self._state_var))
             low = self._state_mean[0] - np.sqrt(self._state_var[0])
             high = self._state_mean[0] + np.sqrt(self._state_var[0])
-            self.setStateBounds(np.array([low,high]))
+            self.setStateBounds(fixBounds(np.array([low,high])))
             
             # print("New scaling parameters: ", self.getStateBounds())
             
