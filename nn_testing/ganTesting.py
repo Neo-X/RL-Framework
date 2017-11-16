@@ -31,7 +31,7 @@ def OUNoise(theta, sigma, x_t, dt):
         d x t = θ ( μ − x t ) d t + σ d W t {\displaystyle dx_{t}=\theta (\mu -x_{t})\,dt+\sigma \,dW_{t}} {\displaystyle dx_{t}=\theta (\mu -x_{t})\,dt+\sigma \,dW_{t}}  
     """
     
-    dWt = np.random.normal(0.0,0.1)
+    dWt = np.random.normal(0.0,0.3)
     dx_t = theta *(0.0 - x_t)* dt + (sigma * dWt)
     return dx_t
     
@@ -91,7 +91,7 @@ if __name__ == '__main__':
             noise = 0.0
             for t_ in range(trajectory_length):
                 (pos, vel_) = integrate(dt, pos, vel_, gravity=accel)
-                noise = noise + OUNoise(0.2, 0.5, noise, dt)
+                noise = noise + OUNoise(0.15, 0.3, noise, dt)
                 pos = pos + noise
                 traj.append(pos)
                 
