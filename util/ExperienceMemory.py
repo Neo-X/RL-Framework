@@ -164,13 +164,13 @@ class ExperienceMemory(object):
             
     def _updateScaling(self):
         
-            state_std = np.maximum(np.sqrt(self._state_var[0]), 0.05)
+            # state_std = np.maximum(np.sqrt(self._state_var[0]), 0.05)
             print("Running mean: ", self._state_mean)
             print("Running std: ", state_std)
             low = self._state_mean[0] - state_std
             high = self._state_mean[0] + state_std
-            self.setStateBounds(np.array([low,high]))
-            # self.setStateBounds(fixBounds(np.array([low,high])))
+            # self.setStateBounds(np.array([low,high]))
+            self.setStateBounds(fixBounds(np.array([low,high])))
             
             # print("New scaling parameters: ", self.getStateBounds())
             
