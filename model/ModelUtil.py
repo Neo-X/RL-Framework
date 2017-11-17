@@ -710,7 +710,7 @@ def fixBounds(bounds):
     print ("bounds: ", bounds)
     print("diff: ", diff)
     for i in range(diff.shape[0]):
-        if (diff[i] < epsilon):
+        if (diff[i] < epsilon or (not np.isfinite(diff[i]))):
             bounds[1][i] = bounds[1][i] + epsilon
             bounds[0][i] = bounds[0][i] - epsilon
     print("Bounds fixed: ", bounds)
