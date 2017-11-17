@@ -176,7 +176,7 @@ def trainModelParallel(inputData):
         if (not validBounds(state_bounds)):
             # Probably did not collect enough bootstrapping samples to get good state bounds.
             print("State bounds invalid: ", state_bounds)
-            state_bounds = fixBounds(state_bounds)
+            state_bounds = fixBounds(np.array(state_bounds))
             bound_fixed = validBounds(state_bounds)
             print("State bounds fixed: ", bound_fixed)
             sys.exit()
@@ -407,7 +407,7 @@ def trainModelParallel(inputData):
         if (not validBounds(state_bounds)):
             # Probably did not collect enough bootstrapping samples to get good state bounds.
             print("State bounds invalid: ", state_bounds)
-            state_bounds = fixBounds(state_bounds)
+            state_bounds = fixBounds(np.array(state_bounds))
             bound_fixed = validBounds(state_bounds)
             print("State bounds fixed: ", bound_fixed)
             # sys.exit()

@@ -1043,9 +1043,9 @@ def collectExperience(actor, exp_val, model, settings):
             # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
             if settings['action_space_continuous']:
                 # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
-                experience.insertTuple((state, action, resultState, [reward_], [fall_], G_t, [exp_action]))
+                experience.insertTuple(([state], [action], [resultState], [reward_], [fall_], G_t, [exp_action]))
             else:
-                experience.insertTuple((state, [action], resultState, [reward_], [falls_], G_t, [exp_action]))
+                experience.insertTuple(([state], [action], [resultState], [reward_], [falls_], G_t, [exp_action]))
             # else:
                 # print ("Tuple with reward: " + str(reward_) + " skipped")
         # sys.exit()
