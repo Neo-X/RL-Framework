@@ -137,7 +137,7 @@ class DeepNNTanH(ModelInterface):
         """
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
+                nonlinearity=self._last_critic_layer_activation_type)
         
           # print "Initial W " + str(self._w_o.get_value()) 
         

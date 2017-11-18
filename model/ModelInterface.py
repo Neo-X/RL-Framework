@@ -24,23 +24,33 @@ class ModelInterface(object):
         ### Get a type of activation to use
         self._activation_type=lasagne.nonlinearities.leaky_rectify
         if ("activation_type" in settings_ and (settings_['activation_type'] == 'leaky_rectify')):
-            activation_type = lasagne.nonlinearities.leaky_rectify
+            self._activation_type = lasagne.nonlinearities.leaky_rectify
         elif ("activation_type" in settings_ and (settings_['activation_type'] == 'relu')):
-            activation_type = lasagne.nonlinearities.rectify
+            self._activation_type = lasagne.nonlinearities.rectify
         elif ("activation_type" in settings_ and (settings_['activation_type'] == 'tanh')):
-            activation_type = lasagne.nonlinearities.tanh
+            self._activation_type = lasagne.nonlinearities.tanh
         elif ("activation_type" in settings_ and (settings_['activation_type'] == 'linear')):
-            activation_type = lasagne.nonlinearities.linear
+            self._activation_type = lasagne.nonlinearities.linear
             
         self._last_policy_layer_activation_type = lasagne.nonlinearities.tanh
         if ('last_policy_layer_activation_type' in settings_ and (settings_['last_policy_layer_activation_type']) == 'linear'):
-            last_policy_layer_activation_type=lasagne.nonlinearities.linear
+            self._last_policy_layer_activation_type=lasagne.nonlinearities.linear
         if ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'leaky_rectify')):
-            last_policy_layer_activation_type = lasagne.nonlinearities.leaky_rectify
+            self._last_policy_layer_activation_type = lasagne.nonlinearities.leaky_rectify
         elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'relu')):
-            last_policy_layer_activation_type = lasagne.nonlinearities.rectify
+            self._last_policy_layer_activation_type = lasagne.nonlinearities.rectify
         elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'tanh')):
-            last_policy_layer_activation_type = lasagne.nonlinearities.tanh
+            self._last_policy_layer_activation_type = lasagne.nonlinearities.tanh
+            
+        self._last_critic_layer_activation_type = lasagne.nonlinearities.linear
+        if ('last_critic_layer_activation_type' in settings_ and (settings_['last_critic_layer_activation_type']) == 'linear'):
+            self._last_critic_layer_activation_type=lasagne.nonlinearities.linear
+        if ("last_critic_layer_activation_type" in settings_ and (settings_['last_critic_layer_activation_type'] == 'leaky_rectify')):
+            self._last_critic_layer_activation_type = lasagne.nonlinearities.leaky_rectify
+        elif ("last_critic_layer_activation_type" in settings_ and (settings_['last_critic_layer_activation_type'] == 'relu')):
+            self._last_critic_layer_activation_type = lasagne.nonlinearities.rectify
+        elif ("last_critic_layer_activation_type" in settings_ and (settings_['last_critic_layer_activation_type'] == 'tanh')):
+            self._last_critic_layer_activation_type = lasagne.nonlinearities.tanh
         
     def getNetworkParameters(self):
         pass
