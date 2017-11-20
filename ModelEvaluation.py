@@ -739,6 +739,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
         R_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(path['reward'], G_t_rewards, G_t)]
         # print ("Adv: ", advantage)
+        print ("last_epoch_end: ", last_epoch_end, " i_ ", i_)
         print("Advantage, R: ", adv_r)
         print ("Lengths: ", len(rewards[last_epoch_end:]), len(G_t_rewards), len(G_t))
         print ("Rewards: ", R_r)
