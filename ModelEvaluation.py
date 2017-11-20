@@ -314,6 +314,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     G_t_rewards = []
     baseline = []
     G_ts = []
+    baselines_ = []
     advantage = []
     state_num=0
     i_=0
@@ -597,6 +598,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             discounted_sums.append(discounted_sum)
             discounted_sum=0
             state_num=0
+            
+            # print ("Baseline: ", baseline)
+            # print ("Discounted sums: ", G_ts)
             """
             discounted_reward = discounted_rewards(np.array(G_t_rewards), discount_factor)
             # baseline = model.model.q_value(state_)
@@ -635,6 +639,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 
             # print ("Advantage: ", advantage)
             G_ts.extend(copy.deepcopy(G_t))
+            baselines_.extend(copy.deepcopy(baseline))
             if (use_batched_exp):
                 if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
                     tmp_states = copy.deepcopy(states [last_epoch_end:])
@@ -668,12 +673,22 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         
         i_ += 1
         
+    
     evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
     evalData = [np.mean(evalDatas)]
     discounted_sums.append(discounted_sum)
     G_ts.extend(copy.deepcopy(G_t))
-    discounted_sum = np.mean(discounted_sums)
-    q_value = np.mean(q_values_)
+    baselines_.extend(copy.deepcopy(baseline))
+    # baselines_ = np.transpose(model.q_values(states ))[0]
+    # print ("Baseline: ", len(baselines_), baseline)
+    # print ("Baseline: ", len(baselines_), baselines_)
+    # print ("Discounted sums: ", len(G_ts), G_ts)
+    # print ("Value Error: ", np.array(baselines_) - np.array(G_ts))
+    # print("discounted_sums: ", discounted_sums)
+    # print("q_values_: ", q_values_)
+    discounted_sum = G_ts
+    q_value = baselines_
+    
     if print_data:
         print ("Evaluation: ", str(evalData))
         print ("Eval Datas: ", evalDatas) 
