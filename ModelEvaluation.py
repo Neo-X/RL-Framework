@@ -620,7 +620,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 path = {}
                 path['states'] = copy.deepcopy(states [last_epoch_end:])
                 path['reward'] = np.array(rewards[last_epoch_end:])
-                path["terminated"] = True
+                path["terminated"] = False
                 # print("rewards: ", rewards[last_epoch_end:])
                 ## Extend so that we can preserve the paths/trajectory structure.
                 if (len(rewards[last_epoch_end:]) > 0):
