@@ -122,7 +122,7 @@ class SimWorker(Process):
                     self._model.setStateBounds(data[2])
                     self._model.setActionBounds(data[3])
                     self._model.setRewardBounds(data[4])
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Scaling State params: ", self._model.getStateBounds())
                         print("Scaling Action params: ", self._model.getActionBounds())
                         print("Scaling Reward params: ", self._model.getRewardBounds())        
@@ -556,7 +556,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             value__ = 0
             if ( not bootstrapping ):
                 value__ = model.q_value(state_)
-            print ("Value: ", value__, " Action " + str(pa) + " Reward: " + str(reward_) )
+            print ("Value: ", value__, " Action " + str(action) + " Reward: " + str(reward_) )
             if ( settings['train_reward_predictor'] and (settings['train_forward_dynamics'])):
                 predicted_reward = model.getForwardDynamics().predict_reward(state_, [action])
                 print ("Predicted reward: ", predicted_reward) 

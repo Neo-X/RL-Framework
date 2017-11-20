@@ -10,6 +10,7 @@ import gym
 from gym import wrappers
 from gym import envs
 import roboschool
+from OpenGL import GL
 print(envs.registry.all())
 
 from model.ModelUtil import getOptimalAction, getMBAEAction

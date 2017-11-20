@@ -39,10 +39,12 @@ class DeepNNTanH(ModelInterface):
                 networkAct, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
+        networkAct = input
+        """
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=128,
                 nonlinearity=self._activation_type)
-        
+        """
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
                 nonlinearity=self._activation_type)
@@ -102,16 +104,18 @@ class DeepNNTanH(ModelInterface):
                 
             ## put inputs together for DPG
             input = lasagne.layers.ConcatLayer([input, inputAction])
+        network = input
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=256,
                 nonlinearity=activation_type)
         """
+        """
         network = lasagne.layers.DenseLayer(
-                input, num_units=128,
+                network, num_units=128,
                 nonlinearity=self._activation_type)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        
+        """
         network = lasagne.layers.DenseLayer(
                 network, num_units=64,
                 nonlinearity=self._activation_type)
