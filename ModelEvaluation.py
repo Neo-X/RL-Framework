@@ -531,7 +531,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         G_t_rewards.append(reward_)
         G_t.append(0) # *(1.0-discount_factor)))
         for i in range(len(G_t)):
-            G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ * (1.0-discount_factor) ))))
+            G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ ))))
         # print ("discounted sum: ", discounted_sum, " G_t: ", G_t[0])
         # print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
         
@@ -633,6 +633,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
                 R_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(path['reward'], G_t_rewards, G_t)]
                 # print ("Adv: ", advantage)
+                print ("last_epoch_end: ", last_epoch_end, " i_ ", i_)
                 print("Advantage, R: ", adv_r)
                 print ("Lengths: ", len(rewards[last_epoch_end:]), len(G_t_rewards), len(G_t))
                 print ("Rewards: ", R_r)
@@ -653,7 +654,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     for state__, action__, reward__, result_state__, fall__, G_t__, exp_actions__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts, tmp_exp_actions):
                         _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__, exp_actions__))
             
-            last_epoch_end=i_
+            last_epoch_end=i_+1
             
             G_t = []
             G_t_rewards = []
@@ -682,6 +683,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # baselines_ = np.transpose(model.q_values(states ))[0]
     # print ("Baseline: ", len(baselines_), baseline)
     # print ("Baseline: ", len(baselines_), baselines_)
+    # print ("discounted_rewards(): ", discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
     # print ("Discounted sums: ", len(G_ts), G_ts)
     # print ("Value Error: ", np.array(baselines_) - np.array(G_ts))
     # print("discounted_sums: ", discounted_sums)
