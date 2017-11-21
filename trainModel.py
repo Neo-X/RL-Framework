@@ -941,11 +941,12 @@ def trainModelParallel(inputData):
             for m_q in sim_work_queues:
                 ## block on full queue
                 m_q.put(None)
-        for sw in sim_workers: # Should update these more often
-            input_anchor_queue.put(None)
-        print ("Joining Workers"        )
-        for sw in sim_workers: # Should update these more often
-            sw.join()
+        else:
+            for sw in sim_workers: 
+                input_anchor_queue.put(None)
+            print ("Joining Workers"        )
+            for sw in sim_workers: # Should update these more often
+                sw.join()
         
         if (not settings['on_policy']):    
             print ("Terminating learners"        )

@@ -33,46 +33,29 @@ class DeepNNTanH(ModelInterface):
         # self._b_o = init_b_weights((n_out,))
         # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         
-        activation_type=lasagne.nonlinearities.leaky_rectify
-        if ("activation_type" in settings_ and (settings_['activation_type'] == 'leaky_rectify')):
-            activation_type = lasagne.nonlinearities.leaky_rectify
-        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'relu')):
-            activation_type = lasagne.nonlinearities.rectify
-        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'tanh')):
-            activation_type = lasagne.nonlinearities.tanh
-        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'linear')):
-            activation_type = lasagne.nonlinearities.linear
-            
-        last_policy_layer_activation_type = lasagne.nonlinearities.tanh
-        if ('last_policy_layer_activation_type' in settings_ and (settings_['last_policy_layer_activation_type']) == 'linear'):
-            last_policy_layer_activation_type=lasagne.nonlinearities.linear
-        if ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'leaky_rectify')):
-            last_policy_layer_activation_type = lasagne.nonlinearities.leaky_rectify
-        elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'relu')):
-            last_policy_layer_activation_type = lasagne.nonlinearities.rectify
-        elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'tanh')):
-            last_policy_layer_activation_type = lasagne.nonlinearities.tanh
-        
+                
         """
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
+        networkAct = input
+        """
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=128,
-                nonlinearity=activation_type)
-        
+                nonlinearity=self._activation_type)
+        """
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
-                nonlinearity=activation_type)
+                nonlinearity=self._activation_type)
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,
-                nonlinearity=activation_type)
+                nonlinearity=self._activation_type)
     
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
-                nonlinearity=last_policy_layer_activation_type)
+                nonlinearity=self._last_policy_layer_activation_type)
         
         if (self._settings['use_stocastic_policy'] and ( not ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])))):
             print ("Adding stochastic layer")
@@ -89,12 +72,12 @@ class DeepNNTanH(ModelInterface):
                 ## create an extra value function
                 network = lasagne.layers.DenseLayer(
                         input, num_units=128,
-                        nonlinearity=activation_type)
+                        nonlinearity=self._activation_type)
                 network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
                 
                 network = lasagne.layers.DenseLayer(
                         network, num_units=64,
-                        nonlinearity=activation_type)
+                        nonlinearity=self._activation_type)
                 network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
                 """
                 if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
@@ -102,12 +85,12 @@ class DeepNNTanH(ModelInterface):
                 """
                 network = lasagne.layers.DenseLayer(
                         network, num_units=32,
-                        nonlinearity=activation_type)
+                        nonlinearity=self._activation_type)
                 network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
                 
                 network = lasagne.layers.DenseLayer(
                         network, num_units=16,
-                        nonlinearity=activation_type)
+                        nonlinearity=self._activation_type)
                 network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
                 """
                 network = lasagne.layers.DenseLayer(
@@ -121,19 +104,21 @@ class DeepNNTanH(ModelInterface):
                 
             ## put inputs together for DPG
             input = lasagne.layers.ConcatLayer([input, inputAction])
+        network = input
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=256,
                 nonlinearity=activation_type)
         """
+        """
         network = lasagne.layers.DenseLayer(
-                input, num_units=128,
-                nonlinearity=activation_type)
+                network, num_units=128,
+                nonlinearity=self._activation_type)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        
+        """
         network = lasagne.layers.DenseLayer(
                 network, num_units=64,
-                nonlinearity=activation_type)
+                nonlinearity=self._activation_type)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         """
         if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
@@ -141,12 +126,12 @@ class DeepNNTanH(ModelInterface):
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=32,
-                nonlinearity=activation_type)
+                nonlinearity=self._activation_type)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
-                nonlinearity=activation_type)
+                nonlinearity=self._activation_type)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         """
         network = lasagne.layers.DenseLayer(
@@ -156,7 +141,7 @@ class DeepNNTanH(ModelInterface):
         """
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
+                nonlinearity=self._last_critic_layer_activation_type)
         
           # print "Initial W " + str(self._w_o.get_value()) 
         

@@ -32,18 +32,18 @@ class DeepNNTanHSingleNet(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 network, num_units=256,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
-        network = lasagne.layers.DenseLayer(
-                input, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
         network = lasagne.layers.DenseLayer(
-                input, num_units=64,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                input, num_units=128,
+                nonlinearity=self._activation_type)
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=64,
+                nonlinearity=self._activation_type)
         
         networkMid = lasagne.layers.DenseLayer(
                 network, num_units=32,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=self._activation_type)
         """
         network = lasagne.layers.DenseLayer(
                 networkMid, num_units=16,
@@ -51,7 +51,7 @@ class DeepNNTanHSingleNet(ModelInterface):
         """
         self._critic = lasagne.layers.DenseLayer(
                 networkMid, num_units=1,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
         # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         """
@@ -66,7 +66,7 @@ class DeepNNTanHSingleNet(ModelInterface):
     
         self._actor = lasagne.layers.DenseLayer(
                 networkMid, num_units=self._action_length,
-                nonlinearity=lasagne.nonlinearities.tanh)
+                nonlinearity=self._last_policy_layer_activation_type)
         
         if (self._settings['use_stocastic_policy']):
             with_std = lasagne.layers.DenseLayer(

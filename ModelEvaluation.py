@@ -122,7 +122,7 @@ class SimWorker(Process):
                     self._model.setStateBounds(data[2])
                     self._model.setActionBounds(data[3])
                     self._model.setRewardBounds(data[4])
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Scaling State params: ", self._model.getStateBounds())
                         print("Scaling Action params: ", self._model.getActionBounds())
                         print("Scaling Reward params: ", self._model.getRewardBounds())        
@@ -314,6 +314,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     G_t_rewards = []
     baseline = []
     G_ts = []
+    baselines_ = []
     advantage = []
     state_num=0
     i_=0
@@ -530,7 +531,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         G_t_rewards.append(reward_)
         G_t.append(0) # *(1.0-discount_factor)))
         for i in range(len(G_t)):
-            G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ * (1.0-discount_factor) ))))
+            G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ ))))
         # print ("discounted sum: ", discounted_sum, " G_t: ", G_t[0])
         # print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
         
@@ -556,7 +557,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             value__ = 0
             if ( not bootstrapping ):
                 value__ = model.q_value(state_)
-            print ("Value: ", value__, " Action " + str(pa) + " Reward: " + str(reward_) )
+            print ("Value: ", value__, " Action " + str(action) + " Reward: " + str(reward_) )
             if ( settings['train_reward_predictor'] and (settings['train_forward_dynamics'])):
                 predicted_reward = model.getForwardDynamics().predict_reward(state_, [action])
                 print ("Predicted reward: ", predicted_reward) 
@@ -597,6 +598,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             discounted_sums.append(discounted_sum)
             discounted_sum=0
             state_num=0
+            
+            # print ("Baseline: ", baseline)
+            # print ("Discounted sums: ", G_ts)
             """
             discounted_reward = discounted_rewards(np.array(G_t_rewards), discount_factor)
             # baseline = model.model.q_value(state_)
@@ -616,7 +620,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 path = {}
                 path['states'] = copy.deepcopy(states [last_epoch_end:])
                 path['reward'] = np.array(rewards[last_epoch_end:])
-                path["terminated"] = True
+                path["terminated"] = False
                 # print("rewards: ", rewards[last_epoch_end:])
                 ## Extend so that we can preserve the paths/trajectory structure.
                 if (len(rewards[last_epoch_end:]) > 0):
@@ -628,13 +632,17 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
                 adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
                 R_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(path['reward'], G_t_rewards, G_t)]
+                A_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(advantage, discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor), baseline)]
                 # print ("Adv: ", advantage)
+                print ("last_epoch_end: ", last_epoch_end, " i_ ", i_)
                 print("Advantage, R: ", adv_r)
                 print ("Lengths: ", len(rewards[last_epoch_end:]), len(G_t_rewards), len(G_t))
                 print ("Rewards: ", R_r)
+                print ("Advantage, discounted Reward, baseline: ", np.array(A_r))
                 
             # print ("Advantage: ", advantage)
             G_ts.extend(copy.deepcopy(G_t))
+            baselines_.extend(copy.deepcopy(baseline))
             if (use_batched_exp):
                 if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
                     tmp_states = copy.deepcopy(states [last_epoch_end:])
@@ -648,7 +656,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     for state__, action__, reward__, result_state__, fall__, G_t__, exp_actions__ in zip(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls, tmp_G_ts, tmp_exp_actions):
                         _output_queue.put((state__, action__, result_state__, reward__, fall__, G_t__, exp_actions__))
             
-            last_epoch_end=i_
+            last_epoch_end=i_+1
             
             G_t = []
             G_t_rewards = []
@@ -668,12 +676,23 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         
         i_ += 1
         
+    
     evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
     evalData = [np.mean(evalDatas)]
     discounted_sums.append(discounted_sum)
     G_ts.extend(copy.deepcopy(G_t))
-    discounted_sum = np.mean(discounted_sums)
-    q_value = np.mean(q_values_)
+    baselines_.extend(copy.deepcopy(baseline))
+    # baselines_ = np.transpose(model.q_values(states ))[0]
+    # print ("Baseline: ", len(baselines_), baseline)
+    # print ("Baseline: ", len(baselines_), baselines_)
+    # print ("discounted_rewards(): ", discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
+    # print ("Discounted sums: ", len(G_ts), G_ts)
+    # print ("Value Error: ", np.array(baselines_) - np.array(G_ts))
+    # print("discounted_sums: ", discounted_sums)
+    # print("q_values_: ", q_values_)
+    discounted_sum = G_ts
+    q_value = baselines_
+    
     if print_data:
         print ("Evaluation: ", str(evalData))
         print ("Eval Datas: ", evalDatas) 
@@ -721,10 +740,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
         adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
         R_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(path['reward'], G_t_rewards, G_t)]
+        A_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(advantage, discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor), baseline)]
         # print ("Adv: ", advantage)
+        print ("last_epoch_end: ", last_epoch_end, " i_ ", i_)
         print("Advantage, R: ", adv_r)
         print ("Lengths: ", len(rewards[last_epoch_end:]), len(G_t_rewards), len(G_t))
         print ("Rewards: ", R_r)
+        print ("Advantage, discounted Reward, baseline: ", np.array(A_r))
         # print("Advantage, rewards, baseline: ", np.concatenate((advantage, G_t_rewards, baseline), axis=1))
     # print ("ad: ", advantage)
     advantage = np.reshape(np.array([advantage]), newshape=(-1,1))
