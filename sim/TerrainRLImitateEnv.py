@@ -45,7 +45,7 @@ class TerrainRLImitateEnv(TerrainRLEnv):
 
     def needUpdatedAction(self):
         
-        if ( self._num_updates_since_last_action >= 5):
+        if ( self._num_updates_since_last_action >= 1):
             return True
         else:
             return False
