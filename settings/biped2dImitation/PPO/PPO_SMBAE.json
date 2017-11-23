@@ -299,7 +299,7 @@
 	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
 "normalize_advantage": false,
 	"comment__": "use a special annealing schedule that will being at 1 and end at 0",
-"annealing_schedule": log,
+"annealing_schedule": "log",
 	"comment__": "Use the annealing schedule in on policy learning",
 "anneal_on_policy": true,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
