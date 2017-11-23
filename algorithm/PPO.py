@@ -565,7 +565,8 @@ class PPO(AlgorithmInterface):
         else:
             ## if not defined default is to normalize
             std = np.std(advantage)
-            mean = np.mean(advantage)
+            # mean = np.mean(advantage)
+            mean = 0.0
             advantage = (advantage - mean) / std
         # pass # use given advantage parameter
         self.setData(states, actions, rewards, result_states, falls)
