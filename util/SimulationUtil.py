@@ -257,7 +257,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
         directory= getDataDirectory(settings)
         print ("Loading pre compiled network")
         file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-        f = open(file_name, 'r')
+        f = open(file_name, 'rb')
         model = dill.load(f)
         model.setSettings(settings)
         f.close()
