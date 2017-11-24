@@ -565,6 +565,8 @@ class PPO(AlgorithmInterface):
         else:
             ## if not defined default is to normalize
             std = np.std(advantage)
+            if ( 'advantage_scaling' in self.getSettings() ):
+                std = std * self.getSettings()['advantage_scaling']
             # mean = np.mean(advantage)
             mean = 0.0
             advantage = (advantage - mean) / std
