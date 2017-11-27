@@ -53,7 +53,7 @@ class DeepCNN(ModelInterface):
             W=lasagne.init.GlorotUniform())
         """
         network = lasagne.layers.Conv1DLayer(
-            network, num_filters=32, filter_size=4,
+            network, num_filters=8, filter_size=4,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         self._critic_task_part = network 
@@ -108,7 +108,7 @@ class DeepCNN(ModelInterface):
             W=lasagne.init.GlorotUniform())
         """
         networkAct = lasagne.layers.Conv1DLayer(
-            networkAct, num_filters=32, filter_size=4,
+            networkAct, num_filters=8, filter_size=4,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
@@ -136,14 +136,9 @@ class DeepCNN(ModelInterface):
                 networkAct, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
-        if (self._settings['use_stocastic_policy']):
-            self._actor = lasagne.layers.DenseLayer(
-                        networkAct, num_units=self._action_length,
-                        nonlinearity=lasagne.nonlinearities.tanh)
-        else:
-            self._actor = lasagne.layers.DenseLayer(
-                        networkAct, num_units=self._action_length,
-                        nonlinearity=lasagne.nonlinearities.linear)
+        self._actor = lasagne.layers.DenseLayer(
+                    networkAct, num_units=self._action_length,
+                    nonlinearity=lasagne.nonlinearities.linear)
     
         if (self._settings['use_stocastic_policy']):
             with_std = lasagne.layers.DenseLayer(
