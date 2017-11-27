@@ -301,7 +301,7 @@
 	"comment__": "use a special annealing schedule that will being at 1 and end at 0",
 "annealing_schedule": false,
 	"comment__": "Use the annealing schedule in on policy learning",
-"anneal_on_policy": false,
+"anneal_on_policy": true,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
