@@ -94,7 +94,7 @@ class SimWorker(Process):
                 poli_params.append(net_params)
                 """
             self._model.getPolicy().setNetworkParameters(data[5])
-            print ("First Message: ", "Updated policy parameters")
+            # print ("First Message: ", "Updated policy parameters")
             if (self._settings['train_forward_dynamics']):
                 self._model.getForwardDynamics().setNetworkParameters(data[6])
             self._p = data[1]
@@ -109,6 +109,7 @@ class SimWorker(Process):
         while True:
             eval=False
             sim_on_poli = False
+            bootstrapping = False
             # print ("Worker: getting data")
             if (self._settings['on_policy']):
                 episodeData = self._message_queue.get()
@@ -144,6 +145,8 @@ class SimWorker(Process):
                 elif ( episodeData['type'] == 'sim_on_policy'):
                     sim_on_poli = True
                     episodeData = episodeData['data']
+                elif ( episodeData['type'] == 'bootstrapping'):
+                    bootstrapping = True
                 else:
                     episodeData = episodeData['data']
                 # print("self._p: ", self._p)
@@ -157,6 +160,11 @@ class SimWorker(Process):
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
+                elif (bootstrapping):
+                    out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
+                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                            print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval,
+                            bootstrapping=bootstrapping)
                 else:    
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
@@ -169,7 +177,7 @@ class SimWorker(Process):
                 # (states, actions, result_states, rewards, falls) = tuples
                 ## Hack for now just update after ever episode
                 # print ("Worker: send sim results: ")
-                if (eval or sim_on_poli):
+                if (eval or sim_on_poli or bootstrapping):
                     self._eval_episode_data_queue.put(out)
                 else:
                     pass
@@ -185,6 +193,8 @@ class SimWorker(Process):
                     # "Sim worker evaluating episode"
                 elif ( episodeData['type'] == 'sim_on_policy'):
                     sim_on_poli = True
+                elif ( episodeData['type'] == 'bootstrapping'):
+                    bootstrapping = True
                 else:
                     episodeData = episodeData['data']
                 # print("self._p: ", self._p)
@@ -198,6 +208,11 @@ class SimWorker(Process):
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
+                elif (bootstrapping):
+                    out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
+                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                            print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval,
+                            bootstrapping=bootstrapping)
                 else:    
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
@@ -210,11 +225,13 @@ class SimWorker(Process):
                 # (states, actions, result_states, rewards, falls) = tuples
                 ## Hack for now just update after ever episode
                 # print ("Worker: send sim results: ")
-                if (eval or sim_on_poli):
+                if (eval or sim_on_poli or bootstrapping):
+                    # print ("Putting episode data in queue")
                     self._eval_episode_data_queue.put(out)
                 else:
                     pass
                 
+                ### Pull updated network parameters
                 if self._message_queue.qsize() > 0:
                     data = None
                     # print ("Getting updated network parameters:")
@@ -257,9 +274,11 @@ class SimWorker(Process):
         self._exp.finish()
         return
         
-    def simEpochParallel(self, actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, p=0.0, validation=False, epoch=0, evaluation=False):
+    def simEpochParallel(self, actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, p=0.0, validation=False, epoch=0, evaluation=False, 
+                         bootstrapping=False):
         out = simEpoch(actor, exp, model, discount_factor, anchors=anchors, action_space_continuous=action_space_continuous, settings=settings, 
-                       print_data=print_data, p=p, validation=validation, epoch=epoch, evaluation=evaluation, _output_queue=self._output_queue, epsilon=settings['epsilon'])
+                       print_data=print_data, p=p, validation=validation, epoch=epoch, evaluation=evaluation, _output_queue=self._output_queue, epsilon=settings['epsilon'],
+                       bootstrapping=bootstrapping)
         return out
     
     
@@ -580,6 +599,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (not use_batched_exp):
             if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
                 # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
+                print("Putting tuple in queue")
                 _output_queue.put((state_, action, resultState_, [reward_],  [agent_not_fell], [0], [exp_action]))
         
         state_num += 1
@@ -910,7 +930,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             mean_eval, std_eval)
 
 # @profile(precision=5)
-def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None):
+def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None, type=None):
     print ("Simulating epochs in Parallel:")
     j=0
     discounted_values = []
@@ -937,8 +957,15 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         while (j < settings['num_available_threads']) and ( (i + j) < anchors):
             episodeData = {}
             episodeData['data'] = i
-            episodeData['type'] = 'sim_on_policy'
-            sw_message_queues[j].put(episodeData)
+            if ( (type is None) ):
+                episodeData['type'] = 'sim_on_policy'
+            else:
+                episodeData['type'] = 'bootstrapping'
+            # sw_message_queues[j].put(episodeData)
+            if (settings['on_policy']):
+                sw_message_queues[j].put(episodeData)
+            else:
+                sw_message_queues.put(episodeData)
             j += 1
             
         # for anchs in anchors: # half the anchors
@@ -971,7 +998,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     return (tuples, discounted_sum, value, evalData)
         
 # @profile(precision=5)
-def collectExperience(actor, exp_val, model, settings, sim_work_queues=None):
+def collectExperience(actor, exp_val, model, settings, sim_work_queues=None, 
+                      eval_episode_data_queue=None):
     from util.ExperienceMemory import ExperienceMemory
     
     ## Easy hack to fix issue with training for MBAE needing a LearningAgent with forward dyanmics model and not just algorithm
@@ -986,7 +1014,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None):
     state_bounds = np.array(settings['state_bounds'], dtype=float)
     
     if (settings["bootsrap_with_discrete_policy"]) and (settings['bootsrap_samples'] > 0):
-        (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootsrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues)
+        (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootsrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
+                                                                                                                   eval_episode_data_queue=eval_episode_data_queue)
         # states = np.array(states)
         # states = np.append(states, state_bounds,0) # Adding that already specified bounds will ensure the final calculated is beyond these
         print (" Shape states: ", states.shape)
@@ -1096,7 +1125,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None):
     return  experience, state_bounds, reward_bounds, action_bounds
 
 # @profile(precision=5)
-def collectExperienceActionsContinuous(actor, exp, model, samples, settings, action_selection, sim_work_queues=None):
+def collectExperienceActionsContinuous(actor, exp, model, samples, settings, action_selection, sim_work_queues=None, eval_episode_data_queue=None):
     i = 0
     states = []
     actions = []
@@ -1118,7 +1147,8 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         out = simModelParrallel( sw_message_queues=sim_work_queues,
                                  model=model, settings=settings, 
                                  eval_episode_data_queue=eval_episode_data_queue, 
-                                 anchors=settings['num_on_policy_rollouts'])
+                                 anchors=settings['epochs'],
+                                 type='bootstrapping')
         # if self._p <= 0.0:
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out

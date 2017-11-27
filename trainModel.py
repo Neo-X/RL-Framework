@@ -396,7 +396,23 @@ def trainModelParallel(inputData):
         exp_val.getActor().init()
         exp_val.init()
         
-        experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings, sim_work_queues=sim_work_queues)
+        masterAgent.setPolicy(model)
+        tmp_p=1.0
+        if ( settings['load_saved_model'] ):
+            tmp_p = settings['min_epsilon']
+        data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
+                masterAgent.getPolicy().getNetworkParameters())
+        if (settings['train_forward_dynamics']):
+            # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
+            data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
+                    masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
+        for m_q in sim_work_queues:
+            print("trainModel: Sending current network parameters: ", m_q)
+            m_q.put(data)
+        
+        experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, None, model, settings,
+                                                                                   sim_work_queues=input_anchor_queue, 
+                                                                                   eval_episode_data_queue=eval_episode_data_queue)
         masterAgent.setExperience(experience)
         if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
             masterAgent.setFDExperience(copy.deepcopy(experience))
@@ -582,7 +598,9 @@ def trainModelParallel(inputData):
                             # print ("masterAgent FD State Bounds: ", masterAgent.getForwardDynamics().getStateBounds())
                     # if ( settings['num_available_threads'] > 1 ):  
                     out = simModelParrallel( sw_message_queues=sim_work_queues,
-                                                               model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['num_on_policy_rollouts'])
+                                               model=masterAgent, settings=settings, 
+                                               eval_episode_data_queue=eval_episode_data_queue, 
+                                               anchors=settings['num_on_policy_rollouts'])
                     #else:
                     #    out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
                     #                   print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
