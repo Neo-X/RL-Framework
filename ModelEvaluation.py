@@ -971,7 +971,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     return (tuples, discounted_sum, value, evalData)
         
 # @profile(precision=5)
-def collectExperience(actor, exp_val, model, settings):
+def collectExperience(actor, exp_val, model, settings, sim_work_queues=None):
     from util.ExperienceMemory import ExperienceMemory
     
     ## Easy hack to fix issue with training for MBAE needing a LearningAgent with forward dyanmics model and not just algorithm
@@ -986,7 +986,7 @@ def collectExperience(actor, exp_val, model, settings):
     state_bounds = np.array(settings['state_bounds'], dtype=float)
     
     if (settings["bootsrap_with_discrete_policy"]) and (settings['bootsrap_samples'] > 0):
-        (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootsrap_samples'], settings=settings, action_selection=action_selection)
+        (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootsrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues)
         # states = np.array(states)
         # states = np.append(states, state_bounds,0) # Adding that already specified bounds will ensure the final calculated is beyond these
         print (" Shape states: ", states.shape)
@@ -1096,7 +1096,7 @@ def collectExperience(actor, exp_val, model, settings):
     return  experience, state_bounds, reward_bounds, action_bounds
 
 # @profile(precision=5)
-def collectExperienceActionsContinuous(actor, exp, model, samples, settings, action_selection):
+def collectExperienceActionsContinuous(actor, exp, model, samples, settings, action_selection, sim_work_queues=None):
     i = 0
     states = []
     actions = []
@@ -1111,10 +1111,14 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
     # anchor_data_file.close()
     episode_ = 0
     while i < samples:
-        # Actor should be FIRST here
-        out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=episode_, 
-                               action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
-                                p=1.0, validation=settings['train_on_validation_set'], bootstrapping=True, epsilon=1.0)
+        ## Actor should be FIRST here
+        #out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=episode_, 
+        #                       action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
+        #                        p=1.0, validation=settings['train_on_validation_set'], bootstrapping=True, epsilon=1.0)
+        out = simModelParrallel( sw_message_queues=sim_work_queues,
+                                 model=model, settings=settings, 
+                                 eval_episode_data_queue=eval_episode_data_queue, 
+                                 anchors=settings['num_on_policy_rollouts'])
         # if self._p <= 0.0:
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out

@@ -396,7 +396,7 @@ def trainModelParallel(inputData):
         exp_val.getActor().init()
         exp_val.init()
         
-        experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings)
+        experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings, sim_work_queues=sim_work_queues)
         masterAgent.setExperience(experience)
         if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
             masterAgent.setFDExperience(copy.deepcopy(experience))
