@@ -363,7 +363,7 @@ def trainModelParallel(inputData):
             sim_work_queues.append(message_queue)
             w = SimWorker(input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
                     settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process + 1,
-                    message_que=message_queue )
+                    message_que=message_queue, worker_id=process )
             # w.start()
             sim_workers.append(w)
         
@@ -390,7 +390,8 @@ def trainModelParallel(inputData):
                 sw.start()
         
         ## This needs to be done after the simulation worker processes are created
-        exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'])
+        # exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'], )
+        exp_val = createEnvironment(settings["forwardDynamics_config_file"], settings['environment_type'], settings, render=settings['shouldRender'], index=0)
         exp_val.setActor(actor)
         exp_val.getActor().init()
         exp_val.init()

@@ -23,7 +23,7 @@ class SimWorker(Process):
     
     def __init__(self, input_queue, output_queue, actor, exp, model, discount_factor, action_space_continuous, 
                  settings, print_data, p, validation, eval_episode_data_queue, process_random_seed,
-                 message_que):
+                 message_que, worker_id):
         super(SimWorker, self).__init__()
         self._input_queue= input_queue
         self._output_queue = output_queue
@@ -43,6 +43,7 @@ class SimWorker(Process):
         self._process_random_seed = process_random_seed
         ## Used to recieve special messages like update your model parameters to this now!
         self._message_queue = message_que
+        self._worker_id = worker_id
     
     def current_mem_usage(self):
         try:
@@ -70,7 +71,7 @@ class SimWorker(Process):
         ## This is no needed if there is one thread only...
         if (int(self._settings["num_available_threads"]) > 1): 
             from util.SimulationUtil import createEnvironment
-            self._exp = createEnvironment(str(self._settings["sim_config_file"]), self._settings['environment_type'], self._settings, render=self._settings['shouldRender'])
+            self._exp = createEnvironment(self._settings["sim_config_file"], self._settings['environment_type'], self._settings, render=self._settings['shouldRender'], index=self._worker_id)
             self._exp.setActor(self._actor)
             self._exp.getActor().init()   
             self._exp.init()

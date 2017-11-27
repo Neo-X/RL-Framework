@@ -386,7 +386,17 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
     return model
 
 
-def createEnvironment(config_file, env_type, settings, render=False):
+def createEnvironment(config_file, env_type, settings, render=False, index=None):
+    
+    ### For multitasking, can specify a list of config files
+    # if ( isinstance(config_file, list ) ):
+    if type(config_file) is list:
+        config_file = config_file[index]
+        print ("Using config file: ", config_file)
+    else:
+        print("Not a list hoser, it is a ", type(config_file), " for ", config_file)
+        print (config_file[0])
+    
     print("Creating sim Type: ", env_type)
     if env_type == 'ballgame_2d':
         from env.BallGame2D import BallGame2D
