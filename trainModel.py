@@ -274,7 +274,6 @@ def trainModelParallel(inputData):
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
         learning_workers = []
-        # for process in range(settings['num_available_threads']):
         for process in range(1):
             # this is the process that selects which game to play
             agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
@@ -396,6 +395,11 @@ def trainModelParallel(inputData):
         exp_val.getActor().init()
         exp_val.init()
         
+        ### This is for a single-threaded Synchronous sim only.
+        if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
+            sim_workers[0].setEnvironment(exp_val)
+            sim_workers[0].start()
+        
         masterAgent.setPolicy(model)
         tmp_p=1.0
         message={}
@@ -440,10 +444,6 @@ def trainModelParallel(inputData):
         if (not validBounds(reward_bounds)):
             print("Reward bounds invalid: ", reward_bounds)
             sys.exit()
-        
-        if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
-            sim_workers[0].setEnvironment(exp_val)
-            sim_workers[0].start()
         
         print ("Reward History: ", experience._reward_history)
         print ("Action History: ", experience._action_history)

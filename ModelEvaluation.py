@@ -602,7 +602,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (not use_batched_exp):
             if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
                 # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
-                print("Putting tuple in queue")
+                # print("Putting tuple in queue")
                 _output_queue.put((state_, action, resultState_, [reward_],  [agent_not_fell], [0], [exp_action]))
         
         state_num += 1
