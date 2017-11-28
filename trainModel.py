@@ -398,6 +398,7 @@ def trainModelParallel(inputData):
         
         masterAgent.setPolicy(model)
         tmp_p=1.0
+        message={}
         if ( settings['load_saved_model'] ):
             tmp_p = settings['min_epsilon']
         data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
@@ -406,9 +407,11 @@ def trainModelParallel(inputData):
             # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
             data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
                     masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
+        message['type'] = 'Update_Policy'
+        message['data'] = data
         for m_q in sim_work_queues:
             print("trainModel: Sending current network parameters: ", m_q)
-            m_q.put(data)
+            m_q.put(message)
         
         if (settings['on_policy']):
             
@@ -522,9 +525,11 @@ def trainModelParallel(inputData):
             # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
             data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
                     masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
+        message['type'] = 'Update_Policy'
+        message['data'] = data
         for m_q in sim_work_queues:
             print("trainModel: Sending current network parameters: ", m_q)
-            m_q.put(data)
+            m_q.put(message)
             
         del model
         ## Give gloabl access to processes to they can be terminated when ctrl+c is pressed
@@ -762,10 +767,12 @@ def trainModelParallel(inputData):
                             masterAgent.getRewardBounds(),
                             masterAgent.getPolicy().getNetworkParameters(),
                              masterAgent.getForwardDynamics().getNetworkParameters())
+                message['type'] = 'Update_Policy'
+                message['data'] = data
                 for m_q in sim_work_queues:
                     ## Don't block on full queue
                     try:
-                        m_q.put(data, False)
+                        m_q.put(message, False)
                     except: 
                         print ("SimWorker model parameter message queue full: ", m_q.qsize())
               

@@ -80,10 +80,11 @@ class SimWorker(Process):
         
         ## This get is fine, it is the first one that I want to block on.
         print ("Waiting for initial policy update.", self._message_queue)
-        data = self._message_queue.get()
-        message = data[0]
+        episodeData = self._message_queue.get()
+        message = episodeData['type']
         if message == "Update_Policy":
             print ("First Message: ", message)
+            data = episodeData['data']
             """
             poli_params = []
             for i in range(len(data[5])):
@@ -242,11 +243,13 @@ class SimWorker(Process):
                         except Exception as inst:
                             print ("SimWorker model parameter message queue empty.")
                         if (not (data_ == None)):
-                            data = data_
+                            episodeData = data_
                     # print ("Got updated network parameters:")
-                    if (data != None):
-                        message = data[0]## Check if any messages in the queue
+                    if (episodeData != None):
+                        # message = episodeData[0]## Check if any messages in the queue
+                        message = episodeData['type']
                         if message == "Update_Policy":
+                            data = episodeData['data']
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Message: ", message)
                             # print ("New model parameters: ", data[2][1][0])
