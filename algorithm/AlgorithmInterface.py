@@ -92,7 +92,13 @@ class AlgorithmInterface(object):
         all_paramsActA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getActorNetworkTaskPart())
         lasagne.layers.helper.set_all_param_values(self._model.getCriticNetworkTaskPart(), all_paramsA)
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkTaskPart(), all_paramsActA)
-        
+
+    def setAgentNetworkParamters(self, otherModel):
+        all_paramsA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getActorNetworkAgentPart())
+        all_paramsActA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getActorNetworkAgentPart())
+        lasagne.layers.helper.set_all_param_values(self._model.getCriticNetworkAgentPart(), all_paramsA)
+        lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkAgentPart(), all_paramsActA)
+                
     def getModel(self):
         return self._model
     
