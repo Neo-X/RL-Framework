@@ -70,6 +70,25 @@ class ModelInterface(object):
     def getCriticNetworkTaskPart(self):
         return self._critic_task_part
     
+    
+    def getActorNetworkAgentPart(self):
+        return self._actor_agent_part
+    
+    def getCriticNetworkAgentPart(self):
+        return self._critic_agent_part
+    
+    def getActorNetworkCombinedPart(self):
+        all_paramsActA = lasagne.layers.helper.get_all_param_values(self.getActorNetwork())
+        # combinedParams = all_paramsActA[-self._num_final_layers:]
+        combinedParams = all_paramsActA[-2:]
+        return combinedParams
+    
+    def getCriticNetworkCombinedPart(self):
+        all_params = lasagne.layers.helper.get_all_param_values(self.getCriticNetwork())
+        # combinedParams = all_params[-self._num_final_layers:]
+        combinedParams = all_params[-3:]
+        return combinedParams
+    
     def getForwardDynamicsNetwork(self):
         return self._forward_dynamics_net
     def getRewardNetwork(self):

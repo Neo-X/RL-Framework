@@ -31,6 +31,7 @@ class DeepNN(ModelInterface):
         self._stateInputVar = input.input_var
         inputAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
         self._actionInputVar = inputAction.input_var
+        self._num_final_layers = 3
         
         # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         """
@@ -45,6 +46,7 @@ class DeepNN(ModelInterface):
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        self._actor_agent_part = networkAct 
         
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,
@@ -76,6 +78,7 @@ class DeepNN(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 network, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        self._critic_agent_part = network
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=32,
