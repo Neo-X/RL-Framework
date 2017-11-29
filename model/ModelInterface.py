@@ -78,16 +78,24 @@ class ModelInterface(object):
         return self._critic_agent_part
     
     def getActorNetworkCombinedPart(self):
-        all_paramsActA = lasagne.layers.helper.get_all_param_values(self.getActorNetwork())
+        # all_paramsActA = lasagne.layers.helper.get_all_param_values(self.getActorNetwork())
         # combinedParams = all_paramsActA[-self._num_final_layers:]
-        combinedParams = all_paramsActA[-2:]
-        return combinedParams
+        layers = lasagne.layers.get_all_layers(self.getActorNetwork(), treat_as_input=[self.getActorNetworkAgentPart()])
+        for i in range(1,len(layers)):
+            print ("Actor layers[", i,"]: ", layers[i].W.get_value().shape)
+        return layers
     
     def getCriticNetworkCombinedPart(self):
-        all_params = lasagne.layers.helper.get_all_param_values(self.getCriticNetwork())
+        # all_params = lasagne.layers.helper.get_all_param_values(self.getCriticNetwork())
+        
+        layers = lasagne.layers.get_all_layers(self.getCriticNetwork(), treat_as_input=[self.getCriticNetworkAgentPart()])
         # combinedParams = all_params[-self._num_final_layers:]
-        combinedParams = all_params[-3:]
-        return combinedParams
+        
+        for i in range(1,len(layers)):
+            print ("Critic layers[", i,"]: ", layers[i].W.get_value().shape)
+        
+        # combinedParams = all_params[-6:]
+        return layers
     
     def getForwardDynamicsNetwork(self):
         return self._forward_dynamics_net

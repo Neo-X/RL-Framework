@@ -100,12 +100,18 @@ class AlgorithmInterface(object):
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkAgentPart(), all_paramsActA)
         
     def setCombinedNetworkParamters(self, otherModel):
-        all_paramsA = otherModel.getModel().getCriticNetworkCombinedPart()
+        all_paramsA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getCriticNetworkCombinedPart())
+        """
         print ("params: ", len(all_paramsA))
         for i_ in range(len(all_paramsA)):
             print ("params ", i_, ": ", all_paramsA[i_].shape)
-        print ("params: ", all_paramsA)
-        all_paramsActA = otherModel.getModel().getActorNetworkCombinedPart()
+        # print ("params: ", all_paramsA)
+        all_params = self.getModel().getCriticNetworkCombinedPart()
+        for i_ in range(len(all_params)):
+            print ("params ", i_, ": ", all_params[i_].shape)
+        # print ("params: ", all_params)
+        """
+        all_paramsActA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getActorNetworkCombinedPart())
         lasagne.layers.helper.set_all_param_values(self._model.getCriticNetworkCombinedPart(), all_paramsA)
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkCombinedPart(), all_paramsActA)
                 
