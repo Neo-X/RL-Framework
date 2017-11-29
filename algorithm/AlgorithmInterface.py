@@ -94,27 +94,56 @@ class AlgorithmInterface(object):
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkTaskPart(), all_paramsActA)
 
     def setAgentNetworkParamters(self, otherModel):
-        all_paramsA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getActorNetworkAgentPart())
+        all_paramsA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getCriticNetworkAgentPart())
         all_paramsActA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getActorNetworkAgentPart())
         lasagne.layers.helper.set_all_param_values(self._model.getCriticNetworkAgentPart(), all_paramsA)
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkAgentPart(), all_paramsActA)
         
     def setCombinedNetworkParamters(self, otherModel):
         all_paramsA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getCriticNetworkCombinedPart())
-        """
+        
         print ("params: ", len(all_paramsA))
         for i_ in range(len(all_paramsA)):
             print ("params ", i_, ": ", all_paramsA[i_].shape)
         # print ("params: ", all_paramsA)
+        """
         all_params = self.getModel().getCriticNetworkCombinedPart()
         for i_ in range(len(all_params)):
             print ("params ", i_, ": ", all_params[i_].shape)
         # print ("params: ", all_params)
         """
+        print (self._model.getCriticNetworkCombinedPart())
         all_paramsActA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getActorNetworkCombinedPart())
         lasagne.layers.helper.set_all_param_values(self._model.getCriticNetworkCombinedPart(), all_paramsA)
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkCombinedPart(), all_paramsActA)
-                
+            
+    def setMergeLayerNetworkParamters(self, otherModel, zeroInjectedMergeLayer=False):
+        all_paramsM = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getCriticNetworkMergeLayers())
+        
+        print (" merge params: ", len(all_paramsM))
+        for i_ in range(len(all_paramsM)):
+            print ("merge params ", i_, ": ", all_paramsM[i_].shape)
+        # print ("params: ", all_paramsA)
+        """
+        all_params = self.getModel().getCriticNetworkCombinedPart()
+        for i_ in range(len(all_params)):
+            print ("params ", i_, ": ", all_params[i_].shape)
+        # print ("params: ", all_params)
+        """
+        index_adjust=2
+        all_paramsActA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getActorNetworkMergeLayers())
+        print (self._model.getCriticNetworkMergeLayers())
+        if (self._model.getCriticNetworkMergeLayers()[0].W.get_value().shape == all_paramsM[len(all_paramsM)-index_adjust].shape ):
+            print("Matching merge layer shapes ")
+            print (self._model.getCriticNetworkMergeLayers()[0].W.get_value().shape, " vs ", all_paramsM[len(all_paramsM)-index_adjust].shape)
+        else:
+            print("Merge layer shapes do not match ")
+            print (self._model.getCriticNetworkMergeLayers()[0].W.get_value().shape, " vs ", all_paramsM[len(all_paramsM)-index_adjust].shape)
+            if ( zeroInjectedMergeLayer ):
+                print ("Zeroing injected merge part")
+        lasagne.layers.helper.set_all_param_values(self._model.getCriticNetworkMergeLayers(), all_paramsM)
+        lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkMergeLayers(), all_paramsActA)
+            
     def getModel(self):
         return self._model
     

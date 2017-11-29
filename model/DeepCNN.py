@@ -86,6 +86,7 @@ class DeepCNN(ModelInterface):
         network = lasagne.layers.DenseLayer(
                 network, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        self._critic_merge_layer = network
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
@@ -137,11 +138,11 @@ class DeepCNN(ModelInterface):
                 
         networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
         networkAct = lasagne.layers.ConcatLayer([networkAct, self._actor_agent_part], axis=1)
-        
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        self._actor_merge_layer = networkAct
+                
         self._actor = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._action_length,
                     nonlinearity=lasagne.nonlinearities.linear)

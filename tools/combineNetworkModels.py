@@ -57,28 +57,18 @@ def combineNetworkModels(settings_file_name):
     f.close()
     print ("State Length: ", len(old_model.getStateBounds()[0]) )
     
-    new_model.setAgentNetworkParamters(old_model)
-    new_model.setCombinedNetworkParamters(old_model)
-    # new_model.setNetworkParameters(old_model.getNetworkParameters())
+    if (True):
+        new_model.setAgentNetworkParamters(old_model)
+        new_model.setCombinedNetworkParamters(old_model)
+        new_model.setMergeLayerNetworkParamters(old_model)
+    else:
+        new_model.setNetworkParameters(old_model.getNetworkParameters())
     
     file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Injected.pkl"
     f = open(file_name, 'wb')
     dill.dump(new_model, f)
     f.close()
     
-    """
-    ### Want to copy parts of  old model over new model
-    if ( settings["use_transfer_task_network"] ):
-        task_directory = getTaskDataDirectory(settings)
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-        f = open(file_name, 'rb')
-        taskModel = dill.load(f)
-        f.close()
-        # copy the task part from taskModel to model
-        print ("Transferring task portion of model.")
-        model.setTaskNetworkParameters(taskModel)
-
-    """
 
 if __name__ == '__main__':
 
