@@ -128,6 +128,8 @@ class ModelInterface(object):
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self.getActorNetwork())
         # combinedParams = all_paramsActA[-self._num_final_layers:]
         layers = lasagne.layers.get_all_layers(self.getActorNetwork(), treat_as_input=[self.getActorNetworkMergeLayer()])
+        ## drop first merge layer
+        layers = layers[1:]
         for i in range(0,len(layers)):
             print ("Actor layers[", i,"]: ", layers[i].W.get_value().shape)
         return layers
@@ -139,7 +141,8 @@ class ModelInterface(object):
         # all_params = lasagne.layers.helper.get_all_param_values(self.getCriticNetwork())
         
         layers = lasagne.layers.get_all_layers(self.getCriticNetwork(), treat_as_input=[self.getCriticNetworkMergeLayer()])
-        # combinedParams = all_params[-self._num_final_layers:]
+        ## drop first merge layer
+        layers = layers[1:]
         
         for i in range(0,len(layers)):
             print ("Critic layers[", i,"]: ", layers[i].W.get_value().shape)

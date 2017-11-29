@@ -111,6 +111,9 @@ class AlgorithmInterface(object):
                    v.get_value().shape )
             if (p.get_value().shape != v.get_value().shape):
                 print ("Shape mismatch")
+                raise ValueError("mismatch: parameter has shape %r but value to "
+                             "set has shape %r" %
+                            (p.get_value().shape, v.get_value().shape))
             p.set_value(v.get_value())
             
         
@@ -126,45 +129,69 @@ class AlgorithmInterface(object):
             different sizes. THere is also an option method to zero all of the
             parameters of the part of the network that inserts from the
             task part of the network
+            
+            Only works if there is just one merge layer
         """
         other_Layers = otherModel.getModel().getCriticNetworkMergeLayers()
+        self_Layers = self.getModel().getCriticNetworkMergeLayers()
         
         print (" merge params: ", len(other_Layers))
         for i_ in range(len(other_Layers)):
             print ("merge params ", i_, ": ", other_Layers[i_].W.get_value().shape)
         # print ("params: ", all_paramsA)
-        print (self._model.getCriticNetworkMergeLayers())
-        if (self._model.getCriticNetworkMergeLayers()[0].W.get_value().shape == other_Layers[0].W.get_value().shape ):
+        print (self_Layers)
+        if (self_Layers[0].W.get_value().shape == other_Layers[0].W.get_value().shape ):
             print("Matching merge layer shapes ")
-            print (self._model.getCriticNetworkMergeLayers()[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
+            print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
         else:
             print("Merge layer shapes do not match ")
-            print (self._model.getCriticNetworkMergeLayers()[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
+            print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
             if ( zeroInjectedMergeLayer ):
                 print ("Zeroing injected merge part")
-        # lasagne.layers.helper.set_all_param_values(self._model.getCriticNetworkMergeLayers(), all_paramsM)
-        self.copyLayerParameters(self.getModel().getCriticNetworkCombinedPart(), 
-            other_Layers)
+                values = zp.zeros_like(self_Layers[0].W.get_value().shape)
+            else:
+                values = self_Layers[0].W.get_value()
+            ### copy over other values
+            other_shape = other_Layers[0].W.get_value().shape
+            self_shape = self_Layers[0].W.get_value().shape
+            ### Needs to be put on the end of the matrix
+            values[self_shape[0]-other_shape[0]:self_shape[0],
+                   self_shape[1]-other_shape[1]:self_shape[1]] = other_Layers[0].W.get_value()
+            ### Update current net params
+            other_Layers[0].W.set_value(values)
+        # lasagne.layers.helper.set_all_param_values(self_Layers, all_paramsM)
+        self.copyLayerParameters(self_Layers, other_Layers)
         
         ### Now for the possibly different shaped actor
         other_Layers = otherModel.getModel().getActorNetworkMergeLayers()
-        
+        self_Layers = self.getModel().getActorNetworkMergeLayers()
         print ("Actor merge params: ", len(other_Layers))
         for i_ in range(len(other_Layers)):
             print ("Actor merge params ", i_, ": ", other_Layers[i_].W.get_value().shape)
         # print ("params: ", all_paramsA)
-        print (self._model.getActorNetworkMergeLayers())
-        if (self._model.getActorNetworkMergeLayers()[0].W.get_value().shape == other_Layers[0].W.get_value().shape ):
+        print (self_Layers)
+        if (self_Layers[0].W.get_value().shape == other_Layers[0].W.get_value().shape ):
             print("Matching merge layer shapes ")
-            print (self._model.getActorNetworkMergeLayers()[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
+            print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
         else:
             print("Merge layer shapes do not match ")
-            print (self._model.getActorNetworkMergeLayers()[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
+            print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
             if ( zeroInjectedMergeLayer ):
                 print ("Zeroing injected merge part")
-        # lasagne.layers.helper.set_all_param_values(self._model.getCriticNetworkMergeLayers(), all_paramsM)
-        self.copyLayerParameters(self.getModel().getActorNetworkMergeLayers(), 
-            other_Layers)
+                values = zp.zeros_like(self_Layers[0].W.get_value().shape)
+            else:
+                values = self_Layers[0].W.get_value()
+            ### copy over other values
+            other_shape = other_Layers[0].W.get_value().shape
+            self_shape = self_Layers[0].W.get_value().shape
+            ### Needs to be put on the end of the matrix
+            values[self_shape[0]-other_shape[0]:self_shape[0],
+                   self_shape[1]-other_shape[1]:self_shape[1]] = other_Layers[0].W.get_value()
+            ### Update current net params
+            other_Layers[0].W.set_value(values)
+                
+        # lasagne.layers.helper.set_all_param_values(self_Layers, all_paramsM)
+        self.copyLayerParameters(self_Layers, other_Layers)
             
     def getModel(self):
         return self._model
