@@ -196,7 +196,7 @@ class SimContainer(object):
         ## ord converts the string to the corresponding integer value for the character...
         self._exp.getEnvironment().onKeyEvent(ord(c), x, y)
 
-def evaluateModelRender(settings_file_name):
+def evaluateModelRender(settings_file_name, runLastModel=False):
 
     settings = getSettings(settings_file_name)
     # settings['shouldRender'] = True
@@ -241,8 +241,11 @@ def evaluateModelRender(settings_file_name):
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
-    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+    if (runLastModel == True):
+        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+    else:
+        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+    
     f = open(file_name, 'rb')
     model = dill.load(f)
     f.close()
@@ -350,4 +353,7 @@ def evaluateModelRender(settings_file_name):
     
 if __name__ == "__main__":
     
-    evaluateModelRender(sys.argv[1])
+    if ( len(sys.argv) == 3):
+        evaluateModelRender(sys.argv[1], runLastModel=True)
+    else:
+        evaluateModelRender(sys.argv[1])
