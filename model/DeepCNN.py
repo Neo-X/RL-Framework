@@ -27,6 +27,8 @@ class DeepCNN(ModelInterface):
         self._Target.tag.test_value = np.random.rand(self._batch_size,1)
         self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
+        self._num_final_layers_critic = 3
+        self._num_final_layers_actor = 3
         
         # create a small convolutional neural network
         input = lasagne.layers.InputLayer((None, self._state_length), self._State)
@@ -70,16 +72,21 @@ class DeepCNN(ModelInterface):
                 network, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
-        network = lasagne.layers.FlattenLayer(network, outdim=2)
-        network = lasagne.layers.ConcatLayer([network, characterFeatures], axis=1)
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=64,
+        self._critic_agent_part = lasagne.layers.DenseLayer(
+                characterFeatures, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+
+        self._critic_agent_part = lasagne.layers.DenseLayer(
+                self._critic_agent_part, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+          
+        network = lasagne.layers.FlattenLayer(network, outdim=2)
+        network = lasagne.layers.ConcatLayer([network, self._critic_agent_part], axis=1)
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        self._critic_merge_layer = network
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=16,
@@ -120,22 +127,22 @@ class DeepCNN(ModelInterface):
             nonlinearity=lasagne.nonlinearities.leaky_rectify,
             W=lasagne.init.GlorotUniform())
         
-        
-        networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         """
-        networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
-        networkAct = lasagne.layers.ConcatLayer([networkAct, characterFeatures], axis=1)
-        
-        networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=64,
+        self._actor_agent_part = lasagne.layers.DenseLayer(
+                characterFeatures, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+
+        self._actor_agent_part = lasagne.layers.DenseLayer(
+                self._actor_agent_part, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+                
+        networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
+        networkAct = lasagne.layers.ConcatLayer([networkAct, self._actor_agent_part], axis=1)
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        
+        self._actor_merge_layer = networkAct
+                
         self._actor = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._action_length,
                     nonlinearity=lasagne.nonlinearities.linear)

@@ -3,6 +3,7 @@ from theano import tensor as T
 import numpy as np
 import lasagne
 import sys
+from itertools import chain
 sys.path.append('../')
 import copy
 # from ModelUtil import *
@@ -94,11 +95,104 @@ class AlgorithmInterface(object):
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkTaskPart(), all_paramsActA)
 
     def setAgentNetworkParamters(self, otherModel):
-        all_paramsA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getActorNetworkAgentPart())
+        all_paramsA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getCriticNetworkAgentPart())
         all_paramsActA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getActorNetworkAgentPart())
         lasagne.layers.helper.set_all_param_values(self._model.getCriticNetworkAgentPart(), all_paramsA)
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkAgentPart(), all_paramsActA)
+        
+    def copyLayerParameters(self, layers, otherLayers):
+        """
+            Copies the values from one list of layers to another
+        """
+        params = chain.from_iterable(l.get_params() for l in layers)
+        paramsOther = chain.from_iterable(l.get_params() for l in otherLayers)
+        for p, v in zip(params, paramsOther):
+            print ("params: ", p.get_value().shape, " vs ", 
+                   v.get_value().shape )
+            if (p.get_value().shape != v.get_value().shape):
+                print ("Shape mismatch")
+                raise ValueError("mismatch: parameter has shape %r but value to "
+                             "set has shape %r" %
+                            (p.get_value().shape, v.get_value().shape))
+            p.set_value(v.get_value())
+            
+        
+    def setCombinedNetworkParamters(self, otherModel):
+        self.copyLayerParameters(self.getModel().getCriticNetworkCombinedPart(), 
+            otherModel.getModel().getCriticNetworkCombinedPart())
+        self.copyLayerParameters(self.getModel().getActorNetworkCombinedPart(), 
+            otherModel.getModel().getActorNetworkCombinedPart())
+                    
+    def setMergeLayerNetworkParamters(self, otherModel, zeroInjectedMergeLayer=False):
+        """
+            This method merges the two layers of the networks together that may have
+            different sizes. THere is also an option method to zero all of the
+            parameters of the part of the network that inserts from the
+            task part of the network
+            
+            Only works if there is just one merge layer
+        """
+        other_Layers = otherModel.getModel().getCriticNetworkMergeLayers()
+        self_Layers = self.getModel().getCriticNetworkMergeLayers()
+        
+        print (" merge params: ", len(other_Layers))
+        for i_ in range(len(other_Layers)):
+            print ("merge params ", i_, ": ", other_Layers[i_].W.get_value().shape)
+        # print ("params: ", all_paramsA)
+        print (self_Layers)
+        if (self_Layers[0].W.get_value().shape == other_Layers[0].W.get_value().shape ):
+            print("Matching merge layer shapes ")
+            print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
+        else:
+            print("Merge layer shapes do not match ")
+            print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
+            if ( zeroInjectedMergeLayer ):
+                print ("Zeroing injected merge part")
+                values = zp.zeros_like(self_Layers[0].W.get_value().shape)
+            else:
+                values = self_Layers[0].W.get_value()
+            ### copy over other values
+            other_shape = other_Layers[0].W.get_value().shape
+            self_shape = self_Layers[0].W.get_value().shape
+            ### Needs to be put on the end of the matrix
+            values[self_shape[0]-other_shape[0]:self_shape[0],
+                   self_shape[1]-other_shape[1]:self_shape[1]] = other_Layers[0].W.get_value()
+            ### Update current net params
+            other_Layers[0].W.set_value(values)
+        # lasagne.layers.helper.set_all_param_values(self_Layers, all_paramsM)
+        self.copyLayerParameters(self_Layers, other_Layers)
+        
+        ### Now for the possibly different shaped actor
+        other_Layers = otherModel.getModel().getActorNetworkMergeLayers()
+        self_Layers = self.getModel().getActorNetworkMergeLayers()
+        print ("Actor merge params: ", len(other_Layers))
+        for i_ in range(len(other_Layers)):
+            print ("Actor merge params ", i_, ": ", other_Layers[i_].W.get_value().shape)
+        # print ("params: ", all_paramsA)
+        print (self_Layers)
+        if (self_Layers[0].W.get_value().shape == other_Layers[0].W.get_value().shape ):
+            print("Matching merge layer shapes ")
+            print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
+        else:
+            print("Merge layer shapes do not match ")
+            print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
+            if ( zeroInjectedMergeLayer ):
+                print ("Zeroing injected merge part")
+                values = zp.zeros_like(self_Layers[0].W.get_value().shape)
+            else:
+                values = self_Layers[0].W.get_value()
+            ### copy over other values
+            other_shape = other_Layers[0].W.get_value().shape
+            self_shape = self_Layers[0].W.get_value().shape
+            ### Needs to be put on the end of the matrix
+            values[self_shape[0]-other_shape[0]:self_shape[0],
+                   self_shape[1]-other_shape[1]:self_shape[1]] = other_Layers[0].W.get_value()
+            ### Update current net params
+            other_Layers[0].W.set_value(values)
                 
+        # lasagne.layers.helper.set_all_param_values(self_Layers, all_paramsM)
+        self.copyLayerParameters(self_Layers, other_Layers)
+            
     def getModel(self):
         return self._model
     

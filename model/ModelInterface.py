@@ -59,20 +59,106 @@ class ModelInterface(object):
         pass
     
     def getActorNetwork(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._actor
     
     def getActorNetworkTaskPart(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._actor_task_part
     
     def getCriticNetwork(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._critic
     
     def getCriticNetworkTaskPart(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._critic_task_part
     
+    def getActorNetworkMergeLayer(self):
+        return self._actor_merge_layer
+    
+    def getActorNetworkMergeLayers(self):
+        """
+            The layer should be the layer for which two layers may be combined
+        """
+        ### Should be one layer
+        layers = lasagne.layers.get_all_layers(self.getActorNetworkMergeLayer(), treat_as_input=[self.getActorNetworkMergeLayer()])
+        for i in range(0,len(layers)):
+            print ("Actor merge layers[", i,"]: ", layers[i].W.get_value().shape)
+        return layers
+    
+    def getCriticNetworkMergeLayer(self):
+        return self._critic_merge_layer
+        
+    def getCriticNetworkMergeLayers(self):
+        """
+            The layer should be the layer for which two layers may be combined
+            
+        """
+        layers = lasagne.layers.get_all_layers(self.getCriticNetworkMergeLayer(), treat_as_input=[self.getCriticNetworkMergeLayer()])
+        for i in range(0,len(layers)):
+            print ("Critic merge layers[", i,"]: ", layers[i].W.get_value().shape)
+        return layers
+    
+    
+    def getActorNetworkAgentPart(self):
+        """
+            The output of this should be a list of layers...
+        """
+        return self._actor_agent_part
+    
+    def getCriticNetworkAgentPart(self):
+        """
+            The output of this should be a list of layers...
+        """
+        return self._critic_agent_part
+    
+    def getActorNetworkCombinedPart(self):
+        """
+            The output of this should be a list of layers...
+        """
+        # all_paramsActA = lasagne.layers.helper.get_all_param_values(self.getActorNetwork())
+        # combinedParams = all_paramsActA[-self._num_final_layers:]
+        layers = lasagne.layers.get_all_layers(self.getActorNetwork(), treat_as_input=[self.getActorNetworkMergeLayer()])
+        ## drop first merge layer
+        layers = layers[1:]
+        for i in range(0,len(layers)):
+            print ("Actor layers[", i,"]: ", layers[i].W.get_value().shape)
+        return layers
+    
+    def getCriticNetworkCombinedPart(self):
+        """
+            The output of this should be a list of layers...
+        """
+        # all_params = lasagne.layers.helper.get_all_param_values(self.getCriticNetwork())
+        
+        layers = lasagne.layers.get_all_layers(self.getCriticNetwork(), treat_as_input=[self.getCriticNetworkMergeLayer()])
+        ## drop first merge layer
+        layers = layers[1:]
+        
+        for i in range(0,len(layers)):
+            print ("Critic layers[", i,"]: ", layers[i].W.get_value().shape)
+        
+        # combinedParams = all_params[-6:]
+        return layers
+    
     def getForwardDynamicsNetwork(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._forward_dynamics_net
     def getRewardNetwork(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._reward_net
     
     ### Setting network input values ###    
