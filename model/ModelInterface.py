@@ -59,25 +59,46 @@ class ModelInterface(object):
         pass
     
     def getActorNetwork(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._actor
     
     def getActorNetworkTaskPart(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._actor_task_part
     
     def getCriticNetwork(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._critic
     
     def getCriticNetworkTaskPart(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._critic_task_part
     
     
     def getActorNetworkAgentPart(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._actor_agent_part
     
     def getCriticNetworkAgentPart(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._critic_agent_part
     
     def getActorNetworkCombinedPart(self):
+        """
+            The output of this should be a list of layers...
+        """
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self.getActorNetwork())
         # combinedParams = all_paramsActA[-self._num_final_layers:]
         layers = lasagne.layers.get_all_layers(self.getActorNetwork(), treat_as_input=[self.getActorNetworkAgentPart()])
@@ -86,6 +107,9 @@ class ModelInterface(object):
         return layers
     
     def getCriticNetworkCombinedPart(self):
+        """
+            The output of this should be a list of layers...
+        """
         # all_params = lasagne.layers.helper.get_all_param_values(self.getCriticNetwork())
         
         layers = lasagne.layers.get_all_layers(self.getCriticNetwork(), treat_as_input=[self.getCriticNetworkAgentPart()])
@@ -98,8 +122,14 @@ class ModelInterface(object):
         return layers
     
     def getForwardDynamicsNetwork(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._forward_dynamics_net
     def getRewardNetwork(self):
+        """
+            The output of this should be a list of layers...
+        """
         return self._reward_net
     
     ### Setting network input values ###    
