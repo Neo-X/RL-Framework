@@ -100,8 +100,10 @@ class AlgorithmInterface(object):
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkAgentPart(), all_paramsActA)
         
     def setCombinedNetworkParamters(self, otherModel):
+        param_legth = (self._model.getCriticNetworkCombinedPart())*2
         all_paramsA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getCriticNetworkCombinedPart())
-        
+        ### Get the last params
+        all_paramsA = all_paramsA[-param_legth:]
         print ("params: ", len(all_paramsA))
         for i_ in range(len(all_paramsA)):
             print ("params ", i_, ": ", all_paramsA[i_].shape)
