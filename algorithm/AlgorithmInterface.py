@@ -148,7 +148,7 @@ class AlgorithmInterface(object):
             print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
             if ( zeroInjectedMergeLayer ):
                 print ("Zeroing injected merge part")
-                values = zp.zeros_like(self_Layers[0].W.get_value().shape)
+                values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
             else:
                 values = self_Layers[0].W.get_value()
             ### copy over other values
@@ -178,7 +178,7 @@ class AlgorithmInterface(object):
             print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
             if ( zeroInjectedMergeLayer ):
                 print ("Zeroing injected merge part")
-                values = zp.zeros_like(self_Layers[0].W.get_value().shape)
+                values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
             else:
                 values = self_Layers[0].W.get_value()
             ### copy over other values

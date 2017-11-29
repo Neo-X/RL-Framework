@@ -60,7 +60,8 @@ def combineNetworkModels(settings_file_name):
     if (True):
         new_model.setAgentNetworkParamters(old_model)
         new_model.setCombinedNetworkParamters(old_model)
-        new_model.setMergeLayerNetworkParamters(old_model)
+        # new_model.setMergeLayerNetworkParamters(old_model)
+        new_model.setMergeLayerNetworkParamters(old_model, zeroInjectedMergeLayer=True)
     else:
         new_model.setNetworkParameters(old_model.getNetworkParameters())
     
