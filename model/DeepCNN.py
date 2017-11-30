@@ -56,6 +56,10 @@ class DeepCNN(ModelInterface):
             network, num_filters=8, filter_size=4,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
+        network = lasagne.layers.DenseLayer(
+                network, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
         self._critic_task_part = network 
         
         """
@@ -117,6 +121,9 @@ class DeepCNN(ModelInterface):
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
+        networkAct = lasagne.layers.DenseLayer(
+                networkAct, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         self._actor_task_part = networkAct
         """ 
