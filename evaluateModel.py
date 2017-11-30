@@ -91,7 +91,7 @@ class SimContainer(object):
             """
             if (self._exp.needUpdatedAction()):
                 state_ = self._exp.getState()
-                # print ("State: ", state_)
+                print ("State: ", state_)
                 ## Update value function visualization
                 if ( True ):
                     self._viz_q_values_.append(self._agent.q_value(state_)[0])
