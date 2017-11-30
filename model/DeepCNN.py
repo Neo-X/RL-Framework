@@ -27,8 +27,6 @@ class DeepCNN(ModelInterface):
         self._Target.tag.test_value = np.random.rand(self._batch_size,1)
         self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
-        self._num_final_layers_critic = 3
-        self._num_final_layers_actor = 3
         
         # create a small convolutional neural network
         input = lasagne.layers.InputLayer((None, self._state_length), self._State)
