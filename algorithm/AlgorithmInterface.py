@@ -152,7 +152,7 @@ class AlgorithmInterface(object):
                 ### also zero the dense network from the task part
                 l = self.getModel().getCriticNetworkTaskPart()
                 values_2 = np.zeros(l.W.get_value().shape, dtype=self.getSettings()['float_type'])
-                # l.W.set_value(values_2)
+                l.W.set_value(values_2)
             else:
                 values = self_Layers[0].W.get_value()
             ### copy over other values
@@ -186,7 +186,7 @@ class AlgorithmInterface(object):
                 ### also zero the dense network from the task part
                 l = self.getModel().getActorNetworkTaskPart()
                 values_2 = np.zeros(l.W.get_value().shape, dtype=self.getSettings()['float_type'])
-                # l.W.set_value(values_2)
+                l.W.set_value(values_2)
             else:
                 values = self_Layers[0].W.get_value()
             ### copy over other values
