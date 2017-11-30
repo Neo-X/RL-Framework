@@ -27,8 +27,6 @@ class DeepCNN(ModelInterface):
         self._Target.tag.test_value = np.random.rand(self._batch_size,1)
         self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
-        self._num_final_layers_critic = 3
-        self._num_final_layers_actor = 3
         
         # create a small convolutional neural network
         input = lasagne.layers.InputLayer((None, self._state_length), self._State)
@@ -58,6 +56,10 @@ class DeepCNN(ModelInterface):
             network, num_filters=8, filter_size=4,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
+        network = lasagne.layers.DenseLayer(
+                network, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
         self._critic_task_part = network 
         
         """
@@ -80,7 +82,7 @@ class DeepCNN(ModelInterface):
                 self._critic_agent_part, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
           
-        network = lasagne.layers.FlattenLayer(network, outdim=2)
+        network = lasagne.layers.FlattenLayer(self._critic_task_part, outdim=2)
         network = lasagne.layers.ConcatLayer([network, self._critic_agent_part], axis=1)
         
         network = lasagne.layers.DenseLayer(
@@ -119,6 +121,9 @@ class DeepCNN(ModelInterface):
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
+        networkAct = lasagne.layers.DenseLayer(
+                networkAct, num_units=64,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         self._actor_task_part = networkAct
         """ 
@@ -136,7 +141,7 @@ class DeepCNN(ModelInterface):
                 self._actor_agent_part, num_units=64,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
                 
-        networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
+        networkAct = lasagne.layers.FlattenLayer(self._actor_task_part, outdim=2)
         networkAct = lasagne.layers.ConcatLayer([networkAct, self._actor_agent_part], axis=1)
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,

@@ -3,6 +3,8 @@ import numpy as np
 import dill
 import dill as pickle
 import dill as cPickle
+import sys
+sys.path.append('../')
 
 def combineNetworkModels(settings_file_name):
     
@@ -45,7 +47,13 @@ def combineNetworkModels(settings_file_name):
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     action_space_continuous=settings['action_space_continuous']
     
+    settings['load_saved_model'] = False
     new_model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+    params = new_model.getNetworkParameters()
+    print ("New Network Critic shape")
+    for i in range(len(params[0])):
+        print (params[0][i].shape)
+    print ("New Network Critic shape, done")
     
     if (False):
         file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
@@ -60,10 +68,25 @@ def combineNetworkModels(settings_file_name):
     if (True):
         new_model.setAgentNetworkParamters(old_model)
         new_model.setCombinedNetworkParamters(old_model)
-        # new_model.setMergeLayerNetworkParamters(old_model)
-        new_model.setMergeLayerNetworkParamters(old_model, zeroInjectedMergeLayer=True)
+        new_model.setMergeLayerNetworkParamters(old_model)
+        # new_model.setMergeLayerNetworkParamters(old_model, zeroInjectedMergeLayer=True)
     else:
         new_model.setNetworkParameters(old_model.getNetworkParameters())
+        
+        
+    params = new_model.getNetworkParameters()
+    print ("New Network Critic shape")
+    for i in range(len(params[0])):
+        print (params[0][i].shape)
+    for i in range(len(params[0])):
+        print (params[2][i].shape)
+    ### Modify state bounds
+    state_bounds[:,settings['num_terrain_features']: len(state_bounds[0])] = old_model.getStateBounds()
+    print ("State bounds: ", state_bounds.shape)
+    print (state_bounds) 
+    new_model.setStateBounds(state_bounds)
+    new_model.setActionBounds(old_model.getActionBounds())
+    new_model.setRewardBounds(old_model.getRewardBounds())
     
     file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Injected.pkl"
     f = open(file_name, 'wb')
