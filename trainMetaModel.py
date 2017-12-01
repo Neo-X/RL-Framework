@@ -66,9 +66,10 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
             directory= getDataDirectory(settings)
             if not os.path.exists(directory):
                 os.makedirs(directory)
-            if ('saved_fd_model_path' in hyperSettings):
-                print ("Copying fd model: ", hyperSettings['saved_fd_model_path'])
-                shutil.copy2(hyperSettings['saved_fd_model_path'], directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl" )
+            if ('saved_model_path' in hyperSettings):
+                print ("Copying fd model: ", hyperSettings['saved_model_path'])
+                # shutil.copy2(hyperSettings['saved_model_path'], directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl" )
+                shutil.copy2(hyperSettings['saved_model_path'], directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl" )
         
     # p = ThreadPool(numThreads)
     p = ProcessingPool(numThreads)
@@ -134,7 +135,7 @@ if (__name__ == "__main__"):
         root_data_dir = getRootDataDirectory(simSettings_)+"/"
         
         if ( len(sys.argv) == 6 ):
-            hyperSettings_['saved_fd_model_path'] = sys.argv[5]
+            hyperSettings_['saved_model_path'] = sys.argv[5]
             result = trainMetaModel(sys.argv[1], samples=int(sys.argv[3]), settings=copy.deepcopy(simSettings_), numThreads=int(sys.argv[4]), hyperSettings=hyperSettings_)
         else:
             result = trainMetaModel(sys.argv[1], samples=int(sys.argv[3]), settings=copy.deepcopy(simSettings_), numThreads=int(sys.argv[4]), hyperSettings=hyperSettings_)
