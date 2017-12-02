@@ -92,8 +92,8 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     # trainModelParallel(settingsFileName, copy.deepcopy(settings))
         
     
-
-if (__name__ == "__main__"):
+    
+def trainMetaModel_(args):
     """
         python trainMetaModel.py <hyper_settings_file> <sim_settings_file> <num_samples> <num_threads> <saved_fd_model_path>
         Example:
@@ -106,26 +106,26 @@ if (__name__ == "__main__"):
     from tools.PlotMetadataSimulation import plotMetaDataSimulation
     import os
     
-    if (len(sys.argv) == 1):
+    if (len(args) == 1):
         print("Please incluse sim settings file")
         print("python trainMetaModel.py <sim_settings_file> <hyper_settings_file> <num_samples>")
         sys.exit()
-    elif (len(sys.argv) == 2):
+    elif (len(args) == 2):
         print("Please incluse sim settings file")
         print("python trainMetaModel.py <sim_settings_file> <hyper_settings_file> <num_samples>")
         sys.exit()
-    elif (len(sys.argv) == 3):
+    elif (len(args) == 3):
         print("Please incluse sim settings file")
         print("python trainMetaModel.py <sim_settings_file> <hyper_settings_file> <num_samples>")
         sys.exit()
-    elif ((len(sys.argv) == 5) or (len(sys.argv) == 6)):
-        settingsFileName = sys.argv[2] 
+    elif ((len(args) == 5) or (len(args) == 6)):
+        settingsFileName = args[2] 
         file = open(settingsFileName)
         hyperSettings_ = json.load(file)
         print ("Settings: " + str(json.dumps(hyperSettings_)))
         file.close()
         
-        simsettingsFileName = sys.argv[1]
+        simsettingsFileName = args[1]
         file = open(simsettingsFileName)
         simSettings_ = json.load(file)
         print ("Settings: " + str(json.dumps(simSettings_, indent=4)))
@@ -134,11 +134,11 @@ if (__name__ == "__main__"):
         
         root_data_dir = getRootDataDirectory(simSettings_)+"/"
         
-        if ( len(sys.argv) == 6 ):
-            hyperSettings_['saved_model_path'] = sys.argv[5]
-            result = trainMetaModel(sys.argv[1], samples=int(sys.argv[3]), settings=copy.deepcopy(simSettings_), numThreads=int(sys.argv[4]), hyperSettings=hyperSettings_)
+        if ( len(args) == 6 ):
+            hyperSettings_['saved_model_path'] = args[5]
+            result = trainMetaModel(args[1], samples=int(args[3]), settings=copy.deepcopy(simSettings_), numThreads=int(args[4]), hyperSettings=hyperSettings_)
         else:
-            result = trainMetaModel(sys.argv[1], samples=int(sys.argv[3]), settings=copy.deepcopy(simSettings_), numThreads=int(sys.argv[4]), hyperSettings=hyperSettings_)
+            result = trainMetaModel(args[1], samples=int(args[3]), settings=copy.deepcopy(simSettings_), numThreads=int(args[4]), hyperSettings=hyperSettings_)
         
         directory= getBaseDataDirectory(simSettings_)
         out_file_name=directory+os.path.basename(simsettingsFileName)
@@ -179,11 +179,18 @@ if (__name__ == "__main__"):
         
         ## Send an email so I know this has completed
         contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
-        sendEmail(subject="Simulation complete: " + result['sim_time'], contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[2], dataFile=tarFileName,
+        sendEmail(subject="Simulation complete: " + result['sim_time'], contents=contents_, hyperSettings=hyperSettings_, simSettings=args[2], dataFile=tarFileName,
                   pictureFile=pictureFileName)    
           
     else:
         print("Please specify arguments properly, ")
-        print(sys.argv)
+        print("args: ", args)
         print("python trainMetaModel.py <sim_settings_file> <hyper_settings_file> <num_samples>")
+    
+
+if (__name__ == "__main__"):
         
+
+    trainMetaModel_(sys.argv)
+    
+    

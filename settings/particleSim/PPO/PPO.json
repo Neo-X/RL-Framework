@@ -1,8 +1,8 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "model.DeepNNTanH.DeepNNTanH",
+"model_type": "Deep_NN",
     "comment__": "Learning algorithm to use",
-"agent_name": "algorithm.PPO.PPO",
+"agent_name": "PPO",
     "comment__": "Folder to store the training data in.",
 "data_folder": "Nav_Sphere",
 	"comment": "initial probability of selecting a random action",
