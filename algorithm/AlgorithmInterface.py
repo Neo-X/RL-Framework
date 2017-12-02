@@ -93,12 +93,22 @@ class AlgorithmInterface(object):
         all_paramsActA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getActorNetworkTaskPart())
         lasagne.layers.helper.set_all_param_values(self._model.getCriticNetworkTaskPart(), all_paramsA)
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkTaskPart(), all_paramsActA)
+        ### Targetnets
+        all_paramsA = lasagne.layers.helper.get_all_param_values(otherModel.getModelTarget().getCriticNetworkTaskPart())
+        all_paramsActA = lasagne.layers.helper.get_all_param_values(otherModel.getModelTarget().getActorNetworkTaskPart())
+        lasagne.layers.helper.set_all_param_values(self.getModelTarget().getCriticNetworkTaskPart(), all_paramsA)
+        lasagne.layers.helper.set_all_param_values(self.getModelTarget().getActorNetworkTaskPart(), all_paramsActA)
 
     def setAgentNetworkParamters(self, otherModel):
         all_paramsA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getCriticNetworkAgentPart())
         all_paramsActA = lasagne.layers.helper.get_all_param_values(otherModel.getModel().getActorNetworkAgentPart())
         lasagne.layers.helper.set_all_param_values(self._model.getCriticNetworkAgentPart(), all_paramsA)
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetworkAgentPart(), all_paramsActA)
+        ## targetNets
+        all_paramsA = lasagne.layers.helper.get_all_param_values(otherModel.getModelTarget().getCriticNetworkAgentPart())
+        all_paramsActA = lasagne.layers.helper.get_all_param_values(otherModel.getModelTarget().getActorNetworkAgentPart())
+        lasagne.layers.helper.set_all_param_values(self.getModelTarget().getCriticNetworkAgentPart(), all_paramsA)
+        lasagne.layers.helper.set_all_param_values(self.getModelTarget().getActorNetworkAgentPart(), all_paramsActA)
         
     def copyLayerParameters(self, layers, otherLayers):
         """
@@ -122,6 +132,11 @@ class AlgorithmInterface(object):
             otherModel.getModel().getCriticNetworkCombinedPart())
         self.copyLayerParameters(self.getModel().getActorNetworkCombinedPart(), 
             otherModel.getModel().getActorNetworkCombinedPart())
+        ### Target nets
+        self.copyLayerParameters(self.getModelTarget().getCriticNetworkCombinedPart(), 
+            otherModel.getModelTarget().getCriticNetworkCombinedPart())
+        self.copyLayerParameters(self.getModelTarget().getActorNetworkCombinedPart(), 
+            otherModel.getModelTarget().getActorNetworkCombinedPart())
                     
     def setMergeLayerNetworkParamters(self, otherModel, zeroInjectedMergeLayer=False):
         """
@@ -132,6 +147,7 @@ class AlgorithmInterface(object):
             
             Only works if there is just one merge layer
         """
+        zero_dense=False
         other_Layers = otherModel.getModel().getCriticNetworkMergeLayers()
         self_Layers = self.getModel().getCriticNetworkMergeLayers()
         
@@ -150,9 +166,45 @@ class AlgorithmInterface(object):
                 print ("Zeroing injected merge part")
                 values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
                 ### also zero the dense network from the task part
-                l = self.getModel().getCriticNetworkTaskPart()
-                values_2 = np.zeros(l.W.get_value().shape, dtype=self.getSettings()['float_type'])
-                l.W.set_value(values_2)
+                if (zero_dense):
+                    l = self.getModel().getCriticNetworkTaskPart()
+                    values_2 = np.zeros(l.W.get_value().shape, dtype=self.getSettings()['float_type'])
+                    l.W.set_value(values_2)
+            else:
+                values = self_Layers[0].W.get_value()
+            ### copy over other values
+            other_shape = other_Layers[0].W.get_value().shape
+            self_shape = self_Layers[0].W.get_value().shape
+            ### Needs to be put on the end of the matrix
+            values[self_shape[0]-other_shape[0]:self_shape[0],
+                   self_shape[1]-other_shape[1]:self_shape[1]] = other_Layers[0].W.get_value()
+            ### Update current net params
+            other_Layers[0].W.set_value(values)
+        # lasagne.layers.helper.set_all_param_values(self_Layers, all_paramsM)
+        self.copyLayerParameters(self_Layers, other_Layers)
+        
+        other_Layers = otherModel.getModelTarget().getCriticNetworkMergeLayers()
+        self_Layers = self.getModelTarget().getCriticNetworkMergeLayers()
+        
+        print (" merge params: ", len(other_Layers))
+        for i_ in range(len(other_Layers)):
+            print ("merge params ", i_, ": ", other_Layers[i_].W.get_value().shape)
+        # print ("params: ", all_paramsA)
+        print (self_Layers)
+        if (self_Layers[0].W.get_value().shape == other_Layers[0].W.get_value().shape ):
+            print("Matching merge layer shapes ")
+            print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
+        else:
+            print("Merge layer shapes do not match ")
+            print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
+            if ( zeroInjectedMergeLayer ):
+                print ("Zeroing injected merge part")
+                values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
+                ### also zero the dense network from the task part
+                if (zero_dense):
+                    l = self.getModel().getCriticNetworkTaskPart()
+                    values_2 = np.zeros(l.W.get_value().shape, dtype=self.getSettings()['float_type'])
+                    l.W.set_value(values_2)
             else:
                 values = self_Layers[0].W.get_value()
             ### copy over other values
@@ -184,9 +236,46 @@ class AlgorithmInterface(object):
                 print ("Zeroing injected merge part")
                 values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
                 ### also zero the dense network from the task part
-                l = self.getModel().getActorNetworkTaskPart()
-                values_2 = np.zeros(l.W.get_value().shape, dtype=self.getSettings()['float_type'])
-                l.W.set_value(values_2)
+                if (zero_dense):
+                    l = self.getModel().getActorNetworkTaskPart()
+                    values_2 = np.zeros(l.W.get_value().shape, dtype=self.getSettings()['float_type'])
+                    l.W.set_value(values_2)
+            else:
+                values = self_Layers[0].W.get_value()
+            ### copy over other values
+            other_shape = other_Layers[0].W.get_value().shape
+            self_shape = self_Layers[0].W.get_value().shape
+            ### Needs to be put on the end of the matrix
+            values[self_shape[0]-other_shape[0]:self_shape[0],
+                   self_shape[1]-other_shape[1]:self_shape[1]] = other_Layers[0].W.get_value()
+            ### Update current net params
+            other_Layers[0].W.set_value(values)
+                
+        # lasagne.layers.helper.set_all_param_values(self_Layers, all_paramsM)
+        self.copyLayerParameters(self_Layers, other_Layers)
+        
+        ### Now for the possibly different shaped actor
+        other_Layers = otherModel.getModelTarget().getActorNetworkMergeLayers()
+        self_Layers = self.getModelTarget().getActorNetworkMergeLayers()
+        print ("Actor merge params: ", len(other_Layers))
+        for i_ in range(len(other_Layers)):
+            print ("Actor merge params ", i_, ": ", other_Layers[i_].W.get_value().shape)
+        # print ("params: ", all_paramsA)
+        print (self_Layers)
+        if (self_Layers[0].W.get_value().shape == other_Layers[0].W.get_value().shape ):
+            print("Matching merge layer shapes ")
+            print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
+        else:
+            print("Merge layer shapes do not match ")
+            print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
+            if ( zeroInjectedMergeLayer ):
+                print ("Zeroing injected merge part")
+                values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
+                ### also zero the dense network from the task part
+                if (zero_dense):
+                    l = self.getModel().getActorNetworkTaskPart()
+                    values_2 = np.zeros(l.W.get_value().shape, dtype=self.getSettings()['float_type'])
+                    l.W.set_value(values_2)
             else:
                 values = self_Layers[0].W.get_value()
             ### copy over other values
@@ -203,7 +292,10 @@ class AlgorithmInterface(object):
             
     def getModel(self):
         return self._model
-    
+
+    def getModelTarget(self):
+        return self._modelTarget
+        
     def getGrads(self, states, alreadyNormed=False):
         """
             The states should be normalized

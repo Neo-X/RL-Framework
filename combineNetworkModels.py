@@ -68,8 +68,8 @@ def combineNetworkModels(settings_file_name):
     if (True):
         new_model.setAgentNetworkParamters(old_model)
         new_model.setCombinedNetworkParamters(old_model)
-        new_model.setMergeLayerNetworkParamters(old_model)
-        # new_model.setMergeLayerNetworkParamters(old_model, zeroInjectedMergeLayer=True)
+        # new_model.setMergeLayerNetworkParamters(old_model)
+        new_model.setMergeLayerNetworkParamters(old_model, zeroInjectedMergeLayer=True)
     else:
         new_model.setNetworkParameters(old_model.getNetworkParameters())
         
@@ -78,8 +78,8 @@ def combineNetworkModels(settings_file_name):
     print ("New Network Critic shape")
     for i in range(len(params[0])):
         print (params[0][i].shape)
-    for i in range(len(params[0])):
-        print (params[2][i].shape)
+    for i in range(len(params[1])):
+        print (params[1][i].shape)
     ### Modify state bounds
     state_bounds[:,settings['num_terrain_features']: len(state_bounds[0])] = old_model.getStateBounds()
     print ("State bounds: ", state_bounds.shape)
