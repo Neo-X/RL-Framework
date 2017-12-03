@@ -137,6 +137,10 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
         from model.DeepCNN import DeepCNN
         model = DeepCNN(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+    elif (model_type == "Deep_CNN_2D" ):
+        from model.DeepCNN2D import DeepCNN2D
+        model = DeepCNN2D(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     elif (model_type == "Deep_CNN_Dropout" ):
         from model.DeepCNNDropout import DeepCNNDropout
         model = DeepCNNDropout(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
