@@ -1,6 +1,5 @@
 import copy
 import sys
-from pyglet.window.key import NUM_PAGE_DOWN
 # from pygments.lexers.theorem import LeanLexer
 sys.setrecursionlimit(50000)
 import os
