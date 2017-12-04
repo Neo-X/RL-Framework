@@ -14,7 +14,7 @@
     "comment__": "Learning rate for the actor/policy",
 "learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
-"sim_config_file": "./args/genbiped3D/biped3d_LHC_waypoint_step_controller.txt",
+"sim_config_file": "./args/genbiped3D/biped3d_HLC_waypoint_step_controller.txt",
     "comment__": "A different config file for the forward dynamics simulator",
 "forwardDynamics_config_file": "./args/genbiped3D/biped3d_HLC_waypoint_step_controller.txt",
 	"comment__": "Data use to create anchors for pendulum",
