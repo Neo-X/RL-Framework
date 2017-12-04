@@ -31,6 +31,10 @@ class TerrainRLHLCActor(ActorInterface):
         action_ = np.array(action_, dtype='float64')
         sim.getEnvironment().updateAction(action_)
         
+    def updateLLCAction(self, sim, action_):
+        action_ = np.array(action_, dtype='float64')
+        sim.getEnvironment().updateLLCAction(action_)
+        
     def act(self, exp, action_, bootstrapping=False):
         samp = self.getActionParams(action_)
         
@@ -65,6 +69,17 @@ class TerrainRLHLCActor(ActorInterface):
         while (not sim.needUpdatedAction() and (updates_ < 100)
                and (not sim.getEnvironment().agentHasFallen())
                ):
+            # llc_state = sim.getState()[:,self._settings['num_terrain_features']:]
+            llc_state = sim.getLLCState()
+            action__ = np.array([[action_[0], action_[1], 0.0, action_[2], action_[3], 0.0, action_[4]]])
+            # print ("llc pose state: ", llc_state.shape, repr(llc_state))
+            # print ("hlc action: ", action__.shape, repr(action__))
+            # llc_state = np.concatenate((llc_state, action__), axis=1)
+            llc_state[:,-7:] = action__
+            # print ("llc_state: ", llc_state.shape, llc_state)
+            llc_action = self._llc_policy.predict(llc_state)
+            print("llc_action: ", llc_action.shape, llc_action)
+            sim.updateLLCAction(llc_action)
             sim.update()
             if (self._settings["shouldRender"]):
                 sim.display()
