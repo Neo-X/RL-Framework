@@ -78,7 +78,7 @@ class TerrainRLHLCActor(ActorInterface):
             llc_state[:,-7:] = action__
             # print ("llc_state: ", llc_state.shape, llc_state)
             llc_action = self._llc_policy.predict(llc_state)
-            print("llc_action: ", llc_action.shape, llc_action)
+            # print("llc_action: ", llc_action.shape, llc_action)
             sim.updateLLCAction(llc_action)
             sim.update()
             if (self._settings["shouldRender"]):
