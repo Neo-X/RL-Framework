@@ -1,5 +1,6 @@
 import copy
 import sys
+from pyglet.window.key import NUM_PAGE_DOWN
 # from pygments.lexers.theorem import LeanLexer
 sys.setrecursionlimit(50000)
 import os
@@ -417,15 +418,21 @@ def trainModelParallel(inputData):
             print("trainModel: Sending current network parameters: ", m_q)
             m_q.put(message)
         
-        if (settings['on_policy']):
+        if ( int(settings["num_available_threads"]) ==  1):
+           experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings,
+                           sim_work_queues=None, 
+                           eval_episode_data_queue=None)
             
-            experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, None, model, settings,
-                       sim_work_queues=sim_work_queues, 
-                       eval_episode_data_queue=eval_episode_data_queue)
         else:
-            experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, None, model, settings,
-                       sim_work_queues=input_anchor_queue, 
-                       eval_episode_data_queue=eval_episode_data_queue)
+            if (settings['on_policy']):
+                
+                experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, None, model, settings,
+                           sim_work_queues=sim_work_queues, 
+                           eval_episode_data_queue=eval_episode_data_queue)
+            else:
+                experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, None, model, settings,
+                           sim_work_queues=input_anchor_queue, 
+                           eval_episode_data_queue=eval_episode_data_queue)
         masterAgent.setExperience(experience)
         if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
             masterAgent.setFDExperience(copy.deepcopy(experience))

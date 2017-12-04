@@ -1144,10 +1144,12 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
     episode_ = 0
     while i < samples:
         ## Actor should be FIRST here
-        #out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=episode_, 
-        #                       action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
-        #                        p=1.0, validation=settings['train_on_validation_set'], bootstrapping=True, epsilon=1.0)
-        out = simModelParrallel( sw_message_queues=sim_work_queues,
+        if ( ( sim_work_queues is None ) or (eval_episode_data_queue is None)):
+            out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=episode_, 
+                               action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
+                                p=1.0, validation=settings['train_on_validation_set'], bootstrapping=True, epsilon=1.0)
+        else:
+            out = simModelParrallel( sw_message_queues=sim_work_queues,
                                  model=model, settings=settings, 
                                  eval_episode_data_queue=eval_episode_data_queue, 
                                  anchors=settings['epochs'],

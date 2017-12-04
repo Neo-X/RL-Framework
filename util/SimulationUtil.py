@@ -537,7 +537,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = TerrainRLFlatEnv(sim, settings)
         # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
-    elif env_type == 'terrainRLImitateBiped2D' or (env_type == 'terrainRLImitateBiped3D'):
+    elif (env_type == 'terrainRLImitateBiped2D' or (env_type == 'terrainRLImitateBiped3D')):
         import terrainRLAdapter
         from sim.TerrainRLImitateEnv import TerrainRLImitateEnv
         sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
@@ -547,6 +547,18 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         # sim = simbiconAdapter.SimbiconWrapper(c)
         print ("Using Environment Type: " + str(env_type))
         exp = TerrainRLImitateEnv(sim, settings)
+        # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
+        return exp
+    elif ((env_type == 'terrainRLHLCBiped3D')):
+        import terrainRLAdapter
+        from sim.TerrainRLHLCEnv import TerrainRLHLCEnv
+        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
+        sim.setRender(render)
+        # sim.init(['train', '-arg_file=', config_file])
+        # print ("Num state: ", c._NUMBER_OF_STATES)
+        # sim = simbiconAdapter.SimbiconWrapper(c)
+        print ("Using Environment Type: " + str(env_type))
+        exp = TerrainRLHLCEnv(sim, settings)
         # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
     
@@ -623,6 +635,9 @@ def createActor(env_type, settings, experience):
     elif (env_type == 'terrainRLImitateBiped2D' or (env_type == 'terrainRLImitateBiped3D')):
         from actor.TerrainRLImitationActor import TerrainRLImitationActor
         actor = TerrainRLImitationActor(settings, experience)
+    elif (env_type == 'terrainRLHLCBiped3D'):
+        from actor.TerrainRLHLCActor import TerrainRLHLCActor
+        actor = TerrainRLHLCActor(settings, experience)
     elif (env_type == 'paperGibbon_env'):
         from actor.PaperGibbonAgent import PaperGibbonAgent
         actor = PaperGibbonAgent(settings, experience)
