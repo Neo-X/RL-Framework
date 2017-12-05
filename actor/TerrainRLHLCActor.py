@@ -83,12 +83,7 @@ class TerrainRLHLCActor(ActorInterface):
             sim.update()
             if (self._settings["shouldRender"]):
                 sim.display()
-            vel_sum += sim.getEnvironment().calcVelocity()
             updates_+=1
-            if ( sim.getEnvironment().hasStumbled() ):
-                stumble_count+=1
-                # print ("Agent has stumbled")
-            torque_sum += sim.getEnvironment().jointTorque()
             # print("Update #: ", updates_)
         """    
         if (updates_ == 1):
@@ -97,17 +92,9 @@ class TerrainRLHLCActor(ActorInterface):
             print("Action update Okay!")
         """    
         if (updates_ == 0): #Something went wrong...
+            print("There were no updates... This is bad")
             return 0.0
         
-        torque_reward = torque_sum/float(updates_)
-        
-        avg_stumble = float(stumble_count) / float(updates_);
-        stumble_gamma = 10.0;
-        stumble_reward = 1.0 / (1 + stumble_gamma * avg_stumble);
-            
-        averageSpeed = vel_sum / float(updates_)
-        vel_diff = self._target_vel - averageSpeed
-        vel_reward_ = math.exp((vel_diff*vel_diff)*self._target_vel_weight) # optimal is 0
         reward_ = sim.getEnvironment().calcReward()   
         """
         # print ("averageSpeed: ", averageSpeed)

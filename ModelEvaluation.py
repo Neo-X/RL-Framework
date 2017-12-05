@@ -1439,6 +1439,7 @@ def modelEvaluation(settings_file_name, runLastModel=False):
     # anchor_data_file = open(settings["anchor_file"])
     # _anchors = getAnchors(anchor_data_file)
     # anchor_data_file.close()
+    settings['shouldRender'] = True 
     model_type= settings["model_type"]
     directory= getDataDirectory(settings)
     rounds = settings["rounds"]
