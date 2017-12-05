@@ -65,6 +65,7 @@ class TerrainRLHLCActor(ActorInterface):
         updates_=0
         stumble_count=0
         torque_sum=0
+        tmp_reward_sum=0
         # print("Acting")
         while (not sim.needUpdatedAction() and (updates_ < 100)
                and (not sim.getEnvironment().agentHasFallen())
@@ -83,6 +84,9 @@ class TerrainRLHLCActor(ActorInterface):
             sim.update()
             if (self._settings["shouldRender"]):
                 sim.display()
+            rw_ = sim.getEnvironment().calcReward()
+            tmp_reward_sum=tmp_reward_sum + rw_
+            print("reward: ", rw_, " reward_sum:, ", tmp_reward_sum)
             updates_+=1
             # print("Update #: ", updates_)
         """    
@@ -95,7 +99,7 @@ class TerrainRLHLCActor(ActorInterface):
             print("There were no updates... This is bad")
             return 0.0
         
-        reward_ = sim.getEnvironment().calcReward()   
+        reward_ = tmp_reward_sum/float(updates_)   
         """
         # print ("averageSpeed: ", averageSpeed)
         # print ("vel_reward_: ", vel_reward_, " stumble: ", stumble_reward, " torque: ", torque_reward)
