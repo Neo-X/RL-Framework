@@ -565,10 +565,10 @@ class PPO(AlgorithmInterface):
         else:
             ## if not defined default is to normalize
             std = np.std(advantage)
-            if ( 'advantage_scaling' in self.getSettings() ):
-                std = std * self.getSettings()['advantage_scaling']
-            # mean = np.mean(advantage)
-            mean = 0.0
+            mean = np.mean(advantage)
+            if ( 'advantage_scaling' in self.getSettings() and ( self.getSettings()['advantage_scaling'] != False) ):
+                std = std / self.getSettings()['advantage_scaling']
+                mean = 0.0
             advantage = (advantage - mean) / std
         # pass # use given advantage parameter
         self.setData(states, actions, rewards, result_states, falls)
