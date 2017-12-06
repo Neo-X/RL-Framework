@@ -24,19 +24,9 @@ class CACLA_KERAS(AlgorithmInterface):
 
         super(CACLA_KERAS,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
-        
         ## primary network
         self._model = model
 
-        # sgd = SGD(lr=0.001, momentum=0.9)
-        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
-        print ("Clipping: ", sgd.decay)
-        self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
-        # sgd = SGD(lr=0.0005, momentum=0.9)
-        sgd = keras.optimizers.Adam(lr=self.getSettings()['learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
-        print ("Clipping: ", sgd.decay)
-        self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
-        
         print ("Loss ", self._model.getActorNetwork().total_loss)
         
         ## Target network
@@ -53,8 +43,14 @@ class CACLA_KERAS(AlgorithmInterface):
         CACLA_KERAS.compile(self)
         
     def compile(self):
-        
-        pass
+        # sgd = SGD(lr=0.001, momentum=0.9)
+        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
+        print ("Clipping: ", sgd.decay)
+        self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
+        # sgd = SGD(lr=0.0005, momentum=0.9)
+        sgd = keras.optimizers.Adam(lr=self.getSettings()['learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
+        print ("Clipping: ", sgd.decay)
+        self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
         
     def updateTargetModel(self):
         print ("Updating target Model")
