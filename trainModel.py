@@ -401,6 +401,9 @@ def trainModelParallel(inputData):
             sim_workers[0].start()
         
         masterAgent.setPolicy(model)
+        if (settings['train_forward_dynamics']):
+            masterAgent.setForwardDynamics(forwardDynamicsModel)
+        
         tmp_p=1.0
         message={}
         if ( settings['load_saved_model'] ):
