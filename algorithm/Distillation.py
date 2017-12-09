@@ -44,20 +44,6 @@ class Distillation(AlgorithmInterface):
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True))
         
-        self._dyna_target = T.col("DYNA_Target")
-        self._dyna_target.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
-        
-        self._dyna_target_shared = theano.shared(
-            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
-            broadcastable=(False, True))
-        
-        self._KL_Weight = T.scalar("KL_Weight")
-        self._KL_Weight.tag.test_value = np.zeros((1),dtype=np.dtype(self.getSettings()['float_type']))[0]
-        
-        self._kl_weight_shared = theano.shared(
-            np.ones((1), dtype=self.getSettings()['float_type'])[0])
-        self._kl_weight_shared.set_value(1.0)
-        
         """
         self._target_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype='float64'),
@@ -229,36 +215,6 @@ class Distillation(AlgorithmInterface):
         # self._target = (self._model.getRewardSymbolicVariable() + (np.array([self._discount_factor] ,dtype=np.dtype(self.getSettings()['float_type']))[0] * self._q_valsTargetNextState )) * self._NotFallen
         # self._target_dyna = theano.gradient.disconnected_grad(self._q_func)
         
-        ### _q_valsA because the predicted state is stored in self._model.getStateSymbolicVariable()
-        self._diff_dyna = self._dyna_target - self._q_valsNextState
-        # loss = 0.5 * self._diff ** 2 
-        loss = T.pow(self._diff_dyna, 2)
-        self._loss_dyna = T.mean(loss)
-        
-        self._dyna_grad = T.grad(self._loss_dyna + self._critic_regularization ,  self._params)
-        
-        self._givens_dyna = {
-            # self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            # self._NotFallen: self._NotFallen_shared
-            # self._model.getActionSymbolicVariable(): self._actions_shared,
-            self._dyna_target: self._dyna_target_shared
-        }
-        if (self.getSettings()['optimizer'] == 'rmsprop'):
-            self._DYNAUpdates = lasagne.updates.rmsprop(self._dyna_grad, self._params, 
-                    self._learning_rate , self._rho, self._rms_epsilon)
-        elif (self.getSettings()['optimizer'] == 'momentum'):
-            self._DYNAUpdates = lasagne.updates.momentum(self._dyna_grad, self._params, 
-                    self._learning_rate , momentum=self._rho)
-        elif ( self.getSettings()['optimizer'] == 'adam'):
-            self._DYNAUpdates = lasagne.updates.adam(self._dyna_grad, self._params, 
-                    self._learning_rate , beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
-        elif ( self.getSettings()['optimizer'] == 'adagrad'):
-            self._DYNAUpdates = lasagne.updates.adagrad(self._dyna_grad, self._params, 
-                    self._learning_rate, epsilon=self._rms_epsilon)
-        else:
-            print ("Unknown optimization method: ", self.getSettings()['optimizer'])
         
         ## Bellman error
         self._bellman = self._target - self._q_funcTarget
@@ -310,7 +266,6 @@ class Distillation(AlgorithmInterface):
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         self._trainActor = theano.function([], [self._actLoss, self._q_func_drop], updates=self._actionUpdates, givens=self._actGivens)
-        self._trainDyna = theano.function([], [self._loss_dyna], updates=self._DYNAUpdates, givens=self._givens_dyna)
         self._q_val = theano.function([], self._q_func,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates()})
         self._val_TargetState = theano.function([], self._q_funcTarget,
@@ -355,15 +310,6 @@ class Distillation(AlgorithmInterface):
             lerp_weight = 0.01
             # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
             
-            # print ("l_out length: " + str(len(all_paramsA)))
-            # print ("l_out length: " + str(all_paramsA[-6:]))
-            # print ("l_out[0] length: " + str(all_paramsA[0]))
-            # print ("l_out[4] length: " + str(all_paramsA[4]))
-            # print ("l_out[5] length: " + str(all_paramsA[5]))
-            # print ("l_out[6] length: " + str(all_paramsA[6]))
-            # print ("l_out[7] length: " + str(all_paramsA[7]))
-            # print ("l_out[11] length: " + str(all_paramsA[11]))
-            # print ("param Values")
             all_params = []
             for paramsA, paramsB in zip(all_paramsA, all_paramsB):
                 # print ("paramsA: " + str(paramsA))
@@ -490,29 +436,6 @@ class Distillation(AlgorithmInterface):
             self._actor_buffer_result_states = self._actor_buffer_result_states[self.getSettings()['batch_size']:]
             self._actor_buffer_falls =self._actor_buffer_falls[self.getSettings()['batch_size']:]
             self._actor_buffer_diff = self._actor_buffer_diff[self.getSettings()['batch_size']:]
-            # print( " Actor loss: ", lossActor)
-            # print("Diff for actor: ", self._get_diff())
-            # print ("Tmp_diff: ", tmp_diff)
-            # print ( "Action before diff: ", self._get_actor_diff_())
-            # print( "Action diff: ", self._get_action_diff())
-            # return np.sqrt(lossActor);
-            """
-            kl_after = self.kl_divergence()
-            kl_coeff = self._kl_weight_shared.get_value()
-            if kl_after > 1.3*self.getSettings()['kl_divergence_threshold']: 
-                kl_coeff *= 1.5
-                # if (kl_coeff > 1e-8):
-                self._kl_weight_shared.set_value(kl_coeff)
-                print "Got KL=%.3f (target %.3f). Increasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
-            elif kl_after < 0.7*self.getSettings()['kl_divergence_threshold']: 
-                kl_coeff /= 1.5
-                # if (kl_coeff > 1e-8):
-                self._kl_weight_shared.set_value(kl_coeff)
-                print "Got KL=%.3f (target %.3f). Decreasing penalty coeff => %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold'], kl_coeff)
-            else:
-                print ("KL=%.3f is close enough to target %.3f."%(kl_after, self.getSettings()['kl_divergence_threshold']))
-            print ("KL_divergence: ", self.kl_divergence(), " kl_weight: ", self._kl_weight_shared.get_value())
-            """
         return lossActor
     
     def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
@@ -541,14 +464,12 @@ class Distillation(AlgorithmInterface):
             loss: the loss for the DYNA type update
 
         """
-        self.setData( result_states, actions, rewards, predicted_states, falls)
-        values = self._val_TargetState()
-        # print ("Dyna values: ", values)
-        self._dyna_target_shared.set_value(values)
-        dyna_loss = self._trainDyna()
-        return dyna_loss[0]
+        
+        return 0
     
     def train(self, states, actions, rewards, result_states, falls):
         loss = self.trainCritic(states, actions, rewards, result_states, falls)
         lossActor = self.trainActor(states, actions, rewards, result_states, falls)
         return loss
+
+    

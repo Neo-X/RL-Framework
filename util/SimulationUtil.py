@@ -371,6 +371,10 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
         from algorithm.CACLAEntropy import CACLAEntropy
         model = CACLAEntropy(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+    elif (algorihtm_type == "Distillation" ):
+        from algorithm.Distillation import Distillation
+        model = Distillation(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)    
     else:
         from algorithm.AlgorithmInterface import AlgorithmInterface
         # modelClass = my_import(path_)
