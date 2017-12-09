@@ -53,7 +53,8 @@ class DeepNNSingleNet2(ModelInterface):
         if (self._settings['use_stocastic_policy']):
             with_std = lasagne.layers.DenseLayer(
                     networkMid, num_units=self._action_length,
-                    nonlinearity=theano.tensor.nnet.softplus)
+                    nonlinearity=theano.tensor.nnet.softplus,
+                    W=lasagne.init.GlorotUniform(gain=0.01))
             self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
         # self._b_o = init_b_weights((n_out,))
         

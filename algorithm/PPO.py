@@ -86,7 +86,7 @@ class PPO(AlgorithmInterface):
             self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
-            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 2e-1
+            self._q_valsActASTD = ((self._q_valsActASTD) * self.getSettings()['exploration_rate']) + 1e-2
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,:self._action_length]
         # self._q_valsActTarget = scale_action(self._q_valsActTarget, self._action_bounds)
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
@@ -94,7 +94,7 @@ class PPO(AlgorithmInterface):
             self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else: 
-            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 2e-1
+            self._q_valsActTargetSTD = (( self._q_valsActTargetSTD)  * self.getSettings()['exploration_rate']) + 1e-2
         self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
         self._q_func = self._q_valsA
@@ -278,9 +278,13 @@ class PPO(AlgorithmInterface):
         # self._all_Params = self._params + self._actionParams[-3:]    
         self._all_Params = self._params + self._actionParams
         
+        max_norm = 5.0
         print ("Num params: ", len(self._all_Params), " params: ", len(self._params) , " act params: ", len(self._actionParams))
         self._both_grad = T.grad(self._full_loss ,  self._all_Params)
-        self._both_grad = lasagne.updates.total_norm_constraint(self._both_grad, 5)
+        # self._both_grad = lasagne.updates.total_norm_constraint(self._both_grad, 5)
+        self._both_grad = [lasagne.updates.norm_constraint(grad, max_norm, range(grad.ndim))
+         for grad in self._both_grad]
+        # self._both_grad = lasagne.updates.total_norm_constraint(self._both_grad, 5)
         if (self.getSettings()['optimizer'] == 'rmsprop'):
             self._collectiveUpdates = lasagne.updates.rmsprop(self._both_grad, self._all_Params, 
                     self._learning_rate , self._rho, self._rms_epsilon)
