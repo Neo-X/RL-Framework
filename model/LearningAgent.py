@@ -289,7 +289,7 @@ class LearningAgent(AgentInterface):
     def predict(self, state, evaluation_=False):
         if self._useLock:
             self._accesLock.acquire()
-        act = self._pol.predict(state)
+        act = self._pol.predict(state, evaluation_=evaluation_)
         if self._useLock:
             self._accesLock.release()
         return act

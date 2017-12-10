@@ -485,10 +485,13 @@ class Distillation(AlgorithmInterface):
         return loss
 
     
-    def predict(self, state, deterministic_=True):
+    def predict(self, state, deterministic_=True, evaluation_=False):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        action_ = self._expert_policies[0].predict(state)
+        if (evaluation_ is True):
+            action_ = super(Distillation,self).predict(state)
+        else:
+            action_ = self._expert_policies[0].predict(state)
         return action_
     
     
