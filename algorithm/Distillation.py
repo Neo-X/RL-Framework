@@ -5,6 +5,7 @@ import numpy as np
 import lasagne
 import sys
 import copy
+import dill
 sys.path.append('../')
 from model.ModelUtil import *
 from algorithm.AlgorithmInterface import AlgorithmInterface
@@ -22,6 +23,17 @@ class Distillation(AlgorithmInterface):
         
         # create a small convolutional neural network
         
+        ### Load expert policy files
+        self._expert_policies = []
+        for i in range(len(self.getSettings()['expert_policy_files'])):
+            file_name = self.getSettings()['expert_policy_files'][i]
+            print ("Loading pre compiled network: ", file_name)
+            f = open(file_name, 'rb')
+            model_ = dill.load(f)
+            # model.setSettings(settings)
+            f.close()
+            self._expert_policies.append(model_)
+            
         self._actor_buffer_states=[]
         self._actor_buffer_result_states=[]
         self._actor_buffer_actions=[]
@@ -172,7 +184,7 @@ class Distillation(AlgorithmInterface):
         # self._actLoss_ = (T.mean(T.pow(self._actDiff, 2),axis=1))
                                                                                 
         self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)( (T.mean(T.pow(self._actDiff, 2),axis=1)), 
-                                                                                (self._tmp_diff * (1.0/(1.0-self._discount_factor)))
+                                                                                (self._tmp_diff)
                                                                             )
         # self._actLoss = T.sum(self._actLoss)/float(self._batch_size) 
         self._actLoss = T.mean(self._actLoss_) 
@@ -227,7 +239,7 @@ class Distillation(AlgorithmInterface):
             self._model.getResultStateSymbolicVariable(): self._model.getStates(),
         }
         
-        A_CACLA.compile(self)
+        Distillation.compile(self)
         
     def compile(self):
         
@@ -472,4 +484,11 @@ class Distillation(AlgorithmInterface):
         lossActor = self.trainActor(states, actions, rewards, result_states, falls)
         return loss
 
+    
+    def predict(self, state, deterministic_=True):
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        action_ = self._expert_policies[0].predict(state)
+        return action_
+    
     
