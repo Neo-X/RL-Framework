@@ -315,5 +315,7 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "critic_network_layer_sizes": [128, 64, 32],
 	"comment__": "A list describing the size of the layers for the NN",
-"policy_network_layer_sizes": [128, 64, 32]
+"policy_network_layer_sizes": [128, 64, 32],
+	"comment__": "Anneal the size of the standard deviation for the policy",
+"anneal_policy_std": true
 }
