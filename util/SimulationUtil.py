@@ -542,6 +542,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
     elif (env_type == 'terrainRLImitateBiped2D' or (env_type == 'terrainRLImitateBiped3D')):
+        sys.path.append('../../TerrainRL/lib')
         import terrainRLAdapter
         from sim.TerrainRLImitateEnv import TerrainRLImitateEnv
         sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
