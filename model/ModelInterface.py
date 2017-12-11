@@ -46,7 +46,7 @@ class ModelInterface(object):
         elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'sigmoid')):
             self._last_policy_layer_activation_type = lasagne.nonlinearities.sigmoid
         
-        self._last_std_policy_layer_activation_type = lasagne.nonlinearities.softplus
+        self._last_std_policy_layer_activation_type = theano.tensor.nnet.softplus
         if ('_last_std_policy_layer_activation_type' in settings_ and (settings_['_last_std_policy_layer_activation_type']) == 'linear'):
             self._last_std_policy_layer_activation_type=lasagne.nonlinearities.linear
         if ("_last_std_policy_layer_activation_type" in settings_ and (settings_['_last_std_policy_layer_activation_type'] == 'leaky_rectify')):
@@ -58,7 +58,7 @@ class ModelInterface(object):
         elif ("_last_std_policy_layer_activation_type" in settings_ and (settings_['_last_std_policy_layer_activation_type'] == 'sigmoid')):
             self._last_std_policy_layer_activation_type = lasagne.nonlinearities.sigmoid
         elif ("_last_std_policy_layer_activation_type" in settings_ and (settings_['_last_std_policy_layer_activation_type'] == 'softplus')):
-            self._last_std_policy_layer_activation_type = lasagne.nonlinearities.softplus
+            self._last_std_policy_layer_activation_type = theano.tensor.nnet.softplus
 
         self._last_critic_layer_activation_type = lasagne.nonlinearities.linear
         if ('last_critic_layer_activation_type' in settings_ and (settings_['last_critic_layer_activation_type']) == 'linear'):

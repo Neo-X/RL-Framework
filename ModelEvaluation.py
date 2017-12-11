@@ -419,7 +419,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         # action = randomExporation(settings["exploration_rate"], pa)
                         std_ = model.predict_std(state_)
                         if (settings['anneal_policy_std']):
-                            std = std * p
+                            std_ = std_ * p
                         # print("Action: ", pa)
                         # print ("Action std: ", std)
                         stds.append(std_)
