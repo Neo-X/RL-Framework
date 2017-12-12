@@ -91,7 +91,7 @@ class SimContainer(object):
             """
             if (self._exp.needUpdatedAction()):
                 state_ = self._exp.getState()
-                print ("State: ", state_)
+                # print ("State: ", state_)
                 ## Update value function visualization
                 if ( True ):
                     self._viz_q_values_.append(self._agent.q_value(state_)[0])
@@ -113,11 +113,11 @@ class SimContainer(object):
                 """
                 action_ = np.array(self._agent.predict(state_), dtype='float64')
                 
-                # grad_ = self._agent.getPolicy().getGrads(state_)[0]
-                grad_ = [0]
+                grad_ = self._agent.getPolicy().getGrads(state_)[0]
+                # grad_ = [0]
                 self._grad_sum += np.abs(grad_)
                 self._num_actions +=1
-                # print ("Input grad: ", repr(self._grad_sum/self._num_actions))
+                print ("Input grad: ", repr(self._grad_sum/self._num_actions))
                 # print ("Input grad: ", str(self._grad_sum/self._num_actions))
                 # print ("Input grad: ", self._grad_sum/self._num_actions)
                 

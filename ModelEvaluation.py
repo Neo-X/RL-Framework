@@ -409,7 +409,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         pa = model.predict(state_)
                         # print ("Exploration Action: ", pa)
                         # action = randomExporation(settings["exploration_rate"], pa)
-                        if (settings['anneal_policy_std']):
+                        if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
                             action = randomExporation(settings["exploration_rate"] * p, pa, action_bounds)
                         else:
                             action = randomExporation(settings["exploration_rate"], pa, action_bounds)
@@ -418,7 +418,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         pa_ = model.predict(state_)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         std_ = model.predict_std(state_)
-                        if (settings['anneal_policy_std']):
+                        if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
                             std_ = std_ * p
                         # print("Action: ", pa)
                         # print ("Action std: ", std)

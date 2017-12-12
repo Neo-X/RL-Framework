@@ -487,8 +487,9 @@ class A_CACLA(AlgorithmInterface):
             self._tmp_diff_shared.set_value(tmp_diff)
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
             lossActor, _ = self._trainActor()
-            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor, " actor buffer size: ", len(self._actor_buffer_actions))
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
                 actions_ = self._q_action()
                 print("Mean action: ", np.mean(actions_, axis=0), " std ", np.std(actions_, axis=0))
             ### Remove batch from buffer
