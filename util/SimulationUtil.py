@@ -518,9 +518,11 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
     elif env_type == 'terrainRLBiped2D':
-        import terrainRLAdapter
+        terrainRL_PATH = os.environ['TERRAINRL_PATH']
+        sys.path.append(terrainRL_PATH+'/lib')
+        from simAdapter import terrainRLAdapter
         from sim.TerrainRLEnv import TerrainRLEnv
-        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
+        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', terrainRL_PATH+'/'+config_file, '-relative_file_path=', terrainRL_PATH+'/'])
         sim.setRender(render)
         # sim.init(['train', '-arg_file=', config_file])
         # print ("Num state: ", c._NUMBER_OF_STATES)
@@ -530,9 +532,11 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
     elif env_type == 'terrainRLFlatBiped2D':
-        import terrainRLAdapter
+        terrainRL_PATH = os.environ['TERRAINRL_PATH']
+        sys.path.append(terrainRL_PATH+'/lib')
+        from simAdapter import terrainRLAdapter
         from sim.TerrainRLFlatEnv import TerrainRLFlatEnv
-        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
+        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', terrainRL_PATH+'/'+config_file, '-relative_file_path=', terrainRL_PATH+'/'])
         sim.setRender(render)
         # sim.init(['train', '-arg_file=', config_file])
         # print ("Num state: ", c._NUMBER_OF_STATES)
@@ -556,9 +560,11 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         # exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
     elif ((env_type == 'terrainRLHLCBiped3D')):
-        import terrainRLAdapter
+        terrainRL_PATH = os.environ['TERRAINRL_PATH']
+        sys.path.append(terrainRL_PATH+'/lib')
+        from simAdapter import terrainRLAdapter
         from sim.TerrainRLHLCEnv import TerrainRLHLCEnv
-        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file])
+        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', terrainRL_PATH+'/'+config_file, '-relative_file_path=', terrainRL_PATH+'/'])
         sim.setRender(render)
         # sim.init(['train', '-arg_file=', config_file])
         # print ("Num state: ", c._NUMBER_OF_STATES)

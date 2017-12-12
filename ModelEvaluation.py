@@ -41,7 +41,7 @@ class SimWorker(Process):
         self._iteration = 0
         # self._namespace = namespace # A way to pass messages between processes
         self._process_random_seed = process_random_seed
-        ## Used to recieve special messages like update your model parameters to this now!
+        ## Used to receive special messages like update your model parameters to this now!
         self._message_queue = message_que
         self._worker_id = worker_id
     
@@ -243,10 +243,11 @@ class SimWorker(Process):
                             data_ = self._message_queue.get(False)
                         except Exception as inst:
                             print ("SimWorker model parameter message queue empty.")
-                        if (not (data_ == None)):
+                        if (not (data_ is None)):
                             episodeData = data_
                     # print ("Got updated network parameters:")
-                    if (episodeData != None):
+                    # print("episodeData: ", episodeData)
+                    if (episodeData != None and (isinstance(episodeData,dict))):
                         # message = episodeData[0]## Check if any messages in the queue
                         message = episodeData['type']
                         if message == "Update_Policy":
