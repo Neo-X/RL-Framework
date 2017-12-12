@@ -546,7 +546,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         sys.path.append(terrainRL_PATH+'/lib')
         from simAdapter import terrainRLAdapter
         from sim.TerrainRLImitateEnv import TerrainRLImitateEnv
-        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', config_file, '-relative_file_path=', terrainRL_PATH+'/'])
+        sim = terrainRLAdapter.cSimAdapter(['train', '-arg_file=', terrainRL_PATH+'/'+config_file, '-relative_file_path=', terrainRL_PATH+'/'])
         sim.setRender(render)
         # sim.init(['train', '-arg_file=', config_file])
         # print ("Num state: ", c._NUMBER_OF_STATES)
