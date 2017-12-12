@@ -179,7 +179,7 @@
     "comment__": "NUmmber of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
     "comment__": "Initial tempurature for annealing of e-greedy exploration",
-"initial_temperature": 2.857,
+"initial_temperature": 1.5,
     "comment__": "epsilon lower limit",
 "min_epsilon": 0.25,
     "comment__": "Whether or not to draw/render the simulation",
@@ -311,5 +311,7 @@
 	"comment__": "Compute a running mean and std for network input/output scaling",
 "keep_running_mean_std_for_scaling": true,
 	"comment__": "parameter to control the advantage scalling",
-"advantage_scaling": false
+"advantage_scaling": false,
+	"comment__": "Anneal the size of the standard deviation for the policy",
+"anneal_policy_std": true
 }
