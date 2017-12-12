@@ -489,6 +489,7 @@ class A_CACLA(AlgorithmInterface):
             lossActor, _ = self._trainActor()
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor, " actor buffer size: ", len(self._actor_buffer_actions))
+                print ("error:", self._get_actor_loss())
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
                 actions_ = self._q_action()
                 print("Mean action: ", np.mean(actions_, axis=0), " std ", np.std(actions_, axis=0))
