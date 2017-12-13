@@ -392,8 +392,10 @@ class Distillation(AlgorithmInterface):
         # loss, _ = self._train()
         # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
+        ### Update actions to expert actions. Some were selected from current policy
+        actions = self._expert_policies[0].predict_batch(states)
         
-        diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
+        # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print ("Rewards, Values, NextValues, Diff, new Diff")
         # print (np.concatenate((rewards, self._q_val(), self.get_q_valsTargetNextState(),  diff_, self._q_val() - (rewards + (self._discount_factor * self.get_q_valsTargetNextState()))), axis=1))
         """
@@ -418,7 +420,7 @@ class Distillation(AlgorithmInterface):
                (exp_actions[i] == 1)
             )
         """
-        for i in range(len(diff_)): ### Put data in buffer
+        for i in range(states.shape[0]): ### Put data in buffer
             self._actor_buffer_diff.append([1.0])
             self._actor_buffer_states.append(states[i])
             self._actor_buffer_actions.append(actions[i])
@@ -439,6 +441,7 @@ class Distillation(AlgorithmInterface):
             lossActor, _ = self._trainActor()
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor, " actor buffer size: ", len(self._actor_buffer_actions))
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):    
                 actions_ = self._q_action()
                 print("Mean action: ", np.mean(actions_, axis=0), " std ", np.std(actions_, axis=0))
             ### Remove batch from buffer
@@ -485,12 +488,15 @@ class Distillation(AlgorithmInterface):
         return loss
 
     
-    def predict(self, state, deterministic_=True, evaluation_=False):
+    def predict(self, state, deterministic_=True, evaluation_=False, p=1.0):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        if (evaluation_ is True):
+        r = np.random.rand(1)[0]
+        ### Want to start out selecting actions from the expert more
+        ### p starts at 1 is anneal to 0.
+        if (evaluation_ is True or ( p < r) ): ## Use policy
             action_ = super(Distillation,self).predict(state)
-        else:
+        else: ## Use expert policy
             action_ = self._expert_policies[0].predict(state)
         return action_
     
