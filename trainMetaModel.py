@@ -70,6 +70,11 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
                 print ("Copying fd model: ", hyperSettings['saved_model_path'])
                 # shutil.copy2(hyperSettings['saved_model_path'], directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl" )
                 shutil.copy2(hyperSettings['saved_model_path'], directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl" )
+            if ( 'saved_model_folder' in hyperSettings):
+                ### Copy models from other metamodel simulation
+                ### Purposefully not copying the "Best" model but the last instead
+                shutil.copy2(hyperSettings['saved_model_folder']+"/_" + str(i)+'/'+settings['model_type']+'/'+"pendulum_agent_"+str(settings['agent_name'])+".pkl", directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl" )
+                
         
     # p = ThreadPool(numThreads)
     p = ProcessingPool(numThreads)
