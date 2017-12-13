@@ -206,16 +206,16 @@ class SimWorker(Process):
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
-                elif (sim_on_poli):
+                elif (sim_on_poli): ### With exploration
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
-                elif (bootstrapping):
+                elif (bootstrapping): ## With exploration and noise
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval,
                             bootstrapping=bootstrapping)
-                else:    
+                else: ##Normal??
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
@@ -283,14 +283,16 @@ class SimWorker(Process):
                          bootstrapping=False):
         out = simEpoch(actor, exp, model, discount_factor, anchors=anchors, action_space_continuous=action_space_continuous, settings=settings, 
                        print_data=print_data, p=p, validation=validation, epoch=epoch, evaluation=evaluation, _output_queue=self._output_queue, epsilon=settings['epsilon'],
-                       bootstrapping=bootstrapping)
+                       bootstrapping=bootstrapping,
+                       worker_id=self._worker_id)
         return out
     
     
 # @profile(precision=5)
 def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, 
              p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None,
-             sampling=False, epsilon=None):
+             sampling=False, epsilon=None,
+             worker_id=None):
     """
         
         evaluation: If True than the simulation is being evaluated and the episodes will not terminate early.
@@ -407,7 +409,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                           ) 
                          and (not sampling)):
                         # print ("Random Guassian sample, state bounds", model.getStateBounds())
-                        pa = model.predict(state_, p=p)
+                        pa = model.predict(state_, p=p, sim_index=worker_id)
                         # print ("Exploration Action: ", pa)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
@@ -416,7 +418,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                             action = randomExporation(settings["exploration_rate"], pa, action_bounds)
                     elif (settings['exploration_method'] == 'gaussian_network' or 
                           (settings['use_stocastic_policy'] == True)):
-                        pa_ = model.predict(state_, p=p)
+                        pa_ = model.predict(state_, p=p, sim_index=worker_id)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         std_ = model.predict_std(state_)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
@@ -432,7 +434,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     elif ((settings['exploration_method'] == 'sampling')):
                         ## Use a sampling method to find a good action
                         sim_state_ = exp.getSimState()
-                        action = model.getSampler().predict(sim_state_, p=p)
+                        action = model.getSampler().predict(sim_state_, p=p, sim_index=worker_id)
                     else:
                         print ("Exploration method unknown: " + str(settings['exploration_method']))
                         sys.exit(1)
@@ -463,7 +465,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 exp_action = int(0) 
                 # return pa1
                 ## For sampling method to skip sampling during evaluation.
-                pa = model.predict(state_, evaluation_=evaluation)
+                pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id)
                 
                 action = pa
                 # print ("Exploitation: ", action , " epsilon: ", epsilon * p)
@@ -602,7 +604,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)
         # print("result states: ", result_states___)
         result_states___.extend(resultState_)
-        falls.append([agent_not_fell])
+        if (worker_id is not None):
+            # print("Pushing working id as fall value: ", [worker_id])
+            falls.append([worker_id])
+        else:
+            # print("Pushing actual fall value: ", [agent_not_fell])
+            falls.append([agent_not_fell])
         exp_actions.append([exp_action])
         # print ("falls: ", falls)
         # values.append(value)
@@ -610,7 +617,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
                 # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
                 # print("Putting tuple in queue")
-                _output_queue.put((state_, action, resultState_, [reward_],  [agent_not_fell], [0], [exp_action]))
+                _output_queue.put((states[-1:], actions[-1:], result_states___[-1:], [rewards[-1:]],  falls[-1:], [0], exp_actions[-1:]))
         
         state_num += 1
         # else:

@@ -321,7 +321,7 @@ class AlgorithmInterface(object):
         return self._get_grad()
     
     
-    def predict(self, state, deterministic_=True, evaluation_=False, p=None):
+    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
         """
