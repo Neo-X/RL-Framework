@@ -1060,7 +1060,7 @@ def trainModelParallel(inputData):
             if (settings['visualize_learning']):
                 actor_loss_viz.finish()
                 actor_regularization_viz.finish()
-        
+        ### This will find ALL your memory deallocation issues in C++...
         gc.collect()
         
 import inspect
@@ -1140,3 +1140,5 @@ if (__name__ == "__main__"):
         print("Please specify arguments properly, ")
         print(sys.argv)
         print("python trainModel.py <sim_settings_file>")
+
+    print("All Done.")
