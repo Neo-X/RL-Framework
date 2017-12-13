@@ -11,5 +11,7 @@ module load LIB/OPENCV/2.4.13-CPUONLY
 
 setenv ROBOSCHOOL_PATH /local-scratch/playground/roboschool
 
-
+### Terrain RL stuff
+setenv TERRAINRL_PATH /local-scratch/playground/TerrainRL
+setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/local-scratch/playground/TerrainRL/lib
 
