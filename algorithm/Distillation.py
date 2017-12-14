@@ -385,6 +385,7 @@ class Distillation(AlgorithmInterface):
     
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, forwardDynamicsModel=None):
         lossActor = 0
+        """
         ### Update actions to expert actions. Some were selected from current policy
         actions = self._expert_policies[0].predict_batch(states)
         actions_ = []
@@ -395,6 +396,8 @@ class Distillation(AlgorithmInterface):
             action_ = self._expert_policies[expert_index].predict(state_)
             actions_.append(action_)
         actions = np.array(actions_, dtype=self.getSettings()['float_type'])
+        """
+        
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print ("Rewards, Values, NextValues, Diff, new Diff")
         # print (np.concatenate((rewards, self._q_val(), self.get_q_valsTargetNextState(),  diff_, self._q_val() - (rewards + (self._discount_factor * self.get_q_valsTargetNextState()))), axis=1))
@@ -493,6 +496,7 @@ class Distillation(AlgorithmInterface):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
         r = np.random.rand(1)[0] ## in [0,1]
+        r = 2.0 ### Fix for debugging
         ### Want to start out selecting actions from the expert more
         ### p starts at 1 is anneal to 0.
         if (evaluation_ is True or 

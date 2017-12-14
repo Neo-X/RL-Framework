@@ -30,7 +30,7 @@
     "comment__": "Discount factor used during learning",
 "discount_factor": 0.95,
     "comment__": "Should the training be plotted during learning",
-"visualize_learning": false,
+"visualize_learning": true,
     "comment__": "Whether or not to save the plotted data while learning",
 "save_trainData": true,
     "comment__": "Whether or not to train a forward dynamics model as well",
