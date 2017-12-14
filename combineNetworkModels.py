@@ -1,3 +1,9 @@
+
+"""
+
+
+"""
+
 import sys
 import numpy as np
 import dill
@@ -55,7 +61,7 @@ def combineNetworkModels(settings_file_name):
         print (params[0][i].shape)
     print ("New Network Critic shape, done")
     
-    if (False):
+    if (True):
         file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
     else:
         file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
