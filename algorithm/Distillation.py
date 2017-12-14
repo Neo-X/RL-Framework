@@ -497,8 +497,6 @@ class Distillation(AlgorithmInterface):
                 bootstrapping=False):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        r = np.random.rand(1)[0] ## in [0,1]
-        r = 2.0 ### Fix for debugging
         if (not ( p is None) and (evaluation_ is False)):
             r = np.random.rand(1)[0] ## in [0,1]
             # r = 0.0 ### Fix for debugging, expert only

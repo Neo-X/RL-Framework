@@ -242,7 +242,8 @@ class SimWorker(Process):
                         try:
                             data_ = self._message_queue.get(False)
                         except Exception as inst:
-                            print ("SimWorker model parameter message queue empty.")
+                            # print ("SimWorker model parameter message queue empty.")
+                            pass
                         if (not (data_ is None)):
                             episodeData = data_
                     # print ("Got updated network parameters:")
