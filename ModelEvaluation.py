@@ -409,7 +409,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                           ) 
                          and (not sampling)):
                         # print ("Random Guassian sample, state bounds", model.getStateBounds())
-                        pa = model.predict(state_, p=p, sim_index=worker_id)
+                        pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # print ("Exploration Action: ", pa)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
@@ -418,7 +418,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                             action = randomExporation(settings["exploration_rate"], pa, action_bounds)
                     elif (settings['exploration_method'] == 'gaussian_network' or 
                           (settings['use_stocastic_policy'] == True)):
-                        pa_ = model.predict(state_, p=p, sim_index=worker_id)
+                        pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         std_ = model.predict_std(state_)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
@@ -434,7 +434,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     elif ((settings['exploration_method'] == 'sampling')):
                         ## Use a sampling method to find a good action
                         sim_state_ = exp.getSimState()
-                        action = model.getSampler().predict(sim_state_, p=p, sim_index=worker_id)
+                        action = model.getSampler().predict(sim_state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                     else:
                         print ("Exploration method unknown: " + str(settings['exploration_method']))
                         sys.exit(1)
@@ -465,7 +465,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 exp_action = int(0) 
                 # return pa1
                 ## For sampling method to skip sampling during evaluation.
-                pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id)
+                pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                 
                 action = pa
                 # print ("Exploitation: ", action , " epsilon: ", epsilon * p)
