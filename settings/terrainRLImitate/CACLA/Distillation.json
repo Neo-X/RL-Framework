@@ -177,7 +177,7 @@
     "comment__": "Initial tempurature for annealing of e-greedy exploration",
 "initial_temperature": 10.00,
     "comment__": "epsilon lower limit",
-"min_epsilon": 0.2,
+"min_epsilon": 0.1,
     "comment__": "Whether or not to draw/render the simulation",
 "shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
@@ -287,7 +287,7 @@
 	"comment__": "Load a saved and pre-trained forward dynamics model",
 "load_saved_fd_model": false,
 	"comment__": "use a special annealing schedule that will being at 1 and end at 0",
-"annealing_schedule": false,
+"annealing_schedule": "log",
 	"comment__": "list of paths to policy files to distill together",
 "expert_policy_files": ["terrainRLImitateBiped2D/A_CACLA/Biped2dFull_Simple_Walk_Flat2/Deep_NN/pendulum_agent_A_CACLA_Best.pkl"]
 }
