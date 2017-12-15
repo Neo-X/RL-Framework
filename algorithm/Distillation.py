@@ -388,17 +388,28 @@ class Distillation(AlgorithmInterface):
         
         ### Update actions to expert actions. Some were selected from current policy
 
-        if ('run_distillation_in_test_mode' in self.getSettings() and (self.getSettings()['run_distillation_in_test_mode'])):
-            pass
-        else:        
-            actions_ = []
-            for i in range(states.shape[0]):
-                # print ("falls[i]: ", falls[i])
-                expert_index = falls[i][0]
-                state_ = [states[i]]
-                action_ = self._expert_policies[expert_index].predict_batch(state_)[0]
-                actions_.append(action_)
-            actions = np.array(actions_, dtype=self.getSettings()['float_type'])
+        # if ('run_distillation_in_test_mode' in self.getSettings() and (self.getSettings()['run_distillation_in_test_mode'])):
+        #     pass
+        # else:        
+        # print ("State bounds comparison: ", self._expert_policies[0].getStateBounds(), 
+        #        " self: ", self.getStateBounds())
+        
+        actions_ = []
+        # print ("falls: ", falls)
+        for i in range(states.shape[0]):
+            expert_index = falls[i][0]
+            state_ = [states[i]]
+            ### Need to convert normalized state back to env scaled state
+            state_ = scale_action(state_, self.getStateBounds())
+            action_ = self._expert_policies[expert_index].predict(state_)
+            # action_ = norm_state(action_, self._expert_policies[expert_index].getActionBounds())
+            action_ = norm_state(action_, self.getActionBounds())
+            print ("Action diffy: ", np.array(action_) - actions[i])
+            actions_.append(action_)
+        actions_ = np.array(actions_, dtype=self.getSettings()['float_type'])
+        # print ("New actions: ", actions.shape)
+        # print ("Action diff: ", np.sum(actions - actions_, axis=1))
+        actions = actions_
         
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
@@ -509,14 +520,17 @@ class Distillation(AlgorithmInterface):
                 evaluation_ = True
         ### Want to start out selecting actions from the expert more
         ### p starts at 1 is anneal to 0.
+        """
         if (evaluation_ is True or (bootstrapping is True)
             ): ## Use policy
-            # print("Using Policy")
+            print("Using Policy")
             action_ = super(Distillation,self).predict(state)
         else: ## Use expert policy  
             # print("sim_index: ", sim_index)
-            # print("Using Expert")
+            print("Using Expert")
             action_ = self._expert_policies[sim_index].predict(state)
         return action_
+        """
+        return self._expert_policies[sim_index].predict(state)
     
     

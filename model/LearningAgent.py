@@ -76,6 +76,11 @@ class LearningAgent(AgentInterface):
             self._accesLock.acquire()
         cost = 0
         
+        # print ("Bounds comparison: ", self._pol.getStateBounds(), " exp mem: ", 
+        #        self._expBuff.getStateBounds())
+        # print ("Bounds comparison: ", self._pol.getActionBounds(), " exp mem: ", 
+        #        self._expBuff.getActionBounds())
+        
         # print("_exp_actions: ", _exp_actions)
         if ("value_function_batch_size" in self._settings):
             value_function_batch_size = self._settings['value_function_batch_size']
