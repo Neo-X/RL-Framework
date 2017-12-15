@@ -289,7 +289,7 @@
 	"comment__": "use a special annealing schedule that will being at 1 and end at 0",
 "annealing_schedule": "log",
 	"comment__": "list of paths to policy files to distill together",
-"expert_policy_files": ["terrainRLImitateBiped2D/A_CACLA/Biped2dFull_Simple_Walk_Flat2/Deep_NN/pendulum_agent_A_CACLA_Best.pkl"]
+"expert_policy_files": ["terrainRLImitateBiped2D/A_CACLA/Biped2dFull_Simple_Walk_Flat2/Deep_NN/pendulum_agent_A_CACLA_Best.pkl"],
 	"comment__": "Flag used to do a testing version of Distillation",
 "run_distillation_in_test_mode": true
 }
