@@ -291,5 +291,5 @@
 	"comment__": "list of paths to policy files to distill together",
 "expert_policy_files": ["terrainRLImitateBiped2D/A_CACLA/Biped2dFull_Simple_Walk_Flat2/Deep_NN/pendulum_agent_A_CACLA_Best.pkl"],
 	"comment__": "Flag used to do a testing version of Distillation",
-"run_distillation_in_test_mode": true
+"run_distillation_in_test_mode": false
 }
