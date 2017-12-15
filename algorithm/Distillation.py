@@ -387,16 +387,18 @@ class Distillation(AlgorithmInterface):
         lossActor = 0
         
         ### Update actions to expert actions. Some were selected from current policy
-        
-        actions = self._expert_policies[0].predict_batch(states)
-        actions_ = []
-        for i in range(states.shape[0]):
-            # print ("falls[i]: ", falls[i])
-            expert_index = falls[i][0]
-            state_ = [states[i]]
-            action_ = self._expert_policies[expert_index].predict_batch(state_)[0]
-            actions_.append(action_)
-        actions = np.array(actions_, dtype=self.getSettings()['float_type'])
+
+        if ('run_distillation_in_test_mode' in self.getSettings() and (self.getSettings()['run_distillation_in_test_mode'])):
+            pass
+        else:        
+            actions_ = []
+            for i in range(states.shape[0]):
+                # print ("falls[i]: ", falls[i])
+                expert_index = falls[i][0]
+                state_ = [states[i]]
+                action_ = self._expert_policies[expert_index].predict_batch(state_)[0]
+                actions_.append(action_)
+            actions = np.array(actions_, dtype=self.getSettings()['float_type'])
         
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
@@ -499,7 +501,10 @@ class Distillation(AlgorithmInterface):
         # states[0, ...] = state
         if (not ( p is None) and (evaluation_ is False)):
             r = np.random.rand(1)[0] ## in [0,1]
-            # r = 0.0 ### Fix for debugging, expert only
+            if ('run_distillation_in_test_mode' in self.getSettings() and (self.getSettings()['run_distillation_in_test_mode'])):
+                pass
+            else:
+                r = 0.0 ### Fix for debugging, expert only
             if ( r > p):
                 evaluation_ = True
         ### Want to start out selecting actions from the expert more
