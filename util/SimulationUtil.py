@@ -383,11 +383,27 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
             model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
             print("Loaded algorithm: ", model)
-            return model
+            # return model
         else:
             print ("Unknown learning algorithm type: " + str(algorihtm_type))
             raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
         # sys.exit(2)
+        
+    if (settings['load_saved_model'] == "network_and_scales"):
+        ### In this case we want to change algroithm but want to keep the policy network
+        directory= getDataDirectory(settings)
+        print ("Loading pre compiled network and scaling values, not learing algorithm.")
+        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        f = open(file_name, 'rb')
+        model_ = dill.load(f)
+        model_.setSettings(settings)
+        model.setNetworkParameters(model_.getNetworkParameters())
+        # model.setTargetModel(model_.getTargetModel())
+        
+        model.setStateBounds(model_.getStateBounds())
+        model.setActionBounds(model_.getActionBounds())
+        model.setRewardBounds(model_.getRewardBounds())
+        f.close()
         
     print ("Using model type ", algorihtm_type , " : ", model)
     

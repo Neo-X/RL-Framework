@@ -464,18 +464,18 @@ def trainModelParallel(inputData):
         else:
             model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         """
-        if ( not settings['load_saved_model'] ):
+        if ( settings['load_saved_model'] or (settings['load_saved_model'] == 'network_and_scales') ): ## Transfer learning
+            experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
+            experience.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
+            experience.setActionBounds(copy.deepcopy(model.getActionBounds()))
+            model.setSettings(settings)
+        else: ## Normal
             model.setStateBounds(state_bounds)
             model.setActionBounds(action_bounds)
             model.setRewardBounds(reward_bounds)
             experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
             experience.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
             experience.setActionBounds(copy.deepcopy(model.getActionBounds()))
-        else: # continuation learning
-            experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
-            experience.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
-            experience.setActionBounds(copy.deepcopy(model.getActionBounds()))
-            model.setSettings(settings)
             
         # mgr = multiprocessing.Manager()
         # learningNamespace = mgr.Namespace()

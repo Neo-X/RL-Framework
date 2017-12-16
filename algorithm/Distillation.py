@@ -26,7 +26,7 @@ class Distillation(AlgorithmInterface):
         ### Load expert policy files
         self._expert_policies = []
         for i in range(len(self.getSettings()['expert_policy_files'])):
-            file_name = self.getSettings()['expert_policy_files'][i]
+            file_name = self.getSettings()['expert_policy_files'][i] + '/'+ self.getSettings()['model_type']+'/pendulum_agent_A_CACLA.pkl'
             print ("Loading pre compiled network: ", file_name)
             f = open(file_name, 'rb')
             model_ = dill.load(f)
