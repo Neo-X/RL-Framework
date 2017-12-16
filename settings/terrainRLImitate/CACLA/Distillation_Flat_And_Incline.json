@@ -197,7 +197,7 @@
     "comment__": "Target velocity for controller",
 "target_velocity":1.0,
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
-"num_terrain_features": 0,
+"num_terrain_features": 50,
     "comment__": "Initial tempurature for annealing of e-greedy exploration",
 "initial_temperature": 2.0,
     "comment__": "epsilon lower limit",
