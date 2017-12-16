@@ -10,6 +10,7 @@ sys.path.append('../')
 from model.ModelUtil import *
 from algorithm.AlgorithmInterface import AlgorithmInterface
 from model.LearningUtil import loglikelihood, kl, entropy, change_penalty
+from util.SimulationUtil import getAgentName
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
