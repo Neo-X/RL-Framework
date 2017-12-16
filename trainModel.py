@@ -45,7 +45,10 @@ def trainModelParallel(inputData):
     # pr.enable()
     # try:
         import os    
-        os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+        if ( 'THEANO_FLAGS' in os.environ): 
+            os.environ['THEANO_FLAGS'] = os.environ['THEANO_FLAGS']+"mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+        else:
+            os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
         
         ## Theano needs to be imported after the flags are set.
         # from ModelEvaluation import *
@@ -1120,6 +1123,8 @@ if (__name__ == "__main__"):
         Example:
         python trainModel.py settings/navGame/PPO_5D.json 
     """
+    import time
+    import datetime
     
     if (len(sys.argv) == 1):
         print("Please incluse sim settings file")
@@ -1131,7 +1136,10 @@ if (__name__ == "__main__"):
         print ("Settings: " + str(json.dumps(settings, indent=4)))
         file.close()
         
+        t0 = time.time()
         trainModelParallel((sys.argv[1], settings))
+        t1 = time.time()
+        print ("Model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
     else:
         print("Please specify arguments properly, ")
         print(sys.argv)
