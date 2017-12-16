@@ -51,6 +51,11 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         settings['shouldRender'] = False
         settings['visualize_learning'] = False
         settings['saving_update_freq_num_rounds'] = settings_original['saving_update_freq_num_rounds'] * 10
+        
+        if ( 'expert_policy_files' in settings):
+            for j in range(len(settings['expert_policy_files'])):
+                settings['expert_policy_files'][j] = settings_original['expert_policy_files'][j] + "/_" + str(i)
+                
         result_data['settings_files'].append(copy.deepcopy(settings))
         
         sim_settings.append(copy.deepcopy(settings))
@@ -74,8 +79,6 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
                 ### Copy models from other metamodel simulation
                 ### Purposefully not copying the "Best" model but the last instead
                 shutil.copy2(hyperSettings['saved_model_folder']+"/_" + str(i)+'/'+settings['model_type']+'/'+getAgentName()+".pkl", directory+getAgentName()+"Best.pkl" )
-                for j in range(len(settings['expert_policy_files'])):
-                    settings['expert_policy_files'][j] = settings['expert_policy_files'][j] + "/_" + str(i)  
                 
         
     # p = ThreadPool(numThreads)
