@@ -57,7 +57,7 @@ def trainModelParallel(inputData):
         from util.SimulationUtil import validateSettings
         from util.SimulationUtil import createEnvironment
         from util.SimulationUtil import createRLAgent
-        from util.SimulationUtil import createActor
+        from util.SimulationUtil import createActor, getAgentName
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
         
         
@@ -456,7 +456,7 @@ def trainModelParallel(inputData):
         
         if (settings["save_experience_memory"]):
             print ("Saving initial experience memory")
-            file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"expBufferInit.hdf5"
+            file_name=directory+getAgentName()+"_expBufferInit.hdf5"
             experience.saveToFile(file_name)
         """
         if action_space_continuous:
@@ -844,7 +844,7 @@ def trainModelParallel(inputData):
                         rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
                         rlv.redraw()
                         rlv.setInteractiveOff()
-                        rlv.saveVisual(directory+"pendulum_agent_"+str(settings['agent_name']))
+                        rlv.saveVisual(directory+getAgentName())
                         rlv.setInteractive()
                         # rlv.redraw()
                     if (settings['train_forward_dynamics'] and settings['visualize_learning']):
@@ -920,14 +920,14 @@ def trainModelParallel(inputData):
             if (round_ % settings['saving_update_freq_num_rounds']) == 0:
             
                 if (settings['train_forward_dynamics']):
-                    file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
+                    file_name_dynamics=directory+"forward_dynamics_"+".pkl"
                     f = open(file_name_dynamics, 'wb')
                     dill.dump(masterAgent.getForwardDynamics(), f)
                     f.close()
                     if mean_dynamicsLosses < best_dynamicsLosses:
                         best_dynamicsLosses = mean_dynamicsLosses
                         print ("Saving BEST current forward dynamics agent: " + str(best_dynamicsLosses))
-                        file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
+                        file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
                         f = open(file_name_dynamics, 'wb')
                         dill.dump(masterAgent.getForwardDynamics(), f)
                         f.close()
@@ -935,7 +935,7 @@ def trainModelParallel(inputData):
                 if (mean_eval > best_eval):
                     best_eval = mean_eval
                     print ("Saving BEST current agent: " + str(best_eval))
-                    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+                    file_name=directory+getAgentName()+"_Best.pkl"
                     f = open(file_name, 'wb')
                     dill.dump(masterAgent.getPolicy(), f)
                     f.close()
@@ -954,7 +954,7 @@ def trainModelParallel(inputData):
             # if ( round_ % 10 ) == 0 :
                 print ("Saving current masterAgent")
                 
-                file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+                file_name=directory+getAgentName()+".pkl"
                 f = open(file_name, 'wb')
                 dill.dump(masterAgent.getPolicy(), f)
                 f.close()
@@ -1013,7 +1013,7 @@ def trainModelParallel(inputData):
         exp_val.finish()
         
         print ("Save last versions of files.")
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+        file_name=directory+getAgentName()+".pkl"
         f = open(file_name, 'wb')
         dill.dump(masterAgent.getPolicy(), f)
         f.close()
@@ -1025,7 +1025,7 @@ def trainModelParallel(inputData):
         f.close()
         
         if (settings['train_forward_dynamics']):
-            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
+            file_name_dynamics=directory+"forward_dynamics_"+".pkl"
             f = open(file_name_dynamics, 'wb')
             dill.dump(masterAgent.getForwardDynamics(), f)
             f.close()

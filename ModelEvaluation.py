@@ -1272,23 +1272,23 @@ def modelEvaluationParallel(settings_file_name):
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
-    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+    file_name=directory+getAgentName()+"_Best.pkl"
+    # file_name=directory+getAgentName()+".pkl"
     f = open(file_name, 'r')
     model = dill.load(f)
     f.close()
     print ("State Length: ", len(model.getStateBounds()[0]) )
     
     if (settings['train_forward_dynamics']):
-        file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
-        # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+        file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
+        # file_name=directory+getAgentName()+".pkl"
         f = open(file_name_dynamics, 'r')
         forwardDynamicsModel = dill.load(f)
         f.close()
     
     if ( settings["use_transfer_task_network"] ):
         task_directory = getTaskDataDirectory(settings)
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        file_name=directory+getAgentName()+"_Best.pkl"
         f = open(file_name, 'r')
         taskModel = dill.load(f)
         f.close()
@@ -1500,9 +1500,9 @@ def modelEvaluation(settings_file_name, runLastModel=False):
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     if (runLastModel == True):
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+        file_name=directory+getAgentName()+".pkl"
     else:
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        file_name=directory+getAgentName()+"_Best.pkl"
     print("Loading model: ", file_name)
     f = open(file_name, 'rb')
     model = dill.load(f)
@@ -1511,16 +1511,16 @@ def modelEvaluation(settings_file_name, runLastModel=False):
     
     if (settings['train_forward_dynamics']):
         if (runLastModel == True):
-            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
+            file_name_dynamics=directory+"forward_dynamics_"+".pkl"
         else:
-            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
+            file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
         f = open(file_name_dynamics, 'rb')
         forwardDynamicsModel = dill.load(f)
         f.close()
     
     if ( settings["use_transfer_task_network"] ):
         task_directory = getTaskDataDirectory(settings)
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        file_name=directory+getAgentName()+"_Best.pkl"
         f = open(file_name, 'rb')
         taskModel = dill.load(f)
         f.close()

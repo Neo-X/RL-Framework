@@ -10,7 +10,7 @@ from pathos.multiprocessing import ProcessingPool
 import time
 import datetime
 
-from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory
+from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory, getAgentName
 
 def _trainMetaModel(input):
     settingsFileName_ = input[0]
@@ -68,12 +68,14 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
                 os.makedirs(directory)
             if ('saved_model_path' in hyperSettings):
                 print ("Copying fd model: ", hyperSettings['saved_model_path'])
-                # shutil.copy2(hyperSettings['saved_model_path'], directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl" )
-                shutil.copy2(hyperSettings['saved_model_path'], directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl" )
+                # shutil.copy2(hyperSettings['saved_model_path'], directory+"forward_dynamics_"+"_Best_pretrain.pkl" )
+                shutil.copy2(hyperSettings['saved_model_path'], directory+getAgentName()+getAgentName()+"Best.pkl" )
             if ( 'saved_model_folder' in hyperSettings):
                 ### Copy models from other metamodel simulation
                 ### Purposefully not copying the "Best" model but the last instead
-                shutil.copy2(hyperSettings['saved_model_folder']+"/_" + str(i)+'/'+settings['model_type']+'/'+"pendulum_agent_"+str(settings['agent_name'])+".pkl", directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl" )
+                shutil.copy2(hyperSettings['saved_model_folder']+"/_" + str(i)+'/'+settings['model_type']+'/'+getAgentName()+".pkl", directory+getAgentName()+"Best.pkl" )
+                for j in range(len(settings['expert_policy_files'])):
+                    settings['expert_policy_files'][j] = settings['expert_policy_files'][j] + "/_" + str(i)  
                 
         
     # p = ThreadPool(numThreads)

@@ -62,9 +62,9 @@ def combineNetworkModels(settings_file_name):
     print ("New Network Critic shape, done")
     
     if (True):
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+        file_name=directory+getAgentName()+".pkl"
     else:
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        file_name=directory+getAgentName()+"_Best.pkl"
     print("Loading model: ", file_name)
     f = open(file_name, 'rb')
     old_model = dill.load(f)
@@ -94,7 +94,7 @@ def combineNetworkModels(settings_file_name):
     new_model.setActionBounds(old_model.getActionBounds())
     new_model.setRewardBounds(old_model.getRewardBounds())
     
-    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Injected.pkl"
+    file_name=directory+getAgentName()+"_Injected.pkl"
     f = open(file_name, 'wb')
     dill.dump(new_model, f)
     f.close()

@@ -47,8 +47,8 @@ def getBaseDataDirectory(settings):
 def getRootDataDirectory(settings):
     return settings["environment_type"]+"/"+settings["agent_name"]
 
-def getAgentName(settings):
-    return 'pendulum_agent'
+def getAgentName(settings=None):
+    return 'agent'
 
 def getTaskDataDirectory(settings):
     return settings["environment_type"]+"/"+settings["agent_name"]+"/"+settings["task_data_folder"]+"/"+settings["model_type"]+"/"
@@ -260,7 +260,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
     if (settings['load_saved_model'] == True):
         directory= getDataDirectory(settings)
         print ("Loading pre compiled network")
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        file_name=directory+getAgentName()+"_Best.pkl"
         f = open(file_name, 'rb')
         model = dill.load(f)
         model.setSettings(settings)
@@ -393,7 +393,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
         ### In this case we want to change algroithm but want to keep the policy network
         directory= getDataDirectory(settings)
         print ("Loading pre compiled network and scaling values, not learing algorithm.")
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        file_name=directory+getAgentName()+"_Best.pkl"
         f = open(file_name, 'rb')
         model_ = dill.load(f)
         model_.setSettings(settings)
@@ -717,14 +717,14 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
     elif settings["forward_dynamics_predictor"] == "saved_network":
         # from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
-        file_name_dynamics=data_folder+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
+        file_name_dynamics=data_folder+"forward_dynamics_"+"_Best.pkl"
         forwardDynamicsModel = dill.load(open(file_name_dynamics))
     elif settings["forward_dynamics_predictor"] == "network":
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
         if (settings['load_saved_model'] == True):
             print ("Loading pre compiled network")
             directory= getDataDirectory(settings)
-            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
+            file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
             f = open(file_name_dynamics, 'rb')
             forwardDynamicsModel = dill.load(f)
             f.close()
@@ -732,7 +732,7 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
              (settings['load_saved_fd_model']))):
             print ("Loading pre trained network")
             directory= getDataDirectory(settings)
-            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl"
+            file_name_dynamics=directory+"forward_dynamics_"+"_Best_pretrain.pkl"
             f = open(file_name_dynamics, 'rb')
             forwardDynamicsModel = dill.load(f)
             f.close()
