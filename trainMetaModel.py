@@ -74,7 +74,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
             if ('saved_model_path' in hyperSettings):
                 print ("Copying fd model: ", hyperSettings['saved_model_path'])
                 # shutil.copy2(hyperSettings['saved_model_path'], directory+"forward_dynamics_"+"_Best_pretrain.pkl" )
-                shutil.copy2(hyperSettings['saved_model_path'], directory+getAgentName()+getAgentName()+"Best.pkl" )
+                shutil.copy2(hyperSettings['saved_model_path'], directory+getAgentName()+"Best.pkl" )
             if ( 'saved_model_folder' in hyperSettings):
                 ### Copy models from other metamodel simulation
                 ### Purposefully not copying the "Best" model but the last instead
