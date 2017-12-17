@@ -22,7 +22,7 @@
     "comment__": "Exploration distance use when randomly generating new actions",
 "exploration_rate": 0.0001,
     "comment__": "Number of rounds to perform before termination",
-"rounds": 100,
+"rounds": 200,
     "comment__": "Number of epochs to perform per round",
 "epochs": 10,
     "comment__": "Number of epoch/episode to evaluate the policy over",
