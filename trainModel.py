@@ -1125,24 +1125,27 @@ if (__name__ == "__main__"):
     """
     import time
     import datetime
+    from util.simOptions import getOptions
     
-    if (len(sys.argv) == 1):
-        print("Please incluse sim settings file")
-        print("python trainModel.py <sim_settings_file>")
-        sys.exit()
-    elif (len(sys.argv) == 2):
-        file = open(sys.argv[1])
-        settings = json.load(file)
-        print ("Settings: " + str(json.dumps(settings, indent=4)))
-        file.close()
+    options = getOptions(sys.argv)
+    options = vars(options)
+    print("options: ", options)
+    print("options['configFile']: ", options['configFile'])
         
-        t0 = time.time()
-        trainModelParallel((sys.argv[1], settings))
-        t1 = time.time()
-        print ("Model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
-    else:
-        print("Please specify arguments properly, ")
-        print(sys.argv)
-        print("python trainModel.py <sim_settings_file>")
+    
+    
+    file = open(options['configFile'])
+    settings = json.load(file)
+    print ("Settings: " + str(json.dumps(settings, indent=4)))
+    file.close()
+    
+    settings['visualize_learning'] = options['visualize_learning']
+    settings['shouldRender'] = options['shouldRender']
+    
+    t0 = time.time()
+    trainModelParallel((sys.argv[1], settings))
+    t1 = time.time()
+    print ("Model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
+
 
     print("All Done.")
