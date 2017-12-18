@@ -157,6 +157,7 @@ def trainMetaModel_(args):
         out_file.write(json.dumps(simSettings_, indent=4))
         # file.close()
         out_file.close()
+        
         ### Create a tar file of all the sim data
         tarFileName = (root_data_dir + simSettings_['data_folder'] + '.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
         dataTar = tarfile.open(tarFileName, mode='w:gz')
