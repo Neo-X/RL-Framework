@@ -8,7 +8,6 @@ def getOptions(_args=None):
                       action="store_true", dest="verbose", default=False,
                       help="print status messages to stdout")
     
-    
     parser.add_option("--dataDir", "--datastoreDirectory", "--dataPath",
                   action="store", dest="dataPath", default="data/simData/",
                   metavar="Directory", help="Specify the directory that files will be stored")
@@ -21,14 +20,14 @@ def getOptions(_args=None):
           action="store", dest="frameSize", default="640x480",
           metavar="IntegerxInteger", help="The pixel width and height, example 640x480")
     
-    parser.add_option("-c", "--commandline", "--commandLine", 
-          action="store_true", dest="commandLine", default=False,
+    parser.add_option("--dont_visualize_learning", "--no_plot", 
+          action="store_false", dest="visualize_learning", default=True,
+          help="Whether or not to draw/render the simulation")
+    
+    parser.add_option("--shouldRender", "--render",
+          action="store_true", dest="shouldRender", default=False,
           help="TO specify if an openGL window should be created")
 
-    parser.add_option("--startPaused", 
-           action="store_true", dest="startPaused", 
-          default=False, help="""Start Simulation Paused TODO""")
-    
     parser.add_option("--config", 
            action="store", metavar="STRING", dest="configFile", default=None,
           help="""The json config file that many of the config settings can be parsed from""")

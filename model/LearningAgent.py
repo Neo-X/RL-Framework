@@ -76,6 +76,11 @@ class LearningAgent(AgentInterface):
             self._accesLock.acquire()
         cost = 0
         
+        # print ("Bounds comparison: ", self._pol.getStateBounds(), " exp mem: ", 
+        #        self._expBuff.getStateBounds())
+        # print ("Bounds comparison: ", self._pol.getActionBounds(), " exp mem: ", 
+        #        self._expBuff.getActionBounds())
+        
         # print("_exp_actions: ", _exp_actions)
         if ("value_function_batch_size" in self._settings):
             value_function_batch_size = self._settings['value_function_batch_size']
@@ -286,10 +291,10 @@ class LearningAgent(AgentInterface):
             self._accesLock.release()
         return (cost, dynamicsLoss) 
     
-    def predict(self, state, evaluation_=False, p=None, sim_index=None):
+    def predict(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
         if self._useLock:
             self._accesLock.acquire()
-        act = self._pol.predict(state, evaluation_=evaluation_, p=p, sim_index=sim_index)
+        act = self._pol.predict(state, evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
         if self._useLock:
             self._accesLock.release()
         return act

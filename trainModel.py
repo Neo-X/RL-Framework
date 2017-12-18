@@ -45,7 +45,10 @@ def trainModelParallel(inputData):
     # pr.enable()
     # try:
         import os    
-        os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+        if ( 'THEANO_FLAGS' in os.environ): 
+            os.environ['THEANO_FLAGS'] = os.environ['THEANO_FLAGS']+"mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+        else:
+            os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
         
         ## Theano needs to be imported after the flags are set.
         # from ModelEvaluation import *
@@ -57,7 +60,7 @@ def trainModelParallel(inputData):
         from util.SimulationUtil import validateSettings
         from util.SimulationUtil import createEnvironment
         from util.SimulationUtil import createRLAgent
-        from util.SimulationUtil import createActor
+        from util.SimulationUtil import createActor, getAgentName
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
         
         
@@ -456,7 +459,7 @@ def trainModelParallel(inputData):
         
         if (settings["save_experience_memory"]):
             print ("Saving initial experience memory")
-            file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"expBufferInit.hdf5"
+            file_name=directory+getAgentName()+"_expBufferInit.hdf5"
             experience.saveToFile(file_name)
         """
         if action_space_continuous:
@@ -464,18 +467,18 @@ def trainModelParallel(inputData):
         else:
             model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         """
-        if ( not settings['load_saved_model'] ):
+        if ( settings['load_saved_model'] or (settings['load_saved_model'] == 'network_and_scales') ): ## Transfer learning
+            experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
+            experience.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
+            experience.setActionBounds(copy.deepcopy(model.getActionBounds()))
+            model.setSettings(settings)
+        else: ## Normal
             model.setStateBounds(state_bounds)
             model.setActionBounds(action_bounds)
             model.setRewardBounds(reward_bounds)
             experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
             experience.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
             experience.setActionBounds(copy.deepcopy(model.getActionBounds()))
-        else: # continuation learning
-            experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
-            experience.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
-            experience.setActionBounds(copy.deepcopy(model.getActionBounds()))
-            model.setSettings(settings)
             
         # mgr = multiprocessing.Manager()
         # learningNamespace = mgr.Namespace()
@@ -726,7 +729,8 @@ def trainModelParallel(inputData):
                         try:
                             data = masterAgent_message_queue.get(False)
                         except Exception as inst:
-                            print ("training: In model parameter message queue empty: ", masterAgent_message_queue.qsize())
+                            # print ("training: In model parameter message queue empty: ", masterAgent_message_queue.qsize())
+                            pass
                     if (not (data == None) ):
                         # print ("Data: ", data)
                         masterAgent.setExperience(data[0])
@@ -843,7 +847,7 @@ def trainModelParallel(inputData):
                         rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
                         rlv.redraw()
                         rlv.setInteractiveOff()
-                        rlv.saveVisual(directory+"pendulum_agent_"+str(settings['agent_name']))
+                        rlv.saveVisual(directory+getAgentName())
                         rlv.setInteractive()
                         # rlv.redraw()
                     if (settings['train_forward_dynamics'] and settings['visualize_learning']):
@@ -919,14 +923,14 @@ def trainModelParallel(inputData):
             if (round_ % settings['saving_update_freq_num_rounds']) == 0:
             
                 if (settings['train_forward_dynamics']):
-                    file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
+                    file_name_dynamics=directory+"forward_dynamics_"+".pkl"
                     f = open(file_name_dynamics, 'wb')
                     dill.dump(masterAgent.getForwardDynamics(), f)
                     f.close()
                     if mean_dynamicsLosses < best_dynamicsLosses:
                         best_dynamicsLosses = mean_dynamicsLosses
                         print ("Saving BEST current forward dynamics agent: " + str(best_dynamicsLosses))
-                        file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
+                        file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
                         f = open(file_name_dynamics, 'wb')
                         dill.dump(masterAgent.getForwardDynamics(), f)
                         f.close()
@@ -934,7 +938,7 @@ def trainModelParallel(inputData):
                 if (mean_eval > best_eval):
                     best_eval = mean_eval
                     print ("Saving BEST current agent: " + str(best_eval))
-                    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+                    file_name=directory+getAgentName()+"_Best.pkl"
                     f = open(file_name, 'wb')
                     dill.dump(masterAgent.getPolicy(), f)
                     f.close()
@@ -953,7 +957,7 @@ def trainModelParallel(inputData):
             # if ( round_ % 10 ) == 0 :
                 print ("Saving current masterAgent")
                 
-                file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+                file_name=directory+getAgentName()+".pkl"
                 f = open(file_name, 'wb')
                 dill.dump(masterAgent.getPolicy(), f)
                 f.close()
@@ -1012,7 +1016,7 @@ def trainModelParallel(inputData):
         exp_val.finish()
         
         print ("Save last versions of files.")
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+        file_name=directory+getAgentName()+".pkl"
         f = open(file_name, 'wb')
         dill.dump(masterAgent.getPolicy(), f)
         f.close()
@@ -1024,7 +1028,7 @@ def trainModelParallel(inputData):
         f.close()
         
         if (settings['train_forward_dynamics']):
-            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
+            file_name_dynamics=directory+"forward_dynamics_"+".pkl"
             f = open(file_name_dynamics, 'wb')
             dill.dump(masterAgent.getForwardDynamics(), f)
             f.close()
@@ -1119,21 +1123,29 @@ if (__name__ == "__main__"):
         Example:
         python trainModel.py settings/navGame/PPO_5D.json 
     """
+    import time
+    import datetime
+    from util.simOptions import getOptions
     
-    if (len(sys.argv) == 1):
-        print("Please incluse sim settings file")
-        print("python trainModel.py <sim_settings_file>")
-        sys.exit()
-    elif (len(sys.argv) == 2):
-        file = open(sys.argv[1])
-        settings = json.load(file)
-        print ("Settings: " + str(json.dumps(settings, indent=4)))
-        file.close()
+    options = getOptions(sys.argv)
+    options = vars(options)
+    print("options: ", options)
+    print("options['configFile']: ", options['configFile'])
         
-        trainModelParallel((sys.argv[1], settings))
-    else:
-        print("Please specify arguments properly, ")
-        print(sys.argv)
-        print("python trainModel.py <sim_settings_file>")
+    
+    
+    file = open(options['configFile'])
+    settings = json.load(file)
+    print ("Settings: " + str(json.dumps(settings, indent=4)))
+    file.close()
+    
+    settings['visualize_learning'] = options['visualize_learning']
+    settings['shouldRender'] = options['shouldRender']
+    
+    t0 = time.time()
+    trainModelParallel((sys.argv[1], settings))
+    t1 = time.time()
+    print ("Model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
+
 
     print("All Done.")

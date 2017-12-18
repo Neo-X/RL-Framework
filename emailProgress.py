@@ -56,7 +56,7 @@ def sendData(settings):
     agentName = getAgentName(settings)
     print ("Data folder: ", directory)
     
-    trainingGraph=directory+agentName+'_'+str(settings['agent_name'])+".png"
+    trainingGraph=directory+agentName+'_'+".png"
     try:
         send_mail(send_from=from_email,send_to=['glen@fracturedplane.com'], 
             subject=email_subject, text=email_text, files=[trainingGraph])

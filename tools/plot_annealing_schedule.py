@@ -21,7 +21,7 @@ if __name__ == '__main__':
     
     nv = NNVisualize("annealing schedule", settings=settings)
     
-    rounds = 1000
+    rounds = settings['rounds']
     x = range(rounds)
     ps = []
     
@@ -35,8 +35,7 @@ if __name__ == '__main__':
         # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
         # p = (settings['initial_temperature'] / (math.log(round_))) 
         # p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds))
-        if ( 'annealing_schedule' in settings and (settings['annealing_schedule'] is True)):
-            print("Using normalized annealing schedule:")
+        if ( 'annealing_schedule' in settings and (settings['annealing_schedule'] != False)):
             p = anneal_value(float(round_/rounds), settings_=settings)
         else:
             p = ((settings['initial_temperature']/math.log(round_+2))) 

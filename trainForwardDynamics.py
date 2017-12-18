@@ -97,7 +97,7 @@ def trainForwardDynamics(settingsFileName):
     else:
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
     experience.setSettings(settings)
-    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"expBufferInit.hdf5"
+    file_name=directory+getAgentName()+"expBufferInit.hdf5"
     # experience.saveToFile(file_name)
     experience.loadFromFile(file_name)
     state_bounds = experience._state_bounds
@@ -218,7 +218,7 @@ def trainForwardDynamics(settingsFileName):
             if mean_dynamicsLosses < best_dynamicsLosses:
                 best_dynamicsLosses = mean_dynamicsLosses
                 print ("Saving BEST current forward dynamics model: " + str(best_dynamicsLosses))
-                file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best_pretrain.pkl"
+                file_name_dynamics=directory+"forward_dynamics_"+"_Best_pretrain.pkl"
                 f = open(file_name_dynamics, 'wb')
                 dill.dump(forwardDynamicsModel, f)
                 f.close()

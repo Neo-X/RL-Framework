@@ -242,7 +242,8 @@ class SimWorker(Process):
                         try:
                             data_ = self._message_queue.get(False)
                         except Exception as inst:
-                            print ("SimWorker model parameter message queue empty.")
+                            # print ("SimWorker model parameter message queue empty.")
+                            pass
                         if (not (data_ is None)):
                             episodeData = data_
                     # print ("Got updated network parameters:")
@@ -409,7 +410,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                           ) 
                          and (not sampling)):
                         # print ("Random Guassian sample, state bounds", model.getStateBounds())
-                        pa = model.predict(state_, p=p, sim_index=worker_id)
+                        pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # print ("Exploration Action: ", pa)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
@@ -418,7 +419,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                             action = randomExporation(settings["exploration_rate"], pa, action_bounds)
                     elif (settings['exploration_method'] == 'gaussian_network' or 
                           (settings['use_stocastic_policy'] == True)):
-                        pa_ = model.predict(state_, p=p, sim_index=worker_id)
+                        pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         std_ = model.predict_std(state_)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
@@ -434,7 +435,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     elif ((settings['exploration_method'] == 'sampling')):
                         ## Use a sampling method to find a good action
                         sim_state_ = exp.getSimState()
-                        action = model.getSampler().predict(sim_state_, p=p, sim_index=worker_id)
+                        action = model.getSampler().predict(sim_state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                     else:
                         print ("Exploration method unknown: " + str(settings['exploration_method']))
                         sys.exit(1)
@@ -465,7 +466,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 exp_action = int(0) 
                 # return pa1
                 ## For sampling method to skip sampling during evaluation.
-                pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id)
+                pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                 
                 action = pa
                 # print ("Exploitation: ", action , " epsilon: ", epsilon * p)
@@ -1271,23 +1272,23 @@ def modelEvaluationParallel(settings_file_name):
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
-    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
-    # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+    file_name=directory+getAgentName()+"_Best.pkl"
+    # file_name=directory+getAgentName()+".pkl"
     f = open(file_name, 'r')
     model = dill.load(f)
     f.close()
     print ("State Length: ", len(model.getStateBounds()[0]) )
     
     if (settings['train_forward_dynamics']):
-        file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
-        # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+        file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
+        # file_name=directory+getAgentName()+".pkl"
         f = open(file_name_dynamics, 'r')
         forwardDynamicsModel = dill.load(f)
         f.close()
     
     if ( settings["use_transfer_task_network"] ):
         task_directory = getTaskDataDirectory(settings)
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        file_name=directory+getAgentName()+"_Best.pkl"
         f = open(file_name, 'r')
         taskModel = dill.load(f)
         f.close()
@@ -1499,9 +1500,9 @@ def modelEvaluation(settings_file_name, runLastModel=False):
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     if (runLastModel == True):
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+        file_name=directory+getAgentName()+".pkl"
     else:
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        file_name=directory+getAgentName()+"_Best.pkl"
     print("Loading model: ", file_name)
     f = open(file_name, 'rb')
     model = dill.load(f)
@@ -1510,16 +1511,16 @@ def modelEvaluation(settings_file_name, runLastModel=False):
     
     if (settings['train_forward_dynamics']):
         if (runLastModel == True):
-            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+".pkl"
+            file_name_dynamics=directory+"forward_dynamics_"+".pkl"
         else:
-            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
+            file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
         f = open(file_name_dynamics, 'rb')
         forwardDynamicsModel = dill.load(f)
         f.close()
     
     if ( settings["use_transfer_task_network"] ):
         task_directory = getTaskDataDirectory(settings)
-        file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        file_name=directory+getAgentName()+"_Best.pkl"
         f = open(file_name, 'rb')
         taskModel = dill.load(f)
         f.close()

@@ -10,6 +10,7 @@ sys.path.append('../')
 from model.ModelUtil import *
 from algorithm.AlgorithmInterface import AlgorithmInterface
 from model.LearningUtil import loglikelihood, kl, entropy, change_penalty
+from util.SimulationUtil import getAgentName
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -26,7 +27,7 @@ class Distillation(AlgorithmInterface):
         ### Load expert policy files
         self._expert_policies = []
         for i in range(len(self.getSettings()['expert_policy_files'])):
-            file_name = self.getSettings()['expert_policy_files'][i]
+            file_name = self.getSettings()['expert_policy_files'][i] + '/'+ self.getSettings()['model_type']+'/'+getAgentName()+'.pkl'
             print ("Loading pre compiled network: ", file_name)
             f = open(file_name, 'rb')
             model_ = dill.load(f)
@@ -385,18 +386,31 @@ class Distillation(AlgorithmInterface):
     
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, forwardDynamicsModel=None):
         lossActor = 0
-        """
+        
         ### Update actions to expert actions. Some were selected from current policy
-        actions = self._expert_policies[0].predict_batch(states)
-        actions_ = []
-        for i in range(states.shape[0]):
-            # print ("falls[i]: ", falls[i])
-            expert_index = falls[i][0]
-            state_ = [states[i]]
-            action_ = self._expert_policies[expert_index].predict(state_)
-            actions_.append(action_)
-        actions = np.array(actions_, dtype=self.getSettings()['float_type'])
-        """
+
+        if ('run_distillation_in_test_mode' in self.getSettings() and (self.getSettings()['run_distillation_in_test_mode'])):
+            pass
+        else:        
+        # print ("State bounds comparison: ", self._expert_policies[0].getStateBounds(), 
+        #        " self: ", self.getStateBounds())
+            actions_ = []
+            # print ("falls: ", falls)
+            for i in range(states.shape[0]):
+                expert_index = falls[i][0]
+                state_ = [states[i]]
+                ### Need to convert normalized state back to env scaled state
+                state_ = scale_action(state_, self.getStateBounds())
+                action_ = self._expert_policies[expert_index].predict(state_)
+                # action_ = norm_state(action_, self._expert_policies[expert_index].getActionBounds())
+                action_ = norm_state(action_, self.getActionBounds())
+                # print ("Action diffy: ", np.array(action_) - actions[i])
+                actions_.append(action_)
+            actions_ = np.array(actions_, dtype=self.getSettings()['float_type'])
+        # print ("New actions: ", actions.shape)
+        # print ("Action diff: ", np.sum(actions - actions_, axis=1))
+        actions = actions_
+        
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print ("Rewards, Values, NextValues, Diff, new Diff")
@@ -492,20 +506,29 @@ class Distillation(AlgorithmInterface):
         return loss
 
     
-    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None):
+    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, 
+                bootstrapping=False):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        r = np.random.rand(1)[0] ## in [0,1]
-        r = 2.0 ### Fix for debugging
+        if (not ( p is None) and (evaluation_ is False)):
+            r = np.random.rand(1)[0] ## in [0,1]
+            if ('run_distillation_in_test_mode' in self.getSettings() and (self.getSettings()['run_distillation_in_test_mode'])):
+                pass
+            else:
+                r = 0.0 ### Fix for debugging, expert only
+            if ( r > p):
+                evaluation_ = True
         ### Want to start out selecting actions from the expert more
         ### p starts at 1 is anneal to 0.
-        if (evaluation_ is True or 
-            ( (not (p is None)) and ( p < r)) 
+        if (evaluation_ is True or (bootstrapping is True)
             ): ## Use policy
+            # print("Using Policy")
             action_ = super(Distillation,self).predict(state)
         else: ## Use expert policy  
             # print("sim_index: ", sim_index)
+            # print("Using Expert")
             action_ = self._expert_policies[sim_index].predict(state)
         return action_
+        ## return self._expert_policies[sim_index].predict(state)
     
     

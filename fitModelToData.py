@@ -107,7 +107,7 @@ def fitModelToData(settingsFileName):
         experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
     else:
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
-    file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+"expBufferInit.hdf5"
+    file_name=directory+getAgentName()+"expBufferInit.hdf5"
     # experience.saveToFile(file_name)
     experience.loadFromFile(file_name)
     state_bounds = experience._state_bounds
@@ -189,7 +189,7 @@ def fitModelToData(settingsFileName):
     """
     
     if (settings['visualize_learning']):
-        rlv = NNVisualize(title=str(directory+str(settings['agent_name'])), settings=settings)
+        rlv = NNVisualize(title=str(directory), settings=settings)
         rlv.setInteractive()
         rlv.init()
             
