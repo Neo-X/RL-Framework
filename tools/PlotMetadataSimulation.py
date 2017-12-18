@@ -79,6 +79,8 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
             datafile = otherDatas[j][i]['fileName']
             file = open(datafile)
             otherDatas[j][i]['data'] = json.load(file)
+            print ("Data file: ", file)
+            print("Length of data: ", len(otherDatas[j][i]['data']["mean_eval"]))
             if min_length > (len(otherDatas[j][i]['data']["mean_eval"])):
                 min_length = len(otherDatas[j][i]['data']["mean_eval"])
             if tmp_min_length > (len(otherDatas[j][i]['data']["mean_eval"])):
