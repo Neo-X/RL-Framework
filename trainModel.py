@@ -1141,6 +1141,7 @@ if (__name__ == "__main__"):
     
     settings['visualize_learning'] = options['visualize_learning']
     settings['shouldRender'] = options['shouldRender']
+    # settings['num_available_threads'] = options['num_available_threads']
     
     t0 = time.time()
     trainModelParallel((sys.argv[1], settings))

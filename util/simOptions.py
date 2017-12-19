@@ -12,8 +12,8 @@ def getOptions(_args=None):
                   action="store", dest="dataPath", default="data/simData/",
                   metavar="Directory", help="Specify the directory that files will be stored")
     
-    parser.add_option("-p", "--processes", "--availableProcesses",
-              action="store", dest="processes", default=1,
+    parser.add_option("-p", "--processes", "--availableProcesses", "--num_available_threads",
+              action="store", dest="num_available_threads", default=1,
               metavar="INTEGER", help="The number of processes the SteerStats script can use")
     
     parser.add_option("--frameSize", 
