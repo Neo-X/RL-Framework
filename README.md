@@ -47,7 +47,10 @@ As a temporary workaround, I use the following hack:
 
 ## Using The system
 
-	$ python trainModelParallel.py settings/biped2d/CACLA_DeepNN.json
+```
+python3 trainModel.py --config settings/particleSim/PPO/PPO.json
+```
+	
 
 ## References
 

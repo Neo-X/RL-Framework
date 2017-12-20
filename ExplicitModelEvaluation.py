@@ -63,7 +63,7 @@ def modelSampling(settings):
         
             
         # if (settings['use_actor_policy_action_suggestion']):
-        # file_name=data_folder+"pendulum_agent_"+str(settings['agent_name'])+"_Best.pkl"
+        # file_name=data_folder+getAgentName()+"_Best.pkl"
         # model = dill.load(open(file_name))
         
             
@@ -78,8 +78,8 @@ def modelSampling(settings):
         exp.init()
         
         if (settings['train_forward_dynamics']):
-            file_name_dynamics=directory+"forward_dynamics_"+str(settings['agent_name'])+"_Best.pkl"
-            # file_name=directory+"pendulum_agent_"+str(settings['agent_name'])+".pkl"
+            file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
+            # file_name=directory+getAgentName()+".pkl"
             f = open(file_name_dynamics, 'r')
             forwardDynamicsModel = dill.load(f)
             f.close()

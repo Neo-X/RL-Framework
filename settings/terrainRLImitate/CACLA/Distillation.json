@@ -20,9 +20,9 @@
 	"comment__": "Data use to create anchors for pendulum",
 "anchor_file": "../data/anchorData/paperGibbonAnchors.json",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.001,
+"exploration_rate": 0.15,
     "comment__": "Number of rounds to perform before termination",
-"rounds": 100,
+"rounds": 500,
     "comment__": "Number of epochs to perform per round",
 "epochs": 10,
     "comment__": "Number of epoch/episode to evaluate the policy over",
@@ -175,7 +175,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
     "comment__": "Initial tempurature for annealing of e-greedy exploration",
-"initial_temperature": 5.25,
+"initial_temperature": 10.00,
     "comment__": "epsilon lower limit",
 "min_epsilon": 0.1,
     "comment__": "Whether or not to draw/render the simulation",
@@ -289,5 +289,7 @@
 	"comment__": "use a special annealing schedule that will being at 1 and end at 0",
 "annealing_schedule": "log",
 	"comment__": "list of paths to policy files to distill together",
-"expert_policy_files": ["terrainRLImitateBiped2D/A_CACLA/Biped2dFull_Simple_Walk_Flat2/Deep_NN/pendulum_agent_A_CACLA_Best.pkl"]
+"expert_policy_files": ["terrainRLImitateBiped2D/A_CACLA/Biped2dFull_Simple_Walk_Flat2/Deep_NN/pendulum_agent_A_CACLA_Best.pkl"],
+	"comment__": "Flag used to do a testing version of Distillation",
+"run_distillation_in_test_mode": false
 }
