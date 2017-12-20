@@ -760,27 +760,27 @@ def checkValidData(state, action, nextState, reward):
         if (not np.all(np.isfinite(state))):
             less_ = np.isfinite(state)
             bad_indecies = np.where(less_ == False)
-            bad_values_ = state[bad_indecies]
-            print ("State not finite: ", np.isfinite(state) )
+            print ("State not finite: ", less_ )
             print ("Bad Value indx: ", bad_indecies)
+            bad_values_ = state[bad_indecies]
             print ("Bad Values: ", bad_values_)
             return False
         
         if (not np.all(np.isfinite(action))):
             less_ = np.isfinite(action)
             bad_indecies = np.where(less_ == False)
-            bad_values_ = action[bad_indecies]
-            print ("Action not finite: ", np.isfinite(state) )
+            print ("Action not finite: ", less_ )
             print ("Bad Value indx: ", bad_indecies)
+            bad_values_ = action[bad_indecies]
             print ("Bad Values: ", bad_values_)
             return False
         
         if (not np.all(np.isfinite(nextState))):
-            less_ = np.isfinite(state)
+            less_ = np.isfinite(nextState)
             bad_indecies = np.where(less_ == False)
-            bad_values_ = nextState[bad_indecies]
-            print ("NextState not finite: ", np.isfinite(state) )
+            print ("NextState not finite: ", less_)
             print ("Bad Value indx: ", bad_indecies)
+            bad_values_ = nextState[bad_indecies]
             print ("Bad Values: ", bad_values_)
             return False
         
@@ -796,18 +796,27 @@ def checkValidData(state, action, nextState, reward):
         if (np.any(np.less(state, -1000.0))):
             less_ = np.less(state, -1000.0)
             bad_indecies = np.where(less_ == True)
-            bad_values_ = state[bad_indecies]
-            print ("State too negative: ", np.less(state, -1000.0) )
+            print ("State too negative: ", less_)
             print ("Bad Value indx: ", bad_indecies)
+            bad_values_ = state[bad_indecies]
             print ("Bad Values: ", bad_values_)
             return False
         
         if (np.any(np.less(nextState, -1000.0))):
             less_ = np.less(nextState, -1000.0)
             bad_indecies = np.where(less_ == True)
-            bad_values_ = nextState[bad_indecies]
-            print ("nextState too negative: ", np.less(nextState, -1000.0) )
+            print ("nextState too negative: ", less_ )
             print ("Bad Value indx: ", bad_indecies)
+            bad_values_ = nextState[bad_indecies]
+            print ("Bad Values: ", bad_values_)
+            return False
+        
+        if (np.any(np.less(action, -1000.0))):
+            less_ = np.less(action, -1000.0)
+            bad_indecies = np.where(less_ == True)
+            print ("action too negative: ", less_ )
+            print ("Bad Value indx: ", bad_indecies)
+            bad_values_ = action[bad_indecies]
             print ("Bad Values: ", bad_values_)
             return False
         
@@ -815,17 +824,27 @@ def checkValidData(state, action, nextState, reward):
             less_ = np.greater(state, 1000.0)
             bad_indecies = np.where(less_ == True)
             bad_values_ = state[bad_indecies]
-            print ("State too positive: ", np.greater(state, 1000.0) )
+            print ("State too positive: ", less_)
             print ("Bad Value indx: ", bad_indecies)
+            bad_values_ = state[bad_indecies]
             print ("Bad Values: ", bad_values_)
             return False
         
         if (np.any(np.greater(nextState, 1000.0))):
             less_ = np.greater(nextState, 1000.0)
             bad_indecies = np.where(less_ == True)
-            bad_values_ = nextState[bad_indecies]
-            print ("nextState too positive: ", np.greater(nextState, 1000.0) )
+            print ("nextState too positive: ", less_ )
             print ("Bad Value indx: ", bad_indecies)
+            bad_values_ = nextState[bad_indecies]
+            print ("Bad Values: ", bad_values_)
+            return False
+        
+        if (np.any(np.greater(action, 1000.0))):
+            less_ = np.greater(action, 1000.0)
+            bad_indecies = np.where(less_ == True)
+            print ("action too positive: ", less_ )
+            print ("Bad Value indx: ", bad_indecies)
+            bad_values_ = action[bad_indecies]
             print ("Bad Values: ", bad_values_)
             return False
         

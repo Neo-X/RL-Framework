@@ -65,6 +65,7 @@ class SimWorker(Process):
         # from pympler import summary
         # from pympler import muppy
         np.random.seed(self._process_random_seed)
+        import os
         
         # print ("SW model: ", self._model.getPolicy())
         # print ("Thread: ", self._model._exp)
@@ -104,7 +105,7 @@ class SimWorker(Process):
             self._model.setStateBounds(data[2])
             self._model.setActionBounds(data[3])
             self._model.setRewardBounds(data[4])
-            print ("Sim Worker State Bounds: ", self._model.getStateBounds())
+            print ("Sim worker:", os.getpid(), " State Bounds: ", self._model.getStateBounds())
             print ("Initial policy ready:")
             # print ("sim worker p: " + str(self._p))
         print ('Worker: started')
@@ -139,7 +140,7 @@ class SimWorker(Process):
                         p = 0.1
                     self._p = p
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+                        print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
                         print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
                 elif episodeData['type'] == "eval":
                     eval=True
@@ -270,7 +271,7 @@ class SimWorker(Process):
                             p = data[1]
                             self._p = p
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+                                print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
                                 print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
                     
                 # print ("Actions: " + str(actions))
@@ -847,8 +848,9 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         bellman_errors.append(error)
         evalDatas.append(evalData)
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-        print ("Reward for min epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
+        print ("Reward for best epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
         print ("reward_over_epocs" + str(reward_over_epocs))
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
         print ("Discounted sum: ", discounted_values)
         print ("Initial values: ", values)
     mean_reward = np.mean(reward_over_epocs)
@@ -928,8 +930,9 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             evalDatas.append(evalData)
         i += j
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-        print ("Reward for min epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
+        print ("Reward for best epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
         print ("reward_over_epocs" + str(reward_over_epocs))
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
         print ("Discounted sum: ", discounted_values)
         print ("Initial values: ", values)
     mean_reward = np.mean(reward_over_epocs)
