@@ -101,6 +101,15 @@ class SimInterface(object):
             This will update that visualization
         """
         pass
+    
+    def setRandomSeed(self, seed):
+        """
+            Set the random seed for the simulator
+            This is helpful if you are running many simulations in parallel you don't
+            want them to be producing the same results if they all init their random number 
+            generator the same.
+        """
+        pass
         
         
 #ani = animation.FuncAnimation(fig, animate, frames=600,

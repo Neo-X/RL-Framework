@@ -86,28 +86,15 @@ class TerrainRLHLCActor(ActorInterface):
                 sim.display()
             rw_ = sim.getEnvironment().calcReward()
             tmp_reward_sum=tmp_reward_sum + rw_
-            print("reward: ", rw_, " reward_sum:, ", tmp_reward_sum)
+            # print("reward: ", rw_, " reward_sum:, ", tmp_reward_sum)
             updates_+=1
             # print("Update #: ", updates_)
-        """    
-        if (updates_ == 1):
-            print("Action update did not go well....")
-        else:
-            print("Action update Okay!")
-        """    
         if (updates_ == 0): #Something went wrong...
             print("There were no updates... This is bad")
             return 0.0
         
-        reward_ = tmp_reward_sum/float(updates_)   
-        """
-        # print ("averageSpeed: ", averageSpeed)
-        # print ("vel_reward_: ", vel_reward_, " stumble: ", stumble_reward, " torque: ", torque_reward)
-        reward_ = ((vel_reward_ * 0.8) + 
-                   (stumble_reward * 0.2 )+
-                   (torque_reward * -0.1)
-                   )
-                   """
+        # reward_ = tmp_reward_sum/float(updates_)  
+        reward_ = sim.getEnvironment().calcReward() 
         self._reward_sum = self._reward_sum + reward_
         # print ("Reward: ", reward_)
 

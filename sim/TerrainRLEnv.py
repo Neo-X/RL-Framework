@@ -111,6 +111,16 @@ class TerrainRLEnv(SimInterface):
         self._target_choice = i
         self._target = self._targets[0][i]
         
+    def setRandomSeed(self, seed):
+        """
+            Set the random seed for the simulator
+            This is helpful if you are running many simulations in parallel you don't
+            want them to be producing the same results if they all init their random number 
+            generator the same.
+        """
+        print ( "Setting random seed: ", seed )
+        self.getEnvironment().setRandomSeed(seed)
+        
         
 #ani = animation.FuncAnimation(fig, animate, frames=600,
 #                               interval=10, blit=True, init_func=init)

@@ -1139,9 +1139,10 @@ if (__name__ == "__main__"):
     print ("Settings: " + str(json.dumps(settings, indent=4)))
     file.close()
     
-    settings['visualize_learning'] = options['visualize_learning']
-    settings['shouldRender'] = options['shouldRender']
-    # settings['num_available_threads'] = options['num_available_threads']
+    for option in options:
+        if ( not (options[option] is None) ):
+            settings[option] = options[option]
+        # settings['num_available_threads'] = options['num_available_threads']
     
     t0 = time.time()
     trainModelParallel((sys.argv[1], settings))

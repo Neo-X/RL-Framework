@@ -76,6 +76,7 @@ class SimWorker(Process):
             self._exp.setActor(self._actor)
             self._exp.getActor().init()   
             self._exp.init()
+            self._exp.setRandomSeed(self._process_random_seed)
             ## The sampler might need this new model if threads > 1
             self._model.setEnvironment(self._exp)
         
@@ -845,11 +846,11 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         reward_over_epocs.append(np.mean(np.array(rewards)))
         bellman_errors.append(error)
         evalDatas.append(evalData)
-        
-    print ("Reward for min epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
-    print ("reward_over_epocs" + str(reward_over_epocs))
-    print ("Discounted sum: ", discounted_values)
-    print ("Initial values: ", values)
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+        print ("Reward for min epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
+        print ("reward_over_epocs" + str(reward_over_epocs))
+        print ("Discounted sum: ", discounted_values)
+        print ("Initial values: ", values)
     mean_reward = np.mean(reward_over_epocs)
     std_reward = np.std(reward_over_epocs)
     mean_bellman_error = np.mean(bellman_errors)
@@ -926,11 +927,11 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             bellman_errors.append(error)
             evalDatas.append(evalData)
         i += j
-        
-    print ("Reward for min epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
-    print ("reward_over_epocs" + str(reward_over_epocs))
-    print ("Discounted sum: ", discounted_values)
-    print ("Initial values: ", values)
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+        print ("Reward for min epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
+        print ("reward_over_epocs" + str(reward_over_epocs))
+        print ("Discounted sum: ", discounted_values)
+        print ("Initial values: ", values)
     mean_reward = np.mean(reward_over_epocs)
     std_reward = np.std(reward_over_epocs)
     mean_bellman_error = np.mean(bellman_errors)
