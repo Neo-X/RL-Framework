@@ -1035,8 +1035,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     action_bounds = np.array(settings["action_bounds"], dtype=float)
     state_bounds = np.array(settings['state_bounds'], dtype=float)
     
-    if (settings["bootsrap_with_discrete_policy"]) and (settings['bootsrap_samples'] > 0):
-        (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootsrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
+    if (settings["bootsrap_with_discrete_policy"]) and (settings['bootstrap_samples'] > 0):
+        (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
                                                                                                                    eval_episode_data_queue=eval_episode_data_queue)
         # states = np.array(states)
         # states = np.append(states, state_bounds,0) # Adding that already specified bounds will ensure the final calculated is beyond these
@@ -1050,21 +1050,21 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         state_bounds = np.ones((2,states.shape[1]))
         
-        state_avg = states[:settings['bootsrap_samples']].mean(0)
-        state_stddev = states[:settings['bootsrap_samples']].std(0)
-        reward_avg = rewards_[:settings['bootsrap_samples']].mean(0)
-        reward_stddev = rewards_[:settings['bootsrap_samples']].std(0)
-        action_avg = actions[:settings['bootsrap_samples']].mean(0)
-        action_stddev = actions[:settings['bootsrap_samples']].std(0)
+        state_avg = states[:settings['bootstrap_samples']].mean(0)
+        state_stddev = states[:settings['bootstrap_samples']].std(0)
+        reward_avg = rewards_[:settings['bootstrap_samples']].mean(0)
+        reward_stddev = rewards_[:settings['bootstrap_samples']].std(0)
+        action_avg = actions[:settings['bootstrap_samples']].mean(0)
+        action_stddev = actions[:settings['bootstrap_samples']].std(0)
         print("Computed state min bound: ", state_avg - state_stddev)
         print("Computed state max bound: ", state_avg + state_stddev)
         if (settings['state_normalization'] == "minmax"):
-            state_bounds[0] = states[:settings['bootsrap_samples']].min(0)
-            state_bounds[1] = states[:settings['bootsrap_samples']].max(0)
-            # reward_bounds[0] = rewards_[:settings['bootsrap_samples']].min(0)
-            # reward_bounds[1] = rewards_[:settings['bootsrap_samples']].max(0)
-            # action_bounds[0] = actions[:settings['bootsrap_samples']].min(0)
-            # action_bounds[1] = actions[:settings['bootsrap_samples']].max(0)
+            state_bounds[0] = states[:settings['bootstrap_samples']].min(0)
+            state_bounds[1] = states[:settings['bootstrap_samples']].max(0)
+            # reward_bounds[0] = rewards_[:settings['bootstrap_samples']].min(0)
+            # reward_bounds[1] = rewards_[:settings['bootstrap_samples']].max(0)
+            # action_bounds[0] = actions[:settings['bootstrap_samples']].min(0)
+            # action_bounds[1] = actions[:settings['bootstrap_samples']].max(0)
         elif (settings['state_normalization'] == "variance"):
             """
             state_bounds[0] = state_avg - (state_stddev * 2.0)

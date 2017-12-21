@@ -757,6 +757,12 @@ def checkValidData(state, action, nextState, reward):
         """
             Checks to make sure the data going into the exp buffer is not garbage...
         """
+        state = np.array(state)
+        action = np.array(action)
+        nextState = np.array(nextState)
+        reward = np.array(reward)
+        
+        
         if (not np.all(np.isfinite(state))):
             less_ = np.isfinite(state)
             bad_indecies = np.where(less_ == False)

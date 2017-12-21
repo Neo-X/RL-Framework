@@ -1,5 +1,9 @@
 #!/bin/bash
 
+###
+# These are examples that should work IF YOU REMOVE THE -n from the command
+# the -n runs the command as a 'test'
+
 ## replace prefix
 find ./ -iname "pendulum_agent_*" -exec rename -n 's/pendulum_agent_/agent_/' '{}' \;
 ## replace algorithm names

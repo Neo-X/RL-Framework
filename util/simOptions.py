@@ -13,8 +13,35 @@ def getOptions(_args=None):
                   metavar="Directory", help="Specify the directory that files will be stored")
     
     parser.add_option("-p", "--processes", "--availableProcesses", "--num_available_threads",
+                      "--p",
               action="store", dest="num_available_threads", default=None,
+              type=int,
               metavar="INTEGER", help="The number of processes the SteerStats script can use")
+    
+    parser.add_option("--bootstrap_samples",
+              action="store", dest="bootstrap_samples", default=None,
+              type=int,
+              metavar="INTEGER", 
+              help="Number of initial actions to sample before calculating input/output scaling and starting to train.")
+    
+    parser.add_option("--eval_epochs",
+              action="store", dest="eval_epochs", default=None,
+              type=int,
+              metavar="INTEGER", 
+              help="Number of epoch/episode to evaluate the policy over")
+    
+    parser.add_option("--epochs",
+              action="store", dest="epochs", default=None,
+              type=int,
+              metavar="INTEGER", 
+              help="Number of epochs to perform per round")
+    
+    parser.add_option("--max_epoch_length",
+              action="store", dest="max_epoch_length", default=None,
+              type=int,
+              metavar="INTEGER", 
+              help="That max number of action that can be take before the end of an episode/epoch")
+    
     
     parser.add_option("--frameSize", 
           action="store", dest="frameSize", default=None,
