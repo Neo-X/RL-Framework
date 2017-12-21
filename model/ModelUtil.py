@@ -724,21 +724,22 @@ def checkDataIsValid(data):
         """
             Checks to make sure the data going into the exp buffer is not garbage...
         """
+        data = np.array(data)
         if (not np.all(np.isfinite(data))):
             less_ = np.isfinite(data)
             bad_indecies = np.where(less_ == False)
-            bad_values_ = data[bad_indecies]
-            print ("Data not finite: ", np.isfinite(data) )
+            print ("Data not finite: ", less_ )
             print ("Bad Value indx: ", bad_indecies)
+            bad_values_ = data[bad_indecies]
             print ("Bad Values: ", bad_values_)
             return False
     
         if (np.any(np.less(data, -1000.0))):
             less_ = np.less(data, -1000.0)
             bad_indecies = np.where(less_ == True)
-            bad_values_ = data[bad_indecies]
-            print ("Data too negative: ", np.less(data, -1000.0) )
+            print ("Data too negative: ", less_ )
             print ("Bad Value indx: ", bad_indecies)
+            bad_values_ = data[bad_indecies]
             print ("Bad Values: ", bad_values_)
             return False
         
@@ -746,8 +747,9 @@ def checkDataIsValid(data):
             less_ = np.greater(data, 1000.0)
             bad_indecies = np.where(less_ == True)
             bad_values_ = data[bad_indecies]
-            print ("Data too positive: ", np.greater(data, 1000.0) )
+            print ("Data too positive: ", less_ )
             print ("Bad Value indx: ", bad_indecies)
+            bad_values_ = data[bad_indecies]
             print ("Bad Values: ", bad_values_)
             return False
         
