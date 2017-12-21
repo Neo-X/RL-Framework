@@ -358,6 +358,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     exp_actions = []
     evalDatas=[]
     stds=[]
+    bad_sim_state = False
     
     # while not exp.endOfEpoch():
     for i_ in range(settings['max_epoch_length']):
@@ -365,6 +366,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # if (exp.endOfEpoch() or (reward_ < settings['reward_lower_bound'])):
         # state = exp.getState()
         state_ = exp.getState()
+
         if (not (visualizeEvaluation == None)):
             viz_q_values_.append(model.q_value(state_)[0])
             if (len(viz_q_values_)>30):
@@ -601,33 +603,37 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             
         # if ( (reward_ >= settings['reward_lower_bound'] ) or evaluation):
             # print("Shape of states: ", np.array(states).shape, " state shape, ", np.array(state_).shape)
-        states.extend(state_)
-        actions.append(action)
-        rewards.append(reward_)
-        # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)
-        # print("result states: ", result_states___)
-        result_states___.extend(resultState_)
-        if (worker_id is not None):
-            # print("Pushing working id as fall value: ", [worker_id])
-            falls.append([worker_id])
+        if ( checkValidData(state_, actions, resultState_ , reward_) == False ):
+            print ("Simulation is in a bad state: ")
+            bad_sim_state = True
         else:
-            # print("Pushing actual fall value: ", [agent_not_fell])
-            falls.append([agent_not_fell])
-        exp_actions.append([exp_action])
-        # print ("falls: ", falls)
-        # values.append(value)
-        if (not use_batched_exp):
-            if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
-                # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
-                # print("Putting tuple in queue")
-                _output_queue.put((states[-1:], actions[-1:], result_states___[-1:], [rewards[-1:]],  falls[-1:], [0], exp_actions[-1:]))
-        
-        state_num += 1
+            states.extend(state_)
+            actions.append(action)
+            rewards.append(reward_)
+            # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)
+            # print("result states: ", result_states___)
+            result_states___.extend(resultState_)
+            if (worker_id is not None):
+                # print("Pushing working id as fall value: ", [worker_id])
+                falls.append([worker_id])
+            else:
+                # print("Pushing actual fall value: ", [agent_not_fell])
+                falls.append([agent_not_fell])
+            exp_actions.append([exp_action])
+            # print ("falls: ", falls)
+            # values.append(value)
+            if (not use_batched_exp):
+                if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
+                    # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
+                    # print("Putting tuple in queue")
+                    _output_queue.put((states[-1:], actions[-1:], result_states___[-1:], [rewards[-1:]],  falls[-1:], [0], exp_actions[-1:]))
+            
+            state_num += 1
         # else:
             # print ("****Reward was to bad: ", reward_)
         pa = None
         
-        if ((exp.endOfEpoch() and settings['reset_on_fall'])  
+        if ((exp.endOfEpoch() and settings['reset_on_fall'] or (bad_sim_state))  
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
                 ):
             evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
@@ -639,6 +645,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             discounted_sums.append(discounted_sum)
             discounted_sum=0
             state_num=0
+            bad_sim_state = False
             
             # print ("Baseline: ", baseline)
             # print ("Discounted sums: ", G_ts)
@@ -659,7 +666,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             """
             if ('use_GAE' in settings and ( settings['use_GAE'] )):
                 path = {}
-                path['states'] = copy.deepcopy(states [last_epoch_end:])
+                path['states'] = copy.deepcopy(states[last_epoch_end:])
                 path['reward'] = np.array(rewards[last_epoch_end:])
                 path["terminated"] = False
                 # print("rewards: ", rewards[last_epoch_end:])
