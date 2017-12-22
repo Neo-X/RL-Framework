@@ -42,6 +42,13 @@ def getOptions(_args=None):
               metavar="INTEGER", 
               help="That max number of action that can be take before the end of an episode/epoch")
     
+    parser.add_option("--print_level",
+              action="store", dest="print_level", default=None,
+#              type=string,
+              metavar="STRING", 
+              help="Controls the level of information that is printed to the terminal")
+    
+    
     
     parser.add_option("--frameSize", 
           action="store", dest="frameSize", default=None,
