@@ -94,7 +94,7 @@ class ExperienceMemory(object):
         """
         
         if ( checkValidData(state, action, nextState, reward) == False ):
-            print ("Failed inserting: ")
+            print ("Failed inserting bad tuple: ")
             return
         
         if ( (self._history_update_index % (self._history_size-1) ) == 0):

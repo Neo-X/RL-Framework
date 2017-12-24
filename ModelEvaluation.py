@@ -65,6 +65,7 @@ class SimWorker(Process):
         # from pympler import summary
         # from pympler import muppy
         np.random.seed(self._process_random_seed)
+        import os
         
         # print ("SW model: ", self._model.getPolicy())
         # print ("Thread: ", self._model._exp)
@@ -76,6 +77,7 @@ class SimWorker(Process):
             self._exp.setActor(self._actor)
             self._exp.getActor().init()   
             self._exp.init()
+            self._exp.setRandomSeed(self._process_random_seed)
             ## The sampler might need this new model if threads > 1
             self._model.setEnvironment(self._exp)
         
@@ -103,7 +105,7 @@ class SimWorker(Process):
             self._model.setStateBounds(data[2])
             self._model.setActionBounds(data[3])
             self._model.setRewardBounds(data[4])
-            print ("Sim Worker State Bounds: ", self._model.getStateBounds())
+            print ("Sim worker:", os.getpid(), " State Bounds: ", self._model.getStateBounds())
             print ("Initial policy ready:")
             # print ("sim worker p: " + str(self._p))
         print ('Worker: started')
@@ -138,7 +140,7 @@ class SimWorker(Process):
                         p = 0.1
                     self._p = p
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+                        print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
                         print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
                 elif episodeData['type'] == "eval":
                     eval=True
@@ -269,7 +271,7 @@ class SimWorker(Process):
                             p = data[1]
                             self._p = p
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                print ("Sim worker Size of state input Queue: " + str(self._input_queue.qsize()))
+                                print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
                                 print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
                     
                 # print ("Actions: " + str(actions))
@@ -356,6 +358,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     exp_actions = []
     evalDatas=[]
     stds=[]
+    bad_sim_state = False
     
     # while not exp.endOfEpoch():
     for i_ in range(settings['max_epoch_length']):
@@ -363,269 +366,278 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # if (exp.endOfEpoch() or (reward_ < settings['reward_lower_bound'])):
         # state = exp.getState()
         state_ = exp.getState()
-        if (not (visualizeEvaluation == None)):
-            viz_q_values_.append(model.q_value(state_)[0])
-            if (len(viz_q_values_)>30):
-                 viz_q_values_.pop(0)
-            # print ("viz_q_values_: ", viz_q_values_ )
-            # print ("np.zeros(len(viz_q_values_)): ", np.zeros(len(viz_q_values_)))
-            visualizeEvaluation.updateLoss(viz_q_values_, np.zeros(len(viz_q_values_)))
-            visualizeEvaluation.redraw()
-            # visualizeEvaluation.setInteractiveOff()
-            # visualizeEvaluation.saveVisual(directory+"criticLossGraph")
-            # visualizeEvaluation.setInteractive()
-        # print ("Initial State: " + str(state_))
-        # print ("State: " + str(state.getParams()))
-        # val_act = exp.getActor().getModel().maxExpectedActionForState(state)
-        # action_ = model.predict(state_)
-            # print ("Get best action: ")
-        # pa = model.predict(state_)
-        action=None
-        if action_space_continuous:
-            """
-                epsilon greedy action select
-                pa1 is best action from policy
-                ra1 is the noisy policy action action
-                ra2 is the random action
-                e is proabilty to select random action
-                0 <= e < omega < 1.0
-            """
-            r = np.random.rand(1)[0]
-            # print(" Action p: ", p)
-            if r < (epsilon * p) or (settings['on_policy']): # explore random actions
-                exp_action = int(1)
-                r2 = np.random.rand(1)[0]
-                if ((r2 < (omega * p))) and (not sampling) :# explore hand crafted actions
-                    # return ra2
-                    # randomAction = randomUniformExporation(action_bounds) # Completely random action
-                    # action = randomAction
-                    action = np.random.choice(action_selection)
-                    action__ = actor.getActionParams(action)
-                    action = action__
-                    # print ("Discrete action choice: ", action, " epsilon * p: ", epsilon * p)
-                else : # add noise to current policy
-                    # return ra1
-                    if ( ((settings['exploration_method'] == 'gaussian_random') 
-                          # or (bootstrapping)
-                          ) 
-                         and (not sampling)):
-                        # print ("Random Guassian sample, state bounds", model.getStateBounds())
-                        pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
-                        # print ("Exploration Action: ", pa)
-                        # action = randomExporation(settings["exploration_rate"], pa)
-                        if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
-                            action = randomExporation(settings["exploration_rate"] * p, pa, action_bounds)
-                        else:
-                            action = randomExporation(settings["exploration_rate"], pa, action_bounds)
-                    elif (settings['exploration_method'] == 'gaussian_network' or 
-                          (settings['use_stocastic_policy'] == True)):
-                        pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
-                        # action = randomExporation(settings["exploration_rate"], pa)
-                        std_ = model.predict_std(state_)
-                        if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
-                            std_ = std_ * p
-                        # print("Action: ", pa)
-                        # print ("Action std: ", std)
-                        stds.append(std_)
-                        action = randomExporationSTD(settings["exploration_rate"], pa_, std_, action_bounds)
-                        # print("Action2: ", action)
-                    elif ((settings['exploration_method'] == 'thompson')):
-                        # print ('Using Thompson sampling')
-                        action = thompsonExploration(model, settings["exploration_rate"], state_)
-                    elif ((settings['exploration_method'] == 'sampling')):
-                        ## Use a sampling method to find a good action
-                        sim_state_ = exp.getSimState()
-                        action = model.getSampler().predict(sim_state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
-                    else:
-                        print ("Exploration method unknown: " + str(settings['exploration_method']))
-                        sys.exit(1)
-                    # randomAction = randomUniformExporation(action_bounds) # Completely random action
-                    # randomAction = random.choice(action_selection)
-                    if (settings["use_model_based_action_optimization"] and settings["train_forward_dynamics"] ):
-                        """
-                        if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
-                            mbae_omega = p * settings["model_based_action_omega"]
-                        else:
-                        """
-                        mbae_omega = settings["model_based_action_omega"]
-                        if (np.random.rand(1)[0] < mbae_omega):
-                            ## Need to be learning a forward dynamics deep network for this
-                            if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
-                                mbae_lr = p * settings["action_learning_rate"]
+        if (checkDataIsValid(state_) == True):
+    
+            if (not (visualizeEvaluation == None)):
+                viz_q_values_.append(model.q_value(state_)[0])
+                if (len(viz_q_values_)>30):
+                     viz_q_values_.pop(0)
+                # print ("viz_q_values_: ", viz_q_values_ )
+                # print ("np.zeros(len(viz_q_values_)): ", np.zeros(len(viz_q_values_)))
+                visualizeEvaluation.updateLoss(viz_q_values_, np.zeros(len(viz_q_values_)))
+                visualizeEvaluation.redraw()
+                # visualizeEvaluation.setInteractiveOff()
+                # visualizeEvaluation.saveVisual(directory+"criticLossGraph")
+                # visualizeEvaluation.setInteractive()
+            # print ("Initial State: " + str(state_))
+            # print ("State: " + str(state.getParams()))
+            # val_act = exp.getActor().getModel().maxExpectedActionForState(state)
+            # action_ = model.predict(state_)
+                # print ("Get best action: ")
+            # pa = model.predict(state_)
+            action=None
+            if action_space_continuous:
+                """
+                    epsilon greedy action select
+                    pa1 is best action from policy
+                    ra1 is the noisy policy action action
+                    ra2 is the random action
+                    e is proabilty to select random action
+                    0 <= e < omega < 1.0
+                """
+                r = np.random.rand(1)[0]
+                # print(" Action p: ", p)
+                if r < (epsilon * p) or (settings['on_policy']): # explore random actions
+                    exp_action = int(1)
+                    r2 = np.random.rand(1)[0]
+                    if ((r2 < (omega * p))) and (not sampling) :# explore hand crafted actions
+                        # return ra2
+                        # randomAction = randomUniformExporation(action_bounds) # Completely random action
+                        # action = randomAction
+                        action = np.random.choice(action_selection)
+                        action__ = actor.getActionParams(action)
+                        action = action__
+                        # print ("Discrete action choice: ", action, " epsilon * p: ", epsilon * p)
+                    else : # add noise to current policy
+                        # return ra1
+                        if ( ((settings['exploration_method'] == 'gaussian_random') 
+                              # or (bootstrapping)
+                              ) 
+                             and (not sampling)):
+                            # print ("Random Guassian sample, state bounds", model.getStateBounds())
+                            pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                            # print ("Exploration Action: ", pa)
+                            # action = randomExporation(settings["exploration_rate"], pa)
+                            if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
+                                action = randomExporation(settings["exploration_rate"] * p, pa, action_bounds)
                             else:
-                                mbae_lr = settings["action_learning_rate"]
-                            if ( 'use_random_actions_for_MBAE' in settings):
-                                use_rand_act = settings['use_random_actions_for_MBAE']
-                            else: 
-                                use_rand_act = False
-                            (action, value_diff) = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_, action_lr=mbae_lr, use_random_action=use_rand_act)
-                            # if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
-                                # print("MBAE action:")
-                    # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
-            else: ## exploit policy
-                exp_action = int(0) 
-                # return pa1
-                ## For sampling method to skip sampling during evaluation.
-                pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
-                
-                action = pa
-                # print ("Exploitation: ", action , " epsilon: ", epsilon * p)
-            outside_bounds=False
-            action_=None
-            if (settings["clamp_actions_to_stay_inside_bounds"] or (settings['penalize_actions_outside_bounds'])):
-                (action_, outside_bounds) = clampActionWarn(action, action_bounds)
-                if (settings['clamp_actions_to_stay_inside_bounds']):
-                    action = action_
-            if (settings["visualize_forward_dynamics"]):
-                predicted_next_state = model.getForwardDynamics().predict(np.array(state_), [action])
-                # exp.visualizeNextState(state_[0], [0,0]) # visualize current state
-                exp.visualizeNextState(predicted_next_state, action)
-                
-                action__ = model.predict(state_)
-                actions_ = []
-                dirs = []
-                deltas = np.linspace(-0.5,0.5,10)
-                for d in range(len(deltas)):
-                    action_ = np.zeros_like(action__)
-                    for i in range(len(action_)):
-                        action_[i] = action__[i]
-                    action_[0] = action__[0] + deltas[d] 
-                    if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
-                        mbae_lr = p * settings["action_learning_rate"]
-                    else:
-                        mbae_lr = settings["action_learning_rate"]
-                    action_new_ = getOptimalAction2(model.getForwardDynamics(), model.getPolicy(), action_, state_, mbae_lr)
-                    # actions.append(action_new_)
-                    actions_.append(action_)
-                    print("action_new_: ", action_new_[0], " action_: ", action_[0])
-                    if ( (float(action_new_[0][0]) - float(action_[0])) > 0 ):
-                        dirs.append(1.0)
-                    else:
-                        dirs.append(-1.0)
+                                action = randomExporation(settings["exploration_rate"], pa, action_bounds)
+                        elif (settings['exploration_method'] == 'gaussian_network' or 
+                              (settings['use_stocastic_policy'] == True)):
+                            pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                            # action = randomExporation(settings["exploration_rate"], pa)
+                            std_ = model.predict_std(state_)
+                            if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
+                                std_ = std_ * p
+                            # print("Action: ", pa)
+                            # print ("Action std: ", std)
+                            stds.append(std_)
+                            action = randomExporationSTD(settings["exploration_rate"], pa_, std_, action_bounds)
+                            # print("Action2: ", action)
+                        elif ((settings['exploration_method'] == 'thompson')):
+                            # print ('Using Thompson sampling')
+                            action = thompsonExploration(model, settings["exploration_rate"], state_)
+                        elif ((settings['exploration_method'] == 'sampling')):
+                            ## Use a sampling method to find a good action
+                            sim_state_ = exp.getSimState()
+                            action = model.getSampler().predict(sim_state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                        else:
+                            print ("Exploration method unknown: " + str(settings['exploration_method']))
+                            sys.exit(1)
+                        # randomAction = randomUniformExporation(action_bounds) # Completely random action
+                        # randomAction = random.choice(action_selection)
+                        if (settings["use_model_based_action_optimization"] and settings["train_forward_dynamics"] ):
+                            """
+                            if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
+                                mbae_omega = p * settings["model_based_action_omega"]
+                            else:
+                            """
+                            mbae_omega = settings["model_based_action_omega"]
+                            if (np.random.rand(1)[0] < mbae_omega):
+                                ## Need to be learning a forward dynamics deep network for this
+                                if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
+                                    mbae_lr = p * settings["action_learning_rate"]
+                                else:
+                                    mbae_lr = settings["action_learning_rate"]
+                                if ( 'use_random_actions_for_MBAE' in settings):
+                                    use_rand_act = settings['use_random_actions_for_MBAE']
+                                else: 
+                                    use_rand_act = False
+                                (action, value_diff) = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_, action_lr=mbae_lr, use_random_action=use_rand_act)
+                                # if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
+                                    # print("MBAE action:")
+                        # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
+                else: ## exploit policy
+                    exp_action = int(0) 
+                    # return pa1
+                    ## For sampling method to skip sampling during evaluation.
+                    pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                     
-                # return _getOptimalAction(forwardDynamicsModel, model, action, state)
-                
-                # action_ = _getOptimalAction(model.getForwardDynamics(), model.getPolicy(), action, state_)
-                exp.getEnvironment().visualizeActions(actions_, dirs)
-                ## The perfect action?
-                exp.getEnvironment().visualizeAction(action__)
-                
-            
-            if (not settings["train_actor"]): # hack to use debug critic only
-                """
-                    action = np.random.choice(action_selection)
-                    action__ = actor.getActionParams(action)
-                    action = action__
-                    
-                    pa = model.predict(state_)
                     action = pa
+                    # print ("Exploitation: ", action , " epsilon: ", epsilon * p)
+                outside_bounds=False
+                action_=None
+                if (settings["clamp_actions_to_stay_inside_bounds"] or (settings['penalize_actions_outside_bounds'])):
+                    (action_, outside_bounds) = clampActionWarn(action, action_bounds)
+                    if (settings['clamp_actions_to_stay_inside_bounds']):
+                        action = action_
+                if (settings["visualize_forward_dynamics"]):
+                    predicted_next_state = model.getForwardDynamics().predict(np.array(state_), [action])
+                    # exp.visualizeNextState(state_[0], [0,0]) # visualize current state
+                    exp.visualizeNextState(predicted_next_state, action)
+                    
+                    action__ = model.predict(state_)
+                    actions_ = []
+                    dirs = []
+                    deltas = np.linspace(-0.5,0.5,10)
+                    for d in range(len(deltas)):
+                        action_ = np.zeros_like(action__)
+                        for i in range(len(action_)):
+                            action_[i] = action__[i]
+                        action_[0] = action__[0] + deltas[d] 
+                        if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
+                            mbae_lr = p * settings["action_learning_rate"]
+                        else:
+                            mbae_lr = settings["action_learning_rate"]
+                        action_new_ = getOptimalAction2(model.getForwardDynamics(), model.getPolicy(), action_, state_, mbae_lr)
+                        # actions.append(action_new_)
+                        actions_.append(action_)
+                        print("action_new_: ", action_new_[0], " action_: ", action_[0])
+                        if ( (float(action_new_[0][0]) - float(action_[0])) > 0 ):
+                            dirs.append(1.0)
+                        else:
+                            dirs.append(-1.0)
+                        
+                    # return _getOptimalAction(forwardDynamicsModel, model, action, state)
+                    
+                    # action_ = _getOptimalAction(model.getForwardDynamics(), model.getPolicy(), action, state_)
+                    exp.getEnvironment().visualizeActions(actions_, dirs)
+                    ## The perfect action?
+                    exp.getEnvironment().visualizeAction(action__)
+                    
+                
+                if (not settings["train_actor"]): # hack to use debug critic only
+                    """
+                        action = np.random.choice(action_selection)
+                        action__ = actor.getActionParams(action)
+                        action = action__
+                        
+                        pa = model.predict(state_)
+                        action = pa
+                    """
+                    pass
+                    # action=[0.2]
+                reward_ = actor.actContinuous(exp,action)
                 """
-                pass
-                # action=[0.2]
-            reward_ = actor.actContinuous(exp,action)
-            """
-            if ( settings['train_reward_predictor'] and (not bootstrapping)):
-                predicted_reward = model.getForwardDynamics().predict_reward(state_, [action])
-                print ("Actual Reward: ", reward_, " Predicted reward: ", predicted_reward)
-            """
-            agent_not_fell = actor.hasNotFallen(exp)
-            if (outside_bounds and settings['penalize_actions_outside_bounds']):
-                reward_ = reward_ + settings['reward_lower_bound'] # TODO: this penalty should really be a function of the distance the action was outside the bounds 
-            # print ("Action: ", action, " reward: ", reward_, " p: ", p)
-        elif not action_space_continuous:
-            """
-            action = random.choice(action_selection)
-            action = eGreedy(pa, action, epsilon * p)
-            reward_ = actor.act(exp, action)
-            """
-            pa = model.predict(state_)
-            action = random.choice(action_selection)
-            action = eGreedy(pa, action, epsilon * p)
-            # print("Action selection:", action_selection, " action: ", action)
-            action__ = actor.getActionParams(action)
-            action = [action]
-            # print ("Action selected: " + str(action__))
-            # reward = act(action)
-            # print ("performing action: ", action)
-            reward_ = actor.actContinuous(exp, action__, bootstrapping=True)
-            agent_not_fell = actor.hasNotFallen(exp)
-            # print ("performed action: ", reward)
-        
-        # print ("Agent fell ", agent_not_fell, " with reward: ", reward_, " from action: ", action)
-            # reward_=0
-        # print("Action3: ", action)
-        # if ((reward_ >= settings['reward_lower_bound'] )):
-        
-        # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * reward_))) # *(1.0-discount_factor))
-        # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * (reward_ * (1.0-discount_factor) )))) # *(1.0-discount_factor))
-        discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * (reward_ )))) # *(1.0-discount_factor))
-        baseline.append(model.q_value(state_)[0])
-        # G_t.append((math.pow(discount_factor,0) * (reward_ * (1.0-discount_factor) ))) # *(1.0-discount_factor)))
-        G_t_rewards.append(reward_)
-        G_t.append(0) # *(1.0-discount_factor)))
-        for i in range(len(G_t)):
-            G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ ))))
-        # print ("discounted sum: ", discounted_sum, " G_t: ", G_t[0])
-        # print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
-        
-        # print ("discounted_sum: ", discounted_sum)
-        resultState_ = exp.getState()
-        
-        # if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
-            # print("Advantage of action: ", (reward_ + (discount_factor * model.q_value(resultState_)[0])) - model.q_value(state_)[0])
-        
-        # print ( "Sim state info:", state_)
-        # print ( "Sim result state info:", resultState_)
-        # print ("Result State shape: ", (np.array(resultState).shape))
-        # _val_act = exp.getActor().getModel().maxExpectedActionForState(resultState)
-        # bellman_error.append(val_act[0] - (reward + _val_act[0]))
-        ## For testing remove later
-        if (settings["use_back_on_track_forcing"] and (not evaluation)):
-            exp.getControllerBackOnTrack()
+                if ( settings['train_reward_predictor'] and (not bootstrapping)):
+                    predicted_reward = model.getForwardDynamics().predict_reward(state_, [action])
+                    print ("Actual Reward: ", reward_, " Predicted reward: ", predicted_reward)
+                """
+                agent_not_fell = actor.hasNotFallen(exp)
+                if (outside_bounds and settings['penalize_actions_outside_bounds']):
+                    reward_ = reward_ + settings['reward_lower_bound'] # TODO: this penalty should really be a function of the distance the action was outside the bounds 
+                # print ("Action: ", action, " reward: ", reward_, " p: ", p)
+            elif not action_space_continuous:
+                """
+                action = random.choice(action_selection)
+                action = eGreedy(pa, action, epsilon * p)
+                reward_ = actor.act(exp, action)
+                """
+                pa = model.predict(state_)
+                action = random.choice(action_selection)
+                action = eGreedy(pa, action, epsilon * p)
+                # print("Action selection:", action_selection, " action: ", action)
+                action__ = actor.getActionParams(action)
+                action = [action]
+                # print ("Action selected: " + str(action__))
+                # reward = act(action)
+                # print ("performing action: ", action)
+                reward_ = actor.actContinuous(exp, action__, bootstrapping=True)
+                agent_not_fell = actor.hasNotFallen(exp)
+                # print ("performed action: ", reward)
             
-        # print ("Value: ", model.q_value(state_), " Action " + str(action) + " Reward: " + str(reward_) )
-        if print_data:
-            # print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward_))
-            # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) + " Discounted Sum: " + str(discounted_sum) )
-            value__ = 0
-            if ( not bootstrapping ):
-                value__ = model.q_value(state_)
-            print ("Value: ", value__, " Action " + str(action) + " Reward: " + str(reward_) )
-            if ( settings['train_reward_predictor'] and (settings['train_forward_dynamics'])):
-                predicted_reward = model.getForwardDynamics().predict_reward(state_, [action])
-                print ("Predicted reward: ", predicted_reward) 
-            print ("Agent has fallen: ", not agent_not_fell )
-            # print ("Python Reward: " + str(reward(state_, resultState)))
+            # print ("Agent fell ", agent_not_fell, " with reward: ", reward_, " from action: ", action)
+                # reward_=0
+            # print("Action3: ", action)
+            # if ((reward_ >= settings['reward_lower_bound'] )):
             
-        # if ( (reward_ >= settings['reward_lower_bound'] ) or evaluation):
-            # print("Shape of states: ", np.array(states).shape, " state shape, ", np.array(state_).shape)
-        states.extend(state_)
-        actions.append(action)
-        rewards.append(reward_)
-        # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)
-        # print("result states: ", result_states___)
-        result_states___.extend(resultState_)
-        if (worker_id is not None):
-            # print("Pushing working id as fall value: ", [worker_id])
-            falls.append([worker_id])
+            # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * reward_))) # *(1.0-discount_factor))
+            # discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * (reward_ * (1.0-discount_factor) )))) # *(1.0-discount_factor))
+            discounted_sum = discounted_sum + (((math.pow(discount_factor,state_num) * (reward_ )))) # *(1.0-discount_factor))
+            baseline.append(model.q_value(state_)[0])
+            # G_t.append((math.pow(discount_factor,0) * (reward_ * (1.0-discount_factor) ))) # *(1.0-discount_factor)))
+            G_t_rewards.append(reward_)
+            G_t.append(0) # *(1.0-discount_factor)))
+            for i in range(len(G_t)):
+                G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (reward_ ))))
+            # print ("discounted sum: ", discounted_sum, " G_t: ", G_t[0])
+            # print ("state_num: ", state_num, " len(G_t)-1: ", len(G_t)-1)
+            
+            # print ("discounted_sum: ", discounted_sum)
+            resultState_ = exp.getState()
+            
+            # if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
+                # print("Advantage of action: ", (reward_ + (discount_factor * model.q_value(resultState_)[0])) - model.q_value(state_)[0])
+            
+            # print ( "Sim state info:", state_)
+            # print ( "Sim result state info:", resultState_)
+            # print ("Result State shape: ", (np.array(resultState).shape))
+            # _val_act = exp.getActor().getModel().maxExpectedActionForState(resultState)
+            # bellman_error.append(val_act[0] - (reward + _val_act[0]))
+            ## For testing remove later
+            if (settings["use_back_on_track_forcing"] and (not evaluation)):
+                exp.getControllerBackOnTrack()
+                
+            # print ("Value: ", model.q_value(state_), " Action " + str(action) + " Reward: " + str(reward_) )
+            if print_data:
+                # print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward_))
+                # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) + " Discounted Sum: " + str(discounted_sum) )
+                value__ = 0
+                if ( not bootstrapping ):
+                    value__ = model.q_value(state_)
+                print ("Value: ", value__, " Action " + str(action) + " Reward: " + str(reward_) )
+                if ( settings['train_reward_predictor'] and (settings['train_forward_dynamics'])):
+                    predicted_reward = model.getForwardDynamics().predict_reward(state_, [action])
+                    print ("Predicted reward: ", predicted_reward) 
+                print ("Agent has fallen: ", not agent_not_fell )
+                # print ("Python Reward: " + str(reward(state_, resultState)))
+                
+            # if ( (reward_ >= settings['reward_lower_bound'] ) or evaluation):
+                # print("Shape of states: ", np.array(states).shape, " state shape, ", np.array(state_).shape)
         else:
-            # print("Pushing actual fall value: ", [agent_not_fell])
-            falls.append([agent_not_fell])
-        exp_actions.append([exp_action])
-        # print ("falls: ", falls)
-        # values.append(value)
-        if (not use_batched_exp):
-            if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
-                # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
-                # print("Putting tuple in queue")
-                _output_queue.put((states[-1:], actions[-1:], result_states___[-1:], [rewards[-1:]],  falls[-1:], [0], exp_actions[-1:]))
-        
-        state_num += 1
+            bad_sim_state = True
+            
+        if ( bad_sim_state or checkValidData(state_, actions, resultState_ , reward_) == False ):
+            print ("Simulation is in a bad state: ")
+            bad_sim_state = True
+        else:
+            states.extend(state_)
+            actions.append(action)
+            rewards.append(reward_)
+            # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)
+            # print("result states: ", result_states___)
+            result_states___.extend(resultState_)
+            if (worker_id is not None):
+                # print("Pushing working id as fall value: ", [worker_id])
+                falls.append([worker_id])
+            else:
+                # print("Pushing actual fall value: ", [agent_not_fell])
+                falls.append([agent_not_fell])
+            exp_actions.append([exp_action])
+            # print ("falls: ", falls)
+            # values.append(value)
+            if (not use_batched_exp):
+                if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
+                    # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
+                    # print("Putting tuple in queue")
+                    _output_queue.put((states[-1:], actions[-1:], result_states___[-1:], [rewards[-1:]],  falls[-1:], [0], exp_actions[-1:]))
+            
+            state_num += 1
         # else:
             # print ("****Reward was to bad: ", reward_)
         pa = None
         
-        if ((exp.endOfEpoch() and settings['reset_on_fall'])  
+        if ((exp.endOfEpoch() and settings['reset_on_fall'] or (bad_sim_state))  
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
                 ):
             evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
@@ -637,6 +649,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             discounted_sums.append(discounted_sum)
             discounted_sum=0
             state_num=0
+            bad_sim_state = False
             
             # print ("Baseline: ", baseline)
             # print ("Discounted sums: ", G_ts)
@@ -657,7 +670,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             """
             if ('use_GAE' in settings and ( settings['use_GAE'] )):
                 path = {}
-                path['states'] = copy.deepcopy(states [last_epoch_end:])
+                path['states'] = copy.deepcopy(states[last_epoch_end:])
                 path['reward'] = np.array(rewards[last_epoch_end:])
                 path["terminated"] = False
                 # print("rewards: ", rewards[last_epoch_end:])
@@ -845,11 +858,12 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         reward_over_epocs.append(np.mean(np.array(rewards)))
         bellman_errors.append(error)
         evalDatas.append(evalData)
-        
-    print ("Reward for min epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
-    print ("reward_over_epocs" + str(reward_over_epocs))
-    print ("Discounted sum: ", discounted_values)
-    print ("Initial values: ", values)
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+        print ("Reward for best epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
+        print ("reward_over_epocs" + str(reward_over_epocs))
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
+        print ("Discounted sum: ", discounted_values)
+        print ("Initial values: ", values)
     mean_reward = np.mean(reward_over_epocs)
     std_reward = np.std(reward_over_epocs)
     mean_bellman_error = np.mean(bellman_errors)
@@ -926,11 +940,12 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             bellman_errors.append(error)
             evalDatas.append(evalData)
         i += j
-        
-    print ("Reward for min epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
-    print ("reward_over_epocs" + str(reward_over_epocs))
-    print ("Discounted sum: ", discounted_values)
-    print ("Initial values: ", values)
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+        print ("Reward for best epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
+        print ("reward_over_epocs" + str(reward_over_epocs))
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
+        print ("Discounted sum: ", discounted_values)
+        print ("Initial values: ", values)
     mean_reward = np.mean(reward_over_epocs)
     std_reward = np.std(reward_over_epocs)
     mean_bellman_error = np.mean(bellman_errors)

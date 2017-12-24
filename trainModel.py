@@ -136,6 +136,7 @@ def trainModelParallel(inputData):
             
         rounds = settings["rounds"]
         epochs = settings["epochs"]
+        # settings["num_available_threads"] = int(settings["num_available_threads"])
         # num_states=settings["num_states"]
         epsilon = settings["epsilon"]
         discount_factor=settings["discount_factor"]
@@ -1136,12 +1137,16 @@ if (__name__ == "__main__"):
     
     file = open(options['configFile'])
     settings = json.load(file)
-    print ("Settings: " + str(json.dumps(settings, indent=4)))
     file.close()
     
-    settings['visualize_learning'] = options['visualize_learning']
-    settings['shouldRender'] = options['shouldRender']
-    
+    for option in options:
+        if ( not (options[option] is None) ):
+            print ("Updateing option: ", option, " = ", options[option])
+            settings[option] = options[option]
+        # settings['num_available_threads'] = options['num_available_threads']
+
+    print ("Settings: " + str(json.dumps(settings, indent=4)))
+        
     t0 = time.time()
     trainModelParallel((sys.argv[1], settings))
     t1 = time.time()
