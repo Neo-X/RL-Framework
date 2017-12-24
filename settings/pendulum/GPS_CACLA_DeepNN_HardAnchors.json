@@ -64,7 +64,7 @@
 	"comment__": "Number of updates the critic should perform per actor update",
 "critic_updates_per_actor_update": 10,
 "clamp_actions_to_stay_inside_bounds": false,
-"bootsrap_samples": 100,
+"bootstrap_samples": 100,
 "bootsrap_with_discrete_policy": true,
 "max_epoch_length": 100,
 "reward_lower_bound": -5.0,

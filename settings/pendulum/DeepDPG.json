@@ -63,7 +63,7 @@
 	"comment__": "Number of updates the critic should perform per actor update",
 "critic_updates_per_actor_update": 10,
 "clamp_actions_to_stay_inside_bounds": true,
-"bootsrap_samples": 10000,
+"bootstrap_samples": 10000,
 "bootsrap_with_discrete_policy": true,
 "forwardDynamics_config_file": "../data/pendulumContinuousActions/trainContinuousActions.ini"
 }
