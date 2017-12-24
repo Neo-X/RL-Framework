@@ -203,8 +203,8 @@ def evaluateModelRender(settings_file_name, runLastModel=False):
     import os    
     os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
     
-    from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
-    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel
+    from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor, getAgentName
+    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, getAgentName
     from util.ExperienceMemory import ExperienceMemory
     from model.LearningAgent import LearningAgent, LearningWorker
     from RLVisualize import RLVisualize
