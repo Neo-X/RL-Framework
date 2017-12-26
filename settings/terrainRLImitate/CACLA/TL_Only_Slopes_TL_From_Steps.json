@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Biped2dFull_Steps_TL_From_Incline/",
+"data_folder": "Biped2dFull/TL_Only/Slopes_TL_From_Steps/",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
