@@ -166,10 +166,12 @@ class AlgorithmInterface(object):
                 print ("Zeroing injected merge part")
                 values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
                 ### also zero the dense network from the task part
+                """
                 if (zero_dense):
                     l = self.getModel().getCriticNetworkTaskPart()
                     values_2 = np.zeros(l.W.get_value().shape, dtype=self.getSettings()['float_type'])
                     l.W.set_value(values_2)
+                """
             else:
                 values = self_Layers[0].W.get_value()
             ### copy over other values
@@ -201,10 +203,12 @@ class AlgorithmInterface(object):
                 print ("Zeroing injected merge part")
                 values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
                 ### also zero the dense network from the task part
+                """
                 if (zero_dense):
                     l = self.getModel().getCriticNetworkTaskPart()
                     values_2 = np.zeros(l.W.get_value().shape, dtype=self.getSettings()['float_type'])
                     l.W.set_value(values_2)
+                """
             else:
                 values = self_Layers[0].W.get_value()
             ### copy over other values
