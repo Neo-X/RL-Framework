@@ -159,12 +159,14 @@ class AlgorithmInterface(object):
         if (self_Layers[0].W.get_value().shape == other_Layers[0].W.get_value().shape ):
             print("Matching merge layer shapes ")
             print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
-        else:
+        else: ## Two network were of different same size
             print("Merge layer shapes do not match ")
             print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
             if ( zeroInjectedMergeLayer ):
                 print ("Zeroing injected merge part")
-                values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
+                # values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
+                ### Similar to what is done in DDPG to get i
+                values = self_Layers[0].W.get_value() * 0.01
                 ### also zero the dense network from the task part
                 """
                 if (zero_dense):
@@ -201,7 +203,9 @@ class AlgorithmInterface(object):
             print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
             if ( zeroInjectedMergeLayer ):
                 print ("Zeroing injected merge part")
-                values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
+                # values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
+                ### Similar to what is done in DDPG to get initial policy to be close to the mean.
+                values = self_Layers[0].W.get_value() * 0.01
                 ### also zero the dense network from the task part
                 """
                 if (zero_dense):
@@ -238,12 +242,16 @@ class AlgorithmInterface(object):
             print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
             if ( zeroInjectedMergeLayer ):
                 print ("Zeroing injected merge part")
-                values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
+                # values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
+                ### Similar to what is done in DDPG to get initial policy to be close to the mean.
+                values = self_Layers[0].W.get_value() * 0.01
                 ### also zero the dense network from the task part
+                """
                 if (zero_dense):
                     l = self.getModel().getActorNetworkTaskPart()
                     values_2 = np.zeros(l.W.get_value().shape, dtype=self.getSettings()['float_type'])
                     l.W.set_value(values_2)
+                """
             else:
                 values = self_Layers[0].W.get_value()
             ### copy over other values
@@ -274,12 +282,16 @@ class AlgorithmInterface(object):
             print (self_Layers[0].W.get_value().shape, " vs ", other_Layers[0].W.get_value().shape)
             if ( zeroInjectedMergeLayer ):
                 print ("Zeroing injected merge part")
-                values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
+                # values = np.zeros(self_Layers[0].W.get_value().shape, dtype=self.getSettings()['float_type'])
+                ### Similar to what is done in DDPG to get initial policy to be close to the mean.
+                values = self_Layers[0].W.get_value() * 0.01
                 ### also zero the dense network from the task part
+                """
                 if (zero_dense):
                     l = self.getModel().getActorNetworkTaskPart()
                     values_2 = np.zeros(l.W.get_value().shape, dtype=self.getSettings()['float_type'])
                     l.W.set_value(values_2)
+                """
             else:
                 values = self_Layers[0].W.get_value()
             ### copy over other values

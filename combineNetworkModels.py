@@ -1,6 +1,12 @@
 
 """
+I should put some notes here on how to use this...
 
+    This script loads a model with name agent.pkl in the directory that would be created
+    by the setttings file. It also creats a new network using the configuration
+    from the settings file. You need to put the network model you want to copy the 
+    parameters from in the data folder. The new network will be created in the same 
+    folder with the name agent_Injected.pkl.
 
 """
 
@@ -27,7 +33,7 @@ def combineNetworkModels(settings_file_name):
     # from model.ModelUtil import validBounds
     from model.LearningAgent import LearningAgent, LearningWorker
     from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
-    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
+    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, getAgentName
     
     
     from util.ExperienceMemory import ExperienceMemory

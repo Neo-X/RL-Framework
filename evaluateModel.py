@@ -269,7 +269,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False):
 
     # this is the process that selects which game to play
     
-    exp = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings, render=True)
+    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=1)
     if (settings['train_forward_dynamics']):
         # actor.setForwardDynamicsModel(forwardDynamicsModel)
         forwardDynamicsModel.setActor(actor)
