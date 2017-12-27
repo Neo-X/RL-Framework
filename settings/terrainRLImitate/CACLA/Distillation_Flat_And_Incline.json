@@ -1,10 +1,10 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "Deep_CNN",
+"model_type": "model.DeepCNN.DeepCNN",
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.Distillation.Distillation",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Biped2dFull/Distill_Flat_Incline",
+"data_folder": "Biped2dFull/PLAiD_Distill/Flat_Incline",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -313,7 +313,8 @@
 	"comment__": "use a special annealing schedule that will being at 1 and end at 0",
 "annealing_schedule": "log",
 	"comment__": "list of paths to policy files to distill together",
-"expert_policy_files": ["terrainRLImitateBiped2D/A_CACLA/Biped2dFull_Multi_Injected", "terrainRLImitateBiped2D/A_CACLA/Biped2dFull_Steps_TL_From_Incline"],
+"expert_policy_files": ["terrainRLImitateBiped2D/algorithm.A_CACLA.A_CACLA/Biped2dFull/MultiTasker/_Flat_Incline", 
+						"terrainRLImitateBiped2D/algorithm.A_CACLA.A_CACLA/Biped2dFull/TL_Only/Steps_TL_From_Incline"],
 	"comment__": "Flag used to do a testing version of Distillation",
 "run_distillation_in_test_mode": false
 }
