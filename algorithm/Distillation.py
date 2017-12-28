@@ -520,7 +520,7 @@ class Distillation(AlgorithmInterface):
                 evaluation_ = True
         ### Want to start out selecting actions from the expert more
         ### p starts at 1 is anneal to 0.
-        if (evaluation_ is True or (bootstrapping is True)
+        if ( (evaluation_ is True) or (bootstrapping is True)
             ): ## Use policy
             # print("Using Policy")
             action_ = super(Distillation,self).predict(state)

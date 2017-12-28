@@ -111,7 +111,7 @@ class SimContainer(object):
                 print("Root position: ", position_root)
                 print("Root orientation: ", root_orientation)
                 """
-                action_ = np.array(self._agent.predict(state_), dtype='float64')
+                action_ = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
                 
                 grad_ = self._agent.getPolicy().getGrads(state_)[0]
                 # grad_ = [0]
@@ -269,7 +269,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False):
 
     # this is the process that selects which game to play
     
-    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=1)
+    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=0)
     if (settings['train_forward_dynamics']):
         # actor.setForwardDynamicsModel(forwardDynamicsModel)
         forwardDynamicsModel.setActor(actor)
@@ -335,7 +335,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False):
     exp.initEpoch()
     fps=30
     state_ = exp.getState()
-    action_ = np.array(masterAgent.predict(state_), dtype='float64')
+    action_ = np.array(masterAgent.predict(state_, evaluation_=True), dtype='float64')
     exp.updateAction(action_)
     sim = SimContainer(exp, masterAgent, settings, expected_value_viz)
     sim._grad_sum = np.zeros_like(state_)
