@@ -1,8 +1,8 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "Deep_CNN",
+"model_type": "model.DeepCNN.DeepCNN",
     "comment__": "Learning algorithm to use",
-"agent_name": "A_CACLA",
+"agent_name": "algorithm.A_CACLA.A_CACLA",
     "comment__": "Folder to store the training data in.",
 "data_folder": "Biped2dFull/PLAiD/Steps_Distill_From_Flat_Incline_2",
 	"comment": "initial probability of selecting a random action",
