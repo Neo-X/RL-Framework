@@ -38,6 +38,13 @@ import gc
 
 from model.ModelUtil import scale_action
 
+def loadNetwork(net_file_path):
+    print("Loading model: ", net_file_path)
+    f = open(net_file_path, 'rb')
+    model = dill.load(f)
+    f.close()
+    return model
+
 def getDataDirectory(settings):
     return getBaseDataDirectory(settings)+settings["model_type"]+"/"
 
