@@ -40,6 +40,15 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     
     print ( "Running ", samples, " simulation(s) over ", numThreads, " Thread(s)")
     settings_original = copy.deepcopy(settings)
+    
+    directory= getBaseDataDirectory(settings_original)
+    out_file_name=directory+"settings.json"
+    print ("Saving settings file with data to: ", out_file_name)
+    out_file = open(out_file_name, 'w')
+    out_file.write(json.dumps(settings_original, indent=4))
+    # file.close()
+    out_file.close()
+        
     sim_settings=[]
     sim_settingFileNames=[]
     sim_data = []
