@@ -20,5 +20,5 @@
 	"comment__": "Flag to say this is a testing run",
 "testing": false,
 	"comment__": "Location to to copy previous policy models from",
-"saved_model_folder": "CharacterAnimation/learn/terrainRLImitateBiped2D/algorithm.A_CACLA.A_CACLA/Biped2dFull/MultiTasker/_Flat_Incline_3"
+"saved_model_folder": "CharacterAnimation/learn/terrainRLImitateBiped2D/algorithm.A_CACLA.A_CACLA/Biped2dFull/MultiTasker/_Flat_Incline_Steps_3"
 }
