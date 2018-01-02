@@ -95,7 +95,10 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
         
         ### Check if this is to be a mult-task simulation
         if type(settings['sim_config_file']) is list:
-            sim_id = process
+            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+                sim_id = override_sim_env_id
+            else:
+                sim_id = process
         else:
             sim_id = 0
             
