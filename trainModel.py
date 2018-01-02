@@ -33,6 +33,87 @@ _output_experience_queue = None
 _eval_episode_data_queue = None
 _sim_work_queues = []
 
+def createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds):
+    """
+        Create the Learning Agent to be used
+    """
+    from model.LearningAgent import LearningAgent, LearningWorker
+    
+    learning_workers = []
+    for process in range(1):
+        agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+        
+        agent.setSettings(settings)
+        
+        lw = LearningWorker(output_experience_queue, agent, random_seed_=settings['random_seed']+process + 1)
+        learning_workers.append(lw)  
+    masterAgent = agent
+    return (agent, learning_workers)
+
+def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds):
+    """
+        Creates a number of simulation workers and the message queues that
+        are used to tell them what to simulate.
+    """
+    
+    from model.LearningAgent import LearningAgent, LearningWorker
+    from ModelEvaluation import SimWorker
+    from util.SimulationUtil import createActor, getAgentName
+    
+    sim_workers = []
+    sim_work_queues = []
+    for process in range(settings['num_available_threads']):
+        # this is the process that selects which game to play
+        exp_=None
+        
+        if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
+            print ("Assigning same EXP")
+            exp_ = exp_val # This should not work properly for many simulations running at the same time. It could try and evalModel a simulation while it is still running samples 
+        print ("original exp: ", exp_)
+            # sys.exit()
+        ### Using a wrapper for the type of actor now
+        actor = createActor(settings['environment_type'], settings, None)
+        
+        agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+        
+        agent.setSettings(settings)
+        agent.setPolicy(model)
+        if (settings['train_forward_dynamics']):
+            agent.setForwardDynamics(forwardDynamicsModel)
+        
+        elif ( settings['use_simulation_sampling'] ):
+            
+            sampler = createSampler(settings, exp_)
+            ## This should be some kind of copy of the simulator not a network
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp_)
+            sampler.setForwardDynamics(forwardDynamicsModel)
+            # sampler.setPolicy(model)
+            agent.setSampler(sampler)
+            print ("thread together exp: ", sampler._exp)
+        
+        ### Check if this is to be a mult-task simulation
+        if type(settings['sim_config_file']) is list:
+            sim_id = process
+        else:
+            sim_id = 0
+            
+        if (settings['on_policy']):
+            message_queue = multiprocessing.Queue(1)
+        else:
+            message_queue = multiprocessing.Queue(settings['epochs'])
+        sim_work_queues.append(message_queue)
+        w = SimWorker(input_anchor_queue, output_experience_queue, actor, exp_, agent, settings["discount_factor"], action_space_continuous=settings['action_space_continuous'], 
+                settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process + 1,
+                message_que=message_queue, worker_id=sim_id )
+        # w.start()
+        sim_workers.append(w)
+    
+    return (sim_workers, sim_work_queues)
+    
+
+
 # python -m memory_profiler example.py
 # @profile(precision=5)
 # def trainModelParallel(settingsFileName, settings):
@@ -262,7 +343,7 @@ def trainModelParallel(inputData):
         # namespace = mgr.Namespace()
         
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
-        
+        forwardDynamicsModel = None
         if (settings['train_forward_dynamics']):
             if ( settings['forward_dynamics_model_type'] == "SingleNet"):
                 print ("Creating forward dynamics network: Using single network model")
@@ -277,93 +358,13 @@ def trainModelParallel(inputData):
             # forwardDynamicsModel.setEnvironment(exp)
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
-        learning_workers = []
-        for process in range(1):
-            # this is the process that selects which game to play
-            agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
-            
-            agent.setSettings(settings)
-            """
-            if action_space_continuous:
-                model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
-            else:
-                model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
-            model.setStateBounds(state_bounds)
-            model.setActionBounds(action_bounds)
-            model.setRewardBounds(reward_bounds)
-            """
-            # agent.setPolicy(model)
-            # actor.setPolicy(model)
-            # agent.setExperience(experience)
-            # learningNamespace.agentPoly = agent.getPolicy().getNetworkParameters()
-            # learningNamespace.experience = experience
-            
-            lw = LearningWorker(output_experience_queue, agent, random_seed_=settings['random_seed']+process + 1)
-            # lw.start()
-            learning_workers.append(lw)  
+        (agent, learning_workers) = createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds)
         masterAgent = agent
         # print ("NameSpace: " + str(namespace))
         # sys.exit(0)
         
         # this is the process that selects which game to play
-        sim_workers = []
-        for process in range(settings['num_available_threads']):
-            # this is the process that selects which game to play
-            exp_=None
-            
-            if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
-                print ("Assigning same EXP")
-                exp_ = exp_val # This should not work properly for many simulations running at the same time. It could try and evalModel a simulation while it is still running samples 
-            print ("original exp: ", exp_)
-                # sys.exit()
-        
-            agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
-            
-            agent.setSettings(settings)
-            agent.setPolicy(model)
-            if (settings['train_forward_dynamics']):
-                agent.setForwardDynamics(forwardDynamicsModel)
-            
-            elif ( settings['use_simulation_sampling'] ):
-                
-                sampler = createSampler(settings, exp_)
-                ## This should be some kind of copy of the simulator not a network
-                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp_)
-                sampler.setForwardDynamics(forwardDynamicsModel)
-                # sampler.setPolicy(model)
-                agent.setSampler(sampler)
-                print ("thread together exp: ", sampler._exp)
-            
-            """
-            if action_space_continuous:
-                model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
-            else:
-                model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
-            """
-            """
-            model_ = copy.deepcopy(model)
-            model_.setStateBounds(state_bounds)
-            model_.setActionBounds(action_bounds)
-            model_.setRewardBounds(reward_bounds)
-            """
-            ### Check is this is to be a mult-task simulation
-            if type(settings['sim_config_file']) is list:
-                sim_id = process
-            else:
-                sim_id = 0
-                
-            if (settings['on_policy']):
-                message_queue = multiprocessing.Queue(1)
-            else:
-                message_queue = multiprocessing.Queue(settings['epochs'])
-            sim_work_queues.append(message_queue)
-            w = SimWorker(input_anchor_queue, output_experience_queue, actor, exp_, agent, discount_factor, action_space_continuous=action_space_continuous, 
-                    settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process + 1,
-                    message_que=message_queue, worker_id=sim_id )
-            # w.start()
-            sim_workers.append(w)
+        (sim_workers, sim_work_queues) = createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds)
         
         
         # paramSampler = exp_val.getActor().getParamSampler()
