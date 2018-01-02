@@ -51,7 +51,7 @@ def createLearningAgent(settings, output_experience_queue, state_bounds, action_
     masterAgent = agent
     return (agent, learning_workers)
 
-def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds):
+def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds, default_sim_id=None):
     """
         Creates a number of simulation workers and the message queues that
         are used to tell them what to simulate.
@@ -95,8 +95,8 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
         
         ### Check if this is to be a mult-task simulation
         if type(settings['sim_config_file']) is list:
-            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-                sim_id = override_sim_env_id
+            if (default_sim_id != None):
+                sim_id = default_sim_id
             else:
                 sim_id = process
         else:
@@ -238,10 +238,12 @@ def trainModelParallel(inputData):
 
         if (settings['num_available_threads'] == 1):
             input_anchor_queue = multiprocessing.Queue(settings['queue_size_limit'])
+            input_anchor_queue_eval = multiprocessing.Queue(settings['queue_size_limit'])
             output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
             eval_episode_data_queue = multiprocessing.Queue(settings['queue_size_limit'])
         else:
             input_anchor_queue = multiprocessing.Queue(settings['epochs'])
+            input_anchor_queue_eval = multiprocessing.Queue(settings['epochs'])
             output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
             eval_episode_data_queue = multiprocessing.Queue(settings['eval_epochs'])
             
@@ -366,8 +368,15 @@ def trainModelParallel(inputData):
         # print ("NameSpace: " + str(namespace))
         # sys.exit(0)
         
-        # this is the process that selects which game to play
+        ### These are the workers for training
         (sim_workers, sim_work_queues) = createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds)
+        
+        eval_sim_workers = sim_workers
+        eval_sim_work_queues = sim_work_queues
+        if ( 'override_sim_env_id' in settings and (setting['override_sim_env_id'] != False)):
+            (eval_sim_workers, eval_sim_work_queues) = createSimWorkers(settings, input_anchor_queue_eval, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds, default_sim_id=setting['override_sim_env_id'])
+        else:
+            input_anchor_queue_eval = input_anchor_queue
         
         
         # paramSampler = exp_val.getActor().getParamSampler()
@@ -788,6 +797,13 @@ def trainModelParallel(inputData):
                         m_q.put(message, False)
                     except: 
                         print ("SimWorker model parameter message queue full: ", m_q.qsize())
+                if ( 'override_sim_env_id' in settings and (setting['override_sim_env_id'] != False)):
+                    for m_q in eval_sim_work_queues:
+                        ## Don't block on full queue
+                        try:
+                            m_q.put(message, False)
+                        except: 
+                            print ("SimWorker model parameter message queue full: ", m_q.qsize())
               
             if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
                 # Running less often helps speed learning up.
@@ -798,10 +814,10 @@ def trainModelParallel(inputData):
                 #                                         anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings)
                 # else:
                 if (settings['on_policy']):
-                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=sim_work_queues,
+                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=eval_sim_work_queues,
                                                                model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                 else:
-                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue,
+                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue_eval,
                                                                model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                 """
                 for sm in sim_workers:
