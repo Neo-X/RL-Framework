@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.Distillation.Distillation",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Biped2dFull/PLAiD_Distill/Flat_Incline_2",
+"data_folder": "Biped2dFull/PLAiD_Distill/Flat_Incline_Steps_3",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
