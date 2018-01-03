@@ -1109,6 +1109,7 @@ def trainModelParallel(inputData):
                 actor_loss_viz.finish()
                 actor_regularization_viz.finish()
         ### This will find ALL your memory deallocation issues in C++...
+        ### And errors in terinating processes properly...
         gc.collect()
         
 import inspect
