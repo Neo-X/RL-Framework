@@ -48,7 +48,17 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Controls the level of information that is printed to the terminal")
     
+    parser.add_option("--plotting_update_freq_num_rounds",
+              action="store", dest="plotting_update_freq_num_rounds", default=None,
+              type=int,
+              metavar="INTEGER", 
+              help="Controls the level of information that is printed to the terminal")
     
+    parser.add_option("--saving_update_freq_num_rounds",
+              action="store", dest="plotting_update_freq_num_rounds", default=None,
+              type=int,
+              metavar="INTEGER", 
+              help="Controls the level of information that is printed to the terminal")
     
     parser.add_option("--frameSize", 
           action="store", dest="frameSize", default=None,

@@ -373,8 +373,8 @@ def trainModelParallel(inputData):
         
         eval_sim_workers = sim_workers
         eval_sim_work_queues = sim_work_queues
-        if ( 'override_sim_env_id' in settings and (setting['override_sim_env_id'] != False)):
-            (eval_sim_workers, eval_sim_work_queues) = createSimWorkers(settings, input_anchor_queue_eval, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds, default_sim_id=setting['override_sim_env_id'])
+        if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+            (eval_sim_workers, eval_sim_work_queues) = createSimWorkers(settings, input_anchor_queue_eval, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds, default_sim_id=settings['override_sim_env_id'])
         else:
             input_anchor_queue_eval = input_anchor_queue
         
@@ -399,6 +399,11 @@ def trainModelParallel(inputData):
                 print ("Sim worker")
                 print (sw)
                 sw.start()
+            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+                for sw in eval_sim_workers:
+                    print ("Sim worker")
+                    print (sw)
+                    sw.start()
         
         ## This needs to be done after the simulation worker processes are created
         # exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'], )
@@ -411,6 +416,9 @@ def trainModelParallel(inputData):
         if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
             sim_workers[0].setEnvironment(exp_val)
             sim_workers[0].start()
+            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+                eval_sim_workers[0].setEnvironment(exp_val)
+                eval_sim_workers[0].start()
         
         masterAgent.setPolicy(model)
         if (settings['train_forward_dynamics']):
@@ -672,6 +680,11 @@ def trainModelParallel(inputData):
                         ## block on full queue
                         m_q.put(message)
                     
+                    if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+                        for m_q in eval_sim_work_queues:
+                            ## block on full queue
+                            m_q.put(message)
+                    
                     # states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
                 else:
@@ -797,7 +810,7 @@ def trainModelParallel(inputData):
                         m_q.put(message, False)
                     except: 
                         print ("SimWorker model parameter message queue full: ", m_q.qsize())
-                if ( 'override_sim_env_id' in settings and (setting['override_sim_env_id'] != False)):
+                if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
                     for m_q in eval_sim_work_queues:
                         ## Don't block on full queue
                         try:
@@ -1002,12 +1015,27 @@ def trainModelParallel(inputData):
             for m_q in sim_work_queues:
                 ## block on full queue
                 m_q.put(None)
+            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+                for m_q in eval_sim_work_queues:
+                    ## block on full queue
+                    m_q.put(None)
+            for sw in sim_workers: # Should update these more often
+                sw.join()
+            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+                for sw in eval_sim_workers: # Should update these more often
+                    sw.join() 
         else:
             for sw in sim_workers: 
                 input_anchor_queue.put(None)
+            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+                for sw in eval_sim_workers: 
+                    input_anchor_queue_eval.put(None)
             print ("Joining Workers"        )
             for sw in sim_workers: # Should update these more often
                 sw.join()
+            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+                for sw in eval_sim_workers: # Should update these more often
+                    sw.join() 
         
         if (not settings['on_policy']):    
             print ("Terminating learners"        )
