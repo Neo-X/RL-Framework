@@ -45,4 +45,6 @@ plt.title('Comparing input feature gradients')
 plt.legend()
 
 plt.tight_layout()
+plt.savefig("input_grads.svg")
 plt.show()
+
