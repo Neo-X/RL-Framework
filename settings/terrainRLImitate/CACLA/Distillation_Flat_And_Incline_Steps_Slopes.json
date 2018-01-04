@@ -320,5 +320,5 @@
 	"comment__": "Flag used to do a testing version of Distillation",
 "run_distillation_in_test_mode": false,
 	"comment__": "This overrides all of the envs to be a single one from the list of sim environments",
-"override_sim_env_id": 2
+"override_sim_env_id": 3
 }

@@ -316,5 +316,7 @@
 "expert_policy_files": ["terrainRLImitateBiped2D/algorithm.A_CACLA.A_CACLA/Biped2dFull/MultiTasker/_Flat_Incline", 
 						"terrainRLImitateBiped2D/algorithm.A_CACLA.A_CACLA/Biped2dFull/TL_Only/Steps_TL_From_Incline"],
 	"comment__": "Flag used to do a testing version of Distillation",
-"run_distillation_in_test_mode": false
+"run_distillation_in_test_mode": false,
+	"comment__": "This overrides all of the envs to be a single one from the list of sim environments",
+"override_sim_env_id": 1
 }
