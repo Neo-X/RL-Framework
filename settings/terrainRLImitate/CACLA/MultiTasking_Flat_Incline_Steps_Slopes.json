@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.A_CACLA.A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Biped2dFull/MultiTasker/Flat_Incline_Steps_Slopes_3",
+"data_folder": "Biped2dFull/MultiTasker/Flat_Incline_Steps_Slopes_4",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",

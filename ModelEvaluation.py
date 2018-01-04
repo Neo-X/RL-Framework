@@ -118,6 +118,7 @@ class SimWorker(Process):
             if (self._settings['on_policy']):
                 episodeData = self._message_queue.get()
                 if episodeData == None:
+                    print ("Terminating worker: " , os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
                     break
                 elif ( episodeData['type'] == "Update_Policy" ):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -190,6 +191,7 @@ class SimWorker(Process):
                 ## Check if any messages in the queue
                 # print ("Worker: got data", episodeData)
                 if episodeData == None:
+                    print ("Terminating worker: " , os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
                     break
                 if episodeData['type'] == "eval":
                     eval=True
@@ -278,7 +280,7 @@ class SimWorker(Process):
                 # all_objects = muppy.get_objects()
                 # sum1 = summary.summarize(all_objects)
                 # summary.print_(sum1)
-        print ("Simulation Worker Complete: ")
+        print ("Simulation Worker Complete: ", os.getpid())
         self._exp.finish()
         return
         

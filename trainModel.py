@@ -1037,6 +1037,9 @@ def trainModelParallel(inputData):
                 for sw in eval_sim_workers: # Should update these more often
                     sw.join() 
         
+        # input_anchor_queue.close()            
+        # input_anchor_queue_eval.close()
+        
         if (not settings['on_policy']):    
             print ("Terminating learners"        )
             if ( output_experience_queue != None):
@@ -1059,6 +1062,30 @@ def trainModelParallel(inputData):
             for i in range(len(learning_workers)): # Should update these more often
                 print ("Joining learning worker ", i , " of ", len(learning_workers))
                 learning_workers[i].join()
+        
+        for i in range(len(sim_work_queues)):
+            print ("sim_work_queues size: ", sim_work_queues[i].qsize())
+            while (not sim_work_queues[i].empty()): ### Empty the queue
+                ## Don't block
+                try:
+                    data_ = sim_work_queues[i].get(False)
+                except Exception as inst:
+                    # print ("SimWorker model parameter message queue empty.")
+                    pass
+            # sim_work_queues[i].cancel_join_thread()
+            print ("sim_work_queues size: ", sim_work_queues[i].qsize())
+            
+            
+        for i in range(len(eval_sim_work_queues)):
+            print ("eval_sim_work_queues size: ", eval_sim_work_queues[i].qsize())
+            while (not eval_sim_work_queues[i].empty()): ### Empty the queue
+                ## Don't block
+                try:
+                    data_ = eval_sim_work_queues[i].get(False)
+                except Exception as inst:
+                    # print ("SimWorker model parameter message queue empty.")
+                    pass
+            print ("eval_sim_work_queues size: ", eval_sim_work_queues[i].qsize())
         
         
         print ("Finish sim")
