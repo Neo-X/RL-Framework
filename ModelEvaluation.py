@@ -1457,7 +1457,7 @@ def modelEvaluation(settings_file_name, runLastModel=False):
     # from model.ModelUtil import validBounds
     from model.LearningAgent import LearningAgent, LearningWorker
     from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
-    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
+    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, getAgentName
     
     
     from util.ExperienceMemory import ExperienceMemory
