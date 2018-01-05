@@ -26,14 +26,21 @@ class Distillation(AlgorithmInterface):
         
         ### Load expert policy files
         self._expert_policies = []
+        file_name_ = ""
         for i in range(len(self.getSettings()['expert_policy_files'])):
             file_name = self.getSettings()['expert_policy_files'][i] + '/'+ self.getSettings()['model_type']+'/'+getAgentName()+'.pkl'
-            print ("Loading pre compiled network: ", file_name)
-            f = open(file_name, 'rb')
-            model_ = dill.load(f)
-            # model.setSettings(settings)
-            f.close()
-            self._expert_policies.append(model_)
+            if (file_name_ == filename):
+                ## To help save memory when experts are the same
+                # model_ = self._expert_policies[len(self._expert_policies)-1]
+                self._expert_policies.append(model_)
+            else:
+                print ("Loading pre compiled network: ", file_name)
+                f = open(file_name, 'rb')
+                model_ = dill.load(f)
+                # model.setSettings(settings)
+                f.close()
+                self._expert_policies.append(model_)
+            file_name_ = file_name
             
         self._actor_buffer_states=[]
         self._actor_buffer_result_states=[]
