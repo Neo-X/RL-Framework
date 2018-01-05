@@ -268,8 +268,10 @@ def evaluateModelRender(settings_file_name, runLastModel=False):
         model.setTaskNetworkParameters(taskModel)
 
     # this is the process that selects which game to play
-    
-    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=0)
+    sim_index=0
+    if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+        sim_index = settings['override_sim_env_id']
+    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
     if (settings['train_forward_dynamics']):
         # actor.setForwardDynamicsModel(forwardDynamicsModel)
         forwardDynamicsModel.setActor(actor)

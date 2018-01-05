@@ -8,7 +8,7 @@ def getOptions(_args=None):
                       action="store_true", dest="verbose", default=False,
                       help="print status messages to stdout")
     
-    parser.add_option("--dataDir", "--datastoreDirectory", "--dataPath",
+    parser.add_option("--dataDir", "--datastoreDirectory", "--dataPath", "--data_folder",
                   action="store", dest="data_folder", default=None,
                   metavar="Directory", help="Specify the directory that files will be stored")
     
@@ -52,13 +52,19 @@ def getOptions(_args=None):
               action="store", dest="plotting_update_freq_num_rounds", default=None,
               type=int,
               metavar="INTEGER", 
-              help="Controls the level of information that is printed to the terminal")
+              help="Controls the number of simulation rounds to perform before evaluating and re-plotting the policy performance")
     
     parser.add_option("--saving_update_freq_num_rounds",
               action="store", dest="plotting_update_freq_num_rounds", default=None,
               type=int,
               metavar="INTEGER", 
-              help="Controls the level of information that is printed to the terminal")
+              help="Controllers the number of simulation rounds to perform before saving the policy")
+    
+    parser.add_option("--sim_config_file",
+              action="store", dest="sim_config_file", default=None,
+              # type=int,
+              metavar="STRING", 
+              help="Path to the file the contains the settings for the simulation")
     
     parser.add_option("--frameSize", 
           action="store", dest="frameSize", default=None,

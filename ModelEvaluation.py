@@ -1442,10 +1442,11 @@ def modelEvaluationParallel(settings_file_name):
         sw.join()
         
 
-def modelEvaluation(settings_file_name, runLastModel=False):
+def modelEvaluation(settings_file_name, runLastModel=False, settings=None):
     
     from model.ModelUtil import getSettings
-    settings = getSettings(settings_file_name)
+    if (settings is None):
+        settings = getSettings(settings_file_name)
     # settings['shouldRender'] = True
     import os    
     os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
@@ -1500,7 +1501,10 @@ def modelEvaluation(settings_file_name, runLastModel=False):
     # actor = ActorInterface(discrete_actions)
     actor = createActor(str(settings['environment_type']),settings, experience)
     
-    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True)
+    sim_index=0
+    if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+        sim_index = settings['override_sim_env_id']
+    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=False, index=sim_index)
     
     if ( settings['use_simulation_sampling'] ):
         sampler = createSampler(settings, exp)
@@ -1614,9 +1618,28 @@ if __name__ == "__main__":
     """
         If a third param is specified run in the last saved model not the best model.
     """
+    import time
+    import datetime
+    from util.simOptions import getOptions
     
-    if ( len(sys.argv) == 3):
-        modelEvaluation(sys.argv[1], runLastModel=True)
-    else:
-        modelEvaluation(sys.argv[1])
+    options = getOptions(sys.argv)
+    options = vars(options)
+    print("options: ", options)
+    print("options['configFile']: ", options['configFile'])
+        
+    
+    
+    file = open(options['configFile'])
+    settings = json.load(file)
+    file.close()
+    
+    for option in options:
+        if ( not (options[option] is None) ):
+            print ("Updateing option: ", option, " = ", options[option])
+            settings[option] = options[option]
+        # settings['num_available_threads'] = options['num_available_threads']
+
+    print ("Settings: " + str(json.dumps(settings, indent=4)))
+    
+    modelEvaluation(sys.argv[1], runLastModel=True, settings=settings)
     
