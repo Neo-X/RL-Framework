@@ -29,7 +29,7 @@ class Distillation(AlgorithmInterface):
         file_name_ = ""
         for i in range(len(self.getSettings()['expert_policy_files'])):
             file_name = self.getSettings()['expert_policy_files'][i] + '/'+ self.getSettings()['model_type']+'/'+getAgentName()+'.pkl'
-            if (file_name_ == filename):
+            if (file_name_ == file_name):
                 ## To help save memory when experts are the same
                 # model_ = self._expert_policies[len(self._expert_policies)-1]
                 self._expert_policies.append(model_)
