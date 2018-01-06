@@ -27,7 +27,7 @@ class CACLA_KERAS(AlgorithmInterface):
         ## primary network
         self._model = model
 
-        print ("Loss ", self._model.getActorNetwork().total_loss)
+        # print ("Loss ", self._model.getActorNetwork().total_loss)
         
         ## Target network
         # self._modelTarget = copy.deepcopy(model)
@@ -104,7 +104,8 @@ class CACLA_KERAS(AlgorithmInterface):
         target_ = np.array(target_, dtype=theano.config.floatX)
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
         score = self._model.getCriticNetwork().fit(states, target_,
-              nb_epoch=1, batch_size=32
+              nb_epoch=1, batch_size=32,
+              verbose=0
               # callbacks=[early_stopping],
               )
         loss = score.history['loss'][0]
@@ -112,7 +113,7 @@ class CACLA_KERAS(AlgorithmInterface):
         
         return loss
     
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, forwardDynamicsModel=None):
         lossActor = 0
         
         diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
@@ -120,12 +121,12 @@ class CACLA_KERAS(AlgorithmInterface):
         # print ("Diff")
         # print (diff_)
         for i in range(len(diff_)):
-            if ( diff_[i][0] > 0.0):
-                if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):
-                    self._actor_buffer_diff.append([1.0])
+            if ( diff_[i][0] > 0.0 and (exp_actions[i] == 1)):
+                # if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):
+                self._actor_buffer_diff.append([1.0])
                     #  print("Not using advantage")
-                else:
-                    self._actor_buffer_diff.append(diff_[i])
+                # else:
+                    # self._actor_buffer_diff.append(diff_[i])
                 self._actor_buffer_states.append(states[i])
                 self._actor_buffer_actions.append(actions[i])
                 self._actor_buffer_rewards.append(rewards[i])
@@ -144,7 +145,8 @@ class CACLA_KERAS(AlgorithmInterface):
             # self._tmp_diff_shared.set_value(tmp_diff)
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
             score = self._model.getActorNetwork().fit(np.array(tmp_states), np.array(tmp_actions),
-              nb_epoch=1, batch_size=len(tmp_actions)
+              nb_epoch=1, batch_size=len(tmp_actions),
+              verbose=0
               # callbacks=[early_stopping],
               )
             lossActor = score.history['loss'][0]
@@ -174,7 +176,7 @@ class CACLA_KERAS(AlgorithmInterface):
         lossActor = self.trainActor(states, actions, rewards, result_states, falls)
         return loss
     
-    def predict(self, state, deterministic_=True):
+    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
         # state = np.array(state, dtype=theano.config.floatX)
