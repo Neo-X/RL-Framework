@@ -105,9 +105,9 @@ class CACLA_KERAS(AlgorithmInterface):
         # target_ = rewards + ((self._discount_factor * y_) * falls)
         target_ = rewards + ((self._discount_factor * y_))
         target_ = np.array(target_, dtype=self._settings['float_type'])
-        states = np.array(states, dtype=self._settings['float_type'])
-        print ("target type: ", target_.dtype)
-        print ("states type: ", states.dtype)
+        # states = np.array(states, dtype=self._settings['float_type'])
+        # print ("target type: ", target_.dtype)
+        # print ("states type: ", states.dtype)
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
         score = self._model.getCriticNetwork().fit(states, target_,
               nb_epoch=1, batch_size=32,
