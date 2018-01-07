@@ -110,7 +110,7 @@ class CACLA_KERAS(AlgorithmInterface):
               # callbacks=[early_stopping],
               )
         loss = score.history['loss'][0]
-        print(" Critic loss: ", loss)
+        # print(" Critic loss: ", loss)
         
         return loss
     
@@ -151,7 +151,12 @@ class CACLA_KERAS(AlgorithmInterface):
               # callbacks=[early_stopping],
               )
             lossActor = score.history['loss'][0]
-            print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor, " actor buffer size: ", len(self._actor_buffer_actions))
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor, " actor buffer size: ", len(self._actor_buffer_actions))
+                
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+                actions_ = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
+                print("Mean action: ", np.mean(actions_, axis=0), " std ", np.std(actions_, axis=0))
             ### Remove batch from buffer
             self._actor_buffer_states=self._actor_buffer_states[self.getSettings()['batch_size']:]
             self._actor_buffer_actions = self._actor_buffer_actions[self.getSettings()['batch_size']:]
@@ -217,7 +222,8 @@ class CACLA_KERAS(AlgorithmInterface):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        return self._model.getCriticNetwork().predict(state, batch_size=1)[0]
+        value = scale_reward(self._model.getCriticNetwork().predict(state, batch_size=1), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        return value
         # return self._q_val()[0]
     
     def q_values(self, state):
@@ -242,7 +248,7 @@ class CACLA_KERAS(AlgorithmInterface):
             Computes the one step temporal difference.
         """
         y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=32)
-        target_ = rewards + ((self._discount_factor * y_) * falls)
+        target_ = rewards + ((self._discount_factor * y_))
         values =  self._model.getCriticNetwork().predict(states, batch_size=32)
         bellman_error = target_ - values
         return bellman_error

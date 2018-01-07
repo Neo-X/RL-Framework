@@ -58,7 +58,8 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         print ("Network layer sizes: ", layer_sizes)
         for i in range(len(layer_sizes)):
-            network = Dense(layer_sizes[i], init='uniform')(input)
+            # network = Dense(layer_sizes[i], init='uniform')(input)
+            network = Dense(layer_sizes[i])(input)
             network = getKerasActivation(self._settings['activation_type'])(network)
             
         network= Dense(1, init='uniform')(network)
@@ -72,7 +73,8 @@ class DeepNNKerasAdaptive(ModelInterface):
         print ("Input ",  inputAct)
         print ("Network layer sizes: ", layer_sizes)
         for i in range(len(layer_sizes)):
-            networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
+            # networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
+            networkAct = Dense(layer_sizes[i])(inputAct)
             networkAct = getKerasActivation(self._settings['activation_type'])(networkAct)
         # inputAct.trainable = True
         print ("Network: ", networkAct)         
