@@ -81,7 +81,7 @@ class AlgorithmInterface(object):
     def setNetworkParameters(self, params):
         """
         for i in range(len(params[0])):
-            params[0][i] = np.array(params[0][i], dtype=theano.config.floatX)
+            params[0][i] = np.array(params[0][i], dtype=self._settings['float_type'])
             """
         lasagne.layers.helper.set_all_param_values(self._model.getCriticNetwork(), params[0])
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params[1])
@@ -319,7 +319,7 @@ class AlgorithmInterface(object):
         # self.setData(states, actions, rewards, result_states)
         if ( alreadyNormed == False):
             states = norm_state(states, self._state_bounds)
-        states = np.array(states, dtype=theano.config.floatX)
+        states = np.array(states, dtype=self._settings['float_type'])
         self._model.setStates(states)
         return self._get_grad()
     
@@ -331,14 +331,14 @@ class AlgorithmInterface(object):
         if ( alreadyNormed == False):
             states = norm_state(states, self._state_bounds)
             next_states = norm_state(next_states, self._state_bounds)
-        states = np.array(states, dtype=theano.config.floatX)
+        states = np.array(states, dtype=self._settings['float_type'])
         self._model.setStates(states)
         self._model.setResultStates(next_states)
         return self._get_grad()
     
     
     def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
         """
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
@@ -370,13 +370,13 @@ class AlgorithmInterface(object):
             These input and output do not need to be normalized/scalled
         """
         # state = norm_state(state, self._state_bounds)
-        states = np.array(states, dtype=theano.config.floatX)
+        states = np.array(states, dtype=self._settings['float_type'])
         self._model.setStates(states)
         actions_ = self._q_action()
         return actions_
     
     def predict_std(self, state, deterministic_=True):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
         """
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
@@ -384,7 +384,7 @@ class AlgorithmInterface(object):
         else:
         """
         state = norm_state(state, self._state_bounds)   
-        state = np.array(state, dtype=theano.config.floatX)
+        state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -401,14 +401,14 @@ class AlgorithmInterface(object):
         return action_std
     
     def predictWithDropout(self, state, deterministic_=True):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
         """
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
             pass
         else:
         """
-        state = np.array(state, dtype=theano.config.floatX)
+        state = np.array(state, dtype=self._settings['float_type'])
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
@@ -424,7 +424,7 @@ class AlgorithmInterface(object):
         """
             For returning a vector of q values, state should NOT be normalized
         """
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
         """
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
@@ -434,7 +434,7 @@ class AlgorithmInterface(object):
         # print ("Agent state bounds: ", self._state_bounds)
         state = norm_state(state, self._state_bounds)
         # print ("Agent normalized state: ", state)
-        state = np.array(state, dtype=theano.config.floatX)
+        state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
@@ -457,7 +457,7 @@ class AlgorithmInterface(object):
         else:
         """
         state = norm_state(state, self._state_bounds)
-        state = np.array(state, dtype=theano.config.floatX)
+        state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
@@ -469,14 +469,14 @@ class AlgorithmInterface(object):
         # return self._q_val()
     
     def q_valueWithDropout(self, state):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
             pass
         else:
             state = norm_state(state, self._state_bounds)
             
-        state = np.array(state, dtype=theano.config.floatX)
+        state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
             return scale_reward(self._q_val_drop(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))

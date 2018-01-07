@@ -71,7 +71,7 @@ class CACLA_KERAS(AlgorithmInterface):
     def setNetworkParameters(self, params):
         """
         for i in range(len(params[0])):
-            params[0][i] = np.array(params[0][i], dtype=theano.config.floatX)
+            params[0][i] = np.array(params[0][i], dtype=self._settings['float_type'])
             """
         self._model.getCriticNetwork().set_weights(params[0])
         self._model.getActorNetwork().set_weights( params[1] )
@@ -102,7 +102,7 @@ class CACLA_KERAS(AlgorithmInterface):
         v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
         # target_ = rewards + ((self._discount_factor * y_) * falls)
         target_ = rewards + ((self._discount_factor * y_))
-        target_ = np.array(target_, dtype=theano.config.floatX)
+        target_ = np.array(target_, dtype=self._settings['float_type'])
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
         score = self._model.getCriticNetwork().fit(states, target_,
               nb_epoch=1, batch_size=32,
@@ -183,11 +183,11 @@ class CACLA_KERAS(AlgorithmInterface):
         return loss
     
     def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
-        # state = np.array(state, dtype=theano.config.floatX)
+        # state = np.array(state, dtype=self._settings['float_type'])
         state = norm_state(state, self._state_bounds)
-        state = np.array(state, dtype=theano.config.floatX)
+        state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -200,9 +200,9 @@ class CACLA_KERAS(AlgorithmInterface):
         return action_
     
     def predictWithDropout(self, state, deterministic_=True):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
+        state = np.array(state, dtype=self._settings['float_type'])
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
@@ -215,10 +215,10 @@ class CACLA_KERAS(AlgorithmInterface):
         return action_
     
     def q_value(self, state):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
         state = norm_state(state, self._state_bounds)
-        state = np.array(state, dtype=theano.config.floatX)
+        state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
@@ -230,15 +230,15 @@ class CACLA_KERAS(AlgorithmInterface):
         """
             For returning a vector of q values, state should already be normalized
         """
-        state = np.array(state, dtype=theano.config.floatX)
+        state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         return self._model.getCriticNetwork().predict(state, batch_size=state.shape[0])
     
     def q_valueWithDropout(self, state):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
-        state = np.array(state, dtype=theano.config.floatX)
+        state = np.array(state, dtype=self._settings['float_type'])
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         return scale_reward(self._q_val_drop(), self.getRewardBounds())[0]
