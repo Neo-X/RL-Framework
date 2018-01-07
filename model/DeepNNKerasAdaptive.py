@@ -20,6 +20,29 @@ import keras.backend as K
 # theano.config.mode='FAST_COMPILE'
 from model.ModelInterface import ModelInterface
 
+
+def getKerasActivation(type_name):
+    """
+        Compute a particular type of actiation to use
+    """
+    import keras.layers
+    
+    if (type_name == 'leaky_rectify'):
+        return keras.layers.LeakyReLU(alpha=0.01)
+    if (type_name == 'relu'):
+        return Activation('relu')
+    if (type_name == 'tanh'):
+        return Activation('tanh')
+    if (type_name == 'linear'):
+        return Activation('linear')
+    if (type_name == 'elu'):
+        return keras.layers.ELU(alpha=1.0)
+    if (type_name == 'softplus'):
+        return Activation('softplus')
+    else:
+        print ("Activation type unknown: ", type_name)
+        sys.exit()
+
 class DeepNNKerasAdaptive(ModelInterface):
     
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
@@ -36,7 +59,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         print ("Network layer sizes: ", layer_sizes)
         for i in range(len(layer_sizes)):
             network = Dense(layer_sizes[i], init='uniform')(input)
-            network = Activation(self._settings['activation_type'])(network)
+            network = getKerasActivation(self._settings['activation_type'])(network)
             
         network= Dense(1, init='uniform')(network)
         network = Activation('linear')(network)
@@ -50,12 +73,12 @@ class DeepNNKerasAdaptive(ModelInterface):
         print ("Network layer sizes: ", layer_sizes)
         for i in range(len(layer_sizes)):
             networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
-            networkAct = Activation(self._settings['activation_type'])(networkAct)
+            networkAct = getKerasActivation(self._settings['activation_type'])(networkAct)
         # inputAct.trainable = True
         print ("Network: ", networkAct)         
         
         networkAct = Dense(self._action_length, init='uniform')(networkAct)
-        networkAct = Activation(self._settings['last_policy_layer_activation_type'])(networkAct)
+        networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
         self._actor = Model(input=inputAct, output=networkAct)
         
 

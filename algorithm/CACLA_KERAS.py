@@ -100,7 +100,8 @@ class CACLA_KERAS(AlgorithmInterface):
         # print ("Actions: ", actions)
         y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
         v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-        target_ = rewards + ((self._discount_factor * y_) * falls)
+        # target_ = rewards + ((self._discount_factor * y_) * falls)
+        target_ = rewards + ((self._discount_factor * y_))
         target_ = np.array(target_, dtype=theano.config.floatX)
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
         score = self._model.getCriticNetwork().fit(states, target_,
