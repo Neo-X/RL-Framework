@@ -13,6 +13,7 @@ from keras.layers.core import Dense, Dropout, Activation, Reshape, Flatten, Lamb
 from keras.layers.convolutional import Conv1D
 from keras.layers.merge import Concatenate
 from keras.layers.advanced_activations import LeakyReLU
+from keras import regularizers
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
 
