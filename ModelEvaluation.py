@@ -363,7 +363,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     bad_sim_state = False
     
     # while not exp.endOfEpoch():
-    for i_ in range(settings['max_epoch_length']):
+    i_ = 0
+    while (i_ < settings['max_epoch_length']):
         
         # if (exp.endOfEpoch() or (reward_ < settings['reward_lower_bound'])):
         # state = exp.getState()
@@ -727,8 +728,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             state_ = exp.getState()
             if (not bootstrapping):
                 q_values_.append(model.q_value(state_))
-        
-        i_ += 1
+                
+        if ( bad_sim_state):
+            print ("bad state, fixing i_: ")
+        else:
+            i_ += 1
         
     
     evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
@@ -945,13 +949,16 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
         print ("Reward for best epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
         print ("reward_over_epocs" + str(reward_over_epocs))
-    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
-        print ("Discounted sum: ", discounted_values)
-        print ("Initial values: ", values)
+    # if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
+        print ("Discounted sum: ", np.array(discounted_values))
+        print ("Initial values: ", np.array(values))
     mean_reward = np.mean(reward_over_epocs)
     std_reward = np.std(reward_over_epocs)
     mean_bellman_error = np.mean(bellman_errors)
     std_bellman_error = np.std(bellman_errors)
+    for i in range(len(discounted_values)):
+        print ("len(discounted_values[i]): ", len(discounted_values[i]), " len(discounted_values[i]): ", 
+               len(values[i]))
     mean_discount_error = np.mean(np.array(discounted_values) - np.array(values))
     std_discount_error = np.std(np.array(discounted_values) - np.array(values))
     mean_eval = np.mean(evalDatas)
