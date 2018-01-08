@@ -951,16 +951,16 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
         print ("Reward for best epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
         print ("reward_over_epocs" + str(reward_over_epocs))
-    # if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
         print ("Discounted sum: ", np.array(discounted_values))
         print ("Initial values: ", np.array(values))
+        for i in range(len(discounted_values)):
+            print ("len(discounted_values[i]): ", len(discounted_values[i]), " len(discounted_values[i]): ", 
+                   len(values[i]))
     mean_reward = np.mean(reward_over_epocs)
     std_reward = np.std(reward_over_epocs)
     mean_bellman_error = np.mean(bellman_errors)
     std_bellman_error = np.std(bellman_errors)
-    for i in range(len(discounted_values)):
-        print ("len(discounted_values[i]): ", len(discounted_values[i]), " len(discounted_values[i]): ", 
-               len(values[i]))
     mean_discount_error = np.mean(np.array(discounted_values) - np.array(values))
     std_discount_error = np.std(np.array(discounted_values) - np.array(values))
     mean_eval = np.mean(evalDatas)
