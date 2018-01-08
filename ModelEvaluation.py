@@ -369,7 +369,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # if (exp.endOfEpoch() or (reward_ < settings['reward_lower_bound'])):
         # state = exp.getState()
         state_ = exp.getState()
-        if (checkDataIsValid(state_) == True):
+        if (checkDataIsValid(state_) == True): ## Lets not wait to simulate an entire action to find out the simulation has gone haywire..
     
             if (not (visualizeEvaluation == None)):
                 viz_q_values_.append(model.q_value(state_)[0])
@@ -610,6 +610,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         else:
             bad_sim_state = True
             
+        ## find out if the simulation has gone haywire..
         if ( bad_sim_state or checkValidData(state_, actions, resultState_ , reward_) == False ):
             print ("Simulation is in a bad state: ")
             bad_sim_state = True
@@ -652,7 +653,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             discounted_sums.append(discounted_sum)
             discounted_sum=0
             state_num=0
-            bad_sim_state = False
+            # bad_sim_state = False
             
             # print ("Baseline: ", baseline)
             # print ("Discounted sums: ", G_ts)
@@ -729,10 +730,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if (not bootstrapping):
                 q_values_.append(model.q_value(state_))
                 
-        if ( bad_sim_state):
+        if ( bad_sim_state ):
             print ("bad state, fixing i_: ")
         else:
             i_ += 1
+        bad_sim_state = False
         
     
     evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
