@@ -84,8 +84,8 @@ class TerrainRLHLCActor(ActorInterface):
             sim.update()
             if (self._settings["shouldRender"]):
                 sim.display()
-            rw_ = sim.getEnvironment().calcReward()
-            tmp_reward_sum=tmp_reward_sum + rw_
+            # rw_ = sim.getEnvironment().calcReward()
+            # tmp_reward_sum=tmp_reward_sum + rw_
             # print("reward: ", rw_, " reward_sum:, ", tmp_reward_sum)
             updates_+=1
             # print("Update #: ", updates_)

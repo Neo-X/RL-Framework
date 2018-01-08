@@ -4,6 +4,15 @@ import sys
 def getOptions(_args=None):
     parser = OptionParser()
 
+
+    load_saved_model
+    
+    parser.add_option("--load_saved_model",
+              action="store", dest="load_saved_model", default=None,
+              # type=int,
+              metavar="STRING", 
+              help="Should the system load a pretrained model [true|false|network_and_scales]")
+    
     parser.add_option("-v", "--verbose",
                       action="store_true", dest="verbose", default=False,
                       help="print status messages to stdout")
