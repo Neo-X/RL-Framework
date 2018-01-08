@@ -5,8 +5,6 @@ def getOptions(_args=None):
     parser = OptionParser()
 
 
-    load_saved_model
-    
     parser.add_option("--load_saved_model",
               action="store", dest="load_saved_model", default=None,
               # type=int,
