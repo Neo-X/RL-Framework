@@ -59,10 +59,12 @@ class DeepNNKerasAdaptive(ModelInterface):
         print ("Network layer sizes: ", layer_sizes)
         for i in range(len(layer_sizes)):
             # network = Dense(layer_sizes[i], init='uniform')(input)
-            network = Dense(layer_sizes[i])(input)
+            network = Dense(layer_sizes[i],
+                            kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(input)
             network = getKerasActivation(self._settings['activation_type'])(network)
             
-        network= Dense(1, init='uniform')(network)
+        network= Dense(1,
+                       kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
         network = Activation('linear')(network)
             
         self._critic = Model(input=input, output=network)
@@ -74,12 +76,13 @@ class DeepNNKerasAdaptive(ModelInterface):
         print ("Network layer sizes: ", layer_sizes)
         for i in range(len(layer_sizes)):
             # networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
-            networkAct = Dense(layer_sizes[i])(inputAct)
+            networkAct = Dense(layer_sizes[i], 
+                               kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputAct)
             networkAct = getKerasActivation(self._settings['activation_type'])(networkAct)
         # inputAct.trainable = True
         print ("Network: ", networkAct)         
         
-        networkAct = Dense(self._action_length, init='uniform')(networkAct)
+        networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
         networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
         self._actor = Model(input=inputAct, output=networkAct)
         
