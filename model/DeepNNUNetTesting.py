@@ -17,8 +17,6 @@ class DeepNNUNetTesting(ModelInterface):
         super(DeepNNUNetTesting,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
         
         self._result_state_length=20
-        u_net = True
-        insert_action_later = True
         # self._result_state_length=state_length
         # data types for model
         self._State = T.matrix("State")
@@ -43,6 +41,12 @@ class DeepNNUNetTesting(ModelInterface):
         # self._b_o = init_b_weights((n_out,))
         # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
         
+        
+        u_net = True
+        insert_action_later = True
+        double_insert_action = False
+        add_layers_after_action = False
+        
         activation_type=lasagne.nonlinearities.leaky_rectify
         if ("activation_type" in settings_ and (settings_['activation_type'] == 'leaky_rectify')):
             activation_type = lasagne.nonlinearities.leaky_rectify
@@ -63,7 +67,10 @@ class DeepNNUNetTesting(ModelInterface):
         elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'tanh')):
             last_policy_layer_activation_type = lasagne.nonlinearities.tanh
         
-        inputGenerator = lasagne.layers.ConcatLayer([inputState, inputAction])
+        if (not insert_action_later or (double_insert_action)):
+            inputGenerator = lasagne.layers.ConcatLayer([inputState, inputAction])
+        else:
+            inputGenerator = inputState
         if ("train_gan_with_gaussian_noise" in settings_ and (settings_["train_gan_with_gaussian_noise"])):
             ## Add noise input
             inputNoise = lasagne.layers.InputLayer((None, 1), self._Noise)
@@ -89,6 +96,16 @@ class DeepNNUNetTesting(ModelInterface):
         networkAct = lasagne.layers.DenseLayer(
                 networkAct, num_units=32,
                 nonlinearity=activation_type)
+    
+        if ( insert_action_later ):
+            ### Lets try adding the action input later on in the network
+            if ( add_layers_after_action ):
+                networkActA = lasagne.layers.DenseLayer(
+                    inputAction, num_units=32,
+                    nonlinearity=activation_type)
+                networkAct = lasagne.layers.ConcatLayer([networkAct, networkActA])
+            else:
+                networkAct = lasagne.layers.ConcatLayer([networkAct, inputAction])
             
         networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
         if (u_net):
@@ -148,7 +165,10 @@ class DeepNNUNetTesting(ModelInterface):
                 nonlinearity=lasagne.nonlinearities.linear)
         
         
-        inputReward = lasagne.layers.ConcatLayer([inputState, inputAction])
+        if (not insert_action_later or (double_insert_action)):
+            inputReward = lasagne.layers.ConcatLayer([inputState, inputAction])
+        else:
+            inputReward = inputState
         """
         network = lasagne.layers.DenseLayer(
                 input, num_units=128,
@@ -180,7 +200,7 @@ class DeepNNUNetTesting(ModelInterface):
         """
         
         network = lasagne.layers.DenseLayer(
-                input, num_units=128,
+                inputReward, num_units=128,
                 nonlinearity=activation_type)
         # network = weight_norm(network)
         network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
@@ -190,11 +210,11 @@ class DeepNNUNetTesting(ModelInterface):
             ### Lets try adding the action input later on in the network
             if ( add_layers_after_action ):
                 networkA = lasagne.layers.DenseLayer(
-                        actionInput, num_units=32,
+                        inputAction, num_units=32,
                         nonlinearity=activation_type)
                 network = lasagne.layers.ConcatLayer([network, networkA])
             else:
-                network = lasagne.layers.ConcatLayer([network, actionInput])
+                network = lasagne.layers.ConcatLayer([network, inputAction])
         
         network = lasagne.layers.DenseLayer(
                 network, num_units=64,

@@ -112,6 +112,11 @@ if __name__ == '__main__':
     experience.setRewardBounds(reward_bounds)
     experience.setActionBounds(action_bounds)
     experience.setSettings(settings)
+
+    model.setStateBounds(state_bounds)
+    model.setRewardBounds(reward_bounds)
+    model.setActionBounds(action_bounds)
+    
     arr = list(range(len(states_)))
     random.shuffle(arr)
     given_actions=[]

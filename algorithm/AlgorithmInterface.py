@@ -26,9 +26,9 @@ class AlgorithmInterface(object):
         self._action_length = n_out
         self.setSettings(settings_)
         
-        self.setActionBounds(action_bounds) 
-        self.setStateBounds(state_bounds) 
-        self.setRewardBounds(reward_bound) 
+        AlgorithmInterface.setActionBounds(self, action_bounds) 
+        AlgorithmInterface.setStateBounds(self, state_bounds) 
+        AlgorithmInterface.setRewardBounds(self, reward_bound) 
         
         # data types for model
         

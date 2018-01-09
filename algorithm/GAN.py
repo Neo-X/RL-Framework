@@ -11,6 +11,7 @@ from algorithm.AlgorithmInterface import AlgorithmInterface
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 from collections import OrderedDict
+from util.ExperienceMemory import ExperienceMemory
 
 class GAN(AlgorithmInterface):
     
@@ -23,6 +24,11 @@ class GAN(AlgorithmInterface):
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True))
 
+        # if settings['action_space_continuous']:
+        self._experience = ExperienceMemory(state_length, action_length, self.getSettings()['expereince_length'], continuous_actions=True, settings=self.getSettings(), result_state_length=20)
+        self._experience.setStateBounds(copy.deepcopy(self.getStateBounds()))
+        self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
+        self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
                 
         self._modelTarget = copy.deepcopy(model)
         
@@ -366,8 +372,23 @@ class GAN(AlgorithmInterface):
         self._updates += 1
         ## Compute actions for TargetNet
         generated_samples = self._generate()
+        ### Put generated samples in memory
+        for i in range(generated_samples.shape[0]):
+            tup = ([states[i]], [actions[i]], [generated_samples[i]], [rewards[i]], [0], [0], [0])
+            self._experience.insertTuple(tup)
         tmp_result_states = copy.deepcopy(result_states)
         tmp_rewards = copy.deepcopy(rewards)
+        
+        ## Pull out a batch of generated samples
+        states__, actions__, generated_samples, rewards__, falls__, G_ts__, exp_actions__ = self._experience.get_batch(min(states.shape[0], self._experience.samples()))
+        """
+        print("generated_samples: ", generated_samples.shape)
+        print("tmp_result_states: ", tmp_result_states.shape)
+        print("tmp_rewards: ", tmp_rewards.shape)
+        print("states: ", states.shape)
+        print("actions: ", actions.shape)
+        """
+        
         ## replace half of the samples with generated ones...
         for i in range(int(states.shape[0]/2)):
             
@@ -526,3 +547,24 @@ class GAN(AlgorithmInterface):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         self.setData(states, actions, result_states, rewards)
         return self._reward_error()
+
+    
+    def setStateBounds(self, state_bounds):
+        super(GAN,self).setStateBounds(state_bounds)
+        
+        print ("")
+        print("Setting GAN state bounds: ", state_bounds)
+        print("self.getStateBounds(): ", self.getStateBounds())
+        print ("")
+        
+        self._experience.setStateBounds(copy.deepcopy(self.getStateBounds()))
+        
+    def setActionBounds(self, action_bounds):
+        super(GAN,self).setActionBounds(action_bounds)
+        self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
+        
+    def setRewardBounds(self, reward_bounds):
+        super(GAN,self).setRewardBounds(reward_bounds)
+        self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
+        
+        
