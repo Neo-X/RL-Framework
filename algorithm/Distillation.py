@@ -43,6 +43,8 @@ class Distillation(AlgorithmInterface):
                 f.close()
                 try:
                     print( "Deleting experts: ")
+                    # while (len(model_._expert_policies) > 0):
+                    #     del model_._expert_policies[0]
                     del model_._expert_policies
                     gc.collect() 
                 except AttributeError:
