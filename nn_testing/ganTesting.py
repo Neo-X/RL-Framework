@@ -153,11 +153,11 @@ if __name__ == '__main__':
     
     gen_state = model.predict([states_[test_index]], [actions[test_index]])
     _fig, (_bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-    for j in range(5):
+    for j in range(3):
         test_index = int(states_.shape[0]/5) * j
         print ("test_index: ",  test_index)
         _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), next_states_[test_index], linewidth=3.0, color='b', label="True function", linestyle='-', marker='o')
-        for i in range(3):
+        for i in range(5):
             gen_state = model.predict([states_[test_index]], [actions[test_index]])
             _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), gen_state, linewidth=2.0, label="Estimated function", linestyle='--')
     # Now add the legend with some customizations.

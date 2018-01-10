@@ -317,7 +317,7 @@
 						"terrainRLImitateBiped2D/algorithm.A_CACLA.A_CACLA/Biped2dFull/PLAiD/Slopes_Distill_From_Flat_Incline_Steps_3"
 						"terrainRLImitateBiped2D/algorithm.A_CACLA.A_CACLA/Biped2dFull/PLAiD/Slopes_Distill_From_Flat_Incline_Steps_3"
 						"terrainRLImitateBiped2D/algorithm.A_CACLA.A_CACLA/Biped2dFull/PLAiD/Slopes_Distill_From_Flat_Incline_Steps_3",
-						"terrainRLImitateBiped2D/algorithm.A_CACLA.A_CACLA/Biped2dFull/PLAiD/Slopes_Distill_From_Flat_Incline_Steps_Gaps_3"],
+						"terrainRLImitateBiped2D/algorithm.A_CACLA.A_CACLA/Biped2dFull/PLAiD/Gaps_Distill_From_Flat_Incline_Steps_Slopes_3"],
 	"comment__": "Flag used to do a testing version of Distillation",
 "run_distillation_in_test_mode": false,
 	"comment__": "This overrides all of the envs to be a single one from the list of sim environments",
