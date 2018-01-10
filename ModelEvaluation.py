@@ -73,7 +73,8 @@ class SimWorker(Process):
         if (int(self._settings["num_available_threads"]) > 1): 
             from util.SimulationUtil import createEnvironment
             print ("Creating simulation environments for simulation workers")
-            self._exp = createEnvironment(self._settings["sim_config_file"], self._settings['environment_type'], self._settings, render=self._settings['shouldRender'], index=self._worker_id)
+            self._exp = createEnvironment(self._settings["sim_config_file"], self._settings['environment_type'], self._settings, 
+                                          render=self._settings['shouldRender'], index=self._worker_id)
             self._exp.setActor(self._actor)
             self._exp.getActor().init()   
             self._exp.init()

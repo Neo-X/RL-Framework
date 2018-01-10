@@ -12,6 +12,8 @@ from algorithm.AlgorithmInterface import AlgorithmInterface
 from model.LearningUtil import loglikelihood, kl, entropy, change_penalty
 from util.SimulationUtil import getAgentName
 
+import gc
+
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 # from DeepCACLA import DeepCACLA
@@ -29,7 +31,7 @@ class Distillation(AlgorithmInterface):
         file_name_ = ""
         for i in range(len(self.getSettings()['expert_policy_files'])):
             file_name = self.getSettings()['expert_policy_files'][i] + '/'+ self.getSettings()['model_type']+'/'+getAgentName()+'.pkl'
-            if (file_name_ == file_name):
+            if ( (file_name_ == file_name) and False):
                 ## To help save memory when experts are the same
                 # model_ = self._expert_policies[len(self._expert_policies)-1]
                 self._expert_policies.append(model_)
@@ -39,6 +41,13 @@ class Distillation(AlgorithmInterface):
                 model_ = dill.load(f)
                 # model.setSettings(settings)
                 f.close()
+                try:
+                    print( "Deleting experts: ")
+                    del model_._expert_policies
+                    gc.collect() 
+                except AttributeError:
+                    print("Error: ", model_)
+                    print( "Has no experts")
                 self._expert_policies.append(model_)
             file_name_ = file_name
             
@@ -249,6 +258,12 @@ class Distillation(AlgorithmInterface):
         
         Distillation.compile(self)
         
+    def clearExperts(self):
+        """
+            Remore all expert policies used by this method
+        """
+        del self._expert_policies
+    
     def compile(self):
         
         #### Stuff for Debugging #####
@@ -408,7 +423,8 @@ class Distillation(AlgorithmInterface):
                 state_ = [states[i]]
                 ### Need to convert normalized state back to env scaled state
                 state_ = scale_action(state_, self.getStateBounds())
-                action_ = self._expert_policies[expert_index].predict(state_)
+                ### Get expert actions
+                action_ = self._expert_policies[expert_index].predict(state_, evaluation_=True)
                 # action_ = norm_state(action_, self._expert_policies[expert_index].getActionBounds())
                 action_ = norm_state(action_, self.getActionBounds())
                 # print ("Action diffy: ", np.array(action_) - actions[i])
@@ -534,7 +550,8 @@ class Distillation(AlgorithmInterface):
         else: ## Use expert policy  
             # print("sim_index: ", sim_index)
             # print("Using Expert")
-            action_ = self._expert_policies[sim_index].predict(state)
+            ### The expert should not call one of its experts...
+            action_ = self._expert_policies[sim_index].predict(state, evaluation_=True)
         return action_
         ## return self._expert_policies[sim_index].predict(state)
     

@@ -561,3 +561,9 @@ class AlgorithmInterface(object):
 
         """
         pass
+    
+    def clearExperts(self):
+        """
+            Remore all expert policies used by this method
+        """
+        pass

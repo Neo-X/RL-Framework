@@ -93,15 +93,19 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
             agent.setSampler(sampler)
             print ("thread together exp: ", sampler._exp)
         
-        ### Check if this is to be a mult-task simulation
+        ### Check if this is to be a multi-task simulation
         if type(settings['sim_config_file']) is list:
             if (default_sim_id != None):
+                print("Setting sim_id to default id")
                 sim_id = default_sim_id
             else:
+                print("Setting sim_id to process number")
                 sim_id = process
         else:
+            print("Not Multi task simulation")
             sim_id = 0
             
+        print("Setting sim_id to:" , sim_id)
         if (settings['on_policy']):
             message_queue = multiprocessing.Queue(1)
         else:
@@ -133,9 +137,9 @@ def trainModelParallel(inputData):
             os.environ['THEANO_FLAGS'] = os.environ['THEANO_FLAGS']+"mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
         else:
             os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
-        import keras.backend
-        keras.backend.set_floatx(settings['float_type'])
-        print ("K.floatx()", keras.backend.floatx())
+        # import keras.backend
+        # keras.backend.set_floatx(settings['float_type'])
+        # print ("K.floatx()", keras.backend.floatx())
         
         ## Theano needs to be imported after the flags are set.
         # from ModelEvaluation import *
