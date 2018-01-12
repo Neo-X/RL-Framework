@@ -1,8 +1,8 @@
 {
-    "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "model.DeepNN.DeepNN",
+	"comment__": "Type of model/network to use for the actor and critic",
+"model_type": "model.DeepNNKerasAdaptive.DeepNNKerasAdaptive",
     "comment__": "Learning algorithm to use",
-"agent_name": "algorithm.A_CACLA.A_CACLA",
+"agent_name": "algorithm.CACLA_KERAS.CACLA_KERAS",
     "comment__": "Folder to store the training data in.",
 "data_folder": "Biped3d_Step_Walk_Waypoint_Flat_less_std",
 	"comment": "initial probability of selecting a random action",
@@ -312,5 +312,15 @@
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
-"load_saved_fd_model": false
+"load_saved_fd_model": false,
+	"comment__": "A list describing the size of the layers for the NN",
+"critic_network_layer_sizes": [128, 64, 32, 16],
+	"comment__": "A list describing the size of the layers for the NN",
+"policy_network_layer_sizes": [128, 64, 32],
+	"comment__": "Activation function to use for the std part of the policy",
+"_last_std_policy_layer_activation_type": "sigmoid",
+	"comment__": "type of activation to use",
+"activation_type": "leaky_rectify",
+	"comment__": "last policy type of activation to use",
+"last_policy_layer_activation_type": "linear"
 }
