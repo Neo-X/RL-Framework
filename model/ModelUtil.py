@@ -778,6 +778,7 @@ def checkValidData(state, action, nextState, reward, verbose=False):
                 print ("Bad Values: ", bad_values_)
             return False
         
+        # print ("action: ", action)
         if (not np.all(np.isfinite(action))):
             if ( verbose ):
                 less_ = np.isfinite(action)

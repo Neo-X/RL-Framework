@@ -9,6 +9,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 import sys
+import json
 sys.path.append('../')
 from model.ModelUtil import *
 from util.ExperienceMemory import ExperienceMemory
@@ -41,6 +42,13 @@ def fNoise(x):
             out = out
     return out
 
+
+file = open(sys.argv[1])
+settings = json.load(file)
+print ("Settings: " + str(json.dumps(settings)))
+file.close()
+
+
 state_bounds = np.array([[-5.0],[8.0]])
 action_bounds = np.array([[-4.0],[2.0]])
 reward_bounds = np.array([[-3.0],[1.0]])
@@ -59,13 +67,13 @@ old_states = states
 # states = np.append(states, np.linspace(-1.0, 5.0, experience_length/2))
 # print states
 # actions = np.array(map(fNoise, states))
-actions = np.transpose(np.array([map(f, states)]))
+actions = np.transpose(np.array([list(map(f, states))]))
 # actions = actions[shuffle]
 # norm_actions = np.array(map(norm_action, actions, itertools.repeat(action_bounds, len(actions))))
 # y_train = y_test = norm_actions
 # settings = {}
 
-experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True)
+experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True, settings=settings)
 experience.setStateBounds(state_bounds)
 experience.setRewardBounds(reward_bounds)
 experience.setActionBounds(action_bounds)
@@ -132,7 +140,7 @@ from keras.callbacks import EarlyStopping
 
 errors=[]
 for i in range(5000):
-    _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
+    _states, _actions, _result_states, _rewards, fals_, _G_ts, ext_act = experience.get_batch(batch_size)
     # scale_states = np.array(map(scale_state, _states, itertools.repeat(state_bounds, len(_states))))
     # tmp_actions = np.transpose(np.array([map(f, scale_states)]))
     # norm_actions = np.array(map(norm_action, tmp_actions, itertools.repeat(action_bounds, len(tmp_actions))))
@@ -155,7 +163,7 @@ for i in range(5000):
 
 
 states = np.linspace(state_bounds[0], state_bounds[1], experience_length)
-norm_states = np.array(map(norm_state, states, itertools.repeat(state_bounds, len(states))))
+norm_states = np.array(list(map(norm_state, states, itertools.repeat(state_bounds, len(states)))))
 # norm_states = ((states  - 2.5)/3.5)
 # predicted_actions = np.array(map(model.predict, states))
 
@@ -163,7 +171,7 @@ norm_states = np.array(map(norm_state, states, itertools.repeat(state_bounds, le
 
 # print ("States: " , x)
 norm_predicted_actions = model.predict(norm_states, batch_size=200, verbose=0)
-predicted_actions = np.array(map(scale_action, norm_predicted_actions, itertools.repeat(action_bounds, len(norm_predicted_actions))))
+predicted_actions = np.array(list(map(scale_action, norm_predicted_actions, itertools.repeat(action_bounds, len(norm_predicted_actions)))))
 # print ("Prediction: ", predicted_actions)
 
 # print "var : " + str(predicted_actions_var)

@@ -14,6 +14,10 @@ from collections import OrderedDict
 from util.ExperienceMemory import ExperienceMemory
 
 class GAN(AlgorithmInterface):
+    """
+        0 is a generated sample
+        1 is a true sample
+    """
     
     def __init__(self,  model, state_length, action_length, state_bounds, action_bounds, settings_):
 
@@ -395,10 +399,13 @@ class GAN(AlgorithmInterface):
             tmp_result_states[i] = generated_samples[i]
             tmp_rewards[i] = [0] 
 
-        # print("Rewards: ", tmp_rewards)            
+
+        # print("Discriminator targets: ", tmp_rewards)
+                    
         self.setData(states, actions, tmp_result_states, tmp_rewards)
         
         loss, _ = self._train()
+        # print("Discriminator loss: ", loss)
         return loss
         
     def trainActor(self, states, actions, result_states, rewards):
@@ -410,7 +417,7 @@ class GAN(AlgorithmInterface):
             
         self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
         ## Add MSE term
-        self._trainGenerator_MSE()
+        # self._trainGenerator_MSE()
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
         # print("******** Not learning actor right now *****")
@@ -455,8 +462,10 @@ class GAN(AlgorithmInterface):
         self._model.setActions(action)
         self._noise_shared.set_value(np.random.normal(0,0.5, size=(1,1)))
         # print ("State bounds: ", self._state_bounds)
-        # print ("fd output: ", self._forwardDynamics()[0])
+        # print ("gen output: ", self._generate()[0])
         state_ = scale_state(self._generate()[0], self._state_bounds)
+        # print( "self._state_bounds: ", self._state_bounds)
+        # print ("scaled output: ", state_)
         return state_
     
     def predict_batch(self, states, actions):
@@ -488,7 +497,36 @@ class GAN(AlgorithmInterface):
         action = self._q_action()
         self._model.setActions(action)
         self._modelTarget.setActions(action)
-        return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        return scale_reward(self._discriminate(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # return self._q_valTarget()[0]
+        # return self._q_val()[0]
+        
+    def q_value(self, state, action, next_state):
+        """
+            For returning a vector of q values, state should NOT be normalized
+        """
+        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        """
+        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+            pass
+        else:
+        """
+        state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=theano.config.floatX)
+        self._model.setStates(state)
+        self._modelTarget.setStates(state)
+        # action = self._q_action()
+        action = norm_state(action, self.getActionBounds())
+        self._model.setActions(action)
+        self._modelTarget.setActions(action)
+        nextState = norm_state(next_state, self.getStateBounds())
+        nextState = np.reshape(nextState, (1,20))
+        self._model.setResultStates(nextState)
+        self._modelTarget.setResultStates(nextState)
+        
+        # return scale_reward(self._discriminate(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        return self._discriminate()
         # return self._q_valTarget()[0]
         # return self._q_val()[0]
     

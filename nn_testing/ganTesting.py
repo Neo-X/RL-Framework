@@ -70,7 +70,7 @@ if __name__ == '__main__':
     action_bounds = np.array([[-10.0],[10.0]])
     result_state_bounds = np.array([[-50.0]*trajectory_length,[50.0]*trajectory_length])
     reward_bounds = np.array([[0.0],[1.0]])
-    experience_length = 50
+    experience_length = 500
     num_samples = 10
     batch_size=64
     # states = np.repeat([np.linspace(-5.0, 5.0, experience_length)],2, axis=0)
@@ -91,6 +91,7 @@ if __name__ == '__main__':
             noise = 0.0
             for t_ in range(trajectory_length):
                 (pos, vel_) = integrate(dt, pos, vel_, gravity=accel)
+                ### This makes it really hard for the generator
                 noise = noise + OUNoise(0.15, 0.3, noise, dt)
                 pos = pos + noise
                 traj.append(pos)
@@ -134,10 +135,15 @@ if __name__ == '__main__':
     
     errors=[]
     for i in range(settings['rounds']):
-        _states, _actions, _result_states, _rewards, falls_, advantage, exp_actions__ = experience.get_batch(batch_size)
         # print ("Actions: ", _actions)
         # print ("States: ", _states) 
-        (error, lossActor) = model.train(_states, _actions, _result_states, _rewards)
+        # (error, lossActor) = model.train(_states, _actions, _result_states, _rewards)
+        for j in range(1):
+            _states, _actions, _result_states, _rewards, falls_, advantage, exp_actions__ = experience.get_batch(batch_size)
+            error = model.trainCritic(_states, _actions, _result_states, _rewards)
+        for j in range(5):
+            _states, _actions, _result_states, _rewards, falls_, advantage, exp_actions__ = experience.get_batch(batch_size)
+            lossActor = model.trainActor(_states, _actions, _result_states, _rewards)
         errors.append(error)
         if (i % 100 == 0):
             print ("Iteration: ", i)
@@ -156,10 +162,12 @@ if __name__ == '__main__':
     for j in range(3):
         test_index = int(states_.shape[0]/5) * j
         print ("test_index: ",  test_index)
-        _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), next_states_[test_index], linewidth=3.0, color='b', label="True function", linestyle='-', marker='o')
+        discriminator_value = model.q_value([states_[test_index]], [actions[test_index]], next_states_[test_index])
+        _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), next_states_[test_index], linewidth=3.0, label="True function: " + str(discriminator_value), linestyle='-', marker='o')
         for i in range(5):
             gen_state = model.predict([states_[test_index]], [actions[test_index]])
-            _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), gen_state, linewidth=2.0, label="Estimated function", linestyle='--')
+            discriminator_value = model.q_value([states_[test_index]], [actions[test_index]], gen_state)
+            _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), gen_state, linewidth=2.0, label="Estimated function, " + str(discriminator_value), linestyle='--')
     # Now add the legend with some customizations.
     legend = _bellman_error_ax.legend(loc='lower right', shadow=True, ncol=1, fancybox=True)
     legend.get_frame().set_alpha(0.25)

@@ -32,193 +32,11 @@ class DPGKeras(AlgorithmInterface):
         
         super(DPGKeras,self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
 
-        self._Fallen = T.bcol("Fallen")
-        ## because float64 <= float32 * int32, need to use int16 or int8
-        self._Fallen.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype('int8'))
-        
-        self._fallen_shared = theano.shared(
-            np.zeros((self._batch_size, 1), dtype='int8'),
-            broadcastable=(False, True))
-
-        self._Action = T.matrix("Action2")
-        self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
-                
-        self._Tmp_Target = T.col("Tmp_Target")
-        self._Tmp_Target.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
-        
-        self._tmp_target_shared = theano.shared(
-            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
-            broadcastable=(False, True))
-        
         self._modelTarget = copy.deepcopy(model)
         
             
         # print ("Initial W " + str(self._w_o.get_value()) )
         
-        self._learning_rate = self.getSettings()['learning_rate']
-        self._discount_factor= self.getSettings()['discount_factor']
-        self._rho = self.getSettings()['rho']
-        self._rms_epsilon = self.getSettings()['rms_epsilon']
-        
-        self._weight_update_steps=self.getSettings()['steps_until_target_network_update']
-        self._updates=0
-        self._decay_weight=self.getSettings()['regularization_weight']
-        self._critic_regularization_weight = self.getSettings()["critic_regularization_weight"]
-        self._critic_learning_rate = self.getSettings()["critic_learning_rate"]
-        
-        # self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
-        # self._q_valsA_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
-        # self._q_valsNextState = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
-        # self._q_valsTargetNextState = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
-        # self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
-        # self._q_valsTarget_drop = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
-        
-        self._q_valsActA = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
-        self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
-        # self._q_valsActA_drop = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
-        
-        
-        inputs_1 = {
-            self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getActionSymbolicVariable(): self._model.getActions()
-        }
-        self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_1)
-        inputs_2 = {
-            self._modelTarget.getStateSymbolicVariable(): self._model.getResultStates(),
-            self._modelTarget.getActionSymbolicVariable(): self._model.getActions()
-        }
-        self._q_valsB_ = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), inputs_2, deterministic=True)
-        
-        self._q_func = self._q_valsA
-        self._q_funcB = self._q_valsB_
-        # self._q_funcTarget = self._q_valsTarget
-        # self._q_func_drop = self._q_valsA_drop
-        # self._q_funcTarget_drop = self._q_valsTarget_drop
-        self._q_funcAct = self._q_valsActA
-        # self._q_funcAct_drop = self._q_valsActA_drop
-        
-        # self._q_funcAct = theano.function(inputs=[State], outputs=self._q_valsActA, allow_input_downcast=True)
-        
-        # self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsB )), self._Fallen)
-        self._diff = self._Tmp_Target - self._q_func
-        # self._diff_drop = self._target - self._q_func_drop 
-        # loss = 0.5 * self._diff ** 2 
-        loss = T.pow(self._diff, 2)
-        self._loss = T.mean(loss)
-        # self._loss_drop = T.mean(0.5 * self._diff_drop ** 2)
-    
-        # assert len(lasagne.layers.helper.get_all_params(self._l_outA)) == 16
-        # Need to remove the action layers from these params
-        self._params = lasagne.layers.helper.get_all_params(self._model.getCriticNetwork()) 
-        print ("******Number of Layers is: " + str(len(lasagne.layers.helper.get_all_params(self._model.getCriticNetwork()))))
-        print ("******Number of Action Layers is: " + str(len(lasagne.layers.helper.get_all_params(self._model.getActorNetwork()))))
-        self._actionParams = lasagne.layers.helper.get_all_params(self._model.getActorNetwork())
-        self._givens_ = {
-            self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getActionSymbolicVariable():  self._model.getActions(),
-            # self._Action:  self._q_valsActTarget,
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            # self._Fallen: self._fallen_shared
-            self._Tmp_Target: self._tmp_target_shared
-        }
-        self._actGivens = {
-            self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            # self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._Fallen: self._fallen_shared
-            # self._tmp_diff: self._tmp_diff_shared
-        }
-        
-        self._critic_regularization = (self._critic_regularization_weight * 
-                                       lasagne.regularization.regularize_network_params(
-                                            self._model.getCriticNetwork(), lasagne.regularization.l2))
-        
-        ## MSE update
-        self._value_grad = T.grad(self._loss + self._critic_regularization
-                                                     , self._params)
-        print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-        self._updates_ = lasagne.updates.adam(self._value_grad
-                    , self._params, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
-        
-        self._givens_grad = {
-            self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            self._model.getActionSymbolicVariable(): self._model.getActions(),
-        }
-        
-        ## Some cool stuff to backprop action gradients
-        
-        self._action_grad = T.matrix("Action_Grad")
-        self._action_grad.tag.test_value = np.zeros((self._batch_size,self._action_length), dtype=np.dtype(self.getSettings()['float_type']))
-        
-        self._action_grad_shared = theano.shared(
-            np.zeros((self._batch_size, self._action_length),
-                      dtype=self.getSettings()['float_type']))
-        
-        ### Maximize wrt q function
-        
-        self._action_mean_grads = T.grad(cost=None, wrt=self._actionParams,
-                                                    known_grads={self._q_valsActA: self._action_grad_shared}),
-        print ("Action grads: ", self._action_mean_grads[0])
-        ## When passing in gradients it needs to be a proper list of gradient expressions
-        self._action_mean_grads = list(self._action_mean_grads[0])
-        # print ("isinstance(self._action_mean_grads, list): ", isinstance(self._action_mean_grads, list))
-        # print ("Action grads: ", self._action_mean_grads)
-        self._actionGRADUpdates = lasagne.updates.adam(self._action_mean_grads, self._actionParams, 
-                    self._learning_rate,  beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
-        
-        self._actGradGivens = {
-            self._model.getStateSymbolicVariable(): self._model.getStates(),
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            # self._model.getActionSymbolicVariable(): self._model.getActions(),
-            # self._Fallen: self._fallen_shared,
-            # self._advantage: self._advantage_shared,
-            # self._KL_Weight: self._kl_weight_shared
-        }
-        
-        # theano.gradient.grad_clip(x, lower_bound, upper_bound) # // TODO
-        # self._actionUpdates = lasagne.updates.adam(T.mean(self._q_func) + 
-        #   (self._decay_weight * lasagne.regularization.regularize_network_params(
-        #       self._model.getActorNetwork(), lasagne.regularization.l2)), self._params + self._actionParams, 
-        #           self._learning_rate, beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
-        
-        
-        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
-            self._valsA = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=True)
-            self._valsA_drop = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=False)
-            self._valsNextState = lasagne.layers.get_output(self._model._value_function, self._model.getResultStateSymbolicVariable(), deterministic=True)
-            self._valsTargetNextState = lasagne.layers.get_output(self._modelTarget._value_function, self._model.getResultStateSymbolicVariable(), deterministic=True)
-            self._valsTarget = lasagne.layers.get_output(self._modelTarget._value_function, self._model.getStateSymbolicVariable(), deterministic=True)
-            
-            # self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsB )), self._Fallen)
-            # self._target = self._model.getRewardSymbolicVariable() + ((self._discount_factor * self._q_valsTargetNextState ) * self._NotFallen) + (self._NotFallen - 1)
-            self._v_target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self._valsTargetNextState ) 
-            self._v_diff = self._v_target - self._valsA
-            # loss = 0.5 * self._diff ** 2 
-            loss_v = T.pow(self._v_diff, 2)
-            self._v_loss = T.mean(loss_v)
-            
-            self._params_value = lasagne.layers.helper.get_all_params(self._model._value_function)
-            self._givens_value = {
-                self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-                # self._NotFallen: self._NotFallen_shared
-                # self._model.getActionSymbolicVariable(): self._actions_shared,
-            }
-            self._value_regularization = (self._critic_regularization_weight * 
-                                          lasagne.regularization.regularize_network_params(
-                                        self._model._value_function, lasagne.regularization.l2))
-            
-            self._value_grad = T.grad(self._v_loss + self._value_regularization
-                                                     , self._params_value)
-            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-            self._updates_value = lasagne.updates.adam(self._value_grad
-                        , self._params_value, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
             ## TD update
         DPG.compile(self)
         
@@ -230,11 +48,29 @@ class DPGKeras(AlgorithmInterface):
         
         
         # sgd = SGD(lr=0.0005, momentum=0.9)
+        ### loss function for actor, increase the Q value
         def neg_y(true_y, pred_y):
             return -pred_y
         sgd = keras.optimizers.Adam(lr=self.getSettings()['learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
         print ("Clipping: ", sgd.decay)
+        # Train function
+        updates = opt.get_updates(self._model.getActorNetwork().trainable_weights, [], loss)
+        train = K.function([x, ytrue],[loss, accuracy],updates=updates)
         self._model.getActorNetwork().compile(loss=neg_y, optimizer=sgd)
+        
+        weights = [self._model._actionInput] + self._model.getCriticNetwork().trainable_weights # weight tensors
+        # weights = [weight for weight in weights if model.get_layer(weight.name[:-2]).trainable] # filter down weights tensors to only ones which are trainable
+        gradients = self._model.getCriticNetwork().optimizer.get_gradients(self._model.getCriticNetwork().total_loss, weights) # gradient tensors
+        
+        input_tensors = [self._model.getCriticNetwork().inputs[0], # input data
+                         self._model.getCriticNetwork().sample_weights[0], # how much to weight each sample by
+                         self._model.getCriticNetwork().targets[0], # labels
+                         K.learning_phase(), # train or test mode
+        ]
+        
+        self._get_gradients = K.function(inputs=input_tensors, outputs=gradients)
+        
+        
         
     def getGrads(self, states, actions=None, alreadyNormed=False):
         """
@@ -255,6 +91,7 @@ class DPGKeras(AlgorithmInterface):
             The states should be normalized
         """
         # self.setData(states, actions, rewards, result_states)
+        
         if ( alreadyNormed == False):
             states = norm_state(states, self._state_bounds)
         states = np.array(states, dtype=theano.config.floatX)
@@ -262,7 +99,14 @@ class DPGKeras(AlgorithmInterface):
         if ( actions is None ):
             actions = self.predict_batch(states)
         self._model.setActions(actions)
-        return self._get_action_grad()
+        
+        input = [
+              states, # X
+              np.ones(states.shape[0]), # sample weights
+              actions, # y
+              0 # learning phase in TEST mode
+        ]
+        return self.self._get_gradients(input)
     
     def updateTargetModel(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -336,8 +180,10 @@ class DPGKeras(AlgorithmInterface):
     def trainCritic(self, states, actions, rewards, result_states, falls):
         
         # self.setData(states, actions, rewards, result_states, falls)
+        ## get actions for target policy
+        target_actions = self._modelTarget.getActorNetwork().predict(states)
         ## Get next q value
-        q_vals_b = self._modelTarget.predict(states, actions)
+        q_vals_b = self._modelTarget.getCriticNetwork().predict(states, actions)
         # q_vals_b = self._q_val()
         ## Compute target values
         # target_tmp_ = rewards + ((self._discount_factor* q_vals_b )* falls)
@@ -347,7 +193,7 @@ class DPGKeras(AlgorithmInterface):
         
         # self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsB )), self._Fallen)
         
-        loss = self.fit([states, actions], q_vals_b,
+        loss = self.fit([states, actions], target_tmp_,
                         batch_size=32,
                         nb_epoch=1,
                         verbose=False,
@@ -355,7 +201,7 @@ class DPGKeras(AlgorithmInterface):
         return loss
         
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions, forwardDynamicsModel=None):
-        self.setData(states, actions, rewards, result_states, falls)
+        # self.setData(states, actions, rewards, result_states, falls)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
             print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
@@ -364,11 +210,11 @@ class DPGKeras(AlgorithmInterface):
         # loss = self._trainActor()
         # print("******** Not learning actor right now *****")
         # return loss
-        actions = self.predict_batch(states)
+        actions = self.getActorNetwork().predict(states, batch_size=states.shape[0])
         # print ("actions shape:", actions.shape)
         # next_states = forwardDynamicsModel.predict_batch(states, actions)
         # print ("next_states shape: ", next_states.shape)
-        action_grads = self.getActionGrads(states, actions, alreadyNormed=True)[0] * 1.0
+        action_grads = self.getActionGrads(states, actions, alreadyNormed=True)[0]
         # print ("next_state_grads shape: ", next_state_grads.shape)
         # action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
         # print ( "action_grads shape: ", action_grads.shape)
