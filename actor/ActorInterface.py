@@ -67,6 +67,9 @@ class ActorInterface(object):
     def setAgent(self, agent):
         self._agent = agent
         
+    def updateActor(self, sim, action_):
+        pass
+        
         
         
 def reward(previous_state, current_state):

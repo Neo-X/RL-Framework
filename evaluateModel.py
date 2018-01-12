@@ -68,6 +68,9 @@ class SimContainer(object):
         glutPostRedisplay()
         
         """
+        state_ = self._exp.getState()
+        action_ = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
+        
         current_time = glutGet(GLUT_ELAPSED_TIME);
         print ("Current sim time: ", current_time)
         num_substeps = 1
@@ -113,8 +116,8 @@ class SimContainer(object):
                 """
                 action_ = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
                 
-                # grad_ = self._agent.getPolicy().getGrads(state_)[0]
-                grad_ = [0]
+                grad_ = self._agent.getPolicy().getGrads(state_)[0]
+                # grad_ = [0]
                 self._grad_sum += np.abs(grad_)
                 self._num_actions +=1
                 print ("Input grad: ", repr(self._grad_sum/self._num_actions))
@@ -126,8 +129,9 @@ class SimContainer(object):
                 print( "New action: ", action_)
                 self._exp.updateAction(action_)
             
-            
+            self._exp.getActor().updateActor(self._exp, action_)
             self._exp.update()
+            
         self._exp.display()
         dur_time = (glutGet(GLUT_ELAPSED_TIME) - current_time)
         next_time = int((1000/fps)) - dur_time

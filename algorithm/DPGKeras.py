@@ -38,7 +38,7 @@ class DPGKeras(AlgorithmInterface):
         # print ("Initial W " + str(self._w_o.get_value()) )
         
             ## TD update
-        DPG.compile(self)
+        DPGKeras.compile(self)
         
     def compile(self):
         
@@ -51,24 +51,27 @@ class DPGKeras(AlgorithmInterface):
         ### loss function for actor, increase the Q value
         def neg_y(true_y, pred_y):
             return -pred_y
-        sgd = keras.optimizers.Adam(lr=self.getSettings()['learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
+        self._actor_optimizer = keras.optimizers.Adam(lr=self.getSettings()['learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
         print ("Clipping: ", sgd.decay)
         # Train function
-        updates = opt.get_updates(self._model.getActorNetwork().trainable_weights, [], loss)
-        train = K.function([x, ytrue],[loss, accuracy],updates=updates)
-        self._model.getActorNetwork().compile(loss=neg_y, optimizer=sgd)
+        # updates = opt.get_updates(self._model.getActorNetwork().trainable_weights, [], loss)
         
         weights = [self._model._actionInput] + self._model.getCriticNetwork().trainable_weights # weight tensors
         # weights = [weight for weight in weights if model.get_layer(weight.name[:-2]).trainable] # filter down weights tensors to only ones which are trainable
         gradients = self._model.getCriticNetwork().optimizer.get_gradients(self._model.getCriticNetwork().total_loss, weights) # gradient tensors
         
         input_tensors = [self._model.getCriticNetwork().inputs[0], # input data
+                         self._model.getCriticNetwork().inputs[1], # input data
                          self._model.getCriticNetwork().sample_weights[0], # how much to weight each sample by
                          self._model.getCriticNetwork().targets[0], # labels
                          K.learning_phase(), # train or test mode
         ]
         
         self._get_gradients = K.function(inputs=input_tensors, outputs=gradients)
+        
+        updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=gradients, constraints=[])
+        self._train = K.function([x, ytrue],[loss, accuracy],updates=updates)
+        self._model.getActorNetwork().compile(loss=neg_y, optimizer=self._actor_optimizer)
         
         
         
@@ -244,9 +247,8 @@ class DPGKeras(AlgorithmInterface):
             # print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
             print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
         
-        ## Set data for gradient
-        self._model.setStates(states)
-        self._modelTarget.setStates(states)
+        
+        
         ## Why the -1.0??
         ## Because the SGD method is always performing MINIMIZATION!!
         self._action_grad_shared.set_value(-1.0*action_grads)

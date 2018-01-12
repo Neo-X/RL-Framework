@@ -52,10 +52,15 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         ### Apparently after the first layer the patch axis is left out for most of the Keras stuff...
         input = Input(shape=(self._state_length,))
+        self._stateInput = input
+        input2 = Input(shape=(self._action_length,)) 
+        self._actionInput = input2
         # input.trainable = True
         print ("Input ",  input)
         
         layer_sizes = self._settings['critic_network_layer_sizes']
+        if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras"):
+            input = Concatenate()([self._stateInput, self._actionInput])
         
         print ("Network layer sizes: ", layer_sizes)
         for i in range(len(layer_sizes)):
@@ -68,7 +73,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                        kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
         network = Activation('linear')(network)
             
-        self._critic = Model(input=input, output=network)
+        if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras"):
+            self._critic = Model(input=[self._stateInput, self._actionInput], output=network)
+        else:
+            self._critic = Model(input=input, output=network)
 
         layer_sizes = self._settings['policy_network_layer_sizes']
         

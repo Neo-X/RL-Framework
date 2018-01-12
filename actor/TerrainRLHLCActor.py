@@ -25,6 +25,7 @@ class TerrainRLHLCActor(ActorInterface):
         # model.setSettings(settings_)
         f.close()
         self._llc_policy = model
+        self._sim = None
     # @profile(precision=5)
     
     def updateAction(self, sim, action_):
@@ -43,6 +44,7 @@ class TerrainRLHLCActor(ActorInterface):
     
     # @profile(precision=5)
     def actContinuous(self, sim, action_, bootstrapping=False):
+        self._sim = sim
         # Actor should be FIRST here
         # print "Action: " + str(action_)
         # reward = exp.getEnvironment().act(action_)
@@ -70,23 +72,7 @@ class TerrainRLHLCActor(ActorInterface):
         while (not sim.needUpdatedAction() and (updates_ < 100)
                and (not sim.getEnvironment().agentHasFallen())
                ):
-            # llc_state = sim.getState()[:,self._settings['num_terrain_features']:]
-            llc_state = sim.getLLCState()
-            action__ = np.array([[action_[0], action_[1], 0.0, action_[2], action_[3], 0.0, action_[4]]])
-            # print ("llc pose state: ", llc_state.shape, repr(llc_state))
-            # print ("hlc action: ", action__.shape, repr(action__))
-            # llc_state = np.concatenate((llc_state, action__), axis=1)
-            llc_state[:,-7:] = action__
-            # print ("llc_state: ", llc_state.shape, llc_state)
-            llc_action = self._llc_policy.predict(llc_state)
-            # print("llc_action: ", llc_action.shape, llc_action)
-            sim.updateLLCAction(llc_action)
-            sim.update()
-            if (self._settings["shouldRender"]):
-                sim.display()
-            # rw_ = sim.getEnvironment().calcReward()
-            # tmp_reward_sum=tmp_reward_sum + rw_
-            # print("reward: ", rw_, " reward_sum:, ", tmp_reward_sum)
+            self.updateActor(sim, action_)
             updates_+=1
             # print("Update #: ", updates_)
         if (updates_ == 0): #Something went wrong...
@@ -110,4 +96,22 @@ class TerrainRLHLCActor(ActorInterface):
             return 1
         # return not exp.getEnvironment().agentHasFallen()
         
+    def updateActor(self, sim, action_):
+        # llc_state = sim.getState()[:,self._settings['num_terrain_features']:]
+        llc_state = sim.getLLCState()
+        action__ = np.array([[action_[0], action_[1], 0.0, action_[2], action_[3], 0.0, action_[4]]])
+        # print ("llc pose state: ", llc_state.shape, repr(llc_state))
+        print ("hlc action: ", action__.shape, repr(action__))
+        # llc_state = np.concatenate((llc_state, action__), axis=1)
+        llc_state[:,-7:] = action__
+        # print ("llc_state: ", llc_state.shape, llc_state)
+        llc_action = self._llc_policy.predict(llc_state)
+        # print("llc_action: ", llc_action.shape, llc_action)
+        sim.updateLLCAction(llc_action)
+        sim.update()
+        if (self._settings["shouldRender"]):
+            sim.display()
+        # rw_ = sim.getEnvironment().calcReward()
+        # tmp_reward_sum=tmp_reward_sum + rw_
+        # print("reward: ", rw_, " reward_sum:, ", tmp_reward_sum)
         
