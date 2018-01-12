@@ -641,8 +641,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # else:
             # print ("****Reward was to bad: ", reward_)
         pa = None
-        
-        if ((exp.endOfEpoch() and settings['reset_on_fall'] or (bad_sim_state))  
+        ### Don't reset during evaluation...
+        if (((exp.endOfEpoch() and settings['reset_on_fall'] and (not evaluation)) or (bad_sim_state))  
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
                 ):
             evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
