@@ -167,6 +167,9 @@ class ForwardDynamics(AlgorithmInterface):
         self._forwardDynamics = theano.function([], self._forward,
                                        givens={self._model.getStateSymbolicVariable() : self._model.getStates(),
                                                 self._model.getActionSymbolicVariable(): self._model.getActions()})
+        self._forwardDynamics_drop = theano.function([], self._forward_drop,
+                                       givens={self._model.getStateSymbolicVariable() : self._model.getStates(),
+                                                self._model.getActionSymbolicVariable(): self._model.getActions()})
         self._forwardDynamics_std = theano.function([], self._forward_std,
                                        givens=self._inputs_)
         self._predict_reward = theano.function([], self._reward,
@@ -293,6 +296,15 @@ class ForwardDynamics(AlgorithmInterface):
         # print ("State bounds: ", self._state_bounds)
         # print ("fd output: ", self._forwardDynamics()[0])
         state_ = scale_state(self._forwardDynamics()[0], self._state_bounds)
+        return state_
+    
+    def predictWithDropout(self, state, action):
+        # "dropout"
+        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        self._model.setStates(state)
+        self._model.setActions(action)
+        state_ = scale_state(self._forwardDynamics_drop()[0], self._state_bounds)
         return state_
     
     def predict_std(self, state, action):

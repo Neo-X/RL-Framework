@@ -489,7 +489,7 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
         if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print(" MBAE mean: ", next_state)
         if ('use_stochastic_forward_dynamics' in model.getSettings() and 
-            (model.getSettings()['use_stochastic_forward_dynamics'])):
+            (model.getSettings()['use_stochastic_forward_dynamics'] == True)):
             std = forwardDynamicsModel.predict_std(state, [action])
             if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
                 print ("SMBAE std: ", std)
@@ -500,6 +500,11 @@ def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
                 next_state = np.mean(next_states, axis=0)
             else:
                 next_state = randomExporationSTD(0, next_state, std)
+        elif ('use_stochastic_forward_dynamics' in model.getSettings() and 
+            (model.getSettings()['use_stochastic_forward_dynamics'] == "dropout")):
+            # print("Getting fd dropout sample:")
+            next_state = np.reshape(forwardDynamicsModel.predictWithDropout(state, [action]), (1, model.getStateSize()))
+            # next_state = forwardDynamicsModel.predictWithDropout
         value_ = model.q_value(next_state)
         # print ("next state q value: ", value_)
         # print ("Next State: ", next_state.shape)
