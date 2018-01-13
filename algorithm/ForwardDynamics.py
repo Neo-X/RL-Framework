@@ -60,7 +60,7 @@ class ForwardDynamics(AlgorithmInterface):
         l2_loss = True
         
         if ('use_stochastic_forward_dynamics' in self.getSettings() and 
-            (self.getSettings()['use_stochastic_forward_dynamics'])):
+            (self.getSettings()['use_stochastic_forward_dynamics'] == True)):
             
             self._diff = loglikelihood(self._model.getResultStateSymbolicVariable(), self._forward_drop, self._forward_std_drop, self._state_length)
             self._policy_entropy = 0.5 * T.mean(T.log(2 * np.pi * self._forward_std + 1 ) )
