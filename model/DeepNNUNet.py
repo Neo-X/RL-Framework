@@ -45,7 +45,7 @@ class DeepNNUNet(ModelInterface):
         u_net = True
         insert_action_later = True
         double_insert_action = False
-        add_layers_after_action = False
+        add_layers_after_action = True
         
         activation_type=lasagne.nonlinearities.leaky_rectify
         if ("activation_type" in settings_ and (settings_['activation_type'] == 'leaky_rectify')):

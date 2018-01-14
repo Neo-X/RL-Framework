@@ -17,6 +17,7 @@ class GAN(AlgorithmInterface):
     """
         0 is a generated sample
         1 is a true sample
+        maximize D while minimizing G
     """
     
     def __init__(self,  model, state_length, action_length, state_bounds, action_bounds, settings_):
@@ -29,7 +30,8 @@ class GAN(AlgorithmInterface):
             broadcastable=(False, True))
 
         # if settings['action_space_continuous']:
-        self._experience = ExperienceMemory(state_length, action_length, self.getSettings()['expereince_length'], continuous_actions=True, settings=self.getSettings(), result_state_length=20)
+        # self._experience = ExperienceMemory(state_length, action_length, self.getSettings()['expereince_length'], continuous_actions=True, settings=self.getSettings(), result_state_length=20)
+        self._experience = ExperienceMemory(state_length, action_length, self.getSettings()['expereince_length'], continuous_actions=True, settings=self.getSettings())
         self._experience.setStateBounds(copy.deepcopy(self.getStateBounds()))
         self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
         self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
@@ -417,7 +419,7 @@ class GAN(AlgorithmInterface):
             
         self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
         ## Add MSE term
-        # self._trainGenerator_MSE()
+        self._trainGenerator_MSE()
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
         # print("******** Not learning actor right now *****")
@@ -425,6 +427,22 @@ class GAN(AlgorithmInterface):
         generated_samples = self.predict_batch(states, actions)
         result_state_grads = self.getResultStateGrads(generated_samples, actions, alreadyNormed=True)[0]
         discriminator_value = self._discriminate() 
+        
+        """
+            From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
+            Hausknecht, Matthew and Stone, Peter
+            
+            actions.shape == result_state_grads.shape
+        """
+        use_parameter_grad_inversion=True
+        if ( use_parameter_grad_inversion ):
+            for i in range(result_state_grads.shape[0]):
+                for j in range(result_state_grads.shape[1]):
+                    if (result_state_grads[i,j] > 0):
+                        inversion = (1.0 - generated_samples[i,j]) / 2.0
+                    else:
+                        inversion = ( generated_samples[i,j] - (-1.0)) / 2.0
+                    result_state_grads[i,j] = result_state_grads[i,j] * inversion
                     
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("Policy mean: ", np.mean(self._generate(), axis=0))
