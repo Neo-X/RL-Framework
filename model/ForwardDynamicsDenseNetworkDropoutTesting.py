@@ -23,27 +23,37 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
 
         super(ForwardDynamicsDenseNetworkDropoutTesting,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
         
+        self._result_state_length = state_length
+        
         batch_size=32
         # data types for model
         self._State = T.matrix("State")
         self._State.tag.test_value = np.random.rand(batch_size,self._state_length)
         self._ResultState = T.matrix("ResultState")
-        self._ResultState.tag.test_value = np.random.rand(batch_size,self._state_length)
+        self._ResultState.tag.test_value = np.random.rand(self._batch_size, self._result_state_length)
         self._Reward = T.col("Reward")
         self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
         self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(batch_size, self._action_length)
+        
+        self._Noise = T.matrix("Noise")
+        self._Noise.tag.test_value = np.random.rand(self._batch_size,1)
+        
         # create a small convolutional neural network
-        input = lasagne.layers.InputLayer((None, self._state_length), self._State)
-        self._stateInputVar = input.input_var
+        stateInput = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        self._stateInputVar = stateInput.input_var
         actionInput = lasagne.layers.InputLayer((None, self._action_length), self._Action)
         self._actionInputVar = actionInput.input_var
+        inputNextState = lasagne.layers.InputLayer((None, self._result_state_length), self._ResultState)
+        self._resultStateInputVar = inputNextState.input_var
         
+        input = stateInput
         insert_action_later = True
         double_insert_action = False
         add_layers_after_action = False
         if (not insert_action_later or (double_insert_action)):
-            input = lasagne.layers.ConcatLayer([input, actionInput])
+            input = lasagne.layers.ConcatLayer([stateInput, actionInput])
+            
         ## Activation types
         # activation_type = elu_mine
         # activation_type=lasagne.nonlinearities.tanh
@@ -130,7 +140,68 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
                 network, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
-                  
+                
+        ### discriminator
+        inputDiscrominator = lasagne.layers.ConcatLayer([stateInput, actionInput, inputNextState])
+        
+        network = lasagne.layers.DenseLayer(
+                inputDiscrominator, num_units=128,
+                nonlinearity=activation_type)
+        # network = weight_norm(network)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        # layersAct = [network]
+        
+        if ( insert_action_later ):
+            ### Lets try adding the action input later on in the network
+            if ( add_layers_after_action ):
+                networkA = lasagne.layers.DenseLayer(
+                        actionInput, num_units=32,
+                        nonlinearity=activation_type)
+                network = lasagne.layers.ConcatLayer([network, networkA])
+            else:
+                network = lasagne.layers.ConcatLayer([network, actionInput])
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=64,
+                nonlinearity=activation_type)
+        # network = weight_norm(network)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        
+        # layersAct.append(network)
+        # network = lasagne.layers.ConcatLayer([layersAct[1], layersAct[0]])
+        
+        network = lasagne.layers.DenseLayer(
+                network, num_units=32,
+                nonlinearity=activation_type)
+        # network = weight_norm(network)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        
+        
+        # layersAct.append(network)
+        # network = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
+        # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        network = lasagne.layers.DenseLayer(
+                network, num_units=8,
+                nonlinearity=activation_type)
+        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        """
+        network = lasagne.layers.DenseLayer(
+                network, num_units=8,
+                nonlinearity=activation_type)
+        """
+        ## This can be used to model the reward function
+        self._critic = lasagne.layers.DenseLayer(
+                network, num_units=1,
+                nonlinearity=lasagne.nonlinearities.linear)
+                # print ("Initial W " + str(self._w_o.get_value()) )
+                
+        input = lasagne.layers.ConcatLayer([stateInput, actionInput])
+        ### dynamics network
+        if ("train_gan_with_gaussian_noise" in settings_ and (settings_["train_gan_with_gaussian_noise"])):
+            ## Add noise input
+            inputNoise = lasagne.layers.InputLayer((None, 1), self._Noise)
+            input = lasagne.layers.ConcatLayer([input, inputNoise])
+          
         # networkAct = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
         networkAct = lasagne.layers.DenseLayer(
                 input, num_units=256,
@@ -168,14 +239,14 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
         networkAct = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
     
         self._forward_dynamics_net = lasagne.layers.DenseLayer(
-                networkAct, num_units=self._state_length,
+                networkAct, num_units=self._result_state_length,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
                 
         if (('use_stochastic_forward_dynamics' in self._settings) and 
-            self._settings['use_stochastic_forward_dynamics']):
+            (self._settings['use_stochastic_forward_dynamics'] == True)):
             with_std = lasagne.layers.DenseLayer(
-                    networkAct, num_units=self._state_length,
+                    networkAct, num_units=self._result_state_length,
                     nonlinearity=theano.tensor.nnet.softplus)
             self._forward_dynamics_net = lasagne.layers.ConcatLayer([self._forward_dynamics_net, with_std], axis=1)
                 
@@ -184,7 +255,7 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
                      dtype=theano.config.floatX))
 
         self._next_states_shared = theano.shared(
-            np.zeros((batch_size, self._state_length),
+            np.zeros((batch_size, self._result_state_length),
                      dtype=theano.config.floatX))
 
         self._actions_shared = theano.shared(

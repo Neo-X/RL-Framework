@@ -28,7 +28,7 @@ class DeepNNUNet(ModelInterface):
         self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         ## noise parameters for GAN
-        self._Noise = T.matrix("ResultState")
+        self._Noise = T.matrix("Noise")
         self._Noise.tag.test_value = np.random.rand(self._batch_size,1)
         
         # create a small convolutional neural network

@@ -329,6 +329,8 @@ class GAN(AlgorithmInterface):
             result_states = np.array(norm_state(result_states, self._state_bounds), dtype=self.getSettings()['float_type'])
         # result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
         self.setData(states, actions, result_states)
+        noise = np.zeros((states.shape[0],1))
+        self._noise_shared.set_value(noise)
         # if (v_grad != None):
         self.setGradTarget(v_grad)
         return self._get_action_grad()
@@ -342,6 +344,8 @@ class GAN(AlgorithmInterface):
             actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
             # rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
         self.setData(states, actions)
+        noise = np.zeros((states.shape[0],1))
+        self._noise_shared.set_value(noise)
         return self._get_grad_reward()
 
     def getNetworkParameters(self):
@@ -419,6 +423,8 @@ class GAN(AlgorithmInterface):
             
         self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
         ## Add MSE term
+        noise = np.zeros((states.shape[0],1))
+        self._noise_shared.set_value(noise)
         self._trainGenerator_MSE()
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
@@ -451,10 +457,13 @@ class GAN(AlgorithmInterface):
         ## Set data for gradient
         self._model.setResultStates(result_states)
         self._modelTarget.setResultStates(result_states)
+        
+        self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
+        error_MSE = self._bellman_error()
         ## Why the -1.0??
         ## Because the SGD method is always performing MINIMIZATION!!
         self._result_state_grad_shared.set_value(-1.0*result_state_grads)
-        self._trainGenerator()
+        # self._trainGenerator()
         self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
         error_MSE = self._bellman_error() 
         return (np.mean(discriminator_value), error_MSE)
@@ -607,12 +616,12 @@ class GAN(AlgorithmInterface):
     
     def setStateBounds(self, state_bounds):
         super(GAN,self).setStateBounds(state_bounds)
-        
+        """
         print ("")
         print("Setting GAN state bounds: ", state_bounds)
         print("self.getStateBounds(): ", self.getStateBounds())
         print ("")
-        
+        """
         self._experience.setStateBounds(copy.deepcopy(self.getStateBounds()))
         
     def setActionBounds(self, action_bounds):
