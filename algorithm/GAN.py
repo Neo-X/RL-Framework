@@ -70,6 +70,7 @@ class GAN(AlgorithmInterface):
                 self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
                 self._model._Noise: self._noise_shared
             }
+            self._generator_drop = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_1, deterministic=True)
             self._generator = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_1, deterministic=True)
         else:
             inputs_1 = {
@@ -78,7 +79,8 @@ class GAN(AlgorithmInterface):
                 self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
                 # self._model._Noise: self._noise_shared
             }
-            self._generator = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_1, deterministic=False)
+            self._generator = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_1, deterministic=True)
+            self._generator_drop = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_1, deterministic=False)
         # self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getForwardDynamicsNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
         # self._q_valsActA_drop = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
@@ -104,7 +106,7 @@ class GAN(AlgorithmInterface):
         self._loss = T.mean(loss)
         
         
-        self._diff_g = self._model.getResultStateSymbolicVariable() - self._generator
+        self._diff_g = self._model.getResultStateSymbolicVariable() - self._generator_drop
         loss_g = T.pow(self._diff_g, 2)
         self._loss_g = T.mean(loss_g)
     
@@ -472,6 +474,12 @@ class GAN(AlgorithmInterface):
     def train(self, states, actions, result_states, rewards):
         loss = self.trainCritic(states, actions, result_states, rewards)
         lossActor = self.trainActor(states, actions, result_states, rewards)
+        if ( self.getSettings()['train_reward_predictor']):
+            # print ("self._reward_bounds: ", self._reward_bounds)
+            # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
+            lossReward = self._train_reward()
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("Loss Reward: ", lossReward)
         return (loss, lossActor)
     
     def predict(self, state, deterministic_=True):

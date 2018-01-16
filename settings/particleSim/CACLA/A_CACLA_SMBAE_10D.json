@@ -269,12 +269,10 @@
 "randomize_MBAE_action_length": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
 "load_saved_fd_model": false,
-	"comment__": "Whether or not to use a stochastic forward dynamics model",
-"use_stochastic_forward_dynamics": true,
 	"comment__": "type of activation to use",
 "activation_type": "leaky_rectify",
 	"comment__": "last policy type of activation to use",
-"last_policy_layer_activation_type": "tanh",
+"last_policy_layer_activation_type": "linear",
 	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
 "normalize_advantage": true,
 	"comment__": "use a special annealing schedule that will being at 1 and end at 0",
@@ -288,5 +286,7 @@
 	"comment__": "Train a GAN to do something....",
 "train_gan": false,
 	"comment__": "Train GAN with gaussian noise",
-"train_gan_with_gaussian_noise": true	 	
+"train_gan_with_gaussian_noise": true,
+	"comment__": "Compute a running mean and std for network input/output scalling",
+"keep_running_mean_std_for_scaling": false	 	
 }
