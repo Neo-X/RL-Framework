@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.A_CACLA.A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere_SMBAE_GAN_10D_anneal",
+"data_folder": "Nav_Sphere_10D/SMBAE",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -286,9 +286,9 @@
 	"comment__": "Use a different off-policy experience memory for the fd learning",
 "keep_seperate_fd_exp_buffer": true,
 	"comment__": "Train a GAN to do something....",
-"train_gan": true,
+"train_gan": false,
 	"comment__": "Train GAN with gaussian noise",
-"train_gan_with_gaussian_noise": true,
+"train_gan_with_gaussian_noise": false,
 	"comment__": "Compute a running mean and std for network input/output scalling",
 "keep_running_mean_std_for_scaling": false
 }
