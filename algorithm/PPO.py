@@ -618,10 +618,13 @@ class PPO(AlgorithmInterface):
             # print("States mean:     ", np.mean(states, axis=0))
             # print("States std:     ", np.std(states, axis=0))
             # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
-            # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
-            ## Sometimes really HUGE losses appear, occasionally
+            # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor)))
+            
+        tmp_r = np.mean(self._get_r())
+        print("average r: ", tmp_r)
+        ## Sometimes really HUGE losses appear, occasionally
         lossActor = np.abs(np.mean(self._get_action_diff()))
-        if (lossActor < 1000): 
+        if (lossActor < 1000 and ( tmp_r < 2 and (tmp_r > 0.5))): 
             if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'])):
                 lossActor, _ = self._trainActor()
             else:
