@@ -15,9 +15,8 @@ class DeepNNAdaptive(ModelInterface):
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
         super(DeepNNAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        self._dropout_p=settings_['dropout_p']
         
-        activation_type=lasagne.nonlinearities.tanh
-        # activation_type=lasagne.nonlinearities.leaky_rectify
         # data types for model
         self._State = T.matrix("State")
         self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
@@ -28,75 +27,60 @@ class DeepNNAdaptive(ModelInterface):
         self._Action = T.matrix("Action")
         self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         # create a small convolutional neural network
-        input = lasagne.layers.InputLayer((None, self._state_length), self._State)
-        self._stateInputVar = input.input_var
-        inputAction = lasagne.layers.InputLayer((None, self._action_length), self._Action)
-        self._actionInputVar = inputAction.input_var
-        """
-        networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=256,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        """
-        """
-        networkAct = lasagne.layers.DenseLayer(
-                input, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        """
-        networkAct = lasagne.layers.DenseLayer(
-                input, num_units=10 * self._state_length,
-                nonlinearity=activation_type)
-        
-        networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=int(math.sqrt(10 * self._state_length * 10 * self._action_length)),
-                nonlinearity=activation_type)
-    
-        networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=(10 * self._action_length),
-                nonlinearity=activation_type)
+        stateInput = lasagne.layers.InputLayer((None, self._state_length), self._State)
+        self._stateInputVar = stateInput.input_var
+        actionInput = lasagne.layers.InputLayer((None, self._action_length), self._Action)
+        self._actionInputVar = actionInput.input_var
+
+        networkAct = stateInput        
+        layer_sizes = self._settings['policy_network_layer_sizes']        
+        for i in range(len(layer_sizes)):
             
+            if (layer_sizes[i] == 'agent_part'):
+                self._actor_agent_part = networkAct
+            if (layer_sizes[i] == 'merge_part'):
+                self._actor_merge_layer = networkAct
+            else:
+                networkAct = lasagne.layers.DenseLayer(
+                        networkAct, num_units=layer_sizes[i],
+                        nonlinearity=self._activation_type)
+
+        
         self._actor = lasagne.layers.DenseLayer(
                 networkAct, num_units=self._action_length,
-                nonlinearity=lasagne.nonlinearities.tanh)
-        
+                nonlinearity=self._last_policy_layer_activation_type)
+        # self._b_o = init_b_weights((n_out,))
         if (self._settings['use_stocastic_policy']):
             with_std = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._action_length,
-                    nonlinearity=theano.tensor.nnet.softplus)
+                    ### Reduce the initial size of std
+                    W=lasagne.init.GlorotUniform(gain=0.01),
+                    nonlinearity=self._last_std_policy_layer_activation_type)
             self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
-        # self._b_o = init_b_weights((n_out,))
         
         
         if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
-            input = lasagne.layers.ConcatLayer([input, inputAction])
+            network = lasagne.layers.ConcatLayer([stateInput, actionInput])
+        else:
+            network = stateInput
             
-        """
-        network = lasagne.layers.DenseLayer(
-                network, num_units=256,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        """
-        """
-        network = lasagne.layers.DenseLayer(
-                input, num_units=128,
-                nonlinearity=lasagne.nonlinearities.leaky_rectify)
-        """
-        network = lasagne.layers.DenseLayer(
-                input, num_units=10 * self._state_length,
-                nonlinearity=activation_type)
+        layer_sizes = self._settings['critic_network_layer_sizes']
+        print ("Network layer sizes: ", layer_sizes)
+        for i in range(len(layer_sizes)):
+            
+            if (layer_sizes[i] == 'agent_part'):
+                self._critic_agent_part = network
+            if (layer_sizes[i] == 'merge_part'):
+                self._critic_merge_layer = network
+            else:
+                network = lasagne.layers.DenseLayer(
+                        network, num_units=layer_sizes[i],
+                        nonlinearity=self._activation_type)
         
-        network = lasagne.layers.DenseLayer(
-                network, num_units=int(math.sqrt(10 * self._state_length * 8)),
-                nonlinearity=activation_type)
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=8,
-                nonlinearity=activation_type)
-    
         self._critic = lasagne.layers.DenseLayer(
                 network, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
+                nonlinearity=self._last_critic_layer_activation_type)
         # self._b_o = init_b_weights((n_out,))
-        # networkAct = lasagne.layers.InputLayer((None, self._state_length), self._State)
-        
           # print "Initial W " + str(self._w_o.get_value()) 
         
         self._states_shared = theano.shared(
