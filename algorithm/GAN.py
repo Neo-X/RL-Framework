@@ -54,7 +54,6 @@ class GAN(AlgorithmInterface):
         
         self._learning_rate = self.getSettings()["fd_learning_rate"]
         self._regularization_weight = 1e-5
-        # self._learning_rate = 1e-5
         self._discount_factor= self.getSettings()['discount_factor']
         self._rho = self.getSettings()['rho']
         self._rms_epsilon = self.getSettings()['rms_epsilon']
@@ -63,8 +62,6 @@ class GAN(AlgorithmInterface):
         self._updates=0
         self._decay_weight=self.getSettings()['regularization_weight']
         self._critic_regularization_weight = self.getSettings()["critic_regularization_weight"]
-        self._critic_learning_rate = self._learning_rate * 10.0
-        # self._critic_learning_rate = 1e-4
         
         # self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         # self._q_valsA_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
@@ -143,7 +140,7 @@ class GAN(AlgorithmInterface):
                                                      , self._params)
         print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
         self._updates_ = lasagne.updates.adam(self._value_grad
-                    , self._params, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
+                    , self._params, self._learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         
         if ("train_gan_with_gaussian_noise" in settings_ and (settings_["train_gan_with_gaussian_noise"])):
             self._actGivens = {
@@ -201,7 +198,7 @@ class GAN(AlgorithmInterface):
         # print ("isinstance(self._action_mean_grads, list): ", isinstance(self._action_mean_grads, list))
         # print ("Action grads: ", self._action_mean_grads)
         self._generatorGRADUpdates = lasagne.updates.adam(self._result_state_mean_grads, self._actionParams, 
-                    self._learning_rate * 0.01,  beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
+                    self._learning_rate * 0.1,  beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         
         self._givens_grad = {
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -400,7 +397,8 @@ class GAN(AlgorithmInterface):
         generated_samples = self._generate()
         ### Put generated samples in memory
         for i in range(generated_samples.shape[0]):
-            tup = ([states[i]], [actions[i]], [generated_samples[i]], [rewards[i]], [0], [0], [0])
+            next_state__ = scale_state(generated_samples[i], self._state_bounds)
+            tup = ([states[i]], [actions[i]], [next_state__], [rewards[i]], [0], [0], [0])
             self._experience.insertTuple(tup)
         tmp_result_states = copy.deepcopy(result_states)
         tmp_rewards = copy.deepcopy(rewards)

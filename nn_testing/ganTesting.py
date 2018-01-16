@@ -141,7 +141,7 @@ if __name__ == '__main__':
         for j in range(1):
             _states, _actions, _result_states, _rewards, falls_, advantage, exp_actions__ = experience.get_batch(batch_size)
             error = model.trainCritic(_states, _actions, _result_states, _rewards)
-        for j in range(5):
+        for j in range(1):
             _states, _actions, _result_states, _rewards, falls_, advantage, exp_actions__ = experience.get_batch(batch_size)
             lossActor = model.trainActor(_states, _actions, _result_states, _rewards)
         errors.append(error)
