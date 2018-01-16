@@ -144,11 +144,11 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
         ### discriminator
         inputDiscrominator = lasagne.layers.ConcatLayer([stateInput, actionInput, inputNextState])
         
-        network = lasagne.layers.DenseLayer(
+        networkDiscrominator = lasagne.layers.DenseLayer(
                 inputDiscrominator, num_units=128,
                 nonlinearity=activation_type)
         # network = weight_norm(network)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        networkDiscrominator = lasagne.layers.DropoutLayer(networkDiscrominator, p=self._dropout_p, rescale=True)
         # layersAct = [network]
         
         if ( insert_action_later ):
@@ -157,33 +157,33 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
                 networkA = lasagne.layers.DenseLayer(
                         actionInput, num_units=32,
                         nonlinearity=activation_type)
-                network = lasagne.layers.ConcatLayer([network, networkA])
+                network = lasagne.layers.ConcatLayer([networkDiscrominator, networkA])
             else:
-                network = lasagne.layers.ConcatLayer([network, actionInput])
+                network = lasagne.layers.ConcatLayer([networkDiscrominator, actionInput])
         
-        network = lasagne.layers.DenseLayer(
-                network, num_units=64,
+        networkDiscrominator = lasagne.layers.DenseLayer(
+                networkDiscrominator, num_units=64,
                 nonlinearity=activation_type)
         # network = weight_norm(network)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        networkDiscrominator = lasagne.layers.DropoutLayer(networkDiscrominator, p=self._dropout_p, rescale=True)
         
         # layersAct.append(network)
         # network = lasagne.layers.ConcatLayer([layersAct[1], layersAct[0]])
         
-        network = lasagne.layers.DenseLayer(
-                network, num_units=32,
+        networkDiscrominator = lasagne.layers.DenseLayer(
+                networkDiscrominator, num_units=32,
                 nonlinearity=activation_type)
         # network = weight_norm(network)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        networkDiscrominator = lasagne.layers.DropoutLayer(networkDiscrominator, p=self._dropout_p, rescale=True)
         
         
         # layersAct.append(network)
         # network = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
         # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        network = lasagne.layers.DenseLayer(
-                network, num_units=8,
+        networkDiscrominator = lasagne.layers.DenseLayer(
+                networkDiscrominator, num_units=8,
                 nonlinearity=activation_type)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        networkDiscrominator = lasagne.layers.DropoutLayer(networkDiscrominator, p=self._dropout_p, rescale=True)
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=8,
@@ -191,7 +191,7 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
         """
         ## This can be used to model the reward function
         self._critic = lasagne.layers.DenseLayer(
-                network, num_units=1,
+                networkDiscrominator, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
                 # print ("Initial W " + str(self._w_o.get_value()) )
                 

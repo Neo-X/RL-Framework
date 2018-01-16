@@ -472,7 +472,8 @@ class GAN(AlgorithmInterface):
         return (np.mean(discriminator_value), error_MSE)
         
     def train(self, states, actions, result_states, rewards):
-        loss = self.trainCritic(states, actions, result_states, rewards)
+        # loss = self.trainCritic(states, actions, result_states, rewards)
+        loss = 0
         lossActor = self.trainActor(states, actions, result_states, rewards)
         if ( self.getSettings()['train_reward_predictor']):
             # print ("self._reward_bounds: ", self._reward_bounds)

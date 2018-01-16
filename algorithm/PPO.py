@@ -624,7 +624,7 @@ class PPO(AlgorithmInterface):
         print("average r: ", tmp_r)
         ## Sometimes really HUGE losses appear, occasionally
         lossActor = np.abs(np.mean(self._get_action_diff()))
-        if (lossActor < 1000 and ( tmp_r < 2 and (tmp_r > 0.5))): 
+        if (lossActor < 1000 and ( tmp_r < 5 and (tmp_r > 0.2))): 
             if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'])):
                 lossActor, _ = self._trainActor()
             else:
