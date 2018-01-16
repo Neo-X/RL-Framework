@@ -25,14 +25,24 @@ class GAN(AlgorithmInterface):
         
         super(GAN,self).__init__(model, state_length, action_length, state_bounds, action_bounds, 0, settings_)
         self._noise_mean = 0.0
-        self._noise_std = 0.5
+        self._noise_std = 1.0
         self._noise_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True))
 
         # if settings['action_space_continuous']:
-        # self._experience = ExperienceMemory(state_length, action_length, self.getSettings()['expereince_length'], continuous_actions=True, settings=self.getSettings(), result_state_length=20)
-        self._experience = ExperienceMemory(state_length, action_length, self.getSettings()['expereince_length'], continuous_actions=True, settings=self.getSettings())
+        if ( 'size_of_result_state' in self.getSettings()):
+            self._experience = ExperienceMemory(state_length, action_length, 
+                                                self.getSettings()['expereince_length'], 
+                                                continuous_actions=True, 
+                                                settings=self.getSettings(), 
+                                                result_state_length=self.getSettings()['size_of_result_state'])
+        else:
+            self._experience = ExperienceMemory(state_length, action_length, 
+                                                self.getSettings()['expereince_length'], 
+                                                continuous_actions=True, 
+                                                settings=self.getSettings())
+            
         self._experience.setStateBounds(copy.deepcopy(self.getStateBounds()))
         self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
         self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
@@ -170,7 +180,7 @@ class GAN(AlgorithmInterface):
                                                      , self._actionParams)
         print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
         self._updates_generator = lasagne.updates.adam(self._gen_grad
-                    , self._actionParams, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
+                    , self._actionParams, self._learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         
         ## Some cool stuff to backprop action gradients
         
@@ -191,7 +201,7 @@ class GAN(AlgorithmInterface):
         # print ("isinstance(self._action_mean_grads, list): ", isinstance(self._action_mean_grads, list))
         # print ("Action grads: ", self._action_mean_grads)
         self._generatorGRADUpdates = lasagne.updates.adam(self._result_state_mean_grads, self._actionParams, 
-                    self._learning_rate,  beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
+                    self._learning_rate * 0.01,  beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         
         self._givens_grad = {
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -332,8 +342,9 @@ class GAN(AlgorithmInterface):
             result_states = np.array(norm_state(result_states, self._state_bounds), dtype=self.getSettings()['float_type'])
         # result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
         self.setData(states, actions, result_states)
-        # noise = np.zeros((states.shape[0],1))
-        # self._noise_shared.set_value(noise)
+        ### I think this helps?
+        noise = np.zeros((states.shape[0],1))
+        self._noise_shared.set_value(noise)
         # if (v_grad != None):
         self.setGradTarget(v_grad)
         return self._get_action_grad()
@@ -347,8 +358,8 @@ class GAN(AlgorithmInterface):
             actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
             # rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
         self.setData(states, actions)
-        # noise = np.zeros((states.shape[0],1))
-        # self._noise_shared.set_value(noise)
+        noise = np.zeros((states.shape[0],1))
+        self._noise_shared.set_value(noise)
         return self._get_grad_reward()
 
     def getNetworkParameters(self):
@@ -372,10 +383,10 @@ class GAN(AlgorithmInterface):
         self._model.setActions(actions)
         if not (rewards is None):
             self._model.setRewards(rewards)
-        # noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
-        # self._noise_shared.set_value(noise)
-        noise = np.zeros((states.shape[0],1))
+        noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
         self._noise_shared.set_value(noise)
+        # noise = np.zeros((states.shape[0],1))
+        # self._noise_shared.set_value(noise)
             
         
     def trainCritic(self, states, actions, result_states, rewards):
@@ -428,7 +439,11 @@ class GAN(AlgorithmInterface):
             
         # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
         ## Add MSE term
-        self._trainGenerator_MSE()
+        if ( 'train_gan_mse' in self.getSettings() and 
+             (self.getSettings()['train_gan_mse'] == False)):
+            pass
+        else:
+            self._trainGenerator_MSE()
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
         # print("******** Not learning actor right now *****")
@@ -466,14 +481,14 @@ class GAN(AlgorithmInterface):
         ## Why the -1.0??
         ## Because the SGD method is always performing MINIMIZATION!!
         self._result_state_grad_shared.set_value(-1.0*result_state_grads)
-        # self._trainGenerator()
+        self._trainGenerator()
         # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
         error_MSE = self._bellman_error() 
         return (np.mean(discriminator_value), error_MSE)
         
     def train(self, states, actions, result_states, rewards):
-        # loss = self.trainCritic(states, actions, result_states, rewards)
-        loss = 0
+        loss = self.trainCritic(states, actions, result_states, rewards)
+        # loss = 0
         lossActor = self.trainActor(states, actions, result_states, rewards)
         if ( self.getSettings()['train_reward_predictor']):
             # print ("self._reward_bounds: ", self._reward_bounds)
