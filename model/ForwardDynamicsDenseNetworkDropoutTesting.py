@@ -197,7 +197,11 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
                 
         input = lasagne.layers.ConcatLayer([stateInput, actionInput])
         ### dynamics network
-        if ("train_gan_with_gaussian_noise" in settings_ and (settings_["train_gan_with_gaussian_noise"])):
+        if ("train_gan_with_gaussian_noise" in settings_ 
+            and (settings_["train_gan_with_gaussian_noise"] == True)
+            and "train_gan" in settings_
+            and (settings_["train_gan"] == True)
+            ):
             ## Add noise input
             inputNoise = lasagne.layers.InputLayer((None, 1), self._Noise)
             input = lasagne.layers.ConcatLayer([input, inputNoise])
