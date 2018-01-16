@@ -24,7 +24,8 @@ class GAN(AlgorithmInterface):
 
         
         super(GAN,self).__init__(model, state_length, action_length, state_bounds, action_bounds, 0, settings_)
-
+        self._noise_mean = 0.0
+        self._noise_std = 0.5
         self._noise_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True))
@@ -329,8 +330,8 @@ class GAN(AlgorithmInterface):
             result_states = np.array(norm_state(result_states, self._state_bounds), dtype=self.getSettings()['float_type'])
         # result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
         self.setData(states, actions, result_states)
-        noise = np.zeros((states.shape[0],1))
-        self._noise_shared.set_value(noise)
+        # noise = np.zeros((states.shape[0],1))
+        # self._noise_shared.set_value(noise)
         # if (v_grad != None):
         self.setGradTarget(v_grad)
         return self._get_action_grad()
@@ -344,8 +345,8 @@ class GAN(AlgorithmInterface):
             actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
             # rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
         self.setData(states, actions)
-        noise = np.zeros((states.shape[0],1))
-        self._noise_shared.set_value(noise)
+        # noise = np.zeros((states.shape[0],1))
+        # self._noise_shared.set_value(noise)
         return self._get_grad_reward()
 
     def getNetworkParameters(self):
@@ -369,14 +370,16 @@ class GAN(AlgorithmInterface):
         self._model.setActions(actions)
         if not (rewards is None):
             self._model.setRewards(rewards)
-        noise = np.random.normal(0,0.5, size=(states.shape[0],1))
+        # noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
+        # self._noise_shared.set_value(noise)
+        noise = np.zeros((states.shape[0],1))
         self._noise_shared.set_value(noise)
             
         
     def trainCritic(self, states, actions, result_states, rewards):
         
         self.setData(states, actions, result_states, rewards)
-        noise = np.random.normal(0,0.5, size=(states.shape[0],1))
+        noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
         # print ("Shapes: ", states.shape, actions.shape, rewards.shape, result_states.shape, falls.shape, noise.shape)
         self._noise_shared.set_value(noise)
         self._updates += 1
@@ -421,10 +424,8 @@ class GAN(AlgorithmInterface):
             print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
             print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
             
-        self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
+        # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
         ## Add MSE term
-        noise = np.zeros((states.shape[0],1))
-        self._noise_shared.set_value(noise)
         self._trainGenerator_MSE()
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
@@ -458,13 +459,13 @@ class GAN(AlgorithmInterface):
         self._model.setResultStates(result_states)
         self._modelTarget.setResultStates(result_states)
         
-        self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
+        # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
         error_MSE = self._bellman_error()
         ## Why the -1.0??
         ## Because the SGD method is always performing MINIMIZATION!!
         self._result_state_grad_shared.set_value(-1.0*result_state_grads)
         # self._trainGenerator()
-        self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
+        # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
         error_MSE = self._bellman_error() 
         return (np.mean(discriminator_value), error_MSE)
         
@@ -485,9 +486,10 @@ class GAN(AlgorithmInterface):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         # print ("fd state: ", state)
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        self._model.setStates(state)
-        self._model.setActions(action)
-        self._noise_shared.set_value(np.random.normal(0,0.5, size=(1,1)))
+        # self._model.setStates(state)
+        # self._model.setActions(action)
+        self.setData(state,action)
+        # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(1,1)))
         # print ("State bounds: ", self._state_bounds)
         # print ("gen output: ", self._generate()[0])
         state_ = scale_state(self._generate()[0], self._state_bounds)
@@ -497,9 +499,10 @@ class GAN(AlgorithmInterface):
     
     def predict_batch(self, states, actions):
         ## These input should already be normalized.
-        self._model.setStates(states)
-        self._model.setActions(actions)
-        self._noise_shared.set_value(np.random.normal(0,0.5, size=(states.shape[0],1)))
+        # self._model.setStates(states)
+        # self._model.setActions(actions)
+        self.setData(states,actions)
+        # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
         # print ("State bounds: ", self._state_bounds)
         # print ("fd output: ", self._forwardDynamics()[0])
         # state_ = scale_state(self._generate(), self._state_bounds)
