@@ -1268,7 +1268,7 @@ if (__name__ == "__main__"):
         pictureFileName=None
         try:
             ## Add pictures to tar file
-            addPicturesToTarBall(dataTar, settings)
+            addPicturesToTarBall(dataTar, settings, data_folder=root_data_dir)
             # figure_file_name = root_data_dir +
             pictureFileName=  root_data_dir + getAgentName() + ".png"
         except Exception as e:

@@ -88,12 +88,15 @@ def addDataToTarBall(tarfile_, settings, fileName=None):
         
     # tarfile.add('/README.md')
 
-def addPicturesToTarBall(tarfile_, settings, fileName=None):
+def addPicturesToTarBall(tarfile_, settings, fileName=None, data_folder=None):
     import os
     import tarfile
     ## add all json and py files
     if ( fileName is None ):
-        dir = getRootDataDirectory(settings)+"/" + settings['data_folder'] + "/"
+        if (data_folder is not None):
+            dir = data_folder
+        else:
+            dir = getRootDataDirectory(settings)+"/" + settings['data_folder'] + "/"
         # dir = getDataDirectory(settings)
         for filename_tmp in os.listdir(dir):
             print("Possible include file: ", os.path.splitext(filename_tmp))
