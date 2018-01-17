@@ -1200,6 +1200,9 @@ def signal_handler(signal, frame):
         sys.exit(0)
 # signal.signal(signal.SIGINT, signal_handler)
 
+def collectEmailData():
+    pass
+
 if (__name__ == "__main__"):
     
     """
@@ -1229,11 +1232,55 @@ if (__name__ == "__main__"):
         # settings['num_available_threads'] = options['num_available_threads']
 
     print ("Settings: " + str(json.dumps(settings, indent=4)))
+    metaSettings = None
+    if ( 'metaConfigFile' in settings and (settings['metaConfigFile'] is not None)):
+        ### Import meta settings
+        file = open(settings['metaConfigFile'])
+        metaSettings = json.load(file)
+        file.close()
+        
         
     t0 = time.time()
-    trainModelParallel((sys.argv[1], settings))
+    if ( (metaSettings is not None) and (not metaSettings['testing']) ):
+        trainModelParallel((sys.argv[1], settings))
     t1 = time.time()
-    print ("Model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
+    sim_time_ = datetime.timedelta(seconds=(t1-t0))
+    print ("Model training complete in " + str(sim_time_) + " seconds")
+    
+    ### If a metaConfig is supplied email out the results
+    if ( (metaSettings is not None) ):
+        from sendEmail import sendEmail
+        import json
+        import tarfile
+        from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
+        from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory, getAgentName
+        from tools.PlotMetadataSimulation import plotMetaDataSimulation
+        import os
+        
+        ### Create a tar file of all the sim data
+        root_data_dir = getDataDirectory(settings)+"/"
+        tarFileName = (root_data_dir + '_sim_data.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
+        dataTar = tarfile.open(tarFileName, mode='w:gz')
+        addDataToTarBall(dataTar, settings)
+            
+        print("root_data_dir: ", root_data_dir)
+        pictureFileName=None
+        try:
+            ## Add pictures to tar file
+            addPicturesToTarBall(dataTar, settings)
+            # figure_file_name = root_data_dir +
+            pictureFileName=  root_data_dir + getAgentName() + ".png"
+        except Exception as e:
+            # dataTar.close()
+            print("Error plotting data there my not be a DISPLAY available.")
+            print("Error: ", e)
+        dataTar.close()
+        
+        
+        ## Send an email so I know this has completed
+        contents_ = json.dumps(metaSettings, indent=4, sort_keys=True)
+        sendEmail(subject="Simulation complete: " + str(sim_time_), contents=contents_, hyperSettings=metaSettings, simSettings=options['configFile'], dataFile=tarFileName,
+                  pictureFile=pictureFileName) 
 
 
     print("All Done.")

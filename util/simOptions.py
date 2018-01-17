@@ -89,8 +89,8 @@ def getOptions(_args=None):
            action="store", metavar="STRING", dest="configFile", default=None,
           help="""The json config file that many of the config settings can be parsed from""")
     
-    parser.add_option("--hyperConfig", 
-           action="store", metavar="STRING", dest="hyperConfigFile", default=None,
+    parser.add_option("--metaConfig", 
+           action="store", metavar="STRING", dest="metaConfigFile", default=None,
           help="""The json config file that many of the config settings can be parsed from""")
     
     parser.add_option("--randomSeed", 
