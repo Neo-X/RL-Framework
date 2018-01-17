@@ -22,7 +22,7 @@ class GAN(AlgorithmInterface):
     
     def __init__(self,  model, state_length, action_length, state_bounds, action_bounds, settings_):
 
-        
+        print("Building GAN Model")
         super(GAN,self).__init__(model, state_length, action_length, state_bounds, action_bounds, 0, settings_)
         self._noise_mean = 0.0
         self._noise_std = 1.0
