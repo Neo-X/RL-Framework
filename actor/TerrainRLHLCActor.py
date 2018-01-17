@@ -101,7 +101,7 @@ class TerrainRLHLCActor(ActorInterface):
         llc_state = sim.getLLCState()
         action__ = np.array([[action_[0], action_[1], 0.0, action_[2], action_[3], 0.0, action_[4]]])
         # print ("llc pose state: ", llc_state.shape, repr(llc_state))
-        print ("hlc action: ", action__.shape, repr(action__))
+        # print ("hlc action: ", action__.shape, repr(action__))
         # llc_state = np.concatenate((llc_state, action__), axis=1)
         llc_state[:,-7:] = action__
         # print ("llc_state: ", llc_state.shape, llc_state)
