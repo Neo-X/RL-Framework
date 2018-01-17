@@ -288,7 +288,7 @@
 	"comment__": "Train a GAN to do something....",
 "train_gan": false,
 	"comment__": "Train GAN with gaussian noise",
-"train_gan_with_gaussian_noise": false,
+"train_gan_with_gaussian_noise": true,
 	"comment__": "Compute a running mean and std for network input/output scalling",
 "keep_running_mean_std_for_scaling": false
 }
