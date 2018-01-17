@@ -286,7 +286,7 @@
 	"comment__": "Use a different off-policy experience memory for the fd learning",
 "keep_seperate_fd_exp_buffer": true,
 	"comment__": "Train a GAN to do something....",
-"train_gan": false,
+"train_gan": true,
 	"comment__": "Train GAN with gaussian noise",
 "train_gan_with_gaussian_noise": true,
 	"comment__": "Compute a running mean and std for network input/output scalling",
