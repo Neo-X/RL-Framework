@@ -363,21 +363,25 @@ class GAN(AlgorithmInterface):
         params = []
         params.append(lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork()))
         params.append(lasagne.layers.helper.get_all_param_values(self._model.getForwardDynamicsNetwork()))
+        params.append(lasagne.layers.helper.get_all_param_values(self._model.getRewardNetwork()))
         params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork()))
         params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getForwardDynamicsNetwork()))
+        params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getRewardNetwork()))
         return params
         
     def setNetworkParameters(self, params):
         lasagne.layers.helper.set_all_param_values(self._model.getCriticNetwork(), params[0])
         lasagne.layers.helper.set_all_param_values(self._model.getForwardDynamicsNetwork(), params[1])
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), params[2])
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getForwardDynamicsNetwork(), params[3])
+        lasagne.layers.helper.set_all_param_values(self._model.getRewardNetwork(), params[2])
+        lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), params[3])
+        lasagne.layers.helper.set_all_param_values(self._modelTarget.getForwardDynamicsNetwork(), params[4])
+        lasagne.layers.helper.set_all_param_values(self._modelTarget.getRewardNetwork(), params[5])
         
     def setData(self, states, actions, result_states=None, rewards=None):
         self._model.setStates(states)
+        self._model.setActions(actions)
         if not (result_states is None):
             self._model.setResultStates(result_states)
-        self._model.setActions(actions)
         if not (rewards is None):
             self._model.setRewards(rewards)
         noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
@@ -491,6 +495,7 @@ class GAN(AlgorithmInterface):
         if ( self.getSettings()['train_reward_predictor']):
             # print ("self._reward_bounds: ", self._reward_bounds)
             # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
+            self.setData(states, actions, result_states, rewards)
             lossReward = self._train_reward()
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Loss Reward: ", lossReward)
