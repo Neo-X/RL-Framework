@@ -526,7 +526,7 @@ class PPO(AlgorithmInterface):
         
     def trainCritic(self, states, actions, rewards, result_states, falls):
         
-        if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'])):
+        if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'] == True)):
             
             self.setData(states, actions, rewards, result_states, falls)
             # print ("Performing Critic trainning update")
@@ -551,7 +551,7 @@ class PPO(AlgorithmInterface):
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, forwardDynamicsModel=None):
         self.setData(states, actions, rewards, result_states, falls)
         if (( ('ppo_use_seperate_nets' in self.getSettings())) and
-             ( self.getSettings()['ppo_use_seperate_nets'])):
+             ( self.getSettings()['ppo_use_seperate_nets'] == True)):
             pass
         else:
             if (( self._updates % self._weight_update_steps) == 0):
