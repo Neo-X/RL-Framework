@@ -25,7 +25,7 @@ if __name__ == "__main__":
         settingsFile = open(settingsFileName, 'r')
         settings = json.load(settingsFile)
         settingsFile.close()
-        path = sys.argv[1]
+        path = None
         # getRootDataDirectory(settings)+"/"
         rlv = plotMetaDataSimulation(path, settings, sys.argv[2:])
         # length = int(sys.argv[2])

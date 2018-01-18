@@ -158,10 +158,14 @@ class PolicyTrainVisualize(object):
                     # std = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_eval"][:new_length], new_shape), axis=1)
                     means_.append(mean)
                 
-                
+                print("means_: ", means_)                
                 mean = np.mean(means_, axis=0)
                 std = np.std(means_, axis=0)
                 colour_ = cmap(j)
+                """
+                if (j == 3):
+                    x_range_ = range(40,40+int(new_shape[0]))
+                """
                 if ('colour' in self._otherDatas[j][i]):
                     colour_ = self._otherDatas[j][i]['colour']
                 self._reward, = self._reward_ax.plot(x_range_, mean, 

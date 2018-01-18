@@ -48,6 +48,12 @@ def getDataFolderNames(prefixPath, folderPrefix, settings):
         
 def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):   
     
+    """
+    
+    """
+    
+    from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory
+    
     rlv = PolicyTrainVisualize("Training Curves", settings=settings)
     otherDatas = []
     # settingsFiles = sys.argv[2:]
@@ -59,6 +65,7 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
         settingsFile_.close()
     
         folder_ = settings['data_folder'] + "_"
+        data_path = getRootDataDirectory(settings)+"/"
         folderNames_ = getDataFolderNames(data_path, folder_, settings)
         trainingDatas = []
         # Need to train a better Baseline
@@ -101,6 +108,7 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
     
     """
     rlv.setLength(min_length)
+    # rlv.setLength(50)
     rlv.updateRewards(trainingDatas, otherDatas)
     rlv.init()
     rlv.saveVisual(folder+"MBAE_Training_curves")
