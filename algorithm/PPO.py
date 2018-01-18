@@ -592,6 +592,7 @@ class PPO(AlgorithmInterface):
         # loss, _ = self._train()
         # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
+        tmp_r = np.mean(self._get_r())
         
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print("Advantage, model: ", np.mean(self._get_advantage()), " std: ", np.std(self._get_advantage()))
@@ -619,9 +620,8 @@ class PPO(AlgorithmInterface):
             # print("States std:     ", np.std(states, axis=0))
             # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor)))
+            print("average r: ", tmp_r)
             
-        tmp_r = np.mean(self._get_r())
-        print("average r: ", tmp_r)
         ## Sometimes really HUGE losses appear, occasionally
         lossActor = np.abs(np.mean(self._get_action_diff()))
         if (lossActor < 1000 and ( tmp_r < 5 and (tmp_r > 0.2))): 
