@@ -61,6 +61,8 @@ class DeepNNAdaptive(ModelInterface):
         
         if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
             network = lasagne.layers.ConcatLayer([stateInput, actionInput])
+        elif ( 'ppo_use_seperate_nets' in settings_ and (settings_['ppo_use_seperate_nets'] == False) ):
+            network = networkAct
         else:
             network = stateInput
             
