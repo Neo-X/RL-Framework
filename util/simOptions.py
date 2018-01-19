@@ -11,6 +11,13 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Should the system load a pretrained model [true|false|network_and_scales]")
     
+    parser.add_option("--visualize_expected_value",
+              action="store", dest="visualize_expected_value", default=None,
+              type='choice',
+              choices=['production', 'staging', 'true', 'false', None],
+              metavar="STRING", 
+              help="Should the system load a pretrained model [true|false|network_and_scales]")
+    
     parser.add_option("-v", "--verbose",
                       action="store_true", dest="verbose", default=False,
                       help="print status messages to stdout")

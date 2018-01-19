@@ -1514,7 +1514,8 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None):
     sim_index=0
     if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
         sim_index = settings['override_sim_env_id']
-    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
+    # exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
+    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=False, index=sim_index)
     
     if ( settings['use_simulation_sampling'] ):
         sampler = createSampler(settings, exp)
@@ -1573,7 +1574,7 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None):
     exp.getActor().init()   
     exp.init()
     expected_value_viz=None
-    if (settings['visualize_expected_value']):
+    if (settings['visualize_expected_value'] == True):
         expected_value_viz = NNVisualize(title=str("Expected Value") + " with " + str(settings["model_type"]), settings=settings)
         expected_value_viz.setInteractive()
         expected_value_viz.init()

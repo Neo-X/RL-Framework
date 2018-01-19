@@ -69,7 +69,7 @@ class PolicyTrainVisualize(object):
             self._fig, (self._reward_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
             self._fig_value, (self._value_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
             for i in range(0, len(self._trainingDatas), 1):
-                if ( (self._length) > 0 ):
+                if ( (self._length) > 0 and (j > 0) ):
                     if ( (self._length) < (len(self._trainingDatas[i]['data']["mean_eval"]) ) ):
                         x_range = range(0, self._length, 1)
                     else:
@@ -138,11 +138,16 @@ class PolicyTrainVisualize(object):
             # plt.show()
         else:
             means_ = []
+            mean_values_ = []
             cmap = get_cmap(len(self._otherDatas)+1)
             self._fig, (self._reward_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
             self._fig_value, (self._value_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
             for j in range(len(self._otherDatas)):
                 for i in range(0, len(self._otherDatas[j]), 1):
+                    """
+                    if (j > 0):
+                        self._length = 40
+                    """
                     if ( (self._length) > 0 ): ## potentially reduce the range of data plotted
                         if ( (self._length) < (len(self._otherDatas[j][i]['data']["mean_eval"]) ) ):
                             x_range = range(0, self._length, 1)
@@ -152,20 +157,46 @@ class PolicyTrainVisualize(object):
                         x_range = range(len(self._otherDatas[j][i]['data']["mean_eval"]))
                     new_shape = (int(len(x_range)/self._bin_size), int(self._bin_size))
                     new_length = new_shape[0]*new_shape[1]
-                    x_range_ = range(int(new_shape[0]))
+                    x_range_ = list(range(int(new_shape[0])))
                     # self._length = self._length/self._bin_size
                     mean = np.mean(np.reshape(self._otherDatas[j][i]['data']["mean_eval"][:new_length], new_shape), axis=1)
+                    mean_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
+                    # std_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_discount_error"][:new_length], new_shape), axis=1)
                     # std = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_eval"][:new_length], new_shape), axis=1)
                     means_.append(mean)
+                    mean_values_.append(mean_value)
                 
-                print("means_: ", means_)                
+                print("means_: ", means_)
+                """          
+                if (j == 3):
+                    for i in range(len(means_)):
+                        ### Add the last item of the PLAiD sim to the first of the Distillation data.
+                        if ( (self._length) > 0 ): ## potentially reduce the range of data plotted
+                            if ( (self._length) < (len(self._otherDatas[2][i]['data']["mean_eval"]) ) ):
+                                x_range = range(0, self._length, 1)
+                            else:
+                                x_range = range(len(self._otherDatas[2][i]['data']["mean_eval"]))
+                        else:
+                            x_range = range(len(self._otherDatas[2][i]['data']["mean_eval"]))
+                        new_shape = (int(len(x_range)/self._bin_size), int(self._bin_size))
+                        new_length = new_shape[0]*new_shape[1]
+                        print ("Shape of data: ", len(self._otherDatas[2][i]['data']["mean_eval"]))
+                        mean = np.mean(np.reshape(self._otherDatas[2][i]['data']["mean_eval"][:new_length], new_shape), axis=1)
+                        mean_value = np.mean(np.reshape(self._otherDatas[2][i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
+                        print ("mean: ", mean)
+                        print ("last mean: ", mean[-1])
+                        means_[i] = np.insert(means_[i], 0,mean[39])
+                        mean_values_[i] = np.insert(mean_values_[i], 0,mean_value[39])
+                    x_range_ = list(range(39,39+int(means_[i].shape[0])))
+                """
+                print ("means_: ", means_)
+                print ("x_range_:", x_range_)
                 mean = np.mean(means_, axis=0)
                 std = np.std(means_, axis=0)
+                mean_value = np.mean(mean_values_, axis=0)
+                std_value = np.std(mean_values_, axis=0)
                 colour_ = cmap(j)
-                """
-                if (j == 3):
-                    x_range_ = range(40,40+int(new_shape[0]))
-                """
+                
                 if ('colour' in self._otherDatas[j][i]):
                     colour_ = self._otherDatas[j][i]['colour']
                 self._reward, = self._reward_ax.plot(x_range_, mean, 
@@ -179,8 +210,6 @@ class PolicyTrainVisualize(object):
                                                                               facecolor=self._reward.get_color(),
                                                                               alpha=0.25)
                 
-                mean_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
-                std_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_discount_error"][:new_length], new_shape), axis=1)
                 self._value, = self._value_ax.plot(x_range_, mean_value, 
                                                      linewidth=3.0, 
                                                      c=colour_,
@@ -193,6 +222,8 @@ class PolicyTrainVisualize(object):
                                                                               facecolor=self._reward.get_color(),
                                                                               alpha=0.25)
                 means_ = []
+                mean_values_ = []
+                
             
             # self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
             leng = self._reward_ax.legend(loc="lower right",
