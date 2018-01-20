@@ -63,7 +63,7 @@ class TerrainRLHLCActor(ActorInterface):
                 action__.append(self._default_action[i])
         action_=action__
         """
-        sim.updateAction(action_)
+        # sim.updateAction(action_)
         updates_=0
         stumble_count=0
         torque_sum=0
@@ -72,6 +72,7 @@ class TerrainRLHLCActor(ActorInterface):
         while (not sim.needUpdatedAction() and (updates_ < 100)
                and (not sim.getEnvironment().agentHasFallen())
                ):
+            # sim.updateAction(action_)
             self.updateActor(sim, action_)
             updates_+=1
             # print("Update #: ", updates_)

@@ -39,6 +39,7 @@ class SimContainer(object):
         self._num_actions=0
         self._expected_value_viz = expected_value_viz
         self._viz_q_values_ = []
+        self._action=None
         
     def animate(self, callBackVal=-1):
         # print ("Animating: ", callBackVal)
@@ -73,7 +74,8 @@ class SimContainer(object):
         
         """
         state_ = self._exp.getState()
-        action_ = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
+        # action_ = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
+        # self._exp.updateAction(action_)
         
         current_time = glutGet(GLUT_ELAPSED_TIME);
         print ("Current sim time: ", current_time)
@@ -100,7 +102,7 @@ class SimContainer(object):
                 state_ = self._exp.getState()
                 # print ("State: ", state_)
                 ## Update value function visualization
-                if ( True ):
+                if ( True  and (self._expected_value_viz is not None)):
                     self._viz_q_values_.append(self._agent.q_value(state_)[0])
                     # self._viz_q_values_.append(0)
                     if (len(self._viz_q_values_)>100):
@@ -118,23 +120,23 @@ class SimContainer(object):
                 print("Root position: ", position_root)
                 print("Root orientation: ", root_orientation)
                 """
-                action_ = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
+                self._action = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
                 
-                grad_ = self._agent.getPolicy().getGrads(state_)[0]
-                # grad_ = [0]
+                # grad_ = self._agent.getPolicy().getGrads(state_)[0]
+                grad_ = [0]
                 self._grad_sum += np.abs(grad_)
                 self._num_actions +=1
-                print ("Input grad: ", repr(self._grad_sum/self._num_actions))
+                # print ("Input grad: ", repr(self._grad_sum/self._num_actions))
                 # print ("Input grad: ", str(self._grad_sum/self._num_actions))
                 # print ("Input grad: ", self._grad_sum/self._num_actions)
                 
                 
                 # action_[1] = 1.0
-                print( "New action: ", action_)
-                self._exp.updateAction(action_)
+                print( "New action: ", self._action)
+                self._exp.updateAction(self._action)
             
-            self._exp.getActor().updateActor(self._exp, action_)
-            self._exp.update()
+            self._exp.getActor().updateActor(self._exp, self._action)
+            # self._exp.update()
             
         self._exp.display()
         dur_time = (glutGet(GLUT_ELAPSED_TIME) - current_time)
@@ -204,9 +206,10 @@ class SimContainer(object):
         ## ord converts the string to the corresponding integer value for the character...
         self._exp.getEnvironment().onKeyEvent(ord(c), x, y)
 
-def evaluateModelRender(settings_file_name, runLastModel=False):
+def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
 
-    settings = getSettings(settings_file_name)
+    if ( settings is None):
+        settings = getSettings(settings_file_name)
     # settings['shouldRender'] = True
     import os    
     os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
@@ -291,7 +294,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False):
     exp.init()
     exp.generateValidationEnvironmentSample(0)
     expected_value_viz=None
-    if (settings['visualize_expected_value']):
+    if (settings['visualize_expected_value'] == True):
         expected_value_viz = NNVisualize(title=str("Expected Value") + " with " + str(settings["model_type"]), settings=settings)
         expected_value_viz.setInteractive()
         expected_value_viz.init()
@@ -344,11 +347,11 @@ def evaluateModelRender(settings_file_name, runLastModel=False):
     exp.getActor().initEpoch()   
     exp.initEpoch()
     fps=30
-    state_ = exp.getState()
-    action_ = np.array(masterAgent.predict(state_, evaluation_=True), dtype='float64')
-    exp.updateAction(action_)
+    # state_ = exp.getState()
+    # action_ = np.array(masterAgent.predict(state_, evaluation_=True), dtype='float64')
+    # exp.updateAction(action_)
     sim = SimContainer(exp, masterAgent, settings, expected_value_viz)
-    sim._grad_sum = np.zeros_like(state_)
+    # sim._grad_sum = np.zeros_like(state_)
     # glutInitWindowPosition(x, y);
     # glutInitWindowSize(width, height);
     # glutCreateWindow("PyODE Ragdoll Simulation")
@@ -363,7 +366,27 @@ def evaluateModelRender(settings_file_name, runLastModel=False):
     
 if __name__ == "__main__":
     
-    if ( len(sys.argv) == 3):
-        evaluateModelRender(sys.argv[1], runLastModel=True)
-    else:
-        evaluateModelRender(sys.argv[1])
+    import time
+    import datetime
+    from util.simOptions import getOptions
+    
+    options = getOptions(sys.argv)
+    options = vars(options)
+    print("options: ", options)
+    print("options['configFile']: ", options['configFile'])
+        
+    
+    
+    file = open(options['configFile'])
+    settings = json.load(file)
+    file.close()
+    
+    for option in options:
+        if ( not (options[option] is None) ):
+            print ("Updateing option: ", option, " = ", options[option])
+            settings[option] = options[option]
+        # settings['num_available_threads'] = options['num_available_threads']
+
+
+    evaluateModelRender(sys.argv[1], runLastModel=True, settings=settings)
+
