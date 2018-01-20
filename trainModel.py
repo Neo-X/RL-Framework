@@ -293,8 +293,11 @@ def trainModelParallel(inputData):
             k = title.rfind(".") + 1
             if (k > len(title)): ## name does not contain a .
                 k = 0 
-            title = title[k:]    
-            rlv = RLVisualize(title=title + " agent on " + str(settings['environment_type']), settings=settings)
+            title = title[k:]
+            env_name = settings['environment_type']
+            if (env_name == "open_AI_Gym"):
+                env_name = settings['sim_config_file']
+            rlv = RLVisualize(title=title + " agent on " + str(env_name), settings=settings)
             rlv.setInteractive()
             rlv.init()
         if (settings['train_forward_dynamics']):
