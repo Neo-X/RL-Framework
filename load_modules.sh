@@ -15,3 +15,5 @@ setenv ROBOSCHOOL_PATH /local-scratch/playground/roboschool
 setenv TERRAINRL_PATH /local-scratch/playground/TerrainRL
 setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:/local-scratch/playground/TerrainRL/lib
 
+setenv CPLUS_INCLUDE_PATH ${BOOST_ROOT}/include:/rcg/software/Linux/Ubuntu/16.04/amd64/LANG/PYTHON/3.5.2-SYSTEM/include/python3.5m
+
