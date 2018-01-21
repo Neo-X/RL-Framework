@@ -84,12 +84,18 @@ def getOptions(_args=None):
           action="store", dest="frameSize", default=None,
           metavar="IntegerxInteger", help="The pixel width and height, example 640x480")
     
-    parser.add_option("--dont_visualize_learning", "--no_plot", 
-          action="store_false", dest="visualize_learning", default=None,
+    parser.add_option("--visualize_learning", "--plot", 
+          action="store", dest="visualize_learning", default=None,
+          type='choice',
+          choices=['true', 'false', None],
+          metavar="STRING", 
           help="Whether or not to draw/render the simulation")
     
     parser.add_option("--shouldRender", "--render",
-          action="store_true", dest="shouldRender", default=None,
+          action="store", dest="shouldRender", default=None,
+          type='choice',
+          choices=['true', 'false', None],
+          metavar="STRING", 
           help="TO specify if an openGL window should be created")
 
     parser.add_option("--config", 
