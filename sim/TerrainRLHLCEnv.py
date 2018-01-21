@@ -18,7 +18,8 @@ class TerrainRLHLCEnv(TerrainRLEnv):
         # set up initial state
         super(TerrainRLHLCEnv,self).__init__(exp, settings)
         ## start out by updating the action
-        self._num_updates_since_last_action=1000000000
+        # self._num_updates_since_last_action=1000000000
+        self._num_updates_since_last_action=0
 
     
     def getState(self):
