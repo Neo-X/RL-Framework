@@ -40,108 +40,112 @@ class SimContainer(object):
         self._expected_value_viz = expected_value_viz
         self._viz_q_values_ = []
         self._action=None
+        self._paused=False
         
     def animate(self, callBackVal=-1):
         # print ("Animating: ", callBackVal)
-        """
-        glClearColor(0.8, 0.8, 0.9, 0.0)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST)
-        glEnable(GL_LIGHTING)
-        glEnable(GL_NORMALIZE)
-        glShadeModel(GL_SMOOTH)
-    
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        gluPerspective (45.0, 1.3333, 0.2, 20.0)
-    
-        glViewport(0, 0, 640, 480)
-    
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
-    
-        glLightfv(GL_LIGHT0,GL_POSITION,[0, 0, 1, 0])
-        glLightfv(GL_LIGHT0,GL_DIFFUSE,[1, 1, 1, 1])
-        glLightfv(GL_LIGHT0,GL_SPECULAR,[1, 1, 1, 1])
-        glEnable(GL_LIGHT0)
-    
-        glEnable(GL_COLOR_MATERIAL)
-        glColor3f(0.8, 0.8, 0.8)
-    
-        gluLookAt(1.5, 4.0, 3.0, 0.5, 1.0, 0.0, 0.0, 1.0, 0.0)
-        
-        glutPostRedisplay()
-        
-        """
-        state_ = self._exp.getState()
-        # action_ = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
-        # self._exp.updateAction(action_)
-        
         current_time = glutGet(GLUT_ELAPSED_TIME);
-        print ("Current sim time: ", current_time)
-        num_substeps = 1
-        for i in range(num_substeps):
-            # print ("End of Epoch: ", self._exp.getEnvironment().endOfEpoch())
-            if (self._exp.getEnvironment().endOfEpoch() and 
-                   self._exp.needUpdatedAction()):
-                self._exp.getActor().initEpoch()
-                self._exp.generateValidation(10, self._episode)
-                self._exp.getEnvironment().initEpoch()
-                self._episode += 1
-                print("*******")
-                print("New eposide: ")
-                print("*******")
-                
+        if (self._paused):
+            pass
+        else:
+            print ("Current sim time: ", current_time)
             """
-            simData = self._exp.getEnvironment().getActor().getSimData()
-            # print("Average Speed: ", simData.avgSpeed)
-            vel_sum = simData.avgSpeed
-            torque_sum = simData.avgTorque
+            glClearColor(0.8, 0.8, 0.9, 0.0)
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glEnable(GL_DEPTH_TEST)
+            glEnable(GL_LIGHTING)
+            glEnable(GL_NORMALIZE)
+            glShadeModel(GL_SMOOTH)
+        
+            glMatrixMode(GL_PROJECTION)
+            glLoadIdentity()
+            gluPerspective (45.0, 1.3333, 0.2, 20.0)
+        
+            glViewport(0, 0, 640, 480)
+        
+            glMatrixMode(GL_MODELVIEW)
+            glLoadIdentity()
+        
+            glLightfv(GL_LIGHT0,GL_POSITION,[0, 0, 1, 0])
+            glLightfv(GL_LIGHT0,GL_DIFFUSE,[1, 1, 1, 1])
+            glLightfv(GL_LIGHT0,GL_SPECULAR,[1, 1, 1, 1])
+            glEnable(GL_LIGHT0)
+        
+            glEnable(GL_COLOR_MATERIAL)
+            glColor3f(0.8, 0.8, 0.8)
+        
+            gluLookAt(1.5, 4.0, 3.0, 0.5, 1.0, 0.0, 0.0, 1.0, 0.0)
+            
+            glutPostRedisplay()
+            
             """
-            if (self._exp.needUpdatedAction()):
-                state_ = self._exp.getState()
-                # print ("State: ", state_)
-                ## Update value function visualization
-                if ( True  and (self._expected_value_viz is not None)):
-                    self._viz_q_values_.append(self._agent.q_value(state_)[0])
-                    # self._viz_q_values_.append(0)
-                    if (len(self._viz_q_values_)>100):
-                         self._viz_q_values_.pop(0)
-                    # print ("viz_q_values_: ", viz_q_values_ )
-                    # print ("np.zeros(len(viz_q_values_)): ", np.zeros(len(viz_q_values_)))
-                    self._expected_value_viz.updateLoss(self._viz_q_values_, np.zeros(len(self._viz_q_values_)))
-                    self._expected_value_viz.redraw()
-                    # visualizeEvaluation.setInteractiveOff()
-                    # visualizeEvaluation.saveVisual(directory+"criticLossGraph")
-                    # visualizeEvaluation.setInteractive()
-                """
-                position_root = self._exp.getEnvironment().getActor().getStateEuler()[0:][:3]
-                root_orientation = self._exp.getEnvironment().getActor().getStateEuler()[3:][:3]
-                print("Root position: ", position_root)
-                print("Root orientation: ", root_orientation)
-                """
-                self._action = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
-                
-                # grad_ = self._agent.getPolicy().getGrads(state_)[0]
-                grad_ = [0]
-                self._grad_sum += np.abs(grad_)
-                self._num_actions +=1
-                # print ("Input grad: ", repr(self._grad_sum/self._num_actions))
-                # print ("Input grad: ", str(self._grad_sum/self._num_actions))
-                # print ("Input grad: ", self._grad_sum/self._num_actions)
-                
-                
-                # action_[1] = 1.0
-                print( "New action: ", self._action)
-                self._exp.updateAction(self._action)
+            state_ = self._exp.getState()
+            # action_ = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
+            # self._exp.updateAction(action_)
             
-            self._exp.getActor().updateActor(self._exp, self._action)
-            # self._exp.update()
-            
+            num_substeps = 1
+            for i in range(num_substeps):
+                # print ("End of Epoch: ", self._exp.getEnvironment().endOfEpoch())
+                if (self._exp.getEnvironment().endOfEpoch() and 
+                       self._exp.needUpdatedAction()):
+                    self._exp.getActor().initEpoch()
+                    self._exp.generateValidation(10, self._episode)
+                    self._exp.getEnvironment().initEpoch()
+                    self._episode += 1
+                    print("*******")
+                    print("New eposide: ")
+                    print("*******")
+                    
+                """
+                simData = self._exp.getEnvironment().getActor().getSimData()
+                # print("Average Speed: ", simData.avgSpeed)
+                vel_sum = simData.avgSpeed
+                torque_sum = simData.avgTorque
+                """
+                if (self._exp.needUpdatedAction()):
+                    state_ = self._exp.getState()
+                    # print ("State: ", state_)
+                    ## Update value function visualization
+                    if ( True  and (self._expected_value_viz is not None)):
+                        self._viz_q_values_.append(self._agent.q_value(state_)[0])
+                        # self._viz_q_values_.append(0)
+                        if (len(self._viz_q_values_)>100):
+                             self._viz_q_values_.pop(0)
+                        # print ("viz_q_values_: ", viz_q_values_ )
+                        # print ("np.zeros(len(viz_q_values_)): ", np.zeros(len(viz_q_values_)))
+                        self._expected_value_viz.updateLoss(self._viz_q_values_, np.zeros(len(self._viz_q_values_)))
+                        self._expected_value_viz.redraw()
+                        # visualizeEvaluation.setInteractiveOff()
+                        # visualizeEvaluation.saveVisual(directory+"criticLossGraph")
+                        # visualizeEvaluation.setInteractive()
+                    """
+                    position_root = self._exp.getEnvironment().getActor().getStateEuler()[0:][:3]
+                    root_orientation = self._exp.getEnvironment().getActor().getStateEuler()[3:][:3]
+                    print("Root position: ", position_root)
+                    print("Root orientation: ", root_orientation)
+                    """
+                    self._action = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
+                    # self._action = np.array([0.0, 0.0, 0.0, -1.0, 0.0], dtype='float64')
+                    # grad_ = self._agent.getPolicy().getGrads(state_)[0]
+                    grad_ = [0]
+                    self._grad_sum += np.abs(grad_)
+                    self._num_actions +=1
+                    # print ("Input grad: ", repr(self._grad_sum/self._num_actions))
+                    # print ("Input grad: ", str(self._grad_sum/self._num_actions))
+                    # print ("Input grad: ", self._grad_sum/self._num_actions)
+                    
+                    
+                    # action_[1] = 1.0
+                    print( "New action: ", self._action)
+                    self._exp.updateAction(self._action)
+                
+                self._exp.getActor().updateActor(self._exp, self._action)
+                # self._exp.update()
+                
         self._exp.display()
         dur_time = (glutGet(GLUT_ELAPSED_TIME) - current_time)
         next_time = int((1000/fps)) - dur_time
-        print("duration to perform update: ", dur_time, " next time: ", next_time)
+        # print("duration to perform update: ", dur_time, " next time: ", next_time)
         # anim_time = int(gDisplayAnimTime * GetNumTimeSteps() / gPlaybackSpeed);
         # anim_time = np.abs(anim_time);
         # return anim_time;
@@ -201,7 +205,10 @@ class SimContainer(object):
         elif c == 'n':
             if ( self._settings["use_parameterized_control"] ):
                 self._exp.getActor()._target_hand_pos -= 0.02
-                print ("_target_hand_pos: ", self._exp.getActor()._target_hand_pos)    
+                print ("_target_hand_pos: ", self._exp.getActor()._target_hand_pos)
+        elif c == ' ':
+            self._paused = self._paused != True
+            print("Paused: ", self._paused) 
                 
         ## ord converts the string to the corresponding integer value for the character...
         self._exp.getEnvironment().onKeyEvent(ord(c), x, y)
