@@ -392,6 +392,10 @@ if __name__ == "__main__":
         if ( not (options[option] is None) ):
             print ("Updateing option: ", option, " = ", options[option])
             settings[option] = options[option]
+            if ( options[option] == 'true'):
+                settings[option] = True
+            elif ( options[option] == 'false'):
+                settings[option] = False
         # settings['num_available_threads'] = options['num_available_threads']
 
 
