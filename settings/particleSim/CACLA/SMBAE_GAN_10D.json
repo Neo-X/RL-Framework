@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.A_CACLA.A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere_10D/SMBAE_GAN",
+"data_folder": "Nav_Sphere_10D/SMBAE_GAN_mbae_act_true",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -292,5 +292,5 @@
 	"comment__": "Compute a running mean and std for network input/output scalling",
 "keep_running_mean_std_for_scaling": false,
 	"comment__": "Prevents the critic from including MBAE actions in it's policy estimation.",
-"give_mbae_actions_to_critic": false
+"give_mbae_actions_to_critic": true
 }
