@@ -10,7 +10,7 @@
 	"comment__": "Parameter bounds, for which values will be sampled",
 "param_bounds": [1, 500],
 	"comment__": "parameter value type [int|float|bool]",
-"param_data_type": "float",
+"param_data_type": "int",
 	"comment__": "Number of samples to evaluation between the given bounds",
 "num_param_samples": 6,
 	"comment__": "The fully qualified name of the mail server to use",

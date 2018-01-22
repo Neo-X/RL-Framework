@@ -79,8 +79,6 @@ class ExperienceMemory(object):
         (state, action, nextState, reward, fall, G_t, exp_action) = tuple
         self.insert(state, action, nextState, reward, fall, G_t, exp_action)
         
-    
-        
     def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]], exp_action=[[0]]):
         # print "Instert State: " + str(state)
         # state = list(state)
