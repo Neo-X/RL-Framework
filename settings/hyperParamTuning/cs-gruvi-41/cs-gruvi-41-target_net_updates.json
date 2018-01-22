@@ -6,9 +6,9 @@
 	"comment__": "Number of simulation samples to compute to use for Meta simulation, running a number of simulations and taking the average of them",
 "meta_sim_samples": 5,
 	"comment__": "Name of the parameters that we want to tune",
-"param_to_tune": "kl_divergence_threshold",
+"param_to_tune": "steps_until_target_network_update",
 	"comment__": "Parameter bounds, for which values will be sampled",
-"param_bounds": [0.1, 2.5],
+"param_bounds": [1, 500],
 	"comment__": "parameter value type [int|float|bool]",
 "param_data_type": "float",
 	"comment__": "Number of samples to evaluation between the given bounds",
@@ -20,5 +20,5 @@
 	"comment__": "Flag to say this is a testing run",
 "testing": false,
 	"comment__": "Type of curve to blend values along [linear|squared|exponential]",
-"curve_scheme": "linear"
+"curve_scheme": "exponential"
 }
