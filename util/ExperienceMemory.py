@@ -188,9 +188,15 @@ class ExperienceMemory(object):
             """
         
     def get_exporation_action_batch(self, batch_size=32):
-        return self.get_batch(batch_size=batch_size, exp_actions_only=True)
+        return self.get_batch(batch_size=batch_size, excludeActionTypes=[0])
+    
+    def getNonMBAEBatch(self, batch_size=32):
+        """
+            Avoids training critic on MBAE actions.
+        """ 
+        return self.get_batch(batch_size=batch_size, excludeActionTypes=[2])
             
-    def get_batch(self, batch_size=32, exp_actions_only=False):
+    def get_batch(self, batch_size=32, excludeActionTypes=[]):
         """
         len(experience > batch_size
         """
@@ -218,6 +224,8 @@ class ExperienceMemory(object):
             ## skip tuples that were not exploration actions
             # print ("self._exp_action_history[",i,"]: ", self._exp_action_history[i])
             if (exp_actions_only and (self._exp_action_history[i] == 0)):
+                continue
+            if ( self._exp_action_history[i] in excludeActionTypes):
                 continue
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
                 # state.append(self._state_history[i])

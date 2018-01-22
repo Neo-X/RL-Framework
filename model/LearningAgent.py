@@ -149,7 +149,11 @@ class LearningAgent(AgentInterface):
                 if (self._settings['critic_updates_per_actor_update'] > 1):
                     for i in range(self._settings['critic_updates_per_actor_update']):
                         # print ("Number of samples:", self._expBuff.samples())
-                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
+                        if ( 'give_mbae_actions_to_critic' in settings and 
+                             (settings['give_mbae_actions_to_critic'] == False)):
+                            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
+                        else:
+                            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
                         loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                         # cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -169,7 +173,8 @@ class LearningAgent(AgentInterface):
                         print ("Training cost is Odd: ", cost)
                 # self._expBuff.clear()
             if (self._settings['train_actor']):
-                if ( 'use_multiple_policy_updates' in self._settings and ( self._settings['use_multiple_policy_updates']) ):
+                if ( 'use_multiple_policy_updates' in self._settings and 
+                     ( self._settings['use_multiple_policy_updates'] == True) ):
                     for i in range(self._settings['critic_updates_per_actor_update']):
                     
                         if ( ('anneal_on_policy' in self._settings) and self._settings['anneal_on_policy']):
@@ -244,7 +249,12 @@ class LearningAgent(AgentInterface):
             
             for update in range(self._settings['training_updates_per_sim_action']): ## Even more training options...
                 for i in range(self._settings['critic_updates_per_actor_update']):
-                    _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
+                    
+                    if ( 'give_mbae_actions_to_critic' in settings and 
+                         (settings['give_mbae_actions_to_critic'] == False)):
+                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.getNonMBAEBatch(value_function_batch_size)
+                    else:
+                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
                     # print ("Updating Critic")
                     loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
