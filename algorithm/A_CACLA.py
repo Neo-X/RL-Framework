@@ -464,7 +464,7 @@ class A_CACLA(AlgorithmInterface):
         """
         for i in range(len(diff_)):
             if ( (((diff_[i] > 0.0) or ( 'use_advantage_instaed_of_ptd' in self.getSettings() and self.getSettings()['use_advantage_instaed_of_ptd'])) and 
-                   (exp_actions[i] == 1))
+                   (exp_actions[i] != 0))
                   ):
                 if (('dont_use_advantage' in self.getSettings()) and self.getSettings()['dont_use_advantage']):
                     # self._actor_buffer_diff.append([1.0 * (1.0-self._discount_factor)])
