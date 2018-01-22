@@ -356,6 +356,8 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
     exp.getActor().initEpoch()   
     exp.initEpoch()
     fps=30
+    if ( settings['environment_type'] == 'terrainRLHLCBiped3D' ): 
+        exp._num_updates_since_last_action=1000000
     # state_ = exp.getState()
     # action_ = np.array(masterAgent.predict(state_, evaluation_=True), dtype='float64')
     # exp.updateAction(action_)
