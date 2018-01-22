@@ -139,8 +139,10 @@ class SimContainer(object):
                     print( "New action: ", self._action)
                     self._exp.updateAction(self._action)
                 
-                self._exp.getActor().updateActor(self._exp, self._action)
-                # self._exp.update()
+                if ( self._settings['environment_type'] == 'terrainRLHLCBiped3D' ):
+                    self._exp.getActor().updateActor(self._exp, self._action)
+                else:
+                    self._exp.update()
                 
         self._exp.display()
         dur_time = (glutGet(GLUT_ELAPSED_TIME) - current_time)
