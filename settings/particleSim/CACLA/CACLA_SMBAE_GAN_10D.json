@@ -290,5 +290,7 @@
 	"comment__": "Train GAN with gaussian noise",
 "train_gan_with_gaussian_noise": true,
 	"comment__": "Compute a running mean and std for network input/output scalling",
-"keep_running_mean_std_for_scaling": false
+"keep_running_mean_std_for_scaling": false,
+	"comment__": "Prevents the critic from including MBAE actions in it's policy estimation.",
+"give_mbae_actions_to_critic": false
 }
