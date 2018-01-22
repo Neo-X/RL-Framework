@@ -223,8 +223,6 @@ class ExperienceMemory(object):
         for i in indices:
             ## skip tuples that were not exploration actions
             # print ("self._exp_action_history[",i,"]: ", self._exp_action_history[i])
-            if (exp_actions_only and (self._exp_action_history[i] == 0)):
-                continue
             if ( self._exp_action_history[i] in excludeActionTypes):
                 continue
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
