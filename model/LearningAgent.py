@@ -213,6 +213,14 @@ class LearningAgent(AgentInterface):
                     """
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Forward Dynamics Loss: ", dynamicsLoss)
+                    
+                    if ( 'give_mbae_actions_to_critic' in self._settings and 
+                         (self._settings['give_mbae_actions_to_critic'] == False)):
+                        ### perform a Q like update
+                        actions____ = self._pol.predict_batch(states=result_states__) ### I think these could have noise added to them.
+                        predicted_result_states__ = self._fd.predict_batch(states=result_states__, actions=actions____)
+                        loss = self._pol.trainCritic(states=result_states__, actions=actions____, rewards=rewards__, result_states=predicted_result_states__, falls=falls__)
+                        # cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                     if (self._settings['train_critic_on_fd_output'] and 
                         (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
                         ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
@@ -220,6 +228,7 @@ class LearningAgent(AgentInterface):
                         ):
                         predicted_result_states__ = self._fd.predict_batch(states=states__, actions=actions__)
                         cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                        
                         """
                         if not np.isfinite(cost) or (cost > 500) :
                             numpy.set_printoptions(threshold=numpy.nan)
@@ -274,6 +283,14 @@ class LearningAgent(AgentInterface):
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Forward Dynamics Loss: ", dynamicsLoss)
+                    
+                    if ( 'give_mbae_actions_to_critic' in self._settings and 
+                         (self._settings['give_mbae_actions_to_critic'] == False)):
+                        ### perform a Q like update
+                        actions____ = self._pol.predict_batch(states=_result_states) ### I think these could have noise added to them.
+                        predicted_result_states__ = self._fd.predict_batch(states=_result_states, actions=actions____)
+                        loss = self._pol.trainCritic(states=_result_states, actions=actions____, rewards=_rewards, result_states=predicted_result_states__, falls=_falls)
+                        
                     if (self._settings['train_critic_on_fd_output'] and 
                         (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
                         ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
@@ -288,6 +305,7 @@ class LearningAgent(AgentInterface):
                             numpy.set_printoptions(threshold=numpy.nan)
                             print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                             print ("Training cost is Odd: ", cost)
+                            
             # import lasagne
             # val_params = lasagne.layers.helper.get_all_param_values(self._pol.getModel().getCriticNetwork())
             # pol_params = lasagne.layers.helper.get_all_param_values(self._pol.getModel().getActorNetwork())
