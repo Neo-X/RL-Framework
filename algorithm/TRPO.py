@@ -394,12 +394,16 @@ class TRPO(AlgorithmInterface):
             ## Need to scale the advantage by the discount to help keep things normalized
         if (('normalize_advantage' in self.getSettings()) and (not self.getSettings()['normalize_advantage'])):
             # advantage = advantage * (1.0-self._discount_factor)
-            # advantage = advantage * (1.0-self._discount_factor)
+            advantage = advantage * (1.0-self._discount_factor)
             ## Standardize advantage 
-            pass
+            # pass
         else:
+            ## if not defined default is to normalize
             std = np.std(advantage)
             mean = np.mean(advantage)
+            if ( 'advantage_scaling' in self.getSettings() and ( self.getSettings()['advantage_scaling'] != False) ):
+                std = std / self.getSettings()['advantage_scaling']
+                mean = 0.0
             advantage = (advantage - mean) / std
         # pass # use given advantage parameter
         self.setData(states, actions, rewards, result_states, falls)
@@ -437,7 +441,7 @@ class TRPO(AlgorithmInterface):
             
             # print("Advantage, reward: ", np.concatenate((advantage, rewards), axis=1))
             print("Actions:     ", np.mean(actions, axis=0), " shape: ", actions.shape)
-            print("Policy mean: ", np.mean(self._q_action(), axis=0)," std ", np.std(self._q_action(), axis=0), " shape: ", self._q_action().shape)
+            print("Policy mean: ", np.mean(self._q_action(), axis=0))
             # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
             # print("Actions std:  ", np.std(actions - self._q_action(), axis=0) )
             print("Actions std:  ", np.std(actions - self._q_action(), axis=0) )
@@ -473,14 +477,22 @@ class TRPO(AlgorithmInterface):
 
         thprev = get_params_flat(lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork()))
         def fisher_vector_product(p):
-            return self.compute_fisher_vector_product(p, states)+np.float32(self.getSettings()['cg_damping'])*p #pylint: disable=E1101,W0640
+            # print ("fvp p: ", p)
+            # print ("states: ", p)
+            # print ('cg_damping', self.getSettings()['cg_damping'] )
+            fvp_ = self.compute_fisher_vector_product(p, states)+np.float32(self.getSettings()['cg_damping'])*p #pylint: disable=E1101,W0640
+            # print ("fvp_ : ", fvp_)
+            return fvp_
         g = self.compute_policy_gradient(*args)
+        print ("g: ", g)
         losses_before = self.compute_losses(*args)
         if np.allclose(g, 0):
             print ("got zero gradient. not updating")
         else:
             stepdir = cg(fisher_vector_product, -g)
+            # print ("stepdir: ", stepdir)
             shs = .5*stepdir.dot(fisher_vector_product(stepdir))
+            # print ("shs: ", shs )
             lm = np.sqrt(shs / np.float32(self.getSettings()['kl_divergence_threshold']))
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("lagrange multiplier:", lm, "gnorm:", np.linalg.norm(g))
@@ -545,9 +557,9 @@ def linesearch(f, x, fullstep, expected_improve_rate, max_backtracks=10, accept_
         actual_improve = fval - newfval
         expected_improve = expected_improve_rate*stepfrac
         ratio = actual_improve/expected_improve
-        # print "a/e/r", actual_improve, expected_improve, ratio
+        print ("a/e/r", actual_improve, expected_improve, ratio)
         if ratio > accept_ratio and actual_improve > 0:
-            # print "fval after", newfval
+            print ("fval after", newfval)
             return True, xnew
     return False, x
 
