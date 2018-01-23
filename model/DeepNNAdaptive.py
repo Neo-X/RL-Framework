@@ -43,7 +43,7 @@ class DeepNNAdaptive(ModelInterface):
             else:
                 networkAct = lasagne.layers.DenseLayer(
                         networkAct, num_units=layer_sizes[i],
-                        nonlinearity=self._activation_type)
+                        nonlinearity=self._policy_activation_type)
 
         
         self._actor = lasagne.layers.DenseLayer(

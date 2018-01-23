@@ -9,6 +9,21 @@ from model.ModelUtil import *
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 
+def getActivationType(type_name):
+    if ((type_name == 'leaky_rectify')):
+        activation_type = lasagne.nonlinearities.leaky_rectify
+    elif (type_name == 'relu'):
+        activation_type = lasagne.nonlinearities.rectify
+    elif (type_name == 'tanh'):
+        activation_type = lasagne.nonlinearities.tanh
+    elif ( type_name == 'linear'):
+        activation_type = lasagne.nonlinearities.linear
+    elif (type_name == 'sigmoid'):
+        activation_type = lasagne.nonlinearities.sigmoid
+    elif (type_name == 'softplus'):
+        activation_type = theano.tensor.nnet.softplus
+    return activation_type
+
 class ModelInterface(object):
     
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
@@ -23,54 +38,24 @@ class ModelInterface(object):
         
         ### Get a type of activation to use
         self._activation_type=lasagne.nonlinearities.leaky_rectify
-        if ("activation_type" in settings_ and (settings_['activation_type'] == 'leaky_rectify')):
-            self._activation_type = lasagne.nonlinearities.leaky_rectify
-        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'relu')):
-            self._activation_type = lasagne.nonlinearities.rectify
-        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'tanh')):
-            self._activation_type = lasagne.nonlinearities.tanh
-        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'linear')):
-            self._activation_type = lasagne.nonlinearities.linear
-        elif ("activation_type" in settings_ and (settings_['activation_type'] == 'sigmoid')):
-            self._activation_type = lasagne.nonlinearities.sigmoid
+        self._policy_activation_type=lasagne.nonlinearities.leaky_rectify
+        if ("activation_type" in settings_ ):
+            self._activation_type = getActivationType(settings_['activation_type'])
+            self._policy_activation_type = self._activation_type
+        if ("policy_activation_type" in settings_ ):
+            self._policy_activation_type = getActivationType(settings_['policy_activation_type'])
             
         self._last_policy_layer_activation_type = lasagne.nonlinearities.linear
-        if ('last_policy_layer_activation_type' in settings_ and (settings_['last_policy_layer_activation_type']) == 'linear'):
-            self._last_policy_layer_activation_type=lasagne.nonlinearities.linear
-        if ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'leaky_rectify')):
-            self._last_policy_layer_activation_type = lasagne.nonlinearities.leaky_rectify
-        elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'relu')):
-            self._last_policy_layer_activation_type = lasagne.nonlinearities.rectify
-        elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'tanh')):
-            self._last_policy_layer_activation_type = lasagne.nonlinearities.tanh
-        elif ("last_policy_layer_activation_type" in settings_ and (settings_['last_policy_layer_activation_type'] == 'sigmoid')):
-            self._last_policy_layer_activation_type = lasagne.nonlinearities.sigmoid
+        if ('last_policy_layer_activation_type' in settings_ ):
+            self._last_policy_layer_activation_type = getActivationType(settings_['last_policy_layer_activation_type'])
         
         self._last_std_policy_layer_activation_type = theano.tensor.nnet.softplus
-        if ('_last_std_policy_layer_activation_type' in settings_ and (settings_['_last_std_policy_layer_activation_type']) == 'linear'):
-            self._last_std_policy_layer_activation_type=lasagne.nonlinearities.linear
-        if ("_last_std_policy_layer_activation_type" in settings_ and (settings_['_last_std_policy_layer_activation_type'] == 'leaky_rectify')):
-            self._last_std_policy_layer_activation_type = lasagne.nonlinearities.leaky_rectify
-        elif ("_last_std_policy_layer_activation_type" in settings_ and (settings_['_last_std_policy_layer_activation_type'] == 'relu')):
-            self._last_std_policy_layer_activation_type = lasagne.nonlinearities.rectify
-        elif ("_last_std_policy_layer_activation_type" in settings_ and (settings_['_last_std_policy_layer_activation_type'] == 'tanh')):
-            self._last_std_policy_layer_activation_type = lasagne.nonlinearities.tanh
-        elif ("_last_std_policy_layer_activation_type" in settings_ and (settings_['_last_std_policy_layer_activation_type'] == 'sigmoid')):
-            self._last_std_policy_layer_activation_type = lasagne.nonlinearities.sigmoid
-        elif ("_last_std_policy_layer_activation_type" in settings_ and (settings_['_last_std_policy_layer_activation_type'] == 'softplus')):
-            self._last_std_policy_layer_activation_type = theano.tensor.nnet.softplus
+        if ('_last_std_policy_layer_activation_type' in settings_ ):
+            self._last_std_policy_layer_activation_type = getActivationType(settings_['_last_std_policy_layer_activation_type'])
 
         self._last_critic_layer_activation_type = lasagne.nonlinearities.linear
         if ('last_critic_layer_activation_type' in settings_ and (settings_['last_critic_layer_activation_type']) == 'linear'):
-            self._last_critic_layer_activation_type=lasagne.nonlinearities.linear
-        if ("last_critic_layer_activation_type" in settings_ and (settings_['last_critic_layer_activation_type'] == 'leaky_rectify')):
-            self._last_critic_layer_activation_type = lasagne.nonlinearities.leaky_rectify
-        elif ("last_critic_layer_activation_type" in settings_ and (settings_['last_critic_layer_activation_type'] == 'relu')):
-            self._last_critic_layer_activation_type = lasagne.nonlinearities.rectify
-        elif ("last_critic_layer_activation_type" in settings_ and (settings_['last_critic_layer_activation_type'] == 'tanh')):
-            self._last_critic_layer_activation_type = lasagne.nonlinearities.tanh
-        elif ("last_critic_layer_activation_type" in settings_ and (settings_['last_critic_layer_activation_type'] == 'sigmoid')):
-            self._last_critic_layer_activation_type = lasagne.nonlinearities.sigmoid
+            self._last_critic_layer_activation_type = getActivationType(settings_['last_critic_layer_activation_type'])
         
     def getNetworkParameters(self):
         pass
