@@ -151,10 +151,18 @@ class LearningAgent(AgentInterface):
                         # print ("Number of samples:", self._expBuff.samples())
                         if ( 'give_mbae_actions_to_critic' in self._settings and 
                              (self._settings['give_mbae_actions_to_critic'] == False)):
-                            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
+                            if ( np.random.randint(0, 2) == 0):
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
+                                loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                            else:
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
+                                actions____ = self._pol.predict_batch(states=result_states__) 
+                                predicted_result_states__ = self._fd.predict_batch(states=result_states__, actions=actions____)
+                                rewards____ = self._fd.predict_reward_batch(states=result_states__, actions=actions____)
+                                loss = self._pol.trainCritic(states=result_states__, actions=actions____, rewards=rewards____, result_states=predicted_result_states__, falls=falls__)
                         else:
                             states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
-                        loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                            loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                         # cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Value function loss: ", loss)
@@ -214,12 +222,6 @@ class LearningAgent(AgentInterface):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Forward Dynamics Loss: ", dynamicsLoss)
                     
-                    if ( 'give_mbae_actions_to_critic' in self._settings and 
-                         (self._settings['give_mbae_actions_to_critic'] == False)):
-                        ### perform a Q like update
-                        actions____ = self._pol.predict_batch(states=result_states__) ### I think these could have noise added to them.
-                        predicted_result_states__ = self._fd.predict_batch(states=result_states__, actions=actions____)
-                        loss = self._pol.trainCritic(states=result_states__, actions=actions____, rewards=rewards__, result_states=predicted_result_states__, falls=falls__)
                         # cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                     if (self._settings['train_critic_on_fd_output'] and 
                         (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
@@ -261,11 +263,21 @@ class LearningAgent(AgentInterface):
                     
                     if ( 'give_mbae_actions_to_critic' in self._settings and 
                          (self._settings['give_mbae_actions_to_critic'] == False)):
-                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.getNonMBAEBatch(value_function_batch_size)
+                        if ( np.random.randint(0, 2) == 0):
+                            states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.getNonMBAEBatch(value_function_batch_size)
+                            loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                        else:
+                            ### off-policy action update
+                            print('off-policy action update')
+                            states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
+                            actions____ = self._pol.predict_batch(states=_result_states) ### I think these could have noise added to them.
+                            predicted_result_states__ = self._fd.predict_batch(states=_result_states, actions=actions____)
+                            rewards____ = self._fd.predict_reward_batch(states=_result_states, actions=actions____)
+                            loss = self._pol.trainCritic(states=_result_states, actions=actions____, rewards=rewards____, result_states=predicted_result_states__, falls=_falls)
                     else:
                         _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
                     # print ("Updating Critic")
-                    loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                        loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Value function loss: ", loss)
                     if not np.isfinite(cost) or (cost > 500) :
@@ -289,7 +301,8 @@ class LearningAgent(AgentInterface):
                         ### perform a Q like update
                         actions____ = self._pol.predict_batch(states=_result_states) ### I think these could have noise added to them.
                         predicted_result_states__ = self._fd.predict_batch(states=_result_states, actions=actions____)
-                        loss = self._pol.trainCritic(states=_result_states, actions=actions____, rewards=_rewards, result_states=predicted_result_states__, falls=_falls)
+                        rewards____ = self._fd.predict_reward_batch(states=_result_states, actions=actions____)
+                        loss = self._pol.trainCritic(states=_result_states, actions=actions____, rewards=rewards____, result_states=predicted_result_states__, falls=_falls)
                         
                     if (self._settings['train_critic_on_fd_output'] and 
                         (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 

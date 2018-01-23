@@ -633,6 +633,21 @@ class GAN(AlgorithmInterface):
         # reward_ = scale_state(predicted_reward, self._reward_bounds)
         # print ("reward, predicted reward: ", reward_, predicted_reward)
         return reward_
+
+    def predict_reward_batch(self, states, actions):
+        
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        # state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        # action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        self._model.setStates(states)
+        self._model.setActions(actions)
+        predicted_reward = self._predict_reward()
+        # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # reward_ = scale_state(predicted_reward, self._reward_bounds)
+        # print ("reward, predicted reward: ", reward_, predicted_reward)
+        return predicted_reward
     
     def bellman_error(self, states, actions, result_states, rewards):
         self.setData(states, actions, result_states, rewards)
