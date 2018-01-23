@@ -151,10 +151,12 @@ class LearningAgent(AgentInterface):
                         # print ("Number of samples:", self._expBuff.samples())
                         if ( 'give_mbae_actions_to_critic' in self._settings and 
                              (self._settings['give_mbae_actions_to_critic'] == False)):
-                            if ( np.random.randint(0, 2) == 0):
+                            # if ( np.random.random() >= self._settings['model_based_action_omega']):
+                            if ( np.random.random() >= -1.0):
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
                                 loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                             else:
+                                print('off-policy action update')
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
                                 actions____ = self._pol.predict_batch(states=result_states__) 
                                 predicted_result_states__ = self._fd.predict_batch(states=result_states__, actions=actions____)
@@ -263,13 +265,14 @@ class LearningAgent(AgentInterface):
                     
                     if ( 'give_mbae_actions_to_critic' in self._settings and 
                          (self._settings['give_mbae_actions_to_critic'] == False)):
-                        if ( np.random.randint(0, 2) == 0):
-                            states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.getNonMBAEBatch(value_function_batch_size)
+                        # if ( np.random.random() >= self._settings['model_based_action_omega']):
+                        if ( np.random.random() >=-1.0 ):
+                            _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.getNonMBAEBatch(value_function_batch_size)
                             loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         else:
                             ### off-policy action update
                             print('off-policy action update')
-                            states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
+                            _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
                             actions____ = self._pol.predict_batch(states=_result_states) ### I think these could have noise added to them.
                             predicted_result_states__ = self._fd.predict_batch(states=_result_states, actions=actions____)
                             rewards____ = self._fd.predict_reward_batch(states=_result_states, actions=actions____)
