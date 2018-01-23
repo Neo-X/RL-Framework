@@ -60,6 +60,22 @@ class DeepNNAdaptive(ModelInterface):
         
         
         if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
+            
+            if ('train_extra_value_function' in settings_ and (settings_['train_extra_value_function'])):
+                ## create an extra value function
+                layer_sizes = self._settings['critic_network_layer_sizes']
+                # print ("Network layer sizes: ", layer_sizes)
+                network = stateInput
+                for i in range(len(layer_sizes)):
+                    
+                    network = lasagne.layers.DenseLayer(
+                                network, num_units=layer_sizes[i],
+                                nonlinearity=self._activation_type)
+
+                self._value_function = lasagne.layers.DenseLayer(
+                        network, num_units=1,
+                        nonlinearity=lasagne.nonlinearities.linear)
+                
             network = lasagne.layers.ConcatLayer([stateInput, actionInput])
         elif ( 'ppo_use_seperate_nets' in settings_ and (settings_['ppo_use_seperate_nets'] == False) ):
             network = networkAct

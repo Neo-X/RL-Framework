@@ -388,7 +388,7 @@ class DPG(AlgorithmInterface):
     def trainCritic(self, states, actions, rewards, result_states, falls):
         
         self.setData(states, actions, rewards, result_states, falls)
-        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
             loss_v, _ = self._train_value()
             print ("MBAE Value function loss: ", loss_v)
             
