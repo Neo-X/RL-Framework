@@ -54,7 +54,7 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
     
     from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory
     
-    rlv = PolicyTrainVisualize("Training Curves", settings=settings)
+    rlv = PolicyTrainVisualize("Training Curves: " + str(settings['agent_name']), settings=settings)
     otherDatas = []
     # settingsFiles = sys.argv[2:]
     print("settingsFiles: ", settingsFiles)
