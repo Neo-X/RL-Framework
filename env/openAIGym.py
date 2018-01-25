@@ -2,24 +2,25 @@ import gym
 from gym import wrappers
 from gym import envs
 import roboschool
+from OpenGL import GL
 import numpy as np
 # print(envs.registry.all())
 # env = gym.make('CartPole-v0')
 # env = gym.make('BipedalWalker-v2')
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
-env = gym.make('RoboschoolHalfCheetah-v1')
+env = gym.make('RoboschoolAtlasForwardWalk-v1')
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
 
 print( "Action Space: ", env.action_space)
 if (not isinstance(env.action_space, gym.spaces.Discrete)):
-    print( "Action Space high: ", env.action_space.high)
-    print( "Action Space low: ", env.action_space.low)
+    print( "Action Space high: ", repr(env.action_space.high))
+    print( "Action Space low: ", repr(env.action_space.low))
 print( "State Space: ", env.observation_space)
 if (not isinstance(env.observation_space, gym.spaces.Discrete)):
-    print( "State Space high: ", env.observation_space.high)
-    print( "State Space low: ", env.observation_space.low)
+    print( "State Space high: ", repr(env.observation_space.high))
+    print( "State Space low: ", repr(env.observation_space.low))
 
 rewards = []
 states = []
