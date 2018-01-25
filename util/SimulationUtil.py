@@ -544,15 +544,22 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
     elif env_type == 'terrainRLSim':
+        terrainRL_PATH = os.environ['TERRAINRL_PATH']
+        sys.path.append(terrainRL_PATH+'/lib')
+        from simAdapter import terrainRLAdapter
+        from sim.TerrainRLEnv import TerrainRLEnv
         from simAdapter import terrainRLSim
         from sim.OpenAIGymEnv import OpenAIGymEnv
         
         env = terrainRLSim.getEnv(env_name=config_file, render=render)
-        
-        conf = copy.deepcopy(settings)
-        conf['render'] = render
-        exp = OpenAIGymEnv(env, conf)
-        exp = exp
+        print ("Using Environment Type: " + str(env_type) + ", " + str(config_file))
+        # sim.setRender(render)
+        # sim.init()
+        # conf = copy.deepcopy(settings)
+        # conf['render'] = render
+        # exp = OpenAIGymEnv(env, conf)
+        env.getEnv().setRender(render)
+        exp = TerrainRLEnv(env.getEnv(), settings)
         return exp
         
     elif env_type == 'terrainRLBiped2D':

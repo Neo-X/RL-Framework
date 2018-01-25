@@ -38,6 +38,7 @@ class OpenAIGymEnv(SimInterface):
             self._state_param_mask = [   True] * len(settings['state_bounds'][0])
         """
     def init(self):
+        # self.getEnvironment().init()
         self._previous_observation = self.getEnvironment().reset()
         self._end_of_episode = False
             
@@ -109,3 +110,19 @@ class OpenAIGymEnv(SimInterface):
     
     def updateViz(self, actor, agent, directory):
         pass
+
+    def generateValidationEnvironmentSample(self, numb):
+        pass
+    
+    def needUpdatedAction(self):
+        return True
+    
+    def updateAction(self, action):
+        self.step(action)
+
+    def update(self):
+        pass
+    
+    def display(self):
+        pass
+    
