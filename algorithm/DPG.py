@@ -180,7 +180,7 @@ class DPG(AlgorithmInterface):
         #           self._learning_rate, beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         
         
-        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
             self._valsA = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=True)
             self._valsA_drop = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=False)
             self._valsNextState = lasagne.layers.get_output(self._model._value_function, self._model.getResultStateSymbolicVariable(), deterministic=True)
@@ -359,6 +359,9 @@ class DPG(AlgorithmInterface):
         params.append(lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork()))
         params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork()))
         params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork()))
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
+            params.append(lasagne.layers.helper.get_all_param_values(self._model._value_function))
+            params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget._value_function))
         return params
         
     def setNetworkParameters(self, params):
@@ -366,6 +369,9 @@ class DPG(AlgorithmInterface):
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params[1])
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), params[2])
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), params[3])
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
+            lasagne.layers.helper.set_all_param_values(self._model._value_function, params[4])
+            lasagne.layers.helper.set_all_param_values(self._modelTarget._value_function, params[5])
         
     def setData(self, states, actions, rewards, result_states, fallen):
         self._model.setStates(states)

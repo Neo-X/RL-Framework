@@ -285,6 +285,17 @@ def randomExporationSTD(explorationRate, actionV, std, bounds=None):
         out.append(actionV[i] + n)
     return out
 
+def OUNoise(theta, sigma, x_t, dt):
+    """
+        Ornstein–Uhlenbeck process
+    
+        d x t = θ ( μ − x t ) d t + σ d W t {\displaystyle dx_{t}=\theta (\mu -x_{t})\,dt+\sigma \,dW_{t}} {\displaystyle dx_{t}=\theta (\mu -x_{t})\,dt+\sigma \,dW_{t}}  
+    """
+    
+    dWt = np.random.normal(0.0,0.3)
+    dx_t = theta *(0.0 - x_t)* dt + (sigma * dWt)
+    return dx_t
+
 def randomUniformExporation(bounds):
     out = []
     for i in range(len(bounds[0])):
