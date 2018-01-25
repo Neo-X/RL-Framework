@@ -8,6 +8,8 @@ import numpy as np
 # env = gym.make('BipedalWalker-v2')
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 env = terrainRLSim.getEnv(env_name="PD_Biped2D_Gaps_Terrain-v0", render=True)
+# env.getEnv().setRender(True)
+# env.init()
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
 
@@ -29,7 +31,7 @@ for i_episode in range(20):
     for t in range(time_limit):
         env.render()
         # print(observation)
-        action = (env.action_space.high - env.action_space.low) + env.action_space.low 
+        action = (env.action_space.high - env.action_space.low) * 0.5 + env.action_space.low 
         observation, reward, done, info = env.step(action)
         # print("Reward: ", reward)
         rewards.append(reward)

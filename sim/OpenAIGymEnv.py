@@ -9,7 +9,7 @@ import copy
 import gym
 from gym import wrappers
 from gym import envs
-import roboschool
+# import roboschool
 from OpenGL import GL
 print(envs.registry.all())
 
