@@ -396,7 +396,8 @@ class DPG(AlgorithmInterface):
         self.setData(states, actions, rewards, result_states, falls)
         if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
             loss_v, _ = self._train_value()
-            print ("MBAE Value function loss: ", loss_v)
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+                print ("MBAE Value function loss: ", loss_v)
             
             if (( self._updates % 500) == 0):
                 self.updateTargetModelValue()
