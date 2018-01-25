@@ -543,6 +543,18 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = MocapImitationEnv(sim, settings)
         exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
+    elif env_type == 'terrainRLSim':
+        from simAdapter import terrainRLSim
+        from sim.OpenAIGymEnv import OpenAIGymEnv
+        
+        env = terrainRLSim.getEnv(env_name=config_file, render=render)
+        
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = OpenAIGymEnv(env, conf)
+        exp = exp
+        return exp
+        
     elif env_type == 'terrainRLBiped2D':
         terrainRL_PATH = os.environ['TERRAINRL_PATH']
         sys.path.append(terrainRL_PATH+'/lib')
@@ -682,7 +694,8 @@ def createActor(env_type, settings, experience):
     elif (env_type == 'pendulum'):
         from actor.ActorInterface import ActorInterface
         actor = ActorInterface(settings, experience)
-    elif (env_type == 'open_AI_Gym'):
+    elif (env_type == 'open_AI_Gym' or
+          (env_type == 'terrainRLSim')):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
     else:
