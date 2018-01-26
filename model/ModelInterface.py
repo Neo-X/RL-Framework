@@ -22,6 +22,8 @@ def getActivationType(type_name):
         activation_type = lasagne.nonlinearities.sigmoid
     elif (type_name == 'softplus'):
         activation_type = theano.tensor.nnet.softplus
+    else:
+        print("Activation type: ", type_name, " not recognized")
     return activation_type
 
 class ModelInterface(object):
