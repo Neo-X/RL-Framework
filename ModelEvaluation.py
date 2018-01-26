@@ -411,7 +411,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         action = np.random.choice(action_selection)
                         action__ = actor.getActionParams(action)
                         action = action__
-                        # print ("Discrete action choice: ", action, " epsilon * p: ", epsilon * p)
+                        print ("Discrete action choice: ", action, " epsilon * p: ", omega * p)
                     else : # add noise to current policy
                         # return ra1
                         if ( ((settings['exploration_method'] == 'gaussian_random') 
@@ -471,6 +471,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                                 if ( 'give_mbae_actions_to_critic' in settings and 
                                      (settings['give_mbae_actions_to_critic'] == False)):
                                     exp_action = int(2)
+                                # print ("Using MBAE: ", state_)
                                 # if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
                                     # print("MBAE action:")
                         # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
