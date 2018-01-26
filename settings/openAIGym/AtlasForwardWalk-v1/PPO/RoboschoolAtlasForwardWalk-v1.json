@@ -234,7 +234,7 @@
 	"comment__": "Whether or not to collects tuples in batches, this can be good for multi-threading or computing furture discounted reward",
 "collect_tuples_in_batches":false,
 	"comment__": "Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occured",
-"reset_on_fall": false,
+"reset_on_fall": true,
 	"comment__": "Whether a model of the reward r <- R(s,a) should be trained",
 "train_reward_predictor": false,
 	"comment__": "How many gradient steps model based action exploration should take",
@@ -300,7 +300,7 @@
 	"comment__": "Train GAN with gaussian noise",
 "train_gan_with_gaussian_noise": true,
 	"comment__": "Compute a running mean and std for network input/output scaling",
-"keep_running_mean_std_for_scaling": true,
+"keep_running_mean_std_for_scaling": false,
 	"comment__": "This overrides all of the envs to be a single one from the list of sim environments",
 "override_sim_env_id": false 
 }
