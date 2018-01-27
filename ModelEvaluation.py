@@ -312,7 +312,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         action_bounds = np.array(settings["action_bounds"], dtype=float)
         omega = settings["omega"]
     
-    print ("Start sim state bounds: ", model.getStateBounds())
+    # print ("Start sim state bounds: ", model.getStateBounds())
     action_selection = range(len(settings["discrete_actions"]))   
     reward_bounds = np.array(settings['reward_bounds'] )
     ## If tuples should be put in the output_exp_queue in batches which will include proper values for calculated future discounted rewards.

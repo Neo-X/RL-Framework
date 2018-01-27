@@ -210,7 +210,7 @@ class ExperienceMemory(object):
             print ("Unexpected ValueError:", e)
             raise e
         # print ("Indicies: " , indices)
-        print("Exp buff state bounds: ", self.getStateBounds())
+        # print("Exp buff state bounds: ", self.getStateBounds())
 
         state = []
         action = []
@@ -228,7 +228,7 @@ class ExperienceMemory(object):
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
                 # state.append(self._state_history[i])
                 state.append(norm_state(self._state_history[i], self.getStateBounds()))
-                print("Action pulled out: ", self._action_history[i])
+                # print("Action pulled out: ", self._action_history[i])
                 action.append(self._action_history[i]) # won't work for discrete actions...
                 # action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
                 resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
@@ -237,7 +237,7 @@ class ExperienceMemory(object):
             else:
                                 
                 state.append(norm_state(self._state_history[i], self.getStateBounds()))
-                print("Action pulled out: ", self._action_history[i])
+                # print("Action pulled out: ", self._action_history[i])
                 action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
                 resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
                 reward.append(norm_state(self._reward_history[i] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards

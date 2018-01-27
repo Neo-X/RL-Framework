@@ -131,9 +131,9 @@ class LearningAgent(AgentInterface):
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):        
                 print ("self._expBuff.samples(): ", self._expBuff.samples())
             _states = np.array(norm_action(np.array(tmp_states), self._pol.getStateBounds()), dtype=self._settings['float_type'])
-            print("Learning Agent: Get state bounds: ", self._pol.getStateBounds())
+            # print("Learning Agent: Get state bounds: ", self._pol.getStateBounds())
             # print ("ExpMem: Get state bounds ", self._expBuff.getStateBounds())
-            print("ExpMem: Get state bounds: ", self.getExperience().getStateBounds())
+            # print("ExpMem: Get state bounds: ", self.getExperience().getStateBounds())
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
                 _actions = np.array(tmp_actions, dtype=self._settings['float_type'])
                 # _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
@@ -195,18 +195,11 @@ class LearningAgent(AgentInterface):
                         else:
                             _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
                         # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
-                        print("States for Batch: ", _states)
-                        print("Actions for Batch: ", _actions)
+                        # print("States for Batch: ", _states)
+                        # print("Actions for Batch: ", _actions)
                         
                         cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, forwardDynamicsModel=self._fd)
                 else:
-                    ## Hack because for some reason Not pulling data from the buffer leads to the policy mean being odd...
-                    """
-                    if ( ('anneal_on_policy' in self._settings) and self._settings['anneal_on_policy'] and False):
-                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
-                    else:
-                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(len(_actions))
-                    """
                     _rewards = np.reshape(_rewards, (len(tmp_states), 1))
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, forwardDynamicsModel=self._fd)
                     """
