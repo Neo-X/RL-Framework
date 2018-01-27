@@ -48,7 +48,7 @@ class ExperienceMemory(object):
         
     def clear(self):
         self._history_update_index=0 # where the next experience should write
-        # self._inserts=0
+        self._inserts=0 ## How many samples are in the buffer
         
         if (self._settings['float_type'] == 'float32'):
             
@@ -99,14 +99,16 @@ class ExperienceMemory(object):
             self._history_update_index=0
             # print("Reset history index in exp buffer:")
         
-        # print "Tuple: " + str(state) + ", " + str(action) + ", " + str(nextState) + ", " + str(reward)
-        self._state_history[self._history_update_index] = np.array(state)
-        self._action_history[self._history_update_index] = np.array(action)
-        self._nextState_history[self._history_update_index] = np.array(nextState)
-        self._reward_history[self._history_update_index] = np.array(reward)
-        self._fall_history[self._history_update_index] = np.array(fall)
-        self._discounted_sum_history[self._history_update_index] = np.array(G_t)
-        self._exp_action_history[self._history_update_index] = np.array(exp_action)
+        # print ("Tuple: " + str(state) + ", " + str(action) + ", " + str(nextState) + ", " + str(reward))
+        # print ("action type: ", self._action_history.dtype)
+        self._state_history[self._history_update_index] = copy.deepcopy(np.array(state))
+        self._action_history[self._history_update_index] = copy.deepcopy(np.array(action))
+        # print("inserted action: ", self._action_history[self._history_update_index])
+        self._nextState_history[self._history_update_index] = copy.deepcopy(np.array(nextState))
+        self._reward_history[self._history_update_index] = copy.deepcopy(np.array(reward))
+        self._fall_history[self._history_update_index] = copy.deepcopy(np.array(fall))
+        self._discounted_sum_history[self._history_update_index] = copy.deepcopy(np.array(G_t))
+        self._exp_action_history[self._history_update_index] = copy.deepcopy(np.array(exp_action))
         # print ("fall: ", fall)
         # print ("self._fall_history: ", self._fall_history[self._history_update_index])
         
@@ -208,7 +210,7 @@ class ExperienceMemory(object):
             print ("Unexpected ValueError:", e)
             raise e
         # print ("Indicies: " , indices)
-        # print("Exp buff state bounds: ", self._state_bounds)
+        print("Exp buff state bounds: ", self.getStateBounds())
 
         state = []
         action = []
@@ -225,19 +227,20 @@ class ExperienceMemory(object):
                 continue
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
                 # state.append(self._state_history[i])
-                state.append(norm_state(self._state_history[i], self._state_bounds))
-                
+                state.append(norm_state(self._state_history[i], self.getStateBounds()))
+                print("Action pulled out: ", self._action_history[i])
                 action.append(self._action_history[i]) # won't work for discrete actions...
-                # action.append(norm_action(self._action_history[i], self._action_bounds)) # won't work for discrete actions...
-                resultState.append(norm_state(self._nextState_history[i], self._result_state_bounds))
+                # action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
+                resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
                 # resultState.append(self._nextState_history[i])
-                reward.append(norm_state(self._reward_history[i] , self._reward_bounds) * ((1.0-self._settings['discount_factor']))) # scale rewards
+                reward.append(norm_state(self._reward_history[i] , self.getRewardBounds()) * ((1.0-self._settings['discount_factor']))) # scale rewards
             else:
                                 
-                state.append(norm_state(self._state_history[i], self._state_bounds))
-                action.append(norm_action(self._action_history[i], self._action_bounds)) # won't work for discrete actions...
-                resultState.append(norm_state(self._nextState_history[i], self._result_state_bounds))
-                reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
+                state.append(norm_state(self._state_history[i], self.getStateBounds()))
+                print("Action pulled out: ", self._action_history[i])
+                action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
+                resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
+                reward.append(norm_state(self._reward_history[i] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
             fall.append(self._fall_history[i])
             G_ts.append(self._discounted_sum_history[i])
             exp_actions.append(self._exp_action_history[i])

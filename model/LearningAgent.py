@@ -132,6 +132,7 @@ class LearningAgent(AgentInterface):
                 print ("self._expBuff.samples(): ", self._expBuff.samples())
             _states = np.array(norm_action(np.array(tmp_states), self._pol.getStateBounds()), dtype=self._settings['float_type'])
             print("Learning Agent: Get state bounds: ", self._pol.getStateBounds())
+            # print ("ExpMem: Get state bounds ", self._expBuff.getStateBounds())
             print("ExpMem: Get state bounds: ", self.getExperience().getStateBounds())
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
                 _actions = np.array(tmp_actions, dtype=self._settings['float_type'])
@@ -194,6 +195,9 @@ class LearningAgent(AgentInterface):
                         else:
                             _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
                         # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
+                        print("States for Batch: ", _states)
+                        print("Actions for Batch: ", _actions)
+                        
                         cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, forwardDynamicsModel=self._fd)
                 else:
                     ## Hack because for some reason Not pulling data from the buffer leads to the policy mean being odd...

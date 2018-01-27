@@ -244,7 +244,7 @@
 	"comment__": "generalized advantage estimation lambda in [0,1]",
 "GAE_lambda": 0.95,
 	"comment__": "Whether or not to take a couple of on policy updates",
-"use_multiple_policy_updates": false,	
+"use_multiple_policy_updates": true,	
 	"comment__": "Whether or not to clear the experience memory after each update is done, for pure on policy methods",
 "clear_exp_mem_on_poli": true,
 	"comment__": "fix the std used for action parameters",
