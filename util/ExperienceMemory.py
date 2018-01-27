@@ -231,30 +231,13 @@ class ExperienceMemory(object):
                 # action.append(norm_action(self._action_history[i], self._action_bounds)) # won't work for discrete actions...
                 resultState.append(norm_state(self._nextState_history[i], self._result_state_bounds))
                 # resultState.append(self._nextState_history[i])
-                if (('train_reward_predictor' in self._settings) and (self._settings['train_reward_predictor'])):
-                    # print ("normalizing reward: ", self._reward_history[i], " to ", norm_state(self._reward_history[i] , self._reward_bounds ))
-                    reward.append(norm_state(self._reward_history[i] , self._reward_bounds) * ((1.0-self._settings['discount_factor']))) # scale rewards
-                else:
-                    # reward.append(self._reward_history[i] * ((1.0-self._settings['discount_factor']))) # scale rewards
-                    ## Normalize reward and scale by discount factor, helps make value function gradients nice.
-                    # print( "self._reward_history[i]: ", self._reward_history[i], " self._reward_bounds: ", self._reward_bounds, 
-                    #      "reward used: ", (norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))))
-                    reward.append(norm_state(self._reward_history[i] , self._reward_bounds) * ((1.0-self._settings['discount_factor']))) # scale rewards
-                    # reward.append((self._reward_history[i])) # scale rewards
+                reward.append(norm_state(self._reward_history[i] , self._reward_bounds) * ((1.0-self._settings['discount_factor']))) # scale rewards
             else:
                                 
                 state.append(norm_state(self._state_history[i], self._state_bounds))
                 action.append(norm_action(self._action_history[i], self._action_bounds)) # won't work for discrete actions...
                 resultState.append(norm_state(self._nextState_history[i], self._result_state_bounds))
-                if (('train_reward_predictor' in self._settings) and (self._settings['train_reward_predictor'])):
-                    # print ("normalizing reward: ", self._reward_history[i], " to ", norm_state(self._reward_history[i] , self._reward_bounds ))
-                    reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
-                else:
-                    # reward.append(self._reward_history[i] * ((1.0-self._settings['discount_factor']))) # scale rewards
-                    ## Normalize reward and scale by discount factor, helps make value function gradients nice.
-                    # print( "self._reward_history[i]: ", self._reward_history[i], " self._reward_bounds: ", self._reward_bounds, 
-                    #      "reward used: ", (norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))))
-                    reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
+                reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
             fall.append(self._fall_history[i])
             G_ts.append(self._discounted_sum_history[i])
             exp_actions.append(self._exp_action_history[i])

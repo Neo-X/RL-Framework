@@ -274,8 +274,8 @@ def randomExporationSTD(explorationRate, actionV, std, bounds=None):
         scale = 1.0
         # while True:
             ## resample noise that is greater than std*3 away
-        # n = np.random.normal(0, std[i], 1)[0]
-        n = (np.random.randn() * std[i]) 
+        n = np.random.normal(0, std[i], 1)[0]
+        # n = (np.random.randn() * std[i]) 
             ## Scale std wrt action bounds
         # n = n * scale
         #    if (np.abs(n) < (std[i]*3)):

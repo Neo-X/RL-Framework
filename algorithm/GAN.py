@@ -542,11 +542,6 @@ class GAN(AlgorithmInterface):
         """
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        """
-        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            pass
-        else:
-        """
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
@@ -564,11 +559,6 @@ class GAN(AlgorithmInterface):
         """
         # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        """
-        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            pass
-        else:
-        """
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
@@ -590,11 +580,6 @@ class GAN(AlgorithmInterface):
     def q_values(self, state):
         """
             For returning a vector of q values, state should already be normalized
-        """
-        """
-        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            pass
-        else:
         """
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)

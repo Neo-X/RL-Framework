@@ -494,7 +494,9 @@ class A_CACLA(AlgorithmInterface):
                 # print ("error:", self._get_actor_loss())
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
                 actions_ = self._q_action()
-                print("Mean action: ", np.mean(actions_, axis=0), " std ", np.std(actions_, axis=0))
+                print("Mean actions: ", np.mean(actions_, axis=0))
+                print("Mean tmp_actions: ", np.mean(tmp_actions, axis=0))
+                print("actions std ", np.std(actions_, axis=0))
             ### Remove batch from buffer
             self._actor_buffer_states=self._actor_buffer_states[self.getSettings()['batch_size']:]
             self._actor_buffer_actions = self._actor_buffer_actions[self.getSettings()['batch_size']:]

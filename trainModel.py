@@ -511,6 +511,9 @@ def trainModelParallel(inputData):
             experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
             experience.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
             experience.setActionBounds(copy.deepcopy(model.getActionBounds()))
+            masterAgent.setStateBounds(state_bounds)
+            masterAgent.setActionBounds(action_bounds)
+            masterAgent.setRewardBounds(reward_bounds)
             
         # mgr = multiprocessing.Manager()
         # learningNamespace = mgr.Namespace()

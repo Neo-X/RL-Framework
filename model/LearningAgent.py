@@ -130,13 +130,15 @@ class LearningAgent(AgentInterface):
                         
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):        
                 print ("self._expBuff.samples(): ", self._expBuff.samples())
-            _states = np.array(norm_action(np.array(tmp_states), self._state_bounds), dtype=self._settings['float_type'])
+            _states = np.array(norm_action(np.array(tmp_states), self._pol.getStateBounds()), dtype=self._settings['float_type'])
+            print("Learning Agent: Get state bounds: ", self._pol.getStateBounds())
+            print("ExpMem: Get state bounds: ", self.getExperience().getStateBounds())
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
                 _actions = np.array(tmp_actions, dtype=self._settings['float_type'])
                 # _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
             else: ## Doesn't really matter for on policy methods
-                _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
-            _result_states = np.array(norm_action(np.array(tmp_result_states), self._state_bounds), dtype=self._settings['float_type'])
+                _actions = np.array(norm_action(np.array(tmp_actions), self._pol.getActionBounds()), dtype=self._settings['float_type'])
+            _result_states = np.array(norm_action(np.array(tmp_result_states), self._pol.getStateBounds()), dtype=self._settings['float_type'])
             # reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
             _rewards = np.array(norm_state(tmp_rewards , self._reward_bounds ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type'])
             _falls = np.array(tmp_falls, dtype='int8')
@@ -195,10 +197,13 @@ class LearningAgent(AgentInterface):
                         cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, forwardDynamicsModel=self._fd)
                 else:
                     ## Hack because for some reason Not pulling data from the buffer leads to the policy mean being odd...
+                    """
                     if ( ('anneal_on_policy' in self._settings) and self._settings['anneal_on_policy'] and False):
                         _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
                     else:
                         _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(len(_actions))
+                    """
+                    _rewards = np.reshape(_rewards, (len(tmp_states), 1))
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, forwardDynamicsModel=self._fd)
                     """
                     if not np.isfinite(cost_) or (cost_ > 500) :
@@ -458,8 +463,6 @@ class LearningWorker(Process):
             # print ("Learner Size of state input Queue: " + str(self._input_queue.qsize()))
             # self._agent._expBuff = self.__learningNamespace.experience
             if self._agent._settings['action_space_continuous']:
-                # self._agent._expBuff.insert(norm_state(state_, self._agent._state_bounds), 
-                #                            norm_action(action, self._agent._action_bounds), norm_state(resultState, self._agent._state_bounds), [reward])
                 self._agent._expBuff.insertTuple(tmp)
                 if ( 'keep_seperate_fd_exp_buffer' in self._agent._settings and (self._agent._settings['keep_seperate_fd_exp_buffer'])):
                     self._agent._expBuff_FD.insertTuple(tmp)
