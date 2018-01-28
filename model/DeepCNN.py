@@ -42,7 +42,7 @@ class DeepCNN(ModelInterface):
         network = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['num_terrain_features']))
         
         network = lasagne.layers.Conv1DLayer(
-            network, num_filters=16, filter_size=8,
+            network, num_filters=4, filter_size=8,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
@@ -106,7 +106,7 @@ class DeepCNN(ModelInterface):
         networkAct = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['num_terrain_features']))
         
         networkAct = lasagne.layers.Conv1DLayer(
-            networkAct, num_filters=16, filter_size=8,
+            networkAct, num_filters=4, filter_size=8,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
