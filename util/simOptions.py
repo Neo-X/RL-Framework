@@ -11,6 +11,13 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Should the system load a pretrained model [true|false|network_and_scales]")
     
+    parser.add_option("--train_forward_dynamics",
+              action="store", dest="train_forward_dynamics", default=None,
+              type='choice',
+              choices=['true', 'false', None],
+              metavar="STRING", 
+              help="Whether or not to train a forward dynamics model as well [true|false|None]")
+    
     parser.add_option("--visualize_expected_value",
               action="store", dest="visualize_expected_value", default=None,
               type='choice',
