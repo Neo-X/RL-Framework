@@ -616,7 +616,7 @@ class PPO(AlgorithmInterface):
             print("Actor loss: ", np.mean(self._get_action_diff()))
             print("Actor entropy: ", np.mean(self._get_actor_entropy()))
             # self._get_actor_entropy
-            print("Get state bounds: ", self.getStateBounds())
+            # print("Get state bounds: ", self.getStateBounds())
             # print("States mean:     ", np.mean(states, axis=0))
             # print("States std:     ", np.std(states, axis=0))
             # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
