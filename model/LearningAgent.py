@@ -246,7 +246,7 @@ class LearningAgent(AgentInterface):
                         # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
                         
             ## Update scaling values
-            ### Updateing the scaling values after the update(s) will help make things more accurate
+            ### Updating the scaling values after the update(s) will help make things more accurate
             if ('keep_running_mean_std_for_scaling' in self._settings and (self._settings["keep_running_mean_std_for_scaling"])):
                 self.getExperience()._updateScaling()
                 self.setStateBounds(self.getExperience().getStateBounds())
