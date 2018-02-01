@@ -463,22 +463,196 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
     return action
 
 def getOptimalAction(forwardDynamicsModel, model, state, action_lr, use_random_action=False):
-    action = model.predict(state)
-    if ( use_random_action ):
-        action_bounds = np.array(model.getSettings()["action_bounds"], dtype=float)
-        action = randomExporation(model.getSettings()["exploration_rate"], action, action_bounds)
-    new_action = getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr)
+
+    if (model.getSettings()['num_mbae_steps'] > 1):
+        new_action = sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_action=use_random_action)
+    else:
+        new_action = getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_action=use_random_action)
+    """
     diff__ = new_action[0] - action
     if ( ('print_level' in model.getSettings()) and (model.getSettings()["print_level"]== 'debug') ):
         print ("MBAE action change: ", (np.sqrt((diff__*diff__).sum())), " values: ",  new_action[0] - action)
+    """
     return new_action
 
-def getOptimalAction2(forwardDynamicsModel, model, action, state, action_lr):
+def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_action=False):
     """
         Computes the optimal action to be taken given
         the forwardDynamicsModel f and
         the value function (model) v
     """
+    learning_rate=action_lr
+    num_samples=model.getSettings()['num_mbae_steps']
+    state_length = model.getStateSize()
+    init_value = model.q_value(state)
+    # print ("Initial value: ", init_value)
+    action_grads_tmp = np.array(model.getSettings()["action_bounds"][0]) * 0.0
+    next_state_tmp = state * 0.0
+    for i in range(num_samples):
+        action = model.predict(state)
+        if ( use_random_action ):
+            action_bounds = np.array(model.getSettings()["action_bounds"], dtype=float)
+            action = randomExporation(model.getSettings()["exploration_rate"], action, action_bounds)
+        init_action = copy.deepcopy(action)
+        ## find next state with dynamics model
+        next_state = np.reshape(forwardDynamicsModel.predict(state, [action]), (1, model.getStateSize()))
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+            print(" MBAE mean: ", next_state)
+        """
+        if ('use_stochastic_forward_dynamics' in model.getSettings() and 
+            (model.getSettings()['use_stochastic_forward_dynamics'] == True)):
+            std = forwardDynamicsModel.predict_std(state, [action])
+            if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+                print ("SMBAE std: ", std)
+            if ('num_stochastic_forward_dynamics_samples' in model.getSettings()):
+                next_states = []
+                for ns in range(model.getSettings()['num_stochastic_forward_dynamics_samples']):
+                    next_states.append(randomExporationSTD(0, next_state, std))
+                next_state = np.mean(next_states, axis=0)
+            else:
+                next_state = randomExporationSTD(0, next_state, std)
+        elif ('use_stochastic_forward_dynamics' in model.getSettings() and 
+            (model.getSettings()['use_stochastic_forward_dynamics'] == "dropout")):
+            # print("Getting fd dropout sample:")
+            next_state = np.reshape(forwardDynamicsModel.predictWithDropout(state, [action]), (1, model.getStateSize()))
+            # next_state = forwardDynamicsModel.predictWithDropout
+        """
+        # value_ = model.q_value(next_state)
+        # print ("next state q value: ", value_)
+        # print ("Next State: ", next_state.shape)
+        ## compute grad for next state wrt model, i.e. how to change the state to improve the value
+        """
+        if ( 'optimize_advantage_for_MBAE' in model.getSettings() and  model.getSettings()['optimize_advantage_for_MBAE'] ):
+            next_state_grads = model.getAdvantageGrads(state, next_state)[0] # this uses the value function
+            if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+                print ( "Advantage grad: ", next_state_grads)
+                next_state_grads__ = model.getGrads(next_state)[0] # this uses the value function
+                print ( "Q-function grad: ", next_state_grads__)
+        else:
+            next_state_grads = model.getGrads(next_state)[0] # this uses the value function
+        """
+        next_state_grads = model.getGrads(next_state)[0] # this uses the value function
+        ## normalize
+        forwardDynamicsModel.setGradTarget(next_state_grads)
+        # next_state_grads = (next_state_grads/(np.sqrt((next_state_grads*next_state_grads).sum()))) * (learning_rate)
+        # if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug'])::
+        #    print ("Next State Grad: ", next_state_grads)
+        # next_state_grads = rescale_action(next_state_grads, model.getStateBounds())
+        # next_state_grads = np.sum(next_state_grads, axis=1)
+        # print ("Next State Grad shape: ", next_state_grads.shape)
+        ## modify next state wrt increasing grad, this is the direction we want the next state to go towards 
+        # next_state = next_state + next_state_grads
+        # print ("Next State: ", next_state)
+        # value_ = model.q_value(next_state)
+        # print ("Updated next state q value: ", value_)
+        # Set modified next state as output for dynamicsModel
+        # print ("Next State2: ", next_state)
+        # compute grad to find
+        # next_state = np.reshape(next_state, (model.getStateSize(), 1))
+        # uncertanty = getModelValueUncertanty(model, next_state[0])
+        # print ("Uncertanty: ", uncertanty)
+        ## Compute the grad to change the input to produce the new target next state
+        ## We will want to use the negative of this grad because the cost function is L2, 
+        ## the grad will make this bigger, user - to pull action towards target action using this loss function 
+        dynamics_grads = forwardDynamicsModel.getGrads(np.reshape(state, (1, model.getStateSize())),
+                                                        np.reshape(action, (1, model.getActionSize())),
+                                                         np.reshape(next_state, (1, model.getStateSize())), 
+                                                         v_grad=np.reshape(next_state_grads, (1, model.getStateSize())))
+        dynamics_grads = dynamics_grads[0]
+        # print ("action_grad1: ", action_grads)
+        
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+            print ("fd dynamics_grads: ", dynamics_grads)
+            print ("fd dynamics_grads magnitude: ", np.sqrt((dynamics_grads*dynamics_grads).sum()))
+        
+        if ( model.getSettings()['train_reward_predictor']):
+            reward_grad = forwardDynamicsModel.getRewardGrads(np.reshape(state, (1, model.getStateSize())),
+                                                        np.reshape(action, (1, model.getActionSize())))[0]
+            ## Need to shrink this grad down to the same scale as the value function
+            reward_grad = (reward_grad * (1.0 - model.getSettings()['discount_factor']))
+            """
+            if ( model.getSettings()['optimize_advantage_for_MBAE'] ):
+                state_grads_ = model.getGrads(state)[0] # this uses the value function
+                if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+                    print("State_Grad Raw: ", state_grads_)
+                    print ("State_Grad magnitude: ", np.sqrt((state_grads_*state_grads_).sum()))
+                dynamics_grads =  ((reward_grad) + (dynamics_grads *  model.getSettings()['discount_factor']) -
+                                   state_grads_ * model.getSettings()['discount_factor'])
+            else:    
+            """                                    
+            dynamics_grads =  (reward_grad) + (dynamics_grads *  model.getSettings()['discount_factor'])
+            if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+                print("Reward_Grad Raw: ", reward_grad)
+                print ("Reward_Grad magnitude: ", np.sqrt((reward_grad*reward_grad).sum()))
+                
+            action_grads_tmp = action_grads_tmp + dynamics_grads
+        ## Grab the part of the grads that is the action
+        # action_grads = dynamics_grads[:, state_length:] * learning_rate
+        
+        action_grads_tmp = action_grads_tmp / float(num_samples)
+        action_grads = action_grads_tmp
+        """ 
+        if ('use_dpg_grads_for_MBAE' in model.getSettings() and model.getSettings()['use_dpg_grads_for_MBAE']):
+            action_grads = model.getActionGrads(state)[0]
+            if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+                print("Using DPG action grads for MBAE")
+        """    
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+            print( "Raw action grad: ", action_grads)
+        ## Normalize action length
+        
+        
+    action_grads = (action_grads/(np.sqrt((action_grads*action_grads).sum()))) * (learning_rate)
+    if ('randomize_MBAE_action_length' in model.getSettings() and ( model.getSettings()['randomize_MBAE_action_length'])):
+        # action_grads = action_grads * np.random.uniform(low=0.0, high = 1.0, size=1)[0]
+        action_grads = action_grads * (np.fabs(np.random.normal(loc=0.0, scale = 0.5, size=1)[0]))
+        
+    ## Scale action by action bounds
+    action_grads = rescale_action(action_grads, model.getActionBounds())
+    if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+        print ("Applied action: ", action_grads)
+        print ("Action magnitude: ", np.sqrt((action_grads*action_grads).sum()))
+    # action_grads = action_grads * learning_rate
+    # print ("action_grad2: ", action_grads)
+    ## Use grad to update action parameters
+    action = action + action_grads
+    action = action[0]
+    # print ("action_grad: ", action_grads, " new action: ", action)
+    # print ( "Action shape: ", action.shape)
+    # print (" Action diff: ", (action - init_action))
+    next_state_ = np.reshape(forwardDynamicsModel.predict(state, [action]), (1, model.getStateSize()))
+        
+        # print ("Next_state: ", next_state_.shape, " values ", next_state_)
+    final_value = model.q_value(next_state_)
+    if ( model.getSettings()['train_reward_predictor']):
+        reward = forwardDynamicsModel.predict_reward(state, [action])
+        # print ("Estimated reward: ", reward)
+        final_value = reward + (model.getSettings()['discount_factor'] * final_value)
+
+    
+        # print ("Final Estimated Value: ", final_value)
+        
+        # repeat
+    value_diff = final_value - init_value
+    # if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug'])::
+    #    print ("New action: ", action, " action diff: ", (action - init_action), " value change: ", 
+    #           (value_diff))
+    #    print ("dynamics_grads: ", dynamics_grads)
+    # action = clampAction(action, model._action_bounds)
+    if (checkDataIsValid(action)):
+        ### Because there are some nan values coming out of here.
+        return (action, value_diff)
+    else:
+        print("MBAE, action invalid: ", action)
+        return (init_action, 0)
+
+def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_action=False):
+    """
+        Computes the optimal action to be taken given
+        the forwardDynamicsModel f and
+        the value function (model) v
+    """
+    action = model.predict(state)
     learning_rate=action_lr
     num_updates=model.getSettings()['num_mbae_steps']
     state_length = model.getStateSize()
