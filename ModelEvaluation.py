@@ -439,10 +439,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                             # action = randomExporation(settings["exploration_rate"], pa)
                             if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
                                 noise = OUNoise(theta=0.15, sigma=settings["exploration_rate"] * p, previousNoise=noise)
-                                action = action + (noise * action_bound_std(action_bounds)) 
+                                action = pa + (noise * action_bound_std(action_bounds)) 
                             else:
                                 noise = OUNoise(theta=0.15, sigma=settings["exploration_rate"], previousNoise=noise)
-                                action = action + (noise * action_bound_std(action_bounds))
+                                action = pa + (noise * action_bound_std(action_bounds))
                         elif (settings['exploration_method'] == 'gaussian_network' or 
                               (settings['use_stocastic_policy'] == True)):
                             pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
