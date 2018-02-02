@@ -304,7 +304,7 @@ class DPG(AlgorithmInterface):
         ## lerp the value function part of the networks, the target policy is not used for anythings
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork())
-        lerp_weight = 0.001
+        lerp_weight = 0.01
         # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         
         # print ("l_out length: " + str(len(all_paramsA)))
