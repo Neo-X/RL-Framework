@@ -311,6 +311,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     if action_space_continuous:
         action_bounds = np.array(settings["action_bounds"], dtype=float)
         omega = settings["omega"]
+        noise = action_bounds[0] * 0.0
+        
     
     # print ("Start sim state bounds: ", model.getStateBounds())
     action_selection = range(len(settings["discrete_actions"]))   
@@ -427,6 +429,20 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                                 action = randomExporation(settings["exploration_rate"] * p, pa, action_bounds)
                             else:
                                 action = randomExporation(settings["exploration_rate"], pa, action_bounds)
+                        if ( ((settings['exploration_method'] == 'Ornstein–Uhlenbeck') 
+                              # or (bootstrapping)
+                              ) 
+                             and (not sampling)):
+                            # print ("Random Guassian sample, state bounds", model.getStateBounds())
+                            pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                            # print ("Exploration Action: ", pa)
+                            # action = randomExporation(settings["exploration_rate"], pa)
+                            if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
+                                noise = OUNoise(theta=0.15, sigma=settings["exploration_rate"] * p, previousNoise=noise)
+                                action = action + (noise * action_bound_std(action_bounds)) 
+                            else:
+                                noise = OUNoise(theta=0.15, sigma=settings["exploration_rate"], previousNoise=noise)
+                                action = action + (noise * action_bound_std(action_bounds))
                         elif (settings['exploration_method'] == 'gaussian_network' or 
                               (settings['use_stocastic_policy'] == True)):
                             pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
