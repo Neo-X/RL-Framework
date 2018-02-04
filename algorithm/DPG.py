@@ -432,14 +432,21 @@ class DPG(AlgorithmInterface):
         # loss = self._trainActor()
         # print("******** Not learning actor right now *****")
         # return loss
-        actions = self.predict_batch(states)
+        policy_mean = self.predict_batch(states)
         # print ("actions shape:", actions.shape)
         # next_states = forwardDynamicsModel.predict_batch(states, actions)
         # print ("next_states shape: ", next_states.shape)
-        action_grads = self.getActionGrads(states, actions, alreadyNormed=True)[0] * 1.0
+        action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0] * 1.0
         # print ("next_state_grads shape: ", next_state_grads.shape)
         # action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
         # print ( "action_grads shape: ", action_grads.shape)
+        ### Get Advantage Action Gradients
+        action_diff = (actions - policy_mean)
+        action_gra = action_diff * advantage
+        
+        action_grads = action_grads + action_gra 
+        
+        
         """
             From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
             Hausknecht, Matthew and Stone, Peter
@@ -506,7 +513,7 @@ class DPG(AlgorithmInterface):
         """
             For returning a vector of q values, state should already be normalized
         """
-        state = norm_state(state, self._state_bounds)
+        # state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)

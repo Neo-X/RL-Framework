@@ -189,6 +189,7 @@ class QProp(AlgorithmInterface):
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
             }
             self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._valsA), [self._model._stateInputVar] + self._params_value), allow_input_downcast=True, givens=self._givens_grad)
+            self._vals_extra = theano.function([], outputs=self._valsA, allow_input_downcast=True, givens={self._model.getStateSymbolicVariable(): self._model.getStates()} )
         else:
             self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         
@@ -369,11 +370,15 @@ class QProp(AlgorithmInterface):
         action = self._q_action()
         self._model.setActions(action)
         self._modelTarget.setActions(action)
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
+            q_vals = self._vals_extra()
+        else:
+            q_vals = self._q_val()
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(q_vals, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
             # return (self._q_val())[0]
         else:
-            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(q_vals, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()[0]
         # return self._q_val()[0]
     
@@ -381,17 +386,21 @@ class QProp(AlgorithmInterface):
         """
             For returning a vector of q values, state should already be normalized
         """
-        state = norm_state(state, self._state_bounds)
+        # state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         action = self._q_action()
         self._model.setActions(action)
         self._modelTarget.setActions(action)
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
+            q_vals = self._vals_extra()
+        else:
+            q_vals = self._q_val()
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(q_vals, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
             # return (self._q_val())[0] 
         else:
-            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(q_vals, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()
         # return self._q_val()
