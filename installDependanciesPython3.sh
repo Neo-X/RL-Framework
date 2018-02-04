@@ -3,6 +3,7 @@
 # Maybe just run the first one with sudo
 
 apt-get -y install python3-dev python3-pip
+# sudo apt-get -y install python3-tk
 
 pip3 install --user numpy
 pip3 install --user Theano==0.8.2
@@ -17,4 +18,3 @@ pip3 install --user pyOpenGL
 pip3 install --user h5py
 pip3 install --user python3-tk
 
-# sudo apt-get -y install python3-tk
