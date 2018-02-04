@@ -59,7 +59,9 @@ class DeepNNAdaptive(ModelInterface):
             self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
         
         
-        if ( settings_['agent_name'] == 'algorithm.DPG.DPG'):
+        if ( settings_['agent_name'] == 'algorithm.DPG.DPG' 
+             or settings_['agent_name'] == 'algorithm.QProp.QProp'
+             ):
             
             if ('train_extra_value_function' in settings_ and (settings_['train_extra_value_function'])):
                 ## create an extra value function
