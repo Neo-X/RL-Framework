@@ -142,8 +142,10 @@ class LearningAgent(AgentInterface):
             _result_states = np.array(norm_action(np.array(tmp_result_states), self._pol.getStateBounds()), dtype=self._settings['float_type'])
             # reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
             _rewards = np.array(norm_state(tmp_rewards , self._reward_bounds ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type'])
+            _rewards = np.reshape(_rewards, (len(tmp_states), 1))
             _falls = np.array(tmp_falls, dtype='int8')
             _advantage = np.array(tmp_advantage, dtype=self._settings['float_type'])
+            _exp_action = np.array(tmp_exp_action, dtype=self._settings['float_type'])
             # print("Not Falls: ", _falls)
             # print("Rewards: ", _rewards)
             # print ("Actions after: ", _actions)
@@ -198,10 +200,11 @@ class LearningAgent(AgentInterface):
                         # print("States for Batch: ", _states)
                         # print("Actions for Batch: ", _actions)
                         
-                        cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, forwardDynamicsModel=self._fd)
+                        cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
+                                                     advantage=_advantage, exp_actions=_exp_action, forwardDynamicsModel=self._fd)
                 else:
-                    _rewards = np.reshape(_rewards, (len(tmp_states), 1))
-                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, forwardDynamicsModel=self._fd)
+                    cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
+                                                 advantage=_advantage, exp_actions=exp_actions__, forwardDynamicsModel=self._fd)
                     """
                     if not np.isfinite(cost_) or (cost_ > 500) :
                         numpy.set_printoptions(threshold=numpy.nan)

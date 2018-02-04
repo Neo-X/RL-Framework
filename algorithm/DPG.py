@@ -440,12 +440,6 @@ class DPG(AlgorithmInterface):
         # print ("next_state_grads shape: ", next_state_grads.shape)
         # action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
         # print ( "action_grads shape: ", action_grads.shape)
-        ### Get Advantage Action Gradients
-        action_diff = (actions - policy_mean)
-        action_gra = action_diff * advantage
-        
-        action_grads = action_grads + action_gra 
-        
         
         """
             From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE

@@ -313,9 +313,33 @@ class QProp(AlgorithmInterface):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
             print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
+        
+        if (('normalize_advantage' in self.getSettings()) and (self.getSettings()['normalize_advantage'] == False)):
+            # advantage = advantage * (1.0-self._discount_factor)
+            advantage = advantage * (1.0-self._discount_factor)
+            ## Standardize advantage 
+            # pass
+        else:
+            ## if not defined default is to normalize
+            std = np.std(advantage)
+            mean = np.mean(advantage)
+            if ( 'advantage_scaling' in self.getSettings() and ( self.getSettings()['advantage_scaling'] != False) ):
+                std = std / self.getSettings()['advantage_scaling']
+                mean = 0.0
+            advantage = (advantage - mean) / std
+            
         loss = 0
-        actions = self.predict_batch(states)
-        action_grads = self.getActionGrads(states, actions, alreadyNormed=True)[0] * 1.0
+        policy_mean = self.predict_batch(states)
+        action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0] * 1.0
+        
+        ### Get Advantage Action Gradients
+        action_diff = (actions - policy_mean)
+        # print ("advantage ", advantage)
+        print ("Mean advantage: " , np.mean(advantage))
+        action_gra = action_diff * advantage
+        
+        action_grads = action_grads + action_gra 
+        
         """
             From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
             Hausknecht, Matthew and Stone, Peter

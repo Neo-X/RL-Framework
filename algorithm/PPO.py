@@ -548,7 +548,7 @@ class PPO(AlgorithmInterface):
             
         return 0
     
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage, forwardDynamicsModel=None):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, forwardDynamicsModel=None):
         self.setData(states, actions, rewards, result_states, falls)
         if (( ('ppo_use_seperate_nets' in self.getSettings())) and
              ( self.getSettings()['ppo_use_seperate_nets'] == True)):
