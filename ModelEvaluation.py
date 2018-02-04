@@ -429,7 +429,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                                 action = randomExporation(settings["exploration_rate"] * p, pa, action_bounds)
                             else:
                                 action = randomExporation(settings["exploration_rate"], pa, action_bounds)
-                        if ( ((settings['exploration_method'] == 'Ornstein–Uhlenbeck') 
+                        elif ( ((settings['exploration_method'] == 'Ornstein–Uhlenbeck') 
                               # or (bootstrapping)
                               ) 
                              and (not sampling)):
