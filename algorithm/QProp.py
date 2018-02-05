@@ -339,7 +339,7 @@ class QProp(AlgorithmInterface):
         
         ### Get Advantage Action Gradients
         action_diff = (actions - policy_mean)
-        print ("advantage ", advantage)
+        # print ("advantage ", advantage)
         
         advantage = advantage - (sampled_q - true_q)
         print ("Mean learned advantage: ", np.mean(sampled_q - true_q))
