@@ -342,8 +342,8 @@ class QProp(AlgorithmInterface):
         # print ("advantage ", advantage)
         
         advantage = advantage - (sampled_q - true_q)
-        print ("Mean learned advantage: ", np.mean(sampled_q - true_q))
-        print ("Mean advantage: " , np.mean(advantage))
+        # print ("Mean learned advantage: ", np.mean(sampled_q - true_q))
+        # print ("Mean advantage: " , np.mean(advantage))
         action_gra = action_diff * ( advantage )
         
         action_grads = action_grads + action_gra 
