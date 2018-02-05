@@ -505,9 +505,9 @@ class DPG(AlgorithmInterface):
     
     def q_values(self, state):
         """
-            For returning a vector of q values, state should already be normalized
+            For returning a vector of q values
         """
-        # state = norm_state(state, self._state_bounds)
+        state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)

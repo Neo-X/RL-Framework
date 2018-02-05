@@ -233,7 +233,7 @@ class QProp(AlgorithmInterface):
         ## lerp the value function part of the networks, the target policy is not used for anythings
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork())
-        lerp_weight = 0.01
+        lerp_weight = self.getSettings()['target_net_interp_weight']
         
         all_params = []
         for paramsA, paramsB in zip(all_paramsA, all_paramsB):
@@ -327,16 +327,24 @@ class QProp(AlgorithmInterface):
                 std = std / self.getSettings()['advantage_scaling']
                 mean = 0.0
             advantage = (advantage - mean) / std
+        ### Get Q value of sampled actions
+        sampled_q = self._q_val()
+        
             
         loss = 0
         policy_mean = self.predict_batch(states)
-        action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0] * 1.0
+        action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0]
+        ### Get Q value of policy
+        true_q = self._q_val()
         
         ### Get Advantage Action Gradients
         action_diff = (actions - policy_mean)
-        # print ("advantage ", advantage)
+        print ("advantage ", advantage)
+        
+        advantage = advantage - (sampled_q - true_q)
+        print ("Mean learned advantage: ", np.mean(sampled_q - true_q))
         print ("Mean advantage: " , np.mean(advantage))
-        action_gra = action_diff * advantage
+        action_gra = action_diff * ( advantage )
         
         action_grads = action_grads + action_gra 
         
@@ -410,7 +418,7 @@ class QProp(AlgorithmInterface):
         """
             For returning a vector of q values, state should already be normalized
         """
-        # state = norm_state(state, self._state_bounds)
+        state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
         self._model.setStates(state)
         self._modelTarget.setStates(state)

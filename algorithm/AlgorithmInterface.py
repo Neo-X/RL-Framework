@@ -447,9 +447,9 @@ class AlgorithmInterface(object):
         # return self._q_valTarget()[0]
         # return self._q_val()[0]
     
-    def q_values(self, state):
+    def q_values(self, state, alreadyNormed=True):
         """
-            For returning a vector of q values, state should already be normalized
+            For returning a vector of q values
         """
         """
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
