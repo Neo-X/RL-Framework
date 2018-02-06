@@ -1,8 +1,16 @@
 import gym
 from gym import wrappers
 from gym import envs
-# import roboschool
-import gymdrl
+try:
+    import roboschool
+except:
+    print ("roboschool not installed")
+    pass
+try:
+    import gymdrl
+except:
+    print ("Membrane/gymdrl not installed")
+    pass
 from OpenGL import GL
 import numpy as np
 # print(envs.registry.all())

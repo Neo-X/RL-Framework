@@ -112,7 +112,7 @@
     "comment__": "What method to use to select actions during bootstrapping",
 "bootsrap_with_discrete_policy": true,
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
-"max_epoch_length": 512,
+"max_epoch_length": 256,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
 "reward_lower_bound": -300.5,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",
@@ -146,7 +146,7 @@
     "comment__": "critic regularization weight",
 "critic_regularization_weight": 0.00001,
     "comment__": "Critic learning rate",
-"critic_learning_rate": 0.0002,
+"critic_learning_rate": 0.0001,
     "comment__": "During evaluation plot of value function",
 "visualize_expected_value": true,
     "comment__": "exponential decay value for use in reward function",
@@ -290,7 +290,7 @@
 	"comment__": "Train GAN with gaussian noise",
 "train_gan_with_gaussian_noise": true,
 	"comment__": "Compute a running mean and std for network input/output scaling",
-"keep_running_mean_std_for_scaling": true,
+"keep_running_mean_std_for_scaling": false,
 	"comment__": "This overrides all of the envs to be a single one from the list of sim environments",
 "override_sim_env_id": false 
 }

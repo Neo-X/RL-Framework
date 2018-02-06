@@ -506,7 +506,17 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         from gym import wrappers
         from gym import envs
         from sim.OpenAIGymEnv import OpenAIGymEnv
-        import roboschool
+        
+        try:
+            import roboschool
+        except:
+            print ("roboschool not installed")
+            pass
+        try:
+            import gymdrl
+        except:
+            print ("Membrane/gymdrl not installed")
+            pass
         from OpenGL import GL
         # load_roboschool
         # print(envs.registry.all())
