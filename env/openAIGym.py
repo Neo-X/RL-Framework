@@ -1,7 +1,8 @@
 import gym
 from gym import wrappers
 from gym import envs
-import roboschool
+# import roboschool
+import gymdrl
 from OpenGL import GL
 import numpy as np
 # print(envs.registry.all())
@@ -9,7 +10,7 @@ import numpy as np
 # env = gym.make('BipedalWalker-v2')
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
-env = gym.make('RoboschoolAtlasForwardWalk-v1')
+env = gym.make('MembraneStack-v0')
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
 
@@ -45,11 +46,11 @@ for i_episode in range(20):
 print("mean reward: ", np.mean(rewards))
 print("std reward: ", np.std(rewards))
 print("reward min: ", np.min(rewards), " max ", np.max(rewards))
-print("state mean - std: ", np.mean(states, axis=0) - np.std(states, axis=0))
-print("state mean + std: ", np.mean(states, axis=0) + np.std(states, axis=0))
+print("state mean - std: ", repr(np.mean(states, axis=0) - np.std(states, axis=0)) )
+print("state mean + std: ", repr(np.mean(states, axis=0) + np.std(states, axis=0)) )
 print("state std", repr(np.std(states, axis=0)))
 
 print("")
-print("min state: ", np.min(states, axis=0))
-print("max state: ", np.max(states, axis=0))
+print("min state: ", repr(np.min(states, axis=0)) )
+print("max state: ", repr(np.max(states, axis=0)) )
 
