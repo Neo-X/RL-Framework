@@ -276,7 +276,7 @@ def trainModelParallel(inputData):
             state_bounds = fixBounds(np.array(state_bounds))
             bound_fixed = validBounds(state_bounds)
             print("State bounds fixed: ", bound_fixed)
-            sys.exit()
+            # sys.exit()
         if (not validBounds(reward_bounds)):
             print("Reward bounds invalid: ", reward_bounds)
             sys.exit()
