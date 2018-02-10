@@ -26,7 +26,7 @@ class QProp(AlgorithmInterface):
         
         super(QProp,self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
-        self._experience = ExperienceMemory(state_length, action_length, 
+        self._experience = ExperienceMemory(n_in, n_out, 
                                                 self.getSettings()['expereince_length'], 
                                                 continuous_actions=True, 
                                                 settings=self.getSettings())
@@ -292,29 +292,33 @@ class QProp(AlgorithmInterface):
         self._fallen_shared.set_value(fallen)
         
     def trainOnPolicyCritic(self, states, actions, rewards, result_states, falls):
-        
+        """
+            Train an on policy value function for the policy
+            
+            The incoming data should not be normalized.
+        """
         self._experience.clear()
-        
-        for (state__, action__, next_state__, reward__, fall__, advantage__, exp_action__) in zip(states, actions, result_states, rewards, falls):
+        if ("value_function_batch_size" in self.getSettings()): 
+            value_function_batch_size = self.getSettings()['value_function_batch_size']
+        else:
+            value_function_batch_size = self.getSettings()["batch_size"]
+        for (state__, action__, next_state__, reward__, fall__) in zip(states, actions, result_states, rewards, falls):
             # print("adv__:", advantage__)
             tup = ([state__], [action__], [next_state__], [reward__], [fall__], [0], [0])
             self._experience.insertTuple(tup)
                     
-        for i in range(self._settings['critic_updates_per_actor_update']):
-            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
-            
+        for i in range(self.getSettings()['critic_updates_per_actor_update']):
+            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._experience.getNonMBAEBatch(min(value_function_batch_size, self._experience.samples()))
+            self.setData(states__, actions__, rewards__, result_states__, falls__)
             loss_v, _ = self._train_value()
-            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("MBAE Value function loss: ", loss_v)
             
-        
         self.updateTargetModelValue()
     
     def trainCritic(self, states, actions, rewards, result_states, falls):
         
         self.setData(states, actions, rewards, result_states, falls)
-        if (( self._updates % self._weight_update_steps) == 0):
-            self.updateTargetModel()
         self._updates += 1
         ## Compute actions for TargetNet
         target_actions = self._action_Target()
@@ -327,6 +331,8 @@ class QProp(AlgorithmInterface):
         self._tmp_target_shared.set_value(target_tmp_)
         
         loss, _ = self._train()
+        self.updateTargetModel()
+        
         return loss
         
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions, forwardDynamicsModel=None):
@@ -467,3 +473,15 @@ class QProp(AlgorithmInterface):
             return scale_reward(q_vals, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()
         # return self._q_val()
+        
+    def setStateBounds(self, state_bounds):
+        super(QProp,self).setStateBounds(state_bounds)
+        self._experience.setStateBounds(copy.deepcopy(self.getStateBounds()))
+        
+    def setActionBounds(self, action_bounds):
+        super(QProp,self).setActionBounds(action_bounds)
+        self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
+        
+    def setRewardBounds(self, reward_bounds):
+        super(QProp,self).setRewardBounds(reward_bounds)
+        self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))

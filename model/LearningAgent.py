@@ -152,8 +152,8 @@ class LearningAgent(AgentInterface):
             cost = 0
             if (self._settings['train_critic']):
                 if (self._settings['critic_updates_per_actor_update'] > 1):
-                    if ( self._settings[''] == "algorithm.QProp.QProp"):
-                        loss = self._pol.trainOnPolicyCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                    if ( self._settings['agent_name'] == "algorithm.QProp.QProp"):
+                        loss = self._pol.trainOnPolicyCritic(states=tmp_states, actions=tmp_actions, rewards=tmp_rewards, result_states=tmp_result_states, falls=tmp_falls)
                     
                     for i in range(self._settings['critic_updates_per_actor_update']):
                         # print ("Number of samples:", self._expBuff.samples())
