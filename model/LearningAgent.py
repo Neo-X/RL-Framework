@@ -152,6 +152,9 @@ class LearningAgent(AgentInterface):
             cost = 0
             if (self._settings['train_critic']):
                 if (self._settings['critic_updates_per_actor_update'] > 1):
+                    if ( self._settings[''] == "algorithm.QProp.QProp"):
+                        loss = self._pol.trainOnPolicyCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                    
                     for i in range(self._settings['critic_updates_per_actor_update']):
                         # print ("Number of samples:", self._expBuff.samples())
                         if ( 'give_mbae_actions_to_critic' in self._settings and 
@@ -177,6 +180,7 @@ class LearningAgent(AgentInterface):
                             numpy.set_printoptions(threshold=numpy.nan)
                             print ("States: " + str(states__) + " ResultsStates: " + str(result_states__) + " Rewards: " + str(rewards__) + " Actions: " + str(actions__))
                             print ("Training cost is Odd: ", cost)
+                        
                 else:
                     # print ("Number of samples:", self._expBuff.samples())
                     # states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(value_function_batch_size)
