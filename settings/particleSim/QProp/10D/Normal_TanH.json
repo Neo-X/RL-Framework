@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.QProp.QProp",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere/SMBAE_GAN_Extra_Value_Function/10D",
+"data_folder": "Nav_Sphere/PolicyAndValue_Tanh/10D",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 10.0, 
 	"comment": "initial probability of selecting a discrete random action",
