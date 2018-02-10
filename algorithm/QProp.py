@@ -26,14 +26,15 @@ class QProp(AlgorithmInterface):
         
         super(QProp,self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
-        self._experience = ExperienceMemory(n_in, n_out, 
-                                                self.getSettings()['expereince_length'], 
-                                                continuous_actions=True, 
-                                                settings=self.getSettings())
-            
-        self._experience.setStateBounds(copy.deepcopy(self.getStateBounds()))
-        self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
-        self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
+            self._experience = ExperienceMemory(n_in, n_out, 
+                                                    self.getSettings()['expereince_length'], 
+                                                    continuous_actions=True, 
+                                                    settings=self.getSettings())
+                
+            self._experience.setStateBounds(copy.deepcopy(self.getStateBounds()))
+            self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
+            self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
 
         self._Fallen = T.bcol("Fallen")
         ## because float64 <= float32 * int32, need to use int16 or int8
@@ -297,24 +298,25 @@ class QProp(AlgorithmInterface):
             
             The incoming data should not be normalized.
         """
-        self._experience.clear()
-        if ("value_function_batch_size" in self.getSettings()): 
-            value_function_batch_size = self.getSettings()['value_function_batch_size']
-        else:
-            value_function_batch_size = self.getSettings()["batch_size"]
-        for (state__, action__, next_state__, reward__, fall__) in zip(states, actions, result_states, rewards, falls):
-            # print("adv__:", advantage__)
-            tup = ([state__], [action__], [next_state__], [reward__], [fall__], [0], [0])
-            self._experience.insertTuple(tup)
-                    
-        for i in range(self.getSettings()['critic_updates_per_actor_update']):
-            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._experience.getNonMBAEBatch(min(value_function_batch_size, self._experience.samples()))
-            self.setData(states__, actions__, rewards__, result_states__, falls__)
-            loss_v, _ = self._train_value()
-            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                print ("MBAE Value function loss: ", loss_v)
-            
-        self.updateTargetModelValue()
+        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
+            self._experience.clear()
+            if ("value_function_batch_size" in self.getSettings()): 
+                value_function_batch_size = self.getSettings()['value_function_batch_size']
+            else:
+                value_function_batch_size = self.getSettings()["batch_size"]
+            for (state__, action__, next_state__, reward__, fall__) in zip(states, actions, result_states, rewards, falls):
+                # print("adv__:", advantage__)
+                tup = ([state__], [action__], [next_state__], [reward__], [fall__], [0], [0])
+                self._experience.insertTuple(tup)
+                        
+            for i in range(self.getSettings()['critic_updates_per_actor_update']):
+                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._experience.getNonMBAEBatch(min(value_function_batch_size, self._experience.samples()))
+                self.setData(states__, actions__, rewards__, result_states__, falls__)
+                loss_v, _ = self._train_value()
+                if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                    print ("MBAE Value function loss: ", loss_v)
+                
+            self.updateTargetModelValue()
     
     def trainCritic(self, states, actions, rewards, result_states, falls):
         
