@@ -340,13 +340,23 @@ class QProp(AlgorithmInterface):
         ### Get Advantage Action Gradients
         action_diff = (actions - policy_mean)
         # print ("advantage ", advantage)
-        
-        advantage = advantage - (sampled_q - true_q)
+        ### From Q-prop paper, compute adaptive control variate.
+        cov = advantage * true_q
+        # var = true_q * true_q
+        # n = cov / var
+        ### practical implementation n = 1 when cov > 0, otherwise 0
+        n = (np.sign(cov) + 1.0 ) / 2.0
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Q-prop n mean: " , np.mean(n) , " std: ", np.std(n))
+            print ("Advantage mean: " , np.mean(advantage) , " std: ", np.std(advantage))
+            print ("sampled_q mean: " , np.mean(sampled_q) , " std: ", np.std(sampled_q))
+            print ("true_q mean: " , np.mean(true_q) , " std: ", np.std(true_q))
+        advantage = (advantage - (n * (sampled_q - true_q)))
         # print ("Mean learned advantage: ", np.mean(sampled_q - true_q))
         # print ("Mean advantage: " , np.mean(advantage))
         action_gra = action_diff * ( advantage )
         
-        action_grads = action_grads + action_gra 
+        action_grads = action_gra + ( n * action_grads )  
         
         """
             From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
