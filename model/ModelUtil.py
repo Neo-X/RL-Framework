@@ -493,7 +493,7 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
         if ( use_random_action ):
             action_bounds = np.array(model.getSettings()["action_bounds"], dtype=float)
             std_ = model.predict_std(state_)
-            action = randomExporation(action, std_, action_bounds)
+            action = randomExporationSTD(action, std_, action_bounds)
         init_action = copy.deepcopy(action)
         ## find next state with dynamics model
         next_state = np.reshape(forwardDynamicsModel.predict(state, [action]), (1, model.getStateSize()))
@@ -657,7 +657,7 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
     if ( use_random_action ):
         action_bounds = np.array(model.getSettings()["action_bounds"], dtype=model.getSettings()["float_type"])
         std_ = model.predict_std(state)
-        action = randomExporation(action, std_, action_bounds)
+        action = randomExporationSTD(action, std_, action_bounds)
 
     learning_rate=action_lr
     num_updates=model.getSettings()['num_mbae_steps']
