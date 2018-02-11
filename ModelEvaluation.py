@@ -417,19 +417,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         print ("Discrete action choice: ", action, " epsilon * p: ", omega * p)
                     else : # add noise to current policy
                         # return ra1
-                        if ( ((settings['exploration_method'] == 'gaussian_random') 
-                              # or (bootstrapping)
-                              ) 
-                             and (not sampling)):
-                            # print ("Random Guassian sample, state bounds", model.getStateBounds())
-                            pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
-                            # print ("Exploration Action: ", pa)
-                            # action = randomExporation(settings["exploration_rate"], pa)
-                            if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
-                                action = randomExporation(settings["exploration_rate"] * p, pa, action_bounds)
-                            else:
-                                action = randomExporation(settings["exploration_rate"], pa, action_bounds)
-                        elif ( ((settings['exploration_method'] == 'Ornstein–Uhlenbeck') 
+                        if ( ((settings['exploration_method'] == 'Ornstein–Uhlenbeck') 
                               # or (bootstrapping)
                               ) 
                              and (not sampling)):
@@ -443,8 +431,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                             else:
                                 noise = OUNoise(theta=0.15, sigma=settings["exploration_rate"], previousNoise=noise)
                                 action = pa + (noise * action_bound_std(action_bounds))
-                        elif (settings['exploration_method'] == 'gaussian_network' or 
-                              (settings['use_stocastic_policy'] == True)):
+                        elif ( (settings['exploration_method'] == 'gaussian_network' or 
+                              (settings['use_stocastic_policy'] == True))
+                              or (settings['exploration_method'] == 'gaussian_random')
+                               ):
                             pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                             # action = randomExporation(settings["exploration_rate"], pa)
                             std_ = model.predict_std(state_)
@@ -453,7 +443,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                             # print("Action: ", pa)
                             # print ("Action std: ", std)
                             stds.append(std_)
-                            action = randomExporationSTD(settings["exploration_rate"], pa_, std_, action_bounds)
+                            action = randomExporationSTD(pa_, std_, action_bounds)
                             # print("Action2: ", action)
                         elif ((settings['exploration_method'] == 'thompson')):
                             # print ('Using Thompson sampling')

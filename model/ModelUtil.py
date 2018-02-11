@@ -245,10 +245,8 @@ def randomExporation(explorationRate, actionV):
         out.append(actionV[i] + np.random.normal(0, explorationRate, 1)[0])
     return out
 
-def randomExporation(explorationRate, actionV, bounds):
-    """
-        This version scales the exploration noise wrt the action bounds
-    """
+"""
+def randomExporation(actionV, std, bounds):
     
     out = []
     for i in range(len(actionV)):
@@ -261,8 +259,9 @@ def randomExporation(explorationRate, actionV, bounds):
         n = n * scale
         out.append(actionV[i] + n)
     return out
+"""
 
-def randomExporationSTD(explorationRate, actionV, std, bounds=None):
+def randomExporationSTD(actionV, std, bounds=None):
     """
         This version scales the exploration noise wrt the action bounds
     """
@@ -271,10 +270,11 @@ def randomExporationSTD(explorationRate, actionV, std, bounds=None):
     for i in range(len(actionV)):
         ## I think this should have a /2.0 want to map 1 - -1 to this interval
         # scale = (bounds[1][i]-bounds[0][i])/2.0
-        scale = 1.0
-        # while True:
+        while True:
             ## resample noise that is greater than std*3 away
-        n = np.random.normal(0, std[i], 1)[0]
+            n = np.random.normal(0, std[i], 1)[0]
+            if (np.abs(n) < (std[i]*3)):
+                break
         # n = (np.random.randn() * std[i]) 
             ## Scale std wrt action bounds
         # n = n * scale
@@ -492,7 +492,8 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
         action = model.predict(state)
         if ( use_random_action ):
             action_bounds = np.array(model.getSettings()["action_bounds"], dtype=float)
-            action = randomExporation(model.getSettings()["exploration_rate"], action, action_bounds)
+            std_ = model.predict_std(state_)
+            action = randomExporation(action, std_, action_bounds)
         init_action = copy.deepcopy(action)
         ## find next state with dynamics model
         next_state = np.reshape(forwardDynamicsModel.predict(state, [action]), (1, model.getStateSize()))
@@ -653,6 +654,11 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         the value function (model) v
     """
     action = model.predict(state)
+    if ( use_random_action ):
+        action_bounds = np.array(model.getSettings()["action_bounds"], dtype=model.getSettings()["float_type"])
+        std_ = model.predict_std(state)
+        action = randomExporation(action, std_, action_bounds)
+
     learning_rate=action_lr
     num_updates=model.getSettings()['num_mbae_steps']
     state_length = model.getStateSize()

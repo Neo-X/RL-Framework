@@ -563,3 +563,8 @@ class A_CACLA(AlgorithmInterface):
         loss = self.trainCritic(states, actions, rewards, result_states, falls)
         lossActor = self.trainActor(states, actions, rewards, result_states, falls)
         return loss
+
+    def predict_std(self, state, deterministic_=True):
+        
+        action_std = self.getSettings()["exploration_rate"] * (action_bound_std(self.getActionBounds()))
+        return action_std
