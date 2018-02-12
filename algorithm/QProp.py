@@ -487,3 +487,11 @@ class QProp(AlgorithmInterface):
     def setRewardBounds(self, reward_bounds):
         super(QProp,self).setRewardBounds(reward_bounds)
         self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
+        
+    def predict_std(self, state, deterministic_=True):
+        """
+            Return the std for this policy
+            This is state independant for this algorithm
+        """
+        action_std = self.getSettings()["exploration_rate"] * (action_bound_std(self.getActionBounds()))
+        return action_std

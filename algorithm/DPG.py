@@ -521,3 +521,11 @@ class DPG(AlgorithmInterface):
             return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()
         # return self._q_val()
+    
+    def predict_std(self, state, deterministic_=True):
+        """
+            Return the std for this policy
+            This is state independant for this algorithm
+        """
+        action_std = self.getSettings()["exploration_rate"] * (action_bound_std(self.getActionBounds()))
+        return action_std
