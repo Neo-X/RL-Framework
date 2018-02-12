@@ -462,7 +462,7 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
     action = clampAction(action, model._action_bounds)
     return action
 
-def getOptimalAction(forwardDynamicsModel, model, state, action_lr, use_random_action=False):
+def getOptimalAction(forwardDynamicsModel, model, state, action_lr, use_random_action=False, p=1.0):
 
     if (model.getSettings()['num_mbae_steps'] > 1):
         new_action = sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_action=use_random_action)
@@ -475,7 +475,7 @@ def getOptimalAction(forwardDynamicsModel, model, state, action_lr, use_random_a
     """
     return new_action
 
-def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_action=False):
+def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_action=False, p=1.0):
     """
         Computes the optimal action to be taken given
         the forwardDynamicsModel f and
@@ -647,7 +647,7 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
         print("MBAE, action invalid: ", action)
         return (init_action, 0)
 
-def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_action=False):
+def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_action=False, p=1.0):
     """
         Computes the optimal action to be taken given
         the forwardDynamicsModel f and
@@ -657,6 +657,7 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
     if ( use_random_action ):
         action_bounds = np.array(model.getSettings()["action_bounds"], dtype=model.getSettings()["float_type"])
         std_ = model.predict_std(state)
+        std_ = std_ * p
         action = randomExporationSTD(action, std_, action_bounds)
 
     learning_rate=action_lr
