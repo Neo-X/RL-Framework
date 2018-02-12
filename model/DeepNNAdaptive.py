@@ -69,7 +69,12 @@ class DeepNNAdaptive(ModelInterface):
                 # print ("Network layer sizes: ", layer_sizes)
                 network = stateInput
                 for i in range(len(layer_sizes)):
-                    
+
+                    if ( (layer_sizes[i] == 'agent_part')
+                         or (layer_sizes[i] == 'merge_part')
+                         or (layer_sizes[i] == 'integrate_actor_part') 
+                         ):
+                        continue
                     network = lasagne.layers.DenseLayer(
                                 network, num_units=layer_sizes[i],
                                 nonlinearity=self._activation_type)
@@ -78,7 +83,8 @@ class DeepNNAdaptive(ModelInterface):
                         network, num_units=1,
                         nonlinearity=lasagne.nonlinearities.linear)
                 
-            network = lasagne.layers.ConcatLayer([stateInput, actionInput])
+            if ( not ( "integrate_actor_part" in layer_sizes)):
+                network = lasagne.layers.ConcatLayer([stateInput, actionInput])
         elif ( 'ppo_use_seperate_nets' in settings_ and (settings_['ppo_use_seperate_nets'] == False) ):
             network = networkAct
         else:
@@ -92,6 +98,9 @@ class DeepNNAdaptive(ModelInterface):
                 self._critic_agent_part = network
             if (layer_sizes[i] == 'merge_part'):
                 self._critic_merge_layer = network
+            if (layer_sizes[i] == 'integrate_actor_part'):
+                # self._critic_merge_layer = network
+                network = lasagne.layers.ConcatLayer([network, actionInput])
             else:
                 network = lasagne.layers.DenseLayer(
                         network, num_units=layer_sizes[i],
