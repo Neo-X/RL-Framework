@@ -465,9 +465,9 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
 def getOptimalAction(forwardDynamicsModel, model, state, action_lr, use_random_action=False, p=1.0):
 
     if (model.getSettings()['num_mbae_steps'] > 1):
-        new_action = sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_action=use_random_action)
+        new_action = sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_action=use_random_action, p=p)
     else:
-        new_action = getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_action=use_random_action)
+        new_action = getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_action=use_random_action, p=p)
     """
     diff__ = new_action[0] - action
     if ( ('print_level' in model.getSettings()) and (model.getSettings()["print_level"]== 'debug') ):
@@ -657,6 +657,7 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
     if ( use_random_action ):
         action_bounds = np.array(model.getSettings()["action_bounds"], dtype=model.getSettings()["float_type"])
         std_ = model.predict_std(state)
+        # print("Annealing random action explore for MBAE: ", p)
         std_ = std_ * p
         action = randomExporationSTD(action, std_, action_bounds)
 

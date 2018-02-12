@@ -403,8 +403,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     0 <= e < omega < 1.0
                 """
                 r = np.random.rand(1)[0]
-                # print(" Action p: ", p)
-                if r < (epsilon * p) or (settings['on_policy']): # explore random actions
+                if r < (epsilon * p) or (settings['on_policy'] and (not evaluation)): # explore random actions
                     exp_action = int(1)
                     r2 = np.random.rand(1)[0]
                     if ((r2 < (omega * p))) and (not sampling) :# explore hand crafted actions
@@ -414,7 +413,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         action = np.random.choice(action_selection)
                         action__ = actor.getActionParams(action)
                         action = action__
-                        print ("Discrete action choice: ", action, " epsilon * p: ", omega * p)
+                        # print ("Discrete action choice: ", action, " epsilon * p: ", omega * p)
                     else : # add noise to current policy
                         # return ra1
                         if ( ((settings['exploration_method'] == 'Ornstein–Uhlenbeck') 
@@ -468,6 +467,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                                 ## Need to be learning a forward dynamics deep network for this
                                 if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
                                     mbae_lr = p * settings["action_learning_rate"]
+                                    # print("MBAE p: ", p)
                                 else:
                                     mbae_lr = settings["action_learning_rate"]
                                 if ( 'use_random_actions_for_MBAE' in settings):
