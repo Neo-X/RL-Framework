@@ -3,8 +3,10 @@ from theano import tensor as T
 import numpy as np
 import lasagne
 import sys
+import copy
 sys.path.append('../')
-from model.ModelUtil import *
+from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward
+from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl, kl_D, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
 from algorithm.AlgorithmInterface import AlgorithmInterface
 
 
@@ -54,7 +56,19 @@ class QProp(AlgorithmInterface):
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True))
         
+        self._Advantage = T.col("Advantage")
+        self._Advantage.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
+        self._advantage_shared = theano.shared(
+            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
+            broadcastable=(False, True))
+        self._QProp_N = T.col("QProp_N")
+        self._QProp_N.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
+        self._QProp_N_shared = theano.shared(
+            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
+            broadcastable=(False, True))
+        
         self._modelTarget = copy.deepcopy(model)
+        self._modelTarget2 = copy.deepcopy(model)
         
         self._learning_rate = self.getSettings()['learning_rate']
         self._discount_factor= self.getSettings()['discount_factor']
@@ -69,6 +83,10 @@ class QProp(AlgorithmInterface):
         
         self._q_valsActA = lasagne.layers.get_output(self._model.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
+        self._q_valsActTarget_State = lasagne.layers.get_output(self._modelTarget2.getActorNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
+        
+        self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+        self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
         
         inputs_1 = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -138,7 +156,22 @@ class QProp(AlgorithmInterface):
         self._actGradGivens = {
             self._model.getStateSymbolicVariable(): self._model.getStates(),
         }
+        self._actor_regularization = (self._regularization_weight * lasagne.regularization.regularize_network_params(
+                self._model.getActorNetwork(), lasagne.regularization.l2))
         
+        ## Compute on-policy policy gradient
+        self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        ### How should this work if the target network is very odd, as in not a slightly outdated copy.
+        self._prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget_State, self._q_valsActTargetSTD, self._action_length)
+        ## This does the sum already
+        self._r = (self._prob / self._prob_target)
+        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
+        ppo_epsilon = self.getSettings()['kl_divergence_threshold']
+        self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - ppo_epsilon, 1+ppo_epsilon), self._Advantage))
+        self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
+        self._actLoss = ((T.mean(self._actLoss_) )) + -self._actor_regularization
+        
+        self._qprop_loss = self._actLoss + T.mean((self._QProp_N * self._q_func))
         # if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
         self._valsA = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=True)
         self._valsA_drop = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=False)
@@ -194,6 +227,15 @@ class QProp(AlgorithmInterface):
         
         self._get_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         
+        self._givens_QProp = {
+            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            self._Advantage: self._advantage_shared,
+            self._QProp_N: self._QProp_N_shared
+        }
+        self._get_Qprop_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._qprop_loss), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_QProp)
+        
+        
         self._vals_extra = theano.function([], outputs=self._valsA, allow_input_downcast=True, givens={self._model.getStateSymbolicVariable(): self._model.getStates()} )
         if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
             self._givens_grad = {
@@ -230,7 +272,9 @@ class QProp(AlgorithmInterface):
         if ( actions is None ):
             actions = self.predict_batch(states)
         self._model.setActions(actions)
-        return self._get_action_grad()
+        
+        return self._get_Qprop_action_grad()
+        # return self._get_action_grad()
     
     def updateTargetModel(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -259,6 +303,9 @@ class QProp(AlgorithmInterface):
         """
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._model._value_function)
         lasagne.layers.helper.set_all_param_values(self._modelTarget._value_function, all_paramsA)
+        
+        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+        lasagne.layers.helper.set_all_param_values(self._modelTarget2.getActorNetwork(), all_paramsActA) 
             
     def getNetworkParameters(self):
         params = []
@@ -268,6 +315,7 @@ class QProp(AlgorithmInterface):
         params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork()))
         params.append(lasagne.layers.helper.get_all_param_values(self._model._value_function))
         params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget._value_function))
+        params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget2.getActorNetwork()))
         return params
         
     def setNetworkParameters(self, params):
@@ -277,6 +325,7 @@ class QProp(AlgorithmInterface):
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), params[3])
         lasagne.layers.helper.set_all_param_values(self._model._value_function, params[4])
         lasagne.layers.helper.set_all_param_values(self._modelTarget._value_function, params[5])
+        lasagne.layers.helper.set_all_param_values(self._modelTarget2.getActorNetwork(), params[6])
         
     def setData(self, states, actions, rewards, result_states, fallen):
         self._model.setStates(states)
@@ -354,34 +403,49 @@ class QProp(AlgorithmInterface):
             advantage = (advantage - mean) / std
         ### Get Q value of sampled actions
         sampled_q = self._q_val()
-        
-            
-        loss = 0
-        policy_mean = self.predict_batch(states)
-        action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0]
         ### Get Q value of policy
+        policy_mean = self.predict_batch(states)
+        self.setData(states, policy_mean, rewards, result_states, falls)
         true_q = self._q_val()
         
-        ### Get Advantage Action Gradients
-        action_diff = (actions - policy_mean)
-        # print ("advantage ", advantage)
         ### From Q-prop paper, compute adaptive control variate.
         cov = advantage * true_q
         # var = true_q * true_q
         # n = cov / var
         ### practical implementation n = 1 when cov > 0, otherwise 0
         n = (np.sign(cov) + 1.0 ) / 2.0
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print ("Q-prop n mean: " , np.mean(n) , " std: ", np.std(n))
-            print ("Advantage mean: " , np.mean(advantage) , " std: ", np.std(advantage))
-            print ("sampled_q mean: " , np.mean(sampled_q) , " std: ", np.std(sampled_q))
-            print ("true_q mean: " , np.mean(true_q) , " std: ", np.std(true_q))
-        advantage = (advantage - (n * (sampled_q - true_q)))
-        # print ("Mean learned advantage: ", np.mean(sampled_q - true_q))
-        # print ("Mean advantage: " , np.mean(advantage))
-        action_gra = action_diff * ( advantage )
         
-        action_grads = action_gra + ( n * action_grads )  
+        use_basic_polcy_grad=False
+        if (use_basic_polcy_grad):
+            loss = 0
+            action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0]
+            
+            ### Get Advantage Action Gradients
+            action_diff = (actions - policy_mean)
+            # print ("advantage ", advantage)
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("Q-prop n mean: " , np.mean(n) , " std: ", np.std(n))
+                print ("Advantage mean: " , np.mean(advantage) , " std: ", np.std(advantage))
+                print ("sampled_q mean: " , np.mean(sampled_q) , " std: ", np.std(sampled_q))
+                print ("true_q mean: " , np.mean(true_q) , " std: ", np.std(true_q))
+            advantage = (advantage - (n * (sampled_q - true_q)))
+            # print ("Mean learned advantage: ", np.mean(sampled_q - true_q))
+            # print ("Mean advantage: " , np.mean(advantage))
+            action_gra = action_diff * ( advantage )
+            
+            action_grads = action_gra + ( n * action_grads )
+        else:
+            loss = 0
+            advantage = (advantage - (n * (sampled_q - true_q)))
+            self._advantage_shared.set_value(advantage)
+            self._QProp_N_shared.set_value(n)
+            action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0]  
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("Q-prop n mean: " , np.mean(n) , " std: ", np.std(n))
+                print ("Advantage mean: " , np.mean(advantage) , " std: ", np.std(advantage))
+                print ("sampled_q mean: " , np.mean(sampled_q) , " std: ", np.std(sampled_q))
+                print ("true_q mean: " , np.mean(true_q) , " std: ", np.std(true_q))
+                print ("Policy mean: ", np.mean(self._q_action(), axis=0))
         
         """
             From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
