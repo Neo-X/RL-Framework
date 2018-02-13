@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO.PPO",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere/10D/SMBAE_GAN_Testing_7/",
+"data_folder": "Nav_Sphere/10D/SMBAE_GAN_Tanh_7/",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
