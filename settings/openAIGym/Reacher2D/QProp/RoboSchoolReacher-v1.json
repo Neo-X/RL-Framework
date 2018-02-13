@@ -272,7 +272,7 @@
 	"comment__": "Use the annealing schedule in on policy learning",
 "anneal_on_policy": false,
 	"comment__": "A list describing the size of the layers for the NN",
-"critic_network_layer_sizes": [64, 32, 16],
+"critic_network_layer_sizes": ["integrate_actor_part", 64, 32, "integrate_actor_part", 16, 8],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [64, 32],
 	"comment__": "Activation function to use for the std part of the policy",
