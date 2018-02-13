@@ -26,15 +26,15 @@ class QProp(AlgorithmInterface):
         
         super(QProp,self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
-        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
-            self._experience = ExperienceMemory(n_in, n_out, 
-                                                    self.getSettings()['expereince_length'], 
-                                                    continuous_actions=True, 
-                                                    settings=self.getSettings())
-                
-            self._experience.setStateBounds(copy.deepcopy(self.getStateBounds()))
-            self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
-            self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
+        # if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
+        self._experience = ExperienceMemory(n_in, n_out, 
+                                                self.getSettings()['expereince_length'], 
+                                                continuous_actions=True, 
+                                                settings=self.getSettings())
+            
+        self._experience.setStateBounds(copy.deepcopy(self.getStateBounds()))
+        self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
+        self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
 
         self._Fallen = T.bcol("Fallen")
         ## because float64 <= float32 * int32, need to use int16 or int8
@@ -139,41 +139,40 @@ class QProp(AlgorithmInterface):
             self._model.getStateSymbolicVariable(): self._model.getStates(),
         }
         
-        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
-            self._valsA = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=True)
-            self._valsA_drop = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=False)
-            self._valsNextState = lasagne.layers.get_output(self._model._value_function, self._model.getResultStateSymbolicVariable(), deterministic=True)
-            self._valsTargetNextState = lasagne.layers.get_output(self._modelTarget._value_function, self._model.getResultStateSymbolicVariable(), deterministic=True)
-            self._valsTarget = lasagne.layers.get_output(self._modelTarget._value_function, self._model.getStateSymbolicVariable(), deterministic=True)
-            
-            self._v_target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self._valsTargetNextState ) 
-            self._v_diff = self._v_target - self._valsA
-            loss_v = T.pow(self._v_diff, 2)
-            self._v_loss = T.mean(loss_v)
-            
-            self._params_value = lasagne.layers.helper.get_all_params(self._model._value_function)
-            self._givens_value = {
-                self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            }
-            self._value_regularization = (self._critic_regularization_weight * 
-                                          lasagne.regularization.regularize_network_params(
-                                        self._model._value_function, lasagne.regularization.l2))
-            
-            self._value_grad = T.grad(self._v_loss + self._value_regularization
-                                                     , self._params_value)
-            print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-            self._updates_value = lasagne.updates.adam(self._value_grad
-                        , self._params_value, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
+        # if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
+        self._valsA = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=True)
+        self._valsA_drop = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=False)
+        self._valsNextState = lasagne.layers.get_output(self._model._value_function, self._model.getResultStateSymbolicVariable(), deterministic=True)
+        self._valsTargetNextState = lasagne.layers.get_output(self._modelTarget._value_function, self._model.getResultStateSymbolicVariable(), deterministic=True)
+        self._valsTarget = lasagne.layers.get_output(self._modelTarget._value_function, self._model.getStateSymbolicVariable(), deterministic=True)
+        
+        self._v_target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self._valsTargetNextState ) 
+        self._v_diff = self._v_target - self._valsA
+        loss_v = T.pow(self._v_diff, 2)
+        self._v_loss = T.mean(loss_v)
+        
+        self._params_value = lasagne.layers.helper.get_all_params(self._model._value_function)
+        self._givens_value = {
+            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+        }
+        self._value_regularization = (self._critic_regularization_weight * 
+                                      lasagne.regularization.regularize_network_params(
+                                    self._model._value_function, lasagne.regularization.l2))
+        
+        self._value_grad = T.grad(self._v_loss + self._value_regularization
+                                                 , self._params_value)
+        print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
+        self._updates_value = lasagne.updates.adam(self._value_grad
+                    , self._params_value, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
             
         QProp.compile(self)
         
     def compile(self):
         
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
-        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
-            self._train_value = theano.function([], [self._v_loss, self._valsA], updates=self._updates_value, givens=self._givens_value)
+        self._train_value = theano.function([], [self._v_loss, self._valsA], updates=self._updates_value, givens=self._givens_value)
         self._trainActionGRAD  = theano.function([], [], updates=self._actionGRADUpdates, givens=self._actGradGivens)
         self._q_val = theano.function([], self._q_valsA,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
@@ -195,12 +194,12 @@ class QProp(AlgorithmInterface):
         
         self._get_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         
+        self._vals_extra = theano.function([], outputs=self._valsA, allow_input_downcast=True, givens={self._model.getStateSymbolicVariable(): self._model.getStates()} )
         if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
             self._givens_grad = {
                 self._model.getStateSymbolicVariable(): self._model.getStates(),
             }
             self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._valsA), [self._model._stateInputVar] + self._params_value), allow_input_downcast=True, givens=self._givens_grad)
-            self._vals_extra = theano.function([], outputs=self._valsA, allow_input_downcast=True, givens={self._model.getStateSymbolicVariable(): self._model.getStates()} )
         else:
             self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
         
@@ -267,9 +266,8 @@ class QProp(AlgorithmInterface):
         params.append(lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork()))
         params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork()))
         params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork()))
-        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
-            params.append(lasagne.layers.helper.get_all_param_values(self._model._value_function))
-            params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget._value_function))
+        params.append(lasagne.layers.helper.get_all_param_values(self._model._value_function))
+        params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget._value_function))
         return params
         
     def setNetworkParameters(self, params):
@@ -277,9 +275,8 @@ class QProp(AlgorithmInterface):
         lasagne.layers.helper.set_all_param_values(self._model.getActorNetwork(), params[1])
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), params[2])
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), params[3])
-        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
-            lasagne.layers.helper.set_all_param_values(self._model._value_function, params[4])
-            lasagne.layers.helper.set_all_param_values(self._modelTarget._value_function, params[5])
+        lasagne.layers.helper.set_all_param_values(self._model._value_function, params[4])
+        lasagne.layers.helper.set_all_param_values(self._modelTarget._value_function, params[5])
         
     def setData(self, states, actions, rewards, result_states, fallen):
         self._model.setStates(states)
@@ -298,25 +295,24 @@ class QProp(AlgorithmInterface):
             
             The incoming data should not be normalized.
         """
-        if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
-            self._experience.clear()
-            if ("value_function_batch_size" in self.getSettings()): 
-                value_function_batch_size = self.getSettings()['value_function_batch_size']
-            else:
-                value_function_batch_size = self.getSettings()["batch_size"]
-            for (state__, action__, next_state__, reward__, fall__) in zip(states, actions, result_states, rewards, falls):
-                # print("adv__:", advantage__)
-                tup = ([state__], [action__], [next_state__], [reward__], [fall__], [0], [0])
-                self._experience.insertTuple(tup)
-                        
-            for i in range(self.getSettings()['critic_updates_per_actor_update']):
-                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._experience.getNonMBAEBatch(min(value_function_batch_size, self._experience.samples()))
-                self.setData(states__, actions__, rewards__, result_states__, falls__)
-                loss_v, _ = self._train_value()
-                if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                    print ("MBAE Value function loss: ", loss_v)
-                
-            self.updateTargetModelValue()
+        self._experience.clear()
+        if ("value_function_batch_size" in self.getSettings()): 
+            value_function_batch_size = self.getSettings()['value_function_batch_size']
+        else:
+            value_function_batch_size = self.getSettings()["batch_size"]
+        for (state__, action__, next_state__, reward__, fall__) in zip(states, actions, result_states, rewards, falls):
+            # print("adv__:", advantage__)
+            tup = ([state__], [action__], [next_state__], [reward__], [fall__], [0], [0])
+            self._experience.insertTuple(tup)
+                    
+        for i in range(self.getSettings()['critic_updates_per_actor_update']):
+            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._experience.getNonMBAEBatch(min(value_function_batch_size, self._experience.samples()))
+            self.setData(states__, actions__, rewards__, result_states__, falls__)
+            loss_v, _ = self._train_value()
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("MBAE Value function loss: ", loss_v)
+            
+        self.updateTargetModelValue()
     
     def trainCritic(self, states, actions, rewards, result_states, falls):
         
@@ -441,10 +437,12 @@ class QProp(AlgorithmInterface):
         action = self._q_action()
         self._model.setActions(action)
         self._modelTarget.setActions(action)
+        
         if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
             q_vals = self._vals_extra()
         else:
             q_vals = self._q_val()
+        
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
             return scale_reward(q_vals, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
             # return (self._q_val())[0]
@@ -464,6 +462,7 @@ class QProp(AlgorithmInterface):
         action = self._q_action()
         self._model.setActions(action)
         self._modelTarget.setActions(action)
+        
         if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
             q_vals = self._vals_extra()
         else:

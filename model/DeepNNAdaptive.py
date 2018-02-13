@@ -63,7 +63,9 @@ class DeepNNAdaptive(ModelInterface):
              or settings_['agent_name'] == 'algorithm.QProp.QProp'
              ):
             
-            if ('train_extra_value_function' in settings_ and (settings_['train_extra_value_function'])):
+            if ( ('train_extra_value_function' in settings_ and (settings_['train_extra_value_function']) )
+                 or (settings_['agent_name'] == 'algorithm.QProp.QProp') # A must for Q-Prop 
+                 ):
                 ## create an extra value function
                 layer_sizes = self._settings['critic_network_layer_sizes']
                 # print ("Network layer sizes: ", layer_sizes)
