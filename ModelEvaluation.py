@@ -373,8 +373,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # if (exp.endOfEpoch() or (reward_ < settings['reward_lower_bound'])):
         # state = exp.getState()
         state_ = exp.getState()
-        print ("env state: ", state_.shape)
-        print ("env state: ", state_)
+        # print ("env state: ", state_.shape)
+        # print ("env state: ", state_)
         if (checkDataIsValid(state_) == True): ## Lets not wait to simulate an entire action to find out the simulation has gone haywire..
     
             if (not (visualizeEvaluation == None)):
