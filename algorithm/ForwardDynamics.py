@@ -315,7 +315,7 @@ class ForwardDynamics(AlgorithmInterface):
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         self._model.setStates(state)
         self._model.setActions(action)
-        state_ = self._forwardDynamics_std()[0] * (action_bound_std(self._state_bounds))
+        state_ = self._forwardDynamics_std() * (action_bound_std(self._state_bounds))
         return state_
     
     def predict_reward(self, state, action):
@@ -325,8 +325,8 @@ class ForwardDynamics(AlgorithmInterface):
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         self._model.setStates(state)
         self._model.setActions(action)
-        predicted_reward = self._predict_reward()[0]
-        reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        predicted_reward = self._predict_reward()
+        reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_state(predicted_reward, self._reward_bounds)
         # print ("reward, predicted reward: ", reward_, predicted_reward)

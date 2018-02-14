@@ -672,9 +672,6 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
     learning_rate=action_lr
     num_updates=model.getSettings()['num_mbae_steps']
     state_length = model.getStateSize()
-    # print ("state_length ", state_length)
-    # print ("State shape: ", state.shape)
-    # state = np.array(state, dtype=)
     init_value = model.q_value(state)
     """
     fake_state_ = copy.deepcopy(state)
@@ -682,11 +679,11 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         fake_state_ = fake_state_ + ( model.getGrads(fake_state_)[0] * learning_rate )
         print ("Fake state Value: ", model.q_value(fake_state_))
     """
-    # print ("Initial value: ", init_value)
     init_action = copy.deepcopy(action)
     for i in range(num_updates):
         ## find next state with dynamics model
         next_state = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
+        
         if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print(" MBAE mean: ", next_state)
         if ('use_stochastic_forward_dynamics' in model.getSettings() and 
@@ -801,16 +798,16 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         # print ("action_grad2: ", action_grads)
         ## Use grad to update action parameters
         action = action + action_grads
-        action = action[0]
+        action = action
         # print ("action_grad: ", action_grads, " new action: ", action)
         # print ( "Action shape: ", action.shape)
         # print (" Action diff: ", (action - init_action))
-        next_state_ = np.reshape(forwardDynamicsModel.predict(state, [action]), (1, model.getStateSize()))
+        next_state_ = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
         
         # print ("Next_state: ", next_state_.shape, " values ", next_state_)
     final_value = model.q_value(next_state_)
     if ( model.getSettings()['train_reward_predictor']):
-        reward = forwardDynamicsModel.predict_reward(state, [action])
+        reward = forwardDynamicsModel.predict_reward(state, action)
         # print ("Estimated reward: ", reward)
         final_value = reward + (model.getSettings()['discount_factor'] * final_value)
 
@@ -984,7 +981,7 @@ def checkValidData(state, action, nextState, reward, verbose=False):
                 print ("Bad Values: ", bad_values_)
             return False
         
-        # print ("action: ", action)
+        print ("action: ", action)
         if (not np.all(np.isfinite(action))):
             if ( verbose ):
                 less_ = np.isfinite(action)

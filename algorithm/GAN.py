@@ -435,9 +435,6 @@ class GAN(AlgorithmInterface):
     def trainActor(self, states, actions, result_states, rewards):
         self.setData(states, actions, result_states, rewards)
         
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
-            print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
-            print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
             
         # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
         ## Add MSE term
@@ -472,7 +469,7 @@ class GAN(AlgorithmInterface):
                     
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("Policy mean: ", np.mean(self._generate(), axis=0))
-            print("Mean action grad: ", np.mean(state_grads, axis=0), " std ", np.std(action_grads, axis=0))
+            print("Mean action grad: ", np.mean(result_state_grads, axis=0), " std ", np.std(result_state_grads, axis=0))
         
         ## Set data for gradient
         self._model.setResultStates(result_states)
@@ -519,7 +516,7 @@ class GAN(AlgorithmInterface):
         # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(1,1)))
         # print ("State bounds: ", self._state_bounds)
         # print ("gen output: ", self._generate()[0])
-        state_ = scale_state(self._generate()[0], self._state_bounds)
+        state_ = scale_state(self._generate(), self._state_bounds)
         # print( "self._state_bounds: ", self._state_bounds)
         # print ("scaled output: ", state_)
         return state_
@@ -549,7 +546,7 @@ class GAN(AlgorithmInterface):
         action = self._q_action()
         self._model.setActions(action)
         self._modelTarget.setActions(action)
-        return scale_reward(self._discriminate(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        return scale_reward(self._discriminate(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()[0]
         # return self._q_val()[0]
         
@@ -568,7 +565,7 @@ class GAN(AlgorithmInterface):
         self._model.setActions(action)
         self._modelTarget.setActions(action)
         nextState = norm_state(next_state, self.getStateBounds())
-        nextState = np.reshape(nextState, (1,20))
+        # nextState = np.reshape(nextState, (1,20))
         self._model.setResultStates(nextState)
         self._modelTarget.setResultStates(nextState)
         
@@ -612,8 +609,8 @@ class GAN(AlgorithmInterface):
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         self._model.setStates(state)
         self._model.setActions(action)
-        predicted_reward = self._predict_reward()[0]
-        reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        predicted_reward = self._predict_reward()
+        reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_state(predicted_reward, self._reward_bounds)
         # print ("reward, predicted reward: ", reward_, predicted_reward)

@@ -87,6 +87,7 @@ class ParticleSimEnv(SimInterface):
                     if (self.getSettings()['train_forward_dynamics']):
                         (action_, value_diff) = getOptimalAction(agent.getForwardDynamics(),
                                                                   agent.getPolicy(), state_, action_lr=self.getSettings()['action_learning_rate'])[:2]
+                        action_ = action_[0]                                  
                         # action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
                         ### How to change this action...
                         action_ = (action_[:2] - (action1_cp[:2]))
