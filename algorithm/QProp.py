@@ -287,14 +287,23 @@ class QProp(AlgorithmInterface):
         ## lerp the value function part of the networks, the target policy is not used for anythings
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork())
+        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+        all_paramsActB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork())
         lerp_weight = self.getSettings()['target_net_interp_weight']
         
         all_params = []
         for paramsA, paramsB in zip(all_paramsA, all_paramsB):
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
             all_params.append(params)
+            
+        all_paramsAct = []
+        for paramsA, paramsB in zip(all_paramsActA, all_paramsActB):
+            params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
+            all_paramsAct.append(params)
+            
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_params)
-    
+        lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsAct)
+        
     def updateTargetModelValue(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Updating MBAE target Model")

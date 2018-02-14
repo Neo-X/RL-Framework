@@ -903,6 +903,11 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
 # @profile(precision=5)
 def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, settings, anchors=None):
     print ("Evaluating model Parrallel:")
+    
+    if ( 'value_function_batch_size' in settings):
+        batch_size=settings["value_function_batch_size"]
+    else:
+        batch_size=settings["batch_size"]
     j=0
     discounted_values = []
     bellman_errors = []
@@ -941,7 +946,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             # print ("Evaluated Actions: ", actions)
             # print ("Evaluated Rewards: ", rewards)
             if model.getExperience().samples() >= settings['batch_size']:
-                _states, _actions, _result_states, _rewards, falls, _G_ts, exp_actions = model.getExperience().get_batch(settings['batch_size'])
+                _states, _actions, _result_states, _rewards, falls, _G_ts, exp_actions = model.getExperience().get_batch(batch_size)
                 error = model.bellman_error(_states, _actions, _rewards, _result_states, falls)
                 # print("Episode bellman error: ", error)
             else :

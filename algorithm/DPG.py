@@ -304,7 +304,9 @@ class DPG(AlgorithmInterface):
         ## lerp the value function part of the networks, the target policy is not used for anythings
         all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork())
-        lerp_weight = 0.01
+        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
+        all_paramsActB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork())
+        lerp_weight = 0.001
         # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         
         # print ("l_out length: " + str(len(all_paramsA)))
@@ -318,28 +320,19 @@ class DPG(AlgorithmInterface):
         # print ("param Values")
         all_params = []
         for paramsA, paramsB in zip(all_paramsA, all_paramsB):
-            # print ("paramsA: " + str(paramsA))
-            # print ("paramsB: " + str(paramsB))
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
             all_params.append(params)
-        """
-        all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
-        all_paramsActB = lasagne.layers.helper.get_all_param_values(self._l_outActB)
-        # print ("l_outAct[0] length: " + str(all_paramsActA[0]))
-        # print ("l_outAct[4] length: " + str(all_paramsActA[4]))
-        # print ("l_outAct[5] length: " + str(all_paramsActA[5]))
+
         all_paramsAct = []
         for paramsA, paramsB in zip(all_paramsActA, all_paramsActB):
-            # print ("paramsA: " + str(paramsA))
-            # print ("paramsB: " + str(paramsB))
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
             all_paramsAct.append(params)
-            """
+            
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_params)
+        lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsAct)
         # all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
         # lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_paramsA)
-        # lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsActA)
         # lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsAct) 
     
     def updateTargetModelValue(self):
