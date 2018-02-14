@@ -354,16 +354,10 @@ class AlgorithmInterface(object):
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            if (state.shape[0] > 1):
-                action_ = self._q_action()
-            else:
-                action_ = self._q_action()[0]
+            action_ = self._q_action()
             # action_ = scale_action(self._q_action()[0], self._action_bounds)
         else:
-            if (state.shape[0] > 1):
-                action_ = scale_action(self._q_action(), self._action_bounds)
-            else:
-                action_ = scale_action(self._q_action()[0], self._action_bounds)
+            action_ = scale_action(self._q_action(), self._action_bounds)
         # print ("Agent Scaled action: ", action_)
         # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
         # else:
@@ -397,16 +391,10 @@ class AlgorithmInterface(object):
         # if deterministic_:
         # action_std = scale_action(self._q_action_std()[0], self._action_bounds)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            if (state.shape[0] > 1):
-                action_std = self._q_action_std()
-            else:
-                action_std = self._q_action_std()[0]
+            action_std = self._q_action_std()
             # action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
         else:
-            if (state.shape[0] > 1):
-                action_std = self._q_action_std() * (action_bound_std(self._action_bounds))
-            else:
-                action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
+            action_std = self._q_action_std() * (action_bound_std(self._action_bounds))
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
@@ -426,7 +414,7 @@ class AlgorithmInterface(object):
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
-        action_ = scale_action(self._q_action_drop()[0], self._action_bounds)
+        action_ = scale_action(self._q_action_drop(), self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
@@ -450,10 +438,10 @@ class AlgorithmInterface(object):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            value = scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            value = scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
             # return (self._q_val())[0]
         else:
-            value = scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            value = scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
 #         print ("Agent scaled value: ", value)
         return value
         # return self._q_valTarget()[0]
@@ -491,10 +479,10 @@ class AlgorithmInterface(object):
         state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val_drop(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(self._q_val_drop(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
             # return (self._q_val_drop())[0]
         else:
-            return scale_reward(self._q_val_drop(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(self._q_val_drop(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
     
     def bellman_error(self, states, actions, rewards, result_states, falls):
         self.setData(states, actions, rewards, result_states, falls)

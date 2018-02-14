@@ -182,7 +182,6 @@ def norm_action(action_, action_bounds_):
     
     
     avg = (action_bounds_[0] + action_bounds_[1])/2.0
-    np.reshape(avg,(avg.shape[0],1))
     std = (action_bounds_[1] - action_bounds_[0])/2.0
     # return (action_ - (avg)) / (action_bounds_[1]-avg)
     return (action_ - (avg)) / (std)
@@ -268,22 +267,25 @@ def randomExporationSTD(actionV, std, bounds=None):
     """
     # print ("std: ", std)
     out = []
-    for i in range(len(actionV)):
-        ## I think this should have a /2.0 want to map 1 - -1 to this interval
-        # scale = (bounds[1][i]-bounds[0][i])/2.0
-        while True:
-            ## resample noise that is greater than std*3 away
-            n = np.random.normal(0, std[i], 1)[0]
-            if (np.abs(n) < (std[i]*3)):
-                break
-        # n = (np.random.randn() * std[i]) 
-            ## Scale std wrt action bounds
-        # n = n * scale
-        #    if (np.abs(n) < (std[i]*3)):
-        #        break
-        # n = n * scale
-        
-        out.append(actionV[i] + n)
+    for j in range(len(actionV)):
+        out_ = [] 
+        for i in range(len(actionV[j])):
+            ## I think this should have a /2.0 want to map 1 - -1 to this interval
+            # scale = (bounds[1][i]-bounds[0][i])/2.0
+            while True:
+                ## resample noise that is greater than std*3 away
+                n = np.random.normal(0, std[j][i], 1)[0]
+                if (np.abs(n) < (std[j][i]*3)):
+                    break
+            # n = (np.random.randn() * std[i]) 
+                ## Scale std wrt action bounds
+            # n = n * scale
+            #    if (np.abs(n) < (std[i]*3)):
+            #        break
+            # n = n * scale
+            
+            out_.append(actionV[j][i] + n)
+        out.append(out_)
     return out
 
 def OUNoise(theta, sigma, previousNoise):
@@ -331,13 +333,14 @@ def clampActionWarn(actionV, bounds):
     """
     out=False
     actionV_ = copy.deepcopy(actionV)
-    for i in range(len(actionV_)):
-        if actionV_[i] < bounds[0][i]:
-            actionV_[i] = bounds[0][i]
-            out=True
-        elif actionV_[i] > bounds[1][i]:
-            actionV_[i] = bounds[1][i]
-            out=True
+    for j in range(len(actionV_)): 
+        for i in range(len(actionV_[j])):
+            if actionV_[j][i] < bounds[0][i]:
+                actionV_[j][i] = bounds[0][i]
+                out=True
+            elif actionV_[j][i] > bounds[1][i]:
+                actionV_[j][i] = bounds[1][i]
+                out=True
     return (actionV_, out)
 
 def reward_smoother(diff_, settings, _weight):

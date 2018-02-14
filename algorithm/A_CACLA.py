@@ -564,10 +564,6 @@ class A_CACLA(AlgorithmInterface):
         lossActor = self.trainActor(states, actions, rewards, result_states, falls)
         return loss
 
-    def predict_std(self, state, deterministic_=True):
-        """
-            Return the std for this policy
-            This is state independant for this algorithm
-        """
-        action_std = self.getSettings()["exploration_rate"] * (action_bound_std(self.getActionBounds()))
-        return action_std
+    def _q_action_std(self):
+        ones = np.ones((self._model.getStateValues().shape[0], len(self.getActionBounds()[0])))
+        return np.array(self.getSettings()["exploration_rate"] * ones)
