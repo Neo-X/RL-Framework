@@ -354,10 +354,16 @@ class AlgorithmInterface(object):
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            action_ = self._q_action()[0]
+            if (state.shape[0] > 1):
+                action_ = self._q_action()
+            else:
+                action_ = self._q_action()[0]
             # action_ = scale_action(self._q_action()[0], self._action_bounds)
         else:
-            action_ = scale_action(self._q_action()[0], self._action_bounds)
+            if (state.shape[0] > 1):
+                action_ = scale_action(self._q_action(), self._action_bounds)
+            else:
+                action_ = scale_action(self._q_action()[0], self._action_bounds)
         # print ("Agent Scaled action: ", action_)
         # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
         # else:
@@ -391,10 +397,16 @@ class AlgorithmInterface(object):
         # if deterministic_:
         # action_std = scale_action(self._q_action_std()[0], self._action_bounds)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            action_std = self._q_action_std()[0]
+            if (state.shape[0] > 1):
+                action_std = self._q_action_std()
+            else:
+                action_std = self._q_action_std()[0]
             # action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
         else:
-            action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
+            if (state.shape[0] > 1):
+                action_std = self._q_action_std() * (action_bound_std(self._action_bounds))
+            else:
+                action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
