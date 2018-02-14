@@ -72,8 +72,9 @@ class ParticleSimEnv(SimInterface):
                 for x,y in zip(x_,y_):
                     ## Policy action
                     state_ = np.array([[x,y] + ([0]*(s_length-2))])
-                    action1 = agent.predict(state_)
+                    action1 = agent.predict(state_)[0]
                     action1_cp = copy.deepcopy(action1)
+                    # print ("Action copy: ", action1_cp)
                     next_state_true_ = state_ + action1_cp
                     action1 = action1[:2]
                     # action1 = getOptimalAction(agent.getForwardDynamics(), agent.getPolicy(), state_)

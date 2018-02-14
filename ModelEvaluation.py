@@ -378,7 +378,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (checkDataIsValid(state_) == True): ## Lets not wait to simulate an entire action to find out the simulation has gone haywire..
     
             if (not (visualizeEvaluation == None)):
-                viz_q_values_.append(model.q_value(state_)[0])
+                viz_q_values_.append(model.q_value(state_)[0][0])
                 if (len(viz_q_values_)>30):
                      viz_q_values_.pop(0)
                 # print ("viz_q_values_: ", viz_q_values_ )
@@ -578,8 +578,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             for i in range(len(G_t)):
                 if type(reward_) is list:
                     G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (np.array([reward_[0]]) ))))
+                    
                 else:
                     G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (np.array([reward_]) ))))
+                    reward_ = [[reward_]]
             
             resultState_ = exp.getState()
             
@@ -600,8 +602,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 print ("Agent has fallen: ", not agent_not_fell )
                 # print ("Python Reward: " + str(reward(state_, resultState)))
                 
-            # if ( (reward_ >= settings['reward_lower_bound'] ) or evaluation):
-                # print("Shape of states: ", np.array(states).shape, " state shape, ", np.array(state_).shape)
         else:
             bad_sim_state = True
             
@@ -610,7 +610,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             print ("Simulation is in a bad state: ")
             bad_sim_state = True
         else:
-            states.extend(state_)
+            states.append(state_)
             actions.append(action)
             rewards.append(reward_)
             # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)
@@ -629,8 +629,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
                     # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
                     # print("Putting tuple in queue")
-                    for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1:], actions[-1:], result_states___[-1:], [rewards[-1:]],  falls[-1:], exp_actions[-1:]):
-                        _output_queue.put((state__, act__, res__, [rew__],  fall__, [0], exp__))
+                    for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1:], actions[-1:], result_states___[-1:], rewards[-1:],  falls[-1:], exp_actions[-1:]):
+                        _output_queue.put((state__, act__, res__, rew__,  fall__, [0], exp__))
             
             state_num += 1
         # else:
@@ -648,19 +648,25 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             """
             state_num=0
             # bad_sim_state = False
-            
+            # print ("time index: ", i_)
+            # print ("states shape: ", states[0].shape)
             if ('use_GAE' in settings and ( settings['use_GAE'] == True)):
-                path = {}
-                path['states'] = copy.deepcopy(states[last_epoch_end:])
-                path['reward'] = np.array(rewards[last_epoch_end:])
-                path["terminated"] = False
-                # print("rewards: ", rewards[last_epoch_end:])
-                ## Extend so that we can preserve the paths/trajectory structure.
-                if (len(rewards[last_epoch_end:]) > 0):
-                    advantage.extend(compute_advantage_(model, [path], discount_factor, settings['GAE_lambda']))
+                for a in range(states[0].shape[0]):
+                    print ("Computing advantage for agent: ", a)
+                    path = {}
+                    ### timestep, agent, state
+                    # print ("States shape: ", np.array(states[last_epoch_end:]).shape)
+                    path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
+                    # print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
+                    path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
+                    path["terminated"] = False
+                    # print("rewards: ", rewards[last_epoch_end:])
+                    ## Extend so that we can preserve the paths/trajectory structure.
+                    if (len(rewards[last_epoch_end:]) > 0):
+                        advantage.append(compute_advantage_(model, [path], discount_factor, settings['GAE_lambda']))
             else:
                 if (len(rewards[last_epoch_end:]) > 0):
-                    advantage.extend(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
+                    advantage.append(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
                                            
             if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
                 adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
@@ -751,27 +757,32 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
     advantage.append(0.0)
     """
-    if ('use_GAE' in settings and ( settings['use_GAE'] )):
-        path = {}
-        path['states'] = copy.deepcopy(states [last_epoch_end:])
-        path['reward'] = np.array(rewards[last_epoch_end:])
-        path["terminated"] = False
-        ## Extend so that we can preserve the paths/trajectory structure.
-        if (len(rewards[last_epoch_end:]) > 0):
-            advantage.extend(compute_advantage_(model, [path], discount_factor, settings['GAE_lambda']))
+    if ('use_GAE' in settings and ( settings['use_GAE'] == True)):
+        for a in range(states[0].shape[0]):
+            print ("Computing advantage for agent: ", a)
+            path = {}
+            ### timestep, agent, state
+            # print ("States shape: ", np.array(states[last_epoch_end:]).shape)
+            path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
+            # print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
+            path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
+            path["terminated"] = False
+            # print("rewards: ", rewards[last_epoch_end:])
+            ## Extend so that we can preserve the paths/trajectory structure.
+            if (len(rewards[last_epoch_end:]) > 0):
+                advantage.append(compute_advantage_(model, [path], discount_factor, settings['GAE_lambda']))
     else:
         if (len(rewards[last_epoch_end:]) > 0):
-            advantage.extend(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
+            advantage.append(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
         
     # G_t_rewards.append(0)
     if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
         adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
-        R_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(path['reward'], G_t_rewards, G_t)]
+        R_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(path['reward'], rewards[last_epoch_end:], G_t)]
         A_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(advantage, discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor), baseline)]
         # print ("Adv: ", advantage)
         print ("last_epoch_end: ", last_epoch_end, " i_ ", i_)
-        print("Advantage, R: ", adv_r)
-        print ("Lengths: ", len(rewards[last_epoch_end:]), len(G_t_rewards), len(G_t))
+        print ("Advantage, R: ", adv_r)
         print ("Rewards: ", R_r)
         print ("Advantage, discounted Reward, baseline: ", np.array(A_r))
         # print("Advantage, rewards, baseline: ", np.concatenate((advantage, G_t_rewards, baseline), axis=1))

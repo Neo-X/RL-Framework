@@ -27,7 +27,8 @@ class ParticleSimActor(ActorInterface):
         # Actor should be FIRST here
         # print ("Action: " + str(action_))
         # if (settings["clamp_actions_to_stay_inside_bounds"] or (settings['penalize_actions_outside_bounds'])):
-        (action_, outside_bounds) = clampActionWarn(action_, self._action_bounds)
+        action_ = action_[0]
+        # (action_, outside_bounds) = clampActionWarn(action_, self._action_bounds)
         #     if (settings['clamp_actions_to_stay_inside_bounds']):
         #         action_ = action__
         dist = exp.getEnvironment().actContinuous(action_, bootstrapping=bootstrapping)

@@ -88,10 +88,14 @@ def compute_advantage_(vf, paths, gamma, lam):
     for path in paths:
         path["return"] = discounted_rewards(path["reward"], gamma)
         # q_values
+        # print("States shape: ", path['states'].shape)
         # print("States: ", path['states'])
+        # print("reward shape: ", path['reward'].shape)
+        # print("reward: ", path['reward'])
         b = path["baseline"] = vf.q_values(path['states'])
         # print("Baseline: ", b)
         b1 = np.append(b, 0 if path["terminated"] else b[-1])
+        # print ("b1: ", b1)
         deltas = path["reward"] + gamma*b1[1:] - b1[:-1] 
         path["advantage"] = discounted_rewards(deltas, gamma * lam)
     alladv = np.concatenate([path["advantage"] for path in paths])    
@@ -682,12 +686,12 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
     init_action = copy.deepcopy(action)
     for i in range(num_updates):
         ## find next state with dynamics model
-        next_state = np.reshape(forwardDynamicsModel.predict(state, [action]), (1, model.getStateSize()))
+        next_state = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
         if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print(" MBAE mean: ", next_state)
         if ('use_stochastic_forward_dynamics' in model.getSettings() and 
             (model.getSettings()['use_stochastic_forward_dynamics'] == True)):
-            std = forwardDynamicsModel.predict_std(state, [action])
+            std = forwardDynamicsModel.predict_std(state, action)
             if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
                 print ("SMBAE std: ", std)
             if ('num_stochastic_forward_dynamics_samples' in model.getSettings()):

@@ -556,7 +556,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = MocapImitationEnv(sim, settings)
         exp._conf = c # OMFG HACK so that python does not garbage collect the configuration and F everything up!
         return exp
-    elif env_type == 'terrainRLSim':
+    elif env_type == 'terrainRLSimOld':
         # terrainRL_PATH = os.environ['TERRAINRL_PATH']
         # sys.path.append(terrainRL_PATH+'/lib')
         # from simAdapter import terrainRLAdapter
@@ -575,7 +575,9 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         # exp = TerrainRLEnv(env.getEnv(), settings)
         return exp
     
-    elif env_type == 'GymMultiChar':
+    elif ( (env_type == 'GymMultiChar') 
+        or (env_type == 'terrainRLSim')
+        ):
         # terrainRL_PATH = os.environ['TERRAINRL_PATH']
         # sys.path.append(terrainRL_PATH+'/lib')
         # from simAdapter import terrainRLAdapter
