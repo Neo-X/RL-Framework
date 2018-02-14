@@ -574,6 +574,25 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         # env.getEnv().setRender(render)
         # exp = TerrainRLEnv(env.getEnv(), settings)
         return exp
+    
+    elif env_type == 'GymMultiChar':
+        # terrainRL_PATH = os.environ['TERRAINRL_PATH']
+        # sys.path.append(terrainRL_PATH+'/lib')
+        # from simAdapter import terrainRLAdapter
+        # from sim.TerrainRLEnv import TerrainRLEnv
+        from simAdapter import terrainRLSim
+        from sim.GymMultiCharEnv import GymMultiCharEnv
+        
+        env = terrainRLSim.getEnv(env_name=config_file, render=render)
+        print ("Using Environment Type: " + str(env_type) + ", " + str(config_file))
+        # sim.setRender(render)
+        # sim.init()
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = GymMultiCharEnv(env, conf)
+        # env.getEnv().setRender(render)
+        # exp = TerrainRLEnv(env.getEnv(), settings)
+        return exp
         
     elif env_type == 'terrainRLBiped2D':
         terrainRL_PATH = os.environ['TERRAINRL_PATH']
@@ -721,6 +740,9 @@ def createActor(env_type, settings, experience):
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
+    elif env_type == 'GymMultiChar':
+        from actor.GymMultiCharActor import GymMultiCharActor
+        actor = GymMultiCharActor(settings, experience)
     else:
         print("Error actor type unknown: ", env_type)
         raise ValueError("Error actor type unknown: ", env_type)
