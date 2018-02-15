@@ -37,6 +37,8 @@ class QProp(AlgorithmInterface):
         self._experience.setStateBounds(copy.deepcopy(self.getStateBounds()))
         self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
         self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
+        
+        self._use_basic_polcy_grad=True
 
         self._Fallen = T.bcol("Fallen")
         ## because float64 <= float32 * int32, need to use int16 or int8
@@ -273,8 +275,10 @@ class QProp(AlgorithmInterface):
             actions = self.predict_batch(states)
         self._model.setActions(actions)
         
-        return self._get_Qprop_action_grad()
-        # return self._get_action_grad()
+        if ( self._use_basic_polcy_grad ):
+            return self._get_action_grad()
+        else:
+            return self._get_Qprop_action_grad()
     
     def updateTargetModel(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -424,8 +428,7 @@ class QProp(AlgorithmInterface):
         ### practical implementation n = 1 when cov > 0, otherwise 0
         n = (np.sign(cov) + 1.0 ) / 2.0
         
-        use_basic_polcy_grad=False
-        if (use_basic_polcy_grad):
+        if (self._use_basic_polcy_grad):
             loss = 0
             action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0]
             
@@ -437,6 +440,7 @@ class QProp(AlgorithmInterface):
                 print ("Advantage mean: " , np.mean(advantage) , " std: ", np.std(advantage))
                 print ("sampled_q mean: " , np.mean(sampled_q) , " std: ", np.std(sampled_q))
                 print ("true_q mean: " , np.mean(true_q) , " std: ", np.std(true_q))
+                print ("Policy mean: ", np.mean(self._q_action(), axis=0))
             advantage = (advantage - (n * (sampled_q - true_q)))
             # print ("Mean learned advantage: ", np.mean(sampled_q - true_q))
             # print ("Mean advantage: " , np.mean(advantage))
@@ -462,7 +466,7 @@ class QProp(AlgorithmInterface):
             
             actions.shape == action_grads.shape
         """
-        use_parameter_grad_inversion = False
+        use_parameter_grad_inversion = True
         if ( use_parameter_grad_inversion ):
             for i in range(action_grads.shape[0]):
                 for j in range(action_grads.shape[1]):

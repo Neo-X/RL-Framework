@@ -185,7 +185,6 @@ class LearningAgent(AgentInterface):
                             else:
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
                             loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
-                        # cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Value function loss: ", loss)
                         if not np.isfinite(cost) or (cost > 500) :
@@ -194,15 +193,11 @@ class LearningAgent(AgentInterface):
                             print ("Training cost is Odd: ", cost)
                         
                 else:
-                    # print ("Number of samples:", self._expBuff.samples())
-                    # states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(value_function_batch_size)
-                    # cost = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                     cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                     if not np.isfinite(cost) or (cost > 500) :
                         numpy.set_printoptions(threshold=numpy.nan)
                         print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                         print ("Training cost is Odd: ", cost)
-                # self._expBuff.clear()
             if (self._settings['train_actor']):
                 if ( 'use_multiple_policy_updates' in self._settings and 
                      ( self._settings['use_multiple_policy_updates'] == True) ):
@@ -212,21 +207,12 @@ class LearningAgent(AgentInterface):
                             _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
                         else:
                             _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
-                        # states__, actions__, result_states__, rewards__, falls__, G_ts__ = self._expBuff.get_batch(self._settings["batch_size"])
-                        # print("States for Batch: ", _states)
-                        # print("Actions for Batch: ", _actions)
                         
                         cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
                                                      advantage=_advantage, exp_actions=_exp_action, forwardDynamicsModel=self._fd)
                 else:
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
                                                  advantage=_advantage, exp_actions=exp_actions__, forwardDynamicsModel=self._fd)
-                    """
-                    if not np.isfinite(cost_) or (cost_ > 500) :
-                        numpy.set_printoptions(threshold=numpy.nan)
-                        print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
-                        print ("Training cost is Odd: ", cost_)
-                    """
             dynamicsLoss = 0 
             if (self._settings['train_forward_dynamics']):
                 for i in range(self._settings['critic_updates_per_actor_update']):
@@ -236,12 +222,6 @@ class LearningAgent(AgentInterface):
                     else:
                         states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self.getExperience().get_batch(value_function_batch_size)
                     dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__)
-                    """
-                    if not np.isfinite(dynamicsLoss) or (dynamicsLoss > 500) :
-                        numpy.set_printoptions(threshold=numpy.nan)
-                        print ("States: " + str(states__) + " ResultsStates: " + str(result_states__) + " Rewards: " + str(rewards__) + " Actions: " + str(actions__))
-                        print ("Training cost is Odd: ", dynamicsLoss)
-                    """
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Forward Dynamics Loss: ", dynamicsLoss)
                     
@@ -254,12 +234,6 @@ class LearningAgent(AgentInterface):
                         predicted_result_states__ = self._fd.predict_batch(states=states__, actions=actions__)
                         cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                         
-                        """
-                        if not np.isfinite(cost) or (cost > 500) :
-                            numpy.set_printoptions(threshold=numpy.nan)
-                            print ("States: " + str(states__) + " ResultsStates: " + str(result_states__) + " Rewards: " + str(rewards__) + " Actions: " + str(actions__))
-                            print ("Training cost is Odd: ", cost)
-                        """
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Performing Dyna Update, loss: ", cost)
                         # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
