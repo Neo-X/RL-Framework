@@ -111,6 +111,11 @@ def get_param_values(hyper_settings):
     
     if ( len(params_) > 1 ):
         params_ = list(itertools.product(*params_))
+    else:
+        params__ = []
+        for pars in params_[0]:
+            params__.append([pars])
+        params_ = params__
     # print ("cross other: ", list(itertools.product(*params_)) )
         
     print ("Cross product of params: ", params_)
