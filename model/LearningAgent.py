@@ -82,10 +82,10 @@ class LearningAgent(AgentInterface):
         #        self._expBuff.getActionBounds())
         
         # print("_exp_actions: ", _exp_actions)
-        print ("Shapes of things: ")
-        print ("State: ", np.array(_states).shape)
-        print ("Actions: ", np.array(_actions).shape)
-        print ("Advantage: ", np.array(_advantage).shape)
+        # print ("Shapes of things: ")
+        # print ("State: ", np.array(_states).shape)
+        # print ("Actions: ", np.array(_actions).shape)
+        # print ("Advantage: ", np.array(_advantage).shape)
         if ("value_function_batch_size" in self._settings):
             value_function_batch_size = self._settings['value_function_batch_size']
         else:
