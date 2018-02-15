@@ -88,17 +88,17 @@ def compute_advantage_(vf, paths, gamma, lam):
     for path in paths:
         path["return"] = discounted_rewards(path["reward"], gamma)
         # q_values
-        print("States shape: ", path['states'].shape)
+        # print("States shape: ", path['states'].shape)
         # print("States: ", path['states'])
-        print("reward shape: ", path['reward'].shape)
+        # print("reward shape: ", path['reward'].shape)
         # print("reward: ", path['reward'])
         b = path["baseline"] = vf.q_values(path['states'])
-        print("Baseline: ", b.shape)
+        # print("Baseline: ", b.shape)
         b1 = np.append(b, 0 if path["terminated"] else b[-1])
         b1 = np.reshape(b1, (-1,1))
-        print ("b1: ", b1.shape)
+        # print ("b1: ", b1.shape)
         deltas = path["reward"] + gamma*b1[1:] - b1[:-1]
-        print ("deltas: ", deltas.shape) 
+        # print ("deltas: ", deltas.shape) 
         path["advantage"] = discounted_rewards(deltas, gamma * lam)
     # alladv = np.concatenate([path["advantage"] for path in paths])    
     # Standardize advantage
