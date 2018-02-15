@@ -462,7 +462,7 @@ class QProp(AlgorithmInterface):
             
             actions.shape == action_grads.shape
         """
-        use_parameter_grad_inversion = True
+        use_parameter_grad_inversion = False
         if ( use_parameter_grad_inversion ):
             for i in range(action_grads.shape[0]):
                 for j in range(action_grads.shape[1]):
@@ -517,10 +517,10 @@ class QProp(AlgorithmInterface):
             q_vals = self._q_val()
         
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(q_vals, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(q_vals, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
             # return (self._q_val())[0]
         else:
-            return scale_reward(q_vals, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(q_vals, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()[0]
         # return self._q_val()[0]
     

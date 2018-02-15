@@ -91,8 +91,8 @@ class LearningAgent(AgentInterface):
         else:
             value_function_batch_size = self._settings["batch_size"]
         if self._settings['on_policy']:
-            if ( ('clear_exp_mem_on_poli' in self._settings) and 
-                 self._settings['clear_exp_mem_on_poli']):
+            if ( ('clear_exp_mem_on_poli' in self._settings) 
+                 and (self._settings['clear_exp_mem_on_poli'] == True)):
                 self._expBuff.clear()
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                 print("Start of Learning Agent Update")
@@ -168,14 +168,22 @@ class LearningAgent(AgentInterface):
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
                                 loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                             else:
-                                print('off-policy action update')
+                                # print('off-policy action update')
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
                                 actions____ = self._pol.predict_batch(states=result_states__) 
                                 predicted_result_states__ = self._fd.predict_batch(states=result_states__, actions=actions____)
                                 rewards____ = self._fd.predict_reward_batch(states=result_states__, actions=actions____)
                                 loss = self._pol.trainCritic(states=result_states__, actions=actions____, rewards=rewards____, result_states=predicted_result_states__, falls=falls__)
                         else:
-                            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
+                            if ( 'keep_seperate_fd_exp_buffer' in self._settings 
+                                 and (self._settings['keep_seperate_fd_exp_buffer'] == True)
+                                and ('train_critic_with_fd_data' in self._settings) 
+                                 and (self._settings['train_critic_with_fd_data'] == True)
+                                 ):
+                                print ("Using seperate (off-policy) exp mem for Q model")
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self.getFDExperience().get_batch(value_function_batch_size)
+                            else:
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
                             loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                         # cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
