@@ -501,7 +501,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     if (settings['clamp_actions_to_stay_inside_bounds']):
                         action = action_
                 if (settings["visualize_forward_dynamics"]):
-                    predicted_next_state = model.getForwardDynamics().predict(np.array(state_), [action])
+                    predicted_next_state = model.getForwardDynamics().predict(np.array(state_), action)
                     # exp.visualizeNextState(state_[0], [0,0]) # visualize current state
                     exp.visualizeNextState(predicted_next_state, action)
                     
@@ -599,7 +599,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     value__ = model.q_value(state_)
                 print ("Value: ", value__, " Action " + str(action) + " Reward: " + str(reward_) )
                 if ( settings['train_reward_predictor'] and (settings['train_forward_dynamics'])):
-                    predicted_reward = model.getForwardDynamics().predict_reward(state_, [action])
+                    predicted_reward = model.getForwardDynamics().predict_reward(state_, action)
                     print ("Predicted reward: ", predicted_reward) 
                 print ("Agent has fallen: ", not agent_not_fell )
                 # print ("Python Reward: " + str(reward(state_, resultState)))
@@ -612,12 +612,14 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             print ("Simulation is in a bad state: ")
             bad_sim_state = True
         else:
+            ### I can't just unpack the vector of states here in a multi char sim because the 
+            ### Order needs to be preserved for computing the advantage.
             states.append(state_)
             actions.append(action)
             rewards.append(reward_)
             # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)
             # print("result states: ", result_states___)
-            result_states___.extend(resultState_)
+            result_states___.append(resultState_)
             if (worker_id is not None):
                 # print("Pushing working id as fall value: ", [worker_id])
                 falls.append([worker_id])
@@ -657,7 +659,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("Computing advantage for agent: ", a)
                     path = {}
                     ### timestep, agent, state
-                    # print ("States shape: ", np.array(states[last_epoch_end:]).shape)
+                    print ("States shape: ", np.array(states[last_epoch_end:]).shape)
                     path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
                     # print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
                     path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
@@ -764,13 +766,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     advantage.append(0.0)
     """
     if ('use_GAE' in settings and ( settings['use_GAE'] == True)):
-        for a in range(states[0].shape[0]):
+        for a in range(states[0].shape[0] and (len(states[last_epoch_end:]) > 0)):
             # print ("Computing advantage for agent: ", a)
             path = {}
             ### timestep, agent, state
-            # print ("States shape: ", np.array(states[last_epoch_end:])[:,a,:].shape)
+            print ("States shape: ", np.array(states[last_epoch_end:]).shape)
             path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
-            # print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
+            print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
             path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
             path["terminated"] = False
             # print("rewards: ", rewards[last_epoch_end:])
@@ -779,8 +781,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 adv__ = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
                 # print ("adv__ shape: ", np.array(adv__).shape)
                 # adv__ = np.reshape(adv__, (-1, len(adv__)))
-                # print ("adv__ shape: ", np.array(adv__).shape)
-                advantage.append(adv__)
+                print ("adv__ shape: ", np.array(adv__).shape)
+                advantage.append(np.array(adv__))
     else:
         if (len(rewards[last_epoch_end:]) > 0):
             advantage.append(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
@@ -796,9 +798,39 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         print ("Rewards: ", R_r)
         print ("Advantage, discounted Reward, baseline: ", np.array(A_r))
         # print("Advantage, rewards, baseline: ", np.concatenate((advantage, G_t_rewards, baseline), axis=1))
-    # print ("ad: ", advantage)
-    advantage = np.reshape(np.array(advantage), newshape=(-1,1,1))
-    tuples = (states, actions, result_states___, rewards, falls, G_ts, advantage, exp_actions)
+    print ("ad: ", np.array(advantage).shape)
+    # print ("ad: ", np.array(advantage))
+    # advantage = np.reshape(np.array(advantage), newshape=(-1,1))
+    tmp_advantage = []
+    for a_ in range(len(advantage)):
+        tmp_advantage.extend(advantage[a_])
+    tmp_advantage = np.array(tmp_advantage)
+    print ("tmp_advantage shape: ", (np.array(tmp_advantage)).shape)
+    ### Fix data, Might need to unpack some vectors
+    tmp_states = []
+    tmp_actions = []
+    tmp_res_states = []
+    tmp_rewards = []
+    for s in range(len(states)):
+        """
+        print ("states: ", states[s].shape)
+        print ("actions: ", np.array(actions)[s].shape)
+        print ("result_states___: ", np.array(result_states___)[s].shape)
+        print ("rewards: ", np.array(rewards)[s].shape)
+        print ("falls: ", np.array(falls)[s].shape)
+        print ("G_ts: ", np.array(G_ts)[s].shape)
+        # print ("advantage: ", np.array(advantage)[s].shape)
+        print ("exp_actions: ", np.array(exp_actions)[s].shape)
+        """
+        tmp_states.extend(states[s])
+        tmp_actions.extend(actions[s])
+        tmp_res_states.extend(result_states___[s])
+        tmp_rewards.extend(rewards[s])
+        
+    print ("tmp_states: ", np.array(tmp_states).shape)
+    print ("advantage: ", np.array(advantage).shape)
+
+    tuples = (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, falls, G_ts, tmp_advantage, exp_actions)
     """
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
         print("End of episode")
@@ -1087,10 +1119,11 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             reward_bounds[0] = reward_avg - (reward_stddev * 2.0)
             reward_bounds[1] = reward_avg + (reward_stddev * 2.0)
             """
-            state_bounds[0] = state_avg - (state_stddev * 2.0)
-            state_bounds[1] = state_avg + (state_stddev * 2.0)
-            reward_bounds[0] = reward_avg - (reward_stddev)
-            reward_bounds[1] = reward_avg + (reward_stddev)
+            print ("(state_avg - (state_stddev * 2.0)): ", (state_avg - (state_stddev * 2.0)))
+            state_bounds[0] = (state_avg - (state_stddev * 2.0))
+            state_bounds[1] = (state_avg + (state_stddev * 2.0))
+            reward_bounds[0] = (reward_avg - (reward_stddev))
+            reward_bounds[1] = (reward_avg + (reward_stddev))
             # action_bounds[0] = action_avg - action_stddev
             # action_bounds[1] = action_avg + action_stddev
         elif (settings['state_normalization'] == "given"):

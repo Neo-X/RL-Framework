@@ -21,7 +21,7 @@ class TerrainRLImitationActor(ActorInterface):
     
     def updateAction(self, sim, action_):
         action_ = np.array(action_, dtype='float64')
-        sim.getEnvironment().updateAction(action_)
+        sim.getEnvironment().updateAction(action_[0])
         
     def act(self, exp, action_, bootstrapping=False):
         samp = self.getActionParams(action_)
