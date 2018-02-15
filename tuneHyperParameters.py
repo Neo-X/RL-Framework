@@ -46,22 +46,77 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         trainMetaModel(simsettingsFileName, samples=num_sim_samples, settings=copy.deepcopy(settings), numThreads=num_sim_samples)
 """
 
-def compute_next_val(settings,i,samples):
+def compute_next_val(range_,i,samples, curve_scheme='linear'):
     """
     
     """
-    range_ = settings['param_bounds']
-    if ('curve_scheme' not in settings or (settings["curve_scheme"] == 'linear')):
+    if ( (curve_scheme == 'linear')):
         delta_ = ((float(i)) / float(samples))
-    elif (settings["curve_scheme"] == "squared"):
+    elif (curve_scheme == "squared"):
         delta_ = ((float(i)) / float(samples))
         delta_ = delta_**2
-    elif (settings["curve_scheme"] == "exponential"):
+    elif (curve_scheme == "exponential"):
         delta_ = ((float(i)) / float(samples))
         delta_ = delta_**(samples-i) 
         
     delta_ = delta_ * (range_[1] - range_[0]) 
     return delta_
+
+def makeNiceName(params_to_tune):
+    """
+        Take the list of parameters to sample over and return a nice
+        string that will result in a good filename.
+    """
+    out = ""
+    for p in params_to_tune:
+        out = out + "_" + str(p)
+    return out
+
+def get_param_values(hyper_settings):
+    """
+        Returns the cross product of the parameters
+    """
+    import itertools
+    
+    parameter_samples = hyper_settings['num_param_samples']
+    params_ = []
+    for par in range(len(parameter_samples)):
+        param_of_interest = hyper_settings['param_to_tune'][par]
+        range_ = hyper_settings['param_bounds'][par]
+        samples = hyper_settings['num_param_samples'][par] - 1
+        # data_name = settings['data_folder']
+        # sim_data = []
+        # result_data['hyper_param_settings_files'] = []
+        params_tmp = []
+        for i in range(samples+1):
+            if (hyper_settings['param_data_type'][par] == "int"):
+                param_value = int( ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0] )
+            elif (hyper_settings['param_data_type'][par] == "bool"):
+                if ( i == 0):
+                    param_value = True
+                elif ( i == 1):
+                    param_value = False
+                else:
+                    print("Error to many samples for bool type:")
+                    sys.exit()
+            else: #float
+                delta_ = compute_next_val(range_, i, samples, curve_scheme=hyper_settings['curve_scheme'][par])
+                # print ("detla: ", delta_)
+                param_value = (delta_) + range_[0]
+            params_tmp.append(param_value)
+        params_.append(params_tmp)
+        
+    
+    print ("params_: ", params_)
+    
+    if ( len(params_) > 1 ):
+        params_ = list(itertools.product(*params_))
+    # print ("cross other: ", list(itertools.product(*params_)) )
+        
+    print ("Cross product of params: ", params_)
+    # sys.exit()
+    return params_
+    
 
 def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_path=None):
     """
@@ -90,33 +145,23 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
             hyper_settings['saved_fd_model_path'] = saved_fd_model_path
             
     
-    samples = hyper_settings['num_param_samples'] - 1
-    param_of_interest = hyper_settings['param_to_tune']
-    range_ = hyper_settings['param_bounds']
-    data_name = settings['data_folder']
-    sim_data = []
+    param_settings = get_param_values(hyper_settings)
     result_data['hyper_param_settings_files'] = []
-    for i in range(samples+1):
-        if (hyper_settings['param_data_type'] == "int"):
-            param_value = int( ((range_[1] - range_[0]) * (float(i)/samples)) + range_[0] )
-        elif (hyper_settings['param_data_type'] == "bool"):
-            if ( i == 0):
-                param_value = True
-            elif ( i == 1):
-                param_value = False
-            else:
-                print("Error to many samples for bool type:")
-                sys.exit()
-        else: #float
-            delta_ = compute_next_val(hyper_settings, i, samples)
-            # print ("detla: ", delta_)
-            param_value = (delta_) + range_[0]
-        settings['data_folder'] = data_name + "/_" + param_of_interest + "_"+ str(param_value) + "/"
-        settings[param_of_interest] = param_value
+    sim_data = []
+    data_name = settings['data_folder']
+    for params in param_settings: ## Loop over each setting of parameters
+        data_name_tmp = ""
+        for par in range(len(params)): ## Assemble the vector of parameters and data folder name
+            param_of_interest = hyper_settings['param_to_tune'][par]
+            data_name_tmp = data_name_tmp + "/_" + param_of_interest + "_"+ str(params[par]) + "/"
+            settings[param_of_interest] = params[par]
+        
         directory= getBaseDataDirectory(settings)
         if not os.path.exists(directory):
             os.makedirs(directory)
         # file = open(settingsFileName, 'r')
+        
+        settings['data_folder'] = data_name + data_name_tmp
         out_file_name=directory+os.path.basename(simsettingsFileName)
         result_data['hyper_param_settings_files'].append(out_file_name)
         print ("Saving settings file with data to: ", out_file_name)
@@ -136,7 +181,7 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
     result_data['sim_time'] = "Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds"
     result_data['meta_sim_result'] = result
     result_data['raw_sim_time_in_seconds'] = t1-t0
-    result_data['Number_of_simulations_sampled'] = samples
+    result_data['Number_of_simulations_sampled'] = len(param_settings)
     result_data['Number_of_threads_used'] = hyper_settings['tuning_threads'] 
     print (result)
     return result_data
@@ -178,7 +223,9 @@ if (__name__ == "__main__"):
         root_data_dir = getRootDataDirectory(simSettings_)+"/"
         
         ### Create a tar file of all the sim data
-        tarFileName = (root_data_dir + simSettings_['data_folder'] + "/_" +hyperSettings_['param_to_tune']+'.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
+        print ("hyperSettings_['param_to_tune']", hyperSettings_['param_to_tune'])
+        print ("hyperSettings_['param_to_tune']", makeNiceName(hyperSettings_['param_to_tune']))
+        tarFileName = (root_data_dir + simSettings_['data_folder'] + "/_" + makeNiceName(hyperSettings_['param_to_tune']) +'.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
         # tarFileName = (simSettings_['agent_name']+simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz')
         dataTar = tarfile.open(tarFileName, mode='w:gz')
         for meta_result in result['meta_sim_result']:
@@ -191,7 +238,7 @@ if (__name__ == "__main__"):
             addDataToTarBall(dataTar, simsettings_tmp, fileName=hyperSetFile)
             polt_settings_files.append(hyperSetFile)
         
-        figure_file_name = root_data_dir + simSettings_['data_folder'] + "/_" + hyperSettings_['param_to_tune'] + '_'
+        figure_file_name = root_data_dir + simSettings_['data_folder'] + "/_" + makeNiceName(hyperSettings_['param_to_tune']) + '_'
         
         print("root_data_dir: ", root_data_dir)
         pictureFileName=None
