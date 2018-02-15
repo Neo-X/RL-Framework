@@ -274,7 +274,7 @@
 	"comment__": "Activation function to use for the std part of the policy",
 "_last_std_policy_layer_activation_type": "sigmoid",
 	"comment__": "type of activation to use",
-"activation_type": "tanh",
+"activation_type": "leaky_rectify",
 	"comment__": "last policy type of activation to use",
 "last_policy_layer_activation_type": "tanh",
 	"comment__": "type of activation to use for policy",
