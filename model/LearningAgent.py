@@ -157,7 +157,9 @@ class LearningAgent(AgentInterface):
             if (self._settings['train_critic']):
                 if (self._settings['critic_updates_per_actor_update'] > 1):
                     if ( self._settings['agent_name'] == "algorithm.QProp.QProp"):
-                        loss = self._pol.trainOnPolicyCritic(states=tmp_states, actions=tmp_actions, rewards=tmp_rewards, result_states=tmp_result_states, falls=tmp_falls)
+                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
+                        loss = self._pol.trainOnPolicyCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                        # loss = self._pol.trainOnPolicyCritic(states=tmp_states, actions=tmp_actions, rewards=tmp_rewards, result_states=tmp_result_states, falls=tmp_falls)
                     
                     for i in range(self._settings['critic_updates_per_actor_update']):
                         # print ("Number of samples:", self._expBuff.samples())

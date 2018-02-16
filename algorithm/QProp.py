@@ -38,7 +38,7 @@ class QProp(AlgorithmInterface):
         self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
         self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
         
-        self._use_basic_polcy_grad=True
+        self._use_basic_polcy_grad=False
 
         self._Fallen = T.bcol("Fallen")
         ## because float64 <= float32 * int32, need to use int16 or int8
@@ -357,22 +357,9 @@ class QProp(AlgorithmInterface):
             
             The incoming data should not be normalized.
         """
-        self._experience.clear()
-        if ("value_function_batch_size" in self.getSettings()): 
-            value_function_batch_size = self.getSettings()['value_function_batch_size']
-        else:
-            value_function_batch_size = self.getSettings()["batch_size"]
-        for (state__, action__, next_state__, reward__, fall__) in zip(states, actions, result_states, rewards, falls):
-            # print("adv__:", advantage__)
-            tup = ([state__], [action__], [next_state__], [reward__], [fall__], [0], [0])
-            self._experience.insertTuple(tup)
-                    
-        for i in range(self.getSettings()['critic_updates_per_actor_update']):
-            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._experience.getNonMBAEBatch(min(value_function_batch_size, self._experience.samples()))
-            self.setData(states__, actions__, rewards__, result_states__, falls__)
-            loss_v, _ = self._train_value()
-            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                print ("MBAE Value function loss: ", loss_v)
+        self.setData(states, actions, rewards, result_states, falls)
+        loss_v, _ = self._train_value()
+        print ("MBAE Value function loss: ", loss_v)
             
         self.updateTargetModelValue()
     
@@ -401,19 +388,7 @@ class QProp(AlgorithmInterface):
             print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
             print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
         
-        if (('normalize_advantage' in self.getSettings()) and (self.getSettings()['normalize_advantage'] == False)):
-            # advantage = advantage * (1.0-self._discount_factor)
-            advantage = advantage * (1.0-self._discount_factor)
-            ## Standardize advantage 
-            # pass
-        else:
-            ## if not defined default is to normalize
-            std = np.std(advantage)
-            mean = np.mean(advantage)
-            if ( 'advantage_scaling' in self.getSettings() and ( self.getSettings()['advantage_scaling'] != False) ):
-                std = std / self.getSettings()['advantage_scaling']
-                mean = 0.0
-            advantage = (advantage - mean) / std
+        advantage = advantage * (1.0-self._discount_factor)
         ### Get Q value of sampled actions
         sampled_q = self._q_val()
         ### Get Q value of policy
@@ -427,6 +402,14 @@ class QProp(AlgorithmInterface):
         # n = cov / var
         ### practical implementation n = 1 when cov > 0, otherwise 0
         n = (np.sign(cov) + 1.0 ) / 2.0
+        n = np.zeros_like(n)
+        advantage = (advantage - (n * (sampled_q - true_q)))
+        std = np.std(advantage)
+        mean = np.mean(advantage)
+        if ( 'advantage_scaling' in self.getSettings() and ( self.getSettings()['advantage_scaling'] != False) ):
+            std = std / self.getSettings()['advantage_scaling']
+            mean = 0.0
+        advantage = (advantage - mean) / std
         
         if (self._use_basic_polcy_grad):
             loss = 0
@@ -441,7 +424,6 @@ class QProp(AlgorithmInterface):
                 print ("sampled_q mean: " , np.mean(sampled_q) , " std: ", np.std(sampled_q))
                 print ("true_q mean: " , np.mean(true_q) , " std: ", np.std(true_q))
                 print ("Policy mean: ", np.mean(self._q_action(), axis=0))
-            advantage = (advantage - (n * (sampled_q - true_q)))
             # print ("Mean learned advantage: ", np.mean(sampled_q - true_q))
             # print ("Mean advantage: " , np.mean(advantage))
             action_gra = action_diff * ( advantage )
@@ -449,7 +431,6 @@ class QProp(AlgorithmInterface):
             # action_grads = action_gra + ( n * action_grads )
         else:
             loss = 0
-            advantage = (advantage - (n * (sampled_q - true_q)))
             self._advantage_shared.set_value(advantage)
             self._QProp_N_shared.set_value(n)
             action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0]  
@@ -466,7 +447,7 @@ class QProp(AlgorithmInterface):
             
             actions.shape == action_grads.shape
         """
-        use_parameter_grad_inversion = True
+        use_parameter_grad_inversion = False
         if ( use_parameter_grad_inversion ):
             for i in range(action_grads.shape[0]):
                 for j in range(action_grads.shape[1]):
