@@ -311,7 +311,7 @@ class DPG(AlgorithmInterface):
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork())
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
         all_paramsActB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork())
-        if ('target_net_interp_weight' in self.getSettins()):
+        if ('target_net_interp_weight' in self.getSettings()):
             lerp_weight = self.getSettings()['target_net_interp_weight']
         else:
             lerp_weight = 0.001
@@ -450,12 +450,12 @@ class DPG(AlgorithmInterface):
                     action_grads[i,j] = action_grads[i,j] * inversion
         else:
             # Normalize
-            length = action_grads
-            norm = np.reshape(np.linalg.norm(action_grads, axis=1), (action_grads.shape[0], 1))
+            # norm = np.reshape(np.linalg.norm(action_grads, axis=1), (action_grads.shape[0], 1))
             # print ("Vector Norm: ", norm)
-            action_grads = action_grads / norm
+            # action_grads = action_grads / norm
             # print ("Normed lengths: ",  np.linalg.norm(action_grads, axis=1))
-                    
+            pass
+                
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
             print("Policy mean: ", np.mean(self._q_action(), axis=0))
