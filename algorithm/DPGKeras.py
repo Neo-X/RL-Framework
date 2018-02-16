@@ -34,6 +34,10 @@ class DPGKeras(AlgorithmInterface):
 
         self._modelTarget = copy.deepcopy(model)
         
+        self._states = Input(shape=(-1,n_in))
+        self._actions = Input(shape=(-1,n_out))
+        self._rewards = Input(shape=(-1,1))
+        self._targets = Input(shape=(-1,1))
             
         # print ("Initial W " + str(self._w_o.get_value()) )
         
@@ -41,6 +45,16 @@ class DPGKeras(AlgorithmInterface):
         DPGKeras.compile(self)
         
     def compile(self):
+        
+        
+        self._act_target = self._modelTarget().getActorNetwork()
+        self._q_val_target = self._modelTarget().getCriticNetwork()
+        
+        self._q_vals_b = self._q_val_target(self._act_target(self._states))
+        
+        self._q_val = self._modelTarget().getCriticNetwork()(self._model().getActorNetwork()(self._states))
+        self._y_target = rewards + ((self._discount_factor * q_vals_b ))
+        
         
         sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
         print ("Clipping: ", sgd.decay)
@@ -70,7 +84,18 @@ class DPGKeras(AlgorithmInterface):
         self._get_gradients = K.function(inputs=input_tensors, outputs=gradients)
         
         updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=gradients, constraints=[])
-        self._train = K.function([x, ytrue],[loss, accuracy],updates=updates)
+        ### Train the Q network, just uses MSE
+        self._train_q = Model(inputs=[self._states, self._targets],
+                                 outputs=[g_loss])
+        self._train_q.compile(loss='mse',
+                                 optimizer=Adam(lr=2.0e-4, beta_1=0.5))
+        self._train_q.summary()
+        
+        
+        self._train_policy = K.function([self._states, ytrue],[loss, accuracy],updates=updates)
+        ### Compute and return the target q value
+        self._q_target = K.function([self._states, self._rewards],[self._y_target])
+        ### Train the policy network
         self._model.getActorNetwork().compile(loss=neg_y, optimizer=self._actor_optimizer)
         
         
@@ -132,6 +157,17 @@ class DPGKeras(AlgorithmInterface):
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
             all_params.append(params)
         self._modelTarget.getCriticNetwork().set_weights(all_params)
+        
+        all_paramsA_Act = self._model.getActorNetwork().get_weights()
+        all_paramsB_Act = self._modelTarget.getActorNetwork().get_weights()
+        
+        all_params = []
+        for paramsA, paramsB in zip(all_paramsA_Act, all_paramsB_Act):
+            # print ("paramsA: " + str(paramsA))
+            # print ("paramsB: " + str(paramsB))
+            params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
+            all_params.append(params)
+        self._modelTarget.getActorNetwork().set_weights(all_params)
     
     def updateTargetModelValue(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):

@@ -76,6 +76,11 @@ class DPG(AlgorithmInterface):
             self._model.getActionSymbolicVariable(): self._model.getActions()
         }
         self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_1)
+        inputs_1_policy = {
+            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            self._model.getActionSymbolicVariable(): self._q_valsActA
+        }
+        self._q_vals_train_policy = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_1_policy)
         inputs_2 = {
             self._modelTarget.getStateSymbolicVariable(): self._model.getResultStates(),
             self._modelTarget.getActionSymbolicVariable(): self._model.getActions()
@@ -174,9 +179,9 @@ class DPG(AlgorithmInterface):
         }
         
         # theano.gradient.grad_clip(x, lower_bound, upper_bound) # // TODO
-        # self._actionUpdates = lasagne.updates.adam(T.mean(self._q_func) + 
+        # self._actionUpdates = lasagne.updates.adam(-T.mean(self._q_vals_train_policy) + 
         #   (self._decay_weight * lasagne.regularization.regularize_network_params(
-        #       self._model.getActorNetwork(), lasagne.regularization.l2)), self._params + self._actionParams, 
+        #       self._model.getActorNetwork(), lasagne.regularization.l2)), self._actionParams, 
         #           self._learning_rate, beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         
         
@@ -440,7 +445,7 @@ class DPG(AlgorithmInterface):
             
             actions.shape == action_grads.shape
         """
-        use_parameter_grad_inversion=True
+        use_parameter_grad_inversion=False
         if ( use_parameter_grad_inversion ):
             for i in range(action_grads.shape[0]):
                 for j in range(action_grads.shape[1]):
@@ -449,6 +454,13 @@ class DPG(AlgorithmInterface):
                     else:
                         inversion = ( actions[i,j] - (-1.0)) / 2.0
                     action_grads[i,j] = action_grads[i,j] * inversion
+        else:
+            # Normalize
+            length = action_grads
+            norm = np.reshape(np.linalg.norm(action_grads, axis=1), (action_grads.shape[0], 1))
+            # print ("Vector Norm: ", norm)
+            action_grads = action_grads / norm
+            # print ("Normed lengths: ",  np.linalg.norm(action_grads, axis=1))
                     
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
@@ -489,10 +501,10 @@ class DPG(AlgorithmInterface):
         self._model.setActions(action)
         self._modelTarget.setActions(action)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
             # return (self._q_val())[0]
         else:
-            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()[0]
         # return self._q_val()[0]
     
