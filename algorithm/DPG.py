@@ -311,18 +311,12 @@ class DPG(AlgorithmInterface):
         all_paramsB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork())
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
         all_paramsActB = lasagne.layers.helper.get_all_param_values(self._modelTarget.getActorNetwork())
-        lerp_weight = 0.001
+        if ('target_net_interp_weight' in self.getSettins()):
+            lerp_weight = self.getSettings()['target_net_interp_weight']
+        else:
+            lerp_weight = 0.001
         # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         
-        # print ("l_out length: " + str(len(all_paramsA)))
-        # print ("l_out length: " + str(all_paramsA[-6:]))
-        # print ("l_out[0] length: " + str(all_paramsA[0]))
-        # print ("l_out[4] length: " + str(all_paramsA[4]))
-        # print ("l_out[5] length: " + str(all_paramsA[5]))
-        # print ("l_out[6] length: " + str(all_paramsA[6]))
-        # print ("l_out[7] length: " + str(all_paramsA[7]))
-        # print ("l_out[11] length: " + str(all_paramsA[11]))
-        # print ("param Values")
         all_params = []
         for paramsA, paramsB in zip(all_paramsA, all_paramsB):
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
