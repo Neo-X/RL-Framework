@@ -30,7 +30,7 @@
     "comment__": "Should the training be plotted during learning",
 "visualize_learning": true,
     "comment__": "Whether or not to save the plotted data while learning",
-"save_trainData": true,
+"save_trainData": false,
     "comment__": "Whether or not to train a forward dynamics model as well",
 "train_forward_dynamics": false,
     "comment__": "Bounds used for scaling rewards for networks",
