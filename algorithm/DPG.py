@@ -321,19 +321,16 @@ class DPG(AlgorithmInterface):
         for paramsA, paramsB in zip(all_paramsA, all_paramsB):
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
             all_params.append(params)
-
+        lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_params)
+        
+        
         all_paramsAct = []
         for paramsA, paramsB in zip(all_paramsActA, all_paramsActB):
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
             all_paramsAct.append(params)
-            
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_params)
         lasagne.layers.helper.set_all_param_values(self._modelTarget.getActorNetwork(), all_paramsAct)
-        # all_paramsA = lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork())
-        # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
-        # lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), all_paramsA)
-        # lasagne.layers.helper.set_all_param_values(self._l_outActB, all_paramsAct) 
-    
+        
+        
     def updateTargetModelValue(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Updating MBAE target Model")
@@ -394,24 +391,20 @@ class DPG(AlgorithmInterface):
             if (( self._updates % 500) == 0):
                 self.updateTargetModelValue()
             
-        if (( self._updates % self._weight_update_steps) == 0):
-            self.updateTargetModel()
         self._updates += 1
         ## Compute actions for TargetNet
         target_actions = self._action_Target()
         self.setData(states, target_actions, rewards, result_states, falls)
         ## Get next q value
         q_vals_b = self._q_val_Target()
-        # q_vals_b = self._q_val()
         ## Compute target values
-        # target_tmp_ = rewards + ((self._discount_factor* q_vals_b )* falls)
         target_tmp_ = rewards + ((self._discount_factor * q_vals_b ))
         self.setData(states, actions, rewards, result_states, falls)
+        ### Set learning target (y)
         self._tmp_target_shared.set_value(target_tmp_)
         
-        # self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsB )), self._Fallen)
-        
         loss, _ = self._train()
+        self.updateTargetModel()
         return loss
         
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions, forwardDynamicsModel=None):
@@ -419,19 +412,10 @@ class DPG(AlgorithmInterface):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
             print("Rewards: ", np.mean(rewards), " std: ", np.std(rewards), " shape: ", np.array(rewards).shape)
-        # print("Policy mean: ", np.mean(self._q_action(), axis=0))
+
         loss = 0
-        # loss = self._trainActor()
-        # print("******** Not learning actor right now *****")
-        # return loss
         policy_mean = self.predict_batch(states)
-        # print ("actions shape:", actions.shape)
-        # next_states = forwardDynamicsModel.predict_batch(states, actions)
-        # print ("next_states shape: ", next_states.shape)
-        action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0] * 1.0
-        # print ("next_state_grads shape: ", next_state_grads.shape)
-        # action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
-        # print ( "action_grads shape: ", action_grads.shape)
+        action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0]
         
         """
             From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
@@ -450,20 +434,12 @@ class DPG(AlgorithmInterface):
                     action_grads[i,j] = action_grads[i,j] * inversion
         else:
             # Normalize
-            # norm = np.reshape(np.linalg.norm(action_grads, axis=1), (action_grads.shape[0], 1))
-            # print ("Vector Norm: ", norm)
-            # action_grads = action_grads / norm
-            # print ("Normed lengths: ",  np.linalg.norm(action_grads, axis=1))
+            norm = np.reshape(np.linalg.norm(action_grads, axis=1), (action_grads.shape[0], 1))
+            action_grads = action_grads / norm
             pass
                 
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
-            # print("Actions mean:     ", np.mean(actions, axis=0))
             print("Policy mean: ", np.mean(self._q_action(), axis=0))
-            # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-            # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
-            # print("Actions std:  ", np.std((actions), axis=0) )
-            # print("Policy std: ", np.mean(self._q_action_std(), axis=0))
-            # print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
             print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
         
         ## Set data for gradient

@@ -11,6 +11,8 @@ from model.ModelUtil import *
 import os
 import numpy
 import copy
+import time
+import datetime
 # numpy.set_printoptions(threshold=numpy.nan)
 
 class LearningAgent(AgentInterface):
@@ -113,6 +115,7 @@ class LearningAgent(AgentInterface):
             # print("Batch size: ", len(_states), len(_actions), len(_result_states), len(_rewards), len(_falls), len(_advantage))
             ### validate every tuples before giving them to the learning method
             num_samples_=0
+            t0 = time.time()
             self.getExperience()._settings["keep_running_mean_std_for_scaling"] = False
             for (state__, action__, next_state__, reward__, fall__, advantage__, exp_action__) in zip(_states, _actions, _result_states, _rewards, _falls, _advantage, _exp_actions):
                 if (checkValidData(state__, action__, next_state__, reward__)):
@@ -131,6 +134,10 @@ class LearningAgent(AgentInterface):
                     num_samples_ = num_samples_ + 1
                 # else:
                     # print ("Tuple invalid:")
+            t1 = time.time()
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                sim_time_ = datetime.timedelta(seconds=(t1-t0))
+                print ("Pushing data into exp buffer complete in " + str(sim_time_) + " seconds")
                         
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):        
                 print ("self._expBuff.samples(): ", self._expBuff.samples())
@@ -155,6 +162,7 @@ class LearningAgent(AgentInterface):
             # print ("Actions after: ", _actions)
             cost = 0
             if (self._settings['train_critic']):
+                t0 = time.time()
                 if (self._settings['critic_updates_per_actor_update'] > 1):
                     if ( self._settings['agent_name'] == "algorithm.QProp.QProp"):
                         states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
@@ -200,7 +208,13 @@ class LearningAgent(AgentInterface):
                         numpy.set_printoptions(threshold=numpy.nan)
                         print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                         print ("Training cost is Odd: ", cost)
+                
+                t1 = time.time()
+                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                    sim_time_ = datetime.timedelta(seconds=(t1-t0))
+                    print ("Critic training complete in " + str(sim_time_) + " seconds")
             if (self._settings['train_actor']):
+                t1 = time.time()
                 if ( 'use_multiple_policy_updates' in self._settings and 
                      ( self._settings['use_multiple_policy_updates'] == True) ):
                     for i in range(self._settings['critic_updates_per_actor_update']):
@@ -215,8 +229,13 @@ class LearningAgent(AgentInterface):
                 else:
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
                                                  advantage=_advantage, exp_actions=exp_actions__, forwardDynamicsModel=self._fd)
+                t1 = time.time()
+                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                    sim_time_ = datetime.timedelta(seconds=(t1-t0))
+                    print ("Policy training complete in " + str(sim_time_) + " seconds")
             dynamicsLoss = 0 
             if (self._settings['train_forward_dynamics']):
+                t0 = time.time()
                 for i in range(self._settings['critic_updates_per_actor_update']):
                     if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                         # print ("Using seperate (off-policy) exp mem for FD model")
@@ -239,7 +258,11 @@ class LearningAgent(AgentInterface):
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Performing Dyna Update, loss: ", cost)
                         # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
-                        
+                
+                t1 = time.time()
+                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                    sim_time_ = datetime.timedelta(seconds=(t1-t0))
+                    print ("FD training complete in " + str(sim_time_) + " seconds")       
             ## Update scaling values
             ### Updating the scaling values after the update(s) will help make things more accurate
             if ('keep_running_mean_std_for_scaling' in self._settings and (self._settings["keep_running_mean_std_for_scaling"])):
@@ -252,12 +275,9 @@ class LearningAgent(AgentInterface):
                     print("Learner, Scaling Action params: ", self.getActionBounds())
                     print("Learner, Scaling Reward params: ", self.getRewardBounds())
         else: ## Off-policy
-            # print("State Bounds LA:", self._pol.getStateBounds())
-            # print("Action Bounds LA:", self._pol.getActionBounds())
-            # print("Exp State Bounds LA: ", self._expBuff.getStateBounds())
-            # print("Exp Action Bounds LA: ", self._expBuff.getActionBounds())
             
             for update in range(self._settings['training_updates_per_sim_action']): ## Even more training options...
+                t0 = time.time()
                 for i in range(self._settings['critic_updates_per_actor_update']):
                     
                     if ( 'give_mbae_actions_to_critic' in self._settings and 
@@ -284,10 +304,22 @@ class LearningAgent(AgentInterface):
                         numpy.set_printoptions(threshold=numpy.nan)
                         print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                         print ("Training cost is Odd: ", cost)
+                        
+                t1 = time.time()
+                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                    sim_time_ = datetime.timedelta(seconds=(t1-t0))
+                    print ("Crtic training complete in " + str(sim_time_) + " seconds")
+                    
                 if (self._settings['train_actor']):
+                    t1 = time.time()
                     cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, exp_actions=_exp_actions, forwardDynamicsModel=self._fd)
+                    t1 = time.time()
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        sim_time_ = datetime.timedelta(seconds=(t1-t0))
+                        print ("Policy training complete in " + str(sim_time_) + " seconds")
                 dynamicsLoss = 0 
                 if (self._settings['train_forward_dynamics']):
+                    t1 = time.time()
                     if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                         # print ("Using seperate (off-policy) exp mem for FD model")
                         _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self.getFDExperience().get_batch(value_function_batch_size)
@@ -318,6 +350,11 @@ class LearningAgent(AgentInterface):
                             numpy.set_printoptions(threshold=numpy.nan)
                             print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                             print ("Training cost is Odd: ", cost)
+                    
+                    t1 = time.time()
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        sim_time_ = datetime.timedelta(seconds=(t1-t0))
+                        print ("FD training complete in " + str(sim_time_) + " seconds")
                             
             # import lasagne
             # val_params = lasagne.layers.helper.get_all_param_values(self._pol.getModel().getCriticNetwork())
@@ -431,7 +468,12 @@ class LearningWorker(Process):
     
     # @profile(precision=5)    
     def run(self):
+        _profile=False
         print ('Worker started')
+        if ( _profile ):
+            import cProfile, pstats, io
+            pr = cProfile.Profile()
+            pr.enable()
         np.random.seed(self._process_random_seed)
         if (self._agent._settings['on_policy']):
             self._agent._expBuff.clear()
@@ -511,6 +553,14 @@ class LearningWorker(Process):
         self._output_message_queue.close()
         self._output_message_queue.cancel_join_thread()
         print ("Learning Worker Complete:")
+        
+        if ( _profile ):
+            pr.disable()
+            f = open('x.prof', 'a')
+            pstats.Stats(pr).sort_stats('time').print_stats()
+            pstats.Stats(pr, stream=f).sort_stats('time').print_stats()
+            f.close()
+            
         return
         
     def updateExperience(self, experience):
