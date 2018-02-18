@@ -173,6 +173,18 @@ class QProp(AlgorithmInterface):
         self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
         self._actLoss = ((T.mean(self._actLoss_) )) + -self._actor_regularization
         
+        self._policy_grad = T.grad(-1.0 * self._actLoss ,  self._actionParams)
+        self._policy_grad = lasagne.updates.total_norm_constraint(self._policy_grad, 5)
+        if (self.getSettings()['optimizer'] == 'rmsprop'):
+            self._actionUpdates = lasagne.updates.rmsprop(self._policy_grad, self._actionParams, 
+                    self._learning_rate , self._rho, self._rms_epsilon)
+        elif (self.getSettings()['optimizer'] == 'momentum'):
+            self._actionUpdates = lasagne.updates.momentum(self._policy_grad, self._actionParams, 
+                    self._learning_rate , momentum=self._rho)
+        elif ( self.getSettings()['optimizer'] == 'adam'):
+            self._actionUpdates = lasagne.updates.adam(self._policy_grad, self._actionParams, 
+                    self._learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
+        
         self._qprop_loss = self._actLoss + T.mean((self._QProp_N * self._q_func))
         # if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
         self._valsA = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=True)
@@ -202,6 +214,15 @@ class QProp(AlgorithmInterface):
         self._updates_value = lasagne.updates.adam(self._value_grad
                     , self._params_value, self._critic_learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
             
+        self._actGivens_PPO = {
+            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
+            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
+            self._model.getActionSymbolicVariable(): self._model.getActions(),
+            # self._NotFallen: self._NotFallen_shared,
+            self._Advantage: self._advantage_shared,
+            # self._KL_Weight: self._kl_weight_shared
+        }
         QProp.compile(self)
         
     def compile(self):
@@ -209,6 +230,7 @@ class QProp(AlgorithmInterface):
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
         self._train_value = theano.function([], [self._v_loss, self._valsA], updates=self._updates_value, givens=self._givens_value)
         self._trainActionGRAD  = theano.function([], [], updates=self._actionGRADUpdates, givens=self._actGradGivens)
+        self._trainActor = theano.function([], [self._actLoss], updates=self._actionUpdates, givens=self._actGivens_PPO)
         self._q_val = theano.function([], self._q_valsA,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
                                                self._model.getActionSymbolicVariable(): self._model.getActions()
@@ -361,8 +383,6 @@ class QProp(AlgorithmInterface):
         loss_v, _ = self._train_value()
         print ("MBAE Value function loss: ", loss_v)
             
-        self.updateTargetModelValue()
-    
     def trainCritic(self, states, actions, rewards, result_states, falls):
         
         self.setData(states, actions, rewards, result_states, falls)
@@ -378,11 +398,15 @@ class QProp(AlgorithmInterface):
         self._tmp_target_shared.set_value(target_tmp_)
         
         loss, _ = self._train()
-        self.updateTargetModel()
+        # self.updateTargetModel()
         
         return loss
         
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions, forwardDynamicsModel=None):
+        
+        if (( self._updates % self._weight_update_steps) == 0):
+            self.updateTargetModelValue()
+        self._updates += 1
         self.setData(states, actions, rewards, result_states, falls)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )
@@ -472,8 +496,12 @@ class QProp(AlgorithmInterface):
         self._modelTarget.setStates(states)
         ## Why the -1.0??
         ## Because the SGD method is always performing MINIMIZATION!!
-        self._action_grad_shared.set_value(-1.0*action_grads)
-        self._trainActionGRAD()
+        # self._action_grad_shared.set_value(-1.0*action_grads)
+        # self._trainActionGRAD()
+        
+        self.setData(states, actions, rewards, result_states, falls)
+        self._advantage_shared.set_value(advantage)
+        loss = self._trainActor()
         
         return loss
         
