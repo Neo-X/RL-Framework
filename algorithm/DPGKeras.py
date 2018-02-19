@@ -74,7 +74,7 @@ class DPGKeras(AlgorithmInterface):
         # self._actor_optimizer = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
         # updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=-T.mean(self._q_function), constraints=[])
         updates= adam_updates(-T.mean(self._q_function), self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
-        self.trainPolicy = theano.function([self._model.getStateSymbolicVariable()], 
+        self._trainPolicy = theano.function([self._model.getStateSymbolicVariable()], 
                                            [self._q_function], 
                                            updates= updates)
         
@@ -91,6 +91,9 @@ class DPGKeras(AlgorithmInterface):
         ]
         
         self._get_gradients = K.function(inputs=input_tensors, outputs=gradients)
+        
+        
+        self._q_func = K.function([self._model.getStateSymbolicVariable()],[self._q_function])
         
         # updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=gradients, constraints=[])
         ### Train the Q network, just uses MSE
@@ -217,7 +220,7 @@ class DPGKeras(AlgorithmInterface):
         self._modelTarget.setActions(actions)
         self._modelTarget.setRewards(rewards)
         # print ("Falls: ", fallen)
-        self._fallen_shared.set_value(fallen)
+        # self._fallen_shared.set_value(fallen)
         # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         ## Easy fix for computing actor loss
         # diff = self._bellman_error2()
@@ -229,9 +232,9 @@ class DPGKeras(AlgorithmInterface):
         
         # self.setData(states, actions, rewards, result_states, falls)
         ## get actions for target policy
-        target_actions = self._modelTarget.getActorNetwork().predict(states)
+        target_actions = self._modelTarget.getActorNetwork().predict(states, batch_size=states.shape[0])
         ## Get next q value
-        q_vals_b = self._modelTarget.getCriticNetwork().predict(states, target_actions)
+        q_vals_b = self._modelTarget.getCriticNetwork().predict([states, target_actions], batch_size=states.shape[0])
         # q_vals_b = self._q_val()
         ## Compute target values
         # target_tmp_ = rewards + ((self._discount_factor* q_vals_b )* falls)
@@ -241,11 +244,13 @@ class DPGKeras(AlgorithmInterface):
         
         # self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsB )), self._Fallen)
         
-        loss = self._modelTarget.getCriticNetwork().fit([states, actions], target_tmp_,
-                        batch_size=32,
+        loss = self._model.getCriticNetwork().fit([states, actions], target_tmp_,
+                        batch_size=states.shape[0],
                         nb_epoch=1,
                         verbose=False,
                         shuffle=False)
+        
+        loss = loss.history['loss'][0]
         return loss
         
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions, forwardDynamicsModel=None):
@@ -269,7 +274,7 @@ class DPGKeras(AlgorithmInterface):
             print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
         
         q_fun = self._trainPolicy(states)
-        
+        print ("Actor Loss: ", q_fun)
         return q_fun
         
     def train(self, states, actions, rewards, result_states):
@@ -287,7 +292,7 @@ class DPGKeras(AlgorithmInterface):
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
-        action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1)[:,:self._action_length], self._action_bounds)
+        action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1), self._action_bounds)
         # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -295,55 +300,39 @@ class DPGKeras(AlgorithmInterface):
         return action_
     
     def q_value(self, state):
-        """
-            For returning a vector of q values, state should NOT be normalized
-        """
-        # states = np.zeros((self._batch_size, self._state_length), dtype=theano.config.floatX)
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
-        """
-        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            pass
-        else:
-        """
         state = norm_state(state, self._state_bounds)
-        state = np.array(state, dtype=theano.config.floatX)
-        self._model.setStates(state)
-        self._modelTarget.setStates(state)
-        action = self._q_action()
-        self._model.setActions(action)
-        self._modelTarget.setActions(action)
-        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-            # return (self._q_val())[0]
-        else:
-            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-        # return self._q_valTarget()[0]
+        state = np.array(state, dtype=self._settings['float_type'])
+        # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
+        poli_mean = self._model.getActorNetwork().predict(state, batch_size=1)
+        value = scale_reward(self._model.getCriticNetwork().predict([state, poli_mean] , batch_size=1), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # value = scale_reward(self._q_func(state), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        return value
         # return self._q_val()[0]
     
     def q_values(self, state):
         """
             For returning a vector of q values, state should already be normalized
         """
+        state = np.array(state, dtype=self._settings['float_type'])
+        # print ("Getting q_values: ", state)
+        poli_mean = self._model.getActorNetwork().predict(state, batch_size=state.shape[0])
+        value = self._model.getCriticNetwork().predict([state, poli_mean] , batch_size=state.shape[0])
+        # print ("q_values: ", value)
+        return value
+
+    def bellman_error(self, states, actions, rewards, result_states, falls):
         """
-        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            pass
-        else:
+            Computes the one step temporal difference.
         """
-        state = norm_state(state, self._state_bounds)
-        state = np.array(state, dtype=theano.config.floatX)
-        self._model.setStates(state)
-        self._modelTarget.setStates(state)
-        action = self._q_action()
-        self._model.setActions(action)
-        self._modelTarget.setActions(action)
-        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-            # return (self._q_val())[0] 
-        else:
-            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-        # return self._q_valTarget()
-        # return self._q_val()
-        
+        y_ = self._modelTarget.getCriticNetwork().predict([result_states, actions], batch_size=states.shape[0])
+        target_ = rewards + ((self._discount_factor * y_))
+        poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
+        values =  self._model.getCriticNetwork().predict([states, poli_mean], batch_size=states.shape[0])
+        bellman_error = target_ - values
+        return bellman_error
+        # return self._bellman_errorTarget()        
 from collections import OrderedDict
 def adam_updates(loss, params, learning_rate=0.001, beta1=0.9,
          beta2=0.999, epsilon=1e-8):
