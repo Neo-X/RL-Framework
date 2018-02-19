@@ -34,11 +34,22 @@ class DPGKeras(AlgorithmInterface):
 
         self._modelTarget = copy.deepcopy(model)
         
-        self._states = Input(shape=(-1,n_in))
-        self._actions = Input(shape=(-1,n_out))
-        self._rewards = Input(shape=(-1,1))
-        self._targets = Input(shape=(-1,1))
-            
+        
+        self._discount_factor= self.getSettings()['discount_factor']
+        self._rho = self.getSettings()['rho']
+        self._rms_epsilon = self.getSettings()['rms_epsilon']
+        
+        self._q_valsActA = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
+        # self._q_valsActASTD = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]
+        
+        self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
+        # self._q_valsActTargetSTD = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]
+        
+        # self._q_function = self._model.getCriticNetwork()(self._model.getStateSymbolicVariable(), self._q_valsActA)
+        self._q_function = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._q_valsActA])
+        self._q_function_Target = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+        
+        
         # print ("Initial W " + str(self._w_o.get_value()) )
         
             ## TD update
@@ -46,29 +57,27 @@ class DPGKeras(AlgorithmInterface):
         
     def compile(self):
         
-        
-        self._act_target = self._modelTarget().getActorNetwork()
-        self._q_val_target = self._modelTarget().getCriticNetwork()
-        
-        self._q_vals_b = self._q_val_target(self._act_target(self._states))
-        
-        self._q_val = self._modelTarget().getCriticNetwork()(self._model().getActorNetwork()(self._states))
-        self._y_target = rewards + ((self._discount_factor * q_vals_b ))
-        
+        """
+            self._act_target = self._modelTarget().getActorNetwork()
+            self._q_val_target = self._modelTarget().getCriticNetwork()
+            
+            self._q_vals_b = self._q_val_target(self._act_target(self._states))
+            
+            self._q_val = self._modelTarget().getCriticNetwork()(self._model().getActorNetwork()(self._states))
+            self._y_target = rewards + ((self._discount_factor * q_vals_b ))
+        """
         
         sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
         print ("Clipping: ", sgd.decay)
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
         
+        # self._actor_optimizer = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
+        # updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=-T.mean(self._q_function), constraints=[])
+        updates= adam_updates(-T.mean(self._q_function), self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
+        self.trainPolicy = theano.function([self._model.getStateSymbolicVariable()], 
+                                           [self._q_function], 
+                                           updates= updates)
         
-        # sgd = SGD(lr=0.0005, momentum=0.9)
-        ### loss function for actor, increase the Q value
-        def neg_y(true_y, pred_y):
-            return -pred_y
-        self._actor_optimizer = keras.optimizers.Adam(lr=self.getSettings()['learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
-        print ("Clipping: ", sgd.decay)
-        # Train function
-        # updates = opt.get_updates(self._model.getActorNetwork().trainable_weights, [], loss)
         
         weights = [self._model._actionInput] + self._model.getCriticNetwork().trainable_weights # weight tensors
         # weights = [weight for weight in weights if model.get_layer(weight.name[:-2]).trainable] # filter down weights tensors to only ones which are trainable
@@ -83,20 +92,20 @@ class DPGKeras(AlgorithmInterface):
         
         self._get_gradients = K.function(inputs=input_tensors, outputs=gradients)
         
-        updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=gradients, constraints=[])
+        # updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=gradients, constraints=[])
         ### Train the Q network, just uses MSE
-        self._train_q = Model(inputs=[self._states, self._targets],
-                                 outputs=[g_loss])
-        self._train_q.compile(loss='mse',
-                                 optimizer=Adam(lr=2.0e-4, beta_1=0.5))
-        self._train_q.summary()
+        # self._train_q = Model(inputs=[self._states, self._targets])
+        # self._model.getCriticNetwork().compile(loss='mse',
+        #                          optimizer=Adam(lr=2.0e-4, beta_1=0.5))
+        # self._train_q.summary()
         
         
-        self._train_policy = K.function([self._states, ytrue],[loss, accuracy],updates=updates)
+        # self._train_policy = K.function([self._states, ytrue],[loss, accuracy],updates=updates)
         ### Compute and return the target q value
-        self._q_target = K.function([self._states, self._rewards],[self._y_target])
+        # self._q_target = K.function([self._states, self._rewards],[self._y_target])
+        # self._q_action = K.function([self._states, self._rewards],[self._y_target])
         ### Train the policy network
-        self._model.getActorNetwork().compile(loss=neg_y, optimizer=self._actor_optimizer)
+        # self._model.getActorNetwork().compile(loss=neg_y, optimizer=self._actor_optimizer)
         
         
         
@@ -222,7 +231,7 @@ class DPGKeras(AlgorithmInterface):
         ## get actions for target policy
         target_actions = self._modelTarget.getActorNetwork().predict(states)
         ## Get next q value
-        q_vals_b = self._modelTarget.getCriticNetwork().predict(states, actions)
+        q_vals_b = self._modelTarget.getCriticNetwork().predict(states, target_actions)
         # q_vals_b = self._q_val()
         ## Compute target values
         # target_tmp_ = rewards + ((self._discount_factor* q_vals_b )* falls)
@@ -232,7 +241,7 @@ class DPGKeras(AlgorithmInterface):
         
         # self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsB )), self._Fallen)
         
-        loss = self.fit([states, actions], target_tmp_,
+        loss = self._modelTarget.getCriticNetwork().fit([states, actions], target_tmp_,
                         batch_size=32,
                         nb_epoch=1,
                         verbose=False,
@@ -247,31 +256,7 @@ class DPGKeras(AlgorithmInterface):
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
         # loss = self._trainActor()
-        # print("******** Not learning actor right now *****")
-        # return loss
-        actions = self.getActorNetwork().predict(states, batch_size=states.shape[0])
-        # print ("actions shape:", actions.shape)
-        # next_states = forwardDynamicsModel.predict_batch(states, actions)
-        # print ("next_states shape: ", next_states.shape)
-        action_grads = self.getActionGrads(states, actions, alreadyNormed=True)[0]
-        # print ("next_state_grads shape: ", next_state_grads.shape)
-        # action_grads = forwardDynamicsModel.getGrads(states, actions, next_states, v_grad=next_state_grads, alreadyNormed=True)[0] * 1.0
-        # print ( "action_grads shape: ", action_grads.shape)
-        """
-            From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
-            Hausknecht, Matthew and Stone, Peter
-            
-            actions.shape == action_grads.shape
-        """
-        use_parameter_grad_inversion=True
-        if ( use_parameter_grad_inversion ):
-            for i in range(action_grads.shape[0]):
-                for j in range(action_grads.shape[1]):
-                    if (action_grads[i,j] > 0):
-                        inversion = (1.0 - actions[i,j]) / 2.0
-                    else:
-                        inversion = ( actions[i,j] - (-1.0)) / 2.0
-                    action_grads[i,j] = action_grads[i,j] * inversion
+        
                     
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
@@ -283,19 +268,31 @@ class DPGKeras(AlgorithmInterface):
             # print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
             print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
         
+        q_fun = self._trainPolicy(states)
         
-        
-        ## Why the -1.0??
-        ## Because the SGD method is always performing MINIMIZATION!!
-        self._action_grad_shared.set_value(-1.0*action_grads)
-        self._trainActionGRAD()
-        
-        return loss
+        return q_fun
         
     def train(self, states, actions, rewards, result_states):
         loss = self.trainCritic(states, actions, rewards, result_states)
         lossActor = self.trainActor(states, actions, rewards, result_states)
         return loss
+    
+    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
+        # states[0, ...] = state
+        # state = np.array(state, dtype=self._settings['float_type'])
+        state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=self._settings['float_type'])
+        self._model.setStates(state)
+        # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # if deterministic_:
+        action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1)[:,:self._action_length], self._action_bounds)
+        # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
+        # else:
+        # action_ = scale_action(self._q_action()[0], self._action_bounds)
+        # action_ = q_valsActA[0]
+        return action_
     
     def q_value(self, state):
         """
@@ -316,10 +313,10 @@ class DPGKeras(AlgorithmInterface):
         self._model.setActions(action)
         self._modelTarget.setActions(action)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
             # return (self._q_val())[0]
         else:
-            return scale_reward(self._q_val(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()[0]
         # return self._q_val()[0]
     
@@ -346,3 +343,32 @@ class DPGKeras(AlgorithmInterface):
             return scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # return self._q_valTarget()
         # return self._q_val()
+        
+from collections import OrderedDict
+def adam_updates(loss, params, learning_rate=0.001, beta1=0.9,
+         beta2=0.999, epsilon=1e-8):
+
+    all_grads = T.grad(loss, params)
+    t_prev = theano.shared(np.array(0,dtype="float64"))
+    updates = OrderedDict()
+
+    t = t_prev + 1
+    a_t = learning_rate*T.sqrt(1-beta2**t)/(1-beta1**t)
+
+    for param, g_t in zip(params, all_grads):
+        value = param.get_value(borrow=True)
+        m_prev = theano.shared(np.zeros(value.shape, dtype=value.dtype),
+                               broadcastable=param.broadcastable)
+        v_prev = theano.shared(np.zeros(value.shape, dtype=value.dtype),
+                               broadcastable=param.broadcastable)
+
+        m_t = beta1*m_prev + (1-beta1)*g_t
+        v_t = beta2*v_prev + (1-beta2)*g_t**2
+        step = a_t*m_t/(T.sqrt(v_t) + epsilon)
+
+        updates[m_prev] = m_t
+        updates[v_prev] = v_t
+        updates[param] = param - step
+
+    updates[t_prev] = t
+    return updates

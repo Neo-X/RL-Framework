@@ -103,6 +103,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         layer_sizes = self._settings['critic_network_layer_sizes']
         if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras"):
+            print ("Creating DPG network")
             input = Concatenate()([self._stateInput, self._actionInput])
         
         print ("Network layer sizes: ", layer_sizes)
@@ -117,6 +118,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         network = Activation('linear')(network)
             
         if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras"):
+            print ( "Creating DPG Keras Model")
             self._critic = Model(input=[self._stateInput, self._actionInput], output=network)
         else:
             self._critic = Model(input=input, output=network)
