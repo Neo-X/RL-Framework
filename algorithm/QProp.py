@@ -161,6 +161,19 @@ class QProp(AlgorithmInterface):
         self._actor_regularization = (self._regularization_weight * lasagne.regularization.regularize_network_params(
                 self._model.getActorNetwork(), lasagne.regularization.l2))
         
+        ### update Actor wrt to Q function
+        """
+        inputs_1_ = {
+            self._model.getStateSymbolicVariable(): self._model.getStates(),
+            self._q_valsActA: self._model.getActions()
+        }
+        q = self._model.getCriticNetwork()(self._model.getStateSymbolicVariable(), self._q_valsActA)
+        self._q_valsA_ = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_1_)
+        # self._q_valsA_ = lasagne.layers.get_output(self._model.getCriticNetwork(), self._q_valsActA)
+        self._q_val2 = theano.function([self._model.getStateSymbolicVariable()], self._q_valsA_)
+        self._actionUpdates = lasagne.updates.adam(-T.mean(self._q_valsA_), self._actionParams, 
+                    self._learning_rate,  beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
+        """
         ## Compute on-policy policy gradient
         self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         ### How should this work if the target network is very odd, as in not a slightly outdated copy.
@@ -186,6 +199,7 @@ class QProp(AlgorithmInterface):
                     self._learning_rate , beta1=0.9, beta2=0.999, epsilon=1e-08)
         
         self._qprop_loss = self._actLoss + T.mean((self._QProp_N * self._q_func))
+        self._policy_grad_loss = self._actLoss
         # if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'] == True)):
         self._valsA = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=True)
         self._valsA_drop = lasagne.layers.get_output(self._model._value_function, self._model.getStateSymbolicVariable(), deterministic=False)
@@ -227,14 +241,26 @@ class QProp(AlgorithmInterface):
         
     def compile(self):
         
+        ## For training the Q function
         self._train = theano.function([], [self._loss, self._q_func], updates=self._updates_, givens=self._givens_)
+        ## For training the on-policy value function.
         self._train_value = theano.function([], [self._v_loss, self._valsA], updates=self._updates_value, givens=self._givens_value)
+        ## Train the policy by backpropgating action gradients
         self._trainActionGRAD  = theano.function([], [], updates=self._actionGRADUpdates, givens=self._actGradGivens)
-        self._trainActor = theano.function([], [self._actLoss], updates=self._actionUpdates, givens=self._actGivens_PPO)
-        self._q_val = theano.function([], self._q_valsA,
+        ## Train the Policy directly using q function.
+        # self._trainAction  = theano.function([self._model.getStateSymbolicVariable()], [self._q_valsA_], updates=self._actionUpdates)
+        ## Train using PPO like method 
+        self._trainActor = theano.function([self._model.getStateSymbolicVariable(),
+                                             self._model.getActionSymbolicVariable(),
+                                             self._Advantage], [self._actLoss], updates=self._actionUpdates)
+        ## Get the 
+        # self._q_val2 = theano.function([self._model.getStateSymbolicVariable(), 
+        #                                 self._model.getActionSymbolicVariable()], self._q_valsA_)
+        
+        self._q_val = theano.function([], self._q_func,
                                        givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
-                                               self._model.getActionSymbolicVariable(): self._model.getActions()
-                                               })
+                                               self._model.getActionSymbolicVariable(): self._model.getActions()})
+        
         self._q_val_Target = theano.function([#self._model.getStateSymbolicVariable(), 
                                               #self._model.getActionSymbolicVariable()
                                               ], 
@@ -259,6 +285,7 @@ class QProp(AlgorithmInterface):
         }
         self._get_Qprop_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._qprop_loss), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_QProp)
         
+        # self._get_Qprop_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._policy_grad_loss, [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._actGivens_PPO)
         
         self._vals_extra = theano.function([], outputs=self._valsA, allow_input_downcast=True, givens={self._model.getStateSymbolicVariable(): self._model.getStates()} )
         if ('train_extra_value_function' in self.getSettings() and (self.getSettings()['train_extra_value_function'])):
@@ -457,7 +484,8 @@ class QProp(AlgorithmInterface):
             loss = 0
             self._advantage_shared.set_value(advantage)
             self._QProp_N_shared.set_value(n)
-            action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0]  
+            action_grads = self.getActionGrads(states, policy_mean, alreadyNormed=True)[0]
+            action_grads = action_grads
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Q-prop n mean: " , np.mean(n) , " std: ", np.std(n))
                 print ("Advantage mean: " , np.mean(advantage) , " std: ", np.std(advantage))
@@ -501,7 +529,8 @@ class QProp(AlgorithmInterface):
         
         self.setData(states, actions, rewards, result_states, falls)
         self._advantage_shared.set_value(advantage)
-        loss = self._trainActor()
+        loss = self._trainActor(states, actions, advantage)
+        # loss = self._trainActor()
         
         return loss
         
