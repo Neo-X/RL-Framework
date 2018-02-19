@@ -159,7 +159,7 @@ class DPGKeras(AlgorithmInterface):
         ## lerp the value function part of the networks, the target policy is not used for anythings
         all_paramsA = self._model.getCriticNetwork().get_weights()
         all_paramsB = self._modelTarget.getCriticNetwork().get_weights()
-        lerp_weight = 0.001
+        lerp_weight = 0.01
         # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         
         all_params = []
@@ -250,6 +250,7 @@ class DPGKeras(AlgorithmInterface):
                         verbose=False,
                         shuffle=False)
         
+        self.updateTargetModel()
         loss = loss.history['loss'][0]
         return loss
         
@@ -262,19 +263,19 @@ class DPGKeras(AlgorithmInterface):
         loss = 0
         # loss = self._trainActor()
         
-                    
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+        q_fun = np.mean(self._trainPolicy(states))
+        
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
-            print("Policy mean: ", np.mean(self._q_action(), axis=0))
+            poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
+            print("Policy mean: ", np.mean(poli_mean, axis=0))
             # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
             # print("Actions std:  ", np.std((actions - self._q_action()), axis=0) )
             # print("Actions std:  ", np.std((actions), axis=0) )
             # print("Policy std: ", np.mean(self._q_action_std(), axis=0))
             # print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
-            print("Mean action grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
-        
-        q_fun = self._trainPolicy(states)
-        print ("Actor Loss: ", q_fun)
+            # print("Mean ation grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
+            print ("Actor Loss: ", q_fun)
         return q_fun
         
     def train(self, states, actions, rewards, result_states):

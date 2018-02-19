@@ -395,7 +395,7 @@ class DPG(AlgorithmInterface):
         ## Compute actions for TargetNet
         target_actions = self._action_Target()
         self.setData(states, target_actions, rewards, result_states, falls)
-        ## Get next q value
+        ## Get next q value using target network
         q_vals_b = self._q_val_Target()
         ## Compute target values
         target_tmp_ = rewards + ((self._discount_factor * q_vals_b ))
