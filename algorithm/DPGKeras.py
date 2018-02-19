@@ -244,7 +244,7 @@ class DPGKeras(AlgorithmInterface):
         
         q_fun = np.mean(self._trainPolicy(states))
         
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
             poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
             print("Policy mean: ", np.mean(poli_mean, axis=0))
@@ -255,6 +255,7 @@ class DPGKeras(AlgorithmInterface):
             # print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
             # print("Mean ation grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
             print ("Actor Loss: ", q_fun)
+            
         return q_fun
         
     def train(self, states, actions, rewards, result_states):
