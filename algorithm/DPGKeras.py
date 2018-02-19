@@ -135,7 +135,10 @@ class DPGKeras(AlgorithmInterface):
         ## lerp the value function part of the networks, the target policy is not used for anythings
         all_paramsA = self._model.getCriticNetwork().get_weights()
         all_paramsB = self._modelTarget.getCriticNetwork().get_weights()
-        lerp_weight = 0.01
+        if ('target_net_interp_weight' in self.getSettings()):
+            lerp_weight = self.getSettings()['target_net_interp_weight']
+        else:
+            lerp_weight = 0.001
         # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         
         all_params = []
