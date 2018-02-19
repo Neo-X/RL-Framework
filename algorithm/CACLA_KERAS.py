@@ -1,6 +1,5 @@
 import theano
 from theano import tensor as T
-from lasagne.layers import get_all_params
 import numpy as np
 # import lasagne
 import sys

@@ -14,6 +14,7 @@ from keras.layers.convolutional import Conv1D
 from keras.layers.merge import Concatenate
 from keras.layers.advanced_activations import LeakyReLU
 from keras import regularizers
+import keras
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
 
@@ -38,6 +39,8 @@ def getKerasActivation(type_name):
         return Activation('linear')
     if (type_name == 'elu'):
         return keras.layers.ELU(alpha=1.0)
+    if (type_name == 'sigmoid'):
+        return Activation('sigmoid')
     if (type_name == 'softplus'):
         return Activation('softplus')
     else:
@@ -50,6 +53,16 @@ class DeepNNKerasAdaptive(ModelInterface):
 
         super(DeepNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
+         # data types for model
+        self._State = T.matrix("State")
+        self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
+        self._ResultState = T.matrix("ResultState")
+        self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
+        self._Reward = T.col("Reward")
+        self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
+        self._Action = T.matrix("Action")
+        self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
+        
         ### Apparently after the first layer the patch axis is left out for most of the Keras stuff...
         input = Input(shape=(self._state_length,))
         self._stateInput = input
@@ -57,6 +70,33 @@ class DeepNNKerasAdaptive(ModelInterface):
         self._actionInput = input2
         # input.trainable = True
         print ("Input ",  input)
+        
+        layer_sizes = self._settings['policy_network_layer_sizes']
+        
+        inputAct = Input(shape=(self._state_length, ))
+        print ("Input ",  inputAct)
+        print ("Network layer sizes: ", layer_sizes)
+        for i in range(len(layer_sizes)):
+            # networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
+            networkAct = Dense(layer_sizes[i], 
+                               kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputAct)
+            networkAct = getKerasActivation(self._settings['activation_type'])(networkAct)
+        # inputAct.trainable = True
+        print ("Network: ", networkAct)         
+        networkAct_ = networkAct
+        networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+        networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
+
+        self._actor = networkAct
+                
+        if (self._settings['use_stocastic_policy']):
+            with_std = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct_)
+            with_std = getKerasActivation(self._settings['_last_std_policy_layer_activation_type'])(with_std)
+            # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+            self._actor = keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
+            
+        self._actor = Model(input=inputAct, output=self._actor)
+            
         
         layer_sizes = self._settings['critic_network_layer_sizes']
         if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras"):
@@ -78,23 +118,6 @@ class DeepNNKerasAdaptive(ModelInterface):
         else:
             self._critic = Model(input=input, output=network)
 
-        layer_sizes = self._settings['policy_network_layer_sizes']
-        
-        inputAct = Input(shape=(self._state_length, ))
-        print ("Input ",  inputAct)
-        print ("Network layer sizes: ", layer_sizes)
-        for i in range(len(layer_sizes)):
-            # networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
-            networkAct = Dense(layer_sizes[i], 
-                               kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputAct)
-            networkAct = getKerasActivation(self._settings['activation_type'])(networkAct)
-        # inputAct.trainable = True
-        print ("Network: ", networkAct)         
-        
-        networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-        networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
-        self._actor = Model(input=inputAct, output=networkAct)
-        
 
     ### Setting network input values ###    
     def setStates(self, states):
