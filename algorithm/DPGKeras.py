@@ -126,28 +126,6 @@ class DPGKeras(AlgorithmInterface):
         self._model.setActions(actions)
         return self._get_state_grad()
     
-    def getActionGrads(self, states, actions=None, alreadyNormed=False):
-        """
-            The states should be normalized
-        """
-        # self.setData(states, actions, rewards, result_states)
-        
-        if ( alreadyNormed == False):
-            states = norm_state(states, self._state_bounds)
-        states = np.array(states, dtype=theano.config.floatX)
-        self._model.setStates(states)
-        if ( actions is None ):
-            actions = self.predict_batch(states)
-        self._model.setActions(actions)
-        
-        input = [
-              states, # X
-              np.ones(states.shape[0]), # sample weights
-              actions, # y
-              0 # learning phase in TEST mode
-        ]
-        return self.self._get_gradients(input)
-    
     def updateTargetModel(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Updating target Model")
