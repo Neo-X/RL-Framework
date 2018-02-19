@@ -61,7 +61,8 @@ class PPO_KERAS(AlgorithmInterface):
         self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - ppo_epsilon, 1+ppo_epsilon), self._Advantage))
         self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
         # self._actLoss = ((T.mean(self._actLoss_) )) + -self._actor_regularization
-        self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy ))) 
+        # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy )))
+        self._actLoss = -1.0 * T.mean(self._actLoss_)  
         
         # self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
         
@@ -172,12 +173,21 @@ class PPO_KERAS(AlgorithmInterface):
         
         r_ = np.mean(self._r(states, actions))
         
+        std = np.std(advantage)
+        mean = np.mean(advantage)
+        if ( 'advantage_scaling' in self.getSettings() and ( self.getSettings()['advantage_scaling'] != False) ):
+            std = std / self.getSettings()['advantage_scaling']
+            mean = 0.0
+        advantage = (advantage - mean) / std
+        
         if (r_ < 2.0) and ( r_ > 0.5):  ### update not to large
             (lossActor, r_) = self.trainPolicy(states, actions, advantage)
-        # lossActor = score.history['loss'][0]
-        print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
-        print ("Policy mean: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length], axis=0))
-        print ("Policy std: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,self._action_length:], axis=0))
+            # lossActor = score.history['loss'][0]
+            print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
+            print ("Policy mean: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length], axis=0))
+            print ("Policy std: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,self._action_length:], axis=0))
+        else:
+            print ("Policy Gradient too large: ", np.mean(r_))
             
         return lossActor
     
