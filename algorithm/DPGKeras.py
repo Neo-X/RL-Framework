@@ -39,15 +39,15 @@ class DPGKeras(AlgorithmInterface):
         self._rho = self.getSettings()['rho']
         self._rms_epsilon = self.getSettings()['rms_epsilon']
         
-        self._q_valsActA = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
+        self._q_valsActA = self._model.getActorNetwork()(self._model._stateInput)[:,:self._action_length]
         # self._q_valsActASTD = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]
         
-        self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
+        self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model._stateInput)[:,:self._action_length]
         # self._q_valsActTargetSTD = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]
         
         # self._q_function = self._model.getCriticNetwork()(self._model.getStateSymbolicVariable(), self._q_valsActA)
-        self._q_function = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._q_valsActA])
-        self._q_function_Target = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+        self._q_function = self._model.getCriticNetwork()([self._model._stateInput, self._q_valsActA])
+        self._q_function_Target = self._model.getCriticNetwork()([self._model._stateInput, self._model._actionInput])
         
         
         # print ("Initial W " + str(self._w_o.get_value()) )
@@ -74,12 +74,12 @@ class DPGKeras(AlgorithmInterface):
         # self._actor_optimizer = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
         # updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=-T.mean(self._q_function), constraints=[])
         updates= adam_updates(-T.mean(self._q_function), self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
-        self._trainPolicy = theano.function([self._model.getStateSymbolicVariable()], 
+        self._trainPolicy = theano.function([self._model._stateInput], 
                                            [self._q_function], 
                                            updates= updates)
         
         
-        weights = [self._model._actionInput] + self._model.getCriticNetwork().trainable_weights # weight tensors
+        weights = [self._model._actionInput]
         # weights = [weight for weight in weights if model.get_layer(weight.name[:-2]).trainable] # filter down weights tensors to only ones which are trainable
         gradients = self._model.getCriticNetwork().optimizer.get_gradients(self._model.getCriticNetwork().total_loss, weights) # gradient tensors
         
@@ -90,10 +90,11 @@ class DPGKeras(AlgorithmInterface):
                          K.learning_phase(), # train or test mode
         ]
         
-        self._get_gradients = K.function(inputs=input_tensors, outputs=gradients)
+        gradients = K.gradients(T.mean(self._q_function), [self._model._stateInput]) # gradient tensors
+
+        self._get_gradients = K.function(inputs=[self._model._stateInput], outputs=gradients)
         
-        
-        self._q_func = K.function([self._model.getStateSymbolicVariable()],[self._q_function])
+        self._q_func = K.function([self._model._stateInput], [self._q_function])
         
         # updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=gradients, constraints=[])
         ### Train the Q network, just uses MSE
@@ -120,11 +121,8 @@ class DPGKeras(AlgorithmInterface):
         if ( alreadyNormed == False):
             states = norm_state(states, self._state_bounds)
         states = np.array(states, dtype=theano.config.floatX)
-        self._model.setStates(states)
-        if ( actions is None ):
-            actions = self.predict_batch(states)
-        self._model.setActions(actions)
-        return self._get_state_grad()
+        grads = self._get_gradients([states])
+        return grads
     
     def updateTargetModel(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
