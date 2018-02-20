@@ -78,7 +78,8 @@ class QPropKeras(AlgorithmInterface):
         self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
         # self._actLoss = ((T.mean(self._actLoss_) )) + -self._actor_regularization
         # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy )))
-        self._actLoss = -1.0 * (T.mean(self._actLoss_) + T.mean(self._QProp_N * self._q_function) )  
+        self._actLoss = -1.0 * (T.mean(self._actLoss_) + T.mean(self._QProp_N * self._q_function) )
+        self._actLoss_PPO = -1.0 * (T.mean(self._actLoss_))  
         
         # self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
         
@@ -110,6 +111,17 @@ class QPropKeras(AlgorithmInterface):
                                              self._QProp_N], 
                                             [self._actLoss, self._r, self._q_function], 
                         updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items())
+        
+        self._trainPolicy_PPO = theano.function([self._model._stateInput,
+                                             self._model._actionInput,
+                                             self._Advantage], 
+                                            [self._actLoss_PPO, self._r], 
+                        updates= adam_updates(self._actLoss_PPO, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items())
+        ### DPG like updates
+        updates= adam_updates(-T.mean(self._q_function), self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
+        self._trainPolicy_DPG = theano.function([self._model._stateInput], 
+                                           [self._q_function], 
+                                           updates= updates)
         
         self._r = theano.function([self._model._stateInput,
                                              self._model._actionInput], 
@@ -260,7 +272,13 @@ class QPropKeras(AlgorithmInterface):
               # callbacks=[early_stopping],
               )
         """
+        train_DPG = False
         
+        if ( train_DPG ) :
+            q_ = np.mean(self._trainPolicy_DPG(states))
+            print ("Policy loss: ", q_)
+            return
+                
         r_ = np.mean(self._r(states, actions))
         
         
@@ -270,7 +288,7 @@ class QPropKeras(AlgorithmInterface):
         true_q = self._q_func([states])[0]
         ## Scale q func to be in same space as advantage
         true_q = scale_reward(true_q, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-        cov = advantage * true_q
+        cov = advantage * (sampled_q - true_q)
         # var = true_q * true_q
         # n = cov / var
         ### practical implementation n = 1 when cov > 0, otherwise 0
@@ -291,9 +309,13 @@ class QPropKeras(AlgorithmInterface):
             print ("Policy loss: ", lossActor, " r: ", np.mean(r_),  " q: ", np.mean(q_), )
             print ("Policy mean: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length], axis=0))
             print ("Policy std: ", np.mean(self._q_action_std([states])[0], axis=0))
+            print ("Gradient Info: n, mean:", np.mean(n), " std: ", np.std(n))
+            print ("Gradient Info: cov, mean:", np.mean(cov), " std: ", np.std(cov))
         else:
             print ("Policy Gradient too large: ", np.mean(r_))
             
+        self.updateTargetModel()
+        
         return lossActor
     
     def train(self, states, actions, rewards, result_states, falls):
