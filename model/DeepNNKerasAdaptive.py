@@ -103,11 +103,11 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         layer_sizes = self._settings['critic_network_layer_sizes']
         if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras" 
-             or (self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras")
+             or (self._settings["agent_name"] == "algorithm.QPropKeras.QPropKeras")
              ):
             
             if ( ('train_extra_value_function' in settings_ and (settings_['train_extra_value_function']) )
-                 or (settings_['agent_name'] == 'algorithm.QProp.QProp') # A must for Q-Prop 
+                 or (settings_['agent_name'] == 'algorithm.QPropKeras.QPropKeras') # A must for Q-Prop 
                  ):
                 
                 print ("Network layer sizes: ", layer_sizes)
@@ -120,7 +120,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network= Dense(1,
                                kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                 network = Activation('linear')(network)
-                self._value_function = network
+                self._value_function = Model(input=input, output=network)
                 
                 
             print ("Creating DPG network")
@@ -137,7 +137,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                        kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
         network = Activation('linear')(network)
             
-        if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras"):
+        if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras"
+             or (self._settings["agent_name"] == "algorithm.QPropKeras.QPropKeras") 
+             ):
             print ( "Creating DPG Keras Model")
             self._critic = Model(input=[self._stateInput, self._actionInput], output=network)
         else:
