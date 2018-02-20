@@ -139,9 +139,23 @@ class QPropKeras(AlgorithmInterface):
         ### PPO related functions
         self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
         
+    def getGrads(self, states, alreadyNormed=False):
+        """
+            The states should be normalized
+        """
+        # self.setData(states, actions, rewards, result_states)
+        if ( alreadyNormed == False):
+            states = norm_state(states, self._state_bounds)
+        states = np.array(states, dtype=self._settings['float_type'])
+        # grads = np.reshape(np.array(self._get_gradients([states])[0], dtype=self._settings['float_type']), (states.shape[0],states.shape[1]))
+        grads = np.array(self._get_gradients([states]), dtype=self._settings['float_type'])
+        # print ("State grads: ", grads.shape)
+        # print ("State grads: ", repr(grads))
+        return grads
         
     def updateTargetModelValue(self):
-        print ("Updating target Model")
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Updating target Model")
         """
             Target model updates
         """
@@ -229,7 +243,8 @@ class QPropKeras(AlgorithmInterface):
               # callbacks=[early_stopping],
               )
         loss = score.history['loss'][0]
-        print(" Value Function loss: ", loss)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print(" Value Function loss: ", loss)
         
         return loss
     
@@ -276,7 +291,8 @@ class QPropKeras(AlgorithmInterface):
         
         if ( train_DPG ) :
             q_ = np.mean(self._trainPolicy_DPG(states))
-            print ("Policy loss: ", q_)
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("Policy loss: ", q_)
             return
                 
         r_ = np.mean(self._r(states, actions))
@@ -306,13 +322,15 @@ class QPropKeras(AlgorithmInterface):
         if (r_ < 2.0) and ( r_ > 0.5):  ### update not to large
             (lossActor, r_, q_) = self._trainPolicy(states, actions, advantage, n)
             # lossActor = score.history['loss'][0]
-            print ("Policy loss: ", lossActor, " r: ", np.mean(r_),  " q: ", np.mean(q_), )
-            print ("Policy mean: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length], axis=0))
-            print ("Policy std: ", np.mean(self._q_action_std([states])[0], axis=0))
-            print ("Gradient Info: n, mean:", np.mean(n), " std: ", np.std(n))
-            print ("Gradient Info: cov, mean:", np.mean(cov), " std: ", np.std(cov))
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("Policy loss: ", lossActor, " r: ", np.mean(r_),  " q: ", np.mean(q_), )
+                print ("Policy mean: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length], axis=0))
+                print ("Policy std: ", np.mean(self._q_action_std([states])[0], axis=0))
+                print ("Gradient Info: n, mean:", np.mean(n), " std: ", np.std(n))
+                print ("Gradient Info: cov, mean:", np.mean(cov), " std: ", np.std(cov))
         else:
-            print ("Policy Gradient too large: ", np.mean(r_))
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("Policy Gradient too large: ", np.mean(r_))
             
         self.updateTargetModel()
         
