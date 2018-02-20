@@ -32,6 +32,11 @@ class CACLA_KERAS(AlgorithmInterface):
         self._modelTarget = copy.deepcopy(model)
         # self._modelTarget = model
         
+        self._q_valsActA = self._model.getActorNetwork()(self._model._stateInput)
+        self._q_valsActTarget = self._modelTarget.getActorNetwork()(self._model._stateInput)
+        self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+        self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
+        
         self._actor_buffer_states=[]
         self._actor_buffer_result_states=[]
         self._actor_buffer_actions=[]
@@ -52,6 +57,8 @@ class CACLA_KERAS(AlgorithmInterface):
         print("sgd, actor: ", sgd)
         print ("Clipping: ", sgd.decay)
         self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
+        
+        self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
         
     def updateTargetModel(self):
         print ("Updating target Model")
@@ -196,12 +203,21 @@ class CACLA_KERAS(AlgorithmInterface):
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
-        action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1)[0], self._action_bounds)
+        action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1), self._action_bounds)
         # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
         return action_
+    
+    def predict_std(self, state, deterministic_=True):
+        state = norm_state(state, self._state_bounds)   
+        state = np.array(state, dtype=self._settings['float_type'])
+        
+        # action_std = self._model.getActorNetwork().predict(state, batch_size=1)[:,self._action_length:] * (action_bound_std(self._action_bounds))
+        action_std = self._q_action_std([state])[0] * action_bound_std(self._action_bounds)
+        # print ("Policy std: ", action_std)
+        return action_std
     
     def predictWithDropout(self, state, deterministic_=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
@@ -226,7 +242,7 @@ class CACLA_KERAS(AlgorithmInterface):
         self._model.setStates(state)
         self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        value = scale_reward(self._model.getCriticNetwork().predict(state, batch_size=1), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        value = scale_reward(self._model.getCriticNetwork().predict(state, batch_size=1), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         return value
         # return self._q_val()[0]
     
@@ -245,7 +261,7 @@ class CACLA_KERAS(AlgorithmInterface):
         state = np.array(state, dtype=self._settings['float_type'])
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
-        return scale_reward(self._q_val_drop(), self.getRewardBounds())[0]
+        return scale_reward(self._q_val_drop(), self.getRewardBounds())
     
     def bellman_error(self, states, actions, rewards, result_states, falls):
         """
