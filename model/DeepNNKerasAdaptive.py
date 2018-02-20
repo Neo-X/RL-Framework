@@ -102,7 +102,27 @@ class DeepNNKerasAdaptive(ModelInterface):
             
         
         layer_sizes = self._settings['critic_network_layer_sizes']
-        if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras"):
+        if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras" 
+             or (self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras")
+             ):
+            
+            if ( ('train_extra_value_function' in settings_ and (settings_['train_extra_value_function']) )
+                 or (settings_['agent_name'] == 'algorithm.QProp.QProp') # A must for Q-Prop 
+                 ):
+                
+                print ("Network layer sizes: ", layer_sizes)
+                for i in range(len(layer_sizes)):
+                    # network = Dense(layer_sizes[i], init='uniform')(input)
+                    network = Dense(layer_sizes[i],
+                                    kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(input)
+                    network = getKerasActivation(self._settings['activation_type'])(network)
+                    
+                network= Dense(1,
+                               kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
+                network = Activation('linear')(network)
+                self._value_function = network
+                
+                
             print ("Creating DPG network")
             input = Concatenate()([self._stateInput, self._actionInput])
         
@@ -141,3 +161,5 @@ class DeepNNKerasAdaptive(ModelInterface):
         pass
         # self._targets_shared.set_value(targets)ModelInterface):
     
+    def getValueFunction(self):
+        return self._value_function

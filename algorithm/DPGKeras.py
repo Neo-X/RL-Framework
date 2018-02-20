@@ -80,15 +80,6 @@ class DPGKeras(AlgorithmInterface):
         
         
         weights = [self._model._actionInput]
-        # weights = [weight for weight in weights if model.get_layer(weight.name[:-2]).trainable] # filter down weights tensors to only ones which are trainable
-        gradients = self._model.getCriticNetwork().optimizer.get_gradients(self._model.getCriticNetwork().total_loss, weights) # gradient tensors
-        
-        input_tensors = [self._model.getCriticNetwork().inputs[0], # input data
-                         self._model.getCriticNetwork().inputs[1], # input data
-                         self._model.getCriticNetwork().sample_weights[0], # how much to weight each sample by
-                         self._model.getCriticNetwork().targets[0], # labels
-                         K.learning_phase(), # train or test mode
-        ]
         
         gradients = K.gradients(T.mean(self._q_function), [self._model._stateInput]) # gradient tensors
 
