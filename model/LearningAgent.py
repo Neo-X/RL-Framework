@@ -164,12 +164,14 @@ class LearningAgent(AgentInterface):
             if (self._settings['train_critic']):
                 t0 = time.time()
                 if (self._settings['critic_updates_per_actor_update'] > 1):
-                    if ( self._settings['agent_name'] == "algorithm.QProp.QProp"):
-                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
-                        loss = self._pol.trainOnPolicyCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
-                        # loss = self._pol.trainOnPolicyCritic(states=tmp_states, actions=tmp_actions, rewards=tmp_rewards, result_states=tmp_result_states, falls=tmp_falls)
                     
                     for i in range(self._settings['critic_updates_per_actor_update']):
+                        if ( self._settings['agent_name'] == "algorithm.QProp.QProp"
+                          or (self._settings['agent_name'] == 'algorithm.QPropKeras.QPropKeras')
+                          ):
+                            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
+                            loss = self._pol.trainOnPolicyCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                        # loss = self._pol.trainOnPolicyCritic(states=tmp_states, actions=tmp_actions, rewards=tmp_rewards, result_states=tmp_result_states, falls=tmp_falls)
                         # print ("Number of samples:", self._expBuff.samples())
                         if ( 'give_mbae_actions_to_critic' in self._settings and 
                              (self._settings['give_mbae_actions_to_critic'] == False)):
@@ -196,7 +198,7 @@ class LearningAgent(AgentInterface):
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
                             loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                            print("Value function loss: ", loss)
+                            print("Critic loss: ", loss)
                         if not np.isfinite(cost) or (cost > 500) :
                             numpy.set_printoptions(threshold=numpy.nan)
                             print ("States: " + str(states__) + " ResultsStates: " + str(result_states__) + " Rewards: " + str(rewards__) + " Actions: " + str(actions__))
@@ -288,7 +290,7 @@ class LearningAgent(AgentInterface):
                             loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         else:
                             ### off-policy action update
-                            print('off-policy action update')
+                            # print('off-policy action update')
                             _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
                             actions____ = self._pol.predict_batch(states=_result_states) ### I think these could have noise added to them.
                             predicted_result_states__ = self._fd.predict_batch(states=_result_states, actions=actions____)
@@ -299,7 +301,7 @@ class LearningAgent(AgentInterface):
                     # print ("Updating Critic")
                         loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print("Value function loss: ", loss)
+                        print("Critic loss: ", loss)
                     if not np.isfinite(cost) or (cost > 500) :
                         numpy.set_printoptions(threshold=numpy.nan)
                         print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))

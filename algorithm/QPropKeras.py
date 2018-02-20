@@ -97,7 +97,7 @@ class QPropKeras(AlgorithmInterface):
         print ("Clipping: ", sgd.decay)
         self._model.getActorNetwork().compile(loss=neg_y, optimizer=sgd)
         
-        self.trainPolicy = theano.function([self._model._stateInput,
+        self._trainPolicy = theano.function([self._model._stateInput,
                                              self._model._actionInput,
                                              self._Advantage], [self._actLoss, self._r], 
                         updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items())
@@ -122,8 +122,8 @@ class QPropKeras(AlgorithmInterface):
         """
             Target model updates
         """
-        self._modelTarget.getCriticNetwork().set_weights( copy.deepcopy(self._model.getCriticNetwork().get_weights()))
-        self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
+        self._modelTarget2.getValueFunction().set_weights( copy.deepcopy(self._model.getValueFunction().get_weights()))
+        self._modelTarget2.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
         
     def updateTargetModel(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -168,6 +168,7 @@ class QPropKeras(AlgorithmInterface):
         params.append(copy.deepcopy(self._model.getActorNetwork().get_weights()))
         params.append(copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
         params.append(copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
+        params.append(copy.deepcopy(self._model.getValueFunction().get_weights()))
         params.append(copy.deepcopy(self._modelTarget2.getValueFunction().get_weights()))
         params.append(copy.deepcopy(self._modelTarget2.getActorNetwork().get_weights()))
         return params
@@ -181,31 +182,31 @@ class QPropKeras(AlgorithmInterface):
         self._model.getActorNetwork().set_weights( params[1] )
         self._modelTarget.getCriticNetwork().set_weights( params[2])
         self._modelTarget.getActorNetwork().set_weights( params[3])
-        self._modelTarget2.getValueFunction().set_weights( params[4])
-        self._modelTarget2.getActorNetwork().set_weights( params[5])
+        self._model.getValueFunction().set_weights( params[4])
+        self._modelTarget2.getValueFunction().set_weights( params[5])
+        self._modelTarget2.getActorNetwork().set_weights( params[6])
     
     def setData(self, states, actions, rewards, result_states, fallen):
         pass
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
     def trainOnPolicyCritic(self, states, actions, rewards, result_states, falls):
-        self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
-        
         if (( self._updates % self._weight_update_steps) == 0):
-            self.updateTargetModel()
+            self.updateTargetModelValue()
         self._updates += 1
+        
         y_ = self._modelTarget2.getValueFunction().predict(result_states, batch_size=states.shape[0])
-        v = self._model.getValueFunction().predict(states, batch_size=states.shape[0])
+        # v = self._model.getValueFunction().predict(states, batch_size=states.shape[0])
         target_ = rewards + ((self._discount_factor * y_))
         target_ = np.array(target_, dtype=self._settings['float_type'])
         score = self._model.getValueFunction().fit(states, target_,
-              nb_epoch=1, batch_size=32,
+              nb_epoch=1, batch_size=states.shape[0],
               verbose=0
               # callbacks=[early_stopping],
               )
         loss = score.history['loss'][0]
-        # print(" Critic loss: ", loss)
+        print(" Value Function loss: ", loss)
         
         return loss
     
@@ -239,7 +240,7 @@ class QPropKeras(AlgorithmInterface):
         lossActor = 0
         
         if (( self._updates % self._weight_update_steps) == 0):
-            self.updateTargetModel()
+            self.updateTargetModelValue()
         self._updates += 1
         """
         score = self._model.getActorNetwork().fit([states, actions, advantage], np.zeros_like(rewards),
@@ -259,11 +260,11 @@ class QPropKeras(AlgorithmInterface):
         advantage = (advantage - mean) / std
         
         if (r_ < 2.0) and ( r_ > 0.5):  ### update not to large
-            (lossActor, r_) = self.trainPolicy(states, actions, advantage)
+            (lossActor, r_) = self._trainPolicy(states, actions, advantage)
             # lossActor = score.history['loss'][0]
             print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
             print ("Policy mean: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length], axis=0))
-            print ("Policy std: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,self._action_length:], axis=0))
+            print ("Policy std: ", np.mean(self._q_action_std([states])[0], axis=0))
         else:
             print ("Policy Gradient too large: ", np.mean(r_))
             
@@ -275,20 +276,9 @@ class QPropKeras(AlgorithmInterface):
         return loss
     
     def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
-        # states[0, ...] = state
-        # state = np.array(state, dtype=self._settings['float_type'])
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
-        self._model.setStates(state)
-        # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
-        # if deterministic_:
         action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1)[:,:self._action_length], self._action_bounds)
-        # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
-        # else:
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
-        # action_ = q_valsActA[0]
         return action_
     
     def predict_std(self, state, deterministic_=True):
@@ -305,10 +295,6 @@ class QPropKeras(AlgorithmInterface):
         # states[0, ...] = state
         state = np.array(state, dtype=self._settings['float_type'])
         state = norm_state(state, self._state_bounds)
-        self._model.setStates(state)
-        # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
-        # if deterministic_:
         action_ = scale_action(self._model.getActorNetwork().predict(states, batch_size=1)[:,:self._action_length], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -320,8 +306,6 @@ class QPropKeras(AlgorithmInterface):
         # states[0, ...] = state
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
-        self._model.setStates(state)
-        self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
         value = scale_reward(self._model.getValueFunction().predict(state, batch_size=1), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         return value
@@ -332,8 +316,6 @@ class QPropKeras(AlgorithmInterface):
             For returning a vector of q values, state should already be normalized
         """
         state = np.array(state, dtype=self._settings['float_type'])
-        self._model.setStates(state)
-        self._modelTarget.setStates(state)
         return self._model.getValueFunction().predict(state, batch_size=state.shape[0])
     
     def q_valueWithDropout(self, state):
@@ -348,9 +330,9 @@ class QPropKeras(AlgorithmInterface):
         """
             Computes the one step temporal difference.
         """
-        y_ = self._modelTarget2.getValueFunction().predict(result_states, batch_size=32)
+        y_ = self._modelTarget2.getValueFunction().predict(result_states, batch_size=states.shape[0])
         target_ = rewards + ((self._discount_factor * y_))
-        values =  self._model.getValueFunction().predict(states, batch_size=32)
+        values =  self._model.getValueFunction().predict(states, batch_size=states.shape[0])
         bellman_error = target_ - values
         return bellman_error
         # return self._bellman_errorTarget()

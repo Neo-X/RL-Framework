@@ -369,7 +369,7 @@ class QProp(AlgorithmInterface):
         all_paramsActA = lasagne.layers.helper.get_all_param_values(self._model.getActorNetwork())
         lasagne.layers.helper.set_all_param_values(self._modelTarget2.getActorNetwork(), all_paramsActA)
         
-            def updateTargetModel(self):
+    def updateTargetModel(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Updating target Model")
         """
