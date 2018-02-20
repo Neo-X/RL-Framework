@@ -52,6 +52,13 @@ class QPropKeras(AlgorithmInterface):
         
         self._advantage_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
+            broadcastable=(False, True))
+        
+        self._QProp_N = T.col("QProp_N")
+        self._QProp_N.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
+        
+        self._QProp_N_shared = theano.shared(
+            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True)) 
         
         self._q_function = self._model.getCriticNetwork()([self._model._stateInput, self._q_valsActA])
@@ -71,7 +78,7 @@ class QPropKeras(AlgorithmInterface):
         self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
         # self._actLoss = ((T.mean(self._actLoss_) )) + -self._actor_regularization
         # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy )))
-        self._actLoss = -1.0 * T.mean(self._actLoss_)  
+        self._actLoss = -1.0 * (T.mean(self._actLoss_) + T.mean(self._QProp_N * self._q_function) )  
         
         # self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
         
@@ -99,7 +106,9 @@ class QPropKeras(AlgorithmInterface):
         
         self._trainPolicy = theano.function([self._model._stateInput,
                                              self._model._actionInput,
-                                             self._Advantage], [self._actLoss, self._r], 
+                                             self._Advantage,
+                                             self._QProp_N], 
+                                            [self._actLoss, self._r, self._q_function], 
                         updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items())
         
         self._r = theano.function([self._model._stateInput,
@@ -112,6 +121,8 @@ class QPropKeras(AlgorithmInterface):
         ### DPG related functions
         self._get_gradients = K.function(inputs=[self._model._stateInput], outputs=gradients)
         self._q_func = K.function([self._model._stateInput], [self._q_function])
+        self._q_func_Target = K.function([self._model._stateInput, self._model._actionInput], [self._q_function_Target])
+        self._q_function_Target
         
         ### PPO related functions
         self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
@@ -252,6 +263,21 @@ class QPropKeras(AlgorithmInterface):
         
         r_ = np.mean(self._r(states, actions))
         
+        
+        ### From Q-prop paper, compute adaptive control variate.
+        sampled_q = self._q_func_Target([states, actions])[0]
+        sampled_q = scale_reward(sampled_q, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        true_q = self._q_func([states])[0]
+        ## Scale q func to be in same space as advantage
+        true_q = scale_reward(true_q, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        cov = advantage * true_q
+        # var = true_q * true_q
+        # n = cov / var
+        ### practical implementation n = 1 when cov > 0, otherwise 0
+        n = (np.sign(cov) + 1.0 ) / 2.0
+        # n = np.zeros_like(n)
+        advantage = (advantage - (n * (sampled_q - true_q)))
+        
         std = np.std(advantage)
         mean = np.mean(advantage)
         if ( 'advantage_scaling' in self.getSettings() and ( self.getSettings()['advantage_scaling'] != False) ):
@@ -260,9 +286,9 @@ class QPropKeras(AlgorithmInterface):
         advantage = (advantage - mean) / std
         
         if (r_ < 2.0) and ( r_ > 0.5):  ### update not to large
-            (lossActor, r_) = self._trainPolicy(states, actions, advantage)
+            (lossActor, r_, q_) = self._trainPolicy(states, actions, advantage, n)
             # lossActor = score.history['loss'][0]
-            print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
+            print ("Policy loss: ", lossActor, " r: ", np.mean(r_),  " q: ", np.mean(q_), )
             print ("Policy mean: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length], axis=0))
             print ("Policy std: ", np.mean(self._q_action_std([states])[0], axis=0))
         else:
