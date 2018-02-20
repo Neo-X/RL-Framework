@@ -192,7 +192,7 @@ class LearningAgent(AgentInterface):
                                 and ('train_critic_with_fd_data' in self._settings) 
                                  and (self._settings['train_critic_with_fd_data'] == True)
                                  ):
-                                print ("Using seperate (off-policy) exp mem for Q model")
+                                # print ("Using seperate (off-policy) exp mem for Q model")
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self.getFDExperience().get_batch(value_function_batch_size)
                             else:
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
