@@ -6,7 +6,7 @@ import sys
 sys.path.append('../')
 from model.ModelUtil import *
 from util.nn import weight_norm
-
+from DeepNNKerasAdaptive import getKerasActivation
 
 
 # elu
@@ -39,127 +39,80 @@ class FDNetDenseKeras(ModelInterface):
         self._Noise = T.matrix("Noise")
         self._Noise.tag.test_value = np.random.rand(self._batch_size,1)
         
-        # create a small convolutional neural network
-        stateInput = lasagne.layers.InputLayer((None, self._state_length), self._State)
-        self._stateInputVar = stateInput.input_var
-        actionInput = lasagne.layers.InputLayer((None, self._action_length), self._Action)
-        self._actionInputVar = actionInput.input_var
-        inputNextState = lasagne.layers.InputLayer((None, self._result_state_length), self._ResultState)
-        self._resultStateInputVar = inputNextState.input_var
+        input = Input(shape=(self._state_length,))
+        self._stateInput = input
+        input2 = Input(shape=(self._action_length,)) 
+        self._actionInput = input2
+        self._noiseInput = Input(shape=(1,)) 
         
         input = stateInput
         insert_action_later = True
         double_insert_action = False
         add_layers_after_action = False
         if (not insert_action_later or (double_insert_action)):
-            input = lasagne.layers.ConcatLayer([stateInput, actionInput])
+            input = self._actor = keras.layers.concatenate(inputs=[self._stateInput, self._actionInput], axis=-1)
             
         ## Activation types
         # activation_type = elu_mine
         # activation_type=lasagne.nonlinearities.tanh
-        activation_type=lasagne.nonlinearities.leaky_rectify
+        activation_type=keras.layers.LeakyReLU(alpha=0.01)
         # activation_type=lasagne.nonlinearities.rectify
         # network = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
-        """
-        network = lasagne.layers.DenseLayer(
-                input, num_units=128,
-                nonlinearity=activation_type)
-        network = weight_norm(network)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        layersAct = [network]
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=64,
-                nonlinearity=activation_type)
-        network = weight_norm(network)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        layersAct.append(network)
-        network = lasagne.layers.ConcatLayer([layersAct[1], layersAct[0]])
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=32,
-                nonlinearity=activation_type)
-        network = weight_norm(network)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        layersAct.append(network)
-        network = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
-        ## This can be used to model the reward function
-        self._reward_net = lasagne.layers.DenseLayer(
-                network, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
-                # print ("Initial W " + str(self._w_o.get_value()) )
-        """
-        
-        network = lasagne.layers.DenseLayer(
-                input, num_units=128,
-                nonlinearity=activation_type)
-        # network = weight_norm(network)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        network = Dense(128, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
+        network = activation_type(network)   
+        network = Dropout(rate=self._dropout_p)(network)     
         # layersAct = [network]
         
         if ( insert_action_later ):
             ### Lets try adding the action input later on in the network
             if ( add_layers_after_action ):
-                networkA = lasagne.layers.DenseLayer(
-                        actionInput, num_units=32,
-                        nonlinearity=activation_type)
-                network = lasagne.layers.ConcatLayer([network, networkA])
+                networkA = Dense(32, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(actionInput)
+                networkA = activation_type(networkA)   
+                network = keras.layers.concatenate(inputs=[network, networkA], axis=-1)
             else:
-                network = lasagne.layers.ConcatLayer([network, actionInput])
+                network = keras.layers.concatenate(inputs=[network, actionInput], axis=-1)
         
-        network = lasagne.layers.DenseLayer(
-                network, num_units=64,
-                nonlinearity=activation_type)
-        # network = weight_norm(network)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        network = Dense(64, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
+        network = activation_type(network)   
+        network = Dropout(rate=self._dropout_p)(network)   
         
-        # layersAct.append(network)
-        # network = lasagne.layers.ConcatLayer([layersAct[1], layersAct[0]])
-        
-        network = lasagne.layers.DenseLayer(
-                network, num_units=32,
-                nonlinearity=activation_type)
-        # network = weight_norm(network)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        network = Dense(32, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
+        network = activation_type(network)   
+        network = Dropout(rate=self._dropout_p)(network)   
         
         
         # layersAct.append(network)
         # network = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
         # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        network = lasagne.layers.DenseLayer(
-                network, num_units=8,
-                nonlinearity=activation_type)
-        network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
+        network = Dense(8, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
+        network = activation_type(network)   
+        network = Dropout(rate=self._dropout_p)(network)   
         """
         network = lasagne.layers.DenseLayer(
                 network, num_units=8,
                 nonlinearity=activation_type)
         """
         ## This can be used to model the reward function
-        self._reward_net = lasagne.layers.DenseLayer(
-                network, num_units=1,
-                nonlinearity=lasagne.nonlinearities.linear)
-                # print ("Initial W " + str(self._w_o.get_value()) )
+        network = Dense(1, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
+        network = getKerasActivation("linear")(network)   
+        self._reward_net = Model(input=[self._stateInput, self._actionInput], output=network)
                 
         ### discriminator
-        inputDiscrominator = lasagne.layers.ConcatLayer([stateInput, actionInput, inputNextState])
+        inputDiscrominator = keras.layers.concatenate(inputs=[stateInput, actionInput, inputNextState], axis=-1)
         
-        networkDiscrominator = lasagne.layers.DenseLayer(
-                inputDiscrominator, num_units=128,
-                nonlinearity=activation_type)
-        # network = weight_norm(network)
-        networkDiscrominator = lasagne.layers.DropoutLayer(networkDiscrominator, p=self._dropout_p, rescale=True)
+        networkDiscrominator = Dense(32, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
+        networkDiscrominator = activation_type(networkDiscrominator)   
+        networkDiscrominator = Dropout(rate=self._dropout_p)(networkDiscrominator) 
         # layersAct = [network]
         
         if ( insert_action_later ):
             ### Lets try adding the action input later on in the network
             if ( add_layers_after_action ):
-                networkA = lasagne.layers.DenseLayer(
-                        actionInput, num_units=32,
-                        nonlinearity=activation_type)
-                network = lasagne.layers.ConcatLayer([networkDiscrominator, networkA])
+                networkA = Dense(32, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._actionInput)
+                networkA = activation_type(networkA)
+                networkDiscrominator = keras.layers.concatenate(inputs=[networkDiscrominator, networkA], axis=-1)
             else:
-                network = lasagne.layers.ConcatLayer([networkDiscrominator, actionInput])
+                networkDiscrominator = keras.layers.concatenate(inputs=[networkDiscrominator, actionInput], axis=-1)
         
         networkDiscrominator = lasagne.layers.DenseLayer(
                 networkDiscrominator, num_units=64,

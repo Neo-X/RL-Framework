@@ -721,14 +721,9 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         ## normalize
         forwardDynamicsModel.setGradTarget(next_state_grads)
         # next_state_grads = (next_state_grads/(np.sqrt((next_state_grads*next_state_grads).sum()))) * (learning_rate)
-        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['train']):
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print ("Next State Grad: ", next_state_grads)
-        # next_state_grads = rescale_action(next_state_grads, model.getStateBounds())
-        # next_state_grads = np.sum(next_state_grads, axis=1)
-        # print ("Next State Grad shape: ", next_state_grads.shape)
         ## modify next state wrt increasing grad, this is the direction we want the next state to go towards 
-        # next_state = next_state + next_state_grads
-        # print ("Next State: ", next_state)
         value_ = model.q_value(next_state)
         # print ("Updated next state q value: ", value_)
         # Set modified next state as output for dynamicsModel

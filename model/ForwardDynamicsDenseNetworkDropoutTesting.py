@@ -157,9 +157,9 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
                 networkA = lasagne.layers.DenseLayer(
                         actionInput, num_units=32,
                         nonlinearity=activation_type)
-                network = lasagne.layers.ConcatLayer([networkDiscrominator, networkA])
+                networkDiscrominator = lasagne.layers.ConcatLayer([networkDiscrominator, networkA])
             else:
-                network = lasagne.layers.ConcatLayer([networkDiscrominator, actionInput])
+                networkDiscrominator = lasagne.layers.ConcatLayer([networkDiscrominator, actionInput])
         
         networkDiscrominator = lasagne.layers.DenseLayer(
                 networkDiscrominator, num_units=64,
