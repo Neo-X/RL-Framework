@@ -476,9 +476,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                             # print ("old action:", action)
                             (action, value_diff) = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_, action_lr=mbae_lr, use_random_action=use_rand_act, p=mbae_lr)
                             # print ("new action:", action)
-                            if ( 'give_mbae_actions_to_critic' in settings and 
-                                 (settings['give_mbae_actions_to_critic'] == False)):
-                                exp_action = int(2)
+                            # if ( 'give_mbae_actions_to_critic' in settings and 
+                            #      (settings['give_mbae_actions_to_critic'] == False)):
+                            exp_action = int(2)
                             # print ("Using MBAE: ", state_)
                             # if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
                                 # print("MBAE action:")

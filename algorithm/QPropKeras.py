@@ -289,6 +289,29 @@ class QPropKeras(AlgorithmInterface):
         """
         train_DPG = False
         
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            mbae_actions=[]
+            mbae_advantage=[]
+            other_actions=[]
+            other_advantage=[]
+            policy_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length]
+            # print ("exp_actions: ", exp_actions)
+            for k in range(actions.shape[0]):
+                if (exp_actions[k] == 2):
+                    mbae_actions.append(actions[k]-policy_mean[k])
+                    mbae_advantage.append(advantage[k])
+                else:
+                    other_actions.append(actions[k]-policy_mean[k])
+                    other_advantage.append(advantage[k])
+            
+            
+            policy_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length]
+            print ("MBAE Actions: ", len(mbae_actions), ", ", len(mbae_actions)/actions.shape[0], "%")
+            print ("MBAE Actions std: ", np.std(mbae_actions, axis=0))
+            print ("MBAE Actions advantage: ", np.mean(mbae_advantage, axis=0))
+            print ("Normal Actions std: ", np.std(other_actions, axis=0))
+            print ("Normal Actions advantage: ", np.mean(other_advantage, axis=0))        
+            
         if ( train_DPG ) :
             q_ = np.mean(self._trainPolicy_DPG(states))
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):

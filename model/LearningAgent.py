@@ -238,7 +238,7 @@ class LearningAgent(AgentInterface):
                                 _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
                             
                             cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
-                                                         advantage=_advantage, exp_actions=_exp_action, forwardDynamicsModel=self._fd)
+                                                         advantage=_advantage, exp_actions=exp_actions__, forwardDynamicsModel=self._fd)
                     else:
                         cost_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
                                                      advantage=_advantage, exp_actions=exp_actions__, forwardDynamicsModel=self._fd)

@@ -721,8 +721,8 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         ## normalize
         forwardDynamicsModel.setGradTarget(next_state_grads)
         # next_state_grads = (next_state_grads/(np.sqrt((next_state_grads*next_state_grads).sum()))) * (learning_rate)
-        # if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug'])::
-        #    print ("Next State Grad: ", next_state_grads)
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['train']):
+            print ("Next State Grad: ", next_state_grads)
         # next_state_grads = rescale_action(next_state_grads, model.getStateBounds())
         # next_state_grads = np.sum(next_state_grads, axis=1)
         # print ("Next State Grad shape: ", next_state_grads.shape)
@@ -787,6 +787,7 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
             print( "Raw action grad: ", action_grads)
         ## Normalize action length
         action_grads = (action_grads/(np.sqrt((action_grads*action_grads).sum()))) * (learning_rate)
+        # print ("MBAE learning rate: ", learning_rate)
         if ('randomize_MBAE_action_length' in model.getSettings() and ( model.getSettings()['randomize_MBAE_action_length'])):
             # action_grads = action_grads * np.random.uniform(low=0.0, high = 1.0, size=1)[0]
             action_grads = action_grads * (np.fabs(np.random.normal(loc=0.0, scale = 0.5, size=1)[0]))
@@ -817,11 +818,12 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         # print ("Final Estimated Value: ", final_value)
         
         # repeat
+    ### This should be higher
     value_diff = final_value - init_value
-    # if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug'])::
-    #    print ("New action: ", action, " action diff: ", (action - init_action), " value change: ", 
-    #           (value_diff))
-    #    print ("dynamics_grads: ", dynamics_grads)
+    if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['train']):
+        print ("New action: ", action, " action diff: ", (action - init_action), " value change: ", 
+               (value_diff))
+        print ("dynamics_grads: ", dynamics_grads)
     # action = clampAction(action, model._action_bounds)
     if (checkDataIsValid(action)):
         ### Because there are some nan values coming out of here.
