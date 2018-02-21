@@ -405,7 +405,7 @@ class QPropKeras(AlgorithmInterface):
     def q_value(self, state):
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
-        value = scale_reward(self._value([states,0])[0], self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        value = scale_reward(self._value([state,0])[0], self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         return value
     
     def q_values(self, state):
