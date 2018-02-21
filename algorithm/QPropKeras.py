@@ -298,7 +298,9 @@ class QPropKeras(AlgorithmInterface):
         """
         train_DPG = False
         
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+        if ( (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train'] ) 
+             and False 
+             ):
             mbae_actions=[]
             mbae_advantage=[]
             other_actions=[]
@@ -401,21 +403,17 @@ class QPropKeras(AlgorithmInterface):
         return action_
     
     def q_value(self, state):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
-        # states[0, ...] = state
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
-        # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        value = scale_reward(self._model.getValueFunction().predict(state, batch_size=1), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        value = scale_reward(self._value([states,0])[0], self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         return value
-        # return self._q_val()[0]
     
     def q_values(self, state):
         """
             For returning a vector of q values, state should already be normalized
         """
         state = np.array(state, dtype=self._settings['float_type'])
-        return self._model.getValueFunction().predict(state, batch_size=state.shape[0])
+        return self._value([state,0])[0]
     
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
