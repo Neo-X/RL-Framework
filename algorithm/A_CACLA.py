@@ -529,7 +529,7 @@ class A_CACLA(AlgorithmInterface):
     def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
         """
             Performs a DYNA type update
-            Because I am using target network a direct DYNA update does nothing. 
+            Because I am using target networks a direct DYNA update does nothing. 
             The gradients are not calculated for the target network.
             L(\theta) = (r + V(s'|\theta')) - V(s|\theta))
             Instead what is done is this

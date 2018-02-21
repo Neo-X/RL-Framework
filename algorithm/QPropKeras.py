@@ -243,7 +243,7 @@ class QPropKeras(AlgorithmInterface):
               # callbacks=[early_stopping],
               )
         loss = score.history['loss'][0]
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print(" Value Function loss: ", loss)
         
         return loss
@@ -291,7 +291,7 @@ class QPropKeras(AlgorithmInterface):
         
         if ( train_DPG ) :
             q_ = np.mean(self._trainPolicy_DPG(states))
-            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
                 print ("Policy loss: ", q_)
             return
                 
@@ -299,7 +299,12 @@ class QPropKeras(AlgorithmInterface):
         
         
         ### From Q-prop paper, compute adaptive control variate.
-        sampled_q = self._q_func_Target([states, actions])[0]
+        if ( 'qprop_use_target' in self.getSettings() 
+             and (self.getSettings()['qprop_use_real_critic_for_sampled_q'] == True)
+             ):
+            sampled_q = self._model.getCriticNetwork().predict([states, actions], batch_size=states.shape[0])
+        else:
+            sampled_q = self._q_func_Target([states, actions])[0]
         sampled_q = scale_reward(sampled_q, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         true_q = self._q_func([states])[0]
         ## Scale q func to be in same space as advantage
@@ -322,7 +327,7 @@ class QPropKeras(AlgorithmInterface):
         if (r_ < 2.0) and ( r_ > 0.5):  ### update not to large
             (lossActor, r_, q_) = self._trainPolicy(states, actions, advantage, n)
             # lossActor = score.history['loss'][0]
-            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
                 print ("Policy loss: ", lossActor, " r: ", np.mean(r_),  " q: ", np.mean(q_), )
                 print ("Policy mean: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length], axis=0))
                 print ("Policy std: ", np.mean(self._q_action_std([states])[0], axis=0))
@@ -402,6 +407,43 @@ class QPropKeras(AlgorithmInterface):
         bellman_error = target_ - values
         return bellman_error
         # return self._bellman_errorTarget()
+        
+    def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
+        """
+            Performs a DYNA type update
+            Because I am using target networks a direct DYNA update does nothing. 
+            The gradients are not calculated for the target network.
+            L(\theta) = (r + V(s'|\theta')) - V(s|\theta))
+            Instead what is done is this
+            L(\theta) = V(s'|\theta')) - V(\hat{s'}|\theta))
+            Where s' comes from the simulation and \hat{s'} is a predicted ( \hat{s'} <- fd(a,s) ) and noisy value from an fd model
+            Parameters
+            ----------
+            predicted_states : predicted states, s_1
+            actions : list of actions
+            
+            result_states : simulated states, s_2
+            
+            falls: list of flags for whether or not the character fell
+            Returns
+            -------
+            loss: the loss for the DYNA type update
+
+        """
+        # self.setData( result_states, actions, rewards, predicted_states, falls)
+        values = self._modelTarget2.getValueFunction().predict(result_states, batch_size=result_states.shape[0])
+        # values = self._val_TargetState()
+        # print ("Dyna values: ", values)
+        score = self._model.getValueFunction().fit(predicted_states, values,
+              nb_epoch=1, batch_size=result_states.shape[0],
+              verbose=0
+              # callbacks=[early_stopping],
+              )
+        loss = score.history['loss'][0]
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+            print("**************Dyna Function loss: ", loss)
+            
+        return loss
         
 from collections import OrderedDict
 def adam_updates(loss, params, learning_rate=0.001, beta1=0.9,

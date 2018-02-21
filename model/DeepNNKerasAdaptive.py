@@ -79,7 +79,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             # networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
             networkAct = Dense(layer_sizes[i], 
                                kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-            networkAct = getKerasActivation(self._settings['activation_type'])(networkAct)
+            networkAct = getKerasActivation(self._settings['policy_activation_type'])(networkAct)
         # inputAct.trainable = True
         print ("Network: ", networkAct)         
         networkAct_ = networkAct
