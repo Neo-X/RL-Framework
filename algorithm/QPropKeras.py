@@ -49,10 +49,11 @@ class QPropKeras(AlgorithmInterface):
         
         self._Advantage = T.col("Advantage")
         self._Advantage.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
-        
         self._advantage_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True))
+        
+        self._LEARNING_PHASE = T.scalar(dtype='uint8', name='keras_learning_phase')  # 0 = test, 1 = train
         
         self._QProp_N = T.col("QProp_N")
         self._QProp_N.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
@@ -63,6 +64,10 @@ class QPropKeras(AlgorithmInterface):
         
         self._q_function = self._model.getCriticNetwork()([self._model._stateInput, self._q_valsActA])
         self._q_function_Target = self._model.getCriticNetwork()([self._model._stateInput, self._model._actionInput])
+        # self._value = self._model.getCriticNetwork()([self._model._stateInput, K.learning_phase()])
+        self._value_Target = self._modelTarget2.getValueFunction()([self._model._stateInput])
+        self._value = self._model.getValueFunction()([self._model._stateInput])
+        # self._value = self._model.getCriticNetwork()([self._model._stateInput])
         
         self._actor_entropy = 0.5 * T.mean((2 * np.pi * self._q_valsActASTD ) )
         
@@ -134,8 +139,8 @@ class QPropKeras(AlgorithmInterface):
         self._get_gradients = K.function(inputs=[self._model._stateInput], outputs=gradients)
         self._q_func = K.function([self._model._stateInput], [self._q_function])
         self._q_func_Target = K.function([self._model._stateInput, self._model._actionInput], [self._q_function_Target])
-        self._q_function_Target
-        
+        self._value_Target = K.function([self._model._stateInput, K.learning_phase()], [self._value_Target])
+        self._value = K.function([self._model._stateInput, K.learning_phase()], [self._value])
         ### PPO related functions
         self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
         
@@ -232,8 +237,12 @@ class QPropKeras(AlgorithmInterface):
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModelValue()
         self._updates += 1
-        
-        y_ = self._modelTarget2.getValueFunction().predict(result_states, batch_size=states.shape[0])
+        ### Set learning phase to test time to skip dropout affects
+        # K.set_learning_phase(0)
+        # test_phase = np.zeros_like(rewards)
+        y_ = self._value_Target([result_states,0])[0]
+        # print ("y_: ", y_)
+        # y_ = self._modelTarget2.getValueFunction().predict(result_states)
         # v = self._model.getValueFunction().predict(states, batch_size=states.shape[0])
         target_ = rewards + ((self._discount_factor * y_))
         target_ = np.array(target_, dtype=self._settings['float_type'])
@@ -420,9 +429,11 @@ class QPropKeras(AlgorithmInterface):
         """
             Computes the one step temporal difference.
         """
-        y_ = self._modelTarget2.getValueFunction().predict(result_states, batch_size=states.shape[0])
+        y_ = self._value_Target([result_states,0])[0]
+        # y_ = self._modelTarget2.getValueFunction().predict(result_states, batch_size=states.shape[0])
         target_ = rewards + ((self._discount_factor * y_))
-        values =  self._model.getValueFunction().predict(states, batch_size=states.shape[0])
+        # values =  self._model.getValueFunction().predict(states, batch_size=states.shape[0])
+        values = self._value([states,0])[0]
         bellman_error = target_ - values
         return bellman_error
         # return self._bellman_errorTarget()
@@ -450,7 +461,8 @@ class QPropKeras(AlgorithmInterface):
 
         """
         # self.setData( result_states, actions, rewards, predicted_states, falls)
-        values = self._modelTarget2.getValueFunction().predict(result_states, batch_size=result_states.shape[0])
+        # values = self._modelTarget2.getValueFunction().predict(result_states, batch_size=result_states.shape[0])
+        values = self._value_Target([result_states,0])[0]
         # values = self._val_TargetState()
         # print ("Dyna values: ", values)
         score = self._model.getValueFunction().fit(predicted_states, values,

@@ -117,6 +117,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = Dense(layer_sizes[i],
                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                     network = getKerasActivation(self._settings['activation_type'])(network)
+                    network = Dropout(rate=0.2)(network)
                     
                 network= Dense(1,
                                kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
