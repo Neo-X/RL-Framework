@@ -100,7 +100,7 @@ class FDNetDenseKeras(ModelInterface):
         ### discriminator
         inputDiscrominator = keras.layers.concatenate(inputs=[stateInput, actionInput, inputNextState], axis=-1)
         
-        networkDiscrominator = Dense(32, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
+        networkDiscrominator = Dense(128, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
         networkDiscrominator = activation_type(networkDiscrominator)   
         networkDiscrominator = Dropout(rate=self._dropout_p)(networkDiscrominator) 
         # layersAct = [network]
@@ -114,35 +114,28 @@ class FDNetDenseKeras(ModelInterface):
             else:
                 networkDiscrominator = keras.layers.concatenate(inputs=[networkDiscrominator, actionInput], axis=-1)
         
-        networkDiscrominator = lasagne.layers.DenseLayer(
-                networkDiscrominator, num_units=64,
-                nonlinearity=activation_type)
-        # network = weight_norm(network)
-        networkDiscrominator = lasagne.layers.DropoutLayer(networkDiscrominator, p=self._dropout_p, rescale=True)
+        networkDiscrominator = Dense(64, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
+        networkDiscrominator = activation_type(networkDiscrominator)   
+        networkDiscrominator = Dropout(rate=self._dropout_p)(networkDiscrominator) 
         
         # layersAct.append(network)
         # network = lasagne.layers.ConcatLayer([layersAct[1], layersAct[0]])
         
-        networkDiscrominator = lasagne.layers.DenseLayer(
-                networkDiscrominator, num_units=32,
-                nonlinearity=activation_type)
-        # network = weight_norm(network)
-        networkDiscrominator = lasagne.layers.DropoutLayer(networkDiscrominator, p=self._dropout_p, rescale=True)
+        networkDiscrominator = Dense(32, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
+        networkDiscrominator = activation_type(networkDiscrominator)   
+        networkDiscrominator = Dropout(rate=self._dropout_p)(networkDiscrominator) 
         
         
         # layersAct.append(network)
         # network = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
         # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        networkDiscrominator = lasagne.layers.DenseLayer(
-                networkDiscrominator, num_units=8,
-                nonlinearity=activation_type)
-        networkDiscrominator = lasagne.layers.DropoutLayer(networkDiscrominator, p=self._dropout_p, rescale=True)
-        """
-        network = lasagne.layers.DenseLayer(
-                network, num_units=8,
-                nonlinearity=activation_type)
-        """
+        networkDiscrominator = Dense(8, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
+        networkDiscrominator = activation_type(networkDiscrominator)   
+        networkDiscrominator = Dropout(rate=self._dropout_p)(networkDiscrominator) 
         ## This can be used to model the reward function
+        networkDiscrominator = Dense(1, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
+        networkDiscrominator = getKerasActivation("linear")(networkDiscrominator)   
+        
         self._critic = lasagne.layers.DenseLayer(
                 networkDiscrominator, num_units=1,
                 nonlinearity=lasagne.nonlinearities.linear)
