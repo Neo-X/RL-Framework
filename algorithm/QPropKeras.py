@@ -299,7 +299,7 @@ class QPropKeras(AlgorithmInterface):
         
         
         ### From Q-prop paper, compute adaptive control variate.
-        if ( 'qprop_use_target' in self.getSettings() 
+        if ( 'qprop_use_real_critic_for_sampled_q' in self.getSettings() 
              and (self.getSettings()['qprop_use_real_critic_for_sampled_q'] == True)
              ):
             sampled_q = self._model.getCriticNetwork().predict([states, actions], batch_size=states.shape[0])
