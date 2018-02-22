@@ -113,10 +113,10 @@ class PolicyTrainVisualize(object):
             # self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
             leng = self._reward_ax.legend(loc="lower right",
                          ncol=1, shadow=True, fancybox=True)
-            leng.get_frame().set_alpha(0.5)
+            leng.get_frame().set_alpha(0.3)
             leng = self._value_ax.legend(loc="lower right",
                          ncol=1, shadow=True, fancybox=True)
-            leng.get_frame().set_alpha(0.5)
+            leng.get_frame().set_alpha(0.3)
             # self._reward_ax.set_title('Mean Reward')
             self._reward_ax.set_ylabel("Mean Reward")
             self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')
@@ -228,10 +228,10 @@ class PolicyTrainVisualize(object):
             # self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
             leng = self._reward_ax.legend(loc="lower right",
                          ncol=1, shadow=True, fancybox=True)
-            leng.get_frame().set_alpha(0.5)
+            leng.get_frame().set_alpha(0.3)
             leng = self._value_ax.legend(loc="lower right",
                          ncol=1, shadow=True, fancybox=True)
-            leng.get_frame().set_alpha(0.5)
+            leng.get_frame().set_alpha(0.3)
             # self._reward_ax.set_title('Mean Reward')
             self._reward_ax.set_ylabel("Mean Reward")
             self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')

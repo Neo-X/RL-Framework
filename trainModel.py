@@ -967,7 +967,7 @@ def trainModelParallel(inputData):
                     lw.start()
                    """     
                 ## Visulaize some stuff if you want to
-                exp_val.updateViz(actor, masterAgent, directory)
+                exp_val.updateViz(actor, masterAgent, directory, p=p)
                 
                 
             if (round_ % settings['saving_update_freq_num_rounds']) == 0:

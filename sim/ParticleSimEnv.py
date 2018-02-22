@@ -53,7 +53,7 @@ class ParticleSimEnv(SimInterface):
         character_features = next_state_[_t_length+2:]
         self.getEnvironment().visualizeNextState(terrain, action, terrain_dx)  
     
-    def updateViz(self, actor, agent, directory):
+    def updateViz(self, actor, agent, directory, p=1.0):
         if (self.getSettings()['shouldRender']):
             U = []
             V = []
@@ -86,7 +86,8 @@ class ParticleSimEnv(SimInterface):
                     Q.append(v)
                     if (self.getSettings()['train_forward_dynamics']):
                         (action_, value_diff) = getOptimalAction(agent.getForwardDynamics(),
-                                                                  agent.getPolicy(), state_, action_lr=self.getSettings()['action_learning_rate'])[:2]
+                                                                  agent.getPolicy(), state_, 
+                                                                  action_lr=self.getSettings()['action_learning_rate']*p)[:2]
                         action_ = action_[0]                                  
                         # action_ = getMBAEAction(agent.getForwardDynamics(), agent.getPolicy(), state_)
                         ### How to change this action...
