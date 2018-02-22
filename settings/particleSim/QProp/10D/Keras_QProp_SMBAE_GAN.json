@@ -308,5 +308,7 @@
 	"comment__": "Additional on-policy training updates",
 "additional_on-poli_trianing_updates": 320,
 	"comment__": "Use average of policy std as mbae learning rate",
-"use_std_avg_as_mbae_learning_rate": true
+"use_std_avg_as_mbae_learning_rate": true,
+	"comment__": "Use the on-policy value function to compute state gradients instead of off-policy one for SMBAE.",
+"use_extra_value_for_MBAE_state_grads": true
 }

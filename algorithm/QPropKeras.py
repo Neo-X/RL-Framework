@@ -134,9 +134,15 @@ class QPropKeras(AlgorithmInterface):
         
         ### Compute gradient of state wrt value function
         weights = [self._model._actionInput]
-        gradients = K.gradients(T.mean(self._q_function), [self._model._stateInput]) # gradient tensors
+        if ("use_extra_value_for_MBAE_state_grads" in self.getSettings() 
+            and (self.getSettings()["use_extra_value_for_MBAE_state_grads"] == True)):
+            gradients = K.gradients(T.mean(self._value), [self._model._stateInput]) # gradient tensors
+            print( "********Using use_extra_value_for_MBAE_state_grads*******")
+        else:
+            gradients = K.gradients(T.mean(self._q_function), [self._model._stateInput]) # gradient tensors
+            print( "********NOT Using use_extra_value_for_MBAE_state_grads*******")
         ### DPG related functions
-        self._get_gradients = K.function(inputs=[self._model._stateInput], outputs=gradients)
+        self._get_gradients = K.function(inputs=[self._model._stateInput,  K.learning_phase()], outputs=gradients)
         self._q_func = K.function([self._model._stateInput], [self._q_function])
         self._q_func_Target = K.function([self._model._stateInput, self._model._actionInput], [self._q_function_Target])
         self._value_Target = K.function([self._model._stateInput, K.learning_phase()], [self._value_Target])
@@ -153,7 +159,7 @@ class QPropKeras(AlgorithmInterface):
             states = norm_state(states, self._state_bounds)
         states = np.array(states, dtype=self._settings['float_type'])
         # grads = np.reshape(np.array(self._get_gradients([states])[0], dtype=self._settings['float_type']), (states.shape[0],states.shape[1]))
-        grads = np.array(self._get_gradients([states]), dtype=self._settings['float_type'])
+        grads = np.array(self._get_gradients([states, 0]), dtype=self._settings['float_type'])
         # print ("State grads: ", grads.shape)
         # print ("State grads: ", repr(grads))
         return grads

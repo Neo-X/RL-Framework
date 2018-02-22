@@ -55,7 +55,8 @@ class FDNetDenseKeras(ModelInterface):
         ## Activation types
         # activation_type = elu_mine
         # activation_type=lasagne.nonlinearities.tanh
-        activation_type=keras.layers.LeakyReLU(alpha=0.01)
+        # activation_type=keras.layers.LeakyReLU(alpha=0.01)
+        activation_type=getKerasActivation("tanh")
         # activation_type=lasagne.nonlinearities.rectify
         # network = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
         network = Dense(128, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(input)
@@ -136,7 +137,7 @@ class FDNetDenseKeras(ModelInterface):
         networkDiscrominator = Dense(1, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
         networkDiscrominator = getKerasActivation("linear")(networkDiscrominator)   
         
-        self._critic = Model(input=[self._stateInput, self._actionInput, self._nextStateInput], output=network)
+        self._critic = Model(input=[self._stateInput, self._actionInput, self._nextStateInput], output=networkDiscrominator)
                 
         input = keras.layers.concatenate(inputs=[self._stateInput, self._actionInput], axis=-1)
         ### dynamics network

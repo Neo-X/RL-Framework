@@ -44,12 +44,12 @@ class ForwardDynamicsKeras(AlgorithmInterface):
     
     def compile(self):
         # sgd = SGD(lr=0.001, momentum=0.9)
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), beta_1=np.float32(0.9), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
         self._model.getRewardNetwork().compile(loss='mse', optimizer=sgd)
         # sgd = SGD(lr=0.0005, momentum=0.9)
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), beta_1=np.float32(0.9), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
         print("sgd, actor: ", sgd)
         print ("Clipping: ", sgd.decay)
         self._model.getForwardDynamicsNetwork().compile(loss='mse', optimizer=sgd)
@@ -111,9 +111,9 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         # result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
         # self.setData(states, actions, result_states)
         # if (v_grad != None):
-        print ("states shape: ", states.shape, " actions shape: ", actions.shape, " v_grad.shape: ", v_grad.shape)
+        # print ("states shape: ", states.shape, " actions shape: ", actions.shape, " v_grad.shape: ", v_grad.shape)
         self.setGradTarget(v_grad)
-        print ("states shape: ", states.shape, " actions shape: ", actions.shape)
+        # print ("states shape: ", states.shape, " actions shape: ", actions.shape)
         # grad = self._get_grad([states, actions])[0]
         grad = np.zeros_like(states)
         print ("grad: ", grad)

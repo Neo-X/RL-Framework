@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.QPropKeras.QPropKeras",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere/SMBAE_FGAN_Keras/10D/",
+"data_folder": "Nav_Sphere/SMBAE_FGAN_Keras/10D/_2",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
