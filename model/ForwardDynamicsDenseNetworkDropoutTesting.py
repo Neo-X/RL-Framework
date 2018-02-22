@@ -56,8 +56,8 @@ class ForwardDynamicsDenseNetworkDropoutTesting(ModelInterface):
             
         ## Activation types
         # activation_type = elu_mine
-        # activation_type=lasagne.nonlinearities.tanh
-        activation_type=lasagne.nonlinearities.leaky_rectify
+        activation_type=lasagne.nonlinearities.tanh
+        # activation_type=lasagne.nonlinearities.leaky_rectify
         # activation_type=lasagne.nonlinearities.rectify
         # network = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
         """
