@@ -173,7 +173,7 @@ class FDNetDenseKeras(ModelInterface):
         layersAct.append(networkAct)
         networkAct = keras.layers.concatenate(inputs=[layersAct[1], layersAct[0]], axis=-1)
         
-        networkAct = Dense(128, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+        networkAct = Dense(64, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
         networkAct = activation_type(networkAct)   
         networkAct = Dropout(rate=self._dropout_p)(networkAct)
         
@@ -189,10 +189,10 @@ class FDNetDenseKeras(ModelInterface):
             and "train_gan" in settings_
             and (settings_["train_gan"] == True)
             ):
-            self._forward_dynamics_net = Model(input=[self._stateInput, self._actionInput, self._noiseInput], output=network)
+            self._forward_dynamics_net = Model(input=[self._stateInput, self._actionInput, self._noiseInput], output=networkAct)
                 # print ("Initial W " + str(self._w_o.get_value()) )
         else:
-            self._forward_dynamics_net = Model(input=[self._stateInput, self._actionInput], output=network)
+            self._forward_dynamics_net = Model(input=[self._stateInput, self._actionInput], output=networkAct)
 
 
         self._states_shared = theano.shared(

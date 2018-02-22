@@ -25,6 +25,9 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         self._learning_rate = self.getSettings()["fd_learning_rate"]
         self._regularization_weight = 1e-6
         
+        condition_reward_on_result_state = False
+        self._train_combined_loss = False
+        
         ### data types for model
         self._fd_grad_target = T.matrix("FD_Grad")
         self._fd_grad_target.tag.test_value = np.zeros((self._batch_size,self._state_length), dtype=np.dtype(self.getSettings()['float_type']))
@@ -73,6 +76,9 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [self._model._actionInputVar] + self._reward_params), allow_input_downcast=True, 
         #                                         givens=self._inputs_reward_)
         
+        self.fd = K.function([self._model._stateInput, self._model._actionInput, K.learning_phase()], [self._forward])
+        self.reward = K.function([self._model._stateInput, self._model._actionInput, K.learning_phase()], [self._reward])
+        
     def getNetworkParameters(self):
         params = []
         params.append(copy.deepcopy(self._model.getForwardDynamicsNetwork().get_weights()))
@@ -103,10 +109,15 @@ class ForwardDynamicsKeras(AlgorithmInterface):
             actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
             result_states = np.array(norm_state(result_states, self._state_bounds), dtype=self.getSettings()['float_type'])
         # result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
-        self.setData(states, actions, result_states)
+        # self.setData(states, actions, result_states)
         # if (v_grad != None):
+        print ("states shape: ", states.shape, " actions shape: ", actions.shape, " v_grad.shape: ", v_grad.shape)
         self.setGradTarget(v_grad)
-        return self._get_grad([states, actions, 0])
+        print ("states shape: ", states.shape, " actions shape: ", actions.shape)
+        # grad = self._get_grad([states, actions])[0]
+        grad = np.zeros_like(states)
+        print ("grad: ", grad)
+        return grad
     
     def getRewardGrads(self, states, actions, alreadyNormed=False):
         # states = np.array(states, dtype=self.getSettings()['float_type'])
@@ -116,7 +127,7 @@ class ForwardDynamicsKeras(AlgorithmInterface):
             actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
             # rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
         # self.setData(states, actions)
-        return self._get_grad_reward([states, actions, 0])
+        return self._get_grad_reward([states, actions, 0])[0]
                 
     def train(self, states, actions, result_states, rewards):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
@@ -132,7 +143,7 @@ class ForwardDynamicsKeras(AlgorithmInterface):
             # loss = self._train_combined()
         else:
             score = self._model.getForwardDynamicsNetwork().fit([states, actions], result_states,
-              nb_epoch=1,
+              nb_epoch=1, batch_size=states.shape[0],
               verbose=0
               # callbacks=[early_stopping],
               )
@@ -141,7 +152,7 @@ class ForwardDynamicsKeras(AlgorithmInterface):
                 # print ("self._reward_bounds: ", self._reward_bounds)
                 # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
                 score = self._model.getRewardNetwork().fit([states, actions], rewards,
-                  nb_epoch=1,
+                  nb_epoch=1, batch_size=states.shape[0],
                   verbose=0
                   # callbacks=[early_stopping],
                   )
@@ -167,7 +178,7 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         self._model.setActions(action)
         # print ("State bounds: ", self._state_bounds)
         # print ("fd output: ", self._forwardDynamics()[0])
-        state_ = scale_state(self._forward([states, actions])[0], self._state_bounds)
+        state_ = scale_state(self.fd([state, action,0])[0], self._state_bounds)
         return state_
     
     def predictWithDropout(self, state, action):
@@ -190,7 +201,7 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         # states[0, ...] = state
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        predicted_reward = self._reward([states, actions])[0]
+        predicted_reward = self.reward([state, action, 0])[0]
         reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_state(predicted_reward, self._reward_bounds)
@@ -199,7 +210,7 @@ class ForwardDynamicsKeras(AlgorithmInterface):
     
     def predict_batch(self, states, actions):
         ## These input should already be normalized.
-        return self._forward([states, actions])
+        return self.fd([states, actions, 0])[0]
     
     def predict_reward_batch(self, states, actions):
         """
@@ -207,7 +218,7 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         """
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        predicted_reward = self._reward([states, actions])
+        predicted_reward = self.reward([states, actions, 0])[0]
         return predicted_reward
 
     def bellman_error(self, states, actions, result_states, rewards):
