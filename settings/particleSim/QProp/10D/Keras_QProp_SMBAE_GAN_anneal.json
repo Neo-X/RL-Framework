@@ -232,7 +232,7 @@
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
 "fix_actor_batch_size": true,
 	"comment__": "Whether or not to put MBAE on the annelling schedule",
-"anneal_mbae": false,
+"anneal_mbae": true,
 	"comment__": "The number of critic updates that are done between every dyna update step.",
 "dyna_update_lag_steps": 5,
 	"comment__": "Use generalized advantage estimation",
@@ -306,5 +306,7 @@
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
 "train_critic_with_fd_data": true,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 320
+"additional_on-poli_trianing_updates": 320,
+	"comment__": "Annealing the std of the policy",
+"anneal_policy_std": true	
 }
