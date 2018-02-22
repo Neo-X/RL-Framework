@@ -470,7 +470,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                             else:
                                 mbae_lr = settings["action_learning_rate"]
                                 
-                            if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
+                            if ( 'MBAE_anneal_policy_std' in settings and (settings['MBAE_anneal_policy_std'])):
                                 std_p = p
                             else:
                                 std_p = 1.0

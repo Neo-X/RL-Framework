@@ -107,9 +107,6 @@ class OpenAIGymEnv(SimInterface):
         terrain_dy = next_state_[_t_length+1]
         character_features = next_state_[_t_length+2:]
         self.getEnvironment().visualizeNextState(terrain, action, terrain_dx)  
-    
-    def updateViz(self, actor, agent, directory):
-        pass
 
     def generateValidationEnvironmentSample(self, numb):
         pass
