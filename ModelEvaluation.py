@@ -464,20 +464,24 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         mbae_omega = settings["model_based_action_omega"]
                         if (np.random.rand(1)[0] < mbae_omega):
                             ## Need to be learning a forward dynamics deep network for this
+                            mbae_lr = settings["action_learning_rate"]
+                            std_p = 1.0
+                            use_rand_act = False
+                            if ( ('use_std_avg_as_mbae_learning_rate' in settings) 
+                                 and (settings['use_std_avg_as_mbae_learning_rate'] == True )
+                                 ):
+                                ### Need to normalize this learning space
+                                avg_policy_std = np.mean(model.predict_std(state_)/action_bound_std(action_bounds))
+                                # print ("avg_policy_std: ", avg_policy_std)
+                                mbae_lr = avg_policy_std
                             if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
-                                mbae_lr = p * settings["action_learning_rate"]
+                                mbae_lr = p * mbae_lr
                                 # print("MBAE p: ", p)
-                            else:
-                                mbae_lr = settings["action_learning_rate"]
-                                
                             if ( 'MBAE_anneal_policy_std' in settings and (settings['MBAE_anneal_policy_std'])):
                                 std_p = p
-                            else:
-                                std_p = 1.0
                             if ( 'use_random_actions_for_MBAE' in settings):
                                 use_rand_act = settings['use_random_actions_for_MBAE']
-                            else: 
-                                use_rand_act = False
+                                
                             # print ("old action:", action)
                             (action, value_diff) = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_, action_lr=mbae_lr, use_random_action=use_rand_act, p=std_p)
                             # print ("new action:", action)

@@ -310,5 +310,7 @@
 	"comment__": "Annealing the std of the policy",
 "anneal_policy_std": false,	
 	"comment__": "Anneal the std for the policy but only for MBAE samples",
-"MBAE_anneal_policy_std": true
+"MBAE_anneal_policy_std": true,
+	"comment__": "Use average of policy std as mbae learning rate",
+"use_std_avg_as_mbae_learning_rate": true
 }
