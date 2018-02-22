@@ -136,7 +136,7 @@ class FDNetDenseKeras(ModelInterface):
         networkDiscrominator = Dense(1, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
         networkDiscrominator = getKerasActivation("linear")(networkDiscrominator)   
         
-        self._critic = Model(input=[self._stateInput, self._actionInput, self._noiseInput], output=network)
+        self._critic = Model(input=[stateInput, actionInput, inputNextState], output=network)
                 
         input = keras.layers.concatenate(inputs=[stateInput, actionInput], axis=-1)
         ### dynamics network
@@ -155,7 +155,7 @@ class FDNetDenseKeras(ModelInterface):
         # networkAct = weight_norm(networkAct)
         layersAct = [networkAct]
         
-        networkAct = Dense(128, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(input)
+        networkAct = Dense(128, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
         networkAct = activation_type(networkAct)   
         networkAct = Dropout(rate=self._dropout_p)(networkAct)
         # networkAct = weight_norm(networkAct)
@@ -165,47 +165,31 @@ class FDNetDenseKeras(ModelInterface):
             if ( add_layers_after_action ):
                 networkActA = Dense(64, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._actionInput)
                 networkAct = activation_type(networkAct)   
-                networkAct = lasagne.layers.ConcatLayer([networkAct, networkActA])
+                networkAct = keras.layers.concatenate(inputs=[networkAct, networkActA], axis=-1)
             else:
-                networkAct = lasagne.layers.ConcatLayer([networkAct, actionInput])
+                networkAct = keras.layers.concatenate(inputs=[networkAct, actionInput], axis=-1)
             
         
         layersAct.append(networkAct)
-        networkAct = lasagne.layers.ConcatLayer([layersAct[1], layersAct[0]])
+        networkAct = keras.layers.concatenate(inputs=[layersAct[1], layersAct[0]], axis=-1)
         
-        networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=128,
-                nonlinearity=activation_type)
-        networkAct = weight_norm(networkAct)
-        networkAct = lasagne.layers.DropoutLayer(networkAct, p=self._dropout_p, rescale=True)
+        networkAct = Dense(128, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+        networkAct = activation_type(networkAct)   
+        networkAct = Dropout(rate=self._dropout_p)(networkAct)
+        
+        # networkAct = weight_norm(networkAct)
         layersAct.append(networkAct)
         networkAct = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
+        
+        networkAct = Dense(self._result_state_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+        networkAct = activation_type(networkAct)
     
-        self._forward_dynamics_net = lasagne.layers.DenseLayer(
-                networkAct, num_units=self._result_state_length,
-                nonlinearity=lasagne.nonlinearities.linear)
+        if ("train_gan_with_gaussian_noise" in settings_ 
+            and (settings_["train_gan_with_gaussian_noise"] == True)
+            and "train_gan" in settings_
+            and (settings_["train_gan"] == True)
+            ):
+            self._forward_dynamics_net = Model(input=[self._stateInput, self._actionInput, self._noiseInput], output=network)
                 # print ("Initial W " + str(self._w_o.get_value()) )
-                
-        if (('use_stochastic_forward_dynamics' in self._settings) and 
-            (self._settings['use_stochastic_forward_dynamics'] == True)):
-            with_std = lasagne.layers.DenseLayer(
-                    networkAct, num_units=self._result_state_length,
-                    nonlinearity=theano.tensor.nnet.softplus)
-            self._forward_dynamics_net = lasagne.layers.ConcatLayer([self._forward_dynamics_net, with_std], axis=1)
-                
-        self._states_shared = theano.shared(
-            np.zeros((batch_size, self._state_length),
-                     dtype=theano.config.floatX))
-
-        self._next_states_shared = theano.shared(
-            np.zeros((batch_size, self._result_state_length),
-                     dtype=theano.config.floatX))
-
-        self._actions_shared = theano.shared(
-            np.zeros((batch_size, self._action_length), dtype=theano.config.floatX),
-            )
-        
-        self._rewards_shared = theano.shared(
-            np.zeros((self._batch_size, 1), dtype=theano.config.floatX),
-            broadcastable=(False, True))
-        
+        else:
+            self._forward_dynamics_net = Model(input=[self._stateInput, self._actionInput], output=network)

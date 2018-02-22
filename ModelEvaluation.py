@@ -469,12 +469,17 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                                 # print("MBAE p: ", p)
                             else:
                                 mbae_lr = settings["action_learning_rate"]
+                                
+                            if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
+                                std_p = p
+                            else:
+                                std_p = 1.0
                             if ( 'use_random_actions_for_MBAE' in settings):
                                 use_rand_act = settings['use_random_actions_for_MBAE']
                             else: 
                                 use_rand_act = False
                             # print ("old action:", action)
-                            (action, value_diff) = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_, action_lr=mbae_lr, use_random_action=use_rand_act, p=mbae_lr)
+                            (action, value_diff) = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_, action_lr=mbae_lr, use_random_action=use_rand_act, p=std_p)
                             # print ("new action:", action)
                             # if ( 'give_mbae_actions_to_critic' in settings and 
                             #      (settings['give_mbae_actions_to_critic'] == False)):
