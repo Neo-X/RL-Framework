@@ -308,7 +308,7 @@
 	"comment__": "Additional on-policy training updates",
 "additional_on-poli_trianing_updates": 320,
 	"comment__": "Annealing the std of the policy",
-"anneal_policy_std": false	
-	"comment__": "Anneal the std for the policy but only for MBAE samples"
+"anneal_policy_std": false,	
+	"comment__": "Anneal the std for the policy but only for MBAE samples",
 "MBAE_anneal_policy_std": true
 }
