@@ -95,7 +95,7 @@ class SimInterface(object):
         """
         pass
     
-    def updateViz(self, actor, agent, directory):
+    def updateViz(self, actor, agent, directory, p=1.0):
         """
             Maybe the sim has some cool visualization of the policy or something.
             This will update that visualization
