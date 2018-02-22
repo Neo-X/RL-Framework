@@ -26,9 +26,6 @@ class GANKeras(AlgorithmInterface):
         super(GANKeras,self).__init__(model, state_length, action_length, state_bounds, action_bounds, 0, settings_)
         self._noise_mean = 0.0
         self._noise_std = 1.0
-        self._noise_shared = theano.shared(
-            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
-            broadcastable=(False, True))
 
         # if settings['action_space_continuous']:
         if ( 'size_of_result_state' in self.getSettings()):
@@ -54,7 +51,6 @@ class GANKeras(AlgorithmInterface):
         
         self._learning_rate = self.getSettings()["fd_learning_rate"]
         self._regularization_weight = 1e-5
-        self._discount_factor= self.getSettings()['discount_factor']
         self._rho = self.getSettings()['rho']
         self._rms_epsilon = self.getSettings()['rms_epsilon']
         

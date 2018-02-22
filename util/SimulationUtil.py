@@ -812,7 +812,23 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                 fd_net = agentModel.getModel()
             else:
                 fd_net = createForwardDynamicsNetwork(state_bounds, action_bounds, settings)
-            if ('train_state_encoding' in settings and (settings['train_state_encoding'])):
+            
+            if ('fd_algorithm' in settings ):
+                from algorithm.AlgorithmInterface import AlgorithmInterface
+                algorihtm_type = settings['fd_algorithm']
+                # modelClass = my_import(path_)
+                modelAlgorithm = locate(algorihtm_type)
+                if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
+                    forwardDynamicsModel = modelAlgorithm(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]),
+                                            state_bounds=state_bounds, 
+                                  action_bounds=action_bounds, settings_=settings)
+                    print("Loaded FD algorithm: ", forwardDynamicsModel)
+                    # return model
+                else:
+                    print ("Unknown learning algorithm type: " + str(algorihtm_type))
+                    raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+                # sys.exit(2)
+            elif ('train_state_encoding' in settings and (settings['train_state_encoding'])):
                 from algorithm.EncodingModel import EncodingModel
                 forwardDynamicsModel = EncodingModel(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 
                                                        state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
@@ -878,6 +894,7 @@ def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
     else:
         from model.ModelInterface import ModelInterface
         # modelClass = my_import(path_)
+        print("Loading FD model type:", settings["forward_dynamics_model_type"])
         modelClass = locate(settings["forward_dynamics_model_type"])
         if ( issubclass(modelClass, ModelInterface)): ## Double check this load will work
             model = modelClass(len(state_bounds[0]), len(action_bounds[0]), 
