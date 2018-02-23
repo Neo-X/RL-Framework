@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.A_CACLA.A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere/USE_GAE/10D/_3",
+"data_folder": "Nav_Sphere/Dont_USE_GAE/10D/_3",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -156,7 +156,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
     "comment__": "Initial temperature for anealling of e-greedy exploration",
-"initial_temperature": 5.0,
+"initial_temperature": 3.0,
     "comment__": "epsilon lower limit",
 "min_epsilon": 0.10,
     "comment__": "Whether or not to draw/render the simulation",
@@ -312,5 +312,5 @@
 	"comment__": "Use the on-policy value function to compute state gradients instead of off-policy one for SMBAE.",
 "use_extra_value_for_MBAE_state_grads": true,
 	"comment__": "Use advantage estimate instead of critic for selecting good actions to learn from CACLA",
-"CACLA_use_advantage": true
+"CACLA_use_advantage": false
 }

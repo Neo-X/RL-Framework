@@ -18,7 +18,7 @@ from email.mime.multipart import MIMEMultipart
 # with open(textfile) as fp:
 def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False, dataFile=None, pictureFile=None):
     # Create a text/plain message
-    messageBody = contents + "\n" + simSettings
+    messageBody = contents + "\n" + str(simSettings)
     msg = MIMEMultipart()
     msgBody = MIMEText(messageBody)
     msg.attach(msgBody)
@@ -107,4 +107,4 @@ if __name__ == '__main__':
         sendEmail("Testing", "Nothing", settings=settings_, simSettings=sys.argv[2], testing=False)
         
     else:
-        sendEmail("Testing", "Nothing", testing=True)
+        sendEmail("Testing", "Nothing", hyperSettings={}, testing=True)
