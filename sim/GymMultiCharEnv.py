@@ -98,7 +98,7 @@ class GymMultiCharEnv(SimInterface):
         character_features = next_state_[_t_length+2:]
         self.getEnvironment().visualizeNextState(terrain, action, terrain_dx)  
     
-    def updateViz(self, actor, agent, directory):
+    def updateViz(self, actor, agent, directory, p=1.0):
         pass
 
     def generateValidationEnvironmentSample(self, numb):
