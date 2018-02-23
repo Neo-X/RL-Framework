@@ -1069,8 +1069,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             print ("(state_avg - (state_stddev * 2.0)): ", (state_avg - (state_stddev * 2.0)))
             state_bounds[0] = (state_avg - (state_stddev * 2.0))
             state_bounds[1] = (state_avg + (state_stddev * 2.0))
-            reward_bounds[0] = (reward_avg - (reward_stddev))
-            reward_bounds[1] = (reward_avg + (reward_stddev))
+            reward_bounds[0] = (reward_avg - (reward_stddev * 2.0))
+            reward_bounds[1] = (reward_avg + (reward_stddev * 2.0))
             # action_bounds[0] = action_avg - action_stddev
             # action_bounds[1] = action_avg + action_stddev
         elif (settings['state_normalization'] == "given"):
