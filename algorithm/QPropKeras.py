@@ -57,7 +57,6 @@ class QPropKeras(AlgorithmInterface):
         
         self._QProp_N = T.col("QProp_N")
         self._QProp_N.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
-        
         self._QProp_N_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
             broadcastable=(False, True)) 

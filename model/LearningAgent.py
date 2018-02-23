@@ -162,10 +162,11 @@ class LearningAgent(AgentInterface):
             # print ("Actions after: ", _actions)
             cost = 0
             additional_on_poli_trianing_updates = 1
-            if ( "additional_on-poli_trianing_updates" in self._settings):
+            if ( "additional_on-poli_trianing_updates" in self._settings 
+                 and (self._settings["additional_on-poli_trianing_updates"] != False)):
                 additional_on_poli_trianing_updates = self._settings["additional_on-poli_trianing_updates"]
                 ### The data should be seen ~ 4 times
-                additional_on_poli_trianing_updates = int((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / value_function_batch_size)
+                additional_on_poli_trianing_updates = int(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / value_function_batch_size) * additional_on_poli_trianing_updates)
                 print ("additional_on_poli_trianing_updates: ", additional_on_poli_trianing_updates)
                 
                 if ( additional_on_poli_trianing_updates < 1 ):

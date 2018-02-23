@@ -52,33 +52,37 @@ class FDNetDenseKeras(ModelInterface):
         if (not insert_action_later or (double_insert_action)):
             input = self._actor = keras.layers.concatenate(inputs=[self._stateInput, self._actionInput], axis=-1)
             
+        decrease_param_factor=int(2)
         ## Activation types
         # activation_type = elu_mine
         # activation_type=lasagne.nonlinearities.tanh
         # activation_type=keras.layers.LeakyReLU(alpha=0.01)
-        activation_type=getKerasActivation("tanh")
+        # activation_type="leaky_rectify"
+        activation_type="tanh"
+        # getKerasActivation(activation_type)
+        # activation_type=getKerasActivation("tanh")
         # activation_type=lasagne.nonlinearities.rectify
         # network = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
-        network = Dense(128, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(input)
-        network = activation_type(network)   
+        network = Dense(int(128/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(input)
+        network = getKerasActivation(activation_type)(network)   
         network = Dropout(rate=self._dropout_p)(network)     
         # layersAct = [network]
         
         if ( insert_action_later ):
             ### Lets try adding the action input later on in the network
             if ( add_layers_after_action ):
-                networkA = Dense(32, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._actionInput)
-                networkA = activation_type(networkA)   
+                networkA = Dense(int(32/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._actionInput)
+                networkA = getKerasActivation(activation_type)(networkA)   
                 network = keras.layers.concatenate(inputs=[network, networkA], axis=-1)
             else:
                 network = keras.layers.concatenate(inputs=[network, self._actionInput], axis=-1)
         
-        network = Dense(64, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
-        network = activation_type(network)   
+        network = Dense(int(64/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
+        network = getKerasActivation(activation_type)(network)   
         network = Dropout(rate=self._dropout_p)(network)   
         
-        network = Dense(32, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
-        network = activation_type(network)   
+        network = Dense(int(32/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
+        network = getKerasActivation(activation_type)(network)   
         network = Dropout(rate=self._dropout_p)(network)   
         
         
@@ -86,58 +90,56 @@ class FDNetDenseKeras(ModelInterface):
         # network = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
         # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
         network = Dense(8, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
-        network = activation_type(network)   
+        network = getKerasActivation(activation_type)(network)   
         network = Dropout(rate=self._dropout_p)(network)   
-        """
-        network = lasagne.layers.DenseLayer(
-                network, num_units=8,
-                nonlinearity=activation_type)
-        """
+
         ## This can be used to model the reward function
         network = Dense(1, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
         network = getKerasActivation("linear")(network)   
         self._reward_net = Model(input=[self._stateInput, self._actionInput], output=network)
+        print("Reward Net summary: ",  self._reward_net.summary())
                 
         ### discriminator
         inputDiscrominator = keras.layers.concatenate(inputs=[self._stateInput, self._actionInput, self._nextStateInput], axis=-1)
         
-        networkDiscrominator = Dense(128, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
-        networkDiscrominator = activation_type(networkDiscrominator)   
+        networkDiscrominator = Dense(int(128/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
+        networkDiscrominator = getKerasActivation(activation_type)(networkDiscrominator)   
         networkDiscrominator = Dropout(rate=self._dropout_p)(networkDiscrominator) 
         # layersAct = [network]
         
         if ( insert_action_later ):
             ### Lets try adding the action input later on in the network
             if ( add_layers_after_action ):
-                networkA = Dense(32, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._actionInput)
-                networkA = activation_type(networkA)
+                networkA = Dense(int(32/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._actionInput)
+                networkA = getKerasActivation(activation_type)(networkA)
                 networkDiscrominator = keras.layers.concatenate(inputs=[networkDiscrominator, networkA], axis=-1)
             else:
                 networkDiscrominator = keras.layers.concatenate(inputs=[networkDiscrominator, self._actionInput], axis=-1)
         
-        networkDiscrominator = Dense(64, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
-        networkDiscrominator = activation_type(networkDiscrominator)   
+        networkDiscrominator = Dense(int(64/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkDiscrominator)
+        networkDiscrominator = getKerasActivation(activation_type)(networkDiscrominator)   
         networkDiscrominator = Dropout(rate=self._dropout_p)(networkDiscrominator) 
         
         # layersAct.append(network)
         # network = lasagne.layers.ConcatLayer([layersAct[1], layersAct[0]])
         
-        networkDiscrominator = Dense(32, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
-        networkDiscrominator = activation_type(networkDiscrominator)   
+        networkDiscrominator = Dense(int(32/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkDiscrominator)
+        networkDiscrominator = getKerasActivation(activation_type)(networkDiscrominator)   
         networkDiscrominator = Dropout(rate=self._dropout_p)(networkDiscrominator) 
         
         
         # layersAct.append(network)
         # network = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
         # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        networkDiscrominator = Dense(8, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
-        networkDiscrominator = activation_type(networkDiscrominator)   
+        networkDiscrominator = Dense(8, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkDiscrominator)
+        networkDiscrominator = getKerasActivation(activation_type)(networkDiscrominator)   
         networkDiscrominator = Dropout(rate=self._dropout_p)(networkDiscrominator) 
         ## This can be used to model the reward function
-        networkDiscrominator = Dense(1, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(inputDiscrominator)
+        networkDiscrominator = Dense(1, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkDiscrominator)
         networkDiscrominator = getKerasActivation("linear")(networkDiscrominator)   
         
         self._critic = Model(input=[self._stateInput, self._actionInput, self._nextStateInput], output=networkDiscrominator)
+        print("Discriminator Net summary: ",  self._critic.summary())
                 
         input = keras.layers.concatenate(inputs=[self._stateInput, self._actionInput], axis=-1)
         ### dynamics network
@@ -150,22 +152,22 @@ class FDNetDenseKeras(ModelInterface):
             input = keras.layers.concatenate(inputs=[input, self._noiseInput], axis=-1)
           
         # networkAct = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
-        networkAct = Dense(256, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(input)
-        networkAct = activation_type(networkAct)   
+        networkAct = Dense(int(256/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(input)
+        networkAct = getKerasActivation(activation_type)(networkAct)   
         networkAct = Dropout(rate=self._dropout_p)(networkAct)
         # networkAct = weight_norm(networkAct)
         layersAct = [networkAct]
         
-        networkAct = Dense(128, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-        networkAct = activation_type(networkAct)   
+        networkAct = Dense(int(128/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+        networkAct = getKerasActivation(activation_type)(networkAct)   
         networkAct = Dropout(rate=self._dropout_p)(networkAct)
         # networkAct = weight_norm(networkAct)
         
         if ( insert_action_later ):
             ### Lets try adding the action input later on in the network
             if ( add_layers_after_action ):
-                networkActA = Dense(64, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._actionInput)
-                networkAct = activation_type(networkAct)   
+                networkActA = Dense(int(64/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._actionInput)
+                networkAct = getKerasActivation(activation_type)(networkAct)   
                 networkAct = keras.layers.concatenate(inputs=[networkAct, networkActA], axis=-1)
             else:
                 networkAct = keras.layers.concatenate(inputs=[networkAct, self._actionInput], axis=-1)
@@ -174,16 +176,16 @@ class FDNetDenseKeras(ModelInterface):
         layersAct.append(networkAct)
         networkAct = keras.layers.concatenate(inputs=[layersAct[1], layersAct[0]], axis=-1)
         
-        networkAct = Dense(64, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-        networkAct = activation_type(networkAct)   
+        networkAct = Dense(int(64/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+        networkAct = getKerasActivation(activation_type)(networkAct)   
         networkAct = Dropout(rate=self._dropout_p)(networkAct)
         
         # networkAct = weight_norm(networkAct)
         layersAct.append(networkAct)
-        networkAct = keras.layers.concatenate(inputs=[layersAct[2], layersAct[1], layersAct[0]], axis=-1)
+        # networkAct = keras.layers.concatenate(inputs=[layersAct[2], layersAct[1], layersAct[0]], axis=-1)
         
         networkAct = Dense(self._result_state_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-        networkAct = activation_type(networkAct)
+        networkAct = getKerasActivation(activation_type)(networkAct)
     
         if ("train_gan_with_gaussian_noise" in settings_ 
             and (settings_["train_gan_with_gaussian_noise"] == True)
@@ -195,6 +197,7 @@ class FDNetDenseKeras(ModelInterface):
         else:
             self._forward_dynamics_net = Model(input=[self._stateInput, self._actionInput], output=networkAct)
 
+        print("FD Net summary: ",  self._forward_dynamics_net.summary())
 
         self._states_shared = theano.shared(
             np.zeros((batch_size, self._state_length),

@@ -137,7 +137,7 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         #    self.updateTargetModel()
         self._updates += 1
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
-        if ( self._train_combined_loss ):\
+        if ( self._train_combined_loss ):
             pass
             # loss = self._train_combined()
             # loss = self._train_combined()
@@ -169,15 +169,8 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         return loss
     
     def predict(self, state, action):
-        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
-        # states[0, ...] = state
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        # print ("fd state: ", state)
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        self._model.setStates(state)
-        self._model.setActions(action)
-        # print ("State bounds: ", self._state_bounds)
-        # print ("fd output: ", self._forwardDynamics()[0])
         state_ = scale_state(self.fd([state, action,0])[0], self._state_bounds)
         return state_
     

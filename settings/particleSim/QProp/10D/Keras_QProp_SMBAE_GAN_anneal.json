@@ -306,7 +306,7 @@
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
 "train_critic_with_fd_data": true,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 320,
+"additional_on-poli_trianing_updates": 1,
 	"comment__": "Annealing the std of the policy",
 "anneal_policy_std": false,	
 	"comment__": "Anneal the std for the policy but only for MBAE samples",

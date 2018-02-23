@@ -162,7 +162,7 @@
     "comment__": "Whether or not to draw/render the simulation",
 "shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
-"action_learning_rate": 1.00,
+"action_learning_rate": 0.50,
     "comment__": "During model-based action exloration, Probability of a random action being generated from MBAE,",
 "model_based_action_omega": 0.20,
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
@@ -254,7 +254,7 @@
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy rollouts to perform per epoch",
-"num_on_policy_rollouts": 5,
+"num_on_policy_rollouts": 6,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": false,
 	"comment__": "PPO should use seperate networks for the value and policy functions",
@@ -306,5 +306,5 @@
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
 "train_critic_with_fd_data": true,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 40	
+"additional_on-poli_trianing_updates": 1,	
 }
