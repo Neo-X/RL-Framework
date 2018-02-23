@@ -433,8 +433,12 @@ class A_CACLA(AlgorithmInterface):
         # loss, _ = self._train()
         # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
-        
-        diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
+        if ( 'CACLA_use_advantage' in self.getSettings() 
+             and (self.getSettings()['CACLA_use_advantage'] == True)):
+            # print ("Using advantage for CACLA")
+            diff_ = advantage
+        else:
+            diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
         # print ("Rewards, Values, NextValues, Diff, new Diff")
         # print (np.concatenate((rewards, self._q_val(), self.get_q_valsTargetNextState(),  diff_, self._q_val() - (rewards + (self._discount_factor * self.get_q_valsTargetNextState()))), axis=1))
         """

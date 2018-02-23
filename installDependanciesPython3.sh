@@ -13,6 +13,7 @@ pip3 install --user Lasagne==0.1
 pip3 install --user dill
 pip3 install --user pathos
 pip3 install --user pyOpenGL
+pip3 install --user keras
 ## Does not work in Python3
 # pip3 install pyODE
 pip3 install --user h5py
