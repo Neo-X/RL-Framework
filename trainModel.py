@@ -1228,8 +1228,6 @@ if (__name__ == "__main__"):
     print("options: ", options)
     print("options['configFile']: ", options['configFile'])
         
-    
-    
     file = open(options['configFile'])
     settings = json.load(file)
     file.close()
