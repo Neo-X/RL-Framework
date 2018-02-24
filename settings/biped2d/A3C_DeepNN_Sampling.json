@@ -123,7 +123,7 @@
     "comment__": "Use The forward dynamics simulator as a way of sampling suggested actions for exploration",
 "use_sampling_exploration": false,
     "comment__": "Use the forward dyanmics model to perform action exploration wrt to V -> fd > delta Action gradients",
-"use_model_based_action_optimization": false,
+"use_model_based_action_optimization": true,
     "comment__": "Flag for policy evaluation to swap in the task network from one model and the character/robot network from another",
 "use_transfer_task_network": false,
     "comment__": "Add a large cost to actions that are suggested to be outside the action bounds.",

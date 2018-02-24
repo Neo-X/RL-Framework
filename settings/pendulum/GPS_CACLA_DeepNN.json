@@ -72,7 +72,7 @@
 "use_guided_policy_search" : true,
 "training_updates_per_sim_action": 2,
 "use_sampling_exploration": true,
-"use_model_based_action_optimization": false,
+"use_model_based_action_optimization": true,
 "penalize_actions_outside_bounds": false,
 "use_transfer_task_network": false,
 "forward_dynamics_model_type": "model.ForwardDynamicsDenseNetworkDropout.ForwardDynamicsDenseNetworkDropout",

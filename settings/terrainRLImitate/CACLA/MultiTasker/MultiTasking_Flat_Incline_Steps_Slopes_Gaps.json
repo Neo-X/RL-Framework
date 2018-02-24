@@ -165,7 +165,7 @@
     "comment__": "The number of training updates to perform for every action that is simulated",
 "training_updates_per_sim_action": 1,
     "comment__": "Use the forward dynamics model to perform action exploration wrt to V -> fd > delta Action gradients",
-"use_model_based_action_optimization": false,
+"use_model_based_action_optimization": true,
     "comment__": "Flag for policy evaluation to swap in the task network from one model and the character/robot network from another",
 "use_transfer_task_network": false,
     "comment__": "Add a large cost to actions that are suggested to be outside the action bounds.",
