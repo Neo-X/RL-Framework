@@ -217,6 +217,7 @@ class LearningAgent(AgentInterface):
                                 print ("Training cost is Odd: ", cost)
                             
                     else:
+                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
                         cost = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         if not np.isfinite(cost) or (cost > 500) :
                             numpy.set_printoptions(threshold=numpy.nan)
@@ -227,6 +228,53 @@ class LearningAgent(AgentInterface):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
                         print ("Critic training complete in " + str(sim_time_) + " seconds")
+                if (self._settings['train_forward_dynamics']):
+                    t0 = time.time()
+                    if (self._settings['critic_updates_per_actor_update'] > 1):
+                        for i in range(self._settings['critic_updates_per_actor_update']):
+                            if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
+                                # print ("Using seperate (off-policy) exp mem for FD model")
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self.getFDExperience().get_batch(value_function_batch_size)
+                            else:
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self.getExperience().get_batch(value_function_batch_size)
+                            dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__)
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print ("Forward Dynamics Loss: ", dynamicsLoss)
+                            
+                                # cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                            if (self._settings['train_critic_on_fd_output'] and 
+                                (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
+                                ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
+                                ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
+                                ):
+                                predicted_result_states__ = self._fd.predict_batch(states=states__, actions=actions__)
+                                cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                                
+                                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                    print("Performing Dyna Update, loss: ", cost)
+                                # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
+                    else:
+                        dynamicsLoss = self._fd.train(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states)
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print ("Forward Dynamics Loss: ", dynamicsLoss)
+                                
+                        if (self._settings['train_critic_on_fd_output'] and 
+                            (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
+                            ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
+                            ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
+                            ):
+                            predicted_result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
+                            cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                            
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print("Performing Dyna Update, loss: ", cost)
+                            # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
+                    
+                    t1 = time.time()
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        sim_time_ = datetime.timedelta(seconds=(t1-t0))
+                        print ("FD training complete in " + str(sim_time_) + " seconds")
+
                 if (self._settings['train_actor']):
                     t1 = time.time()
                     if ( 'use_multiple_policy_updates' in self._settings and 
@@ -248,35 +296,7 @@ class LearningAgent(AgentInterface):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
                         print ("Policy training complete in " + str(sim_time_) + " seconds")
                 dynamicsLoss = 0 
-                if (self._settings['train_forward_dynamics']):
-                    t0 = time.time()
-                    for i in range(self._settings['critic_updates_per_actor_update']):
-                        if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
-                            # print ("Using seperate (off-policy) exp mem for FD model")
-                            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self.getFDExperience().get_batch(value_function_batch_size)
-                        else:
-                            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self.getExperience().get_batch(value_function_batch_size)
-                        dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__)
-                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                            print ("Forward Dynamics Loss: ", dynamicsLoss)
-                        
-                            # cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
-                        if (self._settings['train_critic_on_fd_output'] and 
-                            (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
-                            ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
-                            ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
-                            ):
-                            predicted_result_states__ = self._fd.predict_batch(states=states__, actions=actions__)
-                            cost = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
-                            
-                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                print("Performing Dyna Update, loss: ", cost)
-                            # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
-                    
-                    t1 = time.time()
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
-                        sim_time_ = datetime.timedelta(seconds=(t1-t0))
-                        print ("FD training complete in " + str(sim_time_) + " seconds")       
+                               
             ## Update scaling values
             ### Updating the scaling values after the update(s) will help make things more accurate
             if ('keep_running_mean_std_for_scaling' in self._settings and (self._settings["keep_running_mean_std_for_scaling"])):
