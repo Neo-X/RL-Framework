@@ -12,9 +12,11 @@ if __name__ == '__main__':
     std_ = 3.4
     avg_ = 2.7
     stds = []
+    y=[]
     for i in range(samples):
-        stds.append(np.random.normal(loc=std_, scale=1.1, size=1)[0])
-        x.append(np.random.normal(loc=i*avg_/10.0, scale=stds[i], size=1)[0])
+        # stds.append(np.random.normal(loc=std_, scale=1.1, size=1)[0])
+        # x.append(np.random.normal(loc=i*avg_/10.0, scale=stds[i], size=1)[0])
+        x.append(np.random.normal(loc=i*avg_/10.0, scale=std_, size=1)[0])
         
     x = np.array(x)
     
@@ -28,4 +30,11 @@ if __name__ == '__main__':
     y = (y * std_) + avg_
     print("mean scaled: ", np.mean(y))
     print("std scaled: ", np.std(y))
+    
+    y = np.array(list(range(samples))) - 100
+    std__ = np.std(y)*2.0
+    y_ = y / std__
+    
+    print( "y std: ", std__)
+    print( "y_: ", y_)
     

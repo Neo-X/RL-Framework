@@ -250,7 +250,7 @@
 	"comment__": "Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occured",
 "reset_on_fall":true,
 	"comment__": "Whether a model of the reward r <- R(s,a) should be trained",
-"train_reward_predictor": false,
+"train_reward_predictor": true,
 	"comment__": "How many gradient steps model based actino exploration should take",
 "num_mbae_steps": 1,
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
