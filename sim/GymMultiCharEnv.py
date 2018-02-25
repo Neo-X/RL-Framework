@@ -85,6 +85,42 @@ class GymMultiCharEnv(SimInterface):
         
         return state_
     
+    def getLLCState(self):
+        """
+            Want just the character state at the end.
+        """
+        state_ = self.getEnvironment().getLLCState()
+        # print ("state_: ", state_)
+        # state = np.array(state_)[200:]
+        # state = np.reshape(state, (-1, len(state_)-200))
+        state = np.array(state_)
+        state = np.reshape(state, (-1, len(state_)))
+        return state
+    
+    def update(self):
+        for i in range(1):
+            self.getEnvironment().update()
+            self._num_updates_since_last_action+=1
+        # self.getEnvironment().display()
+            
+    def updateAction(self, action_):
+        
+        self.getActor().updateAction(self, action_)
+        self._num_updates_since_last_action = 0
+        print("update action: self._num_updates_since_last_action: ", self._num_updates_since_last_action)
+
+    def updateLLCAction(self, action_ ):
+        self.getActor().updateLLCAction(self, action_)
+        
+    def needUpdatedAction(self):
+        timestep = self.getSettings()['hlc_timestep']
+        print ("needUpdateAction: self._num_updates_since_last_action: ", self._num_updates_since_last_action )
+        if ( self._num_updates_since_last_action >= timestep):
+            return True
+        else:
+            return False
+        return
+    
     def setState(self, st):
         self._agent = st
         self._box.state[0,0] = st[0]

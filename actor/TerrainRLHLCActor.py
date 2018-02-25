@@ -18,6 +18,7 @@ class TerrainRLHLCActor(ActorInterface):
         False,        True,        True,        True,        True,        True,        True,    
         False,        True,        True,        True,        True,        True,        True]
         """
+        
         print ("Loading pre compiled network")
         file_name=self._settings['llc_policy_model_path']
         f = open(file_name, 'rb')

@@ -39,7 +39,12 @@ class DeepCNN2D(ModelInterface):
         print ("characterFeatures Shape:", lasagne.layers.get_output_shape(characterFeatures))
         print ("State length: ", self._state_length)
         
-        network = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
+        if ( len(self._settings['terrain_shape']) > 2):
+            network = lasagne.layers.ReshapeLayer(taskFeatures, (-1, self._settings['terrain_shape'][2], self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
+            print("Creating terrain input with 3 channels")
+        else:
+            network = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
+            print("Creating terrain input with 1 channel")
         
         network = lasagne.layers.Conv2DLayer(
             network, num_filters=8, filter_size=(8,8),
@@ -105,8 +110,12 @@ class DeepCNN2D(ModelInterface):
         # taskFeaturesAct = lasagne.layers.SliceLayer(networkAct, indices=slice(0, self._settings['num_terrain_features']), axis=1)
         # characterFeaturesAct = lasagne.layers.SliceLayer(networkAct, indices=slice(self._settings['num_terrain_features']+1,self._state_length), axis=1)
         
-        networkAct = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
-        
+        if ( len(self._settings['terrain_shape']) > 2):
+            networkAct = lasagne.layers.ReshapeLayer(taskFeatures, (-1, self._settings['terrain_shape'][2], self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
+            print("Creating terrain input with 3 channels")
+        else:
+            networkAct = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
+            
         networkAct = lasagne.layers.Conv2DLayer(
             networkAct, num_filters=8, filter_size=(8,8),
             stride=4,
