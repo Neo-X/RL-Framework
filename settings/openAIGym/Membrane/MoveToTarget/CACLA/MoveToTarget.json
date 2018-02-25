@@ -158,7 +158,7 @@
     "comment__": "Initial tempurature for annealing of e-greedy exploration",
 "initial_temperature": 3.25,
     "comment__": "epsilon lower limit",
-"min_epsilon": 0.20,
+"min_epsilon": 0.35,
     "comment__": "Whether or not to draw/render the simulation",
 "shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",

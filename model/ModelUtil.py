@@ -790,7 +790,7 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
             # action_grads = action_grads * np.random.uniform(low=0.0, high = 1.0, size=1)[0]
             action_grads = action_grads * (np.fabs(np.random.normal(loc=0.0, scale = 1.0, size=1)[0]))
             
-        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['train']):
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print ("Applied action: ", action_grads)
             # print ("Action magnitude: ", np.sqrt((action_grads*action_grads).sum()), " mean, ", np.mean(np.abs(action_grads)))
             print ("Action magnitude: ", np.sqrt((action_grads*action_grads).sum()), " std, ", np.std(action_grads))
@@ -823,7 +823,7 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         # repeat
     ### This should be higher
     value_diff = final_value - init_value
-    if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['train']):
+    if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
         print ("New action: ", action, " action diff: ", (action - init_action), " value change: ", 
                (value_diff))
         print ("dynamics_grads: ", dynamics_grads)

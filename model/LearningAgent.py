@@ -323,6 +323,10 @@ class LearningAgent(AgentInterface):
                     else:
                         _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
                         loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                        if ('rebatch_data' in self._settings 
+                            and (self._settings['rebatch_data'] == True)
+                            ):
+                            _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
 
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Critic loss: ", loss)
