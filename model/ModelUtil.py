@@ -667,7 +667,7 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
     if ( use_random_action ):
         action_bounds = np.array(model.getSettings()["action_bounds"], dtype=model.getSettings()["float_type"])
         std_ = model.predict_std(state)
-        # print("Annealing random action explore for MBAE: ", p)
+        print("Annealing random action explore for MBAE: ", p)
         std_ = std_ * p
         action = randomExporationSTD(action, std_, action_bounds)
 
