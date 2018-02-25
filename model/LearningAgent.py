@@ -317,21 +317,13 @@ class LearningAgent(AgentInterface):
                     if ( 'give_mbae_actions_to_critic' in self._settings and 
                          (self._settings['give_mbae_actions_to_critic'] == False)):
                         # if ( np.random.random() >= self._settings['model_based_action_omega']):
-                        if ( np.random.random() >=-1.0 ):
-                            _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.getNonMBAEBatch(value_function_batch_size)
-                            loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
-                        else:
-                            ### off-policy action update
-                            # print('off-policy action update')
-                            _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
-                            actions____ = self._pol.predict_batch(states=_result_states) ### I think these could have noise added to them.
-                            predicted_result_states__ = self._fd.predict_batch(states=_result_states, actions=actions____)
-                            rewards____ = self._fd.predict_reward_batch(states=_result_states, actions=actions____)
-                            loss = self._pol.trainCritic(states=_result_states, actions=actions____, rewards=rewards____, result_states=predicted_result_states__, falls=_falls)
+                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.getNonMBAEBatch(value_function_batch_size)
+                        loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
                     else:
                         _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
-                    # print ("Updating Critic")
                         loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Critic loss: ", loss)
                     if not np.isfinite(cost) or (cost > 500) :

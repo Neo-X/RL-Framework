@@ -94,13 +94,20 @@ class GymMultiCharActor(ActorInterface):
     def updateActor(self, sim, action_):
         # llc_state = sim.getState()[:,self._settings['num_terrain_features']:]
         llc_state = sim.getLLCState()
-        print("LLC state: ", llc_state.shape)
+        print("LLC state: ", llc_state.shape,  " ", llc_state)
+        print("LLC state: ", llc_state[0].shape,  " ", llc_state[0])
+        llc_state = np.array(llc_state[0])
         # action__ = np.array([[action_[0], action_[1], 0.0, action_[2], action_[3], 0.0, action_[4]]])
-        action__ = np.array([[action_[4], action_[0], 0.0, action_[1], action_[2], 0.0, action_[3]]])
         # print ("llc pose state: ", llc_state.shape, repr(llc_state))
         # print ("hlc action: ", action__.shape, repr(action__))
         # llc_state = np.concatenate((llc_state, action__), axis=1)
-        llc_state[:,-7:] = action__
+        for i in range(len(action_)):
+            # action__ = np.array([[action_[i][4], action_[i][0], 0.0, action_[i][1], action_[i][2], 0.0, action_[i][3]]])
+            action__ = np.array([action_[i][4], action_[i][0], 0.0, action_[i][1], action_[i][2], 0.0, action_[i][3]])
+            print ("LLC goal: ", action__)
+            print ("LLC Current state: ", llc_state[i])
+            print ("LLC Current goal: ", llc_state[i][-7:])
+            llc_state[i][-7:] = action__
         # print ("llc_state: ", llc_state.shape, llc_state)
         llc_action = self._llc_policy.predict(llc_state)
         # print("llc_action: ", llc_action.shape, llc_action)
