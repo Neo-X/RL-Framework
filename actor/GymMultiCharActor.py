@@ -60,8 +60,8 @@ class GymMultiCharActor(ActorInterface):
         stumble_count=0
         torque_sum=0
         tmp_reward_sum=0
-        print ("sim.needUpdatedAction(): ", sim.needUpdatedAction())
-        print ("sim.getEnvironment().agentHasFallen(): ", sim.endOfEpoch())
+        print ("sim: ", sim, " sim.needUpdatedAction(): ", sim.needUpdatedAction())
+        print ("sim.agentHasFallen(): ", sim.endOfEpoch())
         while (not sim.needUpdatedAction() and (updates_ < 100)
                and (not sim.endOfEpoch())
                ):

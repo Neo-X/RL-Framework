@@ -102,7 +102,7 @@ class GymMultiCharEnv(SimInterface):
             self.getEnvironment().update()
             self._num_updates_since_last_action+=1
         # self.getEnvironment().display()
-            
+                
     def updateAction(self, action_):
         
         self.getActor().updateAction(self, action_)
@@ -139,13 +139,17 @@ class GymMultiCharEnv(SimInterface):
 
     def generateValidationEnvironmentSample(self, numb):
         pass
-    
+    """
     def needUpdatedAction(self):
         return True
-    
+    """
+    """
     def updateAction(self, action):
         self.step(action)
-
+        self._num_updates_since_last_action = 0
+        print("update action: self._num_updates_since_last_action: ", self._num_updates_since_last_action)
+    """
+    
     def update(self):
         pass
     
