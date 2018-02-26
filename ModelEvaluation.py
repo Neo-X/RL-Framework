@@ -476,7 +476,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         else:
                         """
                         mbae_omega = settings["model_based_action_omega"]
-                        print ("model_based_action_omega", settings["model_based_action_omega"])
+                        # print ("model_based_action_omega", settings["model_based_action_omega"])
                         if (np.random.rand(1)[0] < mbae_omega):
                             ## Need to be learning a forward dynamics deep network for this
                             mbae_lr = settings["action_learning_rate"]
