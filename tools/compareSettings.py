@@ -13,7 +13,6 @@ import lasagne
 import os
 import json
 
-from util.SimulationUtil import loadNetwork 
 
 def compareSettings(agent1, agent2):
     """
