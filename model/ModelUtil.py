@@ -497,22 +497,25 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
     init_value = model.q_value(state)
     # print ("Initial value: ", init_value)
     action_grads_tmp = np.array(model.getSettings()["action_bounds"][0]) * 0.0
+    action_tmp = np.array(model.getSettings()["action_bounds"][0]) * 0.0
     next_state_tmp = state * 0.0
     for i in range(num_samples):
         action = model.predict(state)
         if ( use_random_action ):
-            action_bounds = np.array(model.getSettings()["action_bounds"], dtype=float)
-            std_ = model.predict_std(state_)
+            action_bounds = np.array(model.getSettings()["action_bounds"], dtype=model.getSettings()["float_type"])
+            std_ = model.predict_std(state)
+            # print("Annealing random action explore for MBAE: ", p)
+            std_ = std_ * p
             action = randomExporationSTD(action, std_, action_bounds)
         init_action = copy.deepcopy(action)
         ## find next state with dynamics model
-        next_state = np.reshape(forwardDynamicsModel.predict(state, [action]), (1, model.getStateSize()))
+        next_state = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
         if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print(" MBAE mean: ", next_state)
         """
         if ('use_stochastic_forward_dynamics' in model.getSettings() and 
             (model.getSettings()['use_stochastic_forward_dynamics'] == True)):
-            std = forwardDynamicsModel.predict_std(state, [action])
+            std = forwardDynamicsModel.predict_std(state, action)
             if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
                 print ("SMBAE std: ", std)
             if ('num_stochastic_forward_dynamics_samples' in model.getSettings()):
@@ -525,7 +528,7 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
         elif ('use_stochastic_forward_dynamics' in model.getSettings() and 
             (model.getSettings()['use_stochastic_forward_dynamics'] == "dropout")):
             # print("Getting fd dropout sample:")
-            next_state = np.reshape(forwardDynamicsModel.predictWithDropout(state, [action]), (1, model.getStateSize()))
+            next_state = np.reshape(forwardDynamicsModel.predictWithDropout(state, action), (1, model.getStateSize()))
             # next_state = forwardDynamicsModel.predictWithDropout
         """
         # value_ = model.q_value(next_state)
@@ -597,11 +600,13 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
                 print ("Reward_Grad magnitude: ", np.sqrt((reward_grad*reward_grad).sum()))
                 
             action_grads_tmp = action_grads_tmp + dynamics_grads
+            action_tmp = action_tmp + action
         ## Grab the part of the grads that is the action
         # action_grads = dynamics_grads[:, state_length:] * learning_rate
         
         action_grads_tmp = action_grads_tmp / float(num_samples)
         action_grads = action_grads_tmp
+        action_ = action_tmp / float(num_samples)
         """ 
         if ('use_dpg_grads_for_MBAE' in model.getSettings() and model.getSettings()['use_dpg_grads_for_MBAE']):
             action_grads = model.getActionGrads(state)[0]
@@ -613,10 +618,10 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
         ## Normalize action length
         
         
-    action_grads = (action_grads/(np.sqrt((action_grads*action_grads).sum()))) * (learning_rate)
+    action_grads = ( action_grads / np.std(action_grads) ) * (learning_rate)
     if ('randomize_MBAE_action_length' in model.getSettings() and ( model.getSettings()['randomize_MBAE_action_length'])):
         # action_grads = action_grads * np.random.uniform(low=0.0, high = 1.0, size=1)[0]
-        action_grads = action_grads * (np.fabs(np.random.normal(loc=0.0, scale = 0.5, size=1)[0]))
+        action_grads = action_grads * (np.fabs(np.random.normal(loc=0.0, scale = 1.0, size=1)[0]))
         
     ## Scale action by action bounds
     action_grads = rescale_action(action_grads, model.getActionBounds())
@@ -626,17 +631,16 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
     # action_grads = action_grads * learning_rate
     # print ("action_grad2: ", action_grads)
     ## Use grad to update action parameters
-    action = action + action_grads
-    action = action[0]
+    action = action_ + action_grads
     # print ("action_grad: ", action_grads, " new action: ", action)
     # print ( "Action shape: ", action.shape)
     # print (" Action diff: ", (action - init_action))
-    next_state_ = np.reshape(forwardDynamicsModel.predict(state, [action]), (1, model.getStateSize()))
+    next_state_ = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
         
         # print ("Next_state: ", next_state_.shape, " values ", next_state_)
     final_value = model.q_value(next_state_)
     if ( model.getSettings()['train_reward_predictor']):
-        reward = forwardDynamicsModel.predict_reward(state, [action])
+        reward = forwardDynamicsModel.predict_reward(state, action)
         # print ("Estimated reward: ", reward)
         final_value = reward + (model.getSettings()['discount_factor'] * final_value)
 
@@ -703,7 +707,7 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         elif ('use_stochastic_forward_dynamics' in model.getSettings() and 
             (model.getSettings()['use_stochastic_forward_dynamics'] == "dropout")):
             # print("Getting fd dropout sample:")
-            next_state = np.reshape(forwardDynamicsModel.predictWithDropout(state, [action]), (1, model.getStateSize()))
+            next_state = np.reshape(forwardDynamicsModel.predictWithDropout(state, action), (1, model.getStateSize()))
             # next_state = forwardDynamicsModel.predictWithDropout
         value_ = model.q_value(next_state)
         # print ("next state q value: ", value_)

@@ -40,7 +40,7 @@ for i_episode in range(20):
         env.render()
         # print(observation)
         action = env.action_space.sample()
-        # action = action * 0.0
+        action = action * 0.0
         observation, reward, done, info = env.step(action)
         # print("Reward: ", reward)
         rewards.append(reward)
