@@ -211,7 +211,9 @@ class SimWorker(Process):
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
-                elif (sim_on_poli): ### With exploration
+                elif (sim_on_poli): ### With exploration // I don't think this is can EVER be called anymore...
+                    print("Simulating a normal episode ??with exploration??")
+                    sys.exit()
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
@@ -221,8 +223,20 @@ class SimWorker(Process):
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval,
                             bootstrapping=bootstrapping)
                 else: ##Normal??
+                    print("Simulating a normal episode")
+                    settings_ = copy.deepcopy(self._settings)
+                    r = np.random.rand(1)[0]
+                    if ( ('perform_mbae_episode_sampling' in self._settings)
+                         and (self._settings['perform_mbae_episode_sampling'] == True)
+                        and (r > self._settings['model_based_action_omega']) ): ## regular
+                        settings_['model_based_action_omega'] = 0.0
+                    elif ( ('perform_mbae_episode_sampling' in self._settings)
+                         and (self._settings['perform_mbae_episode_sampling'] == True) 
+                         ):
+                        ## This will result in an entire episode sampled from MBAE
+                        settings_['model_based_action_omega'] = 1.0
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
-                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=settings_, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
                 self._iteration += 1
                 # if self._p <= 0.0:
@@ -462,6 +476,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         else:
                         """
                         mbae_omega = settings["model_based_action_omega"]
+                        print ("model_based_action_omega", settings["model_based_action_omega"])
                         if (np.random.rand(1)[0] < mbae_omega):
                             ## Need to be learning a forward dynamics deep network for this
                             mbae_lr = settings["action_learning_rate"]

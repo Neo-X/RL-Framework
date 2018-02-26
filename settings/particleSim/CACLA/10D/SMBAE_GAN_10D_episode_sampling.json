@@ -290,7 +290,7 @@
 	"comment__": "Compute a running mean and std for network input/output scalling",
 "keep_running_mean_std_for_scaling": false,
 	"comment__": "Prevents the critic from including MBAE actions in it's policy estimation.",
-"give_mbae_actions_to_critic": true,
+"give_mbae_actions_to_critic": false,
 	"comment__": "Batch size for the value function network",
 "value_function_batch_size": 32,
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
@@ -298,5 +298,7 @@
 	"comment__": "Additional on-policy training updates",
 "additional_on-poli_trianing_updates": 1,
 	"comment__": "Use average of policy std as mbae learning rate",
-"use_std_avg_as_mbae_learning_rate": true
+"use_std_avg_as_mbae_learning_rate": true,
+	"comment__": "Performs MBAE random sampling at the level of episodes instead of transitions",
+"perform_mbae_episode_sampling": true
 }
