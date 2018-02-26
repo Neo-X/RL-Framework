@@ -163,17 +163,41 @@ class SimWorker(Process):
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
                 elif (sim_on_poli):
+                    print("Simulating a normal episode ??with exploration?? on policy")
+                    settings_ = copy.deepcopy(self._settings)
+                    r = np.random.rand(1)[0]
+                    if ( ('perform_mbae_episode_sampling' in self._settings)
+                         and (self._settings['perform_mbae_episode_sampling'] == True)
+                        and (r > self._settings['model_based_action_omega']) ): ## regular
+                        settings_['model_based_action_omega'] = 0.0
+                    elif ( ('perform_mbae_episode_sampling' in self._settings)
+                         and (self._settings['perform_mbae_episode_sampling'] == True) 
+                         ):
+                        ## This will result in an entire episode sampled from MBAE
+                        settings_['model_based_action_omega'] = 1.0
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
-                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=settings_, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
                 elif (bootstrapping):
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval,
                             bootstrapping=bootstrapping)
-                else:    
+                else:
+                    print("Simulating a normal episode")
+                    settings_ = copy.deepcopy(self._settings)
+                    r = np.random.rand(1)[0]
+                    if ( ('perform_mbae_episode_sampling' in self._settings)
+                         and (self._settings['perform_mbae_episode_sampling'] == True)
+                        and (r > self._settings['model_based_action_omega']) ): ## regular
+                        settings_['model_based_action_omega'] = 0.0
+                    elif ( ('perform_mbae_episode_sampling' in self._settings)
+                         and (self._settings['perform_mbae_episode_sampling'] == True) 
+                         ):
+                        ## This will result in an entire episode sampled from MBAE
+                        settings_['model_based_action_omega'] = 1.0    
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
-                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
+                            anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=settings_, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
                 self._iteration += 1
                 # if self._p <= 0.0:
