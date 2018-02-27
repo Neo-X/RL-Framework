@@ -161,21 +161,23 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
             data_name_tmp = data_name_tmp + "/_" + param_of_interest + "_"+ str(params[par]) + "/"
             settings[param_of_interest] = params[par]
         
+        settings['data_folder'] = data_name + data_name_tmp
         directory= getBaseDataDirectory(settings)
         if not os.path.exists(directory):
             os.makedirs(directory)
         # file = open(settingsFileName, 'r')
         
-        settings['data_folder'] = data_name + data_name_tmp
         out_file_name=directory+os.path.basename(simsettingsFileName)
         result_data['hyper_param_settings_files'].append(out_file_name)
         print ("Saving settings file with data to: ", out_file_name)
+        print ("settings['data_folder']: ", settings['data_folder'])
         out_file = open(out_file_name, 'w')
         out_file.write(json.dumps(settings, indent=4))
         # file.close()
+        
         out_file.close()
         sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads'], copy.deepcopy(hyper_settings)))
-        
+    sys.exit()
     
     # p = ProcessingPool(2)
     p = ThreadPool(hyper_settings['tuning_threads'])
