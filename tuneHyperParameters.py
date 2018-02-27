@@ -177,7 +177,6 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
         
         out_file.close()
         sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads'], copy.deepcopy(hyper_settings)))
-    sys.exit()
     
     # p = ProcessingPool(2)
     p = ThreadPool(hyper_settings['tuning_threads'])
