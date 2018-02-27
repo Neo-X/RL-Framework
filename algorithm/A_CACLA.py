@@ -333,7 +333,13 @@ class A_CACLA(AlgorithmInterface):
         self._bellman_error2 = theano.function(inputs=[], outputs=self._diff, allow_input_downcast=True, givens=self._givens_)
         # self._bellman_errorTarget = theano.function(inputs=[], outputs=self._bellman, allow_input_downcast=True, givens=self._givens_)
         # self._diffs = theano.function(input=[self._model.getStateSymbolicVariable()])
-        self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
+        if ( 'mbae_value_use_target_net' in self.getSettings()
+             and (self.getSettings()['mbae_value_use_target_net'] == True)
+             ):
+            self._params_Target = lasagne.layers.helper.get_all_params(self._modelTarget.getCriticNetwork())
+            self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_funcTarget), [self._model._stateInputVar] + self._params_Target), allow_input_downcast=True, givens=self._givens_grad)
+        else:
+            self._get_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._q_func), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
             
         self._get_grad_policy = theano.function([], outputs=lasagne.updates.get_or_compute_grads(self._actLoss, [self._model._stateInputVar] + self._actionParams), allow_input_downcast=True, givens=self._actGivens)
         # self._get_grad = theano.function([], outputs=lasagne.updates.rmsprop(T.mean(self._q_func), [lasagne.layers.get_all_layers(self._model.getCriticNetwork())[0].input_var] + self._params, self._learning_rate , self._rho, self._rms_epsilon), allow_input_downcast=True, givens=self._givens_grad)

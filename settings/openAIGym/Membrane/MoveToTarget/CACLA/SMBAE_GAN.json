@@ -156,9 +156,9 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
     "comment__": "Initial tempurature for annealing of e-greedy exploration",
-"initial_temperature": 3.25,
+"initial_temperature": 5.0,
     "comment__": "epsilon lower limit",
-"min_epsilon": 0.3,
+"min_epsilon": 0.25,
     "comment__": "Whether or not to draw/render the simulation",
 "shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
@@ -304,5 +304,7 @@
 	"comment__": "Additional on-policy training updates",
 "additional_on-poli_trianing_updates": 1,
 	"comment__": "Use average of policy std as mbae learning rate",
-"use_std_avg_as_mbae_learning_rate": true 
+"use_std_avg_as_mbae_learning_rate": true,
+	"comment__": "Use target network for computing mbae value gradients",
+"mbae_value_use_target_net": true 
 }

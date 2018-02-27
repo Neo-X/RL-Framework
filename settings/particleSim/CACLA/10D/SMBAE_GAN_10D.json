@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.A_CACLA.A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Nav_Sphere_10D/SMBAE_GAN_mbae_act_true",
+"data_folder": "Nav_Sphere_10D/SMBAE_GAN_mbae_act_true_use_target",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -298,5 +298,7 @@
 	"comment__": "Additional on-policy training updates",
 "additional_on-poli_trianing_updates": 1,
 	"comment__": "Use average of policy std as mbae learning rate",
-"use_std_avg_as_mbae_learning_rate": true
+"use_std_avg_as_mbae_learning_rate": true,
+	"comment__": "Use target network for computing mbae value gradients",
+"mbae_value_use_target_net": true
 }
