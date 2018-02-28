@@ -53,10 +53,12 @@ class OpenAIGymEnv(SimInterface):
         self._exp.finish()
     
     def generateValidation(self, data, epoch):
-        self.initEpoch()
+        pass
+        # self.initEpoch()
     
     def generateEnvironmentSample(self):
-        self.initEpoch()
+        pass
+        # self.initEpoch()
         
     def getEvaluationData(self):
         return self.getEnvironment().getEvaluationData()

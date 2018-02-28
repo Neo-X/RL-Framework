@@ -70,9 +70,9 @@ class SimWorker(Process):
         # print ("SW model: ", self._model.getPolicy())
         # print ("Thread: ", self._model._exp)
         ## This is no needed if there is one thread only...
-        if (int(self._settings["num_available_threads"]) > 1): 
+        if (int(self._settings["num_available_threads"]) > 0): 
             from util.SimulationUtil import createEnvironment
-            print ("Creating simulation environments for simulation workers")
+            print ("************************************Creating simulation environments for simulation workers")
             self._exp = createEnvironment(self._settings["sim_config_file"], self._settings['environment_type'], self._settings, 
                                           render=self._settings['shouldRender'], index=self._worker_id)
             self._exp.setActor(self._actor)
@@ -81,6 +81,8 @@ class SimWorker(Process):
             self._exp.setRandomSeed(self._process_random_seed)
             ## The sampler might need this new model if threads > 1
             self._model.setEnvironment(self._exp)
+        else:
+            print ("sim thread exp: ", self._exp)
         
         ## This get is fine, it is the first one that I want to block on.
         print ("Waiting for initial policy update.", self._message_queue)

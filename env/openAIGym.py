@@ -18,7 +18,9 @@ import numpy as np
 # env = gym.make('BipedalWalker-v2')
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
-env = gym.make('MembraneTarget-v0')
+# env = gym.make('MembraneTarget-v0')
+env = gym.make('HardwareRand-v0')
+# MembraneHardware-v0
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
 
@@ -40,7 +42,7 @@ for i_episode in range(20):
         env.render()
         # print(observation)
         action = env.action_space.sample()
-        action = action * 0.0
+        # action = action * 0.0
         observation, reward, done, info = env.step(action)
         # print("Reward: ", reward)
         rewards.append(reward)

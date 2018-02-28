@@ -67,7 +67,7 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
         # this is the process that selects which game to play
         exp_=None
         
-        if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
+        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
             print ("Assigning same EXP")
             exp_ = exp_val # This should not work properly for many simulations running at the same time. It could try and evalModel a simulation while it is still running samples 
         print ("original exp: ", exp_)
@@ -246,7 +246,7 @@ def trainModelParallel(inputData):
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
         action_space_continuous=settings['action_space_continuous']
 
-        if (settings['num_available_threads'] == 1):
+        if (settings['num_available_threads'] == -1):
             input_anchor_queue = multiprocessing.Queue(settings['queue_size_limit'])
             input_anchor_queue_eval = multiprocessing.Queue(settings['queue_size_limit'])
             output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
@@ -407,7 +407,7 @@ def trainModelParallel(inputData):
             print ("Learning worker" )
             print (lw)
         
-        if (int(settings["num_available_threads"]) > 1):
+        if (int(settings["num_available_threads"]) > 0):
             for sw in sim_workers:
                 print ("Sim worker")
                 print (sw)
@@ -420,13 +420,14 @@ def trainModelParallel(inputData):
         
         ## This needs to be done after the simulation worker processes are created
         # exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'], )
-        exp_val = createEnvironment(settings["forwardDynamics_config_file"], settings['environment_type'], settings, render=settings['shouldRender'], index=0)
-        exp_val.setActor(actor)
-        exp_val.getActor().init()
-        exp_val.init()
+        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
+            exp_val = createEnvironment(settings["forwardDynamics_config_file"], settings['environment_type'], settings, render=settings['shouldRender'], index=0)
+            exp_val.setActor(actor)
+            exp_val.getActor().init()
+            exp_val.init()
         
         ### This is for a single-threaded Synchronous sim only.
-        if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
+        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
             sim_workers[0].setEnvironment(exp_val)
             sim_workers[0].start()
             if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
@@ -453,7 +454,7 @@ def trainModelParallel(inputData):
             print("trainModel: Sending current network parameters: ", m_q)
             m_q.put(message)
         
-        if ( int(settings["num_available_threads"]) ==  1):
+        if ( int(settings["num_available_threads"]) ==  -1):
            experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings,
                            sim_work_queues=None, 
                            eval_episode_data_queue=None)
@@ -967,7 +968,8 @@ def trainModelParallel(inputData):
                     lw.start()
                    """     
                 ## Visulaize some stuff if you want to
-                exp_val.updateViz(actor, masterAgent, directory, p=p)
+                if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
+                    exp_val.updateViz(actor, masterAgent, directory, p=p)
                 
                 
             if (round_ % settings['saving_update_freq_num_rounds']) == 0:
@@ -1105,7 +1107,8 @@ def trainModelParallel(inputData):
         
         
         print ("Finish sim")
-        exp_val.finish()
+        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
+            exp_val.finish()
         
         print ("Save last versions of files.")
         file_name=directory+getAgentName()+".pkl"
