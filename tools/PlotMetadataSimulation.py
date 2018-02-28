@@ -98,7 +98,7 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
             file.close()
         print ("Min length for ", otherDatas[j][0]['fileName'], " is ", tmp_min_length)
         
-    
+    # tmp_min_length = tmp_min_length + 1
     """
     trainData["mean_reward"]=[]
     trainData["std_reward"]=[]

@@ -72,6 +72,7 @@ class PolicyTrainVisualize(object):
                 if ( (self._length) > 0 and (j > 0) ):
                     if ( (self._length) < (len(self._trainingDatas[i]['data']["mean_eval"]) ) ):
                         x_range = range(0, self._length, 1)
+                        print ("x_range: ", x_range)
                     else:
                         x_range = range(len(self._trainingDatas[i]['data']["mean_eval"]))
                 else:
