@@ -352,8 +352,6 @@ class GAN(AlgorithmInterface):
             actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
             # rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
         self.setData(states, actions)
-        noise = np.zeros((states.shape[0],1))
-        self._noise_shared.set_value(noise)
         return self._get_grad_reward()
 
     def getNetworkParameters(self):
