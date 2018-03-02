@@ -339,9 +339,6 @@ class GAN(AlgorithmInterface):
             result_states = np.array(norm_state(result_states, self._state_bounds), dtype=self.getSettings()['float_type'])
         # result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
         self.setData(states, actions, result_states)
-        ### I think this helps?
-        noise = np.zeros((states.shape[0],1))
-        self._noise_shared.set_value(noise)
         # if (v_grad != None):
         self.setGradTarget(v_grad)
         return self._get_action_grad()
