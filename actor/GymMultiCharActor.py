@@ -60,20 +60,21 @@ class GymMultiCharActor(ActorInterface):
         stumble_count=0
         torque_sum=0
         tmp_reward_sum=0
-        print ("sim: ", sim, " sim.needUpdatedAction(): ", sim.needUpdatedAction())
-        print ("sim.agentHasFallen(): ", sim.endOfEpoch())
+        # print ("sim: ", sim, " sim.needUpdatedAction(): ", sim.needUpdatedAction())
+        # print ("sim.agentHasFallen(): ", sim.endOfEpoch())
         while (not sim.needUpdatedAction() and (updates_ < 100)
                and (not sim.endOfEpoch())
                ):
             # sim.updateAction(action_)
             self.updateActor(sim, action_)
             updates_+=1
-            print("Update #: ", updates_)
+            # print("Update #: ", updates_)
         if (updates_ == 0): #Something went wrong...
             print("There were no updates... This is bad")
             return [[0.0]]
-        reward_ = np.reshape(sim.getEnvironment().calcRewards(), (len(action_),1))
-        print ("reward_: ", reward_)
+        # reward_ = np.reshape(sim.getEnvironment().calcRewards(), (len(action_),1))
+        reward_ = sim.getEnvironment().calcRewards()
+        # print ("reward_: ", reward_)
         self._reward_sum = self._reward_sum + np.mean(reward_)
         return reward_
         

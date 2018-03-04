@@ -47,7 +47,8 @@ class GymMultiCharEnv(SimInterface):
         self._end_of_episode = False
         
     def endOfEpoch(self):
-        return self._end_of_episode
+        return self._exp.endOfEpoch()
+        # return self._end_of_episode
 
     def finish(self):   
         self._exp.finish()
@@ -107,14 +108,14 @@ class GymMultiCharEnv(SimInterface):
         
         self.getActor().updateAction(self, action_)
         self._num_updates_since_last_action = 0
-        print("update action: self._num_updates_since_last_action: ", self._num_updates_since_last_action)
+        # print("update action: self._num_updates_since_last_action: ", self._num_updates_since_last_action)
 
     def updateLLCAction(self, action_ ):
         self.getActor().updateLLCAction(self, action_)
         
     def needUpdatedAction(self):
         timestep = self.getSettings()['hlc_timestep']
-        print ("needUpdateAction: self._num_updates_since_last_action: ", self._num_updates_since_last_action )
+        # print ("needUpdateAction: self._num_updates_since_last_action: ", self._num_updates_since_last_action )
         if ( self._num_updates_since_last_action >= timestep):
             return True
         else:
@@ -150,9 +151,7 @@ class GymMultiCharEnv(SimInterface):
         print("update action: self._num_updates_since_last_action: ", self._num_updates_since_last_action)
     """
     
-    def update(self):
-        pass
-    
     def display(self):
-        pass
+        if (self.getSettings()['render']):
+            self.getEnvironment().render()
     

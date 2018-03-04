@@ -234,6 +234,7 @@ class SimWorker(Process):
                 # print ("Worker: Evaluating episode")
                 # print ("Nums samples in worker: ", self._namespace.experience.samples())
                 if (eval): ## No action exploration
+                    print("Running evaluation episode")
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
@@ -244,6 +245,7 @@ class SimWorker(Process):
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
                 elif (bootstrapping): ## With exploration and noise
+                    print ("Running boostraping episode")
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval,
@@ -672,7 +674,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
             # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
             # print("Putting tuple in queue")
-            for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1:], actions[-1:], result_states___[-1:], rewards[-1:],  falls[-1:], exp_actions[-1:]):
+            # print("States: ", np.array(states).shape)
+            for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1], actions[-1], result_states___[-1], rewards[-1],  falls[-1], exp_actions[-1]):
+                # print(" putting state__", np.array(state__).shape, " value: ", state__)
                 _output_queue.put((state__, act__, res__, rew__,  fall__, [0], exp__))
         
         state_num += 1
