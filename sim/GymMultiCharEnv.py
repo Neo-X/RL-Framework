@@ -94,7 +94,7 @@ class GymMultiCharEnv(SimInterface):
         # state = np.array(state_)[200:]
         # state = np.reshape(state, (-1, len(state_)-200))
         state = np.array(state_)
-        state = np.reshape(state, (-1, len(state_)))
+        state = np.reshape(state, (len(state_), -1))
         return state
     
     def update(self):
