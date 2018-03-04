@@ -11,6 +11,7 @@ from gym import wrappers
 from gym import envs
 # import roboschool
 from OpenGL import GL
+from learn.model.ModelUtil import checkDataIsValid
 print(envs.registry.all())
 
 from model.ModelUtil import getOptimalAction, getMBAEAction
@@ -43,7 +44,10 @@ class GymMultiCharEnv(SimInterface):
         self._end_of_episode = False
             
     def initEpoch(self):
-        self._previous_observation = self.getEnvironment().reset()
+        self._previous_observation = np.nan
+        while not checkDataIsValid(self._previous_observation):
+            self._previous_observation = self.getEnvironment().reset()
+        
         self._end_of_episode = False
         
     def endOfEpoch(self):
