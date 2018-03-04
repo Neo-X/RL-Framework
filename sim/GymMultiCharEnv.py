@@ -44,8 +44,8 @@ class GymMultiCharEnv(SimInterface):
         self._end_of_episode = False
             
     def initEpoch(self):
-        self._previous_observation = np.nan
-        while not checkDataIsValid(self._previous_observation):
+        self._previous_observation = self.getEnvironment().reset()
+        while not checkDataIsValid(self._previous_observation[0]):
             self._previous_observation = self.getEnvironment().reset()
         
         self._end_of_episode = False
