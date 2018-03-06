@@ -71,7 +71,7 @@ class GymMultiCharActor(ActorInterface):
             # print("Update #: ", updates_)
         if (updates_ == 0): #Something went wrong...
             print("There were no updates... This is bad")
-            return [[0.0]]
+            return np.array(sim.getEnvironment().calcRewards()) * 0.0
         # reward_ = np.reshape(sim.getEnvironment().calcRewards(), (len(action_),1))
         reward_ = sim.getEnvironment().calcRewards()
         # print ("reward_: ", reward_)
