@@ -3,6 +3,7 @@
 import numpy as np
 import math
 from sim.SimInterface import SimInterface
+from learn.model.ModelUtil import checkDataIsValid
 import sys
 from actor.DoNothingActor import DoNothingActor
 # sys.path.append("../simbiconAdapter/")

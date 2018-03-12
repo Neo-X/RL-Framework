@@ -30,11 +30,12 @@ class TerrainRLHLCActor(ActorInterface):
     # @profile(precision=5)
     
     def updateAction(self, sim, action_):
-        action_ = np.array(action_, dtype='float64')
+        action_ = np.array(action_, dtype='float64')[0]
+        # print( "action_: ", action_)
         sim.getEnvironment().updateAction(action_)
         
     def updateLLCAction(self, sim, action_):
-        action_ = np.array(action_, dtype='float64')
+        action_ = np.array(action_, dtype='float64')[0]
         sim.getEnvironment().updateLLCAction(action_)
         
     def act(self, exp, action_, bootstrapping=False):
@@ -99,6 +100,7 @@ class TerrainRLHLCActor(ActorInterface):
         # return not exp.getEnvironment().agentHasFallen()
         
     def updateActor(self, sim, action_):
+        action_ = action_[0]
         # llc_state = sim.getState()[:,self._settings['num_terrain_features']:]
         llc_state = sim.getLLCState()
         # print("LLC state: ", llc_state)
