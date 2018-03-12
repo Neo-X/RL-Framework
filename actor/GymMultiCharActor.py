@@ -51,10 +51,12 @@ class GymMultiCharActor(ActorInterface):
     
     # @profile(precision=5)
     def actContinuous(self, sim, action_, bootstrapping=False):
-        # Actor should be FIRST here
-        # print ("Action: " + str(action_))
-        # dist = exp.getEnvironment().step(action_, bootstrapping=bootstrapping)
+        """
+            sim.needUpdatedAction() is be false
+        
+        """
         sim.updateAction(action_)
+        ## This should make sim.needUpdatedAction() == false
         # reward = sim.step(action_)
         updates_=0
         stumble_count=0
@@ -63,7 +65,7 @@ class GymMultiCharActor(ActorInterface):
         # print ("sim: ", sim, " sim.needUpdatedAction(): ", sim.needUpdatedAction())
         # print ("sim.agentHasFallen(): ", sim.endOfEpoch())
         while (not sim.needUpdatedAction() and (updates_ < 100)
-               and (not sim.endOfEpoch())
+               # and (not sim.endOfEpoch())
                ):
             # sim.updateAction(action_)
             self.updateActor(sim, action_)
