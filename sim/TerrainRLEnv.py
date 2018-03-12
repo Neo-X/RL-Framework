@@ -23,6 +23,10 @@ class TerrainRLEnv(SimInterface):
 
     def initEpoch(self):
         self.getEnvironment().initEpoch()
+        observation = self.getState()
+        while not checkDataIsValid(observation):
+            self.getEnvironment().initEpoch()
+            observation = self.getState()
         # self.getAgent().initEpoch()
         
     def getEnvironment(self):
@@ -47,7 +51,7 @@ class TerrainRLEnv(SimInterface):
         # print (("Done adding anchors"))
 
     def generateEnvironmentSample(self):
-        self._exp.getEnvironment().generateEnvironmentSample()
+        pass
         
     def generateValidationEnvironmentSample(self, epoch):
         pass

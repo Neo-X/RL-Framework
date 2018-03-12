@@ -774,9 +774,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print ("Computing advantage for agent: ", a)
             path = {}
             ### timestep, agent, state
-            # print ("States shape: ", np.array(states[last_epoch_end:]).shape)
+            print ("States shape: ", np.array(states[last_epoch_end:]).shape)
             path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
-            # print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
+            print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
             path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
             path["terminated"] = False
             # print("rewards: ", rewards[last_epoch_end:])
