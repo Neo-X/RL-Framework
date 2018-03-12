@@ -629,8 +629,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         for i in range(len(G_t)):
             if type(reward_) is list:
                 G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (np.array(reward_) ))))
-                print( "reward: ", repr(np.array(reward_)) )
-                print( "G_t: ", repr(np.array(G_t)) )
+                # print( "reward: ", repr(np.array(reward_)) )
+                # print( "G_t: ", repr(np.array(G_t)) )
             else:
                 G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (np.array([reward_]) ))))
                 reward_ = [[reward_]]
@@ -812,12 +812,18 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     tmp_res_states = []
     tmp_rewards = []
     tmp_discounted_sum = []
+    tmp_G_ts = []
+    tmp_falls = []
+    tmp_exp_actions = []
     for s in range(len(states)):
         tmp_states.extend(states[s])
         tmp_actions.extend(actions[s])
         tmp_res_states.extend(result_states___[s])
         tmp_rewards.extend(discounted_sum[s])
         tmp_discounted_sum.extend(rewards[s])
+        tmp_G_ts.extend(G_ts[s])
+        tmp_falls.extend(falls[s])
+        tmp_exp_actions.extend(exp_actions[s])
         
     tmp_advantage = []
     for a_ in range(len(advantage)):
@@ -827,7 +833,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # print ("tmp_states: ", np.array(tmp_states).shape)
     # print ("advantage: ", np.array(advantage).shape)
 
-    tuples = (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, falls, G_ts, tmp_advantage, exp_actions)
+    tuples = (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions)
     """
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
         print("End of episode")
