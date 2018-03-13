@@ -748,7 +748,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     evalData = [np.mean(evalDatas)]
     G_ts.extend(copy.deepcopy(G_t))
     baselines_.extend(copy.deepcopy(baseline))
-    print ("baselines_: ", np.array(baselines_).shape)
+    # print ("baselines_: ", np.array(baselines_).shape)
     # baselines_ = np.transpose(model.q_values(states ))[0]
     discounted_sum = G_ts
     q_value = baselines_
