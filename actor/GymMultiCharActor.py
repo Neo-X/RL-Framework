@@ -89,7 +89,7 @@ class GymMultiCharActor(ActorInterface):
             Returns True when the agent is still going (not end of episode)
             return false when the agent has fallen (end of episode)
         """
-        if ( exp._end_of_episode ):
+        if ( exp.endOfEpoch() ):
             return 0
         else:
             return 1
