@@ -115,10 +115,13 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Dropout(rate=self._dropout_p)(network)
                 for i in range(len(layer_sizes)):
                     # network = Dense(layer_sizes[i], init='uniform')(input)
-                    network = Dense(layer_sizes[i],
-                                    kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
-                    network = getKerasActivation(self._settings['activation_type'])(network)
-                    network = Dropout(rate=self._dropout_p)(network)
+                    if ( layer_sizes[i] == "integrate_actor_part"):
+                        pass
+                    else:
+                        network = Dense(layer_sizes[i],
+                                        kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
+                        network = getKerasActivation(self._settings['activation_type'])(network)
+                        network = Dropout(rate=self._dropout_p)(network)
                     
                 network= Dense(1,
                                kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
@@ -134,9 +137,12 @@ class DeepNNKerasAdaptive(ModelInterface):
         network = input
         for i in range(len(layer_sizes)):
             # network = Dense(layer_sizes[i], init='uniform')(input)
-            network = Dense(layer_sizes[i],
-                            kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
-            network = getKerasActivation(self._settings['activation_type'])(network)
+            if ( layer_sizes[i] == "integrate_actor_part"):
+                network = Concatenate()([network, self._actionInput])
+            else:
+                network = Dense(layer_sizes[i],
+                                kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
+                network = getKerasActivation(self._settings['activation_type'])(network)
             
         network= Dense(1,
                        kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
