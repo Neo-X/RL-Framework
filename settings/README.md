@@ -15,3 +15,4 @@ num_available_threads
 | model_type         |  A string to determine the type of network model to use for the critic and policy net. This string currently can be used to directly specifiy the classname and path to the network model to load.  |  string  |
 
 
+
