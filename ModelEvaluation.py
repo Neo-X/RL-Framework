@@ -933,7 +933,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
     while i < anchors: # half the anchors
         
         j = 0
-        while (j < settings['num_available_threads']) and ( (i + j) < anchors):
+        while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
             episodeData = {}
             episodeData['data'] = i
             episodeData['type'] = 'eval'
@@ -945,7 +945,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             
         # for anchs in anchors: # half the anchors
         j = 0
-        while (j < settings['num_available_threads']) and ( (i + j) < anchors):
+        while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
             (tuples, discounted_sum, value, evalData) =  eval_episode_data_queue.get()
             j += 1
             """
@@ -1029,7 +1029,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     while i < anchors: # half the anchors
         
         j = 0
-        while (j < settings['num_available_threads']) and ( (i + j) < anchors):
+        while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
             episodeData = {}
             episodeData['data'] = i
             if ( (type is None) ):
@@ -1045,7 +1045,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             
         # for anchs in anchors: # half the anchors
         j = 0
-        while (j < settings['num_available_threads']) and ( (i + j) < anchors):
+        while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
             (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get()
             discounted_sum.append(discounted_sum_)
             value.append(value_)

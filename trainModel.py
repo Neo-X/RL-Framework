@@ -63,7 +63,7 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
     
     sim_workers = []
     sim_work_queues = []
-    for process in range(settings['num_available_threads']):
+    for process in range(abs(settings['num_available_threads'])):
         # this is the process that selects which game to play
         exp_=None
         
@@ -291,71 +291,6 @@ def trainModelParallel(inputData):
             
         experience.setSettings(settings)
         
-        if settings['visualize_learning']:
-            title = settings['agent_name']
-            k = title.rfind(".") + 1
-            if (k > len(title)): ## name does not contain a .
-                k = 0 
-            title = title[k:]
-            env_name = settings['environment_type']
-            if (env_name == "open_AI_Gym"):
-                env_name = settings['sim_config_file']
-            rlv = RLVisualize(title=title + " agent on " + str(env_name), settings=settings)
-            rlv.setInteractive()
-            rlv.init()
-        if (settings['train_forward_dynamics']):
-            if settings['visualize_learning']:
-                title = settings['forward_dynamics_model_type']
-                k = title.rfind(".") + 1
-                if (k > len(title)): ## name does not contain a .
-                    k = 0 
-                title = title[k:]
-                nlv = NNVisualize(title=str("Dynamics Model") + " with " + title, settings=settings)
-                nlv.setInteractive()
-                nlv.init()
-            if (settings['train_reward_predictor']):
-                if settings['visualize_learning']:
-                    title = settings['forward_dynamics_model_type']
-                    k = title.rfind(".") + 1
-                    if (k > len(title)): ## name does not contain a .
-                        k = 0 
-                    
-                    title = title[k:]
-                    rewardlv = NNVisualize(title=str("Reward Model") + " with " + title, settings=settings)
-                    rewardlv.setInteractive()
-                    rewardlv.init()
-                 
-        if (settings['debug_critic']):
-            criticLosses = []
-            criticRegularizationCosts = [] 
-            if (settings['visualize_learning']):
-                title = settings['agent_name']
-                k = title.rfind(".") + 1
-                if (k > len(title)): ## name does not contain a .
-                    k = 0 
-                title = title[k:]
-                critic_loss_viz = NNVisualize(title=str("Critic Loss") + " with " + title)
-                critic_loss_viz.setInteractive()
-                critic_loss_viz.init()
-                critic_regularization_viz = NNVisualize(title=str("Critic Reg Cost") + " with " + title)
-                critic_regularization_viz.setInteractive()
-                critic_regularization_viz.init()
-            
-        if (settings['debug_actor']):
-            actorLosses = []
-            actorRegularizationCosts = []            
-            if (settings['visualize_learning']):
-                title = settings['agent_name']
-                k = title.rfind(".") + 1
-                if (k > len(title)): ## name does not contain a .
-                    k = 0 
-                title = title[k:]
-                actor_loss_viz = NNVisualize(title=str("Actor Loss") + " with " + title)
-                actor_loss_viz.setInteractive()
-                actor_loss_viz.init()
-                actor_regularization_viz = NNVisualize(title=str("Actor Reg Cost") + " with " + title)
-                actor_regularization_viz.setInteractive()
-                actor_regularization_viz.init()
 
         # mgr = multiprocessing.Manager()
         # namespace = mgr.Namespace()
@@ -390,6 +325,7 @@ def trainModelParallel(inputData):
             (eval_sim_workers, eval_sim_work_queues) = createSimWorkers(settings, input_anchor_queue_eval, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds, default_sim_id=settings['override_sim_env_id'])
         else:
             input_anchor_queue_eval = input_anchor_queue
+        
         
         
         # paramSampler = exp_val.getActor().getParamSampler()
@@ -591,6 +527,73 @@ def trainModelParallel(inputData):
         _eval_episode_data_queue = eval_episode_data_queue
         global _sim_work_queues
         _sim_work_queues = sim_work_queues
+        
+        if settings['visualize_learning']:
+            title = settings['agent_name']
+            k = title.rfind(".") + 1
+            if (k > len(title)): ## name does not contain a .
+                k = 0 
+            title = title[k:]
+            env_name = settings['environment_type']
+            if (env_name == "open_AI_Gym"):
+                env_name = settings['sim_config_file']
+            rlv = RLVisualize(title=title + " agent on " + str(env_name), settings=settings)
+            rlv.setInteractive()
+            rlv.init()
+        if (settings['train_forward_dynamics']):
+            if settings['visualize_learning']:
+                title = settings['forward_dynamics_model_type']
+                k = title.rfind(".") + 1
+                if (k > len(title)): ## name does not contain a .
+                    k = 0 
+                title = title[k:]
+                nlv = NNVisualize(title=str("Dynamics Model") + " with " + title, settings=settings)
+                nlv.setInteractive()
+                nlv.init()
+            if (settings['train_reward_predictor']):
+                if settings['visualize_learning']:
+                    title = settings['forward_dynamics_model_type']
+                    k = title.rfind(".") + 1
+                    if (k > len(title)): ## name does not contain a .
+                        k = 0 
+                    
+                    title = title[k:]
+                    rewardlv = NNVisualize(title=str("Reward Model") + " with " + title, settings=settings)
+                    rewardlv.setInteractive()
+                    rewardlv.init()
+                 
+        if (settings['debug_critic']):
+            criticLosses = []
+            criticRegularizationCosts = [] 
+            if (settings['visualize_learning']):
+                title = settings['agent_name']
+                k = title.rfind(".") + 1
+                if (k > len(title)): ## name does not contain a .
+                    k = 0 
+                title = title[k:]
+                critic_loss_viz = NNVisualize(title=str("Critic Loss") + " with " + title)
+                critic_loss_viz.setInteractive()
+                critic_loss_viz.init()
+                critic_regularization_viz = NNVisualize(title=str("Critic Reg Cost") + " with " + title)
+                critic_regularization_viz.setInteractive()
+                critic_regularization_viz.init()
+            
+        if (settings['debug_actor']):
+            actorLosses = []
+            actorRegularizationCosts = []            
+            if (settings['visualize_learning']):
+                title = settings['agent_name']
+                k = title.rfind(".") + 1
+                if (k > len(title)): ## name does not contain a .
+                    k = 0 
+                title = title[k:]
+                actor_loss_viz = NNVisualize(title=str("Actor Loss") + " with " + title)
+                actor_loss_viz.setInteractive()
+                actor_loss_viz.init()
+                actor_regularization_viz = NNVisualize(title=str("Actor Reg Cost") + " with " + title)
+                actor_regularization_viz.setInteractive()
+                actor_regularization_viz.init()
+
             
         trainData = {}
         trainData["mean_reward"]=[]
@@ -848,7 +851,7 @@ def trainModelParallel(inputData):
                                                                model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                 else:
                     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue_eval,
-                                                               model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
+                                                                model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                 """
                 for sm in sim_workers:
                     sm.setP(0.0)
@@ -968,7 +971,9 @@ def trainModelParallel(inputData):
                     lw.start()
                    """     
                 ## Visulaize some stuff if you want to
-                if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
+                if (int(settings["num_available_threads"]) == -1 
+                    # or (int(settings["num_available_threads"]) == 1)
+                    ): # This is okay if there is one thread only...
                     exp_val.updateViz(actor, masterAgent, directory, p=p)
                 
                 
