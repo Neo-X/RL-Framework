@@ -6,7 +6,7 @@ apt-get -y install python3-dev python3-pip
 # sudo apt-get -y install python3-tk
 
 pip3 install --user numpy
-pip3 install --user Theano==0.8.2
+pip3 install --user theano==1.0.1
 # pip install matplotlib
 pip3 install --user matplotlib
 pip3 install --user Lasagne==0.1

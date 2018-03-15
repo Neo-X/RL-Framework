@@ -55,7 +55,7 @@ class TerrainRLImitationActor(ActorInterface):
         torque_sum=0
         # print("Acting")
         while (not sim.needUpdatedAction() and (updates_ < 100)
-               and (not sim.getEnvironment().agentHasFallen())
+               # and (not sim.getEnvironment().agentHasFallen())
                ):
             sim.update()
             if (self._settings["shouldRender"]):

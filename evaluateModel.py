@@ -107,11 +107,11 @@ class SimContainer(object):
                     # print ("State: ", state_)
                     ## Update value function visualization
                     if ( True  and (self._expected_value_viz is not None)):
-                        self._viz_q_values_.append(self._agent.q_value(state_)[0])
+                        self._viz_q_values_.extend(self._agent.q_value(state_)[0])
                         # self._viz_q_values_.append(0)
                         if (len(self._viz_q_values_)>100):
                              self._viz_q_values_.pop(0)
-                        # print ("viz_q_values_: ", viz_q_values_ )
+                        print ("self._viz_q_values_: ", self._viz_q_values_ )
                         # print ("np.zeros(len(viz_q_values_)): ", np.zeros(len(viz_q_values_)))
                         self._expected_value_viz.updateLoss(self._viz_q_values_, np.zeros(len(self._viz_q_values_)))
                         self._expected_value_viz.redraw()
