@@ -11,7 +11,7 @@ num_available_threads
 
 | Param name  | description | data type |
 |-----------------|-------------|----|
-| biped3d_step         |    A controller where the actions and number of actions correspond to the number of links in the simulated controlled character  |  yes |
-| biped3d_sym_step         |     A controller where the actions and number of actions correspond to the number of links in the simulated controlled character. This controller assumes a symmetry in the controller and works by only learning part of the state space that would correspond to only ever taking right steps. When a left step is taking the state is mirrored across the sagittal plane.  |  yes  |
-|                 |                |    | 
+| num_available_threads         |  This parameter controls the number of thread that can be used to run simulations in parallel. This value can be set to -1 in order to avoid using some of the threading code for simulation, making many parts synchronous  |  int |
+| model_type         |  A string to determine the type of network model to use for the critic and policy net. This string currently can be used to directly specifiy the classname and path to the network model to load.  |  string  |
+
 
