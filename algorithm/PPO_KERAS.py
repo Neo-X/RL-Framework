@@ -112,7 +112,8 @@ class PPO_KERAS(AlgorithmInterface):
         return grads
             
     def updateTargetModel(self):
-        print ("Updating target Model")
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Updating target Model")
         """
             Target model updates
         """
@@ -202,11 +203,13 @@ class PPO_KERAS(AlgorithmInterface):
         if (r_ < 2.0) and ( r_ > 0.5):  ### update not to large
             (lossActor, r_) = self.trainPolicy(states, actions, advantage)
             # lossActor = score.history['loss'][0]
-            print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
-            print ("Policy mean: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length], axis=0))
-            print ("Policy std: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,self._action_length:], axis=0))
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
+                print ("Policy mean: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length], axis=0))
+                print ("Policy std: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,self._action_length:], axis=0))
         else:
-            print ("Policy Gradient too large: ", np.mean(r_))
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("Policy Gradient too large: ", np.mean(r_))
             
         return lossActor
     
