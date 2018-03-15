@@ -349,6 +349,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         _output_queue: is the queue exp tuples should be put in so the learning agents can pull them out
         p:  is the probability of selecting a random action
         actor: 
+        
+        The shape of the data collected in this simulation is 3D Time x agent# x value.
+        This is more than the normal 2D vector that is Time x value because I want to be able to support
+        multi-agent simulation/learning now. This organization only exists in this part of the code for now.
+        Data exported out of here should be converted back to 2D data.
+        
     """
     if action_space_continuous:
         action_bounds = np.array(settings["action_bounds"], dtype=float)
@@ -625,7 +631,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print ("performed action: ", reward)
         # print ("Reward: ", reward_)
         baseline.append(model.q_value(state_))
-        G_t.append(np.array([0])) # *(1.0-discount_factor)))
+        G_t.append(np.array([[0]])) # *(1.0-discount_factor)))
         for i in range(len(G_t)):
             if type(reward_) is list:
                 G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (np.array(reward_) ))))
@@ -677,7 +683,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print("Putting tuple in queue")
             # print("States: ", np.array(states).shape)
             for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1], actions[-1], result_states___[-1], rewards[-1],  falls[-1], exp_actions[-1]):
-                # print(" putting state__", np.array(state__).shape, " value: ", state__)
+                # print(" putting state__", np.array(state__).shape, " value: ", state__, " With reward: ", rew__)
                 _output_queue.put((state__, act__, res__, rew__,  fall__, [0], exp__))
         
         state_num += 1
@@ -748,7 +754,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     evalData = [np.mean(evalDatas)]
     G_ts.extend(copy.deepcopy(G_t))
     baselines_.extend(copy.deepcopy(baseline))
-    # print ("baselines_: ", np.array(baselines_).shape)
+    print ("baseline: ", repr(np.array(baseline)))
+    print ("G_t: ", repr(np.array(G_t)))
+    # print ("states: ", repr(np.array(states)))
     # baselines_ = np.transpose(model.q_values(states ))[0]
     discounted_sum = G_ts
     q_value = baselines_
@@ -821,8 +829,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_states.extend(states[s])
         tmp_actions.extend(actions[s])
         tmp_res_states.extend(result_states___[s])
-        tmp_rewards.extend(discounted_sum[s])
-        tmp_discounted_sum.extend(rewards[s])
+        tmp_rewards.extend(rewards[s])
+        tmp_discounted_sum.extend(discounted_sum[s])
         tmp_G_ts.extend(G_ts[s])
         tmp_falls.extend(falls[s])
         tmp_exp_actions.extend(exp_actions[s])
@@ -832,6 +840,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     for a_ in range(len(advantage)):
         tmp_advantage.extend(advantage[a_])
     tmp_advantage = np.array(tmp_advantage)
+    
+    # print("tmp_rewards: ", repr(np.array(tmp_rewards)))
         
     # print ("tmp_states: ", np.array(tmp_states).shape)
     # print ("advantage: ", np.array(advantage).shape)
