@@ -262,7 +262,7 @@
 	"comment__": "Load a saved and pre-trained forward dynamics model",
 "load_saved_fd_model": false,
 	"comment__": "Whether or not to use a stochastic forward dynamics model",
-"use_stochastic_forward_dynamics": true,
+"use_stochastic_forward_dynamics": false,
 	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
 "normalize_advantage": true,
 	"comment__": "use a special annealing schedule that will being at 1 and end at 0",

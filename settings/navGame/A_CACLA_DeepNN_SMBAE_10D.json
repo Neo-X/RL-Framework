@@ -234,7 +234,7 @@
 	"comment__": "Only use exploratory actions to update the policy",
 "only_use_exp_actions_for_poli_updates": true,
 	"comment__": "Whether or not to use a stochastic forward dynamics model",
-"use_stochastic_forward_dynamics": true,
+"use_stochastic_forward_dynamics": false,
 	"comment__": "Multiply the MBAE action by a sample from a uniform distribution, to allow the action to vary in magnitude",
 "randomize_MBAE_action_length": true,
 	"comment__": "The number of stochastic samples of the forward dynamics model to take and average over",

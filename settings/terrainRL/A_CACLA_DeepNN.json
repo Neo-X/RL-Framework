@@ -258,7 +258,7 @@
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": true,
 	"comment__": "Whether or not to use a stochastic forward dynamics model",
-"use_stochastic_forward_dynamics": true,
+"use_stochastic_forward_dynamics": false,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
 "load_saved_fd_model": false,
 	"comment__": "Whether ot not MBAE should optimize the q function or the advantage function",

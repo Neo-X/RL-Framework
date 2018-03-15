@@ -66,6 +66,8 @@ class PPO_KERAS(AlgorithmInterface):
         
         # self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
         
+        self._value = self._model.getCriticNetwork()([self._model._stateInput])
+        
         PPO_KERAS.compile(self)
         
     def compile(self):
@@ -92,6 +94,23 @@ class PPO_KERAS(AlgorithmInterface):
                                              self._model.getActionSymbolicVariable()], 
                                   [self._r])
         
+        gradients = K.gradients(T.mean(self._value), [self._model._stateInput]) # gradient tensors
+        self._get_gradients = K.function(inputs=[self._model._stateInput,  K.learning_phase()], outputs=gradients)
+
+    def getGrads(self, states, alreadyNormed=False):
+        """
+            The states should be normalized
+        """
+        # self.setData(states, actions, rewards, result_states)
+        if ( alreadyNormed == False):
+            states = norm_state(states, self._state_bounds)
+        states = np.array(states, dtype=self._settings['float_type'])
+        # grads = np.reshape(np.array(self._get_gradients([states])[0], dtype=self._settings['float_type']), (states.shape[0],states.shape[1]))
+        grads = np.array(self._get_gradients([states, 0]), dtype=self._settings['float_type'])
+        # print ("State grads: ", grads.shape)
+        # print ("State grads: ", repr(grads))
+        return grads
+            
     def updateTargetModel(self):
         print ("Updating target Model")
         """

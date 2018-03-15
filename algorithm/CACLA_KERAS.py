@@ -44,6 +44,8 @@ class CACLA_KERAS(AlgorithmInterface):
         self._actor_buffer_falls=[]
         self._actor_buffer_diff=[]
         
+        self._value = self._model.getCriticNetwork()([self._model._stateInput])
+        
         CACLA_KERAS.compile(self)
         
     def compile(self):
@@ -59,6 +61,23 @@ class CACLA_KERAS(AlgorithmInterface):
         self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
         
         self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
+        
+        gradients = K.gradients(T.mean(self._value), [self._model._stateInput]) # gradient tensors
+        self._get_gradients = K.function(inputs=[self._model._stateInput,  K.learning_phase()], outputs=gradients)
+        
+    def getGrads(self, states, alreadyNormed=False):
+        """
+            The states should be normalized
+        """
+        # self.setData(states, actions, rewards, result_states)
+        if ( alreadyNormed == False):
+            states = norm_state(states, self._state_bounds)
+        states = np.array(states, dtype=self._settings['float_type'])
+        # grads = np.reshape(np.array(self._get_gradients([states])[0], dtype=self._settings['float_type']), (states.shape[0],states.shape[1]))
+        grads = np.array(self._get_gradients([states, 0]), dtype=self._settings['float_type'])
+        # print ("State grads: ", grads.shape)
+        # print ("State grads: ", repr(grads))
+        return grads
         
     def updateTargetModel(self):
         print ("Updating target Model")
