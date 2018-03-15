@@ -1,7 +1,7 @@
 import theano
 from theano import tensor as T
 import numpy as np
-import lasagne
+# import lasagne
 import sys
 sys.path.append('../')
 from model.ModelUtil import *
@@ -10,6 +10,8 @@ from model.ModelUtil import *
 # theano.config.mode='FAST_COMPILE'
 
 def getActivationType(type_name):
+    # try:
+    import lasagne.nonlinearities
     if ((type_name == 'leaky_rectify')):
         activation_type = lasagne.nonlinearities.leaky_rectify
     elif (type_name == 'relu'):
@@ -25,6 +27,15 @@ def getActivationType(type_name):
     else:
         print("Activation type: ", type_name, " not recognized")
     return activation_type
+    """
+    except Exception as inst:
+        return leaky_relu
+    """
+def linear(x):
+    return x
+
+def leaky_relu(x):
+    return theano.tensor.nnet.relu(x, 0.01)
 
 class ModelInterface(object):
     
@@ -39,15 +50,15 @@ class ModelInterface(object):
         self._dropout_p=settings_['dropout_p']
         
         ### Get a type of activation to use
-        self._activation_type=lasagne.nonlinearities.leaky_rectify
-        self._policy_activation_type=lasagne.nonlinearities.leaky_rectify
+        self._activation_type=leaky_relu
+        self._policy_activation_type=leaky_relu
         if ("activation_type" in settings_ ):
             self._activation_type = getActivationType(settings_['activation_type'])
             self._policy_activation_type = self._activation_type
         if ("policy_activation_type" in settings_ ):
             self._policy_activation_type = getActivationType(settings_['policy_activation_type'])
             
-        self._last_policy_layer_activation_type = lasagne.nonlinearities.linear
+        self._last_policy_layer_activation_type = linear
         if ('last_policy_layer_activation_type' in settings_ ):
             self._last_policy_layer_activation_type = getActivationType(settings_['last_policy_layer_activation_type'])
         
@@ -55,7 +66,7 @@ class ModelInterface(object):
         if ('_last_std_policy_layer_activation_type' in settings_ ):
             self._last_std_policy_layer_activation_type = getActivationType(settings_['_last_std_policy_layer_activation_type'])
 
-        self._last_critic_layer_activation_type = lasagne.nonlinearities.linear
+        self._last_critic_layer_activation_type = linear
         if ('last_critic_layer_activation_type' in settings_ and (settings_['last_critic_layer_activation_type']) == 'linear'):
             self._last_critic_layer_activation_type = getActivationType(settings_['last_critic_layer_activation_type'])
         
