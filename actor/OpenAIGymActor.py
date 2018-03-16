@@ -33,7 +33,7 @@ class OpenAIGymActor(ActorInterface):
         # print ("Action: " + str(action_))
         # dist = exp.getEnvironment().step(action_, bootstrapping=bootstrapping)
         reward = exp.step(action_)
-        self._reward_sum = self._reward_sum + reward
+        self._reward_sum = self._reward_sum + np.mean(reward)
         return reward
         
     

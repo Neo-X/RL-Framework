@@ -67,6 +67,7 @@ class PPO_KERAS(AlgorithmInterface):
         # self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
         
         self._value = self._model.getCriticNetwork()([self._model._stateInput])
+        self._value_Target = self._modelTarget.getValueFunction()([self._model._stateInput])
         
         PPO_KERAS.compile(self)
         
@@ -96,6 +97,9 @@ class PPO_KERAS(AlgorithmInterface):
         
         gradients = K.gradients(T.mean(self._value), [self._model._stateInput]) # gradient tensors
         self._get_gradients = K.function(inputs=[self._model._stateInput,  K.learning_phase()], outputs=gradients)
+        
+        self._value_ = K.function([self._model._stateInput, K.learning_phase()], [self._value])
+        self._value_Target_ = K.function([self._model._stateInput, K.learning_phase()], [self._value_Target])
 
     def getGrads(self, states, alreadyNormed=False):
         """
@@ -158,8 +162,9 @@ class PPO_KERAS(AlgorithmInterface):
         # print ("Rewards, Falls, Targets:", np.append(rewards, data, axis=1))
         # print ("Rewards, Falls, Targets:", [rewards, falls, self._get_target()])
         # print ("Actions: ", actions)
-        y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-        v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
+        # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
+        y_ = self._value_Target_([result_states,0])
+        # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
         # target_ = rewards + ((self._discount_factor * y_) * falls)
         target_ = rewards + ((self._discount_factor * y_))
         target_ = np.array(target_, dtype=self._settings['float_type'])
@@ -266,10 +271,8 @@ class PPO_KERAS(AlgorithmInterface):
         # states[0, ...] = state
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
-        self._model.setStates(state)
-        self._modelTarget.setStates(state)
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        value = scale_reward(self._model.getCriticNetwork().predict(state, batch_size=1), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        value = scale_reward(self._value_([state,0]), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         return value
         # return self._q_val()[0]
     
@@ -278,9 +281,8 @@ class PPO_KERAS(AlgorithmInterface):
             For returning a vector of q values, state should already be normalized
         """
         state = np.array(state, dtype=self._settings['float_type'])
-        self._model.setStates(state)
-        self._modelTarget.setStates(state)
-        return self._model.getCriticNetwork().predict(state, batch_size=state.shape[0])
+        value = self._value_([state,0])
+        return value
     
     def q_valueWithDropout(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
@@ -294,9 +296,11 @@ class PPO_KERAS(AlgorithmInterface):
         """
             Computes the one step temporal difference.
         """
-        y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=32)
+        y_ = self._value_Target_([result_states,0])[0]
+        # y_ = self._modelTarget2.getValueFunction().predict(result_states, batch_size=states.shape[0])
         target_ = rewards + ((self._discount_factor * y_))
-        values =  self._model.getCriticNetwork().predict(states, batch_size=32)
+        # values =  self._model.getValueFunction().predict(states, batch_size=states.shape[0])
+        values = self._value_([states,0])[0]
         bellman_error = target_ - values
         return bellman_error
         # return self._bellman_errorTarget()
