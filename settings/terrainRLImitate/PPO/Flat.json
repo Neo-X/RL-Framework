@@ -321,5 +321,7 @@
 	"comment__": "Compute a running mean and std for network input/output scaling",
 "keep_running_mean_std_for_scaling": false,
 	"comment__": "This overrides all of the envs to be a single one from the list of sim environments",
-"override_sim_env_id": false 
+"override_sim_env_id": false,
+	"comment__": "Batch size for the value function network",
+"value_function_batch_size": 32,
 }
