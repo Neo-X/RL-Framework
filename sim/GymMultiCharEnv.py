@@ -87,7 +87,8 @@ class GymMultiCharEnv(SimInterface):
         # self._previous_observation = observation
         
         # state_ = np.array(self._previous_observation)
-        state_ = self._previous_observation
+        state_ = np.array(self._previous_observation)
+        # state = np.reshape(state_, (len(state_), -1))
         
         return state_
     
@@ -108,6 +109,7 @@ class GymMultiCharEnv(SimInterface):
             self.getEnvironment().update()
             self._num_updates_since_last_action+=1
         # self.getEnvironment().display()
+        self._previous_observation = self.getEnvironment().getObservation()
                 
     def updateAction(self, action_):
         
