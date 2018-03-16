@@ -112,7 +112,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                 
                 print ("Network layer sizes: ", layer_sizes)
                 network = input
-                network = Dropout(rate=self._dropout_p)(network)
+                if ( self._dropout_p > 0.001 ):
+                    network = Dropout(rate=self._dropout_p)(network)
                 for i in range(len(layer_sizes)):
                     # network = Dense(layer_sizes[i], init='uniform')(input)
                     if ( layer_sizes[i] == "integrate_actor_part"):
@@ -121,7 +122,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                         network = Dense(layer_sizes[i],
                                         kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                         network = getKerasActivation(self._settings['activation_type'])(network)
-                        network = Dropout(rate=self._dropout_p)(network)
+                        if ( self._dropout_p > 0.001 ):
+                            network = Dropout(rate=self._dropout_p)(network)
                     
                 network= Dense(1,
                                kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
@@ -135,14 +137,19 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         print ("Network layer sizes: ", layer_sizes)
         network = input
+        if ( self._dropout_p > 0.001 ):
+            network = Dropout(rate=self._dropout_p)(network)
         for i in range(len(layer_sizes)):
             # network = Dense(layer_sizes[i], init='uniform')(input)
             if ( layer_sizes[i] == "integrate_actor_part"):
                 network = Concatenate()([network, self._actionInput])
             else:
+                
                 network = Dense(layer_sizes[i],
                                 kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                 network = getKerasActivation(self._settings['activation_type'])(network)
+                if ( self._dropout_p > 0.001 ):
+                    network = Dropout(rate=self._dropout_p)(network)
             
         network= Dense(1,
                        kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)

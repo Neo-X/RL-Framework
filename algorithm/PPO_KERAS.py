@@ -36,10 +36,18 @@ class PPO_KERAS(AlgorithmInterface):
         self._rms_epsilon = self.getSettings()['rms_epsilon']
         
         self._q_valsActA = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
-        self._q_valsActASTD = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]
+        if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
+            self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+            # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+        else:
+            self._q_valsActASTD = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]
         
         self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
-        self._q_valsActTargetSTD = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]
+        if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
+            self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
+            # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
+        else: 
+            self._q_valsActTargetSTD = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]
         
         self._Advantage = T.col("Advantage")
         self._Advantage.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
@@ -100,6 +108,8 @@ class PPO_KERAS(AlgorithmInterface):
         
         self._value = K.function([self._model._stateInput, K.learning_phase()], [self._value])
         self._value_Target = K.function([self._model._stateInput, K.learning_phase()], [self._value_Target])
+        
+        self._q_valsActASTD = K.function([self._model.getStateSymbolicVariable()], [self._q_valsActASTD]) 
 
     def getGrads(self, states, alreadyNormed=False):
         """
@@ -211,7 +221,7 @@ class PPO_KERAS(AlgorithmInterface):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
                 print ("Policy mean: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length], axis=0))
-                print ("Policy std: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,self._action_length:], axis=0))
+                print ("Policy std: ", np.mean(self._q_valsActASTD([states])[0], axis=0))
         else:
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy Gradient too large: ", np.mean(r_))
@@ -245,10 +255,10 @@ class PPO_KERAS(AlgorithmInterface):
         state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            action_std = self._model.getActorNetwork().predict(state, batch_size=1)[:,self._action_length:]
+            action_std = self._q_valsActASTD([state])[0]
             # action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
         else:
-            action_std = self._model.getActorNetwork().predict(state, batch_size=1)[:,self._action_length:] * (action_bound_std(self._action_bounds))
+            action_std = self._q_valsActASTD([state])[0] * (action_bound_std(self._action_bounds))
         return action_std
     
     def predictWithDropout(self, state, deterministic_=True):
