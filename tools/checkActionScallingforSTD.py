@@ -38,3 +38,15 @@ if __name__ == '__main__':
     print( "y std: ", std__)
     print( "y_: ", y_)
     
+    ### Testing out MBAE normalization method
+    ### Trying to get the average std to be a certain value.
+    for i in range(10):
+        # x_ = np.array([0.04, -0.03, 0.055234, 0.057245, -0.084566345])
+        x_ = np.random.normal(0, 0.1, 10)
+        avg_std = 0.34
+        std__ = x_ / (np.mean(np.abs(x_))) * avg_std
+        print ("print std: ", std__)
+        print ("print mean: ", np.mean(np.abs(std__)))
+    
+    
+    
