@@ -4,6 +4,7 @@ import numpy as np
 import math
 
 from actor.DoNothingActor import DoNothingActor
+from learn.model.ModelUtil import checkDataIsValid
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
@@ -25,13 +26,17 @@ class SimInterface(object):
         return self._exp
     
     def endOfEpoch(self):
-        return self.getEnvironment().endOfEpoch()
+        # return ( self.getEnvironment().endOfEpoch() and (not checkDataIsValid(self.getState())) )
+        return ( self.getEnvironment().endOfEpoch() )
 
     def init(self):
         self.getEnvironment().init()
             
     def initEpoch(self):
         self.getEnvironment().initEpoch()
+        
+        # while not checkDataIsValid(self.getState()):
+        #     self.getEnvironment().initEpoch()
     
     def generateValidation(self, data, epoch):
         pass

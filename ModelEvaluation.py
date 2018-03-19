@@ -580,7 +580,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         mbae_lr = p * settings["action_learning_rate"]
                     else:
                         mbae_lr = settings["action_learning_rate"]
-                    action_new_ = getOptimalAction2(model.getForwardDynamics(), model.getPolicy(), action_, state_, mbae_lr)
+                    action_new_ = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), action_, state_, mbae_lr)
                     # actions.append(action_new_)
                     actions_.append(action_)
                     print("action_new_: ", action_new_[0], " action_: ", action_[0])

@@ -119,8 +119,8 @@ class ParticleSimEnv(SimInterface):
                             V_fd.append(0.0)
                             # r = agent.getForwardDynamics().predict_reward(state_, np.array(action1_cp))
                             # print ("Predicted reward: ", r)
-                            R_mbae.append(0.0)
-                            R_fd.append(0.0)
+                            R_mbae.append(np.array([0.0]))
+                            R_fd.append(np.array([0.0]))
                             
             U = np.array(U)
             V = np.array(V)

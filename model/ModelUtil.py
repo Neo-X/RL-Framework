@@ -621,7 +621,7 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
         ## Normalize action length
         
         
-    action_grads = ( action_grads / np.std(action_grads) ) * (learning_rate)
+    action_grads = ( action_grads / np.mean(action_grads) ) * (learning_rate)
     if ('randomize_MBAE_action_length' in model.getSettings() and ( model.getSettings()['randomize_MBAE_action_length'])):
         # action_grads = action_grads * np.random.uniform(low=0.0, high = 1.0, size=1)[0]
         action_grads = action_grads * (np.fabs(np.random.normal(loc=0.0, scale = 1.0, size=1)[0]))
@@ -657,12 +657,12 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
     #           (value_diff))
     #    print ("dynamics_grads: ", dynamics_grads)
     # action = clampAction(action, model._action_bounds)
-    if (checkDataIsValid(action)):
+    if (checkDataIsValid(action, scale=0.1)):
         ### Because there are some nan values coming out of here.
         return (action, value_diff)
     else:
-        print("MBAE, action invalid: ", action)
-        return (init_action, 0)
+        print("MBAE, action invalid: ", action, " using ", init_action)
+        return (init_action, np.array([0]))
 
 def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_action=False, p=1.0):
     """
@@ -787,20 +787,21 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
             
         if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print( "Raw action grad: ", action_grads)
+        print ("MBAE learning rate: ", learning_rate, " raw grads", action_grads)
         ## Normalize action length
-        # action_grads = ( (action_grads/(np.sqrt((action_grads*action_grads).sum())))/np.sqrt(np.mean(np.abs(action_grads)))) * (learning_rate)
-        action_grads = ( action_grads / np.std(action_grads) ) * (learning_rate)
-        # print ("MBAE learning rate: ", learning_rate, " ", model.getSettings()['randomize_MBAE_action_length'])
+        action_grads = ( (action_grads/(np.sqrt((action_grads*action_grads).sum())))/np.sqrt(np.mean(np.abs(action_grads)))) * (learning_rate)
+        # action_grads = ( action_grads / np.mean(action_grads) ) * (learning_rate)
         if ('randomize_MBAE_action_length' in model.getSettings()
              and ( model.getSettings()['randomize_MBAE_action_length'] == True)):
             # print ("Adding noise to action grads")
             # action_grads = action_grads * np.random.uniform(low=0.0, high = 1.0, size=1)[0]
-            action_grads = action_grads * (np.fabs(np.random.normal(loc=0.0, scale = 1.0, size=1)[0]))
+            noise = (np.fabs(np.random.normal(loc=0.0, scale = 1.0, size=1)[0]))
+            action_grads = action_grads * noise
             
-        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['train']):
             print ("Applied action: ", action_grads)
             # print ("Action magnitude: ", np.sqrt((action_grads*action_grads).sum()), " mean, ", np.mean(np.abs(action_grads)))
-            print ("Action magnitude: ", np.sqrt((action_grads*action_grads).sum()), " std, ", np.std(action_grads))
+            print ("Action magnitude: ", np.sqrt((action_grads*action_grads).sum()), " mean, ", np.mean(action_grads))
             
         ## Scale action by action bounds
         action_grads = rescale_action(action_grads, model.getActionBounds())
@@ -835,12 +836,13 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
                (value_diff))
         print ("dynamics_grads: ", dynamics_grads)
     # action = clampAction(action, model._action_bounds)
-    if (checkDataIsValid(action)):
+    if (checkDataIsValid(action, scale=0.1)):
         ### Because there are some nan values coming out of here.
         return (action, value_diff)
     else:
-        print("MBAE, action invalid: ", action)
-        return (init_action, 0)
+        print("MBAE, action invalid: ", action, " using ", init_action)
+        print("state: ", state, " using ", init_action)
+        return (init_action, np.array([0]))
 
 def getModelPredictionUncertanty(model, state, length=4.1, num_samples=32):
     """
@@ -937,9 +939,10 @@ def fixBounds(bounds):
     # print("Bounds fixed: ", bounds)
     return bounds
 
-def checkDataIsValid(data, verbose=False):
+def checkDataIsValid(data, verbose=False, scale=1.0):
         """
             Checks to make sure the data going into the exp buffer is not garbage...
+            Returns True if the data is valid
         """
         data = np.array(data)
         if (not np.all(np.isfinite(data))):
@@ -952,9 +955,9 @@ def checkDataIsValid(data, verbose=False):
                 print ("Bad Values: ", bad_values_)
             return False
     
-        if (np.any(np.less(data, -1000.0))):
+        if (np.any(np.less(data, -1000.0*scale))):
             if ( verbose ):
-                less_ = np.less(data, -1000.0)
+                less_ = np.less(data, -1000.0*scale)
                 bad_indecies = np.where(less_ == True)
                 print ("Data too negative: ", less_ )
                 print ("Bad Value indx: ", bad_indecies)
@@ -962,9 +965,9 @@ def checkDataIsValid(data, verbose=False):
                 print ("Bad Values: ", bad_values_)
             return False
         
-        if (np.any(np.greater(data, 1000.0))):
+        if (np.any(np.greater(data, 1000.0*scale))):
             if ( verbose ):
-                less_ = np.greater(data, 1000.0)
+                less_ = np.greater(data, 1000.0*scale)
                 bad_indecies = np.where(less_ == True)
                 bad_values_ = data[bad_indecies]
                 print ("Data too positive: ", less_ )
