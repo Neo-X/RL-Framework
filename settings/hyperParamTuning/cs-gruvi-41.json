@@ -20,5 +20,5 @@
 	"comment__": "Flag to say this is a testing run",
 "testing": false,
 	"comment__": "Type of curve to blend values along [linear|squared|exponential]",
-"curve_scheme": ["linear", "linear"]
+"curve_scheme": ["linear"]
 }

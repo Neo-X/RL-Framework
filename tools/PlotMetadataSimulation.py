@@ -109,7 +109,7 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
     
     """
     rlv.setLength(min_length)
-    rlv.setLength(50)
+    # rlv.setLength(50)
     rlv.updateRewards(trainingDatas, otherDatas)
     rlv.init()
     rlv.saveVisual(folder+"MBAE_Training_curves")

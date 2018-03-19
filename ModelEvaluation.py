@@ -165,7 +165,8 @@ class SimWorker(Process):
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
                 elif (sim_on_poli):
-                    print("Simulating a normal episode ??with exploration?? on policy")
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print("Simulating a normal episode ??with exploration?? on policy")
                     settings_ = copy.deepcopy(self._settings)
                     r = np.random.rand(1)[0]
                     if ( ('perform_mbae_episode_sampling' in self._settings)
@@ -186,7 +187,8 @@ class SimWorker(Process):
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval,
                             bootstrapping=bootstrapping)
                 else:
-                    print("Simulating a normal episode")
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print("Simulating a normal episode")
                     settings_ = copy.deepcopy(self._settings)
                     r = np.random.rand(1)[0]
                     if ( ('perform_mbae_episode_sampling' in self._settings)
@@ -234,24 +236,28 @@ class SimWorker(Process):
                 # print ("Worker: Evaluating episode")
                 # print ("Nums samples in worker: ", self._namespace.experience.samples())
                 if (eval): ## No action exploration
-                    print("Running evaluation episode")
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print("Running evaluation episode")
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
                 elif (sim_on_poli): ### With exploration // I don't think this is can EVER be called anymore...
-                    print("Simulating a normal episode ??with exploration??")
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print("Simulating a normal episode ??with exploration??")
                     sys.exit()
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
                 elif (bootstrapping): ## With exploration and noise
-                    print ("Running boostraping episode")
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print ("Running boostraping episode")
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval,
                             bootstrapping=bootstrapping)
                 else: ##Normal??
-                    print("Simulating a normal episode")
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print("Simulating a normal episode")
                     settings_ = copy.deepcopy(self._settings)
                     r = np.random.rand(1)[0]
                     if ( ('perform_mbae_episode_sampling' in self._settings)
