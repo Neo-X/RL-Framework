@@ -200,6 +200,7 @@ class SimWorker(Process):
                          ):
                         ## This will result in an entire episode sampled from MBAE
                         settings_['model_based_action_omega'] = 1.0    
+                        
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=settings_, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
