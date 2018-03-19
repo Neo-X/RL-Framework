@@ -621,7 +621,8 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
         ## Normalize action length
         
         
-    action_grads = ( action_grads / np.mean(action_grads) ) * (learning_rate)
+    # action_grads = ( action_grads / np.mean(action_grads) ) * (learning_rate)
+    action_grads = ( action_grads / np.mean(np.abs(action_grads)) ) * (learning_rate)
     if ('randomize_MBAE_action_length' in model.getSettings() and ( model.getSettings()['randomize_MBAE_action_length'])):
         # action_grads = action_grads * np.random.uniform(low=0.0, high = 1.0, size=1)[0]
         action_grads = action_grads * (np.fabs(np.random.normal(loc=0.0, scale = 1.0, size=1)[0]))
@@ -787,10 +788,12 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
             
         if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print( "Raw action grad: ", action_grads)
-        print ("MBAE learning rate: ", learning_rate, " raw grads", action_grads)
+        # print ("MBAE learning rate: ", learning_rate, " raw grads", action_grads)
         ## Normalize action length
-        action_grads = ( (action_grads/(np.sqrt((action_grads*action_grads).sum())))/np.sqrt(np.mean(np.abs(action_grads)))) * (learning_rate)
+        # action_grads = ( (action_grads/(np.sqrt((action_grads*action_grads).sum())))/(np.mean(np.abs(action_grads)))) * (learning_rate)
+        # action_grads = ( (action_grads/(np.sqrt((action_grads*action_grads).sum())))/np.sqrt(np.mean(np.abs(action_grads)))) * (learning_rate)
         # action_grads = ( action_grads / np.mean(action_grads) ) * (learning_rate)
+        action_grads = ( action_grads / np.mean(np.abs(action_grads)) ) * (learning_rate)
         if ('randomize_MBAE_action_length' in model.getSettings()
              and ( model.getSettings()['randomize_MBAE_action_length'] == True)):
             # print ("Adding noise to action grads")
@@ -798,7 +801,7 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
             noise = (np.fabs(np.random.normal(loc=0.0, scale = 1.0, size=1)[0]))
             action_grads = action_grads * noise
             
-        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['train']):
+        if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print ("Applied action: ", action_grads)
             # print ("Action magnitude: ", np.sqrt((action_grads*action_grads).sum()), " mean, ", np.mean(np.abs(action_grads)))
             print ("Action magnitude: ", np.sqrt((action_grads*action_grads).sum()), " mean, ", np.mean(action_grads))
