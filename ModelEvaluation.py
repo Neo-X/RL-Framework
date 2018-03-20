@@ -1584,9 +1584,12 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None):
     else:
         file_name=directory+getAgentName()+"_Best.pkl"
     print("Loading model: ", file_name)
-    f = open(file_name, 'rb')
-    model = dill.load(f)
-    f.close()
+    # f = open(file_name, 'rb')
+    # model = dill.load(f)
+    # f.close()
+    settings["load_saved_model"] = True
+    # settings["load_saved_model"] = "network_and_scales"
+    model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
     print ("State Length: ", len(model.getStateBounds()[0]) )
     
     if (settings['train_forward_dynamics']):
