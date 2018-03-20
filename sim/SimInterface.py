@@ -4,7 +4,7 @@ import numpy as np
 import math
 
 from actor.DoNothingActor import DoNothingActor
-from learn.model.ModelUtil import checkDataIsValid
+from model.ModelUtil import checkDataIsValid
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
 
