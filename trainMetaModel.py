@@ -126,17 +126,20 @@ def trainMetaModel_(args):
     from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
     from tools.PlotMetadataSimulation import plotMetaDataSimulation
     import os
+    import sys
+    sys.argv
+    args = sys.argv
     
     if (len(args) == 1):
-        print("Please incluse sim settings file")
+        print("Please incluse sim settings file: ", len(args))
         print("python trainMetaModel.py <sim_settings_file> <hyper_settings_file> <num_samples>")
         sys.exit()
     elif (len(args) == 2):
-        print("Please incluse sim settings file")
+        print("Please incluse sim settings file: ", len(args))
         print("python trainMetaModel.py <sim_settings_file> <hyper_settings_file> <num_samples>")
         sys.exit()
     elif (len(args) == 3):
-        print("Please incluse sim settings file")
+        print("Please incluse sim settings file: ", len(args))
         print("python trainMetaModel.py <sim_settings_file> <hyper_settings_file> <num_samples>")
         sys.exit()
     elif ((len(args) == 5) or (len(args) == 6)):
@@ -206,7 +209,7 @@ def trainMetaModel_(args):
                   pictureFile=pictureFileName)    
           
     else:
-        print("Please specify arguments properly, ")
+        print("Please specify arguments properly, ", len(args))
         print("args: ", args)
         print("python trainMetaModel.py <sim_settings_file> <hyper_settings_file> <num_samples>")
     

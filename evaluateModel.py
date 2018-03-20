@@ -139,7 +139,8 @@ class SimContainer(object):
                     print( "New action: ", self._action)
                     self._exp.updateAction(self._action)
                 
-                if ( self._settings['environment_type'] == 'terrainRLHLCBiped3D' ):
+                if ( self._settings['environment_type'] == 'terrainRLHLCBiped3D'
+                     or (self._settings['environment_type'] == 'GymMultiChar') ):
                     self._exp.getActor().updateActor(self._exp, self._action)
                 else:
                     self._exp.update()

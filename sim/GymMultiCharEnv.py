@@ -25,6 +25,7 @@ class GymMultiCharEnv(SimInterface):
         super(GymMultiCharEnv,self).__init__(exp, settings)
         self._previous_observation=None
         self._end_of_episode=False
+        self._num_updates_since_last_action=10000
         
         ## Should print the type of actions space, continuous/discrete, how many parameters
         print(self.getEnvironment().action_space)

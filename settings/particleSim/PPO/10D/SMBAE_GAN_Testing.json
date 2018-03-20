@@ -90,7 +90,7 @@
     "comment__": "Amount of dropout to use in the networks (if using a dropout network)",
 "dropout_p": 0.0,
     "comment__": "Regularization weight for the policy network",
-"regularization_weight": 0.0000,
+"regularization_weight": 0.00001,
     "comment__": "Some parameter for rmsprop stocastic gradient optimization method.",
 "rho": 0.95,
     "comment__": "Some parameter for rmsprop stocastic gradient optimization method.",
