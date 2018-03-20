@@ -183,8 +183,8 @@ class SimContainer(object):
             sys.exit(0)
         elif c == 'r':
             print("Resetting Epoch")
-            self._exp.getActor().initEpoch()   
-            self._exp.getEnvironment().initEpoch()
+            # self._exp.initEpoch()   
+            self._exp.initEpoch()
         elif c == 'M':
             if ( self._settings["use_parameterized_control"] ):
                 # self._exp.getActor()._target_vel += 0.1
