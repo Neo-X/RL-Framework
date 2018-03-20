@@ -43,6 +43,7 @@ class GymMultiCharEnv(SimInterface):
         # self.getEnvironment().init()
         self._previous_observation = self.getEnvironment().reset()
         self._end_of_episode = False
+        self._num_updates_since_last_action=10000
             
     def initEpoch(self):
         self._previous_observation = self.getEnvironment().reset()
@@ -50,6 +51,7 @@ class GymMultiCharEnv(SimInterface):
             self._previous_observation = self.getEnvironment().reset()
         
         self._end_of_episode = False
+        self._num_updates_since_last_action=10000
         
     def endOfEpoch(self):
         eoe = self._exp.endOfEpoch()
