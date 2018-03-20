@@ -125,7 +125,7 @@ class GymMultiCharEnv(SimInterface):
         
     def needUpdatedAction(self):
         timestep = self.getSettings()['hlc_timestep']
-        # print ("needUpdateAction: self._num_updates_since_last_action: ", self._num_updates_since_last_action )
+        print ("needUpdateAction: self._num_updates_since_last_action: ", self._num_updates_since_last_action )
         if ( self._num_updates_since_last_action >= timestep):
             return True
         else:
