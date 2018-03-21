@@ -310,8 +310,6 @@
 "normalize_advantage": true,
 	"comment__": "use a special annealing schedule that will being at 1 and end at 0",
 "annealing_schedule": "log",
-	"comment__": "Use the annealing schedule in on policy learning",
-"anneal_on_policy": false,
 	"comment__": "Use a different off-policy experience memory for the fd learning",
 "keep_seperate_fd_exp_buffer": true,
 	"comment__": "Train a GAN to do something....",

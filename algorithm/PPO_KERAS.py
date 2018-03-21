@@ -239,8 +239,8 @@ class PPO_KERAS(AlgorithmInterface):
             std = std / self.getSettings()['advantage_scaling']
             mean = 0.0
         advantage = (advantage - mean) / std
-        
-        if (r_ < 2.0) and ( r_ > 0.5):  ### update not to large
+        et_factor = 1.2
+        if (r_ < (et_factor)) and ( r_ > (1.0/et_factor)):  ### update not to large
             (lossActor, r_) = self.trainPolicy(states, actions, advantage)
             # lossActor = score.history['loss'][0]
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
