@@ -1,5 +1,5 @@
 #  THEANO_FLAGS=device=gpu0 python3
-# THEANO_FLAGS='device=cuda,floatX=float32'
+# THEANO_FLAGS='device=gpu,floatX=float32,nvcc.flags=-D_FORCE_INLINES'
 
 import numpy
 import theano
