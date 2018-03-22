@@ -1,6 +1,12 @@
 #  THEANO_FLAGS=device=gpu0 python3
 # THEANO_FLAGS='device=gpu,floatX=float32,nvcc.flags=-D_FORCE_INLINES'
 
+"""
+    References
+    https://security-plus-data-science.blogspot.ca/2017/08/theano-deep-learning-framework-on.html
+    
+"""
+
 import numpy
 import theano
 import theano.tensor as T
