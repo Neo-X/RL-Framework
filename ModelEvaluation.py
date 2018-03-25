@@ -678,11 +678,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         result_states___.append(resultState_)
         if (worker_id is not None):
             # print("Pushing working id as fall value: ", [worker_id])
-            falls.append([worker_id])
+            falls.append([worker_id] * np.array(state_).shape[0])
         else:
-            # print("Pushing actual fall value: ", [agent_not_fell])
-            falls.append([agent_not_fell])
-        exp_actions.append([exp_action])
+            # print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])
+            falls.append([agent_not_fell] * np.array(state_).shape[0])
+        exp_act = [exp_action] * np.array(state_).shape[0]
+        # print ("exp_act: " , exp_act)
+        exp_actions.append(exp_act)
         # print ("falls: ", falls)
         # values.append(value)
         if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
@@ -724,7 +726,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     ## Extend so that we can preserve the paths/trajectory structure.
                     if (len(rewards[last_epoch_end:]) > 0):
                         adv__ = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
-                        # print ("adv__ shape: ", np.array(adv__))
+                        # print ("adv__ shape: ", np.array(adv__).shape)
                         # adv__ = np.reshape(adv__, (-1, len(adv__)))
                         # print ("adv__ shape: ", np.array(adv__))
                         advantage.append(adv__)
@@ -788,27 +790,29 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     advantage.append(0.0)
     """
     if ('use_GAE' in settings and ( settings['use_GAE'] == True)):
-        for a in range(states[0].shape[0] and (len(states[last_epoch_end:]) > 0)):
-            # print ("Computing advantage for agent: ", a)
-            path = {}
-            ### timestep, agent, state
-            # print ("States shape: ", np.array(states[last_epoch_end:]).shape)
-            path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
-            # print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
-            # print ("rewards shape: ", repr(np.array(rewards[last_epoch_end:])))
-            path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
-            path["terminated"] = False
-            # print("rewards: ", rewards[last_epoch_end:])
-            ## Extend so that we can preserve the paths/trajectory structure.
-            if (len(rewards[last_epoch_end:]) > 0):
-                adv__ = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
-                # print ("adv__ shape: ", np.array(adv__).shape)
-                # adv__ = np.reshape(adv__, (-1, len(adv__)))
-                # print ("adv__ shape: ", np.array(adv__).shape)
-                advantage.append(np.array(adv__))
+        if (len(states[last_epoch_end:]) > 0):
+            for a in range(states[0].shape[0]):
+                # print ("Computing advantage for agent: ", a)
+                path = {}
+                ### timestep, agent, state
+                # print ("States shape: ", np.array(states[last_epoch_end:]).shape)
+                path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
+                # print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
+                # print ("rewards shape: ", repr(np.array(rewards[last_epoch_end:])))
+                path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
+                path["terminated"] = False
+                # print("rewards: ", rewards[last_epoch_end:])
+                ## Extend so that we can preserve the paths/trajectory structure.
+                if (len(rewards[last_epoch_end:]) > 0):
+                    adv__ = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
+                    # print ("adv__ shape: ", np.array(adv__).shape)
+                    # adv__ = np.reshape(adv__, (-1, len(adv__)))
+                    # print ("adv__ shape: ", np.array(adv__).shape)
+                    advantage.append(np.array(adv__))
     else:
-        if (len(rewards[last_epoch_end:]) > 0):
-            advantage.append(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
+        if (len(states[last_epoch_end:]) > 0):
+            for a in range(states[0].shape[0]):
+                advantage.append(discounted_rewards(np.array(rewards[last_epoch_end:][:,a,:]), discount_factor))
         
     # G_t_rewards.append(0)
     if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
@@ -832,6 +836,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     tmp_falls = []
     tmp_exp_actions = []
     tmp_baselines_ = []
+    tmp_advantage = []
     for s in range(len(states)):
         tmp_states.extend(states[s])
         tmp_actions.extend(actions[s])
@@ -843,7 +848,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_exp_actions.extend(exp_actions[s])
         tmp_baselines_.extend(baselines_[s])
         
-    tmp_advantage = []
+        
     for a_ in range(len(advantage)):
         tmp_advantage.extend(advantage[a_])
     tmp_advantage = np.array(tmp_advantage)

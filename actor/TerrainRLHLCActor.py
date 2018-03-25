@@ -72,7 +72,7 @@ class TerrainRLHLCActor(ActorInterface):
         tmp_reward_sum=0
         # print("Acting")
         while (not sim.needUpdatedAction() and (updates_ < 100)
-               and (not sim.getEnvironment().agentHasFallen())
+               # and (not sim.getEnvironment().agentHasFallen())
                ):
             # sim.updateAction(action_)
             self.updateActor(sim, action_)

@@ -85,9 +85,16 @@ class LearningAgent(AgentInterface):
         
         # print("_exp_actions: ", _exp_actions)
         # print ("Shapes of things: ")
-        # print ("State: ", np.array(_states).shape)
+        
+        ### The first dimension of all these should be the same.
+        # print ("_states: ", np.array(_states).shape)
         # print ("Actions: ", np.array(_actions).shape)
+        # print ("_result_states: ", np.array(_result_states).shape)
         # print ("Advantage: ", np.array(_advantage).shape)
+        # print ("_rewards: ", np.array(_rewards).shape)
+        # print ("_falls: ", np.array(_falls).shape)
+        # print ("_exp_actions: ", np.array(_exp_actions).shape)
+        
         if ("value_function_batch_size" in self._settings):
             value_function_batch_size = self._settings['value_function_batch_size']
         else:
@@ -140,7 +147,7 @@ class LearningAgent(AgentInterface):
                 print ("Pushing data into exp buffer complete in " + str(sim_time_) + " seconds")
                         
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):        
-                print ("self._expBuff.samples(): ", self._expBuff.samples())
+                print ("self._expBuff.samples(): ", self.getExperience().samples(), " states.shape: ", np.array(_states).shape)
             _states = np.array(norm_action(np.array(tmp_states), self._pol.getStateBounds()), dtype=self._settings['float_type'])
             # print("Learning Agent: Get state bounds: ", self._pol.getStateBounds())
             # print ("ExpMem: Get state bounds ", self._expBuff.getStateBounds())
