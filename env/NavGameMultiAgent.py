@@ -63,7 +63,7 @@ class NavGameMultiAgent(object):
                               int(self._state_bounds[1][0]-self._state_bounds[0][0])))
         
         self._numberOfAgents = 11
-        self._agent = np.array([[2]* self._state_length] * self._numberOfAgents) ## Somewhat random initial positions
+        self._agent = np.random.random_integers(-8, 8, (self._numberOfAgents, self._state_length))
         self._target = np.array([0]* self._state_length) ## goal location
         
         ## Some obstacles
@@ -89,7 +89,7 @@ class NavGameMultiAgent(object):
             self.initRender(U, V, Q)
         
     def init(self):
-        self._agent = np.array([[2]* self._state_length] * self._numberOfAgents) ## Somewhat random initial positions
+        self._agent = np.random.random_integers(-8, 8, (self._numberOfAgents, self._state_length))
         self._target = np.array([0]* self._state_length) ## goal location
         # self._map[self._target[0]][self._target[1]] = 1
         
@@ -156,6 +156,9 @@ class NavGameMultiAgent(object):
         # print ("Trying action: ", action)
         move = np.array(action)
         # loc = self._agent + (move * random.uniform(0.5,1.0))
+        # print("loc shape: ", np.array(self._agent).shape, "act shape: ", move.shape)
+        # print("act shape: ", repr(move))
+        
         rewards = []
         for a in range(self._numberOfAgents):
             loc = self._agent[a] + (move[a])
@@ -238,7 +241,8 @@ class NavGameMultiAgent(object):
         self._fig, (self._map_ax, self._policy_ax) = plt.subplots(1, 2, sharey=False)
         self._fig.set_size_inches(18.5, 8.5, forward=True)
         self._map_ax.set_title('Map')
-        self._particles, = self._map_ax.plot([np.array(self._agent)[:,0]], [np.array(self._agent)[:,1]], 'bo', ms=self._markerSize)
+        print("self._agent: ", repr(np.array(self._agent)) )
+        self._particles, = self._map_ax.plot(np.array(self._agent)[:,0], np.array(self._agent)[:,1], 'bo', ms=self._markerSize)
         
         self._map_ax.plot([self._target[0]], [self._target[1]], 'ro', ms=self._markerSize)
         

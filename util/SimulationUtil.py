@@ -490,7 +490,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         return exp
     elif env_type == 'nav_Game_MultiAgent':
         from env.NavGameMultiAgent import NavGameMultiAgent
-        from sim.NavGameEnv import NavGameEnv
+        from sim.NavGameMultiAgentEnv import NavGameMultiAgentEnv
         # file = open(config_file)
         # conf = json.load(file)
         conf = copy.deepcopy(settings)
@@ -498,7 +498,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         # file.close()
         conf['render'] = render
         exp = NavGameMultiAgent(conf)
-        exp = NavGameEnv(exp, settings)
+        exp = NavGameMultiAgentEnv(exp, settings)
         return exp
     elif env_type == 'Particle_Sim':
         from env.ParticleGame import ParticleGame
@@ -717,8 +717,8 @@ def createActor(env_type, settings, experience):
         from actor.NavGameActor import NavGameActor
         actor = NavGameActor(settings, experience)
     elif (env_type == 'nav_Game_MultiAgent'):
-        from actor.NavGameActor import NavGameActor
-        actor = NavGameActor(settings, experience)    
+        from actor.NavGameMultiAgentActor import NavGameMultiAgentActor
+        actor = NavGameMultiAgentActor(settings, experience)    
     elif (env_type == 'Particle_Sim'):
         from actor.ParticleSimActor import ParticleSimActor
         actor = ParticleSimActor(settings, experience)

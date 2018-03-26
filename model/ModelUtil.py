@@ -188,9 +188,10 @@ def norm_action(action_, action_bounds_):
     
     avg = (action_bounds_[0] + action_bounds_[1])/2.0
     std = (action_bounds_[1] - action_bounds_[0])/2.0
-    # avg = np.reshape(avg, (1,-1))
+    # avg = np.reshape(avg, (-1,1))
+    # std = np.reshape(std, (-1,1))
     # return (action_ - (avg)) / (action_bounds_[1]-avg)
-    tmp = action_ - (avg)
+    tmp = action_ - avg
     return (tmp) / (std)
 
 def norm_actions(actions_, action_bounds_):
