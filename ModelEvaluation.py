@@ -457,10 +457,16 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 0 <= e < omega < 1.0
             """
             r = np.random.rand(1)[0]
-            if r < (epsilon * p) or (settings['on_policy'] and (not evaluation)): # explore random actions
+            if (r < (epsilon * p) or (settings['on_policy'] and (not evaluation) 
+                    and (("anneal_exploration" in settings) 
+                         and (settings['anneal_exploration'] == True)
+                         and (r < (epsilon * p)) ) 
+                    )
+                    ): # explore random actions
                 exp_action = int(1)
                 r2 = np.random.rand(1)[0]
-                if ((r2 < (omega * p))) and (not sampling) :# explore hand crafted actions
+                if ((r2 < (omega * p))) and (not sampling) :
+                    ### explore hand crafted actions
                     # return ra2
                     # randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # action = randomAction
@@ -468,7 +474,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     action__ = actor.getActionParams(action)
                     action = action__
                     # print ("Discrete action choice: ", action, " epsilon * p: ", omega * p)
-                else : # add noise to current policy
+                else : 
+                    ### add noise to current policy
                     # return ra1
                     if ( ((settings['exploration_method'] == 'Ornstein–Uhlenbeck') 
                           # or (bootstrapping)
@@ -548,7 +555,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                             # if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
                                 # print("MBAE action:")
                     # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
-            else: ## exploit policy
+            else: 
+                ### exploit policy
+                # print ("exploitive action and evaluation is ", evaluation)
                 exp_action = int(0) 
                 # return pa1
                 ## For sampling method to skip sampling during evaluation.
