@@ -20,7 +20,7 @@
 	"comment__": "Data use to create anchors for pendulum",
 "anchor_file": "../data/anchorData/paperGibbonAnchors.json",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.1,
+"exploration_rate": 0.25,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 50000,
     "comment__": "Number of epochs to perform per round",
@@ -186,7 +186,7 @@
     "comment__": "Initial temperature for anealling of e-greedy exploration",
 "initial_temperature": 3.0,
     "comment__": "epsilon lower limit",
-"min_epsilon": 0.10,
+"min_epsilon": 0.2,
     "comment__": "Whether or not to draw/render the simulation",
 "shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
@@ -354,5 +354,7 @@
 	"comment__": "Path to LLC to load",
 "llc_policy_model_path":  "./terrainRLImitateBiped3D/algorithm.A_CACLA.A_CACLA/Biped3d_Step_Walk_Waypoint_Flat_less_std/model.DeepNN.DeepNN/agent_Best.pkl",
 	"comment__": "higher level controller timestep",
-"hlc_timestep": 15
+"hlc_timestep": 15,
+	"comment__": "anneal the probability of performing explorative actions",
+"anneal_exploration": true
 }

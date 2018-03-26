@@ -621,8 +621,8 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
         ## Normalize action length
         
         
-    # action_grads = ( action_grads / np.mean(action_grads) ) * (learning_rate)
-    action_grads = ( action_grads / (np.mean(np.abs(action_grads))) ) * (learning_rate)
+    ### Normalize action grads
+    action_grads = normalizeMBAEActionGrads(action_grads, learning_rate)
     
     if ('randomize_MBAE_action_length' in model.getSettings() and ( model.getSettings()['randomize_MBAE_action_length'])):
         # action_grads = action_grads * np.random.uniform(low=0.0, high = 1.0, size=1)[0]
@@ -791,10 +791,7 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
             print( "Raw action grad: ", action_grads)
         # print ("MBAE learning rate: ", learning_rate, " raw grads", action_grads)
         ## Normalize action length
-        # action_grads = ( (action_grads/(np.sqrt((action_grads*action_grads).sum())))/(np.mean(np.abs(action_grads)))) * (learning_rate)
-        # action_grads = ( (action_grads/(np.sqrt((action_grads*action_grads).sum())))/np.sqrt(np.mean(np.abs(action_grads)))) * (learning_rate)
-        # action_grads = ( action_grads / np.mean(action_grads) ) * (learning_rate)
-        action_grads = ( action_grads / (np.mean(np.abs(action_grads))) ) * (learning_rate)
+        action_grads = normalizeMBAEActionGrads(action_grads, learning_rate)
         if ('randomize_MBAE_action_length' in model.getSettings()
              and ( model.getSettings()['randomize_MBAE_action_length'] == True)):
             # print ("Adding noise to action grads")
@@ -848,6 +845,14 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         print("state: ", state, " using ", init_action)
         return (init_action, np.array([0]))
 
+def normalizeMBAEActionGrads(action_grads, learning_rate):
+    # action_grads = ( (action_grads/(np.sqrt((action_grads*action_grads).sum())))/(np.mean(np.abs(action_grads)))) * (learning_rate)
+    # action_grads = ( (action_grads/(np.sqrt((action_grads*action_grads).sum())))/np.sqrt(np.mean(np.abs(action_grads)))) * (learning_rate)
+    # action_grads = ( action_grads / np.mean(action_grads) ) * (learning_rate)
+    # action_grads = ( action_grads / (np.mean(np.abs(action_grads))) ) * (learning_rate)
+    action_grads = (action_grads/(np.sqrt((action_grads*action_grads).sum()))) * (learning_rate)
+    return action_grads
+    
 def getModelPredictionUncertanty(model, state, length=4.1, num_samples=32):
     """
         Computes the optimal action to be taken given

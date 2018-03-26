@@ -162,8 +162,9 @@ class NavGame(object):
             # np.any(np.less(loc, self._state_bounds[0])) or np.any(np.greater(loc, self._state_bounds[1]))) or
             np.any(np.less(loc, -8.0)) or np.any(np.greater(loc, 8.0))) or
             self.collision(loc) or
-            self.fall(loc)):
-            # can't overlap an obstacle
+            self.fall(loc)
+            ):
+            ### can't overlap an obstacle or be outside working area
             return (self._state_bounds[0][0] - self._state_bounds[1][0])/8.0
             
         # if self._map[loc[0]-1][loc[1]-1] == 1:
@@ -192,7 +193,8 @@ class NavGame(object):
         for obs in self._obstacles:
             a=(loc - obs)
             d = np.sqrt((a*a).sum(axis=0))
-            if d < 0.3:
+            # print ("d: ", d)
+            if d < 0.2:
                 # print ("Found collision")
                 return True
         return False
