@@ -226,6 +226,8 @@ class LearningAgent(AgentInterface):
                     else:
                         _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
                         loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print("Critic loss: ", loss)
                         if not np.isfinite(loss) or (loss > 500) :
                             numpy.set_printoptions(threshold=numpy.nan)
                             print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
