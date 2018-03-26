@@ -335,7 +335,7 @@
 	"comment__": "Use the on-policy value function to compute state gradients instead of off-policy one for SMBAE.",
 "use_extra_value_for_MBAE_state_grads": true,
 	"comment__": "Use advantage estimate instead of critic for selecting good actions to learn from CACLA",
-"CACLA_use_advantage": true,
+"CACLA_use_advantage": false,
 	"comment__": "Performs MBAE random sampling at the level of episodes instead of transitions",
 "perform_mbae_episode_sampling": true,
 	"comment__": "Additional on-policy training updates",
