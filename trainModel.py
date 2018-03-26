@@ -284,13 +284,14 @@ def trainModelParallel(inputData):
             print("Reward bounds invalid: ", reward_bounds)
             sys.exit()
         
+        """
         if settings['action_space_continuous']:
             experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
             
         experience.setSettings(settings)
-        
+        """
 
         # mgr = multiprocessing.Manager()
         # namespace = mgr.Namespace()
