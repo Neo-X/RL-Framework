@@ -33,7 +33,7 @@ class NavGameActor(ActorInterface):
         #         action_ = action__
         dist = exp.getEnvironment().actContinuous(action_, bootstrapping=bootstrapping)
         if ( dist > 0 ):
-            self._reward_sum = self._reward_sum + dist
+            self._reward_sum = self._reward_sum + np.mean(dist)
             return dist
         if (self.hasNotFallen(exp)):
             # vel_dif = np.abs(self._target_vel - dist)
@@ -43,7 +43,7 @@ class NavGameActor(ActorInterface):
         else:
             return 0.0
         
-        self._reward_sum = self._reward_sum + reward
+        self._reward_sum = self._reward_sum + np.mean(reward)
         return reward
     
     def getEvaluationData(self):
