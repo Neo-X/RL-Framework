@@ -1,8 +1,8 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "model.DeepNNAdaptive.DeepNNAdaptive",
+"model_type": "model.DeepNNKerasAdaptive.DeepNNKerasAdaptive",
     "comment__": "Learning algorithm to use",
-"agent_name": "algorithm.A_CACLA.A_CACLA",
+"agent_name": "algorithm.CACLA_KERAS.CACLA_KERAS",
     "comment__": "Folder to store the training data in.",
 "data_folder": "Nav_Particle/On_Policy2/10D/_3",
 	"comment": "initial probability of selecting a random action",
