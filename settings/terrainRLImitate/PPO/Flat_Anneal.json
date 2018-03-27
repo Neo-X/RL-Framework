@@ -299,7 +299,7 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [128, 64, 32],
 	"comment__": "Activation function to use for the std part of the policy",
-"_last_std_policy_layer_activation_type": "sigmoid",
+"_last_std_policy_layer_activation_type": "softplus",
 	"comment__": "type of activation to use",
 "activation_type": "leaky_rectify",
 	"comment__": "type of activation to use for policy",
@@ -331,5 +331,7 @@
 	"comment__": "Performs MBAE random sampling at the level of episodes instead of transitions",
 "perform_mbae_episode_sampling": true,
 	"comment__": "If already annealing on-policy then enabling this will anneal the std for the policy",
-"anneal_policy_std": false
+"anneal_policy_std": false,
+	"comment__": "Using a single network for all functions",
+"use_single_network": true
 }
