@@ -151,6 +151,26 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if ( self._dropout_p > 0.001 ):
                     network = Dropout(rate=self._dropout_p)(network)
             
+        if ( "use_single_network" in self._settings and 
+             (self._settings['use_single_network'] == True)):
+            networkAct = network       
+            networkAct_ = networkAct
+            networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+            networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
+    
+            self._actor = networkAct
+                    
+            if (self._settings['use_stocastic_policy']):
+                with_std = Dense(self._action_length, 
+                                kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
+                                kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
+                               mode='fan_avg', distribution='uniform', seed=None) ))(networkAct_)
+                with_std = getKerasActivation(self._settings['_last_std_policy_layer_activation_type'])(with_std)
+                # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+                self._actor = keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
+                
+            self._actor = Model(input=self._stateInput, output=self._actor)
+            print("Actor summary: ", self._actor.summary())
         network= Dense(1,
                        kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
         network = Activation('linear')(network)

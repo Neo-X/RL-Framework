@@ -81,6 +81,20 @@ class DeepNNAdaptive(ModelInterface):
                                 network, num_units=layer_sizes[i],
                                 nonlinearity=self._activation_type)
 
+                if ( "use_single_network" in self._settings and 
+                     (self._settings['use_single_network'] == True)):
+                    self._actor = lasagne.layers.DenseLayer(
+                            network, num_units=self._action_length,
+                            nonlinearity=self._last_policy_layer_activation_type)
+                    # self._b_o = init_b_weights((n_out,))
+                    if (self._settings['use_stocastic_policy']):
+                        with_std = lasagne.layers.DenseLayer(
+                                network, num_units=self._action_length,
+                                ### Reduce the initial size of std
+                                W=lasagne.init.GlorotUniform(gain=0.01),
+                                nonlinearity=self._last_std_policy_layer_activation_type)
+                        self._actor = lasagne.layers.ConcatLayer([self._actor, with_std], axis=1)
+                        
                 self._value_function = lasagne.layers.DenseLayer(
                         network, num_units=1,
                         nonlinearity=lasagne.nonlinearities.linear)
