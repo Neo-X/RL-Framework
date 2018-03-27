@@ -292,3 +292,37 @@ class CACLA_KERAS(AlgorithmInterface):
         bellman_error = target_ - values
         return bellman_error
         # return self._bellman_errorTarget()
+        
+    def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
+        """
+            Performs a DYNA type update
+            Because I am using target networks a direct DYNA update does nothing. 
+            The gradients are not calculated for the target network.
+            L(\theta) = (r + V(s'|\theta')) - V(s|\theta))
+            Instead what is done is this
+            L(\theta) = V(s_1|\theta')) - V(s_2|\theta))
+            Where s1 comes from the simulation and s2 is a predicted and noisey value from an fd model
+            Parameters
+            ----------
+            predicted_states : predicted states, s_1
+            actions : list of actions
+            rewards : rewards for taking action a_i
+            result_states : simulated states, s_2
+            falls: list of flags for whether or not the character fell
+            Returns
+            -------
+            
+            loss: the loss for the DYNA type update
+
+        """
+    
+        y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=result_states.shape[0])
+        # v = self._model.getCriticNetwork().predict(predicted_states, batch_size=states.shape[0])
+        # target_ = rewards + ((self._discount_factor * y_) * falls)
+        score = self._model.getCriticNetwork().fit(predicted_states, y_,
+              nb_epoch=1, batch_size=predicted_states.shape[0],
+              verbose=0
+              # callbacks=[early_stopping],
+              )
+        loss = score.history['loss'][0]
+        # print(" Critic loss: ", loss)
