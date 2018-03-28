@@ -497,9 +497,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                            ):
                         pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # action = randomExporation(settings["exploration_rate"], pa)
-                        std_ = model.predict_std(state_)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
-                            std_ = std_ * p
+                            std_ = model.predict_std(state_, p=p)
+                        else:
+                            std_ = model.predict_std(state_, p=1.0)
                         # print("Action: ", pa)
                         # print ("Action std: ", std)
                         stds.append(std_)

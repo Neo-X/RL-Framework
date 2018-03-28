@@ -671,15 +671,15 @@ def trainModelParallel(inputData):
                     # print("**** training __result_states: ", np.array(__result_states).shape)
                     # print ("Actions before: ", __actions)
                     # print("Adv: ", advantage__)
-                    for i in range(1):
-                        masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
-                                           _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__)
-                    
-                    # if ( settings['num_available_threads'] > 1 ):
                     if ( ('anneal_on_policy' in settings) and settings['anneal_on_policy']):  
                         p_tmp_ = p 
                     else:
                         p_tmp_ = 1.0
+                        
+                    for i in range(1):
+                        masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
+                                           _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, p=p_tmp_)
+                    
                     data = ('Update_Policy', p_tmp_, 
                             masterAgent.getStateBounds(),
                             masterAgent.getActionBounds(),

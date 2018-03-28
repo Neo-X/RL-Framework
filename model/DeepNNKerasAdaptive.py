@@ -71,34 +71,37 @@ class DeepNNKerasAdaptive(ModelInterface):
         # input.trainable = True
         print ("Input ",  input)
 
-        ### NUmber of layers and sizes of layers        
-        layer_sizes = self._settings['policy_network_layer_sizes']
-        print ("Network layer sizes: ", layer_sizes)
-        networkAct = self._stateInput
-        for i in range(len(layer_sizes)):
-            # networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
-            networkAct = Dense(layer_sizes[i], 
-                               kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-            networkAct = getKerasActivation(self._settings['policy_activation_type'])(networkAct)
-        # inputAct.trainable = True
-        print ("Network: ", networkAct)         
-        networkAct_ = networkAct
-        networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-        networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
-
-        self._actor = networkAct
+        if ( not ( "use_single_network" in self._settings and 
+             (self._settings['use_single_network'] == True))
+            ):
+            ### Number of layers and sizes of layers        
+            layer_sizes = self._settings['policy_network_layer_sizes']
+            print ("Network layer sizes: ", layer_sizes)
+            networkAct = self._stateInput
+            for i in range(len(layer_sizes)):
+                # networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
+                networkAct = Dense(layer_sizes[i], 
+                                   kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+                networkAct = getKerasActivation(self._settings['policy_activation_type'])(networkAct)
+            # inputAct.trainable = True
+            print ("Network: ", networkAct)         
+            networkAct_ = networkAct
+            networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+            networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
+    
+            self._actor = networkAct
+                    
+            if (self._settings['use_stocastic_policy']):
+                with_std = Dense(self._action_length, 
+                                kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
+                                kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
+                               mode='fan_avg', distribution='uniform', seed=None) ))(networkAct_)
+                with_std = getKerasActivation(self._settings['_last_std_policy_layer_activation_type'])(with_std)
+                # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+                self._actor = keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
                 
-        if (self._settings['use_stocastic_policy']):
-            with_std = Dense(self._action_length, 
-                            kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
-                            kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
-                           mode='fan_avg', distribution='uniform', seed=None) ))(networkAct_)
-            with_std = getKerasActivation(self._settings['_last_std_policy_layer_activation_type'])(with_std)
-            # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-            self._actor = keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
-            
-        self._actor = Model(input=self._stateInput, output=self._actor)
-        print("Actor summary: ", self._actor.summary())
+            self._actor = Model(input=self._stateInput, output=self._actor)
+            print("Actor summary: ", self._actor.summary())
             
         
         layer_sizes = self._settings['critic_network_layer_sizes']

@@ -73,7 +73,8 @@ class LearningAgent(AgentInterface):
     def getFDExperience(self):
         return self._expBuff_FD  
     
-    def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, _exp_actions=None):
+    def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
+              _exp_actions=None, p=1.0):
         if self._useLock:
             self._accesLock.acquire()
         loss = 0
@@ -295,11 +296,13 @@ class LearningAgent(AgentInterface):
                             else:
                                 _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
                             
-                            loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
-                                                         advantage=_advantage, exp_actions=exp_actions__, forwardDynamicsModel=self._fd)
+                            loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, 
+                                                         falls=_falls, advantage=_advantage, exp_actions=exp_actions__, 
+                                                         forwardDynamicsModel=self._fd, p=p)
                     else:
                         loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
-                                                     advantage=_advantage, exp_actions=exp_actions__, forwardDynamicsModel=self._fd)
+                                                     advantage=_advantage, exp_actions=exp_actions__, forwardDynamicsModel=self._fd,
+                                                     p=p)
                     t1 = time.time()
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
@@ -351,7 +354,9 @@ class LearningAgent(AgentInterface):
                     
                 if (self._settings['train_actor']):
                     t1 = time.time()
-                    loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, advantage=_advantage, exp_actions=_exp_actions, forwardDynamicsModel=self._fd)
+                    loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, 
+                                                 result_states=_result_states, falls=_falls, advantage=_advantage, 
+                                                 exp_actions=_exp_actions, forwardDynamicsModel=self._fd, p=p)
                     t1 = time.time()
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
@@ -416,10 +421,10 @@ class LearningAgent(AgentInterface):
             self._accesLock.release()
         return act
     
-    def predict_std(self, state, evaluation_=False):
+    def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:
             self._accesLock.acquire()
-        std = self._pol.predict_std(state)
+        std = self._pol.predict_std(state, p=p)
         if self._useLock:
             self._accesLock.release()
         return std

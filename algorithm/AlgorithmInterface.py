@@ -375,7 +375,7 @@ class AlgorithmInterface(object):
         actions_ = self._q_action()
         return actions_
     
-    def predict_std(self, state, deterministic_=True):
+    def predict_std(self, state, deterministic_=True, p=1.0):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
         """

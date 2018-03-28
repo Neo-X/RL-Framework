@@ -35,26 +35,23 @@ class PPO_KERAS(AlgorithmInterface):
         self._rho = self.getSettings()['rho']
         self._rms_epsilon = self.getSettings()['rms_epsilon']
         
+        self._Anneal = T.scalar("Anneal")
+        
         self._q_valsActA = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
         if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
-            self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+            self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate'] * self._Anneal
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
-            self._q_valsActASTD = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:] + 1e-2
+            self._q_valsActASTD = (self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:] * self._Anneal) + 1e-2
         
         self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
         if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
-            self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
+            self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate'] * self._Anneal
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else: 
-            self._q_valsActTargetSTD = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:] + 1e-2
+            self._q_valsActTargetSTD = (self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:] * self._Anneal ) + 1e-2
         
         self._Advantage = T.col("Advantage")
-        self._Advantage.tag.test_value = np.zeros((self._batch_size,1),dtype=np.dtype(self.getSettings()['float_type']))
-        
-        self._advantage_shared = theano.shared(
-            np.zeros((self._batch_size, 1), dtype=self.getSettings()['float_type']),
-            broadcastable=(False, True)) 
         
         self._actor_entropy = 0.5 * T.mean((2 * np.pi * self._q_valsActASTD ) )
         
@@ -66,7 +63,7 @@ class PPO_KERAS(AlgorithmInterface):
         self._r = (self._prob / self._prob_target)
         self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
         ppo_epsilon = self.getSettings()['kl_divergence_threshold']
-        self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - ppo_epsilon, 1+ppo_epsilon), self._Advantage))
+        self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - (ppo_epsilon * self._Anneal), 1+ (ppo_epsilon * self._Anneal)), self._Advantage))
         self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
         # self._actLoss = ((T.mean(self._actLoss_) )) + -self._actor_regularization
         # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy )))
@@ -96,13 +93,17 @@ class PPO_KERAS(AlgorithmInterface):
         
         self.trainPolicy = theano.function([self._model.getStateSymbolicVariable(),
                                              self._model.getActionSymbolicVariable(),
-                                             self._Advantage,  
-                                             K.learning_phase()], [self._actLoss, self._r], 
-                        updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items())
+                                             self._Advantage,
+                                             self._Anneal  
+                                             # K.learning_phase()
+                                             ], [self._actLoss, self._r], 
+                        updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items())
         
         self._r = theano.function([self._model.getStateSymbolicVariable(),
                                              self._model.getActionSymbolicVariable(),
-                                             K.learning_phase()], 
+                                             self._Anneal
+                                             # K.learning_phase()
+                                             ], 
                                   [self._r])
         
         gradients = K.gradients(T.mean(self._value), [self._model._stateInput]) # gradient tensors
@@ -114,6 +115,7 @@ class PPO_KERAS(AlgorithmInterface):
         self._policy_mean = K.function([self._model.getStateSymbolicVariable(), 
                                           K.learning_phase()], [self._q_valsActA])
         self._q_valsActASTD = K.function([self._model.getStateSymbolicVariable(), 
+                                          self._Anneal,
                                           K.learning_phase()], [self._q_valsActASTD]) 
         
 
@@ -169,15 +171,6 @@ class PPO_KERAS(AlgorithmInterface):
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
-        # print ("Falls:", falls)
-        # print ("Rewards: ", rewards)
-        # print ("Target Values: ", self._get_target())
-        # print ("V Values: ", np.mean(self._q_val()))
-        # print ("diff Values: ", np.mean(self._get_diff()))
-        # data = np.append(falls, self._get_target()[0], axis=1)
-        # print ("Rewards, Falls, Targets:", np.append(rewards, data, axis=1))
-        # print ("Rewards, Falls, Targets:", [rewards, falls, self._get_target()])
-        # print ("Actions: ", actions)
         # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
         y_ = self._value_Target([result_states,0])[0]
         # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
@@ -198,9 +191,10 @@ class PPO_KERAS(AlgorithmInterface):
         
         return loss
     
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, forwardDynamicsModel=None):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, 
+                   forwardDynamicsModel=None, p=1.0):
         lossActor = 0
-        
+        # print ("PPO p:", p)
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
@@ -237,7 +231,8 @@ class PPO_KERAS(AlgorithmInterface):
             print ("Normal Actions std: ", np.std(other_actions, axis=0), " mean ", np.mean(np.std(other_actions, axis=0)))
             print ("Normal Actions advantage: ", np.mean(other_advantage, axis=0))
         
-        r_ = np.mean(self._r(states, actions, 0))
+        # r_ = np.mean(self._r(states, actions, p, 0))
+        r_ = np.mean(self._r(states, actions, p))
         
         std = np.std(advantage)
         mean = np.mean(advantage)
@@ -245,15 +240,18 @@ class PPO_KERAS(AlgorithmInterface):
             std = std / self.getSettings()['advantage_scaling']
             mean = 0.0
         advantage = (advantage - mean) / std
+        ### check to not perform updates when r gets to large.
         et_factor = 1.2
         if (r_ < (et_factor)) and ( r_ > (1.0/et_factor)):  ### update not to large
             ### For now don't include dropout in policy updates 
-            (lossActor, r_) = self.trainPolicy(states, actions, advantage, 0)
+            # (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
+            (lossActor, r_) = self.trainPolicy(states, actions, advantage, p)
+            
             # lossActor = score.history['loss'][0]
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
                 print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
-                print ("Policy std: ", np.mean(self._q_valsActASTD([states, 0])[0], axis=0))
+                print ("Policy std: ", np.mean(self._q_valsActASTD([states, p, 0])[0], axis=0))
         else:
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy Gradient too large: ", np.mean(r_))
@@ -282,15 +280,16 @@ class PPO_KERAS(AlgorithmInterface):
         # action_ = q_valsActA[0]
         return action_
     
-    def predict_std(self, state, deterministic_=True):
+    def predict_std(self, state, deterministic_=True, p=1.0):
+        # print ("PPO std p:", p)
         state = norm_state(state, self._state_bounds)   
         state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            action_std = self._q_valsActASTD([state, 0])[0]
+            action_std = self._q_valsActASTD([state, p, 0])[0]
             # action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
         else:
-            action_std = self._q_valsActASTD([state, 0])[0] * (action_bound_std(self._action_bounds))
+            action_std = self._q_valsActASTD([state, p, 0])[0] * (action_bound_std(self._action_bounds))
         return action_std
     
     def predictWithDropout(self, state, deterministic_=True):
