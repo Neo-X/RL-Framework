@@ -96,11 +96,13 @@ class PPO_KERAS(AlgorithmInterface):
         
         self.trainPolicy = theano.function([self._model.getStateSymbolicVariable(),
                                              self._model.getActionSymbolicVariable(),
-                                             self._Advantage], [self._actLoss, self._r], 
+                                             self._Advantage,  
+                                             K.learning_phase()], [self._actLoss, self._r], 
                         updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items())
         
         self._r = theano.function([self._model.getStateSymbolicVariable(),
-                                             self._model.getActionSymbolicVariable()], 
+                                             self._model.getActionSymbolicVariable(),
+                                             K.learning_phase()], 
                                   [self._r])
         
         gradients = K.gradients(T.mean(self._value), [self._model._stateInput]) # gradient tensors
@@ -109,7 +111,11 @@ class PPO_KERAS(AlgorithmInterface):
         self._value = K.function([self._model._stateInput, K.learning_phase()], [self._value])
         self._value_Target = K.function([self._model._stateInput, K.learning_phase()], [self._value_Target])
         
-        self._q_valsActASTD = K.function([self._model.getStateSymbolicVariable()], [self._q_valsActASTD]) 
+        self._policy_mean = K.function([self._model.getStateSymbolicVariable(), 
+                                          K.learning_phase()], [self._q_valsActA])
+        self._q_valsActASTD = K.function([self._model.getStateSymbolicVariable(), 
+                                          K.learning_phase()], [self._q_valsActASTD]) 
+        
 
     def getGrads(self, states, alreadyNormed=False):
         """
@@ -231,7 +237,7 @@ class PPO_KERAS(AlgorithmInterface):
             print ("Normal Actions std: ", np.std(other_actions, axis=0), " mean ", np.mean(np.std(other_actions, axis=0)))
             print ("Normal Actions advantage: ", np.mean(other_advantage, axis=0))
         
-        r_ = np.mean(self._r(states, actions))
+        r_ = np.mean(self._r(states, actions, 0))
         
         std = np.std(advantage)
         mean = np.mean(advantage)
@@ -241,12 +247,13 @@ class PPO_KERAS(AlgorithmInterface):
         advantage = (advantage - mean) / std
         et_factor = 1.2
         if (r_ < (et_factor)) and ( r_ > (1.0/et_factor)):  ### update not to large
-            (lossActor, r_) = self.trainPolicy(states, actions, advantage)
+            ### For now don't include dropout in policy updates 
+            (lossActor, r_) = self.trainPolicy(states, actions, advantage, 0)
             # lossActor = score.history['loss'][0]
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
-                print ("Policy mean: ", np.mean(self._model.getActorNetwork().predict(states, batch_size=states.shape[0])[:,:self._action_length], axis=0))
-                print ("Policy std: ", np.mean(self._q_valsActASTD([states])[0], axis=0))
+                print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
+                print ("Policy std: ", np.mean(self._q_valsActASTD([states, 0])[0], axis=0))
         else:
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy Gradient too large: ", np.mean(r_))
@@ -280,10 +287,10 @@ class PPO_KERAS(AlgorithmInterface):
         state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            action_std = self._q_valsActASTD([state])[0]
+            action_std = self._q_valsActASTD([state, 0])[0]
             # action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
         else:
-            action_std = self._q_valsActASTD([state])[0] * (action_bound_std(self._action_bounds))
+            action_std = self._q_valsActASTD([state, 0])[0] * (action_bound_std(self._action_bounds))
         return action_std
     
     def predictWithDropout(self, state, deterministic_=True):
