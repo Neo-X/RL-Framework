@@ -183,7 +183,7 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         state_ = scale_state(self._forwardDynamics_drop()[0], self._state_bounds)
         return state_
     
-    def predict_std(self, state, action):
+    def predict_std(self, state, action, p=1.0):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         state_ = self._forwardDynamics_std() * (action_bound_std(self._state_bounds))

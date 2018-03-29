@@ -306,7 +306,7 @@ class ForwardDynamics(AlgorithmInterface):
         state_ = scale_state(self._forwardDynamics_drop()[0], self._state_bounds)
         return state_
     
-    def predict_std(self, state, action):
+    def predict_std(self, state, action, p=1.0):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])

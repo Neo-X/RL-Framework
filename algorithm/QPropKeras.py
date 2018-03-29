@@ -387,7 +387,7 @@ class QPropKeras(AlgorithmInterface):
         action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1)[:,:self._action_length], self._action_bounds)
         return action_
     
-    def predict_std(self, state, deterministic_=True):
+    def predict_std(self, state, deterministic_=True, p=1.0):
         state = norm_state(state, self._state_bounds)   
         state = np.array(state, dtype=self._settings['float_type'])
         

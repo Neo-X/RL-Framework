@@ -144,7 +144,8 @@ class CACLA_KERAS(AlgorithmInterface):
         
         return loss
     
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, forwardDynamicsModel=None):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage,
+                    exp_actions=None, forwardDynamicsModel=None, p=1.0):
         lossActor = 0
         
         diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
@@ -229,7 +230,7 @@ class CACLA_KERAS(AlgorithmInterface):
         # action_ = q_valsActA[0]
         return action_
     
-    def predict_std(self, state, deterministic_=True):
+    def predict_std(self, state, deterministic_=True, p=1.0):
         state = norm_state(state, self._state_bounds)   
         state = np.array(state, dtype=self._settings['float_type'])
         

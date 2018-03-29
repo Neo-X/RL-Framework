@@ -224,7 +224,8 @@ class DPGKeras(AlgorithmInterface):
         loss = loss.history['loss'][0]
         return loss
         
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions, forwardDynamicsModel=None):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, 
+                   exp_actions, forwardDynamicsModel=None, p=1.0):
         # self.setData(states, actions, rewards, result_states, falls)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("values: ", np.mean(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(self._q_val()* (1.0 / (1.0- self.getSettings()['discount_factor']))) )

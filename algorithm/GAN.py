@@ -584,7 +584,7 @@ class GAN(AlgorithmInterface):
         # return self._q_valTarget()
         # return self._q_val()
         
-    def predict_std(self, state, deterministic_=True):
+    def predict_std(self, state, deterministic_=True, p=1.0):
         """
             This does nothing for a GAN...
         """
