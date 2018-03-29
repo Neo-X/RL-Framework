@@ -333,5 +333,7 @@
 	"comment__": "If already annealing on-policy then enabling this will anneal the std for the policy",
 "anneal_policy_std": false,
 	"comment__": "Using a single network for all functions",
-"use_single_network": true
+"use_single_network": false,
+	"comment__": "anneal the probability of performing explorative actions",
+"anneal_exploration": true
 }

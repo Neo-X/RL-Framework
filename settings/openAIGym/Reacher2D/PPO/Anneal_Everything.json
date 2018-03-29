@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "SingleNet_tanh/Anneal",
+"data_folder": "SingleNet_tanh_Anneal_Everything",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -314,5 +314,7 @@
 	"comment__": "Using a single network for all functions",
 "use_single_network": false,
 	"comment__": "Anneal the std of the policy as well",
-"anneal_policy_std": true
+"anneal_policy_std": false,
+	"comment__": "anneal the probability of performing explorative actions",
+"anneal_exploration": true
 }
