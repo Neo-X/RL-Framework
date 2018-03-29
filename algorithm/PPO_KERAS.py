@@ -246,7 +246,7 @@ class PPO_KERAS(AlgorithmInterface):
         if (r_ < (et_factor)) and ( r_ > (1.0/et_factor)):  ### update not to large
             ### For now don't include dropout in policy updates 
             # (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
-            (lossActor, r_) = self.trainPolicy(states, actions, advantage, p)
+            (lossActor, r_) = self.trainPolicy(states, actions, advantage, 1.0)
             
             # lossActor = score.history['loss'][0]
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
