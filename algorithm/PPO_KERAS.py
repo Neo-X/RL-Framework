@@ -97,7 +97,9 @@ class PPO_KERAS(AlgorithmInterface):
                                              self._Anneal  
                                              # K.learning_phase()
                                              ], [self._actLoss, self._r], 
-                        updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items())
+                        # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                        updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
+                        )
         
         self._r = theano.function([self._model.getStateSymbolicVariable(),
                                              self._model.getActionSymbolicVariable(),
@@ -245,8 +247,8 @@ class PPO_KERAS(AlgorithmInterface):
         et_factor = 1.2
         if (r_ < (et_factor)) and ( r_ > (1.0/et_factor)):  ### update not to large
             ### For now don't include dropout in policy updates 
-            # (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
-            (lossActor, r_) = self.trainPolicy(states, actions, advantage, 1.0)
+            (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
+            # (lossActor, r_) = self.trainPolicy(states, actions, advantage, 1.0)
             
             # lossActor = score.history['loss'][0]
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
