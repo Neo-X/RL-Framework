@@ -177,7 +177,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
     "comment__": "Initial tempurature for annealing of e-greedy exploration",
-"initial_temperature": 2.25,
+"initial_temperature": 1.0,
     "comment__": "epsilon lower limit",
 "min_epsilon": 0.1,
     "comment__": "Whether or not to draw/render the simulation",
