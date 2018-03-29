@@ -291,10 +291,7 @@ class LearningAgent(AgentInterface):
                          ( self._settings['use_multiple_policy_updates'] == True) ):
                         for i in range(self._settings['critic_updates_per_actor_update']):
                         
-                            if ( ('anneal_on_policy' in self._settings) and self._settings['anneal_on_policy'] and False):
-                                _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
-                            else:
-                                _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
+                            _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
                             
                             loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, 
                                                          falls=_falls, advantage=_advantage, exp_actions=exp_actions__, 
