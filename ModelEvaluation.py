@@ -460,7 +460,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if (r < (epsilon * p) or (settings['on_policy'] and (not evaluation) 
                     and (("anneal_exploration" in settings) 
                          and (settings['anneal_exploration'] != False)
-                         and (r < (float(settings['anneal_exploration']))) ) 
+                         and (r < (max(float(settings['anneal_exploration']), epsilon * p))) ) 
                     )
                     ): # explore random actions
                 exp_action = int(1)
