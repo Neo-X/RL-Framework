@@ -300,5 +300,5 @@
 	"comment__": "Compute a running mean and std for network input/output scaling",
 "keep_running_mean_std_for_scaling": false,
 	"comment__": "anneal the probability of performing explorative actions",
-"anneal_exploration": true
+"anneal_exploration": 0.3
 }

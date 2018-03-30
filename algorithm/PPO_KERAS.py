@@ -97,8 +97,8 @@ class PPO_KERAS(AlgorithmInterface):
                                              self._Anneal  
                                              # K.learning_phase()
                                              ], [self._actLoss, self._r], 
-                        # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
-                        updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
+                        updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                        # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
                         )
         
         self._r = theano.function([self._model.getStateSymbolicVariable(),
