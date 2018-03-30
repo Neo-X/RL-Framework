@@ -17,7 +17,7 @@ cp patches/pool.py ~/.local/lib/python2.7/site-packages/lasagne/layers/
 pip3 install --user dill
 pip3 install --user pathos
 pip3 install --user pyOpenGL
-pip3 install --user keras
+pip3 install --user keras==2.1.5
 ## Does not work in Python3
 # pip3 install pyODE
 pip3 install --user h5py

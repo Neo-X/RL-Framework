@@ -49,7 +49,7 @@ def anneal_value(d, settings_):
         p = (d**2)
     elif (anneal_type == "exp"):
         d = 1.0 - (d)
-        p = (d**round_)
+        p = (d**settings_['initial_temperature'])
         
     return p
 def discounted_rewards(rewards, discount_factor):
