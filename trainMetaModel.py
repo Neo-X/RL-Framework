@@ -12,6 +12,16 @@ import datetime
 
 from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory, getAgentName
 
+def makeNiceName(params_to_tune):
+    """
+        Take the list of parameters to sample over and return a nice
+        string that will result in a good filename.
+    """
+    out = ""
+    for p in params_to_tune:
+        out = out + "_" + str(p)
+    return out
+
 def _trainMetaModel(input):
     settingsFileName_ = input[0]
     samples_ = input[1]
@@ -186,7 +196,7 @@ def trainMetaModel_(args):
         #     addDataToTarBall(dataTar, simsettings_tmp, fileName=hyperSetFile)
         #     polt_settings_files.append(hyperSetFile)
             
-        figure_file_name = root_data_dir + simSettings_['data_folder'] + "/_" + hyperSettings_['param_to_tune'] + '_'
+        figure_file_name = root_data_dir + simSettings_['data_folder'] + "/_" + makeNiceName(hyperSettings_['param_to_tune']) + '_'
         
         print("root_data_dir: ", root_data_dir)
         pictureFileName=None
