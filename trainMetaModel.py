@@ -215,7 +215,7 @@ def trainMetaModel_(args):
         ## Send an email so I know this has completed
         result["settings_files"] = None ## Remove extra info
         contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
-        sendEmail(subject="Simulation complete: " + result['sim_time'], contents=contents_, hyperSettings=hyperSettings_, simSettings=args[2], dataFile=tarFileName,
+        sendEmail(subject="Simulation complete: " + result['sim_time'], contents=contents_, hyperSettings=hyperSettings_, simSettings=args[1], dataFile=tarFileName,
                   pictureFile=pictureFileName)    
           
     else:
