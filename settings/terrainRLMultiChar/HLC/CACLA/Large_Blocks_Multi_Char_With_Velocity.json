@@ -328,6 +328,6 @@
 "hlc_timestep": 15,
 	"comment__": "Compute a running mean and std for network input/output scaling",
 "keep_running_mean_std_for_scaling": false,
-	"comment__": "anneal the probability of performing explorative actions",
+	"comment__": "anneal the probability of performing explorative actions, set to >= 1.0 to perform only exploration actions",
 "anneal_exploration": 0.3
 }
