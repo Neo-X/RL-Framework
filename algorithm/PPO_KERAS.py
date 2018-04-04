@@ -94,8 +94,8 @@ class PPO_KERAS(AlgorithmInterface):
         self.trainPolicy = theano.function([self._model.getStateSymbolicVariable(),
                                              self._model.getActionSymbolicVariable(),
                                              self._Advantage,
-                                             self._Anneal  
-                                             # K.learning_phase()
+                                             self._Anneal,  
+                                             K.learning_phase()
                                              ], [self._actLoss, self._r], 
                         updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
                         # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
@@ -104,7 +104,7 @@ class PPO_KERAS(AlgorithmInterface):
         self._r = theano.function([self._model.getStateSymbolicVariable(),
                                              self._model.getActionSymbolicVariable(),
                                              # self._Anneal
-                                             # K.learning_phase()
+                                             K.learning_phase()
                                              ], 
                                   [self._r])
         
@@ -235,7 +235,7 @@ class PPO_KERAS(AlgorithmInterface):
         
         # r_ = np.mean(self._r(states, actions, p, 0))
         # r_ = np.mean(self._r(states, actions, p))
-        r_ = np.mean(self._r(states, actions))
+        r_ = np.mean(self._r(states, actions, 0))
         
         std = np.std(advantage)
         mean = np.mean(advantage)
@@ -247,7 +247,7 @@ class PPO_KERAS(AlgorithmInterface):
         et_factor = 1.2
         if (r_ < (et_factor)) and ( r_ > (1.0/et_factor)):  ### update not to large
             ### For now don't include dropout in policy updates 
-            (lossActor, r_) = self.trainPolicy(states, actions, advantage, p)
+            (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
             # (lossActor, r_) = self.trainPolicy(states, actions, advantage, 1.0)
             
             # lossActor = score.history['loss'][0]

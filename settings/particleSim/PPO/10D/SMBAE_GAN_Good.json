@@ -16,7 +16,7 @@
     "last_policy_layer_activation_type": "tanh",
     "max_epoch_length": 128,
     "forward_dynamics_model_type": "model.ForwardDynamicsDenseNetworkDropoutTesting.ForwardDynamicsDenseNetworkDropoutTesting",
-    "_last_std_policy_layer_activation_type": "sigmoid",
+    "_last_std_policy_layer_activation_type": "softplus",
     "debug_critic": false,
     "rounds": 250,
     "bootsrap_with_discrete_policy": true,

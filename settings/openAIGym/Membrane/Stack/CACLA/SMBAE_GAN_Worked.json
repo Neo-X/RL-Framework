@@ -175,7 +175,7 @@
     "load_saved_fd_model": false,
     "training_processor_type": "cpu",
     "load_saved_model": false,
-    "_last_std_policy_layer_activation_type": "sigmoid",
+    "_last_std_policy_layer_activation_type": "softplus",
     "override_sim_env_id": false,
     "adaptive_samples": 5,
     "fd_learning_rate": 0.001,

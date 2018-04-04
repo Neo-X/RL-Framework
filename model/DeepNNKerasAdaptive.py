@@ -70,6 +70,10 @@ class DeepNNKerasAdaptive(ModelInterface):
         self._actionInput = input2
         # input.trainable = True
         print ("Input ",  input)
+        
+        taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'],))(input)
+        # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(input)
+        characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'],))(input)
 
         if ( not ( "use_single_network" in self._settings and 
              (self._settings['use_single_network'] == True))
@@ -80,9 +84,24 @@ class DeepNNKerasAdaptive(ModelInterface):
             networkAct = self._stateInput
             for i in range(len(layer_sizes)):
                 # networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
-                networkAct = Dense(layer_sizes[i], 
-                                   kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-                networkAct = getKerasActivation(self._settings['policy_activation_type'])(networkAct)
+                if type(layer_sizes[i]) is list:
+                    if ( len(layer_sizes[i][1])> 1):
+                        if (i == 0):
+                            networkAct = Reshape((1, self._settings['num_terrain_features'], self._settings['num_terrain_features']))(taskFeatures)
+                        networkAct = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=(layer_sizes[i][1][0],layer_sizes[i][1][1]), strides=(1,1))(networkAct)
+                    else:
+                        if (i == 0):
+                            networkAct = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
+                        networkAct = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=8, strides=1)(networkAct)
+                    # networkAct = Dense(layer_sizes[i], 
+                    #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+                elif ( layer_sizes[i] == "merge_features"):
+                    networkAct = Flatten()(networkAct)
+                    networkAct = Concatenate(axis=1)([networkAct, characterFeatures])
+                else:
+                    networkAct = Dense(layer_sizes[i], 
+                                       kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+                    networkAct = getKerasActivation(self._settings['policy_activation_type'])(networkAct)
             # inputAct.trainable = True
             print ("Network: ", networkAct)         
             networkAct_ = networkAct
@@ -144,8 +163,23 @@ class DeepNNKerasAdaptive(ModelInterface):
             network = Dropout(rate=self._dropout_p)(network)
         for i in range(len(layer_sizes)):
             # network = Dense(layer_sizes[i], init='uniform')(input)
-            if ( layer_sizes[i] == "integrate_actor_part"):
+            if type(layer_sizes[i]) is list:
+                if ( len(layer_sizes[i][1])> 1):
+                    if (i == 0):
+                        network = Reshape((1, self._settings['num_terrain_features'], self._settings['num_terrain_features']))(network)
+                    network = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=(layer_sizes[i][1][0],layer_sizes[i][1][1]), strides=(1,1))(network)
+                else:
+                    if (i == 0):
+                        network = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
+                    network = keras.layers.Conv1D(4, kernel_size=8, strides=1)(network)
+                # network = keras.layers.Conv2D(4, (8,1), strides=(1, 1))(network)
+                # networkAct = Dense(layer_sizes[i], 
+                #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+            elif ( layer_sizes[i] == "integrate_actor_part"):
                 network = Concatenate()([network, self._actionInput])
+            elif ( layer_sizes[i] == "merge_features"):
+                network = Flatten()(network)
+                network = Concatenate(axis=1)([network, characterFeatures])
             else:
                 
                 network = Dense(layer_sizes[i],
