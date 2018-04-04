@@ -272,7 +272,7 @@ class PPO_KERAS(AlgorithmInterface):
         if (r_ < (et_factor)) and ( r_ > (1.0/et_factor)):  ### update not to large
             ### For now don't include dropout in policy updates
             if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
-                (lossActor, r_) = self.trainPolicy(states, actions, result_states, rewards, advantage, p, 0)
+                (lossActor, r_) = self.trainPolicy(states, actions, result_states, rewards, advantage, p)
             else: 
                 (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
             # (lossActor, r_) = self.trainPolicy(states, actions, advantage, 1.0)

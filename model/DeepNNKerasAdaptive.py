@@ -242,3 +242,15 @@ class DeepNNKerasAdaptive(ModelInterface):
     
     def getValueFunction(self):
         return self._value_function
+    
+    ######### Symbolic Variables ######
+    def getStateSymbolicVariable(self):
+        return self._stateInput
+    def getActionSymbolicVariable(self):
+        return self._actionInput
+    def getResultStateSymbolicVariable(self):
+        return self._ResultState
+    def getRewardSymbolicVariable(self):
+        return self._Reward
+    def getTargetsSymbolicVariable(self):
+        return self._Target
