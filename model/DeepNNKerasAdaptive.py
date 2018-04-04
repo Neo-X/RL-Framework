@@ -75,12 +75,15 @@ class DeepNNKerasAdaptive(ModelInterface):
         # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(input)
         characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'],))(input)
 
-        if ( not ( "use_single_network" in self._settings and 
-             (self._settings['use_single_network'] == True))
+        if ( ( "use_single_network" in self._settings and
+               (self._settings['use_single_network'] == True)
+             )
             ):
+            pass
+        else:
             ### Number of layers and sizes of layers        
             layer_sizes = self._settings['policy_network_layer_sizes']
-            print ("Network layer sizes: ", layer_sizes)
+            print ("Actor Network layer sizes: ", layer_sizes)
             networkAct = self._stateInput
             for i in range(len(layer_sizes)):
                 # networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
@@ -132,7 +135,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                  or (settings_['agent_name'] == 'algorithm.QPropKeras.QPropKeras') # A must for Q-Prop 
                  ):
                 
-                print ("Network layer sizes: ", layer_sizes)
+                print ("Value Network layer sizes: ", layer_sizes)
                 network = input
                 if ( self._dropout_p > 0.001 ):
                     network = Dropout(rate=self._dropout_p)(network)
@@ -157,7 +160,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             print ("Creating DPG network")
             input = Concatenate()([self._stateInput, self._actionInput])
         
-        print ("Network layer sizes: ", layer_sizes)
+        print ("Critic Network layer sizes: ", layer_sizes)
         network = input
         if ( self._dropout_p > 0.001 ):
             network = Dropout(rate=self._dropout_p)(network)

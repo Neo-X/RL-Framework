@@ -12,7 +12,6 @@ from gym import envs
 # import roboschool
 from OpenGL import GL
 from model.ModelUtil import checkDataIsValid
-print(envs.registry.all())
 
 from model.ModelUtil import getOptimalAction, getMBAEAction
 

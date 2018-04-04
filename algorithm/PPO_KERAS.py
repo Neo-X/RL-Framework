@@ -118,7 +118,7 @@ class PPO_KERAS(AlgorithmInterface):
                                                  K.learning_phase()
                                                  ], [self._actLoss, self._r], 
                             updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
-                            # ,on_unused_input='warn'
+                            ,on_unused_input='warn'
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
                             )
         
@@ -138,7 +138,7 @@ class PPO_KERAS(AlgorithmInterface):
         
         self._policy_mean = K.function([self._model.getStateSymbolicVariable(), 
                                           K.learning_phase()], [self._q_valsActA])
-        self._q_valsActASTD = K.function([self._model.getStateSymbolicVariable(), 
+        self.q_valsActASTD = K.function([self._model.getStateSymbolicVariable(), 
                                           # self._Anneal,
                                           K.learning_phase()], [self._q_valsActASTD]) 
         
@@ -281,7 +281,8 @@ class PPO_KERAS(AlgorithmInterface):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
                 print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
-                print ("Policy std: ", np.mean(self._q_valsActASTD([states, 0])[0], axis=0))
+                print ("Policy std: ", np.mean(self.q_valsActASTD([states, 0])[0], axis=0))
+                # print ("States shape: ", np.array(states).shape)
         else:
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy Gradient too large: ", np.mean(r_))
@@ -316,10 +317,10 @@ class PPO_KERAS(AlgorithmInterface):
         state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            action_std = self._q_valsActASTD([state, 0])[0]
+            action_std = self.q_valsActASTD([state, 0])[0]
             # action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
         else:
-            action_std = self._q_valsActASTD([state, 0])[0] * (action_bound_std(self._action_bounds))
+            action_std = self.q_valsActASTD([state, 0])[0] * (action_bound_std(self._action_bounds))
         return action_std
     
     def predictWithDropout(self, state, deterministic_=True):
