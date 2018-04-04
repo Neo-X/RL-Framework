@@ -125,3 +125,17 @@ class OpenAIGymEnv(SimInterface):
     def display(self):
         pass
     
+    def setRandomSeed(self, seed):
+        """
+            Set the random seed for the simulator
+            This is helpful if you are running many simulations in parallel you don't
+            want them to be producing the same results if they all init their random number 
+            generator the same.
+        """
+        print ( "Setting random seed: ", seed )
+        try:
+            self.getEnvironment().setRandomSeed(seed)
+        except Exception as inst:
+            print ("Simulator does not support setting random seed")
+            print (inst)
+    
