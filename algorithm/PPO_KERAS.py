@@ -37,6 +37,13 @@ class PPO_KERAS(AlgorithmInterface):
         
         self._Anneal = T.scalar("Anneal")
         
+        self._value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
+        self._value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
+        
+        _target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self._value_Target)
+        self._loss = T.mean(0.5 * (self._value - _target) ** 2)
+        
+        
         self._q_valsActA = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
         if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
             self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
@@ -67,12 +74,11 @@ class PPO_KERAS(AlgorithmInterface):
         self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
         # self._actLoss = ((T.mean(self._actLoss_) )) + -self._actor_regularization
         # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy )))
-        self._actLoss = -1.0 * T.mean(self._actLoss_)  
+        self._actLoss = -1.0 * T.mean(self._actLoss_)
+        if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+            self._actLoss = self._actLoss + self._loss  
         
         # self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
-        
-        self._value = self._model.getCriticNetwork()([self._model._stateInput])
-        self._value_Target = self._modelTarget.getCriticNetwork()([self._model._stateInput])
         
         PPO_KERAS.compile(self)
         
@@ -91,28 +97,44 @@ class PPO_KERAS(AlgorithmInterface):
         print ("Clipping: ", sgd.decay)
         self._model.getActorNetwork().compile(loss=neg_y, optimizer=sgd)
         
-        self.trainPolicy = theano.function([self._model.getStateSymbolicVariable(),
-                                             self._model.getActionSymbolicVariable(),
-                                             self._Advantage,
-                                             self._Anneal,  
-                                             K.learning_phase()
-                                             ], [self._actLoss, self._r], 
-                        updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
-                        # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
-                        )
+        if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+            self.trainPolicy = theano.function([self._model.getStateSymbolicVariable(),
+                                                 self._model.getActionSymbolicVariable(),
+                                                 self._model.getResultStateSymbolicVariable(),
+                                                 self._model.getRewardSymbolicVariable(),
+                                                 self._Advantage,
+                                                 self._Anneal  
+                                                 # ,K.learning_phase()
+                                                 ], [self._actLoss, self._r], 
+                            updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                            # ,on_unused_input='warn'
+                            # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
+                            )
+        else:
+            self.trainPolicy = theano.function([self._model.getStateSymbolicVariable(),
+                                                 self._model.getActionSymbolicVariable(),
+                                                 self._Advantage,
+                                                 self._Anneal,  
+                                                 K.learning_phase()
+                                                 ], [self._actLoss, self._r], 
+                            updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                            # ,on_unused_input='warn'
+                            # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
+                            )
         
         self._r = theano.function([self._model.getStateSymbolicVariable(),
                                              self._model.getActionSymbolicVariable(),
                                              # self._Anneal
                                              K.learning_phase()
                                              ], 
-                                  [self._r])
+                                  [self._r],
+                                  on_unused_input='warn')
         
-        gradients = K.gradients(T.mean(self._value), [self._model._stateInput]) # gradient tensors
-        self._get_gradients = K.function(inputs=[self._model._stateInput,  K.learning_phase()], outputs=gradients)
+        gradients = K.gradients(T.mean(self._value), [self._model.getStateSymbolicVariable()]) # gradient tensors
+        self._get_gradients = K.function(inputs=[self._model.getStateSymbolicVariable(),  K.learning_phase()], outputs=gradients)
         
-        self._value = K.function([self._model._stateInput, K.learning_phase()], [self._value])
-        self._value_Target = K.function([self._model._stateInput, K.learning_phase()], [self._value_Target])
+        self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self._value])
+        self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self._value_Target])
         
         self._policy_mean = K.function([self._model.getStateSymbolicVariable(), 
                                           K.learning_phase()], [self._q_valsActA])
@@ -167,6 +189,8 @@ class PPO_KERAS(AlgorithmInterface):
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
     def trainCritic(self, states, actions, rewards, result_states, falls):
+        if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+            return 0
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
         
@@ -209,7 +233,7 @@ class PPO_KERAS(AlgorithmInterface):
         """
         
         if ( (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train'] ) 
-             and True 
+             and False 
              ):
             mbae_actions=[]
             mbae_advantage=[]
@@ -246,8 +270,11 @@ class PPO_KERAS(AlgorithmInterface):
         ### check to not perform updates when r gets to large.
         et_factor = 1.2
         if (r_ < (et_factor)) and ( r_ > (1.0/et_factor)):  ### update not to large
-            ### For now don't include dropout in policy updates 
-            (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
+            ### For now don't include dropout in policy updates
+            if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+                (lossActor, r_) = self.trainPolicy(states, actions, result_states, rewards, advantage, p, 0)
+            else: 
+                (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
             # (lossActor, r_) = self.trainPolicy(states, actions, advantage, 1.0)
             
             # lossActor = score.history['loss'][0]
