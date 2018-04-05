@@ -270,19 +270,21 @@ class PPO_KERAS(AlgorithmInterface):
         ### check to not perform updates when r gets to large.
         et_factor = 1.2
         if (r_ < (et_factor)) and ( r_ > (1.0/et_factor)):  ### update not to large
-            ### For now don't include dropout in policy updates
+            # lossActor = score.history['loss'][0]
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print ("Policy prop ratio: ", np.mean(r_))
+                print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
+                print ("Policy std: ", np.mean(self.q_valsActASTD([states, 0])[0], axis=0))
+                # print ("States shape: ", np.array(states).shape)
+                        ### For now don't include dropout in policy updates
             if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
                 (lossActor, r_) = self.trainPolicy(states, actions, result_states, rewards, advantage, p)
             else: 
                 (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
             # (lossActor, r_) = self.trainPolicy(states, actions, advantage, 1.0)
-            
-            # lossActor = score.history['loss'][0]
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                r_ = np.mean(self._r(states, actions, 0))
                 print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
-                print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
-                print ("Policy std: ", np.mean(self.q_valsActASTD([states, 0])[0], axis=0))
-                # print ("States shape: ", np.array(states).shape)
         else:
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy Gradient too large: ", np.mean(r_))
