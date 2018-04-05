@@ -76,6 +76,9 @@ class GapGame2D(GapGame1D):
         
     def actContinuous(self, action, bootstrapping=False):
         # print ("Action: ", action)
+        
+        if ( self._end_of_Epoch_Flag ) :
+            return 0
         pos = self._obstacle.getPosition()
         vel = self._obstacle.getLinearVel()
         # print ("Position Before action: ", pos)
@@ -97,7 +100,9 @@ class GapGame2D(GapGame1D):
         # state = self.getState()
         # print ("state length: " + str(len(state)))
         # print (state)
-        return new_vel[0]
+        vel_dif = np.abs(self._target_velocity - new_vel[0])
+        reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight)
+        return reward
         # obstacle.addForce((0.0,100.0,0.0))
         
     def visualizeAction(self, action):

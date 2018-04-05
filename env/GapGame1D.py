@@ -445,7 +445,8 @@ class GapGame1D(object):
             self._bodies.append(obs_)
             self._obstacles.append(obs_)
             
-        self._target_velocity = 0.0
+        self._target_velocity = 1.0 # self._game_settings['target_velocity']
+        self._target_vel_weight = -2.0
         
     def setTargetVelocity(self, target_vel):
         self._target_velocity = target_vel
@@ -580,6 +581,8 @@ class GapGame1D(object):
         """
             
         """
+        if ( self._end_of_Epoch_Flag ) :
+            return 0
         # print ("Action: ", action)
         pos = self._obstacle.getPosition()
         vel = self._obstacle.getLinearVel()
@@ -602,7 +605,9 @@ class GapGame1D(object):
         # state = self.getState()
         # print ("state length: " + str(len(state)))
         # print (state)
-        return new_vel[0]
+        vel_dif  = np.abs(self._target_velocity - new_vel[0])
+        reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight)
+        return reward
         # obstacle.addForce((0.0,100.0,0.0))
         
     def agentHasFallen(self):
@@ -611,7 +616,7 @@ class GapGame1D(object):
         # print ("Terrain Data: ", self._terrainData)
         if ( (self._terrainData[start-1] < -0.1) or 
              (self._terrainData[start] < -0.1 )):
-            self._end_of_Epoch_Flag=True # kind of hacky to end Epoch after the ball falls in a hole.
+            self._end_of_Epoch_Flag=True # kind of hacky way to end Epoch after the ball falls in a hole.
             return True
     
         return False

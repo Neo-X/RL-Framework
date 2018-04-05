@@ -22,13 +22,8 @@ class GapGame1DActor(ActorInterface):
     def actContinuous(self, exp, action_, bootstrapping=False):
         # Actor should be FIRST here
         # print "Action: " + str(action_)
-        averageSpeed = exp.getEnvironment().actContinuous(action_, bootstrapping=bootstrapping)
-        
-        if (self.hasNotFallen(exp)):
-            vel_dif = self._target_vel - averageSpeed
-            reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight) # optimal is 0
-        else:
-            return 0.0
+        action_ = action_[0]
+        vel_dif = exp.getEnvironment().actContinuous(action_, bootstrapping=bootstrapping)
         
         self._reward_sum = self._reward_sum + reward
         return reward

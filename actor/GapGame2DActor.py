@@ -28,25 +28,20 @@ class GapGame2DActor(ActorInterface):
     # @profile(precision=5)
     def actContinuous(self, exp, action_, bootstrapping=False):
         # Actor should be FIRST here
-        # print "Action: " + str(action_)
+        # print ("Action: ", repr(action_))
         # action_ = copy.deepcopy(action_)
+        action_ = action_[0]
         action_ = np.array(action_, dtype='float64')
-        (action_, outside_bounds) = clampActionWarn(action_, self._action_bounds)
+        # (action_, outside_bounds) = clampActionWarn(action_, self._action_bounds)
         
-        averageSpeed = exp.getEnvironment().actContinuous(action_, bootstrapping=bootstrapping)
-        if (self.hasNotFallen(exp)):
-            vel_dif = np.abs(self._target_vel - averageSpeed)
-            # reward = math.exp((vel_dif*vel_dif)*self._target_vel_weight) # optimal is 0
-            if ( self._settings["use_parameterized_control"] ):
-                self.changeParameters()
-            reward = reward_smoother(vel_dif, self._settings, self._target_vel_weight)
-            if ( self._settings['print_level'] == 'debug'):
-                print("target velocity: ", self._target_vel)
-                print("velocity diff: ", vel_dif)
-                print("reward: ", reward)
-        else:
-            return 0.0
-        reward = reward
+        reward = exp.getEnvironment().actContinuous(action_, bootstrapping=bootstrapping)
+        if ( self._settings["use_parameterized_control"] ):
+            self.changeParameters()
+        if ( self._settings['print_level'] == 'debug'):
+            print("target velocity: ", self._target_vel)
+            print("velocity diff: ", vel_dif)
+            print("reward: ", reward)
+
         self._reward_sum = self._reward_sum + reward
         # print("Reward Sum: ", self._reward_sum)
         return reward
