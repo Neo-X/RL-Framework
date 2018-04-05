@@ -790,9 +790,12 @@ class GapGame1D(object):
             The second time this is called and onward generate a new strip and add to the end of the old strip.
             Also remove the beginning half of the old strip
         """
+        """
         if (not self._validating):
             self._validating=True
             random.seed(seed)
+            np.random.seed(seed)
+        """
         # print ("Generating more terrain")
         terrainData_=[]
         if (self._terrainStripIndex == 0):
@@ -821,9 +824,9 @@ class GapGame1D(object):
         gap_start=self._terrainParameters['gap_start']
         next_gap=self._terrainParameters['distance_till_next_gap']
         for i in range(int(terrainLength/next_gap)):
-            gap_start= gap_start+random.randint(self._terrainParameters['random_gap_start_range'][0],
+            gap_start= gap_start+np.random.random_integers(self._terrainParameters['random_gap_start_range'][0],
                                                 self._terrainParameters['random_gap_start_range'][1])
-            gap_size=random.randint(self._terrainParameters['random_gap_width_range'][0],
+            gap_size=np.random.random_integers(self._terrainParameters['random_gap_width_range'][0],
                                     self._terrainParameters['random_gap_width_range'][1])
             terrainData[gap_start:gap_start+gap_size] = self._terrainParameters['terrain_change']
             gap_start=gap_start+next_gap
@@ -886,6 +889,15 @@ class GapGame1D(object):
             state[self._num_points+num_extra_feature:self._num_points+num_extra_feature+len(charState)] = charState
         
         return state
+    
+    def setRandomSeed(self, seed):
+        """
+            Set the random seed for the simulator
+            This is helpful if you are running many simulations in parallel you don't
+            want them to be producing the same results if they all init their random number 
+            generator the same.
+        """
+        random.seed(seed)
     
 
 if __name__ == '__main__':
