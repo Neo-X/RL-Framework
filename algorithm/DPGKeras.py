@@ -40,11 +40,11 @@ class DPGKeras(AlgorithmInterface):
         self._rms_epsilon = self.getSettings()['rms_epsilon']
         
         self._q_valsActA = self._model.getActorNetwork()(self._model._stateInput)[:,:self._action_length]
-        # self._q_valsActASTD = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]
-        
         self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model._stateInput)[:,:self._action_length]
-        # self._q_valsActTargetSTD = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]
-        
+
+        self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+        self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
+                
         # self._q_function = self._model.getCriticNetwork()(self._model.getStateSymbolicVariable(), self._q_valsActA)
         self._q_function = self._model.getCriticNetwork()([self._model._stateInput, self._q_valsActA])
         self._q_function_Target = self._model.getCriticNetwork()([self._model._stateInput, self._model._actionInput])
@@ -86,6 +86,8 @@ class DPGKeras(AlgorithmInterface):
         self._get_gradients = K.function(inputs=[self._model._stateInput], outputs=gradients)
         
         self._q_func = K.function([self._model._stateInput], [self._q_function])
+        
+        self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
         
         # updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=gradients, constraints=[])
         ### Train the Q network, just uses MSE
@@ -271,6 +273,15 @@ class DPGKeras(AlgorithmInterface):
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # action_ = q_valsActA[0]
         return action_
+    
+    def predict_std(self, state, deterministic_=True, p=1.0):
+        state = norm_state(state, self._state_bounds)   
+        state = np.array(state, dtype=self._settings['float_type'])
+        
+        # action_std = self._model.getActorNetwork().predict(state, batch_size=1)[:,self._action_length:] * (action_bound_std(self._action_bounds))
+        action_std = self._q_action_std([state])[0] * action_bound_std(self._action_bounds)
+        # print ("Policy std: ", action_std)
+        return action_std
     
     def q_value(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
