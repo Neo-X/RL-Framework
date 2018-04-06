@@ -286,8 +286,11 @@ class PPO_KERAS(AlgorithmInterface):
                 r_ = np.mean(self._r(states, actions, 0))
                 print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
             
-            if ( not np.isfinite(lossActor)):
+            if ( (not np.isfinite(lossActor)) or (not np.isfinite(np.mean(r_)))):
                 print("Something bad happend go back to the old policy")
+                print ("State mean: ", np.mean(states, axis=0))
+                print ("Actions mean: ", np.mean(actions, axis=0))
+                print ("Advantage mean: ", np.mean(advantage, axis=0))
                 self._model.getCriticNetwork().set_weights( copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
                 self._model.getActorNetwork().set_weights( copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
                 if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
