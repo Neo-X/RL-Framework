@@ -91,11 +91,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                     if ( len(layer_sizes[i][1])> 1):
                         if (i == 0):
                             networkAct = Reshape((1, self._settings['num_terrain_features'], self._settings['num_terrain_features']))(taskFeatures)
-                        networkAct = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=(layer_sizes[i][1][0],layer_sizes[i][1][1]), strides=(1,1))(networkAct)
+                        networkAct = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=(1,1))(networkAct)
                     else:
                         if (i == 0):
                             networkAct = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
-                        networkAct = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=8, strides=1)(networkAct)
+                        networkAct = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=1)(networkAct)
+                        networkAct = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(networkAct)
                     # networkAct = Dense(layer_sizes[i], 
                     #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 elif ( layer_sizes[i] == "merge_features"):
@@ -145,11 +146,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                         if ( len(layer_sizes[i][1])> 1):
                             if (i == 0):
                                 network = Reshape((1, self._settings['num_terrain_features'], self._settings['num_terrain_features']))(network)
-                            network = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=(layer_sizes[i][1][0],layer_sizes[i][1][1]), strides=(1,1))(network)
+                            network = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=(1,1))(network)
                         else:
                             if (i == 0):
                                 network = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
-                            network = keras.layers.Conv1D(4, kernel_size=8, strides=1)(network)
+                            network = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=1)(network)
+                            network = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(network)
                         # network = keras.layers.Conv2D(4, (8,1), strides=(1, 1))(network)
                         # networkAct = Dense(layer_sizes[i], 
                         #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
@@ -185,11 +187,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if ( len(layer_sizes[i][1])> 1):
                     if (i == 0):
                         network = Reshape((1, self._settings['num_terrain_features'], self._settings['num_terrain_features']))(network)
-                    network = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=(layer_sizes[i][1][0],layer_sizes[i][1][1]), strides=(1,1))(network)
+                    network = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=(1,1))(network)
                 else:
                     if (i == 0):
                         network = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
-                    network = keras.layers.Conv1D(4, kernel_size=8, strides=1)(network)
+                    network = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=1)(network)
+                    network = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(network)
                 # network = keras.layers.Conv2D(4, (8,1), strides=(1, 1))(network)
                 # networkAct = Dense(layer_sizes[i], 
                 #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
