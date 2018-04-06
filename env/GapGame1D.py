@@ -898,6 +898,7 @@ class GapGame1D(object):
             generator the same.
         """
         random.seed(seed)
+        np.random.seed(seed)
     
 
 if __name__ == '__main__':
