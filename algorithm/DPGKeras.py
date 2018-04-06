@@ -238,7 +238,7 @@ class DPGKeras(AlgorithmInterface):
         
         q_fun = np.mean(self._trainPolicy(states))
         
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
             poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
             print("Policy mean: ", np.mean(poli_mean, axis=0))

@@ -153,8 +153,11 @@ class DeepNNKerasAdaptive(ModelInterface):
                         # network = keras.layers.Conv2D(4, (8,1), strides=(1, 1))(network)
                         # networkAct = Dense(layer_sizes[i], 
                         #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-                    if ( layer_sizes[i] == "integrate_actor_part"):
+                    elif ( layer_sizes[i] == "integrate_actor_part"):
                         pass
+                    elif ( layer_sizes[i] == "merge_features"):
+                        network = Flatten()(network)
+                        network = Concatenate(axis=1)([network, characterFeatures])
                     else:
                         network = Dense(layer_sizes[i],
                                         kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
