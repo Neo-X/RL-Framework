@@ -45,14 +45,14 @@ class PPO_KERAS(AlgorithmInterface):
         
         
         self._q_valsActA = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
-        if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
+        if ( 'use_stocastic_policy' in self.getSettings() and ( self.getSettings()['use_stocastic_policy'])): 
             self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
             self._q_valsActASTD = (self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) + 1e-2
         
         self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
-        if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
+        if ( 'use_stocastic_policy' in self.getSettings() and ( self.getSettings()['use_stocastic_policy'])): 
             self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate'] 
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else: 

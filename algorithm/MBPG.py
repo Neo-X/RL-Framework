@@ -83,7 +83,7 @@ class MBPG(AlgorithmInterface):
         
         ## prevent value from being 0
         """
-        if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
+        if ( 'use_stocastic_policy' in self.getSettings() and ( self.getSettings()['use_stocastic_policy'])): 
             self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         else:
@@ -94,7 +94,7 @@ class MBPG(AlgorithmInterface):
         # self._q_valsActTarget = scale_action(self._q_valsActTarget, self._action_bounds)
         self._q_valsActTargetSTD = lasagne.layers.get_output(self._modelTarget.getActorNetwork(), self._model.getStateSymbolicVariable())[:,self._action_length:]
         """
-        if ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])): 
+        if ( 'use_stocastic_policy' in self.getSettings() and ( self.getSettings()['use_stocastic_policy'])): 
             self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         else:
@@ -550,7 +550,7 @@ class MBPG(AlgorithmInterface):
             # print ( "R: ", np.mean(self._get_log_prob()/self._get_log_prob_target()))
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
             ## Sometimes really HUGE losses appear, occasionally
-        if ( not self.getSettings()['use_fixed_std'] ): # whether or not to update the std of policy as well.
+        if ( not self.getSettings()['use_stocastic_policy'] ): # whether or not to update the std of policy as well.
             lossActor = np.abs(np.mean(self._get_action_diff()))
             if (lossActor < 1000): 
                 if ('ppo_use_seperate_nets' in self.getSettings() and (self.getSettings()['ppo_use_seperate_nets'])):

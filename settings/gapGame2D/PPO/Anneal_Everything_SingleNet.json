@@ -242,7 +242,7 @@
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy",
 "on_policy": true,
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
-"use_stocastic_policy": false,
+"use_stocastic_policy": true,
 	"comment__": "Whether or  not to train the critic at all. Usually used for debugging",
 "train_critic": true,
 	"comment__": "What type of regularization to use",
@@ -267,8 +267,8 @@
 "use_multiple_policy_updates": true,	
 	"comment__": "Whether or not to clear the experience memory after each update is done, for pure on policy methods",
 "clear_exp_mem_on_poli": true,
-	"comment__": "fix the std used for action parameters",
-"use_fixed_std": true,
+
+
 	"comment__": "Disable scaling for inputs and outputs of networks",
 "disable_parameter_scaling": false,
 	"comment__": "Train a state encoding as well.",

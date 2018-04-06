@@ -208,7 +208,7 @@
     "action_space_continuous": true,
     "penalize_actions_outside_bounds": false,
     "train_reward_predictor": true,
-    "use_fixed_std": true,
+    
     "print_levels": {
         "debug": 1,
         "hyper_train": -1,

@@ -218,7 +218,7 @@
     "keep_running_mean_std_for_scaling": true,
     "train_rl_learning": true,
     "variance_scalling": 0.1,
-    "use_fixed_std": false,
+    
     "print_levels": {
         "hyper_train": -1,
         "train": 0,
