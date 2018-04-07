@@ -116,7 +116,7 @@ class PPO_KERAS(AlgorithmInterface):
         if (self.getSettings()["regularization_weight"] > 0.0000001):
             self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
         else:
-            self._actor_regularization = K.sum(self._model.getActorNetwork().losses) * 0.0
+            self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
         
         self._get_actor_regularization = theano.function([], [self._actor_regularization])
         
@@ -129,7 +129,8 @@ class PPO_KERAS(AlgorithmInterface):
                                                  self._Anneal  
                                                  # ,K.learning_phase()
                                                  ], [self._actLoss, self._r], 
-                            updates= adam_updates(self._actLoss + self._actor_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                            # updates= adam_updates(self._actLoss + self._actor_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                            updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
                             # ,on_unused_input='warn'
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
                             )
@@ -140,7 +141,8 @@ class PPO_KERAS(AlgorithmInterface):
                                                  self._Anneal,  
                                                  K.learning_phase()
                                                  ], [self._actLoss, self._r], 
-                            updates= adam_updates(self._actLoss + self._actor_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                            # updates= adam_updates(self._actLoss + self._actor_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                            updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
                             ,on_unused_input='warn'
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
                             )
