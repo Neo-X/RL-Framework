@@ -18,6 +18,15 @@ import keras
 # theano.config.mode='FAST_COMPILE'
 # from DeepCACLA import DeepCACLA
 
+def flatten(data):
+    
+    for i in data:
+        if isinstance(i, (list, tuple, np.ndarray)):
+            for j in  flatten(i):
+                yield j
+        else:
+            yield i
+
 class PPO_KERAS(AlgorithmInterface):
     
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
@@ -94,10 +103,22 @@ class PPO_KERAS(AlgorithmInterface):
         
         def neg_y(true_y, pred_y):
             return -pred_y
+        
+        def pos_y(true_y, pred_y):
+            return self._actLoss
+        
+        
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), beta_1=np.float32(0.9), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
         print("sgd, actor: ", sgd)
         print ("Clipping: ", sgd.decay)
-        self._model.getActorNetwork().compile(loss=neg_y, optimizer=sgd)
+        self._model.getActorNetwork().compile(loss=pos_y, optimizer=sgd)
+        
+        if (self.getSettings()["regularization_weight"] > 0.0000001):
+            self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
+        else:
+            self._actor_regularization = K.sum(self._model.getActorNetwork().losses) * 0.0
+        
+        self._get_actor_regularization = theano.function([], [self._actor_regularization])
         
         if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
             self.trainPolicy = theano.function([self._model.getStateSymbolicVariable(),
@@ -108,7 +129,7 @@ class PPO_KERAS(AlgorithmInterface):
                                                  self._Anneal  
                                                  # ,K.learning_phase()
                                                  ], [self._actLoss, self._r], 
-                            updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                            updates= adam_updates(self._actLoss + self._actor_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
                             # ,on_unused_input='warn'
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
                             )
@@ -119,10 +140,20 @@ class PPO_KERAS(AlgorithmInterface):
                                                  self._Anneal,  
                                                  K.learning_phase()
                                                  ], [self._actLoss, self._r], 
-                            updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                            updates= adam_updates(self._actLoss + self._actor_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
                             ,on_unused_input='warn'
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
                             )
+            self._get_actor_loss = theano.function(
+                                                   [self._model.getStateSymbolicVariable(),
+                                                 self._model.getActionSymbolicVariable(),
+                                                 self._Advantage,
+                                                 self._Anneal,  
+                                                 K.learning_phase()
+                                                 ],
+                                                 [self._actLoss]
+                                                 ,on_unused_input='warn'
+                                                 )
         
         self._r = theano.function([self._model.getStateSymbolicVariable(),
                                              self._model.getActionSymbolicVariable(),
@@ -277,12 +308,20 @@ class PPO_KERAS(AlgorithmInterface):
                 print ("Policy probability ratio: ", np.mean(r_))
                 print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
                 print ("Policy std: ", np.mean(self.q_valsActASTD([states, 0])[0], axis=0))
+                print ("Network Params mean: ", np.mean(np.array(list(flatten(self.getNetworkParameters()[1])))))
                 # print ("States shape: ", np.array(states).shape)
                         ### For now don't include dropout in policy updates
             if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
                 (lossActor, r_) = self.trainPolicy(states, actions, result_states, rewards, advantage, p)
             else: 
                 (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
+                """
+                score = self._model.getActorNetwork().fit([states, actions, advantage], advantage,
+                          nb_epoch=1, batch_size=32,
+                          verbose=0
+                          # callbacks=[early_stopping],
+                          )
+                """
             # (lossActor, r_) = self.trainPolicy(states, actions, advantage, 1.0)
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 r_ = np.mean(self._r(states, actions, 0))
@@ -293,6 +332,7 @@ class PPO_KERAS(AlgorithmInterface):
                 print ("State mean: ", np.mean(states, axis=0))
                 print ("Actions mean: ", np.mean(actions, axis=0))
                 print ("Advantage mean: ", np.mean(advantage, axis=0))
+                print ("Network Params mean: ", np.mean(np.array(list(flatten(self.getNetworkParameters()[1])))))
                 self._model.getCriticNetwork().set_weights( copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
                 self._model.getActorNetwork().set_weights( copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
                 if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -300,6 +340,7 @@ class PPO_KERAS(AlgorithmInterface):
                     print ("Policy probability ratio: ", np.mean(r_))
                     print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
                     print ("Policy std: ", np.mean(self.q_valsActASTD([states, 0])[0], axis=0))
+                    print ("Network Params mean: ", np.mean(np.array(self.getNetworkParameters()[1])))
         else:
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy Gradient too large: ", np.mean(r_))

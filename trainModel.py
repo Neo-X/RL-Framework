@@ -736,7 +736,8 @@ def trainModelParallel(inputData):
                         print("Policy log prob: ", masterAgent.getPolicy()._get_log_prob())
                         print( "Actor loss: ", masterAgent.getPolicy()._get_action_diff())
                         """
-                        loss__ = masterAgent.getPolicy()._get_actor_loss() # uses previous call batch data
+                        # loss__ = masterAgent.getPolicy()._get_actor_loss() # uses previous call batch data
+                        loss__ = 0
                         actorLosses.append(loss__)
                         regularizationCost__ = masterAgent.getPolicy()._get_actor_regularization()
                         actorRegularizationCosts.append(regularizationCost__)
