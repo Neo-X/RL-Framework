@@ -126,7 +126,7 @@ class LearningAgent(AgentInterface):
             t0 = time.time()
             self.getExperience()._settings["keep_running_mean_std_for_scaling"] = False
             for (state__, action__, next_state__, reward__, fall__, advantage__, exp_action__) in zip(_states, _actions, _result_states, _rewards, _falls, _advantage, _exp_actions):
-                if (checkValidData(state__, action__, next_state__, reward__)):
+                if (checkValidData(state__, action__, next_state__, reward__) and checkDataIsValid(advantage__)):
                     tmp_states.append(state__)
                     tmp_actions.append(action__)
                     tmp_result_states.append(next_state__)

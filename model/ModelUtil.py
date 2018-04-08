@@ -988,7 +988,7 @@ def checkDataIsValid(data, verbose=False, scale=1.0):
         
         return True
 
-def checkValidData(state, action, nextState, reward, verbose=False):
+def checkValidData(state, action, nextState, reward, advantage=None, verbose=False):
         """
             Checks to make sure the data going into the exp buffer is not garbage...
         """
