@@ -259,6 +259,7 @@ class PPO_KERAS(AlgorithmInterface):
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
+        advantage_tmp = advantage
         """
         score = self._model.getActorNetwork().fit([states, actions, advantage], np.zeros_like(rewards),
               nb_epoch=1, batch_size=32,
@@ -333,7 +334,7 @@ class PPO_KERAS(AlgorithmInterface):
                 print("Something bad happend go back to the old policy")
                 print ("State mean: ", np.mean(states, axis=0))
                 print ("Actions mean: ", np.mean(actions, axis=0))
-                print ("Advantage mean: ", np.mean(advantage, axis=0))
+                print ("Advantage: ", advantage_tmp)
                 print ("Network Params mean: ", np.mean(np.array(list(flatten(self.getNetworkParameters()[1])))))
                 self._model.getCriticNetwork().set_weights( copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
                 self._model.getActorNetwork().set_weights( copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
