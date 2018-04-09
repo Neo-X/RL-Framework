@@ -120,7 +120,13 @@ class PPO_KERAS(AlgorithmInterface):
         else:
             self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
         
+        if (self.getSettings()["critic_regularization_weight"] > 0.0000001):
+            self._critic_regularization = K.sum(self._model.getCriticNetwork().losses)
+        else:
+            self._critic_regularization = K.sum(self._model.getCriticNetwork().losses)
+            
         self._get_actor_regularization = theano.function([], [self._actor_regularization])
+        self._get_critic_regularization = theano.function([], [self._critic_regularization])
         
         if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
             self.trainPolicy = theano.function([self._model.getStateSymbolicVariable(),
@@ -131,7 +137,7 @@ class PPO_KERAS(AlgorithmInterface):
                                                  self._Anneal  
                                                  # ,K.learning_phase()
                                                  ], [self._actLoss, self._r], 
-                            updates= adam_updates(self._actLoss + self._actor_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                            updates= adam_updates(self._actLoss + self._critic_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
                             # ,on_unused_input='warn'
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
