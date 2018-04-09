@@ -115,7 +115,7 @@
 	"comment__": "The parameter used to control the average chage in the contorl parameters",
 "average_parameter_change": 0.25,
 	"comment__": "Whether or not to train the value function some output from the forward dynamics",
-"train_critic_on_fd_output": false,
+"train_critic_on_fd_output": true,
 	"comment__": "Weight multiplier for the entropy term",
 "diversity_weight": 0.000001	
 }
