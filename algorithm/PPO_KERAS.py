@@ -472,7 +472,7 @@ def adam_updates(loss, params, learning_rate=0.001, beta1=0.9,
          beta2=0.999, epsilon=1e-8):
 
     all_grads = T.grad(loss, params)
-    t_prev = theano.shared(np.array(0,dtype="float64"))
+    t_prev = theano.shared(np.array(0,dtype="float32"))
     updates = OrderedDict()
 
     t = t_prev + 1

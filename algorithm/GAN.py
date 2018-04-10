@@ -379,7 +379,7 @@ class GAN(AlgorithmInterface):
             self._model.setResultStates(result_states)
         if not (rewards is None):
             self._model.setRewards(rewards)
-        noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
+        noise = np.array(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)), dtype=self.getSettings()['float_type'])
         self._noise_shared.set_value(noise)
         # noise = np.zeros((states.shape[0],1))
         # self._noise_shared.set_value(noise)
@@ -388,7 +388,7 @@ class GAN(AlgorithmInterface):
     def trainCritic(self, states, actions, result_states, rewards):
         
         self.setData(states, actions, result_states, rewards)
-        noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
+        noise = np.array(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)), dtype=self.getSettings()['float_type'])
         # print ("Shapes: ", states.shape, actions.shape, rewards.shape, result_states.shape, falls.shape, noise.shape)
         self._noise_shared.set_value(noise)
         self._updates += 1
@@ -500,7 +500,7 @@ class GAN(AlgorithmInterface):
         pass
     
     def predict(self, state, action):
-        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=self.getSettings()['float_type'])
         # states[0, ...] = state
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         # print ("fd state: ", state)
