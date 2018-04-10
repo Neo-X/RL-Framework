@@ -82,6 +82,15 @@ If you find that entering your virtualenv then starting a Jupyter notebook resul
 
 You can follow the instructions here to tell Jupyter that you have a virtualenv you’d like it to use.
 
+Migh need to update some paths in your .bashrc file
+
+Example:  
+export PATH=/usr/local/cuda-8.0/bin${PATH:+:${PATH}}
+export LD_LIBRARY_PATH=/usr/lib64:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/cuda-8.0/lib64:$LD_LIBRARY_PATH
+
+
 
 From
 https://medium.com/@andy.lane/installing-tensorflow-gpu-on-ubuntu-budgie-17-10-2eaa7761b8f7

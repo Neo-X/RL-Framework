@@ -1,0 +1,33 @@
+
+1. 
+https://theano.readthedocs.io/en/master/install_ubuntu.html#id1
+
+git clone https://github.com/Theano/libgpuarray.git
+cd libgpuarray
+git checkout tags/v0.7.5
+
+2. http://deeplearning.net/software/libgpuarray/installation.html#step-by-step-install
+
+For libgpuarray:
+
+cd <dir>
+mkdir Build
+cd Build
+# you can pass -DCMAKE_INSTALL_PREFIX=/path/to/somewhere to install to an alternate location
+cmake .. -DCMAKE_BUILD_TYPE=Release # or Debug if you are investigating a crash
+make
+make install
+cd ..
+
+For pygpu:
+
+# This must be done after libgpuarray is installed as per instructions above.
+python setup.py build
+python setup.py install
+
+
+
+sudo ldconfig
+
+Might need to install nccl to support multiple GPUs
+https://developer.nvidia.com/nccl/nccl-download

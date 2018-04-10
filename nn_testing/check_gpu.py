@@ -14,7 +14,7 @@ import time
 rng = numpy.random
 
 # For debugging
-theano.config.mode='FAST_COMPILE'
+# theano.config.mode='FAST_COMPILE'
 
 N = 10 * 30 * 1 # 10 x #cores x # threads per core
 feats = 784
