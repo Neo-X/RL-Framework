@@ -1,5 +1,6 @@
 #  THEANO_FLAGS=device=gpu0 python3
 # THEANO_FLAGS='device=gpu,floatX=float32,nvcc.flags=-D_FORCE_INLINES'
+# THEANO_FLAGS='device=cuda0,floatX=float32' CPLUS_INCLUDE_PATH='/usr/local/cuda/include'
 
 """
     References
