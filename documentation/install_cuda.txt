@@ -1,0 +1,87 @@
+Installing tensorflow-gpu on Ubuntu Budgie 17.10
+What are we doing?
+
+We’re trying to get GPU-accelerated TensorFlow running for use with the Python API under Ubuntu 17.10.
+Why write yet another configuration guide? This has got to be documented somewhere already, right?
+
+You’d think. However, it appears that the TensorFlow offical documentation has not been updated to address the pitfalls of using a too-recent CUDA installation. The official guide indicates that TensorFlow works with CUDA 7.0 or greater. However, CUDA 9 is in fact not supported (support is reportedly imminent as of November 2017). Similarly, the installed version of cuDNN must be version 6, not the latest version 7.
+
+What’s more, the existing guides and libraries only list compatibility with earlier versions of Ubuntu, 16.04 LTS and 17.04. I’m here to reassure you that they do in fact work with Ubuntu 17.10.
+I’ve tried some stuff already. What am I (probably) missing?
+
+If you’ve tried installing the CUDA libraries already and are getting messages that .so files are missing, it could be that you’ve got CUDA 9 installed by mistake. You may need to explicitly specify that you want CUDA 8 to be installed, instructions for which are below. If you’ve already tried installing CUDA and suspect that the install is incorrect somehow, I suggest uninstalling it as follows before proceeding:
+
+sudo apt-get remove cuda
+
+After doing this, you can skip to the Download and install the CUDA and cuDNN libraries section below.
+Prerequisites
+
+    A 64-bit Intel CPU for the CUDA versions linked below
+    A relatively modern NVidia GPU
+    An Ubuntu distro. I used the beautful and functional Budgie flavor, but any should work.
+    NVidia’s proprietary graphics drivers; see below.
+
+What is this tested on?
+
+My desktop setup is:
+
+    A Core i5 64-bit Intel CPU (Haswell)
+    An NVidia GTX 1070 GPU on driver version 384.90
+    Ubuntu Budgie 17.10
+    Anaconda’s Python3 distro
+
+My laptop setup is a Dell XPS 9550:
+
+    A Core i7 64-bit Intel CPU (Skylake)
+    An NVIDIA GTX 960m GPU on driver version 384.90
+    Software as above
+
+This guide was validated on a fresh install of Ubuntu Budgie 17.10 on the Dell XPS; it was also successful on the desktop, though that wasn’t a fresh install.
+Installation
+Update your Ubuntu installation
+
+For Budgie, this means using the GUI to open Software Updates and updating the system, then rebooting.
+Get your GPU drivers in order
+
+One reason I’ve been happy with Ubuntu Budgie is that configuring the correct NVidia drivers was achievable through the GUI. Open Software and Updates from the launcher, then go to the Additional Drivers tab and click Using NVIDIA binary driver. Version 384.90 is current as of writing this post. Hit Apply Changes and reboot if directed to do so.
+Install TensorFlow
+
+This has been straightforward for me: just follow Google’s TensorFlow installation guide. I used a virtual environment, which you’ll usually thank yourself for if you ever have to troubleshoot version conflicts a few months down the line. We’re installing the GPU version for Python 3.6 so use the pip3 install --upgrade tensorflow-gpucommand in step 5 of the virtualenv instructions.
+Download and install the CUDA and cuDNN libraries
+
+Despite being listed as compatible with Ubuntu 16.04, these versions appear to work fine with 17.10. I suggest using the direct links to the .deb files below; using the .run files resulted in complaints of missing libraries for me.
+
+    CUDA 8
+
+Sadly, the cuDNN .deb files require a free NVIDIA Developer membership to download. You’ll need to log in/register after clicking the below links:
+
+2. cuDNN 6 Runtime
+3. cuDNN 6 Source
+
+After the above three .deb files have been downloaded, navigate to the directory containing them.
+
+Run the following:
+
+sudo dpkg -i cuda-repo-ubuntu1604_8.0.61-1_amd64.deb
+sudo apt-get update
+sudo apt-get install cuda=8.0.61-1 # Note specific version
+
+sudo dpkg -i libcudnn6_6.0.21-1+cuda8.0_amd64.deb
+sudo dpkg -i libcudnn6-dev_6.0.21-1+cuda8.0_amd64.deb
+
+If all goes well, you’re done. To use TensorFlow, activate the virtualenv you created above, then start python3 or a Jupyter Notebook/Jupyter Lab session, though see the note below about those latter options.
+
+You should be able to successfully import tensorflow. I receive a warning about tensorflow being compiled against a different version of a module, but it doesn’t appear to have any effect on use. Presumably this would disappear if a Python 3.5 kernel (rather than a 3.6 kernel) were used.
+
+/home/andylane/tf/lib/python3.6/importlib/_bootstrap.py:219: RuntimeWarning: compiletime version 3.5 of module 'tensorflow.python.framework.fast_tensor_util' does not match runtime version 3.6
+  return f(*args, **kwds)
+
+A note on using your TensorFlow installation with Jupyter Lab
+
+If you find that entering your virtualenv then starting a Jupyter notebook results in an ImportError on import tensorflow it may be that your Jupyter notebook/lab instance is not using the correct Python kernel.
+
+You can follow the instructions here to tell Jupyter that you have a virtualenv you’d like it to use.
+
+
+From
+https://medium.com/@andy.lane/installing-tensorflow-gpu-on-ubuntu-budgie-17-10-2eaa7761b8f7

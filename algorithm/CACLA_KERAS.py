@@ -25,17 +25,17 @@ class CACLA_KERAS(AlgorithmInterface):
         
         ## primary network
         self._model = model
-
+        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         # print ("Loss ", self._model.getActorNetwork().total_loss)
         
         ## Target network
-        self._modelTarget = copy.deepcopy(model)
+        ## self._modelTarget = copy.deepcopy(model)
         # self._modelTarget = model
         
         self._q_valsActA = self._model.getActorNetwork()(self._model._stateInput)
         self._q_valsActTarget = self._modelTarget.getActorNetwork()(self._model._stateInput)
-        self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
-        self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
+        self._q_valsActASTD = ( K.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+        self._q_valsActTargetSTD = (K.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         
         self._actor_buffer_states=[]
         self._actor_buffer_result_states=[]
@@ -62,7 +62,7 @@ class CACLA_KERAS(AlgorithmInterface):
         
         self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
         
-        gradients = K.gradients(T.mean(self._value), [self._model._stateInput]) # gradient tensors
+        gradients = K.gradients(K.mean(self._value), [self._model._stateInput]) # gradient tensors
         self._get_gradients = K.function(inputs=[self._model._stateInput,  K.learning_phase()], outputs=gradients)
         
     def getGrads(self, states, alreadyNormed=False):

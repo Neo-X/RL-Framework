@@ -137,9 +137,14 @@ def trainModelParallel(inputData):
             os.environ['THEANO_FLAGS'] = os.environ['THEANO_FLAGS']+"mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
         else:
             os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
-        # import keras.backend
-        # keras.backend.set_floatx(settings['float_type'])
-        # print ("K.floatx()", keras.backend.floatx())
+            
+        if ("learning_backend" in settings):
+            # KERAS_BACKEND=tensorflow
+            os.environ['KERAS_BACKEND'] = settings['learning_backend']
+            
+        import keras
+        keras.backend.set_floatx(settings['float_type'])
+        print ("K.floatx()", keras.backend.floatx())
         
         ## Theano needs to be imported after the flags are set.
         # from ModelEvaluation import *
