@@ -53,8 +53,7 @@ class DeepNNKerasAdaptive(ModelInterface):
 
         super(DeepNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
-         # data types for model
-        keras.layers.Input(shape=(1,))
+        ### data types for model
         # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name="State")
         self._State = keras.layers.Input(shape=(self._state_length,))
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
