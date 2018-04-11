@@ -143,8 +143,10 @@ def trainModelParallel(inputData):
             os.environ['KERAS_BACKEND'] = settings['learning_backend']
             
         import keras
+        import theano
         keras.backend.set_floatx(settings['float_type'])
         print ("K.floatx()", keras.backend.floatx())
+        print ("theano.config.floatX", theano.config.floatX)
         
         ## Theano needs to be imported after the flags are set.
         # from ModelEvaluation import *

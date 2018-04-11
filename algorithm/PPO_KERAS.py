@@ -45,6 +45,7 @@ class PPO_KERAS(AlgorithmInterface):
         self._rms_epsilon = self.getSettings()['rms_epsilon']
         
         self._Anneal = T.scalar("Anneal")
+        # self._Anneal = keras.layers.Input(shape=(1,))
         
         self._value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
         self._value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
@@ -69,7 +70,8 @@ class PPO_KERAS(AlgorithmInterface):
             self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate'] 
         
-        self._Advantage = T.col("Advantage")
+        # self._Advantage = T.col("Advantage")
+        self._Advantage = keras.layers.Input(shape=(1,))
         
         self._actor_entropy = 0.5 * T.mean((2 * np.pi * self._q_valsActASTD ) )
         
@@ -310,7 +312,7 @@ class PPO_KERAS(AlgorithmInterface):
         if ( 'advantage_scaling' in self.getSettings() and ( self.getSettings()['advantage_scaling'] != False) ):
             std = std / self.getSettings()['advantage_scaling']
             mean = 0.0
-        advantage = (advantage - mean) / std
+        advantage = np.array((advantage - mean) / std, dtype=self._settings['float_type'])
         ### check to not perform updates when r gets to large.
         et_factor = 1.2
         if (r_ < (et_factor)) and ( r_ > (1.0/et_factor)):  ### update not to large
