@@ -567,3 +567,15 @@ class AlgorithmInterface(object):
             Remore all expert policies used by this method
         """
         pass
+    
+    def get_actor_regularization(self):
+        return self._get_actor_regularization()
+    
+    def get_actor_loss(self):
+        return self._get_actor_loss()
+
+    def get_critic_regularization(self):
+        return self._get_critic_regularization()
+    
+    def get_critic_loss(self):
+        return self._get_critic_loss()

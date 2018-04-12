@@ -7,6 +7,7 @@
 """
 import theano
 from theano import tensor as T
+import keras.backend as K
 from lasagne.layers import get_all_params
 import numpy as np
 import lasagne
@@ -33,6 +34,9 @@ def kl(mean0, std0, mean1, std1, d):
     """
     return T.log(std1 / std0).sum(axis=1) + ((T.square(std0) + T.square(mean0 - mean1)) / (2.0 * T.square(std1))).sum(axis=1) - 0.5 * d
 
+def kl_keras(mean0, std0, mean1, std1, d):
+        return K.log(std1 / std0).sum(axis=1) + ((K.square(std0) + K.square(mean0 - mean1)) / (2.0 * K.square(std1))).sum(axis=1) - 0.5 * d
+    
 def kl_D(mean0, std0, mean1, std1, d):
     """
         The first districbution should be from a fixed distribution. 
@@ -51,6 +55,9 @@ def kl_D(mean0, std0, mean1, std1, d):
     """
     return T.exp(kl(mean0, std0, mean1, std1, d))
 
+def kl_D_keras(mean0, std0, mean1, std1, d):
+    return K.exp(kl_keras(mean0, std0, mean1, std1, d))
+    
 def change_penalty(network1, network2):
     """
     The networks should be the same shape and design
@@ -107,6 +114,9 @@ def entropy(std):
     """
     return 0.5 * T.mean(T.log(2 * np.pi * std ) + 1 )
 
+def entropy_keras(std):
+    return 0.5 * K.mean(K.log(2 * np.pi * std ) + 1 )
+
 def loglikelihood(a, mean0, std0, d):
     """
         d is the number of action dimensions
@@ -115,9 +125,14 @@ def loglikelihood(a, mean0, std0, d):
     return T.reshape(- 0.5 * (T.square(a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1), newshape=(-1, 1))
     # return (- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1))
 
+def loglikelihood_keras(a, mean0, std0, d):
+    return K.reshape(- 0.5 * (K.square(a - mean0) / std0).sum(axis=1) - 0.5 * K.log(2.0 * np.pi) * d - K.log(std0).sum(axis=1), shape=(-1, 1))
 
 def likelihood(a, mean0, std0, d):
     return T.exp(loglikelihood(a, mean0, std0, d))
+
+def likelihood_keras(a, mean0, std0, d):
+    return K.exp(loglikelihood_keras(a, mean0, std0, d))
 
 def likelihoodMEAN(a, mean0, std0, d):
     return T.exp(loglikelihoodMEAN(a, mean0, std0, d))

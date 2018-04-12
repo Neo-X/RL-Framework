@@ -8,7 +8,7 @@ import copy
 sys.path.append('../')
 from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward
 from algorithm.AlgorithmInterface import AlgorithmInterface
-from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl, kl_D, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
+from model.LearningUtil import loglikelihood_keras, likelihood_keras, kl_keras, kl_D_keras, entropy_keras
 from keras.optimizers import SGD
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
@@ -17,6 +17,22 @@ import keras
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 # from DeepCACLA import DeepCACLA
+
+"""
+def dice_coef(y_true, y_pred, smooth, thresh):
+    y_pred = y_pred > thresh
+    y_true_f = K.flatten(y_true)
+    y_pred_f = K.flatten(y_pred)
+    intersection = K.sum(y_true_f * y_pred_f)
+
+    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+
+### Loss    
+def dice_loss(smooth, thresh):
+  def dice(y_true, y_pred)
+    return -dice_coef(y_true, y_pred, smooth, thresh)
+  return dice
+"""
 
 def flatten(data):
     
@@ -44,14 +60,16 @@ class PPO_KERAS(AlgorithmInterface):
         self._rho = self.getSettings()['rho']
         self._rms_epsilon = self.getSettings()['rms_epsilon']
         
-        self._Anneal = T.scalar("Anneal")
-        # self._Anneal = keras.layers.Input(shape=(1))
+        # self._Anneal = T.scalar("Anneal")
+        # self._Anneal = keras.layers.Input(shape=())
+        # self._Anneal = K.variable(value=np.float32(1.0) ,name="Anneal")
+        self._Anneal = K.placeholder(ndim=0, name="Anneal")
         
         self._value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
         self._value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
         
         _target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self._value_Target)
-        self._loss = T.mean(0.5 * (self._value - _target) ** 2)
+        self._loss = K.mean(0.5 * (self._value - _target) ** 2)
         
         
         self._q_valsActA = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
@@ -72,22 +90,25 @@ class PPO_KERAS(AlgorithmInterface):
         
         # self._Advantage = T.col("Advantage")
         self._Advantage = keras.layers.Input(shape=(1,))
+        # self._Advantage = K.placeholder(shape=(1,), name="Advantage")
         
-        self._actor_entropy = 0.5 * T.mean((2 * np.pi * self._q_valsActASTD ) )
+        self._actor_entropy = entropy_keras(self._q_valsActASTD)
         
         ## Compute on-policy policy gradient
-        self._prob = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
+        self._prob = likelihood_keras(self._model.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD, self._action_length)
         ### How should this work if the target network is very odd, as in not a slightly outdated copy.
-        self._prob_target = likelihood(self._model.getActionSymbolicVariable(), self._q_valsActTarget_State, self._q_valsActTargetSTD, self._action_length)
+        self._prob_target = likelihood_keras(self._model.getActionSymbolicVariable(), self._q_valsActTarget_State, self._q_valsActTargetSTD, self._action_length)
         ## This does the sum already
-        self._r = (self._prob / self._prob_target)
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
+        self.__r = (self._prob / self._prob_target)
+        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
+        self._actLoss_ = (self.__r) * self._Advantage
         ppo_epsilon = self.getSettings()['kl_divergence_threshold']
-        self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - (ppo_epsilon * self._Anneal), 1+ (ppo_epsilon * self._Anneal)), self._Advantage))
-        self._actLoss_ = theano.tensor.minimum((self._actLoss_), (self._actLoss_2))
+        # self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - (ppo_epsilon * self._Anneal), 1+ (ppo_epsilon * self._Anneal)), self._Advantage))
+        self._actLoss_2 = (K.clip(self.__r, 1.0 - (ppo_epsilon * self._Anneal), 1 + (ppo_epsilon * self._Anneal)), self._Advantage)
+        self._actLoss_ = K.minimum(self._actLoss_, self._actLoss_2)
         # self._actLoss = ((T.mean(self._actLoss_) )) + -self._actor_regularization
         # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy )))
-        self._actLoss = -1.0 * T.mean(self._actLoss_)
+        self._actLoss = -1.0 * K.mean(self._actLoss_)
         if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
             self._actLoss = self._actLoss + self._loss  
         
@@ -127,53 +148,54 @@ class PPO_KERAS(AlgorithmInterface):
         else:
             self._critic_regularization = K.sum(self._model.getCriticNetwork().losses)
             
-        self._get_actor_regularization = theano.function([], [self._actor_regularization])
-        self._get_critic_regularization = theano.function([], [self._critic_regularization])
+        self._get_actor_regularization = K.function([], [self._actor_regularization])
+        self._get_critic_regularization = K.function([], [self._critic_regularization])
         
         if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
-            self.trainPolicy = theano.function([self._model.getStateSymbolicVariable(),
+            self.trainPolicy = K.function([self._model.getStateSymbolicVariable(),
                                                  self._model.getActionSymbolicVariable(),
                                                  self._model.getResultStateSymbolicVariable(),
                                                  self._model.getRewardSymbolicVariable(),
                                                  self._Advantage,
                                                  self._Anneal  
                                                  # ,K.learning_phase()
-                                                 ], [self._actLoss, self._r], 
+                                                 ], [self._actLoss, self.__r], 
                             updates= adam_updates(self._actLoss + self._critic_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
                             # ,on_unused_input='warn'
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
                             )
         else:
-            self.trainPolicy = theano.function([self._model.getStateSymbolicVariable(),
+            self.trainPolicy = K.function([self._model.getStateSymbolicVariable(),
                                                  self._model.getActionSymbolicVariable(),
                                                  self._Advantage,
-                                                 self._Anneal,  
-                                                 K.learning_phase()
-                                                 ], [self._actLoss, self._r], 
+                                                 self._Anneal  
+                                                 # ,K.learning_phase()
+                                                 ], [self._actLoss, self.__r], 
                             updates= adam_updates(self._actLoss + self._actor_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
-                            ,on_unused_input='warn'
+                            # ,on_unused_input='warn'
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
                             )
-            self._get_actor_loss = theano.function(
+            self._get_actor_loss = K.function(
                                                    [self._model.getStateSymbolicVariable(),
                                                  self._model.getActionSymbolicVariable(),
                                                  self._Advantage,
-                                                 self._Anneal,  
-                                                 K.learning_phase()
+                                                 self._Anneal  
+                                                 # ,K.learning_phase()
                                                  ],
                                                  [self._actLoss]
-                                                 ,on_unused_input='warn'
+                                                 # ,on_unused_input='warn'
                                                  )
         
-        self._r = theano.function([self._model.getStateSymbolicVariable(),
-                                             self._model.getActionSymbolicVariable(),
-                                             # self._Anneal
-                                             K.learning_phase()
-                                             ], 
-                                  [self._r],
-                                  on_unused_input='warn')
+        self._r = K.function([self._model.getStateSymbolicVariable(),
+                                     self._model.getActionSymbolicVariable()
+                                     # ,self._Anneal
+                                     # ,K.learning_phase()
+                                     ], 
+                                  [self.__r]
+                                  # ,on_unused_input='warn'
+                                  )
         
         gradients = K.gradients(T.mean(self._value), [self._model.getStateSymbolicVariable()]) # gradient tensors
         self._get_gradients = K.function(inputs=[self._model.getStateSymbolicVariable(),  K.learning_phase()], outputs=gradients)
@@ -305,7 +327,8 @@ class PPO_KERAS(AlgorithmInterface):
         
         # r_ = np.mean(self._r(states, actions, p, 0))
         # r_ = np.mean(self._r(states, actions, p))
-        r_ = np.mean(self._r(states, actions, 0))
+        # r_ = np.mean(self._r(states, actions, 0))
+        r_ = np.mean(self._r([states, actions])[0])
         
         std = np.std(advantage)
         mean = np.mean(advantage)
@@ -325,9 +348,10 @@ class PPO_KERAS(AlgorithmInterface):
                 # print ("States shape: ", np.array(states).shape)
                         ### For now don't include dropout in policy updates
             if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
-                (lossActor, r_) = self.trainPolicy(states, actions, result_states, rewards, advantage, p)
+                (lossActor, r_) = self.trainPolicy([states, actions, result_states, rewards, advantage, p])
             else: 
-                (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
+                # (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
+                (lossActor, r_) = self.trainPolicy([states, actions, advantage, p])
                 """
                 score = self._model.getActorNetwork().fit([states, actions, advantage], advantage,
                           nb_epoch=1, batch_size=32,
@@ -337,7 +361,7 @@ class PPO_KERAS(AlgorithmInterface):
                 """
             # (lossActor, r_) = self.trainPolicy(states, actions, advantage, 1.0)
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                r_ = np.mean(self._r(states, actions, 0))
+                r_ = np.mean(self._r([states, actions])[0])
                 print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
             
             if ( (not np.isfinite(lossActor)) or (not np.isfinite(np.mean(r_)))):
@@ -349,7 +373,7 @@ class PPO_KERAS(AlgorithmInterface):
                 self._model.getCriticNetwork().set_weights( copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
                 self._model.getActorNetwork().set_weights( copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
                 if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                    r_ = np.mean(self._r(states, actions, 0))
+                    r_ = np.mean(self._r([states, actions])[0])
                     print ("Policy probability ratio: ", np.mean(r_))
                     print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
                     print ("Policy std: ", np.mean(self.q_valsActASTD([states, 0])[0], axis=0))
@@ -469,6 +493,18 @@ class PPO_KERAS(AlgorithmInterface):
         return bellman_error
         # return self._bellman_errorTarget()
         
+    def get_actor_regularization(self):
+        return self._get_actor_regularization([])
+    
+    def get_actor_loss(self):
+        return 0
+    
+    def get_critic_regularization(self):
+        return self._get_critic_regularization([])
+    
+    def get_critic_loss(self):
+        return self._get_critic_loss([])
+        
 from collections import OrderedDict
 def adam_updates(loss, params, learning_rate=0.001, beta1=0.9,
          beta2=0.999, epsilon=1e-8):
@@ -497,3 +533,4 @@ def adam_updates(loss, params, learning_rate=0.001, beta1=0.9,
 
     updates[t_prev] = t
     return updates
+
