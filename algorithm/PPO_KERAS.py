@@ -45,7 +45,7 @@ class PPO_KERAS(AlgorithmInterface):
         self._rms_epsilon = self.getSettings()['rms_epsilon']
         
         self._Anneal = T.scalar("Anneal")
-        # self._Anneal = keras.layers.Input(shape=(1,))
+        # self._Anneal = keras.layers.Input(shape=(1))
         
         self._value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
         self._value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
