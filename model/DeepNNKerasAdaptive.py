@@ -103,7 +103,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                             networkAct = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
                         networkAct = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=1,
                                                          kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-                        networkAct = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(networkAct)
+                        # networkAct = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(networkAct)
                     # networkAct = Dense(layer_sizes[i], 
                     #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 elif ( layer_sizes[i] == "merge_features"):
@@ -161,7 +161,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                 network = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
                             network = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=1,
                                                           kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
-                            network = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(network)
+                            # network = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(network)
                         # network = keras.layers.Conv2D(4, (8,1), strides=(1, 1))(network)
                         # networkAct = Dense(layer_sizes[i], 
                         #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
