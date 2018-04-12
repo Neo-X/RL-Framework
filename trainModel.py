@@ -506,6 +506,7 @@ def trainModelParallel(inputData):
                 lw.start()
             
         # del learningNamespace.model
+        """
         tmp_p=1.0
         if ( settings['load_saved_model'] ):
             tmp_p = settings['min_epsilon']
@@ -520,6 +521,7 @@ def trainModelParallel(inputData):
         for m_q in sim_work_queues:
             print("trainModel: Sending current network parameters: ", m_q)
             m_q.put(message)
+        """
             
         del model
         ## Give gloabl access to processes to they can be terminated when ctrl+c is pressed
@@ -632,6 +634,14 @@ def trainModelParallel(inputData):
             
             print("Exp State Bounds: ", experience.getStateBounds())
             print("Exp Action Bounds: ", experience.getActionBounds())
+            
+        ### clear data defore training
+        """
+        for m_q in sim_work_queues:
+            print("checking queues for data before learning", m_q, m_q.qsize() )
+            data__ = m_q.get(message)
+            # print ("data__: ", data__)
+        """
         
         print ("Starting first round")
         if (settings['on_policy']):

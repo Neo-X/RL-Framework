@@ -126,7 +126,7 @@ def loglikelihood(a, mean0, std0, d):
     # return (- 0.5 * T.square((a - mean0) / std0).sum(axis=1) - 0.5 * T.log(2.0 * np.pi) * d - T.log(std0).sum(axis=1))
 
 def loglikelihood_keras(a, mean0, std0, d):
-    return K.reshape(- 0.5 * (K.square(a - mean0) / std0).sum(axis=1) - 0.5 * K.log(2.0 * np.pi) * d - K.log(std0).sum(axis=1), shape=(-1, 1))
+    return K.reshape(- 0.5 * K.sum(K.square(a - mean0) / std0, axis=1) - 0.5 * K.log(2.0 * np.pi) * d - K.sum(K.log(std0),axis=1), shape=(-1, 1))
 
 def likelihood(a, mean0, std0, d):
     return T.exp(loglikelihood(a, mean0, std0, d))

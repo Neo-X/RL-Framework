@@ -1,6 +1,3 @@
-import theano
-from theano import tensor as T
-
 import numpy as np
 # import lasagne
 import sys
@@ -51,9 +48,10 @@ class PPO_KERAS(AlgorithmInterface):
         
         ## primary network
         self._model = model
-
         ## Target network
-        self._modelTarget = copy.deepcopy(model)
+        # self._modelTarget = copy.deepcopy(model)
+        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        
         # self._modelTarget = model
         self._learning_rate = self.getSettings()['learning_rate']
         self._discount_factor= self.getSettings()['discount_factor']
@@ -77,7 +75,7 @@ class PPO_KERAS(AlgorithmInterface):
             # self._q_valsActASTD = (self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) + 1e-2
             self._q_valsActASTD = ((self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) * self.getSettings()['exploration_rate']) + 1e-2
         else:
-            self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+            self._q_valsActASTD = ( K.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
             # self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         
         self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
@@ -85,7 +83,7 @@ class PPO_KERAS(AlgorithmInterface):
             # self._q_valsActTargetSTD = (self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) + 1e-2
             self._q_valsActTargetSTD = ((self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) * self.getSettings()['exploration_rate']) + 1e-2 
         else:
-            self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
+            self._q_valsActTargetSTD = (K.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
             # self._q_valsActTargetSTD = (self._action_std_scaling * T.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate'] 
         
         # self._Advantage = T.col("Advantage")
@@ -166,13 +164,19 @@ class PPO_KERAS(AlgorithmInterface):
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
                             )
         else:
+            poli_updates = updates= adam_updates(self._actLoss + self._actor_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal)
+            if ("learning_backend" in self.getSettings() and (self.getSettings()["learning_backend"] == "tensorflow")):
+                poli_updates = list(poli_updates)
+            else:
+                poli_updates = poli_updates.items()
+            print("poli_updates: ", poli_updates)
             self.trainPolicy = K.function([self._model.getStateSymbolicVariable(),
                                                  self._model.getActionSymbolicVariable(),
                                                  self._Advantage,
                                                  self._Anneal  
                                                  # ,K.learning_phase()
                                                  ], [self._actLoss, self.__r], 
-                            updates= adam_updates(self._actLoss + self._actor_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                            updates= poli_updates
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
                             # ,on_unused_input='warn'
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
@@ -197,7 +201,7 @@ class PPO_KERAS(AlgorithmInterface):
                                   # ,on_unused_input='warn'
                                   )
         
-        gradients = K.gradients(T.mean(self._value), [self._model.getStateSymbolicVariable()]) # gradient tensors
+        gradients = K.gradients(K.mean(self._value), [self._model.getStateSymbolicVariable()]) # gradient tensors
         self._get_gradients = K.function(inputs=[self._model.getStateSymbolicVariable(),  K.learning_phase()], outputs=gradients)
         
         self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self._value])
@@ -509,23 +513,26 @@ from collections import OrderedDict
 def adam_updates(loss, params, learning_rate=0.001, beta1=0.9,
          beta2=0.999, epsilon=1e-8):
 
-    all_grads = T.grad(loss, params)
-    t_prev = theano.shared(np.array(0,dtype="float32"))
+    all_grads = K.gradients(loss, params)
+    t_prev = K.variable(value=np.array(0,dtype="float32"))
     updates = OrderedDict()
 
     t = t_prev + 1
-    a_t = learning_rate*T.sqrt(1-beta2**t)/(1-beta1**t)
+    a_t = learning_rate*K.sqrt(1-beta2**t)/(1-beta1**t)
 
     for param, g_t in zip(params, all_grads):
-        value = param.get_value(borrow=True)
-        m_prev = theano.shared(np.zeros(value.shape, dtype=value.dtype),
-                               broadcastable=param.broadcastable)
-        v_prev = theano.shared(np.zeros(value.shape, dtype=value.dtype),
-                               broadcastable=param.broadcastable)
+        # value = param.get_value(borrow=True)
+        value = K.eval(param)
+        m_prev = K.variable(value=np.zeros(value.shape, dtype=value.dtype)
+                            # ,broadcastable=param.broadcastable
+                            )
+        v_prev = K.variable(value=np.zeros(value.shape, dtype=value.dtype)
+                            # ,broadcastable=param.broadcastable
+                            )
 
         m_t = beta1*m_prev + (1-beta1)*g_t
         v_t = beta2*v_prev + (1-beta2)*g_t**2
-        step = a_t*m_t/(T.sqrt(v_t) + epsilon)
+        step = a_t*m_t/(K.sqrt(v_t) + epsilon)
 
         updates[m_prev] = m_t
         updates[v_prev] = v_t

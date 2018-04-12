@@ -44,6 +44,12 @@ class SimWorker(Process):
         ## Used to receive special messages like update your model parameters to this now!
         self._message_queue = message_que
         self._worker_id = worker_id
+        
+    def createNewModel(self):
+        from util.SimulationUtil import createRLAgent
+        model = createRLAgent(self._settings['agent_name'], self._model.getStateBounds(), self._model.getActionBounds(), 
+                              self._model.getRewardBounds(), self._settings)
+        return model
     
     def current_mem_usage(self):
         try:
@@ -69,6 +75,10 @@ class SimWorker(Process):
         
         # print ("SW model: ", self._model.getPolicy())
         # print ("Thread: ", self._model._exp)
+        """
+        if ("learning_backend" in self._settings and (self._settings["learning_backend"] == "tensorflow")):
+            self._model.setPolicy(self.createNewModel())
+        """
         ## This is no needed if there is one thread only...
         if (int(self._settings["num_available_threads"]) > 0): 
             from util.SimulationUtil import createEnvironment
@@ -88,10 +98,12 @@ class SimWorker(Process):
         ## This get is fine, it is the first one that I want to block on.
         print ("Waiting for initial policy update.", self._message_queue)
         episodeData = self._message_queue.get()
+        print ("Received initial policy update.")
         message = episodeData['type']
         if message == "Update_Policy":
             print ("First Message: ", message)
             data = episodeData['data']
+            print ("got data: ", data[5])
             """
             poli_params = []
             for i in range(len(data[5])):
@@ -102,7 +114,7 @@ class SimWorker(Process):
                 poli_params.append(net_params)
                 """
             self._model.getPolicy().setNetworkParameters(data[5])
-            # print ("First Message: ", "Updated policy parameters")
+            print ("First Message: ", "Updated policy parameters")
             if (self._settings['train_forward_dynamics']):
                 self._model.getForwardDynamics().setNetworkParameters(data[6])
             self._p = data[1]
@@ -118,7 +130,7 @@ class SimWorker(Process):
             eval=False
             sim_on_poli = False
             bootstrapping = False
-            # print ("Worker: getting data")
+            print ("Worker: getting data")
             if (self._settings['on_policy']):
                 episodeData = self._message_queue.get()
                 if episodeData == None:
@@ -1059,9 +1071,10 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     value = []
     evalData = []
     i = 0 
-    while i < anchors: # half the anchors
+    while i < anchors:
         
         j = 0
+        print("j: ", j)
         while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
             episodeData = {}
             episodeData['data'] = i
@@ -1071,12 +1084,12 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
                 episodeData['type'] = 'bootstrapping'
             # sw_message_queues[j].put(episodeData)
             if (settings['on_policy']):
+                # print ("sw_message_queues[j].maxsize: ", sw_message_queues[j].qsize() )
                 sw_message_queues[j].put(episodeData)
             else:
                 sw_message_queues.put(episodeData)
             j += 1
             
-        # for anchs in anchors: # half the anchors
         j = 0
         while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
             (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get()
