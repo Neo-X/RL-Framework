@@ -235,7 +235,7 @@
 "dyna_update_lag_steps": 5,
 	"comment__": "Use generalized advantage estimation",
 "use_GAE": true,
-	"comment__": "generalized advantage estimation lambda in [0,1]",
+	"comment__": "generalized advantage estimation lambda in [0,1], when =0, this is just a one step return (lots of bias), when =1, use only data no variance reduction",
 "GAE_lambda": 0.95,
 	"comment__": "Whether or not to take a couple of on policy updates",
 "use_multiple_policy_updates": true,	
