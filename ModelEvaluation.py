@@ -156,8 +156,8 @@ class SimWorker(Process):
                     if (self._settings['train_forward_dynamics']):
                         self._model.getForwardDynamics().setNetworkParameters(data[6])
                     p = data[1]
-                    if p < 0.1:
-                        p = 0.1
+                    # if p < 0.1:
+                    #     p = 0.1
                     self._p = p
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))

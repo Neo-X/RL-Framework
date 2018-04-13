@@ -1,5 +1,5 @@
 {
-    "comment__": "Type of model/network to use for the actor and critic","comment__": "Type of model/network to use for the actor and critic",
+    "comment__": "Type of model/network to use for the actor and critic",
 "model_type": "model.DeepCNN2D.DeepCNN2D",
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.A_CACLA.A_CACLA",
