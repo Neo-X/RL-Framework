@@ -1077,7 +1077,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     while i < anchors:
         
         j = 0
-        print("j: ", j)
+        # print("j: ", j)
         while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
             episodeData = {}
             episodeData['data'] = i

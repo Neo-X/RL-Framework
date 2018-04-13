@@ -253,14 +253,14 @@ class PPO_KERAS(AlgorithmInterface):
             params[0][i] = np.array(params[0][i], dtype=self._settings['float_type'])
             """
         
-        print("setting critic net params", )
-        print ("same nets:", len(params[0]), self._model.getCriticNetwork().get_weights())
+        # print("setting critic net params", )
+        # print ("same nets:", len(params[0]), self._model.getCriticNetwork().get_weights())
         self._model.getCriticNetwork().set_weights(params[0])
-        print("setting actor net params")
+        # print("setting actor net params")
         self._model.getActorNetwork().set_weights( params[1] )
-        print("setting critic target net params")
+        # print("setting critic target net params")
         self._modelTarget.getCriticNetwork().set_weights( params[2])
-        print("setting actor target net params")
+        # print("setting actor target net params")
         self._modelTarget.getActorNetwork().set_weights( params[3])
             
     def setData(self, states, actions, rewards, result_states, fallen):
