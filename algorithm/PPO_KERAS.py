@@ -51,7 +51,7 @@ class PPO_KERAS(AlgorithmInterface):
         ## Target network
         # self._modelTarget = copy.deepcopy(model)
         self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
-        
+        print ("PPO_KERAS: created models")
         # self._modelTarget = model
         self._learning_rate = self.getSettings()['learning_rate']
         self._discount_factor= self.getSettings()['discount_factor']
@@ -146,9 +146,10 @@ class PPO_KERAS(AlgorithmInterface):
         else:
             self._critic_regularization = K.sum(self._model.getCriticNetwork().losses)
             
+        print ("build regularizers")
         self._get_actor_regularization = K.function([], [self._actor_regularization])
         self._get_critic_regularization = K.function([], [self._critic_regularization])
-        
+        print ("build actor updates")
         if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
             self.trainPolicy = K.function([self._model.getStateSymbolicVariable(),
                                                  self._model.getActionSymbolicVariable(),
@@ -213,6 +214,7 @@ class PPO_KERAS(AlgorithmInterface):
                                           # self._Anneal,
                                           K.learning_phase()], [self._q_valsActASTD]) 
         
+        print ("Done building PPO KERAS")
 
     def getGrads(self, states, alreadyNormed=False):
         """
@@ -250,11 +252,17 @@ class PPO_KERAS(AlgorithmInterface):
         for i in range(len(params[0])):
             params[0][i] = np.array(params[0][i], dtype=self._settings['float_type'])
             """
+        
+        print("setting critic net params", )
+        print ("same nets:", len(params[0]), self._model.getCriticNetwork().get_weights())
         self._model.getCriticNetwork().set_weights(params[0])
+        print("setting actor net params")
         self._model.getActorNetwork().set_weights( params[1] )
+        print("setting critic target net params")
         self._modelTarget.getCriticNetwork().set_weights( params[2])
+        print("setting actor target net params")
         self._modelTarget.getActorNetwork().set_weights( params[3])
-    
+            
     def setData(self, states, actions, rewards, result_states, fallen):
         pass
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )

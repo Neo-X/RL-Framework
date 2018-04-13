@@ -47,8 +47,10 @@ class SimWorker(Process):
         
     def createNewModel(self):
         from util.SimulationUtil import createRLAgent
+        print ("Craeting new moddel with different session")
         model = createRLAgent(self._settings['agent_name'], self._model.getStateBounds(), self._model.getActionBounds(), 
                               self._model.getRewardBounds(), self._settings)
+        print ("done creating model")
         return model
     
     def current_mem_usage(self):
@@ -75,10 +77,10 @@ class SimWorker(Process):
         
         # print ("SW model: ", self._model.getPolicy())
         # print ("Thread: ", self._model._exp)
-        """
+        
         if ("learning_backend" in self._settings and (self._settings["learning_backend"] == "tensorflow")):
             self._model.setPolicy(self.createNewModel())
-        """
+        
         ## This is no needed if there is one thread only...
         if (int(self._settings["num_available_threads"]) > 0): 
             from util.SimulationUtil import createEnvironment
@@ -103,7 +105,7 @@ class SimWorker(Process):
         if message == "Update_Policy":
             print ("First Message: ", message)
             data = episodeData['data']
-            print ("got data: ", data[5])
+            print ("got data: ")
             """
             poli_params = []
             for i in range(len(data[5])):
@@ -113,6 +115,7 @@ class SimWorker(Process):
                     net_params.append(np.array(data[5][i][j], dtype='float32'))
                 poli_params.append(net_params)
                 """
+            print("Setting net params")
             self._model.getPolicy().setNetworkParameters(data[5])
             print ("First Message: ", "Updated policy parameters")
             if (self._settings['train_forward_dynamics']):
@@ -130,7 +133,7 @@ class SimWorker(Process):
             eval=False
             sim_on_poli = False
             bootstrapping = False
-            print ("Worker: getting data")
+            # print ("Worker: getting data")
             if (self._settings['on_policy']):
                 episodeData = self._message_queue.get()
                 if episodeData == None:
