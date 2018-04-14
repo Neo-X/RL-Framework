@@ -782,7 +782,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if (not bootstrapping):
                 q_values_.append(model.q_value(state_))
                 
+            if ("sample_single_trajectories" in settings and (settings["sample_single_trajectories"] == True)):
+                break
+                
         i_ += 1
+        
         
     
     evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
@@ -1074,11 +1078,18 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     value = []
     evalData = []
     i = 0 
-    while i < anchors:
+    while ((i < anchors) or 
+           (
+            (("sample_single_trajectories" in settings and (settings["sample_single_trajectories"] == True)))
+            and
+            (len(states) < (settings["num_on_policy_rollouts"] * settings["max_epoch_length"]))
+            ) 
+            ):
         
         j = 0
         # print("j: ", j)
-        while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
+        # while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
+        while (j < abs(settings['num_available_threads'])):
             episodeData = {}
             episodeData['data'] = i
             if ( (type is None) ):
@@ -1094,7 +1105,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             j += 1
             
         j = 0
-        while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
+        # while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
+        while (j < abs(settings['num_available_threads'])):
             (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get()
             discounted_sum.append(discounted_sum_)
             value.append(value_)
@@ -1117,6 +1129,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             advantage.extend(advantage_)
             exp_actions.extend(exp_actions_)
         i += j
+        # print("samples collected so far: ", len(states))
         
     tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
     return (tuples, discounted_sum, value, evalData)
