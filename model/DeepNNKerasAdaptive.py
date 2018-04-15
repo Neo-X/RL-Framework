@@ -53,6 +53,9 @@ class DeepNNKerasAdaptive(ModelInterface):
 
         super(DeepNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
+        self._networkSettings = None
+        if ("network_settings" in settings_):
+            self._networkSettings = settings_["network_settings"]
         ### data types for model
         # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name="State")
         self._State = keras.layers.Input(shape=(self._state_length,))
@@ -81,6 +84,8 @@ class DeepNNKerasAdaptive(ModelInterface):
         characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'],))(input)
 
         perform_pooling=True
+        if ( "perform_convolution_pooling" in self._networkSettings):
+            perform_pooling = self._networkSettings["perform_convolution_pooling"]
         if ( ( "use_single_network" in self._settings and
                (self._settings['use_single_network'] == True)
              )
