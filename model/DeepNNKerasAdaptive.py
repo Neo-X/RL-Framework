@@ -80,7 +80,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(input)
         characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'],))(input)
 
-        perform_pooling=False
+        perform_pooling=True
         if ( ( "use_single_network" in self._settings and
                (self._settings['use_single_network'] == True)
              )
