@@ -112,6 +112,8 @@ class LearningAgent(AgentInterface):
                 print("Actions:     ", np.mean(_actions__, axis=0), " shape: ", _actions__.shape)
                 print("Actions std:  ", np.std(_actions__, axis=0) )
             
+            ### Update target networks
+            self._pol.updateTargetModel()
             ### Validate data
             tmp_states = []
             tmp_actions = []
@@ -177,7 +179,7 @@ class LearningAgent(AgentInterface):
                  and (self._settings["additional_on-poli_trianing_updates"] != False)):
                 additional_on_poli_trianing_updates = self._settings["additional_on-poli_trianing_updates"]
                 ### The data should be seen ~ 4 times
-                additional_on_poli_trianing_updates = int(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / value_function_batch_size) * additional_on_poli_trianing_updates)
+                additional_on_poli_trianing_updates = int(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / self._settings["batch_size"]) * additional_on_poli_trianing_updates)
                 print ("additional_on_poli_trianing_updates: ", additional_on_poli_trianing_updates)
                 
                 if ( additional_on_poli_trianing_updates < 1 ):

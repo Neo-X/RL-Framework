@@ -126,7 +126,7 @@ def pretrainCritic(masterAgent):
     settings__["train_actor"] = False
     settings__["clear_exp_mem_on_poli"] = False
     masterAgent.setSettings(settings__)
-    for i in range(1000):
+    for i in range(settings__["pretrain_critic"]):
         masterAgent.train(_states=[], _actions=[], _rewards=[], _result_states=[],
                                        _falls=[], _advantage=[], _exp_actions=[], p=1.0)
     ### back to normal settings
