@@ -372,5 +372,5 @@
 	"perform_convolution_pooling": true
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
-"pretrain_critic": 500
+"pretrain_critic": 1000
 }

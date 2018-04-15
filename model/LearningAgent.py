@@ -180,7 +180,8 @@ class LearningAgent(AgentInterface):
                 additional_on_poli_trianing_updates = self._settings["additional_on-poli_trianing_updates"]
                 ### The data should be seen ~ 4 times
                 additional_on_poli_trianing_updates = int(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / self._settings["batch_size"]) * additional_on_poli_trianing_updates)
-                print ("additional_on_poli_trianing_updates: ", additional_on_poli_trianing_updates)
+                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    print ("additional_on_poli_trianing_updates: ", additional_on_poli_trianing_updates)
                 
                 if ( additional_on_poli_trianing_updates < 1 ):
                     additional_on_poli_trianing_updates = 1  
