@@ -360,5 +360,5 @@
 	"comment__": "The interpolation parameter used adjust the target network for DDPG",
 "target_net_interp_weight": 0.001,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 1,
+"additional_on-poli_trianing_updates": 4,
 }
