@@ -53,7 +53,7 @@ class DeepNNKerasAdaptive(ModelInterface):
 
         super(DeepNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
-        self._networkSettings = None
+        self._networkSettings = {}
         if ("network_settings" in settings_):
             self._networkSettings = settings_["network_settings"]
         ### data types for model
