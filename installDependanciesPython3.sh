@@ -20,6 +20,7 @@ pip3 install --user pyOpenGL
 # pip3 install --user keras==2.1.5
 ### I have a custom version of keras now...
 pip3 install --user git+https://github.com/Neo-X/keras.git
+pip3 install --user tensorflow
 ## Does not work in Python3
 # pip3 install pyODE
 pip3 install --user h5py
