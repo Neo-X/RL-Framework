@@ -119,6 +119,18 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
     
     return (sim_workers, sim_work_queues)
     
+    
+def pretrainCritic(masterAgent):
+    settings__ = copy.deepcopy(masterAgent.getSettings())
+    settings__2 = copy.deepcopy(masterAgent.getSettings())
+    settings__["train_actor"] = False
+    settings__["clear_exp_mem_on_poli"] = False
+    masterAgent.setSettings(settings__)
+    for i in range(1000):
+        masterAgent.train(_states=[], _actions=[], _rewards=[], _result_states=[],
+                                       _falls=[], _advantage=[], _exp_actions=[], p=1.0)
+    ### back to normal settings
+    masterAgent.setSettings(settings__2)
 
 
 # python -m memory_profiler example.py
@@ -642,6 +654,9 @@ def trainModelParallel(inputData):
             data__ = m_q.get(message)
             # print ("data__: ", data__)
         """
+        
+        if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)):
+            pretrainCritic(masterAgent)
         
         print ("Starting first round")
         if (settings['on_policy']):
