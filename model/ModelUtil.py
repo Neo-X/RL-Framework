@@ -40,7 +40,7 @@ def anneal_value(d, settings_):
     d = float(d)
     anneal_type = settings_['annealing_schedule']
     if (anneal_type == 'linear'):
-        p = 1.0 - (d)
+        p = 1.0 - ((d) * settings_['initial_temperature'])
     elif (anneal_type == "log"):
         # p = ((0.1/math.log(((d))+1)))
         p = (1.0 - (math.log((d)+1.0)))**settings_['initial_temperature']

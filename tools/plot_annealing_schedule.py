@@ -4,6 +4,7 @@ import numpy as np
 # import matplotlib.animation as animation
 import random
 import sys
+sys.path.append("../")
 import json
 from NNVisualize import NNVisualize
 import math
@@ -26,10 +27,10 @@ if __name__ == '__main__':
     ps = []
     
     # anneal_type = 'linear'
-    anneal_type = 'log'
+    # anneal_type = 'log'
     # anneal_type = 'square'
     
-    settings['annealing_schedule'] = 'log'
+    # settings['annealing_schedule'] = 'log'
     
     for round_ in range(0,rounds):
         # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
