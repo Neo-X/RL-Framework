@@ -15,9 +15,24 @@ class TestModel(object):
 
         a_n = scale_action(norm_action(a_, bounds), bounds)
         print (a_n)
-        assert np.array_equal(a_n, a_)
+        assert np.allclose(a_n, a_)
         # assert a_n == a_
 
+    def test_random_normal(self):
+        d = 10
+        samples_ = 50000
+        means = np.random.rand(1,d,d)
+        stds = np.random.uniform(size=(1,d,d))+0.01
+        for i in range(means.shape[0]):
+            rand_ = []
+            for j in range(samples_):
+                rand_.append(randomExporationSTD([means[0][i]], [stds[0][i]])[0])
+            rand_ = np.array(rand_)
+            assert rand_.shape == (samples_, d)
+            assert np.mean(rand_, axis=0).shape == means[0][i].shape
+            assert np.all(np.less_equal(np.abs(np.mean(rand_, axis=0) - means[0][i]), 0.015))
+            assert np.all(np.less_equal(np.abs(np.std(rand_, axis=0) - stds[0][i]), 0.015))
+            
 
 if __name__ == '__main__':
     pytest.main([__file__])
