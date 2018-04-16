@@ -350,6 +350,8 @@ class PPO_KERAS(AlgorithmInterface):
         advantage = np.array((advantage - mean) / std, dtype=self._settings['float_type'])
         ### check to not perform updates when r gets to large.
         et_factor = 1.2
+        if ("ppo_et_factor" in self.getSettings()):
+            et_factor = self.getSettings()["ppo_et_factor"]
         if (r_ < (et_factor)) and ( r_ > (1.0/et_factor)):  ### update not to large
             # lossActor = score.history['loss'][0]
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
