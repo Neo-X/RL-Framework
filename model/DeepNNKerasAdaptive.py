@@ -97,6 +97,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             print ("Actor Network layer sizes: ", layer_sizes)
             networkAct = self._stateInput
             for i in range(len(layer_sizes)):
+                second_last_layer = networkAct
                 # networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
                 if type(layer_sizes[i]) is list:
                     if ( len(layer_sizes[i][1])> 1):
@@ -129,7 +130,17 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._actor = networkAct
                     
             if (self._settings['use_stocastic_policy']):
-                with_std = Dense(self._action_length, 
+                if ("split_single_net_earlier" in self._networkSettings and 
+                    self._networkSettings["split_single_net_earlier"] == True):
+                    second_last_layer = Dense(layer_sizes[len(layer_sizes)-1], 
+                                       kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(second_last_layer)
+                    second_last_layer = getKerasActivation(self._settings['policy_activation_type'])(second_last_layer)
+                    with_std = Dense(self._action_length, 
+                                kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
+                                kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
+                               mode='fan_avg', distribution='uniform', seed=None) ))(second_last_layer)
+                else:
+                    with_std = Dense(self._action_length, 
                                 kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                 kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
                                mode='fan_avg', distribution='uniform', seed=None) ))(networkAct_)
@@ -202,6 +213,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         for i in range(len(layer_sizes)):
             # network = Dense(layer_sizes[i], init='uniform')(input)
             if type(layer_sizes[i]) is list:
+                second_last_layer = network
                 if ( len(layer_sizes[i][1])> 1):
                     if (i == 0):
                         network = Reshape((1, self._settings['num_terrain_features'], self._settings['num_terrain_features']))(network)
@@ -238,10 +250,21 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._actor = networkAct
                     
             if (self._settings['use_stocastic_policy']):
-                with_std = Dense(self._action_length, 
+                if ("split_single_net_earlier" in self._networkSettings and 
+                    self._networkSettings["split_single_net_earlier"] == True):
+                    second_last_layer = Dense(layer_sizes[len(layer_sizes)-1],
+                                kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(second_last_layer)
+                    second_last_layer = getKerasActivation(self._settings['activation_type'])(second_last_layer)
+                    
+                    with_std = Dense(self._action_length, 
                                 kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                 kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
-                               mode='fan_avg', distribution='uniform', seed=None) ))(networkAct_)
+                               mode='fan_avg', distribution='uniform', seed=None) ))(second_last_layer)
+                else:
+                    with_std = Dense(self._action_length, 
+                                    kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
+                                    kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
+                                   mode='fan_avg', distribution='uniform', seed=None) ))(networkAct_)
                 with_std = getKerasActivation(self._settings['_last_std_policy_layer_activation_type'])(with_std)
                 # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 self._actor = keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
