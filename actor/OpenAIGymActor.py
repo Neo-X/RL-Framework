@@ -36,6 +36,9 @@ class OpenAIGymActor(ActorInterface):
         self._reward_sum = self._reward_sum + np.mean(reward)
         return reward
         
+    def updateAction(self, sim, action_):
+        action_ = np.array(action_, dtype='float64')
+        sim.getEnvironment().updateAction(action_)
     
     def getEvaluationData(self):
         return self._reward_sum

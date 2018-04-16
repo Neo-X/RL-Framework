@@ -3,7 +3,9 @@
 
 module purge 
 
+module load COMPILER/GNU/6.4.0
 module load LANG/PYTHON/3.5.2-SYSTEM
+
 module load TOOLS/THEANO/0.8.2-CPU-PY352
 module load LIB/BOOST/1.65.1-PY352
 module load LIB/OPENCV/2.4.13-CPUONLY
