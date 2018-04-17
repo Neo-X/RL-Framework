@@ -344,7 +344,7 @@
 	"comment__": "Anneal the std of the policy as well",
 "anneal_policy_std": false,
 	"comment__": "anneal the probability of performing explorative actions, set to >= 1.0 to perform only exploration actions",
-"anneal_exploration": 0.5,
+"anneal_exploration": false,
 	"comment__": "If true the simulation will terminate after an early termination or when max time steps is reached, otherwise max_time_steps sample are collected",
 "sample_single_trajectories": true,
 	"comment__": "Network settings",
@@ -357,5 +357,5 @@
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
 "pretrain_critic": 50,
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
-"ppo_et_factor": 1.5
+"ppo_et_factor": 1.25
 }
