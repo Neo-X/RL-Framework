@@ -269,6 +269,7 @@ class PPO_KERAS(AlgorithmInterface):
         
     def trainCritic(self, states, actions, rewards, result_states, falls):
         if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+            print("self.getSettings()[\"ppo_use_seperate_nets\"]: ", self.getSettings()["ppo_use_seperate_nets"])
             return 0
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")

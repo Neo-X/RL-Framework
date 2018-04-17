@@ -62,6 +62,8 @@ class LearningAgent(AgentInterface):
         
     def setSettings(self, settings):
         self._settings = settings
+        # self.getPolicy().setSettings(settings)
+        # self.getForwardDynamics().setSettings(settings)
     def getSettings(self):
         return self._settings
         

@@ -125,13 +125,16 @@ def pretrainCritic(masterAgent):
     settings__2 = copy.deepcopy(masterAgent.getSettings())
     settings__["train_actor"] = False
     settings__["clear_exp_mem_on_poli"] = False
+    settings__["ppo_use_seperate_nets"] = True
     masterAgent.setSettings(settings__)
+    masterAgent.getPolicy().setSettings(settings)
+    # masterAgent.getForwardDynamics().setSettings(settings)
     for i in range(settings__["pretrain_critic"]):
         masterAgent.train(_states=[], _actions=[], _rewards=[], _result_states=[],
                                        _falls=[], _advantage=[], _exp_actions=[], p=1.0)
     ### back to normal settings
     masterAgent.setSettings(settings__2)
-
+    masterAgent.getPolicy().setSettings(settings__2)
 
 # python -m memory_profiler example.py
 # @profile(precision=5)

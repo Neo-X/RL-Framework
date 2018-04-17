@@ -211,9 +211,8 @@ class DeepNNKerasAdaptive(ModelInterface):
         if ( self._dropout_p > 0.001 ):
             network = Dropout(rate=self._dropout_p)(network)
         for i in range(len(layer_sizes)):
-            # network = Dense(layer_sizes[i], init='uniform')(input)
+            second_last_layer = network
             if type(layer_sizes[i]) is list:
-                second_last_layer = network
                 if ( len(layer_sizes[i][1])> 1):
                     if (i == 0):
                         network = Reshape((1, self._settings['num_terrain_features'], self._settings['num_terrain_features']))(network)
@@ -242,16 +241,26 @@ class DeepNNKerasAdaptive(ModelInterface):
             
         if ( "use_single_network" in self._settings and 
              (self._settings['use_single_network'] == True)):
-            networkAct = network       
-            networkAct_ = networkAct
-            networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-            networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
+            if ("split_single_net_earlier" in self._networkSettings and 
+                    self._networkSettings["split_single_net_earlier"] == True):
+                second_last_layer_ = Dense(layer_sizes[len(layer_sizes)-1],
+                                kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(second_last_layer)
+                second_last_layer_ = getKerasActivation(self._settings['activation_type'])(second_last_layer_)
+                networkAct = second_last_layer_       
+                # networkAct_ = networkAct
+                networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(second_last_layer_)
+                networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
+            else:
+                networkAct = network       
+                networkAct_ = networkAct
+                networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+                networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
     
             self._actor = networkAct
                     
             if (self._settings['use_stocastic_policy']):
                 if ("split_single_net_earlier" in self._networkSettings and 
-                    self._networkSettings["split_single_net_earlier"] == True):
+                    (self._networkSettings["split_single_net_earlier"] == True)):
                     second_last_layer = Dense(layer_sizes[len(layer_sizes)-1],
                                 kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(second_last_layer)
                     second_last_layer = getKerasActivation(self._settings['activation_type'])(second_last_layer)
@@ -271,6 +280,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                 
             self._actor = Model(input=self._stateInput, output=self._actor)
             print("Actor summary: ", self._actor.summary())
+            ### Render a nice graph of the network
+            # from keras.utils import plot_model
+            # plot_model(self._actor, to_file='model.png')
         network= Dense(1,
                        kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
         network = Activation('linear')(network)
