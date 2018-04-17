@@ -1057,7 +1057,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             mean_eval, std_eval)
 
 # @profile(precision=5)
-def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None, type=None):
+def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None, type=None, p=1):
     print ("Simulating epochs in Parallel:")
     j=0
     discounted_values = []
@@ -1078,11 +1078,19 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     value = []
     evalData = []
     i = 0 
+    min_samples = settings["num_on_policy_rollouts"] * settings["max_epoch_length"]
+    if (   ("anneal_exploration" in settings) 
+         and (settings['anneal_exploration'] != False)
+         # and (r < (max(float(settings['anneal_exploration']), epsilon * p))) ) 
+        ):
+        p_ = max(float(settings['anneal_exploration']), settings['epsilon'] * p)
+        min_samples = min_samples * (1.0/p_)
+        print("Updated min sample from collection is: ", min_samples)
     while ((i < anchors) or 
            (
             (("sample_single_trajectories" in settings and (settings["sample_single_trajectories"] == True)))
             and
-            (len(states) < (settings["num_on_policy_rollouts"] * settings["max_epoch_length"]))
+            (len(states) < (min_samples))
             ) 
             ):
         

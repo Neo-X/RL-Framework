@@ -696,7 +696,8 @@ def trainModelParallel(inputData):
                     out = simModelParrallel( sw_message_queues=sim_work_queues,
                                                model=masterAgent, settings=settings, 
                                                eval_episode_data_queue=eval_episode_data_queue, 
-                                               anchors=settings['num_on_policy_rollouts'])
+                                               anchors=settings['num_on_policy_rollouts']
+                                               ,p=p)
                     #else:
                     #    out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
                     #                   print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
