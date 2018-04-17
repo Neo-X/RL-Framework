@@ -305,7 +305,7 @@ class LearningAgent(AgentInterface):
                                                          falls=_falls, advantage=_advantage, exp_actions=exp_actions__, 
                                                          forwardDynamicsModel=self._fd, p=p)
                     else:
-                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["batch_size"])
+                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
                         loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
                                                      advantage=_advantage, exp_actions=exp_actions__, forwardDynamicsModel=self._fd,
                                                      p=p)
