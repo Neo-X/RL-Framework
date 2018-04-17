@@ -359,7 +359,7 @@ class PPO_KERAS(AlgorithmInterface):
                 print ("Policy probability ratio: ", np.mean(r_))
                 print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
                 print ("Policy std: ", np.mean(self.q_valsActASTD([states, 0])[0], axis=0))
-                print ("Network Params mean: ", np.mean(np.array(list(flatten(self.getNetworkParameters()[1])))))
+                # print ("Network Params mean: ", np.mean(np.array(list(flatten(self.getNetworkParameters()[1])))))
                 # print ("States shape: ", np.array(states).shape)
                         ### For now don't include dropout in policy updates
             if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):

@@ -127,7 +127,7 @@ def pretrainCritic(masterAgent):
     settings__["clear_exp_mem_on_poli"] = False
     settings__["ppo_use_seperate_nets"] = True
     masterAgent.setSettings(settings__)
-    masterAgent.getPolicy().setSettings(settings)
+    masterAgent.getPolicy().setSettings(settings__)
     # masterAgent.getForwardDynamics().setSettings(settings)
     for i in range(settings__["pretrain_critic"]):
         masterAgent.train(_states=[], _actions=[], _rewards=[], _result_states=[],
