@@ -428,7 +428,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         config_file = config_file[index]
         print ("Using config file: ", config_file)
     else:
-        print("Not a list hoser, it is a ", type(config_file), " for ", config_file)
+        # print("Not a list hoser, it is a ", type(config_file), " for ", config_file)
         print (config_file[0])
     
     print("Creating sim Type: ", env_type)

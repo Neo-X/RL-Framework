@@ -83,7 +83,11 @@ def get_param_values(hyper_settings):
     for par in range(len(parameter_samples)):
         param_of_interest = hyper_settings['param_to_tune'][par]
         range_ = hyper_settings['param_bounds'][par]
-        samples = hyper_settings['num_param_samples'][par] - 1
+        ### Assumes value is numeric..
+        if type(hyper_settings['num_param_samples'][par]) is list:
+            samples = len(hyper_settings['num_param_samples'][par]) - 1
+        else:
+            samples = hyper_settings['num_param_samples'][par] - 1
         # data_name = settings['data_folder']
         # sim_data = []
         # result_data['hyper_param_settings_files'] = []
@@ -99,6 +103,8 @@ def get_param_values(hyper_settings):
                 else:
                     print("Error to many samples for bool type:")
                     sys.exit()
+            elif (hyper_settings['param_data_type'][par] == "set"):
+                param_value = hyper_settings['num_param_samples'][par][i]
             else: #float
                 delta_ = compute_next_val(range_, i, samples, curve_scheme=hyper_settings['curve_scheme'][par])
                 # print ("detla: ", delta_)
