@@ -842,12 +842,8 @@ class GapGame1D(object):
         # self._floor = ode.GeomTriMesh(self._terrainMeshData, self._space)
         
     def getCharacterState(self):
-        # add angular velocity
-        # angularVel = list(self._obstacle.getAngularVel())
+        # add velocity
         angularVel = []
-        #add rotation
-        # rot = list(self._obstacle.getQuaternion())
-        # angularVel.extend(rot)
         vel = self._obstacle.getLinearVel()
         angularVel.append(vel[0])
         return angularVel
@@ -881,6 +877,7 @@ class GapGame1D(object):
             state[0:self._num_points] = pos[1] - copy.deepcopy(self._terrainData[start:start+self._num_points])
             # state = copy.deepcopy(self._terrainData[start:start+self._num_points+1])
             # print ("Start: ", start, " State Data: ", state)
+            ### Distance to first point in terrain features
             state[self._num_points] = fabs(float(math.floor(start)*self._terrainScale)-(pos[0]-self._terrainStartX)) # X distance to first sample
             # state[self._num_points+1] = (pos[1]) # current height of character, This was returning huge nagative values... -1.5x+14
             # print ("Dist to next point: ", state[len(state)-1])

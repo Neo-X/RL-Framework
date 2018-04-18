@@ -41,7 +41,7 @@ class GapGame2D(GapGame1D):
         self._y = []
         self._step = 0
         
-        steps=50
+        steps=16
         # hopTime=1.0
         vel = self._obstacle.getLinearVel()
         time_ = (vel[1]/9.81)*2 # time for rise and fall

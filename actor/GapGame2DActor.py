@@ -14,6 +14,7 @@ class GapGame2DActor(ActorInterface):
         
     
     def updateAction(self, sim, action_):
+        action_ = action_[0]
         action_ = np.array(action_, dtype='float64')
         sim.getEnvironment().updateAction(action_)
     
