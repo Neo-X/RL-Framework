@@ -1127,24 +1127,27 @@ if __name__ == '__main__':
     actions_=[]
     actions_list = []
     actions_list2 = []
-    std = action_bound_std(action_bounds)
+    std = action_bound_std(action_bounds) * settings["exploration_rate"]
     for i in range(action.shape[0] ):
         actions_.append([])
     print ("Actions Data: ", actions_)
     
     for i in range(num_samples):
-        action_ = randomExporation(settings["exploration_rate"], action, action_bounds)
+        action_ = randomExporation(settings["exploration_rate"], action)
         actions_list.append(action_)
-        print (" Exploration action: ", action_)
+        # print (" Exploration action: ", action_)
         for j in range(action.shape[0]):
             act_ = action_[j]
             actions_[j].append(act_)
-            
+
+    print ("Actions mean:", np.mean(actions_list, axis=0))
+    print ("Actions std:", np.std(actions_list, axis=0))
+                
     for i in range(num_samples):
-        action_ = randomExporationSTD(settings["exploration_rate"], actions_list[i], std, action_bounds)
+        action_ = randomExporationSTD([actions_list[i]], [std], action_bounds)
         # action_ = randomExporation(settings["exploration_rate"], actions_list[i], action_bounds)
         actions_list2.append(action_)
-        print (" Exploration action: ", action_)
+        # print (" Exploration action: ", action_)
             
     # data = actions_
     
@@ -1246,7 +1249,7 @@ if __name__ == '__main__':
         
     actions_list2_ = []
     for i in range(num_samples):
-        action_ = randomExporationSTD(settings["exploration_rate"], scale_action(actions_list_2[i], action_bounds), std, action_bounds)
+        action_ = randomExporationSTD([scale_action(actions_list_2[i], action_bounds)], [std], action_bounds)
         # action_ = randomExporation(settings["exploration_rate"], actions_list[i], action_bounds)
         actions_list2_.append(action_)
         # print (" Exploration action: ", action_)
