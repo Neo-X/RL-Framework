@@ -64,6 +64,20 @@ class CACLA_KERAS(AlgorithmInterface):
         gradients = K.gradients(K.mean(self._value), [self._model._stateInput]) # gradient tensors
         self._get_gradients = K.function(inputs=[self._model._stateInput,  K.learning_phase()], outputs=gradients)
         
+        if (self.getSettings()["regularization_weight"] > 0.0000001):
+            self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
+        else:
+            self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
+        
+        if (self.getSettings()["critic_regularization_weight"] > 0.0000001):
+            self._critic_regularization = K.sum(self._model.getCriticNetwork().losses)
+        else:
+            self._critic_regularization = K.sum(self._model.getCriticNetwork().losses)
+            
+        print ("build regularizers")
+        self._get_actor_regularization = K.function([], [self._actor_regularization])
+        self._get_critic_regularization = K.function([], [self._critic_regularization])
+        
     def getGrads(self, states, alreadyNormed=False):
         """
             The states should be normalized
@@ -326,3 +340,15 @@ class CACLA_KERAS(AlgorithmInterface):
               )
         loss = score.history['loss'][0]
         # print(" Critic loss: ", loss)
+        
+    def get_actor_regularization(self):
+        return self._get_actor_regularization([])
+    
+    def get_actor_loss(self):
+        return 0
+    
+    def get_critic_regularization(self):
+        return self._get_critic_regularization([])
+    
+    def get_critic_loss(self):
+        return self._get_critic_loss([])
