@@ -26,7 +26,7 @@ def _computeTime(self, velocity_y):
 
 def OUNoise(theta, sigma, x_t, dt):
     """
-        Ornstein–Uhlenbeck process
+        OrnsteinUhlenbeck process
     
         d x t = θ ( μ − x t ) d t + σ d W t {\displaystyle dx_{t}=\theta (\mu -x_{t})\,dt+\sigma \,dW_{t}} {\displaystyle dx_{t}=\theta (\mu -x_{t})\,dt+\sigma \,dW_{t}}  
     """

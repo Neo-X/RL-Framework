@@ -498,7 +498,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 else : 
                     ### add noise to current policy
                     # return ra1
-                    if ( ((settings['exploration_method'] == 'Ornstein–Uhlenbeck') 
+                    if ( ((settings['exploration_method'] == 'OrnsteinUhlenbeck') 
                           # or (bootstrapping)
                           ) 
                          and (not sampling)):

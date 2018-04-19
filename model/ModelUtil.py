@@ -300,7 +300,7 @@ def randomExporationSTD(actionV, std, bounds=None):
 
 def OUNoise(theta, sigma, previousNoise):
     """
-        Ornstein–Uhlenbeck process
+        OrnsteinUhlenbeck process
     
         d x t = θ ( μ − x t ) d t + σ d W t {\displaystyle dx_{t}=\theta (\mu -x_{t})\,dt+\sigma \,dW_{t}} {\displaystyle dx_{t}=\theta (\mu -x_{t})\,dt+\sigma \,dW_{t}}  
     """
