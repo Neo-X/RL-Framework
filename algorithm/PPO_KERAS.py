@@ -384,7 +384,7 @@ class PPO_KERAS(AlgorithmInterface):
                 print ("State mean: ", np.mean(states, axis=0))
                 print ("Actions mean: ", np.mean(actions, axis=0))
                 print ("Advantage: ", advantage_tmp)
-                print ("Network Params mean: ", np.mean(np.array(list(flatten(self.getNetworkParameters()[1])))))
+                # print ("Network Params mean: ", np.mean(np.array(list(flatten(self.getNetworkParameters()[1])))))
                 self._model.getCriticNetwork().set_weights( copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
                 self._model.getActorNetwork().set_weights( copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
                 if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -392,7 +392,7 @@ class PPO_KERAS(AlgorithmInterface):
                     print ("Policy probability ratio: ", np.mean(r_))
                     print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
                     print ("Policy std: ", np.mean(self.q_valsActASTD([states, 0])[0], axis=0))
-                    print ("Network Params mean: ", np.mean(np.array(self.getNetworkParameters()[1])))
+                    # print ("Network Params mean: ", np.mean(np.array(self.getNetworkParameters()[1])))
         else:
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy Gradient too large: ", np.mean(r_))
