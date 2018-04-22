@@ -749,7 +749,9 @@ def createActor(env_type, settings, experience):
     elif (env_type == 'paperGibbon_env'):
         from actor.PaperGibbonAgent import PaperGibbonAgent
         actor = PaperGibbonAgent(settings, experience)
-    elif (env_type == 'pendulum'):
+    elif (env_type == 'pendulum'
+          or (env_type == 'pendulum_env')
+          ):
         from actor.ActorInterface import ActorInterface
         actor = ActorInterface(settings, experience)
     elif (env_type == 'open_AI_Gym'
