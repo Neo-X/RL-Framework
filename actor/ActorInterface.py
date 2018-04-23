@@ -49,6 +49,7 @@ class ActorInterface(object):
     # @profile(precision=5)
     def actContinuous(self, exp, action_, bootstrapping=False):
         import characterSim
+        action_ = action_[0]
         action_ = np.array(action_, dtype='float64')
         # Actor should be FIRST here
         # print "Action: " + str(action_)
