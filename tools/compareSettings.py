@@ -6,10 +6,10 @@
 
 import sys
 sys.path.append('../')
-import theano
-from theano import tensor as T
+# import theano
+# from theano import tensor as T
 import numpy as np
-import lasagne
+# import lasagne
 import os
 import json
 
