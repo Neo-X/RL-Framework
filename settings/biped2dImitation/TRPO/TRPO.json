@@ -309,6 +309,5 @@
 "dont_use_advantage": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
 "load_saved_fd_model": false,
-	"comment__": "Compute a running mean and std for network input/output scaling",
 "keep_running_mean_std_for_scaling": true
 }

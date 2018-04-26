@@ -127,10 +127,12 @@ class LearningAgent(AgentInterface):
             # print ("Advantage:", _advantage)
             # print ("rewards:", _rewards)
             # print("Batch size: ", len(_states), len(_actions), len(_result_states), len(_rewards), len(_falls), len(_advantage))
-            ### validate every tuples before giving them to the learning method
+            ### Validate every tuple before giving them to the learning method
             num_samples_=0
             t0 = time.time()
-            self.getExperience()._settings["keep_running_mean_std_for_scaling"] = False
+            
+            ### Causes the new scaling values to be computed but not applied. They are applied later after the updates
+            self.getExperience()._settings["state_normalization"] = "variance"
             for (state__, action__, next_state__, reward__, fall__, advantage__, exp_action__) in zip(_states, _actions, _result_states, _rewards, _falls, _advantage, _exp_actions):
                 if (checkValidData(state__, action__, next_state__, reward__) and checkDataIsValid(advantage__)):
                     tmp_states.append(state__)
@@ -317,7 +319,7 @@ class LearningAgent(AgentInterface):
                                
             ## Update scaling values
             ### Updating the scaling values after the update(s) will help make things more accurate
-            if ('keep_running_mean_std_for_scaling' in self._settings and (self._settings["keep_running_mean_std_for_scaling"])):
+            if ('state_normalization' in self._settings and (self._settings["state_normalization"] == "adaptive")):
                 self.getExperience()._updateScaling()
                 self.setStateBounds(self.getExperience().getStateBounds())
                 self.setActionBounds(self.getExperience().getActionBounds())

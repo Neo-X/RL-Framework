@@ -302,7 +302,6 @@
 	"comment__": "Train GAN with gaussian noise",
 "train_gan_with_gaussian_noise": true,
 	"comment__": "Compute a running mean and std for network input/output scalling",
-"keep_running_mean_std_for_scaling": false,
 	"comment__": "This overrides all of the envs to be a single one from the list of sim environments",
 "override_sim_env_id": false,
 	"comment__": "Prevents the critic from including MBAE actions in it's policy estimation.",

@@ -159,7 +159,7 @@ class ExperienceMemory(object):
             self._action_var = (((self.samples()-2)*self._action_var) + ((self.samples()-1)*(action_mean_old - self._action_mean)**2) + ((action - self._action_mean)**2))
             self._action_var = (self._action_var/float(self.samples()-1))
             
-        if ( 'keep_running_mean_std_for_scaling' in self._settings and self._settings["keep_running_mean_std_for_scaling"]):
+        if ( 'state_normalization' in self._settings and self._settings["state_normalization"] == "adaptive"):
             self._updateScaling()
             
     def _updateScaling(self):

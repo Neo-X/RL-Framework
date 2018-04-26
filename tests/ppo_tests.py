@@ -49,7 +49,7 @@ class TestPPO(object):
         settings['shouldRender'] = False
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        assert np.mean(simData['mean_reward'][-5:]) > -0.5
+        assert np.mean(simData['mean_reward'][-5:]) > 0.65
             
 
 if __name__ == '__main__':
