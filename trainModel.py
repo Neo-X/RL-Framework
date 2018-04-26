@@ -1199,6 +1199,8 @@ def trainModelParallel(inputData):
         ### This will find ALL your memory deallocation issues in C++...
         ### And errors in terinating processes properly...
         gc.collect()
+        ### Return the collected training data
+        return trainData
         
 import inspect
 def print_full_stack(tb=None):
@@ -1299,10 +1301,11 @@ if (__name__ == "__main__"):
     t0 = time.time()
     if ( (metaSettings is None)
         or ((metaSettings is not None) and (not metaSettings['testing'])) ):
-        trainModelParallel((sys.argv[1], settings))
+        simData = trainModelParallel((sys.argv[1], settings))
     t1 = time.time()
     sim_time_ = datetime.timedelta(seconds=(t1-t0))
     print ("Model training complete in " + str(sim_time_) + " seconds")
+    print ("simData", simData)
     
     ### If a metaConfig is supplied email out the results
     if ( (metaSettings is not None) ):
