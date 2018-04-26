@@ -148,7 +148,7 @@ class CACLA_KERAS(AlgorithmInterface):
         # print ("states type: ", states.dtype)
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
         score = self._model.getCriticNetwork().fit(states, target_,
-              nb_epoch=1, batch_size=32,
+              epochs=1, batch_size=32,
               verbose=0
               # callbacks=[early_stopping],
               )
@@ -190,7 +190,7 @@ class CACLA_KERAS(AlgorithmInterface):
             # self._tmp_diff_shared.set_value(tmp_diff)
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
             score = self._model.getActorNetwork().fit(np.array(tmp_states), np.array(tmp_actions),
-              nb_epoch=1, batch_size=len(tmp_actions),
+              epochs=1, batch_size=len(tmp_actions),
               verbose=0
               # callbacks=[early_stopping],
               )
