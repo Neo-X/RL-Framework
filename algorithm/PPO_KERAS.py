@@ -288,7 +288,7 @@ class PPO_KERAS(AlgorithmInterface):
         # print ("states type: ", states.dtype)
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
         score = self._model.getCriticNetwork().fit(states, target_,
-              nb_epoch=1, batch_size=32,
+              epochs=1, batch_size=32,
               verbose=0
               # callbacks=[early_stopping],
               )

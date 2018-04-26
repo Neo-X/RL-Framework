@@ -289,7 +289,6 @@
 "policy_activation_type": "tanh",
 	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
 "normalize_advantage": true,
-"keep_running_mean_std_for_scaling": true,
 	"comment__": "This overrides all of the envs to be a single one from the list of sim environments",
 "override_sim_env_id": false 
 }

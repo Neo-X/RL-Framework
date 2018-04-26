@@ -289,7 +289,6 @@
 "normalize_advantage": true,
 	"comment__": "Use the annealing schedule in on policy learning",
 "anneal_on_policy": false,
-"keep_running_mean_std_for_scaling": true,
 	"comment__": "This overrides all of the envs to be a single one from the list of sim environments",
 "override_sim_env_id": false 
 }

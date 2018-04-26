@@ -215,8 +215,7 @@
     "use_guided_policy_search": false,
     "queue_size_limit": 100,
     "num_mbae_steps": 1,
-    "keep_running_mean_std_for_scaling": true,
-    "train_rl_learning": true,
+        "train_rl_learning": true,
     "variance_scalling": 0.1,
     
     "print_levels": {

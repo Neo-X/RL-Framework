@@ -308,7 +308,6 @@
 "dont_use_advantage": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
 "load_saved_fd_model": false,
-"keep_running_mean_std_for_scaling": true,
 	"comment__": "parameter to control the advantage scalling",
 "advantage_scaling": 1.0	
 }

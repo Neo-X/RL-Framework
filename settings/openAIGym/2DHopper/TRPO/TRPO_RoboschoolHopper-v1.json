@@ -269,7 +269,6 @@
 "dont_use_advantage": true,
 	"comment__": "Load a saved and pre-trained forward dynamics model",
 "load_saved_fd_model": false,
-"keep_running_mean_std_for_scaling": true,
 	"comment__": "last critic type of activation to use",
 "last_critic_layer_activation_type": "linear"
 }
