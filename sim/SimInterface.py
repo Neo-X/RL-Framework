@@ -17,7 +17,7 @@ class SimInterface(object):
         # super(BallGame1DChoiceState,self).__init__()
         self._exp = exp
         self._settings = settings_
-        self._actor = DoNothingActor()
+        self._actor = DoNothingActor(settings_=settings_, experience=None)
         
     def getSettings(self):
         return self._settings

@@ -14,7 +14,11 @@ class DummyEnv(SimInterface):
         #------------------------------------------------------------
         # set up initial state
         self._T = 0
+        self._T_max = 0
         super(DummyEnv,self).__init__(exp, settings)
+        
+    def setMaxT(self, t):
+        self._T_max = t
 
     def generateValidation(self, data, epoch):
         self._T = 0
@@ -34,6 +38,9 @@ class DummyEnv(SimInterface):
     def initEpoch(self):
         self._T = 0
 
+    def endOfEpoch(self):
+        # return ( self.getEnvironment().endOfEpoch() and (not checkDataIsValid(self.getState())) )
+        return ( self._T >= self._T_max )
         
     def updateAction(self, action_):
         # print("Simbicon updating action:")
@@ -50,7 +57,8 @@ class DummyEnv(SimInterface):
         self._exp.finish()
         
     def update(self):
-        self.getEnvironment().update()
+        # self.getEnvironment().update()
+        self._T = self._T + 1
     
     def getState(self):
         # state = np.array(self._exp.getState())
@@ -75,5 +83,5 @@ class DummyEnv(SimInterface):
             generator the same.
         """
         print ( "Setting random seed: ", seed )
-        self.getEnvironment().setRandomSeed(seed)
+        # self.getEnvironment().setRandomSeed(seed)
         

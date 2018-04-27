@@ -6,25 +6,13 @@ import warnings
 from model.ModelUtil import *
 from ModelEvaluation import simEpoch
 import json
+from actor.DoNothingActor import DoNothingActor
+from sim.DummyEnv import DummyEnv
+from algorithm.ModelDummy import ModelDummy
 
 class TestSimulation(object):
     
     def test_collect_tuples(self):
-        settings_ = {}
-        settings_['batch_size'] = 32
-        settings_['learning_rate'] = 0.001
-        settings_['discount_factor'] = 0.95
-        settings_['discount_factor'] = 0.95
-        settings_['rho'] = 0.1
-        settings_['rms_epsilon'] = 0.0002
-        settings_['steps_until_target_network_update'] = 100
-        settings_['regularization_weight'] = 0.0001
-        settings_['discrete_actions'] = [[0, 1], [1, 2], [2, 3]]
-        settings_['reward_bounds'] = [[0.0], [1.0]]
-        settings_['action_bounds'] = [[0.0, 1.0], [1.0, 2.0]]
-        settings_['omega'] = 0.0
-        settings_['max_epoch_length'] = 256
-        
         filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD.json"
         file = open(filename)
         settings_ = json.load(file)
@@ -32,21 +20,88 @@ class TestSimulation(object):
         settings_['visualize_learning'] = False
         settings_['shouldRender'] = False
         
-                
-        from actor.DoNothingActor import DoNothingActor
-        from sim.DummyEnv import DummyEnv
-        from algorithm.ModelDummy import ModelDummy
+        agent = DoNothingActor(settings_=settings_, experience=None)
+        env = DummyEnv(exp=None, settings=settings_)
+        modelDummy = ModelDummy(model=None, n_in=11, n_out=7, 
+                                state_bounds=None, action_bounds=None, 
+                                reward_bound=None, settings_=settings_)
+        env.setMaxT(settings_['max_epoch_length'])
+        out = simEpoch(actor=agent, exp=env, model=modelDummy, discount_factor=0.9, settings=settings_, anchors=None, action_space_continuous=True, 
+                       print_data=False, p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None,
+             sampling=False, epsilon=0.2,
+             worker_id=None)
+        
+        (tuples, tmp_discounted_sum, tmp_baselines_, evalData) = out
+        (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions) = tuples
+        # print ('out: ', out)
+        assert ( len(tmp_states) == settings_['max_epoch_length'])
+        assert ( len(tmp_actions) == settings_['max_epoch_length'])
+        assert ( len(tmp_res_states) == settings_['max_epoch_length'])
+        assert ( len(tmp_rewards) == settings_['max_epoch_length'])
+        assert ( len(tmp_falls) == settings_['max_epoch_length'])
+        assert ( len(tmp_G_ts) == settings_['max_epoch_length'])
+        assert ( len(tmp_advantage) == settings_['max_epoch_length'])
+        assert ( len(tmp_exp_actions) == settings_['max_epoch_length'])
+        
+        
+    def test_collect_tuples_discount_sum(self):
+        filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD.json"
+        file = open(filename)
+        settings_ = json.load(file)
+        file.close()
+        settings_['visualize_learning'] = False
+        settings_['shouldRender'] = False
+        
+        agent = DoNothingActor(settings_=settings_, experience=None)
+        env = DummyEnv(exp=None, settings=settings_)
+        modelDummy = ModelDummy(model=None, n_in=11, n_out=7, 
+                                state_bounds=None, action_bounds=None, 
+                                reward_bound=None, settings_=settings_)
+        env.setMaxT(settings_['max_epoch_length'])
+        out = simEpoch(actor=agent, exp=env, model=modelDummy, discount_factor=0.9, settings=settings_, anchors=None, action_space_continuous=True, 
+                       print_data=False, p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None,
+             sampling=False, epsilon=0.2,
+             worker_id=None)
+        
+        (tuples, tmp_discounted_sum, tmp_baselines_, evalData) = out
+        (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions) = tuples
+        # print ('out: ', out)
+        assert ( len(tmp_discounted_sum) == settings_['max_epoch_length'])
+        assert ( len(tmp_baselines_) == settings_['max_epoch_length'])
+        assert ( len(evalData) == 1)   
+        
+    def test_collect_tuples_fidd_length_episodes(self):
+        filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD.json"
+        file = open(filename)
+        settings_ = json.load(file)
+        file.close()
+        settings_['visualize_learning'] = False
+        settings_['shouldRender'] = False
+        
         agent = DoNothingActor(settings_=settings_, experience=None)
         env = DummyEnv(exp=None, settings=settings_)
         modelDummy = ModelDummy(model=None, n_in=11, n_out=7, 
                                 state_bounds=None, action_bounds=None, 
                                 reward_bound=None, settings_=settings_)
         
-        out = simEpoch(actor=agent, exp=env, model=modelDummy, discount_factor=0.9, settings=settings_, anchors=None, action_space_continuous=True, 
-                       print_data=False, p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None,
-             sampling=False, epsilon=0.2,
-             worker_id=None)
-            
+        for i in range(1, settings_['max_epoch_length']):
+            env.setMaxT(i)
+            out = simEpoch(actor=agent, exp=env, model=modelDummy, discount_factor=0.9, settings=settings_, anchors=None, action_space_continuous=True, 
+                           print_data=False, p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None,
+                 sampling=False, epsilon=0.2,
+                 worker_id=None)
+        
+            (tuples, tmp_discounted_sum, tmp_baselines_, evalData) = out
+            (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions) = tuples
+        # print ('out: ', out)
+            assert ( len(tmp_states) == i)
+            assert ( len(tmp_actions) == i)
+            assert ( len(tmp_res_states) == i)
+            assert ( len(tmp_rewards) == i)
+            assert ( len(tmp_falls) == i)
+            assert ( len(tmp_G_ts) == i)
+            assert ( len(tmp_advantage) == i)
+            assert ( len(tmp_exp_actions) == i)   
 
 if __name__ == '__main__':
     pytest.main([__file__])

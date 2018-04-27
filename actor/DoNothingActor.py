@@ -32,7 +32,7 @@ class DoNothingActor(ActorInterface):
         action_ = action_[0]
         action_ = np.array(action_, dtype='float64')
         # (action_, outside_bounds) = clampActionWarn(action_, self._action_bounds)
-        
+        exp.update()
         reward = 1.2
 
         self._reward_sum = self._reward_sum + reward
@@ -43,14 +43,14 @@ class DoNothingActor(ActorInterface):
         """
             Slowly modifies the parameters during training
         """
-        
-            
+        pass 
+    
     def getControlParameters(self):
         # return [self._target_vel, self._target_root_height, self._target_lean, self._target_hand_pos]
         return [self._target_vel]
         
     def initEpoch(self):
-        super(GapGame2DActor,self).initEpoch()
+        # super(GapGame2DActor,self).initEpoch()
         self._reward_sum = 0
     
     def getEvaluationData(self):
@@ -61,3 +61,4 @@ class DoNothingActor(ActorInterface):
     
     def hasNotFallen(self, exp):
         return 1
+    
