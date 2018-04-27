@@ -7,8 +7,8 @@ import copy
 
 class GapGame2DActor(ActorInterface):
     
-    def __init__(self, discrete_actions, experience):
-        super(GapGame2DActor,self).__init__(discrete_actions, experience)
+    def __init__(self, settings_, experience):
+        super(GapGame2DActor,self).__init__(settings_, experience)
         self._target_vel_weight=self._settings["target_velocity_decay"]
         self._target_vel = self._settings["target_velocity"]
         
