@@ -44,6 +44,7 @@ class CACLA_KERAS(AlgorithmInterface):
         self._actor_buffer_diff=[]
         
         self._value = self._model.getCriticNetwork()([self._model._stateInput])
+        self._value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
         
         CACLA_KERAS.compile(self)
         
@@ -79,6 +80,7 @@ class CACLA_KERAS(AlgorithmInterface):
         self._get_critic_regularization = K.function([], [self._critic_regularization])
         
         self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self._value])
+        self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self._value_Target])
         
     def getGrads(self, states, alreadyNormed=False):
         """
@@ -125,23 +127,18 @@ class CACLA_KERAS(AlgorithmInterface):
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
     def trainCritic(self, states, actions, rewards, result_states, falls):
+        if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+            # print("self.getSettings()[\"ppo_use_seperate_nets\"]: ", self.getSettings()["ppo_use_seperate_nets"])
+            return 0
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
         
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
-        # print ("Falls:", falls)
-        # print ("Rewards: ", rewards)
-        # print ("Target Values: ", self._get_target())
-        # print ("V Values: ", np.mean(self._q_val()))
-        # print ("diff Values: ", np.mean(self._get_diff()))
-        # data = np.append(falls, self._get_target()[0], axis=1)
-        # print ("Rewards, Falls, Targets:", np.append(rewards, data, axis=1))
-        # print ("Rewards, Falls, Targets:", [rewards, falls, self._get_target()])
-        # print ("Actions: ", actions)
-        y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-        v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
+        # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
+        y_ = self._value_Target([result_states,0])[0]
+        # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
         # target_ = rewards + ((self._discount_factor * y_) * falls)
         target_ = rewards + ((self._discount_factor * y_))
         target_ = np.array(target_, dtype=self._settings['float_type'])
@@ -298,6 +295,8 @@ class CACLA_KERAS(AlgorithmInterface):
         """
             Computes the one step temporal difference.
         """
+        if (result_states.shape[0] != self._state_length):
+            print("result_states: ", repr(np.array(result_states)))
         y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=32)
         target_ = rewards + ((self._discount_factor * y_))
         values =  self._model.getCriticNetwork().predict(states, batch_size=32)

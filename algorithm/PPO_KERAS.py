@@ -499,6 +499,8 @@ class PPO_KERAS(AlgorithmInterface):
         """
             Computes the one step temporal difference.
         """
+        if (result_states.shape[0] != self._state_length):
+            print("result_states: ", repr(np.array(result_states)))
         y_ = self._value_Target([result_states,0])[0]
         # y_ = self._modelTarget2.getValueFunction().predict(result_states, batch_size=states.shape[0])
         target_ = rewards + ((self._discount_factor * y_))

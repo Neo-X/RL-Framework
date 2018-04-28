@@ -385,7 +385,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         
     """
     if action_space_continuous:
-        action_bounds = np.array(settings["action_bounds"], dtype=float)
+        action_bounds = np.array(model.getActionBounds(), dtype=float)
         omega = settings["omega"]
         noise = action_bounds[0] * 0.0
         
