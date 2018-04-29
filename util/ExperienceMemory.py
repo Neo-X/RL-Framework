@@ -220,22 +220,20 @@ class ExperienceMemory(object):
         fall = []
         G_ts = []
         exp_actions = []
-        indices = []
+        indices = set([])
         trys = 0
         # scale_state(self._state_history[i], self._state_bounds)
         ### collect batch and try at most 3 times the batch size for valid tuples
         while len(indices) <  batch_size and (trys < batch_size*3):
         # for i in indices:
             trys = trys + 1
-            i = (random.sample(range(0, max_size), 1))[0]
+            i = (random.sample(set(range(0, max_size))-indices, 1))[0]
             ## skip tuples that were not exploration actions
             # print ("self._exp_action_history[",i,"]: ", self._exp_action_history[i])
             if ( self._exp_action_history[i] in excludeActionTypes):
                 # print ("Skipping none exploration action")
                 continue
-            if i in indices:
-                continue
-            indices.append(i)
+            indices.add(i)
             
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
                 # state.append(self._state_history[i])
@@ -289,7 +287,7 @@ class ExperienceMemory(object):
         assert G_ts.shape == (len(indices), 1), "G_ts.shape == (len(indices), 1): " + str(G_ts.shape) + " == " + str((len(indices), 1))
         assert fall.shape == (len(indices), 1), "fall.shape == (len(indices), 1): " + str(fall.shape) + " == " + str((len(indices), 1))
         assert exp_actions.shape == (len(indices), 1), "exp_actions.shape == (len(indices), 1): " + str(exp_actions.shape) + " == " + str((len(indices), 1))
-        assert np.unique(indices).shape[0] == batch_size, "np.unique(indices).shape[0] == batch_size: " + str(np.unique(indices).shape[0]) + " == " + str(batch_size)
+        # assert len(np.unique(indices)[0]) == batch_size, "np.unique(indices).shape[0] == batch_size: " + str(np.unique(indices).shape[0]) + " == " + str(batch_size)
         
         return (state, action, resultState, reward, fall, G_ts, exp_actions)
     
