@@ -876,12 +876,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_states.extend(states[s])
         tmp_actions.extend(actions[s])
         tmp_res_states.extend(result_states___[s])
-        tmp_rewards.extend(rewards[s])
-        tmp_discounted_sum.extend(discounted_sum[s])
-        tmp_G_ts.extend(G_ts[s])
-        tmp_falls.extend(falls[s])
-        tmp_exp_actions.extend(exp_actions[s])
-        tmp_baselines_.extend(baselines_[s])
+        tmp_rewards.append(rewards[s])
+        tmp_discounted_sum.append(discounted_sum[s])
+        tmp_G_ts.append(G_ts[s])
+        tmp_falls.append(falls[s])
+        tmp_exp_actions.append(exp_actions[s])
+        tmp_baselines_.append(baselines_[s])
         
         
     for a_ in range(len(advantage)):

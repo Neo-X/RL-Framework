@@ -82,7 +82,13 @@ class ExperienceMemory(object):
     def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]], exp_action=[[0]]):
         # print "Instert State: " + str(state)
         # state = list(state)
-        
+        assert len(state[0]) == self._state_length
+        assert len(action[0]) == self._action_length
+        assert len(nextState[0]) == self._state_length
+        assert len(reward[0]) == 1
+        assert len(fall[0]) == 1
+        assert len(G_t[0]) == 1
+        assert len(exp_action[0]) == 1
         """
         state = list(state)
         action = list(action)
@@ -200,15 +206,10 @@ class ExperienceMemory(object):
         """
         len(experience > batch_size
         """
+        assert batch_size <= self._history_size
+        assert batch_size <= self.samples()
         # indices = list(nprnd.randint(low=0, high=len(experience), size=batch_size))
-        try:
-            max_size = min(self._history_size, self.samples())
-            indices = (random.sample(range(0, max_size), batch_size))
-        except ValueError as e:
-            print("Batch size: ", batch_size, " exp size: ", max_size)
-            # print ("I/O error({0}): {1}".format(e.errno, e.strerror))
-            print ("Unexpected ValueError:", e)
-            raise e
+        max_size = min(self._history_size, self.samples())
         # print ("Indicies: " , indices)
         # print("Exp buff state bounds: ", self.getStateBounds())
 
@@ -219,12 +220,20 @@ class ExperienceMemory(object):
         fall = []
         G_ts = []
         exp_actions = []
+        indices = []
         # scale_state(self._state_history[i], self._state_bounds)
-        for i in indices:
+        while len(indices) <  batch_size :
+        # for i in indices:
+            i = (random.sample(range(0, max_size), 1))[0]
             ## skip tuples that were not exploration actions
             # print ("self._exp_action_history[",i,"]: ", self._exp_action_history[i])
             if ( self._exp_action_history[i] in excludeActionTypes):
+                # print ("Skipping none exploration action")
                 continue
+            if i in indices:
+                continue
+            indices.append(i)
+            
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
                 # state.append(self._state_history[i])
                 state.append(norm_state(self._state_history[i], self.getStateBounds()))
@@ -269,7 +278,16 @@ class ExperienceMemory(object):
         
         fall = np.array(fall, dtype='int8')
         exp_actions = np.array(exp_actions, dtype='int8')
-         
+        
+        assert state.shape == (batch_size, self._state_length), "state.shape: " + str(state.shape)
+        assert action.shape == (batch_size, self._action_length)
+        assert resultState.shape == (batch_size, self._state_length)
+        assert reward.shape == (batch_size, 1)
+        assert G_ts.shape == (batch_size, 1)
+        assert fall.shape == (batch_size, 1)
+        assert exp_actions.shape == (batch_size, 1)
+        assert np.unique(indices).shape[0] == batch_size
+        
         return (state, action, resultState, reward, fall, G_ts, exp_actions)
     
     def setStateBounds(self, _state_bounds):
