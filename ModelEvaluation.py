@@ -788,6 +788,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 q_values_.append(model.q_value(state_))
                 
             if ("sample_single_trajectories" in settings and (settings["sample_single_trajectories"] == True)):
+                i_ += 1
                 break
                 
         i_ += 1
@@ -876,12 +877,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_states.extend(states[s])
         tmp_actions.extend(actions[s])
         tmp_res_states.extend(result_states___[s])
-        tmp_rewards.append(rewards[s])
-        tmp_discounted_sum.append(discounted_sum[s])
-        tmp_G_ts.append(G_ts[s])
+        tmp_rewards.extend(rewards[s])
+        tmp_discounted_sum.extend(discounted_sum[s])
+        tmp_G_ts.extend(G_ts[s])
         tmp_falls.append(falls[s])
         tmp_exp_actions.append(exp_actions[s])
-        tmp_baselines_.append(baselines_[s])
+        tmp_baselines_.extend(baselines_[s])
         
         
     for a_ in range(len(advantage)):
@@ -903,6 +904,15 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ( len(stds) > 0):
             print("Mean actions std:  ", np.mean(stds, axis=0) )
     """
+    assert np.array(tmp_states).shape == (i_ * len(states[0]), len(model.getStateBounds()[0])), "np.array(tmp_states).shape: " + str(np.array(tmp_states).shape) + " == " + str((i_ * len(states[0]), len(model.getStateBounds()[0])))
+    assert np.array(tmp_states).shape == np.array(tmp_res_states).shape, "np.array(tmp_states).shape == np.array(tmp_res_states).shape: " + str(np.array(tmp_states).shape) + " == " + str(np.array(tmp_res_states).shape)
+    assert np.array(tmp_rewards).shape == (i_ * len(states[0]), 1), "np.array(tmp_rewards).shape: " + str(np.array(tmp_rewards).shape) + " == " + str((i_ * len(states[0]), 1))
+    assert np.array(tmp_rewards).shape == np.array(tmp_falls).shape, "np.array(tmp_rewards).shape == np.array(tmp_falls).shape: " + str(np.array(tmp_rewards).shape) + " == " + str(np.array(tmp_falls).shape)
+    assert np.array(tmp_falls).shape == np.array(tmp_G_ts).shape, "np.array(tmp_falls).shape == np.array(tmp_G_ts).shape: " + str(np.array(tmp_falls).shape) + " == " + str(np.array(tmp_G_ts).shape)
+    assert np.array(tmp_G_ts).shape == np.array(tmp_advantage).shape, "np.array(tmp_G_ts).shape == np.array(tmp_advantage).shape: " + str(np.array(tmp_G_ts).shape) + " == " + str(np.array(tmp_advantage).shape)
+    assert np.array(tmp_advantage).shape == np.array(tmp_exp_actions).shape, "np.array(tmp_advantage).shape == np.array(tmp_exp_actions).shape: " + str(np.array(tmp_advantage).shape) + " == " + str(np.array(tmp_exp_actions).shape)
+    assert np.array(tmp_advantage).shape == np.array(tmp_baselines_).shape, "np.array(tmp_advantage).shape == np.array(tmp_baselines_).shape: " + str(np.array(tmp_advantage).shape) + " == " + str(np.array(tmp_baselines_).shape)
+    assert np.array(tmp_baselines_).shape == np.array(tmp_discounted_sum).shape, "np.array(tmp_baselines_).shape == np.array(tmp_discounted_sum).shape: " + str(np.array(tmp_baselines_).shape) + " == " + str(np.array(tmp_discounted_sum).shape)
     # print("***** Sim Actions std:  ", np.std((actions), axis=0) )
     # print("***** Sim State mean:  ", np.mean((states), axis=0) )
     # print("***** Sim Next State mean:  ", np.mean((result_states___), axis=0) )
@@ -1245,7 +1255,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
             if settings['action_space_continuous']:
                 # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
-                experience.insertTuple(([state], [action], [resultState], [reward_], [fall_], G_t, [exp_action]))
+                experience.insertTuple(([state], [action], [resultState], [reward_], [fall_], [G_t], [exp_action]))
             else:
                 experience.insertTuple(([state], [action], [resultState], [reward_], [falls_], G_t, [exp_action]))
             # else:
