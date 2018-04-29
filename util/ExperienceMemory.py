@@ -282,14 +282,14 @@ class ExperienceMemory(object):
         fall = np.array(fall, dtype='int8')
         exp_actions = np.array(exp_actions, dtype='int8')
         
-        assert state.shape == (batch_size, self._state_length), "state.shape: " + str(state.shape)
-        assert action.shape == (batch_size, self._action_length)
-        assert resultState.shape == (batch_size, self._state_length)
-        assert reward.shape == (batch_size, 1)
-        assert G_ts.shape == (batch_size, 1)
-        assert fall.shape == (batch_size, 1)
-        assert exp_actions.shape == (batch_size, 1)
-        assert np.unique(indices).shape[0] == batch_size
+        assert state.shape == (len(indices), self._state_length), "state.shape: " + str(state.shape)
+        assert action.shape == (len(indices), self._action_length)
+        assert resultState.shape == (len(indices), self._state_length)
+        assert reward.shape == (len(indices), 1)
+        assert G_ts.shape == (len(indices), 1)
+        assert fall.shape == (len(indices), 1)
+        assert exp_actions.shape == (len(indices), 1)
+        # assert np.unique(indices).shape[0] == batch_size
         
         return (state, action, resultState, reward, fall, G_ts, exp_actions)
     
