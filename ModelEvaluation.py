@@ -181,7 +181,7 @@ class SimWorker(Process):
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
                 elif (sim_on_poli):
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Simulating a normal episode ??with exploration?? on policy")
                     settings_ = copy.deepcopy(self._settings)
                     """
@@ -205,7 +205,7 @@ class SimWorker(Process):
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval,
                             bootstrapping=bootstrapping)
                 else:
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Simulating a normal episode")
                     settings_ = copy.deepcopy(self._settings)
                     """
@@ -262,21 +262,21 @@ class SimWorker(Process):
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
                 elif (sim_on_poli): ### With exploration // I don't think this is can EVER be called anymore...
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Simulating a normal episode ??with exploration??")
                     sys.exit()
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
                 elif (bootstrapping): ## With exploration and noise
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print ("Running boostraping episode")
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval,
                             bootstrapping=bootstrapping)
                 else: ##Normal??
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Simulating a normal episode")
                     settings_ = copy.deepcopy(self._settings)
                     """

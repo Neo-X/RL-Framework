@@ -221,9 +221,12 @@ class ExperienceMemory(object):
         G_ts = []
         exp_actions = []
         indices = []
+        trys = 0
         # scale_state(self._state_history[i], self._state_bounds)
-        while len(indices) <  batch_size :
+        ### collect batch and try at most 3 times the batch size for valid tuples
+        while len(indices) <  batch_size and (trys < batch_size*3):
         # for i in indices:
+            trys = trys + 1
             i = (random.sample(range(0, max_size), 1))[0]
             ## skip tuples that were not exploration actions
             # print ("self._exp_action_history[",i,"]: ", self._exp_action_history[i])

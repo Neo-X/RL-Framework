@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Reacher2D/Anneal_Everything",
+"data_folder": "Reacher2D/Anneal_Everything_leaky",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -237,8 +237,6 @@
 "use_multiple_policy_updates": true,	
 	"comment__": "Whether or not to clear the experience memory after each update is done, for pure on policy methods",
 "clear_exp_mem_on_poli": true,
-
-
 	"comment__": "Disable scaling for inputs and outputs of networks",
 "disable_parameter_scaling": false,
 	"comment__": "Train a state encoding as well.",
@@ -248,7 +246,7 @@
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy rollouts to perform per epoch",
-"num_on_policy_rollouts": 4,
+"num_on_policy_rollouts": 8,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": false,
 	"comment__": "PPO should use seperate networks for the value and policy functions",
