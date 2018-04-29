@@ -157,6 +157,7 @@ class LearningAgent(AgentInterface):
                         
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):        
                 print ("self._expBuff.samples(): ", self.getExperience().samples(), " states.shape: ", np.array(_states).shape)
+                print ("exp_actions sum: ", np.sum(tmp_exp_action))
             if (len(_states) > 0):
                 _states = np.array(norm_action(np.array(tmp_states), self._pol.getStateBounds()), dtype=self._settings['float_type'])
                 # print("Learning Agent: Get state bounds: ", self._pol.getStateBounds())

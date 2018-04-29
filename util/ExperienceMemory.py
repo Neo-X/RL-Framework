@@ -282,14 +282,14 @@ class ExperienceMemory(object):
         fall = np.array(fall, dtype='int8')
         exp_actions = np.array(exp_actions, dtype='int8')
         
-        assert state.shape == (len(indices), self._state_length), "state.shape: " + str(state.shape)
-        assert action.shape == (len(indices), self._action_length)
-        assert resultState.shape == (len(indices), self._state_length)
-        assert reward.shape == (len(indices), 1)
-        assert G_ts.shape == (len(indices), 1)
-        assert fall.shape == (len(indices), 1)
-        assert exp_actions.shape == (len(indices), 1)
-        # assert np.unique(indices).shape[0] == batch_size
+        assert state.shape == (len(indices), self._state_length), "state.shape == (len(indices), self._state_length): " + str(state.shape) + " == " + str((len(indices), self._state_length))
+        assert action.shape == (len(indices), self._action_length), "action.shape == (len(indices), self._action_length): " + str(action.shape) + " == " + str((len(indices), self._action_length))
+        assert resultState.shape == (len(indices), self._state_length), "resultState.shape == (len(indices), self._state_length): " + str(resultState.shape) + " == " + str((len(indices), self._state_length))
+        assert reward.shape == (len(indices), 1), "reward.shape == (len(indices), 1): " + str(reward.shape) + " == " + str((len(indices), 1))
+        assert G_ts.shape == (len(indices), 1), "G_ts.shape == (len(indices), 1): " + str(G_ts.shape) + " == " + str((len(indices), 1))
+        assert fall.shape == (len(indices), 1), "fall.shape == (len(indices), 1): " + str(fall.shape) + " == " + str((len(indices), 1))
+        assert exp_actions.shape == (len(indices), 1), "exp_actions.shape == (len(indices), 1): " + str(exp_actions.shape) + " == " + str((len(indices), 1))
+        assert np.unique(indices).shape[0] == batch_size, "np.unique(indices).shape[0] == batch_size: " + str(np.unique(indices).shape[0]) + " == " + str(batch_size)
         
         return (state, action, resultState, reward, fall, G_ts, exp_actions)
     

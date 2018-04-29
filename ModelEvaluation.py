@@ -478,12 +478,36 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 0 <= e < omega < 1.0
             """
             r = np.random.rand(1)[0]
-            if (r < (epsilon * p) or (settings['on_policy'] and (not evaluation) 
-                    and (("anneal_exploration" in settings) 
-                         and (settings['anneal_exploration'] != False)
-                         and (r < (max(float(settings['anneal_exploration']), epsilon * p))) ) 
+            if ((not evaluation) ### This logic has gotten far to complicated.... 
+                and 
+                (
+                    ( ### Explore if r < annealing value
+                        (settings['on_policy'] == True) 
+                        and 
+                        (
+                            ("anneal_exploration" in settings) 
+                            and (settings['anneal_exploration'] != False)
+                            and (r < (max(float(settings['anneal_exploration']), epsilon * p))) 
+                        )
+                    ) 
+                        or ### Always explore 
+                        ( 
+                            (settings['on_policy'] == True)
+                            and ("anneal_exploration" in settings) 
+                            and (settings['anneal_exploration'] == False)
+                        )
+                        or ### Always explore 
+                        (
+                            (settings['on_policy'] == True)
+                            and (not "anneal_exploration" in settings) 
+                        )
+                        or  
+                        ( ### Explore sometimes
+                            (settings['on_policy'] == False)
+                            and (r < (epsilon * p)) 
+                        )
                     )
-                    ): # explore random actions
+                ): # explore random actions
                 exp_action = int(1)
                 r2 = np.random.rand(1)[0]
                 if ((r2 < (omega * p))) and (not sampling) :
