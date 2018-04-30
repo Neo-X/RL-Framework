@@ -10,8 +10,8 @@ if __name__ == '__main__':
     # pytest.main('-x {0}'.format(argument))
     jUnitFileName = 'test_output.xml'
     # Or
-    # pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
-    pytest.main(['tests/test_model.py', '--junitxml=' + jUnitFileName, '-n', '4'])
+    pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
+    # pytest.main(['tests/test_model.py', '--junitxml=' + jUnitFileName, '-n', '4'])
     
     hyperSettings_ = {}
     hyperSettings_['from_email_address'] = 'gberseth@cs.ubc.ca'
