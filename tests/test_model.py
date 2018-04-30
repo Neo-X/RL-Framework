@@ -14,7 +14,7 @@ class TestModel(object):
         
 
         a_n = scale_action(norm_action(a_, bounds), bounds)
-        print (a_n)
+        # print (a_n)
         assert np.allclose(a_n, a_)
         # assert a_n == a_
 

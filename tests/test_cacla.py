@@ -9,7 +9,7 @@ import json
 
 class TestCACLA(object):
 
-    def test_CACLA_keras_particleNav_10D(self):
+    def test_cacla_keras_particleNav_10D(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim
         """

@@ -13,3 +13,13 @@ python3 -m pytest tests/ -n<number_of_processes_to_use>
 
 1. pip3 install --user pytest-xdist
 1. pip3 install --user pytest
+
+### Email test results
+
+```
+python3 -m pytest tests/ --junitxml=output.xml
+```
+
+convert xml to html and email
+
+https://gitlab.com/inorton/junit2html
