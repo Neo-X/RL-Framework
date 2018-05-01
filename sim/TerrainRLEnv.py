@@ -3,7 +3,7 @@
 import numpy as np
 import math
 from sim.SimInterface import SimInterface
-from learn.model.ModelUtil import checkDataIsValid
+from model.ModelUtil import checkDataIsValid
 import sys
 from actor.DoNothingActor import DoNothingActor
 # sys.path.append("../simbiconAdapter/")
@@ -20,7 +20,6 @@ class TerrainRLEnv(SimInterface):
         super(TerrainRLEnv,self).__init__(exp, settings)
         self._action_dimension=3
         self._range = 5.0
-        self._actor = DoNothingActor()
 
     def initEpoch(self):
         self.getEnvironment().initEpoch()

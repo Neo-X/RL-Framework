@@ -47,7 +47,7 @@ class DeepCNN2D(ModelInterface):
             print("Creating terrain input with 1 channel")
         
         network = lasagne.layers.Conv2DLayer(
-            network, num_filters=8, filter_size=(8,8),
+            network, num_filters=16, filter_size=(8,8),
             stride=4,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
@@ -117,7 +117,7 @@ class DeepCNN2D(ModelInterface):
             networkAct = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
             
         networkAct = lasagne.layers.Conv2DLayer(
-            networkAct, num_filters=8, filter_size=(8,8),
+            networkAct, num_filters=16, filter_size=(8,8),
             stride=4,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
