@@ -547,6 +547,9 @@ class LearningWorker(Process):
                 continue
             #    continue # don't learn from eval tuples
             # (state_, action, reward, resultState, fall, G_t) = tmp
+            # print (tmp)
+            # (state__, act__, res__, rew__,  fall__, G_t, exp__) = tmp
+            # print ("learning state: ", state__)
             # print ("Learner Size of state input Queue: " + str(self._input_queue.qsize()))
             # self._agent._expBuff = self.__learningNamespace.experience
             if self._agent._settings['action_space_continuous']:

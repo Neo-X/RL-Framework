@@ -663,6 +663,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 """
                 pass
                 # action=[0.2]
+            # print("exp_action: ", exp_action, " action", action)
             reward_ = actor.actContinuous(exp,action)
             """
             if ( settings['train_reward_predictor'] and (not bootstrapping)):
@@ -745,10 +746,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
             # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
             # print("Putting tuple in queue")
-            # print("States: ", np.array(states).shape)
+            # print("States: ", np.array(states[-1]))
             for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1], actions[-1], result_states___[-1], rewards[-1],  falls[-1], exp_actions[-1]):
                 # print(" putting state__", np.array(state__).shape, " value: ", state__, " With reward: ", rew__)
-                _output_queue.put((state__, act__, res__, rew__,  fall__, [0], exp__))
+                # print(fall__ , exp__, rew__)
+                _output_queue.put(([state__], [act__], [res__], [rew__],  [[fall__]], [[0]], [[exp__]]))
         
         state_num += 1
         # else:
@@ -870,6 +872,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("adv__ shape: ", np.array(adv__).shape)
                     advantage.append(np.array(adv__))
     else:
+        ### This does not seem to work anymore
         if (len(states[last_epoch_end:]) > 0):
             for a in range(states[0].shape[0]):
                 advantage.append(discounted_rewards(np.array(rewards[last_epoch_end:][:,a,:]), discount_factor))
@@ -1117,7 +1120,11 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     value = []
     evalData = []
     i = 0 
-    min_samples = settings["num_on_policy_rollouts"] * settings["max_epoch_length"]
+    
+    if ("num_on_policy_rollouts" in settings):
+        min_samples = settings["num_on_policy_rollouts"] * settings["max_epoch_length"]
+    else:
+        min_samples = settings["epochs"]
     if (   ("anneal_exploration" in settings) 
          and (settings['anneal_exploration'] != False)
          # and (r < (max(float(settings['anneal_exploration']), epsilon * p))) ) 

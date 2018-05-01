@@ -82,6 +82,7 @@ class GapGame2D(GapGame1D):
         pos = self._obstacle.getPosition()
         vel = self._obstacle.getLinearVel()
         # print ("Position Before action: ", pos)
+        # print ("action: ", action)
         new_vel = np.array([vel[0] + action[0], action[1]])
         new_vel = clampAction(new_vel, self._game_settings["velocity_bounds"])
         # print("New action: ", new_vel)

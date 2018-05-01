@@ -12,6 +12,9 @@ from keras.layers import Input
 from keras.layers.core import Dense, Dropout, Activation, Reshape, Flatten, Lambda
 from keras.layers.convolutional import Conv1D
 from keras.layers.merge import Concatenate
+from keras.layers.advanced_activations import LeakyReLU
+from keras import regularizers
+import keras
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
 
@@ -25,8 +28,23 @@ class DeepCNNKeras(ModelInterface):
 
         super(DeepCNNKeras,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
+        ### data types for model
+        # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name="State")
+        self._State = keras.layers.Input(shape=(self._state_length,))
+        # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
+        # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
+        self._ResultState = keras.layers.Input(shape=(self._state_length,))
+        # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
+        # self._Reward = K.variable(value=np.random.rand(self._batch_size,1), name="Reward")
+        self._Reward = keras.layers.Input(shape=(1,))
+        # self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
+        # self._Action = K.variable(value=np.random.rand(self._batch_size, self._action_length), name="Action")
+        self._Action = keras.layers.Input(shape=(self._action_length,))
+        # self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
+        
         ### Apparently after the first layer the patch axis is left out for most of the Keras stuff...
         input = Input(shape=(self._state_length,))
+        self._stateInput = input
         input.trainable = True
         print ("Input ",  input)
         ## Custom slice layer, Keras does not have this layer type...
@@ -119,3 +137,14 @@ class DeepCNNKeras(ModelInterface):
         # resultStates = np.reshape(resultStates, (resultStates.shape[0], 1, resultStates.shape[1]))
         # self._next_states_shared.set_value(resultStates)
 
+    ######### Symbolic Variables ######
+    def getStateSymbolicVariable(self):
+        return self._stateInput
+    def getActionSymbolicVariable(self):
+        return self._actionInput
+    def getResultStateSymbolicVariable(self):
+        return self._ResultState
+    def getRewardSymbolicVariable(self):
+        return self._Reward
+    def getTargetsSymbolicVariable(self):
+        return self._Target
