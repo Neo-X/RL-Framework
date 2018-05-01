@@ -4,14 +4,19 @@ import json
 import tarfile
 import junit2htmlreport
 from junit2htmlreport.parser import Junit as JunitParser
+import sys
         
 if __name__ == '__main__':
     processes = 4
     # pytest.main('-x {0}'.format(argument))
     jUnitFileName = 'test_output.xml'
     # Or
-    pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
-    # pytest.main(['tests/test_model.py', '--junitxml=' + jUnitFileName, '-n', '4'])
+    if ( len(sys.argv) == 2 and sys.argv[1] == "Test"):
+        print ("test run")
+        pytest.main(['tests/test_model.py', '--junitxml=' + jUnitFileName, '-n', '4'])
+    else:
+        print ("Starting full run: ")
+        pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
     
     hyperSettings_ = {}
     hyperSettings_['from_email_address'] = 'gberseth@cs.ubc.ca'
@@ -23,5 +28,8 @@ if __name__ == '__main__':
     dataTar.close()
     ## Send an email so I know this has completed
     contents_ = JunitParser(jUnitFileName).html()
-    sendEmail(subject="Simulation complete: " + str(sim_time_), contents=contents_, hyperSettings=hyperSettings_, simSettings="", dataFile=tarFileName,
-              pictureFile=None) 
+    sendEmail(subject="Simulation complete: " + str(sim_time_), contents="", hyperSettings=hyperSettings_, 
+              simSettings="", dataFile=tarFileName,
+              pictureFile=None, htmlContent=contents_) 
+    
+    

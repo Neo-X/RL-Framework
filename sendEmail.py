@@ -16,12 +16,17 @@ from email.mime.multipart import MIMEMultipart
 # Open a plain text file for reading.  For this example, assume that
 # the text file contains only ASCII characters.
 # with open(textfile) as fp:
-def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False, dataFile=None, pictureFile=None):
+def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False, dataFile=None, 
+              pictureFile=None, htmlContent=None):
     # Create a text/plain message
     messageBody = contents + "\n" + str(simSettings)
     msg = MIMEMultipart()
-    msgBody = MIMEText(messageBody)
+    msgBody = MIMEText(messageBody, 'plain')
     msg.attach(msgBody)
+    
+    if ( htmlContent is not None) :
+        msgBody = MIMEText(htmlContent, 'html')
+        msg.attach(msgBody)
     
     hostname = socket.getfqdn()
     
@@ -66,6 +71,7 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False,
         fp.close()
         img.add_header('Content-Disposition', 'attachment', filename=pictureFile)
         msg.attach(img)
+        
     
     if ( testing ):
         return
