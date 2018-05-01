@@ -19,8 +19,8 @@ if __name__ == '__main__':
         pytest.main(['tests/test_model.py', '--junitxml=' + jUnitFileName, '-n', '4', '--show-capture=no'])
     else:
         print ("Starting full run: ")
-        # pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4', '--show-capture=no'])
-        pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
+        pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4', '--show-capture=no'])
+        # pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
     t1 = time.time()
     sim_time_ = datetime.timedelta(seconds=(t1-t0))
     print ("Model testing complete in " + str(sim_time_) + " seconds")
