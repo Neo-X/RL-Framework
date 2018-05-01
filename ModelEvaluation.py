@@ -517,7 +517,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # action = randomAction
                     action = np.random.choice(action_selection)
                     action__ = actor.getActionParams(action)
-                    action = action__
+                    action = [action__]
                     # print ("Discrete action choice: ", action, " epsilon * p: ", omega * p)
                 else : 
                     ### add noise to current policy
@@ -617,7 +617,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 (action_, outside_bounds) = clampActionWarn(action, action_bounds)
                 if (settings['clamp_actions_to_stay_inside_bounds']):
                     action = action_
-            if (settings["visualize_forward_dynamics"]):
+            if (settings["visualize_forward_dynamics"] and settings['train_forward_dynamics']):
                 predicted_next_state = model.getForwardDynamics().predict(np.array(state_), action)
                 # exp.visualizeNextState(state_[0], [0,0]) # visualize current state
                 exp.visualizeNextState(predicted_next_state, action)
@@ -788,8 +788,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         # print ("adv__ shape: ", np.array(adv__))
                         advantage.append(adv__)
             else:
-                if (len(rewards[last_epoch_end:]) > 0):
-                    advantage.append(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
+                ### This does not seem to work anymore
+                if (len(states[last_epoch_end:]) > 0):
+                    for a in range(states[0].shape[0]):
+                        advantage.append(np.array(discounted_rewards(np.array(rewards[last_epoch_end:])[:,a,:], discount_factor)))
                                            
             # print ("Advantage: ", advantage)
             G_ts.extend(copy.deepcopy(G_t))
@@ -875,7 +877,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         ### This does not seem to work anymore
         if (len(states[last_epoch_end:]) > 0):
             for a in range(states[0].shape[0]):
-                advantage.append(discounted_rewards(np.array(rewards[last_epoch_end:][:,a,:]), discount_factor))
+                advantage.append(np.array(discounted_rewards(np.array(rewards[last_epoch_end:])[:,a,:], discount_factor)))
+        # if (len(rewards[last_epoch_end:]) > 0):
+        #     advantage.append(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
         
     # G_t_rewards.append(0)
     if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):

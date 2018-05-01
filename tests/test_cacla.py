@@ -39,6 +39,21 @@ class TestCACLA(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > 0.65
             
+    def test_cacla_keras_off_policy_gapGame_2D(self):
+        """
+        
+        """
+        filename = "tests/settings/gapGame2D/CACLA/CACLA_KERAS_DeepCNNKeras.json"
+        file = open(filename)
+        settings = json.load(file)
+        file.close()
+        settings['visualize_learning'] = False
+        settings['shouldRender'] = False
+        settings['print_level'] = 'hyper_train'
+        simData = trainModelParallel((filename, settings))
+        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
+        assert np.mean(simData['mean_reward'][-5:]) > 0.65
+            
 
 if __name__ == '__main__':
     pytest.main([__file__])
