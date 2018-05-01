@@ -295,8 +295,6 @@ class CACLA_KERAS(AlgorithmInterface):
         """
             Computes the one step temporal difference.
         """
-        if (result_states.shape[0] == 0):
-            print("result_states: ", repr(np.array(result_states)))
         y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=32)
         target_ = rewards + ((self._discount_factor * y_))
         values =  self._model.getCriticNetwork().predict(states, batch_size=32)
