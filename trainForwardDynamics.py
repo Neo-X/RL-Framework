@@ -12,18 +12,15 @@ sys.path.append('../')
 import dill
 import datetime
 import os
+from util.SimulationUtil import getAgentName
 
-def trainForwardDynamics(settingsFileName):
+def trainForwardDynamics(settings):
     """
     State is the input state and Action is the desired output (y).
     """
     # from model.ModelUtil import *
     
     np.random.seed(23)
-    file = open(settingsFileName)
-    settings = json.load(file)
-    print ("Settings: " , str(json.dumps(settings)))
-    file.close()
     import os    
     os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
     
@@ -78,7 +75,7 @@ def trainForwardDynamics(settingsFileName):
     epsilon = settings["epsilon"]
     discount_factor=settings["discount_factor"]
     # max_reward=settings["max_reward"]
-    reward_bounds = np.array([[-10.1],[0.0]])
+    reward_bounds = np.array(settings['reward_bounds'])
     batch_size=settings["batch_size"]
     train_on_validation_set=settings["train_on_validation_set"]
     state_bounds = np.array(settings['state_bounds'])
@@ -97,7 +94,7 @@ def trainForwardDynamics(settingsFileName):
     else:
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
     experience.setSettings(settings)
-    file_name=directory+getAgentName()+"expBufferInit.hdf5"
+    file_name=directory+getAgentName()+"_expBufferInit.hdf5"
     # experience.saveToFile(file_name)
     experience.loadFromFile(file_name)
     state_bounds = experience._state_bounds
@@ -108,12 +105,14 @@ def trainForwardDynamics(settingsFileName):
         if ( settings['forward_dynamics_model_type'] == "SingleNet"):
             print ("Creating forward dynamics network: Using single network model")
             model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model)
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model,
+                                                              reward_bounds=reward_bounds)
             # forwardDynamicsModel = model
         else:
             print ("Creating forward dynamics network")
             # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None)
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None,
+                                                              reward_bounds=reward_bounds)
         if settings['visualize_learning']:
             from NNVisualize import NNVisualize
             title = file_name = settings['forward_dynamics_model_type']
@@ -233,9 +232,15 @@ def trainForwardDynamics(settingsFileName):
                 fp.close()
                 # draw data
         # print "Error: " + str(error)
-    
+    return trainData
 
 if __name__ == '__main__':
     
-    trainForwardDynamics(sys.argv[1])
+    settingsFileName = sys.argv[1]
+    file = open(settingsFileName)
+    settings = json.load(file)
+    print ("Settings: " , str(json.dumps(settings)))
+    file.close()
+    
+    trainForwardDynamics(settings)
     

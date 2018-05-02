@@ -20,10 +20,10 @@ class GAN(AlgorithmInterface):
         maximize D while minimizing G
     """
     
-    def __init__(self,  model, state_length, action_length, state_bounds, action_bounds, settings_):
+    def __init__(self,  model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0):
 
         print("Building GAN Model")
-        super(GAN,self).__init__(model, state_length, action_length, state_bounds, action_bounds, 0, settings_)
+        super(GAN,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
         self._noise_mean = 0.0
         self._noise_std = 1.0
         self._noise_shared = theano.shared(
@@ -397,7 +397,7 @@ class GAN(AlgorithmInterface):
         ### Put generated samples in memory
         for i in range(generated_samples.shape[0]):
             next_state__ = scale_state(generated_samples[i], self._state_bounds)
-            tup = ([states[i]], [actions[i]], [next_state__], [rewards[i]], [0], [0], [0])
+            tup = ([states[i]], [actions[i]], [next_state__], [rewards[i]], [[0]], [[0]], [[0]])
             self._experience.insertTuple(tup)
         tmp_result_states = copy.deepcopy(result_states)
         tmp_rewards = copy.deepcopy(rewards)

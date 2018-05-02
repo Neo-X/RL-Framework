@@ -788,7 +788,7 @@ def createSampler(settings, exp):
     
     return sampler
 
-def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel):
+def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel, reward_bounds=0):
     
     if settings["forward_dynamics_predictor"] == "simulator":
         from model.ForwardDynamicsSimulator import ForwardDynamicsSimulator
@@ -838,7 +838,8 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                 if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                     forwardDynamicsModel = modelAlgorithm(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]),
                                             state_bounds=state_bounds, 
-                                  action_bounds=action_bounds, settings_=settings)
+                                  action_bounds=action_bounds, settings_=settings,
+                                  reward_bounds=reward_bounds)
                     print("Loaded FD algorithm: ", forwardDynamicsModel)
                     # return model
                 else:
@@ -852,11 +853,13 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
             elif ('train_gan' in settings and (settings['train_gan'])):
                 from algorithm.GAN import GAN
                 forwardDynamicsModel = GAN(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 
-                                                       state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+                                                       state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings,
+                                                       reward_bounds=reward_bounds)
             else:
                 from algorithm.ForwardDynamics import ForwardDynamics
                 forwardDynamicsModel = ForwardDynamics(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]), 
-                                                       state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+                                                       state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings,
+                                                       reward_bounds=reward_bounds)
     else:
         print ("Unrecognized forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
         raise ValueError("Unrecognized forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
