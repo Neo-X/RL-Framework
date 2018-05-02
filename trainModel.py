@@ -795,10 +795,11 @@ def trainModelParallel(inputData):
                             dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
                             dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss))
                             dynamicsRewardLosses.append(dynamicsRewardLoss)
-                    if (settings['train_forward_dynamics']):
-                        print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
-                    else:
-                        print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
+                    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                        if (settings['train_forward_dynamics']):
+                            print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
+                        else:
+                            print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
                     # discounted_values.append(discounted_sum)
                     
                 if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
@@ -840,8 +841,8 @@ def trainModelParallel(inputData):
             ## This will let me know which part of learning is going slower training updates or simulation
             if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                 print ("sim queue size: ", input_anchor_queue.qsize() )
-            if ( output_experience_queue != None):
-                print ("exp tuple queue size: ", output_experience_queue.qsize())
+                if ( output_experience_queue != None):
+                    print ("exp tuple queue size: ", output_experience_queue.qsize())
             
             if (not settings['on_policy']):
                 # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
