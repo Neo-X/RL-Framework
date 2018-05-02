@@ -1136,7 +1136,9 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         ):
         p_ = max(float(settings['anneal_exploration']), settings['epsilon'] * p)
         min_samples = min_samples * (1.0/p_)
+    
         print("Updated min sample from collection is: ", min_samples)
+    
     while ((i < anchors) or 
            (
             (("sample_single_trajectories" in settings and (settings["sample_single_trajectories"] == True)))
