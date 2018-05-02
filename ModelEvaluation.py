@@ -734,11 +734,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         result_states___.append(resultState_)
         if (worker_id is not None):
             # print("Pushing working id as fall value: ", [worker_id])
-            falls.append([worker_id] * np.array(state_).shape[0])
+            falls.append([[worker_id] * np.array(state_).shape[0]])
         else:
             # print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])
-            falls.append([agent_not_fell] * np.array(state_).shape[0])
-        exp_act = [exp_action] * np.array(state_).shape[0]
+            falls.append([[agent_not_fell] * np.array(state_).shape[0]])
+        exp_act = [[exp_action] * np.array(state_).shape[0]]
         # print ("exp_act: " , exp_act)
         exp_actions.append(exp_act)
         # print ("falls: ", falls)
@@ -750,7 +750,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1], actions[-1], result_states___[-1], rewards[-1],  falls[-1], exp_actions[-1]):
                 # print(" putting state__", np.array(state__).shape, " value: ", state__, " With reward: ", rew__)
                 # print(fall__ , exp__, rew__)
-                _output_queue.put(([state__], [act__], [res__], [rew__],  [[fall__]], [[0]], [[exp__]]))
+                _output_queue.put(([state__], [act__], [res__], [rew__],  [fall__], [[0]], [exp__]))
         
         state_num += 1
         # else:
@@ -911,8 +911,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_rewards.extend(rewards[s])
         tmp_discounted_sum.extend(discounted_sum[s])
         tmp_G_ts.extend(G_ts[s])
-        tmp_falls.append(falls[s])
-        tmp_exp_actions.append(exp_actions[s])
+        # print ("falls[s], rewards[s]: ", falls[s], rewards[s])
+        tmp_falls.extend(falls[s])
+        tmp_exp_actions.extend(exp_actions[s])
         tmp_baselines_.extend(baselines_[s])
         
         
