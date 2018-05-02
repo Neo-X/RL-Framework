@@ -734,11 +734,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         result_states___.append(resultState_)
         if (worker_id is not None):
             # print("Pushing working id as fall value: ", [worker_id])
-            falls.append([[worker_id] * np.array(state_).shape[0]])
+            falls.append([[worker_id]] * np.array(state_).shape[0])
         else:
             # print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])
-            falls.append([[agent_not_fell] * np.array(state_).shape[0]])
-        exp_act = [[exp_action] * np.array(state_).shape[0]]
+            falls.append([[agent_not_fell]] * np.array(state_).shape[0])
+        exp_act = [[exp_action]]  * np.array(state_).shape[0]
         # print ("exp_act: " , exp_act)
         exp_actions.append(exp_act)
         # print ("falls: ", falls)
