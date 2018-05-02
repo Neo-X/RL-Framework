@@ -9,7 +9,7 @@ import time
 import datetime
         
 if __name__ == '__main__':
-    processes = 4
+    processes = 8
     # pytest.main('-x {0}'.format(argument))
     jUnitFileName = 'test_output.xml'
     # Or
