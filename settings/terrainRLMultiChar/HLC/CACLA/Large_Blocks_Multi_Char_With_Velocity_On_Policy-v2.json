@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.A_CACLA.A_CACLA",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Biped3d_Walk_Waypoint_Crowd_On_Policy/With_Vel/Large_Blocks",
+"data_folder": "Biped3d_Walk_Waypoint_Crowd_On_Policy/With_Vel/Large_Blocks-v2",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
