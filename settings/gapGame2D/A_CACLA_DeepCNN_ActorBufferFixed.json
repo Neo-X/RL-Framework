@@ -221,7 +221,8 @@
 "print_levels": {
 		"debug": 1,
 		"train": 0,
-		"hyper_train": -1
+		"hyper_train": -1,
+		"testing_sim": -2
 		},
     "comment__": "The type of function to apply over the controller target values [gaussian|abs]",
 "reward_smoother": "gaussian",

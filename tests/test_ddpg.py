@@ -24,6 +24,21 @@ class TestDDPG(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
         
+    def test_ddpg_lasagne_particleNav_10D(self):
+        """
+        Test that can still learn a good policy
+        """
+        filename = "tests/settings/particleSim/DDPG/Normal_OUNoise.json"
+        file = open(filename)
+        settings = json.load(file)
+        file.close()
+        settings['visualize_learning'] = False
+        settings['shouldRender'] = False
+        settings['print_level'] = 'hyper_train'
+        simData = trainModelParallel((filename, settings))
+        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
+        assert np.mean(simData['mean_reward'][-5:]) > -1.5
+        
     def test_ddpg_keras_gapGame_2D(self):
         """
         
