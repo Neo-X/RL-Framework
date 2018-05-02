@@ -13,9 +13,9 @@ from algorithm.AlgorithmInterface import AlgorithmInterface
 
 class ForwardDynamics(AlgorithmInterface):
     
-    def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_):
+    def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0):
 
-        super(ForwardDynamics,self).__init__(model, state_length, action_length, state_bounds, action_bounds, 0, settings_)
+        super(ForwardDynamics,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
         self._model = model
         batch_size=32
         self._learning_rate = self.getSettings()["fd_learning_rate"]
