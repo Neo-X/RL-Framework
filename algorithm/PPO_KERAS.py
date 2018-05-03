@@ -151,6 +151,13 @@ class PPO_KERAS(AlgorithmInterface):
         self._get_critic_regularization = K.function([], [self._critic_regularization])
         print ("build actor updates")
         if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+            ### Hck for now until I properly support keras optimizers
+            poli_updates = adam_updates(self._actLoss + self._critic_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal)
+            if ("learning_backend" in self.getSettings() and (self.getSettings()["learning_backend"] == "tensorflow")):
+                poli_updates = list(poli_updates)
+                # print ("poli_updates: ", poli_updates)
+            else:
+                poli_updates = poli_updates.items()
             self.trainPolicy = K.function([self._model.getStateSymbolicVariable(),
                                                  self._model.getActionSymbolicVariable(),
                                                  self._model.getResultStateSymbolicVariable(),
@@ -159,7 +166,7 @@ class PPO_KERAS(AlgorithmInterface):
                                                  self._Anneal  
                                                  # ,K.learning_phase()
                                                  ], [self._actLoss, self.__r], 
-                            updates= adam_updates(self._actLoss + self._critic_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
+                            updates= poli_updates
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
                             # ,on_unused_input='warn'
                             # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
@@ -168,6 +175,7 @@ class PPO_KERAS(AlgorithmInterface):
             poli_updates = updates= adam_updates(self._actLoss + self._actor_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal)
             if ("learning_backend" in self.getSettings() and (self.getSettings()["learning_backend"] == "tensorflow")):
                 poli_updates = list(poli_updates)
+                print ("poli_updates: ", poli_updates)
             else:
                 poli_updates = poli_updates.items()
             print("poli_updates: ", poli_updates)
