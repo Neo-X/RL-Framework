@@ -157,6 +157,89 @@ def trainModelParallel(inputData):
             # KERAS_BACKEND=tensorflow
             os.environ['KERAS_BACKEND'] = settings['learning_backend']
             
+        rounds = settings["rounds"]
+        epochs = settings["epochs"]
+        # settings["num_available_threads"] = int(settings["num_available_threads"])
+        # num_states=settings["num_states"]
+        epsilon = settings["epsilon"]
+        discount_factor=settings["discount_factor"]
+        reward_bounds=np.array(settings["reward_bounds"])
+        # reward_bounds = np.array([[-10.1],[0.0]])
+        if ( 'value_function_batch_size' in settings):
+            batch_size=settings["value_function_batch_size"]
+        else:
+            batch_size=settings["batch_size"]
+        train_on_validation_set=settings["train_on_validation_set"]
+        state_bounds = np.array(settings['state_bounds'])
+        discrete_actions = np.array(settings['discrete_actions'])
+        num_actions= discrete_actions.shape[0] # number of rows
+        print ("Sim config file name: " + str(settings["sim_config_file"]))
+        # c = characterSim.Configuration(str(settings["sim_config_file"]))
+        # c = characterSim.Configuration("../data/epsilon0Config.ini")
+        action_space_continuous=settings['action_space_continuous']
+
+        sim_work_queues = []
+        
+        action_space_continuous=settings['action_space_continuous']
+        if action_space_continuous:
+            action_bounds = np.array(settings["action_bounds"], dtype=float)
+            
+            
+        if (settings['num_available_threads'] == -1):
+            input_anchor_queue = multiprocessing.Queue(settings['queue_size_limit'])
+            input_anchor_queue_eval = multiprocessing.Queue(settings['queue_size_limit'])
+            output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
+            eval_episode_data_queue = multiprocessing.Queue(settings['queue_size_limit'])
+        else:
+            input_anchor_queue = multiprocessing.Queue(settings['epochs'])
+            input_anchor_queue_eval = multiprocessing.Queue(settings['epochs'])
+            output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
+            eval_episode_data_queue = multiprocessing.Queue(settings['eval_epochs'])
+            
+        if (settings['on_policy']): ## So that off-policy agent does not learn
+            output_experience_queue = None
+            
+        exp_val = None
+        
+        ### These are the workers for training
+        (sim_workers, sim_work_queues) = createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, None, None, exp_val, state_bounds, action_bounds, reward_bounds)
+        
+        eval_sim_workers = sim_workers
+        eval_sim_work_queues = sim_work_queues
+        if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+            (eval_sim_workers, eval_sim_work_queues) = createSimWorkers(settings, input_anchor_queue_eval, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds, default_sim_id=settings['override_sim_env_id'])
+        else:
+            input_anchor_queue_eval = input_anchor_queue
+        
+        
+        
+        # paramSampler = exp_val.getActor().getParamSampler()
+        best_eval=-100000000.0
+        best_dynamicsLosses= best_eval*-1.0
+            
+        values = []
+        discounted_values = []
+        bellman_error = []
+        reward_over_epoc = []
+        dynamicsLosses = []
+        dynamicsRewardLosses = []
+        
+        """
+        for lw in learning_workers:
+            print ("Learning worker" )
+            print (lw)
+        """
+        if (int(settings["num_available_threads"]) > 0):
+            for sw in sim_workers:
+                print ("Sim worker")
+                print (sw)
+                sw.start()
+            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+                for sw in eval_sim_workers:
+                    print ("Sim worker")
+                    print (sw)
+                    sw.start()
+            
         import keras
         import theano
         keras.backend.set_floatx(settings['float_type'])
@@ -247,47 +330,6 @@ def trainModelParallel(inputData):
                 file.close()
                 out_file.close()
             
-        rounds = settings["rounds"]
-        epochs = settings["epochs"]
-        # settings["num_available_threads"] = int(settings["num_available_threads"])
-        # num_states=settings["num_states"]
-        epsilon = settings["epsilon"]
-        discount_factor=settings["discount_factor"]
-        reward_bounds=np.array(settings["reward_bounds"])
-        # reward_bounds = np.array([[-10.1],[0.0]])
-        if ( 'value_function_batch_size' in settings):
-            batch_size=settings["value_function_batch_size"]
-        else:
-            batch_size=settings["batch_size"]
-        train_on_validation_set=settings["train_on_validation_set"]
-        state_bounds = np.array(settings['state_bounds'])
-        discrete_actions = np.array(settings['discrete_actions'])
-        num_actions= discrete_actions.shape[0] # number of rows
-        print ("Sim config file name: " + str(settings["sim_config_file"]))
-        # c = characterSim.Configuration(str(settings["sim_config_file"]))
-        # c = characterSim.Configuration("../data/epsilon0Config.ini")
-        action_space_continuous=settings['action_space_continuous']
-
-        if (settings['num_available_threads'] == -1):
-            input_anchor_queue = multiprocessing.Queue(settings['queue_size_limit'])
-            input_anchor_queue_eval = multiprocessing.Queue(settings['queue_size_limit'])
-            output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
-            eval_episode_data_queue = multiprocessing.Queue(settings['queue_size_limit'])
-        else:
-            input_anchor_queue = multiprocessing.Queue(settings['epochs'])
-            input_anchor_queue_eval = multiprocessing.Queue(settings['epochs'])
-            output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
-            eval_episode_data_queue = multiprocessing.Queue(settings['eval_epochs'])
-            
-        if (settings['on_policy']): ## So that off policy agent does not learn
-            output_experience_queue = None
-            
-        sim_work_queues = []
-        
-        action_space_continuous=settings['action_space_continuous']
-        if action_space_continuous:
-            action_bounds = np.array(settings["action_bounds"], dtype=float)
-            
         ### Using a wrapper for the type of actor now
         actor = createActor(settings['environment_type'], settings, None)
         exp_val = None
@@ -339,43 +381,6 @@ def trainModelParallel(inputData):
         # print ("NameSpace: " + str(namespace))
         # sys.exit(0)
         
-        ### These are the workers for training
-        (sim_workers, sim_work_queues) = createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds)
-        
-        eval_sim_workers = sim_workers
-        eval_sim_work_queues = sim_work_queues
-        if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-            (eval_sim_workers, eval_sim_work_queues) = createSimWorkers(settings, input_anchor_queue_eval, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds, default_sim_id=settings['override_sim_env_id'])
-        else:
-            input_anchor_queue_eval = input_anchor_queue
-        
-        
-        
-        # paramSampler = exp_val.getActor().getParamSampler()
-        best_eval=-100000000.0
-        best_dynamicsLosses= best_eval*-1.0
-            
-        values = []
-        discounted_values = []
-        bellman_error = []
-        reward_over_epoc = []
-        dynamicsLosses = []
-        dynamicsRewardLosses = []
-        
-        for lw in learning_workers:
-            print ("Learning worker" )
-            print (lw)
-        
-        if (int(settings["num_available_threads"]) > 0):
-            for sw in sim_workers:
-                print ("Sim worker")
-                print (sw)
-                sw.start()
-            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-                for sw in eval_sim_workers:
-                    print ("Sim worker")
-                    print (sw)
-                    sw.start()
         
         ## This needs to be done after the simulation worker processes are created
         # exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'], )

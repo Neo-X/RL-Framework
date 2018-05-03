@@ -47,11 +47,35 @@ class SimWorker(Process):
         
     def createNewModel(self):
         from util.SimulationUtil import createRLAgent
-        print ("Craeting new moddel with different session")
-        model = createRLAgent(self._settings['agent_name'], self._model.getStateBounds(), self._model.getActionBounds(), 
-                              self._model.getRewardBounds(), self._settings)
+        print ("Creating new model with different session")
+        model = createRLAgent(self._settings['agent_name'], np.array(self._settings['state_bounds']), np.array(self._settings['action_bounds']), 
+                              np.array(self._settings['reward_bounds']), self._settings)
         print ("done creating model")
         return model
+    
+    def createNewFDModel(self):
+        from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, createActor
+        print ("Creating new FD model with different session")
+        state_bounds = np.array(self._settings['state_bounds'])
+        action_bounds = np.array(self._settings['action_bounds']) 
+        np.array(self._settings['reward_bounds'])
+        
+        forwardDynamicsModel = None
+        if (self._settings['train_forward_dynamics']):
+            actor = createActor(self._settings['environment_type'], self._settings, None)
+            if ( self._settings['forward_dynamics_model_type'] == "SingleNet"):
+                print ("Creating forward dynamics network: Using single network model")
+                forwardDynamicsModel = createForwardDynamicsModel(self._settings, state_bounds, action_bounds, None, None, agentModel=model)
+                # forwardDynamicsModel = model
+            else:
+                print ("Creating forward dynamics network")
+                # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+                forwardDynamicsModel = createForwardDynamicsModel(self._settings, state_bounds, action_bounds, None, None, agentModel=None)
+            # masterAgent.setForwardDynamics(forwardDynamicsModel)
+            forwardDynamicsModel.setActor(actor)
+            # forwardDynamicsModel.setEnvironment(exp)
+            forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, self._settings)
+        return forwardDynamicsModel
     
     def current_mem_usage(self):
         try:
@@ -79,7 +103,9 @@ class SimWorker(Process):
         # print ("Thread: ", self._model._exp)
         
         if ("learning_backend" in self._settings and (self._settings["learning_backend"] == "tensorflow")):
+            print("Creating new policy in process:")
             self._model.setPolicy(self.createNewModel())
+            self._model.setForwardDynamics(self.createNewFDModel())
         
         ## This is no needed if there is one thread only...
         if (int(self._settings["num_available_threads"]) > 0): 

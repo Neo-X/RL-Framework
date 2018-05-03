@@ -1,6 +1,4 @@
 
-# import theano
-# from theano import tensor as T
 import numpy as np
 import random
 import h5py
