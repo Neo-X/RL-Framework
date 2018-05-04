@@ -64,7 +64,7 @@ class PPO_KERAS(AlgorithmInterface):
         ## primary network
         self._model = model
         input_ = [self._model.getStateSymbolicVariable(),
-                 self._model.getStateSymbolicVariable(),
+                 self._model.getActionSymbolicVariable(),
                  self._Advantage,
                  self._Anneal
                   ]
@@ -77,7 +77,7 @@ class PPO_KERAS(AlgorithmInterface):
         # self._modelTarget = copy.deepcopy(model)
         self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         input_Target = [self._modelTarget.getStateSymbolicVariable(),
-                 self._modelTarget.getStateSymbolicVariable(),
+                 self._modelTarget.getActionSymbolicVariable(),
                  self._Advantage,
                  self._Anneal
                   ]
@@ -147,15 +147,18 @@ class PPO_KERAS(AlgorithmInterface):
         def pos_y(true_y, pred_y):
             return self._actLoss
         
-        def poli_loss(state, advantage, anneal):
+        def poli_loss(action_old, advantage, anneal):
             ## Compute on-policy policy gradient
+            q_valsActASTD = ( K.ones_like(action_old)) * self.getSettings()['exploration_rate']
+            q_valsActTargetSTD = (K.ones_like(action_old)) * self.getSettings()['exploration_rate']
+            # target_action = self._modelTarget.getActorNetwork()([state, state, advantage, anneal])[:,:self._action_length]
             
             def loss(action_pred, action_true):
-                self._prob = likelihood_keras(action_true, action_pred, self._q_valsActASTD, self._action_length)
+                prob = likelihood_keras(action_true, action_pred, q_valsActASTD, self._action_length)
                 # self._q_valsActTarget_State = self._modelTarget.getActorNetwork()([state, action, advantage, anneal])[:,0:self._action_length]
                 # self._prob_target = likelihood_keras(action_true, self._q_valsActTarget_State, self._q_valsActTargetSTD, self._action_length)
-                self._prob_target = likelihood_keras(action_true, action_pred, self._q_valsActTargetSTD, self._action_length)
-                self.__r = (self._prob / self._prob_target)
+                prob_target = likelihood_keras(action_true, action_old, q_valsActTargetSTD, self._action_length)
+                _r = (prob / prob_target)
                 """   
                 # self._q_valsActA = self._model.getActorNetwork()(state)[:,0:self._action_length]
                 self._prob = likelihood_keras(action, self._q_valsActA, self._q_valsActASTD, self._action_length)
@@ -166,15 +169,15 @@ class PPO_KERAS(AlgorithmInterface):
                 self.__r = (self._prob / self._prob_target)
                 """
                 # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
-                self._actLoss_ = (self.__r) * advantage
+                actLoss_ = (_r) * advantage
                 ppo_epsilon = self.getSettings()['kl_divergence_threshold']
                 # self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - (ppo_epsilon * self._Anneal), 1+ (ppo_epsilon * self._Anneal)), self._Advantage))
-                self._actLoss_2 = (K.clip(self.__r, 1.0 - (ppo_epsilon * anneal), 1 + (ppo_epsilon * anneal)), advantage)
-                self._actLoss_ = K.minimum(self._actLoss_, self._actLoss_2)
+                actLoss_2 = (K.clip(_r, 1.0 - (ppo_epsilon * anneal), 1 + (ppo_epsilon * anneal)), advantage)
+                actLoss_ = K.minimum(actLoss_, actLoss_2)
                 # self._actLoss = ((T.mean(self._actLoss_) )) + -self._actor_regularization
                 # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy )))
-                self._actLoss = -1.0 * K.mean(self._actLoss_)
-                return self._actLoss
+                actLoss = -1.0 * K.mean(actLoss_)
+                return actLoss
             
             return loss
         
@@ -190,8 +193,8 @@ class PPO_KERAS(AlgorithmInterface):
                     anneal=self._Anneal), optimizer=sgd)
         """
         self._model.getActorNetwork().compile(
-                        loss=[poli_loss(advantage=self._model.getStateSymbolicVariable(),
-                                        self._Advantage, 
+                        loss=[poli_loss(action_old=self._model.getActionSymbolicVariable(),
+                                        advantage=self._Advantage, 
                                         anneal=self._Anneal)], 
                                               optimizer=sgd)
         
@@ -433,7 +436,9 @@ class PPO_KERAS(AlgorithmInterface):
                 (lossActor, r_) = self.trainPolicy([states, actions, result_states, rewards, advantage, p])
             else: 
                 # (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
-                self._model.getActorNetwork().fit([states, advantage, (advantage * 0.0) + p], actions,
+                print("states: ", states)
+                action_old = self._modelTarget.getActorNetwork().predict([states, actions, advantage, advantage])[:,:self._action_length]
+                self._model.getActorNetwork().fit([states, action_old, advantage, (advantage * 0.0) + p], actions,
                       epochs=1, batch_size=states.shape[0],
                       verbose=0
                       # callbacks=[early_stopping],
@@ -487,7 +492,7 @@ class PPO_KERAS(AlgorithmInterface):
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
         # action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1)[:,:self._action_length], self._action_bounds)
-        action_ = scale_action(self._model.getActorNetwork().predict([state, np.zeros((1,1)), np.zeros((1,1))], batch_size=1)[:,:self._action_length], self._action_bounds)
+        action_ = scale_action(self._model.getActorNetwork().predict([state, np.zeros((1,2)), np.zeros((1,1)), np.zeros((1,1))], batch_size=1)[:,:self._action_length], self._action_bounds)
         # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
