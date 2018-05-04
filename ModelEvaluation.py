@@ -102,10 +102,10 @@ class SimWorker(Process):
         # print ("SW model: ", self._model.getPolicy())
         # print ("Thread: ", self._model._exp)
         
-        if ("learning_backend" in self._settings and (self._settings["learning_backend"] == "tensorflow")):
-            print("Creating new policy in process:")
-            self._model.setPolicy(self.createNewModel())
-            self._model.setForwardDynamics(self.createNewFDModel())
+        # if ("learning_backend" in self._settings and (self._settings["learning_backend"] == "tensorflow")):
+        print("Creating new policy in process:")
+        self._model.setPolicy(self.createNewModel())
+        self._model.setForwardDynamics(self.createNewFDModel())
         
         ## This is no needed if there is one thread only...
         if (int(self._settings["num_available_threads"]) > 0): 

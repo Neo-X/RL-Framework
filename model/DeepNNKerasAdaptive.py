@@ -58,30 +58,30 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._networkSettings = settings_["network_settings"]
         ### data types for model
         # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name="State")
-        self._State = keras.layers.Input(shape=(self._state_length,))
+        self._State = keras.layers.Input(shape=(self._state_length,), name="State")
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
-        self._ResultState = keras.layers.Input(shape=(self._state_length,))
+        self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState")
         # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._Reward = K.variable(value=np.random.rand(self._batch_size,1), name="Reward")
-        self._Reward = keras.layers.Input(shape=(1,))
+        self._Reward = keras.layers.Input(shape=(1,), name="Reward")
         # self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
         # self._Action = K.variable(value=np.random.rand(self._batch_size, self._action_length), name="Action")
-        self._Action = keras.layers.Input(shape=(self._action_length,))
+        self._Action = keras.layers.Input(shape=(self._action_length,), name="Action")
         # self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         
         
         ### Apparently after the first layer the patch axis is left out for most of the Keras stuff...
-        input = Input(shape=(self._state_length,))
-        self._stateInput = input
-        input2 = Input(shape=(self._action_length,)) 
-        self._actionInput = input2
+        # input = Input(shape=(self._state_length,))
+        self._stateInput = self._State
+        # input2 = Input(shape=(self._action_length,)) 
+        self._actionInput = self._Action
         # input.trainable = True
-        print ("Input ",  input)
+        print ("self._stateInput ",  self._stateInput)
         
-        taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'],))(input)
-        # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(input)
-        characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'],))(input)
+        taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'],))(self._stateInput)
+        # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(self._stateInput)
+        characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'],))(self._stateInput)
 
         perform_pooling=True
         if ( "perform_convolution_pooling" in self._networkSettings):
@@ -148,9 +148,11 @@ class DeepNNKerasAdaptive(ModelInterface):
                 # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 self._actor = keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
                 
-            self._actor = Model(input=self._stateInput, output=self._actor)
+            # input_ = [self._stateInput, self._actionInput, self._Reward]
+            # input_ = self._stateInput
+            # self._actor = Model(input=input_, output=self._actor)
             # self._actor = Model(input=[self._stateInput, self._actionInput], output=self._actor)
-            print("Actor summary: ", self._actor.summary())
+            # print("Actor summary: ", self._actor.summary())
             
         
         layer_sizes = self._settings['critic_network_layer_sizes']
@@ -163,7 +165,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                  ):
                 
                 print ("Value Network layer sizes: ", layer_sizes)
-                network = input
+                network = self._stateInput
                 if ( self._dropout_p > 0.001 ):
                     network = Dropout(rate=self._dropout_p)(network)
                 for i in range(len(layer_sizes)):
@@ -199,7 +201,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network= Dense(1,
                                kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                 network = Activation('linear')(network)
-                self._value_function = Model(input=input, output=network)
+                self._value_function = Model(input=self._stateInput, output=network)
                 print("Value Function summary: ", self._value_function.summary())
                 
                 
@@ -207,7 +209,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             # input = Concatenate()([characterFeatures, self._actionInput])
         
         print ("Critic Network layer sizes: ", layer_sizes)
-        network = input
+        network = self._stateInput
         if ( self._dropout_p > 0.001 ):
             network = Dropout(rate=self._dropout_p)(network)
         for i in range(len(layer_sizes)):
@@ -285,17 +287,18 @@ class DeepNNKerasAdaptive(ModelInterface):
             # plot_model(self._actor, to_file='model.png')
         network= Dense(1,
                        kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
-        network = Activation('linear')(network)
+        self._critic = Activation('linear')(network)
             
+        """
         if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras"
              or (self._settings["agent_name"] == "algorithm.QPropKeras.QPropKeras") 
              ):
             print ( "Creating DPG Keras Model")
-            self._critic = Model(input=[self._stateInput, self._actionInput], output=network)
+            self._critic = Model(input=[self._stateInput, self._actionInput], output=self._critic)
         else:
-            self._critic = Model(input=input, output=network)
-            
-        print("Critic summary: ", self._critic.summary())
+            self._critic = Model(input=self._stateInput, output=self._critic)
+        """ 
+        # print("Critic summary: ", self._critic.summary())
 
 
     ### Setting network input values ###    
