@@ -50,9 +50,13 @@ As a temporary workaround, I use the following hack:
 ```
 python3 trainModel.py --config settings/particleSim/PPO/PPO.json
 ```
-	
+
+##	PLAiD
+
+To rerun PLAiD see PLAID.md
 
 ## References
 
  1. https://github.com/Newmu/Theano-Tutorials
  2. https://github.com/spragunr/deep_q_rl
+
