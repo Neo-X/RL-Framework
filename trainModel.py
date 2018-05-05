@@ -1029,7 +1029,8 @@ def trainModelParallel(inputData):
                     f.close()
                     if mean_dynamicsLosses < best_dynamicsLosses:
                         best_dynamicsLosses = mean_dynamicsLosses
-                        print ("Saving BEST current forward dynamics agent: " + str(best_dynamicsLosses))
+                        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+                            print ("Saving BEST current forward dynamics agent: " + str(best_dynamicsLosses))
                         file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
                         f = open(file_name_dynamics, 'wb')
                         dill.dump(masterAgent.getForwardDynamics(), f)
@@ -1037,7 +1038,8 @@ def trainModelParallel(inputData):
                         
                 if (mean_eval > best_eval):
                     best_eval = mean_eval
-                    print ("Saving BEST current agent: " + str(best_eval))
+                    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+                        print ("Saving BEST current agent: " + str(best_eval))
                     file_name=directory+getAgentName()+"_Best.pkl"
                     f = open(file_name, 'wb')
                     dill.dump(masterAgent.getPolicy(), f)
@@ -1055,7 +1057,8 @@ def trainModelParallel(inputData):
                         
             # mean_reward = std_reward = mean_bellman_error = std_bellman_error = mean_discount_error = std_discount_error = None
             # if ( round_ % 10 ) == 0 :
-                print ("Saving current masterAgent")
+                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+                    print ("Saving current masterAgent")
                 
                 file_name=directory+getAgentName()+".pkl"
                 f = open(file_name, 'wb')
@@ -1076,7 +1079,7 @@ def trainModelParallel(inputData):
         # print ("Discounted reward difference Avg: " +  str(np.mean(np.fabs(discounted_values - values))))
         # print ("Discounted reward difference STD: " +  str(np.std(np.fabs(discounted_values - values))))
         # reward_over_epoc = np.array(reward_over_epoc)
-        print ("Terminating Workers"        )
+        print ("Terminating Workers")
         if (settings['on_policy']):
             for m_q in sim_work_queues:
                 ## block on full queue

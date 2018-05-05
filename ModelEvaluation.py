@@ -981,7 +981,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, 
               settings=None, print_data=False, p=0.0, evaluation=False, visualizeEvaluation=None,
               bootstrapping=False, sampling=False):
-    print ("Evaluating model:")
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+        print ("Evaluating model:")
     j=0
     discounted_values = []
     bellman_errors = []
@@ -1041,7 +1042,8 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
 
 # @profile(precision=5)
 def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, settings, anchors=None):
-    print ("Evaluating model Parrallel:")
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+        print ("Evaluating model Parrallel:")
     
     if ( 'value_function_batch_size' in settings):
         batch_size=settings["value_function_batch_size"]
@@ -1131,7 +1133,8 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
 
 # @profile(precision=5)
 def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None, type=None, p=1):
-    print ("Simulating epochs in Parallel:")
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+        print ("Simulating epochs in Parallel:")
     j=0
     discounted_values = []
     bellman_errors = []
@@ -1163,7 +1166,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         p_ = max(float(settings['anneal_exploration']), settings['epsilon'] * p)
         min_samples = min_samples * (1.0/p_)
     
-        print("Updated min sample from collection is: ", min_samples)
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+            print("Updated min sample from collection is: ", min_samples)
     
     while ((i < anchors) or 
            (
