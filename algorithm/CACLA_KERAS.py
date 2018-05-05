@@ -23,8 +23,19 @@ class CACLA_KERAS(AlgorithmInterface):
         super(CACLA_KERAS,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
         ## primary network
+        ## primary network
         self._model = model
+        self._model._actor = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._actor)
+        print("Actor summary: ", self._model._actor_train.summary())
+        self._model._critic = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._critic)
+        print("Critic summary: ", self._model._critic.summary())
+        ## Target network
+        # self._modelTarget = copy.deepcopy(model)
         self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        self._modelTarget._actor = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._actor)
+        print("Target Actor summary: ", self._modelTarget._actor.summary())
+        self._modelTarget._critic = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._critic)
+        print("Target Critic summary: ", self._modelTarget._critic.summary())
         # print ("Loss ", self._model.getActorNetwork().total_loss)
         
         ## Target network
@@ -43,8 +54,8 @@ class CACLA_KERAS(AlgorithmInterface):
         self._actor_buffer_falls=[]
         self._actor_buffer_diff=[]
         
-        self._value = self._model.getCriticNetwork()([self._model._stateInput])
-        self._value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
+        self.__value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable])
+        self.__value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
         
         CACLA_KERAS.compile(self)
         
@@ -79,8 +90,8 @@ class CACLA_KERAS(AlgorithmInterface):
         self._get_actor_regularization = K.function([], [self._actor_regularization])
         self._get_critic_regularization = K.function([], [self._critic_regularization])
         
-        self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self._value])
-        self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self._value_Target])
+        self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
+        self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
         
     def getGrads(self, states, alreadyNormed=False):
         """
