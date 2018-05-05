@@ -222,6 +222,7 @@ class PPO_KERAS(AlgorithmInterface):
         self._get_actor_regularization = K.function([], [self._actor_regularization])
         self._get_critic_regularization = K.function([], [self._critic_regularization])
         print ("build actor updates")
+        """
         if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
             ### Hck for now until I properly support keras optimizers
             poli_updates = adam_updates(self._actLoss + self._critic_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal)
@@ -272,6 +273,7 @@ class PPO_KERAS(AlgorithmInterface):
                                                  [self._actLoss]
                                                  # ,on_unused_input='warn'
                                                  )
+        """
         
         self._r = K.function([self._model.getStateSymbolicVariable(),
                                      self._model.getActionSymbolicVariable()
