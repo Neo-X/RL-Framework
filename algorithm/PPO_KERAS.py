@@ -73,7 +73,10 @@ class PPO_KERAS(AlgorithmInterface):
                  self._Anneal
                   ]
         
-        self._model._actor_train = Model(inputs=input_, outputs=self._model._actor)
+        if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+            self._model._actor_train = Model(inputs=input_, outputs=[self._model._actor, self._model._critic])
+        else:
+            self._model._actor_train = Model(inputs=input_, outputs=self._model._actor)
         self._model._actor = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._actor)
         print("Actor summary: ", self._model._actor_train.summary())
         self._model._critic = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._critic)
@@ -154,52 +157,26 @@ class PPO_KERAS(AlgorithmInterface):
         
         def poli_loss(action_old, advantage, anneal):
             ## Compute on-policy policy gradient
-            # print("action_old: ", action_old)
             action_old_mean = action_old[:,:self._action_length]
-            print("action_old_mean: ", action_old_mean)
             if ( 'use_stocastic_policy' in self.getSettings() and ( self.getSettings()['use_stocastic_policy'])):
                 action_old_std = action_old[:,self._action_length:]
             else:
                 action_old_std = (K.ones_like(action_old_mean)) * self.getSettings()['exploration_rate']
             
-            # target_action = self._modelTarget.getActorNetwork()([state, state, advantage, anneal])[:,:self._action_length]
-            print("action_old_std: ", action_old_std)
             def loss(action_true, action_pred):
-                ### Because Keras assumes the output dimensions of the network should match the target data
-                print("action_true before : ", action_true)
                 action_true = action_true[:,:self._action_length]
-                print("action_true after : ", action_true)
-                print("action_pred: ", action_pred)
                 action_pred_mean = action_pred[:,:self._action_length]
                 if ( 'use_stocastic_policy' in self.getSettings() and ( self.getSettings()['use_stocastic_policy'])):
                     action_pred_std = action_pred[:,self._action_length:]
                 else:
                     action_pred_std = (K.ones_like(action_pred_mean)) * self.getSettings()['exploration_rate']
-                # action_pred_std = (K.ones_like(action_pred_mean)) * self.getSettings()['exploration_rate']
-                print("action_pred_mean: ", action_pred_mean)
-                print("action_pred_std: ", action_pred_std)
                 prob = likelihood_keras(action_true, action_pred_mean, action_pred_std, self._action_length)
-                # self._q_valsActTarget_State = self._modelTarget.getActorNetwork()([state, action, advantage, anneal])[:,0:self._action_length]
-                # self._prob_target = likelihood_keras(action_true, self._q_valsActTarget_State, self._q_valsActTargetSTD, self._action_length)
                 prob_target = likelihood_keras(action_true, action_old_mean, action_old_std, self._action_length)
                 _r = (prob / prob_target)
-                """   
-                # self._q_valsActA = self._model.getActorNetwork()(state)[:,0:self._action_length]
-                self._prob = likelihood_keras(action, self._q_valsActA, self._q_valsActASTD, self._action_length)
-                ### How should this work if the target network is very odd, as in not a slightly outdated copy.
-                self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(state)[:,0:self._action_length]
-                self._prob_target = likelihood_keras(self._model.getActionSymbolicVariable(), self._q_valsActTarget_State, self._q_valsActTargetSTD, self._action_length)
-                ## This does the sum already
-                self.__r = (self._prob / self._prob_target)
-                """
-                # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
                 actLoss_ = (_r) * advantage
                 ppo_epsilon = self.getSettings()['kl_divergence_threshold']
-                # self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - (ppo_epsilon * self._Anneal), 1+ (ppo_epsilon * self._Anneal)), self._Advantage))
                 actLoss_2 = (K.clip(_r, 1.0 - (ppo_epsilon * anneal), 1 + (ppo_epsilon * anneal)), advantage)
                 actLoss_ = K.minimum(actLoss_, actLoss_2)
-                # self._actLoss = ((T.mean(self._actLoss_) )) + -self._actor_regularization
-                # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy )))
                 actLoss = -1.0 * K.mean(actLoss_)
                 return actLoss
             
@@ -216,7 +193,15 @@ class PPO_KERAS(AlgorithmInterface):
                     advantage=self._Advantage,
                     anneal=self._Anneal), optimizer=sgd)
         """
-        self._model._actor_train.compile(
+        if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+            self._model._actor_train.compile(
+                        loss=[poli_loss(action_old=self._PoliAction,
+                                        advantage=self._Advantage, 
+                                        anneal=self._Anneal), 
+                              'mse'], 
+                                              optimizer=sgd)
+        else:
+            self._model._actor_train.compile(
                         loss=[poli_loss(action_old=self._PoliAction,
                                         advantage=self._Advantage, 
                                         anneal=self._Anneal)], 
@@ -457,7 +442,19 @@ class PPO_KERAS(AlgorithmInterface):
                 # print ("States shape: ", np.array(states).shape)
                         ### For now don't include dropout in policy updates
             if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
-                (lossActor, r_) = self.trainPolicy([states, actions, result_states, rewards, advantage, p])
+                
+                # (lossActor, r_) = self.trainPolicy([states, actions, result_states, rewards, advantage, p])
+                y_ = self._value_Target([result_states,0])[0]
+                # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
+                # target_ = rewards + ((self._discount_factor * y_) * falls)
+                target_ = rewards + ((self._discount_factor * y_))
+                target_ = np.array(target_, dtype=self._settings['float_type'])
+                action_old = self._modelTarget.getActorNetwork().predict(states)
+                self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], [actions, target_],
+                      epochs=1, batch_size=states.shape[0],
+                      verbose=0
+                      # callbacks=[early_stopping],
+                      )
             else: 
                 # (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
                 # print("states: ", states)

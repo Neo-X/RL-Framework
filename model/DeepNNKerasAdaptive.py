@@ -201,7 +201,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network= Dense(1,
                                kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                 network = Activation('linear')(network)
-                self._value_function = Model(input=self._stateInput, output=network)
+                self._value_function = network
+                # self._value_function = Model(input=self._stateInput, output=network)
                 print("Value Function summary: ", self._value_function.summary())
                 
                 
@@ -280,8 +281,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                 # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 self._actor = keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
                 
-            self._actor = Model(input=self._stateInput, output=self._actor)
-            print("Actor summary: ", self._actor.summary())
+            # self._actor = Model(input=self._stateInput, output=self._actor)
+            # print("Actor summary: ", self._actor.summary())
             ### Render a nice graph of the network
             # from keras.utils import plot_model
             # plot_model(self._actor, to_file='model.png')
