@@ -11,6 +11,7 @@ from keras.optimizers import SGD
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
 import keras
+from keras.models import Sequential, Model
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -26,7 +27,7 @@ class CACLA_KERAS(AlgorithmInterface):
         ## primary network
         self._model = model
         self._model._actor = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._actor)
-        print("Actor summary: ", self._model._actor_train.summary())
+        print("Actor summary: ", self._model._actor.summary())
         self._model._critic = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._critic)
         print("Critic summary: ", self._model._critic.summary())
         ## Target network
@@ -54,7 +55,7 @@ class CACLA_KERAS(AlgorithmInterface):
         self._actor_buffer_falls=[]
         self._actor_buffer_diff=[]
         
-        self.__value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable])
+        self.__value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
         self.__value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
         
         CACLA_KERAS.compile(self)
@@ -73,7 +74,7 @@ class CACLA_KERAS(AlgorithmInterface):
         
         self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
         
-        gradients = K.gradients(K.mean(self._value), [self._model._stateInput]) # gradient tensors
+        gradients = K.gradients(K.mean(self.__value), [self._model._stateInput]) # gradient tensors
         self._get_gradients = K.function(inputs=[self._model._stateInput,  K.learning_phase()], outputs=gradients)
         
         if (self.getSettings()["regularization_weight"] > 0.0000001):
