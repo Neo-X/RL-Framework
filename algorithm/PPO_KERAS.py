@@ -199,13 +199,14 @@ class PPO_KERAS(AlgorithmInterface):
                                         advantage=self._Advantage, 
                                         anneal=self._Anneal), 
                               'mse'], 
-                                              optimizer=sgd)
+                        loss_weights=[0.5, 0.5],
+                        optimizer=sgd)
         else:
             self._model._actor_train.compile(
                         loss=[poli_loss(action_old=self._PoliAction,
                                         advantage=self._Advantage, 
                                         anneal=self._Anneal)], 
-                                              optimizer=sgd)
+                        optimizer=sgd)
         
         if (self.getSettings()["regularization_weight"] > 0.0000001):
             self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
