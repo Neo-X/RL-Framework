@@ -143,7 +143,8 @@ class PPO_KERAS(AlgorithmInterface):
         # sgd = SGD(lr=0.001, momentum=0.9)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
+                                    amsgrad=True)
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
@@ -183,7 +184,10 @@ class PPO_KERAS(AlgorithmInterface):
             return loss
         
         
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), beta_1=np.float32(0.9), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
+                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0), 
+                                    amsgrad=True)
         print("sgd, actor: ", sgd)
         print ("Clipping: ", sgd.decay)
         """
