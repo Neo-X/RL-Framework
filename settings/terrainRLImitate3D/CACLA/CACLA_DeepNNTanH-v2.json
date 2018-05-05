@@ -214,7 +214,7 @@
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
 "debug_actor": true,
 	"comment__": "float type to use, if for example you want to train on the GPU use float32",
-"float_type": "float64",
+"float_type": "float32",
 	"comment__": "What processor type to perform the training on [cpu|gpu]",
 "training_processor_type": "cpu",
 	"comment__": "optimizer is the type of optimization algorithm to use",
@@ -313,5 +313,5 @@
 	"comment__": "Load a saved and pre-trained forward dynamics model",
 "load_saved_fd_model": false,
 	"comment__": "anneal the probability of performing explorative actions, set to >= 1.0 to perform only exploration actions",
-"anneal_exploration": 0.3,
+"anneal_exploration": 0.3
 }
