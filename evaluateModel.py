@@ -107,7 +107,7 @@ class SimContainer(object):
                     state_ = self._exp.getState()
                     # print ("State: ", state_)
                     ## Update value function visualization
-                    if ( True  and (self._expected_value_viz is not None)):
+                    if ( False  and (self._expected_value_viz is not None)):
                         self._viz_q_values_.extend(self._agent.q_value(state_)[0])
                         # self._viz_q_values_.append(0)
                         if (len(self._viz_q_values_)>100):
@@ -127,8 +127,8 @@ class SimContainer(object):
                     """
                     self._action = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
                     # self._action = np.array([0.0, 0.0, 0.0, -1.0, 0.0], dtype='float64')
-                    grad_ = self._agent.getPolicy().getGrads(state_)[0]
-                    # grad_ = [0]
+                    # grad_ = self._agent.getPolicy().getGrads(state_)[0]
+                    grad_ = [0]
                     self._grad_sum += np.abs(grad_)
                     self._num_actions +=1
                     print ("Input grad: ", repr(self._grad_sum/self._num_actions))
