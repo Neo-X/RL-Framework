@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Biped2D_Flat-v2/Anneal_Everything_SingleNet2_MoreData",
+"data_folder": "PD_Biped2D_Flat-v2/SingleNet_Tensorflow",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -18,7 +18,7 @@
     "comment__": "A different config file for the forward dynamics simulator",
 "forwardDynamics_config_file": "PD_Biped2D_Flat-v2",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.2,
+"exploration_rate": 0.20,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 250,
     "comment__": "Number of epochs to perform per round",
@@ -354,9 +354,11 @@
 	"split_single_net_earlier": true
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
-"pretrain_critic": 0,
+"pretrain_critic": 100,
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
 "ppo_et_factor": 1.25,
 	"comment__": "higher level controller timestep",
-"hlc_timestep": 1
+"hlc_timestep": 1,
+	"comment__": "Which backend to use for keras [theano|tensorflow]",
+"learning_backend": "tensorflow"
 }
