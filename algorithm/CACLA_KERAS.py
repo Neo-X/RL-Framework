@@ -312,9 +312,12 @@ class CACLA_KERAS(AlgorithmInterface):
         """
             Computes the one step temporal difference.
         """
-        y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=32)
+        y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
         target_ = rewards + ((self._discount_factor * y_))
-        values =  self._model.getCriticNetwork().predict(states, batch_size=32)
+        if self._settings['on_policy']:
+            values =  self._modelTarget.getCriticNetwork().predict(states, batch_size=states.shape[0])
+        else:
+            values =  self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
         bellman_error = target_ - values
         return bellman_error
         # return self._bellman_errorTarget()
