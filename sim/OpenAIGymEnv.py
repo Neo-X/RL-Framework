@@ -16,12 +16,13 @@ from model.ModelUtil import getOptimalAction, getMBAEAction
 
 class OpenAIGymEnv(SimInterface):
 
-    def __init__(self, exp, settings):
+    def __init__(self, exp, settings, multiAgent=False):
         #------------------------------------------------------------
         # set up initial state
         super(OpenAIGymEnv,self).__init__(exp, settings)
         self._previous_observation=None
         self._end_of_episode=False
+        self._multiAgent=multiAgent
         
         ## Should print the type of actions space, continuous/discrete, how many parameters
         print(self.getEnvironment().action_space)
@@ -69,7 +70,10 @@ class OpenAIGymEnv(SimInterface):
         action_ = np.array(action)
         if (self.getSettings()['render']):
             self.getEnvironment().render()
-        observation, reward, done, info = self.getEnvironment().step(action_[0])
+        if (self._multiAgent):
+            observation, reward, done, info = self.getEnvironment().step(action_)
+        else:
+            observation, reward, done, info = self.getEnvironment().step(action_[0])
         # print ("observation: ", observation)
         self._end_of_episode = done
         self._previous_observation = observation

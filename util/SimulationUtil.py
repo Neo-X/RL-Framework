@@ -553,8 +553,10 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         
         conf = copy.deepcopy(settings)
         conf['render'] = render
-        exp = OpenAIGymEnv(env, conf)
-        exp = exp
+        if (env.getNumberofAgents() > 0):
+            exp = OpenAIGymEnv(env, conf, multiAgent=True)
+        else:
+            exp = OpenAIGymEnv(env, conf, multiAgent=False)
         return exp
     
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D') or 

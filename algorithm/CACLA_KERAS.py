@@ -174,11 +174,11 @@ class CACLA_KERAS(AlgorithmInterface):
         
         if ( 'CACLA_use_advantage' in self.getSettings() 
              and (self.getSettings()['CACLA_use_advantage'] == True)):
-            print ("Using advantage for CACLA")
+            # print ("Using advantage for CACLA")
             diff_ = advantage
         else:
             diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        # print ("Action diff: ", diff_)
+        print ("Action diff: ", diff_)
         # print ("Diff")
         # print (diff_)
         for i in range(len(diff_)):
