@@ -61,7 +61,7 @@ class EnvWrapper(object):
         else:
             self._sim.updateAction(action[0])
             
-        self._sim.handleUpdatedAction()
+        # self._sim.handleUpdatedAction()
         
     def getLLCState(self):
         ob = []

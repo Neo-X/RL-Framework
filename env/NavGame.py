@@ -92,6 +92,16 @@ class NavGame(object):
     
     def getObservationSpaceSize(self):
         return self._state_length
+    
+    def setRandomSeed(self, seed):
+        np.random.seed(seed)
+        random.seed(seed)
+        
+    def getNumAgents(self):
+        return 0
+    
+    def updateAction(self, action):
+        self.__action = action
         
     def init(self):
         self._agent = np.array([2]* self._state_length) ## Somewhat random initial spot
@@ -171,7 +181,8 @@ class NavGame(object):
             self.fall(loc)
             ):
             ### can't overlap an obstacle or be outside working area
-            return (self._state_bounds[0][0] - self._state_bounds[1][0])/8.0
+            self.__reward = (self._state_bounds[0][0] - self._state_bounds[1][0])/8.0
+            return self.__reward
             
         # if self._map[loc[0]-1][loc[1]-1] == 1:
             # Can't walk onto obstacles
@@ -179,9 +190,9 @@ class NavGame(object):
         self._agent = loc
         
         if ( self._settings['render'] == True ):
-            self.update()
-        
-        return self.reward()
+            self.display()
+        self.__reward = self.reward()
+        return self.__reward
     
     def fall(self, loc):
         # Check to see if collision at loc with any obstacles
@@ -216,8 +227,14 @@ class NavGame(object):
             return 2.0
         return -d/((self._state_bounds[1][0]- self._state_bounds[0][0])/2.0)
     
+    def calcReward(self):
+        return self.__reward
+    
     def getState(self):
         return self._agent
+    
+    def getStateForAgent(self, i):
+        return self.getState()
     
     def setState(self, st):
         self._agent = st
@@ -372,11 +389,17 @@ class NavGame(object):
         # update pieces of the animation
         # self._agent = self._agent + np.array([0.1,0.1])
         # print ("Agent loc: " + str(self._agent))
+        self.__reward = self.actContinuous(self.__action, bootstrapping=False)
         if self._settings['render']:
             self._particles.set_data(self._agent[0], self._agent[1] )
             self._particles.set_markersize(self._markerSize)
         # self._line1.set_ydata(np.sin(x + phase))
         # self._fig.canvas.draw()
+        
+    def display(self):
+        if self._settings['render']:
+            self._particles.set_data(self._agent[0], self._agent[1] )
+            self._particles.set_markersize(self._markerSize)
         
     def updatePolicy(self, U, V, Q):
         # self._policy.set_UVC(U[::2, ::2],V[::2, ::2])
