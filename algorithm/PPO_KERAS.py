@@ -54,6 +54,7 @@ class PPO_KERAS(AlgorithmInterface):
         self._rho = self.getSettings()['rho']
         self._rms_epsilon = self.getSettings()['rms_epsilon']
         
+        # self._Anneal = keras.layers.Input(batch_shape=(1,), name="Anneal")
         self._Anneal = keras.layers.Input(shape=(1,), name="Anneal")
         # self._Anneal = K.variable(value=np.float32(1.0) ,name="Anneal")
         # self._Anneal = K.placeholder(ndim=0, name="Anneal")
@@ -155,6 +156,15 @@ class PPO_KERAS(AlgorithmInterface):
         
         def pos_y(true_y, pred_y):
             return self._actLoss
+        
+        def step_decay(p_):
+           initial_lrate = np.float32(self.getSettings()['learning_rate'])
+           lrate = initial_lrate * p_
+           print ("lrate: ", lrate)
+           return lrate
+        
+        lrate = keras.callbacks.LearningRateScheduler(step_decay)
+        self._callbacks_list = [lrate]
         
         def poli_loss(action_old, advantage, anneal):
             ## Compute on-policy policy gradient
@@ -457,16 +467,21 @@ class PPO_KERAS(AlgorithmInterface):
                 target_ = rewards + ((self._discount_factor * y_))
                 target_ = np.array(target_, dtype=self._settings['float_type'])
                 action_old = self._modelTarget.getActorNetwork().predict(states)
+                ### Anneal learning rate
+                K.set_value(self._model._actor_train.optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
                 self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], [actions, target_],
                       epochs=1, batch_size=states.shape[0],
-                      verbose=0
-                      # callbacks=[early_stopping],
+                      verbose=0,
+                      # p_=p,
+                      # callbacks=self._callbacks_list,
                       )
             else: 
                 # (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
                 # print("states: ", states)
                 # action_old = self._modelTarget.getActorNetwork().predict([states, actions, advantage, advantage])[:,:self._action_length]
                 action_old = self._modelTarget.getActorNetwork().predict(states)
+                ### Anneal learning rate
+                K.set_value(self._model._actor_train.optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
                 self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], actions,
                       epochs=1, batch_size=states.shape[0],
                       verbose=0
