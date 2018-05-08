@@ -40,8 +40,34 @@ class DeepCNN2D(ModelInterface):
         print ("State length: ", self._state_length)
         
         if ( len(self._settings['terrain_shape']) > 2):
-            network = lasagne.layers.ReshapeLayer(taskFeatures, (-1, self._settings['terrain_shape'][2], self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
+            print ("vel features: ", (self._settings['num_terrain_features']/3)*2)
+            numVelFeatures = int((self._settings['num_terrain_features']/3)*2)
+            velFeatures = lasagne.layers.SliceLayer(taskFeatures, indices=slice(0, numVelFeatures), axis=1)
+            terrainFeatures = lasagne.layers.SliceLayer(taskFeatures, indices=slice(numVelFeatures, self._settings['num_terrain_features']), axis=1)
+            network = lasagne.layers.ReshapeLayer(velFeatures, (-1, 2, self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
+            networkTer = lasagne.layers.ReshapeLayer(terrainFeatures, (-1, 1, self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
             print("Creating terrain input with 3 channels")
+            
+            networkTer = lasagne.layers.Conv2DLayer(
+                networkTer, num_filters=16, filter_size=(8,8),
+                stride=4,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
+            # networkTer = lasagne.layers.MaxPool2DLayer(networkTer, pool_size=2)
+            """
+            network = lasagne.layers.Conv1DLayer(
+                network, num_filters=32, filter_size=4,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify,
+                W=lasagne.init.GlorotUniform())
+            """
+            networkTer = lasagne.layers.Conv2DLayer(
+                networkTer, num_filters=16, filter_size=(4,4),
+                stride=2,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+            
+            # networkTer = lasagne.layers.MaxPool2DLayer(networkTer, pool_size=2)
+            
+            networkTer = lasagne.layers.FlattenLayer(networkTer, outdim=2)
         else:
             network = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
             print("Creating terrain input with 1 channel")
@@ -51,7 +77,7 @@ class DeepCNN2D(ModelInterface):
             stride=4,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
-        # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
+        # network = lasagne.layers.MaxPool2DLayer(network, pool_size=2)
         """
         network = lasagne.layers.Conv1DLayer(
             network, num_filters=32, filter_size=4,
@@ -63,10 +89,15 @@ class DeepCNN2D(ModelInterface):
             stride=2,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
+        # network = lasagne.layers.MaxPool2DLayer(network, pool_size=2)
+        
         network = lasagne.layers.FlattenLayer(network, outdim=2)
         
+        if (networkTer is not None):
+            network = lasagne.layers.ConcatLayer([network, networkTer], axis=1)
+            
         network = lasagne.layers.DenseLayer(
-                network, num_units=64,
+                network, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         self._critic_task_part = network 
@@ -114,7 +145,32 @@ class DeepCNN2D(ModelInterface):
         
         if ( len(self._settings['terrain_shape']) > 2):
             networkAct = lasagne.layers.ReshapeLayer(taskFeatures, (-1, self._settings['terrain_shape'][2], self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
+            velFeatures = lasagne.layers.SliceLayer(taskFeatures, indices=slice(0, numVelFeatures), axis=1)
+            terrainFeatures = lasagne.layers.SliceLayer(taskFeatures, indices=slice(numVelFeatures, self._settings['num_terrain_features']), axis=1)
+            networkAct = lasagne.layers.ReshapeLayer(velFeatures, (-1, self._settings['terrain_shape'][2]-1, self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
+            networkActTer = lasagne.layers.ReshapeLayer(terrainFeatures, (-1, 1, self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
             print("Creating terrain input with 3 channels")
+            
+            networkActTer = lasagne.layers.Conv2DLayer(
+                networkActTer, num_filters=16, filter_size=(8,8),
+                stride=4,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+        
+            # networkActTer = lasagne.layers.MaxPool2DLayer(networkActTer, pool_size=2)
+            """
+            network = lasagne.layers.Conv1DLayer(
+                network, num_filters=32, filter_size=4,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify,
+                W=lasagne.init.GlorotUniform())
+            """
+            networkActTer = lasagne.layers.Conv2DLayer(
+                networkActTer, num_filters=16, filter_size=(4,4),
+                stride=2,
+                nonlinearity=lasagne.nonlinearities.leaky_rectify)
+            
+            # networkActTer = lasagne.layers.MaxPool2DLayer(networkActTer, pool_size=2)
+            
+            networkActTer = lasagne.layers.FlattenLayer(networkActTer, outdim=2)
         else:
             networkAct = lasagne.layers.ReshapeLayer(taskFeatures, (-1, 1, self._settings['terrain_shape'][0], self._settings['terrain_shape'][1]))
             
@@ -123,7 +179,7 @@ class DeepCNN2D(ModelInterface):
             stride=4,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
-        # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
+        # networkAct = lasagne.layers.MaxPool2DLayer(networkAct, pool_size=2)
         """
         networkAct = lasagne.layers.Conv1DLayer(
             networkAct, num_filters=32, filter_size=4,
@@ -135,10 +191,14 @@ class DeepCNN2D(ModelInterface):
             stride=2,
             nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
-        # network = lasagne.layers.MaxPool1DLayer(network, pool_size=3)
+        # networkAct = lasagne.layers.MaxPool2DLayer(networkAct, pool_size=2)
         networkAct = lasagne.layers.FlattenLayer(networkAct, outdim=2)
+        
+        if (networkTer is not None):
+            networkAct = lasagne.layers.ConcatLayer([networkAct, networkActTer], axis=1)
+            
         networkAct = lasagne.layers.DenseLayer(
-                networkAct, num_units=64,
+                networkAct, num_units=128,
                 nonlinearity=lasagne.nonlinearities.leaky_rectify)
         
         self._actor_task_part = networkAct
