@@ -546,8 +546,8 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         return exp
     
     elif ((env_type == 'RLSimulations')):
-        from env.EnvWrapper import getEnv
-
+        from rlsimenv.EnvWrapper import getEnv
+        from sim.OpenAIGymEnv import OpenAIGymEnv
         env_name = config_file
         env = getEnv(env_name)
         

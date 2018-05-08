@@ -118,3 +118,4 @@ terrainRLSim/
 GymMultiChar/
 nav_Game_MultiAgent/
 .pytest_cache/
+/RLSimulations
