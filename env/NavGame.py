@@ -86,6 +86,12 @@ class NavGame(object):
         Q = np.random.rand((self._state_length * self._state_length))
         if self._settings['render']:
             self.initRender(U, V, Q)
+            
+    def getActionSpaceSize(self):
+        return self._state_length
+    
+    def getObservationSpaceSize(self):
+        return self._state_length
         
     def init(self):
         self._agent = np.array([2]* self._state_length) ## Somewhat random initial spot
