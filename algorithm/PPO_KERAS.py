@@ -469,6 +469,7 @@ class PPO_KERAS(AlgorithmInterface):
                 action_old = self._modelTarget.getActorNetwork().predict(states)
                 ### Anneal learning rate
                 K.set_value(self._model._actor_train.optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
+                # print ("model learning rate: ", K.get_value(self._model._actor_train.optimizer.lr))
                 self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], [actions, target_],
                       epochs=1, batch_size=states.shape[0],
                       verbose=0,
