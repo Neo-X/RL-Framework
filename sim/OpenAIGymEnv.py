@@ -91,7 +91,7 @@ class OpenAIGymEnv(SimInterface):
         """
         state = np.array(state_)
         
-        state = np.reshape(state, (-1, len(state_)))
+        # state = np.reshape(state, (-1, len(state_)))
         
         return state
     

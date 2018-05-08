@@ -6,7 +6,7 @@ import numpy as np
 if __name__ == '__main__':
     
     
-    env = getEnv(env_name="ParticleGame_2D-v0", render=False)
+    env = getEnv(env_name="GapGame_2D-v0", render=False)
     
     actionSpace = env.getActionSpace()
     env.setRandomSeed(1234)
@@ -34,6 +34,7 @@ if __name__ == '__main__':
             observation, reward,  done, info = env.step(actions)
             print ("Reward: ", reward, "Action: ", actions, " observation: ", observation)
             print ("Done: ", done)
+            # print ("exp.getState(): ", env.getState())
             if ( done ):
                 break
             

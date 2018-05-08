@@ -433,7 +433,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
     
     print("Creating sim Type: ", env_type)
     if env_type == 'ballgame_2d':
-        from env.BallGame2D import BallGame2D
+        from rlsimenv.BallGame2D import BallGame2D
         from sim.BallGame2DEnv import BallGame2DEnv
         file = open(config_file)
         conf = json.load(file)
@@ -444,7 +444,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = BallGame2DEnv(exp, settings)
         return exp
     elif env_type == 'ballgame_1d':
-        from env.BallGame1D import BallGame1D
+        from rlsimenv.BallGame1D import BallGame1D
         from sim.BallGame1DEnv import BallGame1DEnv
         file = open(config_file)
         conf = json.load(file)
@@ -455,7 +455,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = BallGame1DEnv(exp, settings)
         return exp
     elif env_type == 'gapgame_1d':
-        from env.GapGame1D import GapGame1D
+        from rlsimenv.GapGame1D import GapGame1D
         from sim.GapGame1DEnv import GapGame1DEnv
         file = open(config_file)
         conf = json.load(file)
@@ -466,7 +466,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = GapGame1DEnv(exp, settings)
         return exp
     elif env_type == 'gapgame_2d':
-        from env.GapGame2D import GapGame2D
+        from rlsimenv.GapGame2D import GapGame2D
         from sim.GapGame2DEnv import GapGame2DEnv
         file = open(config_file)
         conf = json.load(file)
@@ -477,7 +477,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = GapGame2DEnv(exp, settings)
         return exp
     elif env_type == 'nav_Game':
-        from env.NavGame import NavGame
+        from rlsimenv.NavGame import NavGame
         from sim.NavGameEnv import NavGameEnv
         # file = open(config_file)
         # conf = json.load(file)
@@ -489,7 +489,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = NavGameEnv(exp, settings)
         return exp
     elif env_type == 'nav_Game_MultiAgent':
-        from env.NavGameMultiAgent import NavGameMultiAgent
+        from rlsimenv.NavGameMultiAgent import NavGameMultiAgent
         from sim.NavGameMultiAgentEnv import NavGameMultiAgentEnv
         # file = open(config_file)
         # conf = json.load(file)
@@ -501,7 +501,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = NavGameMultiAgentEnv(exp, settings)
         return exp
     elif env_type == 'Particle_Sim':
-        from env.ParticleGame import ParticleGame
+        from rlsimenv.ParticleGame import ParticleGame
         from sim.ParticleSimEnv import ParticleSimEnv
         # file = open(config_file)
         # conf = json.load(file)
