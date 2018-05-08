@@ -10,7 +10,7 @@ import random
 import math
 import sys
 import time
-from model.ModelUtil import clampAction
+# from model.ModelUtil import clampAction
 
 
 def loadMap():
@@ -93,8 +93,31 @@ class ParticleGame(object):
         self._target = np.array([0]* self._state_length) ## goal location
         # self._map[self._target[0]][self._target[1]] = 1
         
+    def getActionSpaceSize(self):
+        return self._state_length
+    
+    def getObservationSpaceSize(self):
+        return self._state_length
+    
+    def setRandomSeed(self, seed):
+        np.random.seed(seed)
+        random.seed(seed)
         
+    def getNumAgents(self):
+        return 0
+    
+    def updateAction(self, action):
+        self.__action = action
       
+    def calcReward(self):
+        return self.__reward
+    
+    def getState(self):
+        return self._agent
+    
+    def getStateForAgent(self, i):
+        return self.getState()
+    
     def initEpoch(self):
         """
             Reset agent location
@@ -136,26 +159,6 @@ class ParticleGame(object):
             7: [-1,-1],
             }.get(action, [-1,0]) 
             
-    """
-    def act(self, action):
-        print ("Trying discrete action: ", action)
-        move = np.array(self.move(action))
-        # loc = self._agent + (move * random.uniform(0.5,1.0))
-        loc = self._agent + (move)
-        
-        if (((loc[0] < self._state_bounds[0][0]) or (loc[0] > self._state_bounds[1][0]) or 
-            (loc[1] < self._state_bounds[0][1]) or (loc[1] > self._state_bounds[1][1])) or
-            self.collision(loc) or
-            self.fall(loc)):
-            # Can't move out of map
-            return self.reward() + -8
-            
-        # if self._map[loc[0]-1][loc[1]-1] == 1:
-            # Can't walk onto obstacles
-        #     return self.reward() +-5
-        self._agent = loc
-        return self.reward()
-    """
     def actContinuous(self, action, bootstrapping):
         # print ("Trying action: ", action)
         move = np.array(action)
@@ -170,13 +173,15 @@ class ParticleGame(object):
             ## Don't let agent move off board
             # print ("Agent trying to walk off board", loc)
             
-            loc = clampAction(loc, [[-8.0] * self._state_length, [8.0] * self._state_length])
+            # loc = clampAction(loc, [[-8.0] * self._state_length, [8.0] * self._state_length])
             # print ("clamped pos", loc)
             # can't overlap an obstacle
-            return -((self._state_bounds[1][0] - self._state_bounds[0][0])/8.0) + self.reward(loc)
+            self.__reward = -((self._state_bounds[1][0] - self._state_bounds[0][0])/8.0) + self.reward(loc) 
+            return self.__reward
     
         if (self.collision(loc)):
-            return -((self._state_bounds[1][0] - self._state_bounds[0][0])/8.0) + self.reward(loc)
+            self.__reward = -((self._state_bounds[1][0] - self._state_bounds[0][0])/8.0) + self.reward(loc) 
+            return self.__reward
         # if self._map[loc[0]-1][loc[1]-1] == 1:
             # Can't walk onto obstacles
         #     return self.reward() +-5
@@ -184,8 +189,8 @@ class ParticleGame(object):
         
         if ( self._settings['render'] == True ):
             self.update()
-        
-        return self.reward()
+        self.__reward = self.reward()
+        return self.__reward
     
     def fall(self, loc):
         # Check to see if collision at loc with any obstacles
@@ -383,6 +388,17 @@ class ParticleGame(object):
         # update pieces of the animation
         # self._agent = self._agent + np.array([0.1,0.1])
         # print ("Agent loc: " + str(self._agent))
+        self.__reward = self.actContinuous(self.__action, bootstrapping=False)
+        if self._settings['render']:
+            self._particles.set_data(self._agent[0], self._agent[1] )
+            self._particles.set_markersize(self._markerSize)
+            self._plot_targets.set_data(self._target[0], self._target[1] )
+            self._plot_targets.set_markersize(self._markerSize)
+        # self._line1.set_ydata(np.sin(x + phase))
+        # self._fig.canvas.draw()
+        
+    def display(self):
+        
         if self._settings['render']:
             self._particles.set_data(self._agent[0], self._agent[1] )
             self._particles.set_markersize(self._markerSize)

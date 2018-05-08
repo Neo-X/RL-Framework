@@ -6,7 +6,7 @@ import numpy as np
 if __name__ == '__main__':
     
     
-    env = getEnv(env_name="NavGame_2D-v0", render=False)
+    env = getEnv(env_name="ParticleGame_2D-v0", render=False)
     
     actionSpace = env.getActionSpace()
     env.setRandomSeed(1234)
@@ -18,7 +18,6 @@ if __name__ == '__main__':
     print("Actions: ", actions)
     
     print("observation_space: ", env.observation_space.getMaximum())
-    
     print("Actions space max: ", len(env.action_space.getMaximum()))
     print("Actions space min: ", env.action_space.getMinimum())
     print("Actions space max: ", env.action_space.getMaximum())

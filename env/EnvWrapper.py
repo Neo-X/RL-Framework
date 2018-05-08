@@ -1,7 +1,7 @@
 
 
 from NavGame import NavGame
-# from ParticleGame import ParticleGame
+from ParticleGame import ParticleGame
 import numpy as np
 
 class ActionSpace(object):
@@ -257,6 +257,8 @@ def getEnv(env_name, render=False):
     settings['render'] = render
     if (env_data[env_name]['sim_name'] == 'NavGame'):
         sim = NavGame(settings=env_data[env_name])
+    elif (env_data[env_name]['sim_name'] == 'ParticleGame'):
+        sim = ParticleGame(settings=env_data[env_name])
     else:
         print ("Env does not match a simulation environment type")
         return None

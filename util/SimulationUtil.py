@@ -545,6 +545,18 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = exp
         return exp
     
+    elif ((env_type == 'RLSimulations')):
+        from env.EnvWrapper import getEnv
+
+        env_name = config_file
+        env = getEnv(env_name)
+        
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = OpenAIGymEnv(env, conf)
+        exp = exp
+        return exp
+    
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D') or 
           (env_type == 'simbiconBiped2DTerrain') or (env_type == 'hopper_2D')):
         import simbiconAdapter
@@ -756,6 +768,7 @@ def createActor(env_type, settings, experience):
         actor = ActorInterface(settings, experience)
     elif (env_type == 'open_AI_Gym'
           or (env_type == 'terrainRLSim')
+          or (env_type == 'RLSimulations')
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
