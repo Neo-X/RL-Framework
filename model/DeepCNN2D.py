@@ -94,7 +94,9 @@ class DeepCNN2D(ModelInterface):
         network = lasagne.layers.FlattenLayer(network, outdim=2)
         
         if (networkTer is not None):
+            print ("********* CONCAT CONV TYPES******")
             network = lasagne.layers.ConcatLayer([network, networkTer], axis=1)
+            # sys.exit()
             
         network = lasagne.layers.DenseLayer(
                 network, num_units=128,
