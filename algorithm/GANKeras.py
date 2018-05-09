@@ -7,6 +7,11 @@ sys.path.append('../')
 from model.ModelUtil import *
 from algorithm.AlgorithmInterface import AlgorithmInterface
 
+from keras.optimizers import SGD
+# from keras.utils.np_utils import to_categoricalnetwork
+import keras.backend as K
+import keras
+from keras.models import Sequential, Model
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -66,20 +71,14 @@ class GANKeras(AlgorithmInterface):
         # self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         # self._q_valsTarget_drop = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
-        
-        
         GANKeras.compile(self)
-        
-        self._genloss = (self._model.getCriticNetwork()(self._model.getStateSymbolicVariable(), 
-                            self._model.getActionSymbolicVariable(),
-                            self._model.getForwardDynamicsNetwork(
-                                self._model.getStateSymbolicVariable(), 
-                                self._model.getActionSymbolicVariable(),
-                                self._model._Noise
-                                                         )))
         
     def compile(self):
         
+        self._critic = Model(input=[self._model.getStateSymbolicVariable(), 
+                            self._model.getActionSymbolicVariable(),
+                            self._model.getStateSymbolicVariable()], 
+                             output=self._model.getCriticNetwork())
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
                                     epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
@@ -87,8 +86,11 @@ class GANKeras(AlgorithmInterface):
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
+        print("Discriminator Net summary: ",  self._model.getCriticNetwork().summary())
         
-        
+        self._reward_net = Model(input=[self._model.getStateSymbolicVariable(), 
+                            self._model.getActionSymbolicVariable()],
+                            output=self._reward_net)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
                                     epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
@@ -96,11 +98,29 @@ class GANKeras(AlgorithmInterface):
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
         self._model.getRewardNetwork().compile(loss='mse', optimizer=sgd)
+        print("Reward Net summary: ",  self._model.getRewardNetwork().summary())
         
+        # For the combined model we will only train the generator
+        self._model.getCriticNetwork().trainable = False
         
         def neg_y(true_y, pred_y):
             return -pred_y
         
+        self._generate = self._model.getForwardDynamicsNetwork()(
+                                [self._model.getStateSymbolicVariable(), 
+                                self._model.getActionSymbolicVariable(),
+                                self._model._Noise]
+                                )
+        
+        self._genloss = (self._model.getCriticNetwork()(
+                            [self._model.getStateSymbolicVariable(), 
+                            self._model.getActionSymbolicVariable(),
+                            self._generate]))
+        
+        self._forward_dynamics_net = Model(input=[self._model.getStateSymbolicVariable(), 
+                                self._model.getActionSymbolicVariable(),
+                                self._model._Noise], 
+                                output=_genloss)
         
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
@@ -108,7 +128,8 @@ class GANKeras(AlgorithmInterface):
                                     amsgrad=True)
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
-        self._model.getForwardDynamicsNetwork().compile(loss=[self._genloss], optimizer=sgd)
+        self._genloss.compile(loss=[neg_y], optimizer=sgd)
+        print("FD Net summary: ",  self._genloss.summary())
         
         
         

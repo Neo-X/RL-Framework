@@ -57,7 +57,7 @@ class FDNetDenseKeras(ModelInterface):
         input2 = Input(shape=(self._action_length,)) 
         self._actionInput = input2
         self._nextStateInput = Input(shape=(self._result_state_length,))
-        self._noiseInput = Input(shape=(1,)) 
+        self._noiseInput = self._Noise
         
         input = self._stateInput
         insert_action_later = True
@@ -103,15 +103,15 @@ class FDNetDenseKeras(ModelInterface):
         # layersAct.append(network)
         # network = lasagne.layers.ConcatLayer([layersAct[2], layersAct[1], layersAct[0]])
         # network = lasagne.layers.DropoutLayer(network, p=self._dropout_p, rescale=True)
-        network = Dense(8, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
+        network = Dense(16, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
         network = getKerasActivation(activation_type)(network)   
         network = Dropout(rate=self._dropout_p)(network)   
 
         ## This can be used to model the reward function
         network = Dense(1, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
         network = getKerasActivation("linear")(network)   
-        self._reward_net = Model(input=[self._stateInput, self._actionInput], output=network)
-        print("Reward Net summary: ",  self._reward_net.summary())
+        # self._reward_net = Model(input=[self._stateInput, self._actionInput], output=network)
+        self._reward_net = network
                 
         ### discriminator
         inputDiscrominator = keras.layers.concatenate(inputs=[self._stateInput, self._actionInput, self._nextStateInput], axis=-1)
@@ -152,8 +152,8 @@ class FDNetDenseKeras(ModelInterface):
         networkDiscrominator = Dense(1, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkDiscrominator)
         networkDiscrominator = getKerasActivation("linear")(networkDiscrominator)   
         
-        self._critic = Model(input=[self._stateInput, self._actionInput, self._nextStateInput], output=networkDiscrominator)
-        print("Discriminator Net summary: ",  self._critic.summary())
+        # self._critic = Model(input=[self._stateInput, self._actionInput, self._nextStateInput], output=networkDiscrominator)
+        self._critic = networkDiscrominator
                 
         input = keras.layers.concatenate(inputs=[self._stateInput, self._actionInput], axis=-1)
         ### dynamics network
@@ -206,12 +206,13 @@ class FDNetDenseKeras(ModelInterface):
             and "train_gan" in settings_
             and (settings_["train_gan"] == True)
             ):
-            self._forward_dynamics_net = Model(input=[self._stateInput, self._actionInput, self._noiseInput], output=networkAct)
+            print("Constructing gan with random noise input")
+            # self._forward_dynamics_net = Model(input=[self._stateInput, self._actionInput, self._noiseInput], output=networkAct)
+            self._forward_dynamics_net = networkAct
                 # print ("Initial W " + str(self._w_o.get_value()) )
         else:
-            self._forward_dynamics_net = Model(input=[self._stateInput, self._actionInput], output=networkAct)
-
-        print("FD Net summary: ",  self._forward_dynamics_net.summary())
+            # self._forward_dynamics_net = Model(input=[self._stateInput, self._actionInput], output=networkAct)
+            self._forward_dynamics_net = networkAct
 
         self._states_shared = theano.shared(
             np.zeros((batch_size, self._state_length),
