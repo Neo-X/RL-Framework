@@ -77,7 +77,7 @@ class GANKeras(AlgorithmInterface):
         
         self._critic = Model(input=[self._model.getStateSymbolicVariable(), 
                             self._model.getActionSymbolicVariable(),
-                            self._model.getStateSymbolicVariable()], 
+                            self._model.getResultStateSymbolicVariable()], 
                              output=self._model.getCriticNetwork())
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
