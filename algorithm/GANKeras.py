@@ -20,10 +20,10 @@ class GANKeras(AlgorithmInterface):
         maximize D while minimizing G
     """
     
-    def __init__(self,  model, state_length, action_length, state_bounds, action_bounds, settings_):
+    def __init__(self,  model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0):
 
         print("Building GAN Model")
-        super(GANKeras,self).__init__(model, state_length, action_length, state_bounds, action_bounds, 0, settings_)
+        super(GANKeras,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
         self._noise_mean = 0.0
         self._noise_std = 1.0
 
@@ -44,8 +44,8 @@ class GANKeras(AlgorithmInterface):
         self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
         self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
                 
-        self._modelTarget = copy.deepcopy(model)
-        
+        # self._modelTarget = copy.deepcopy(model)
+        self._modelTarget = type(self._model)(state_length, action_length, state_bounds, action_bounds, settings_)
             
         # print ("Initial W " + str(self._w_o.get_value()) )
         
@@ -66,240 +66,51 @@ class GANKeras(AlgorithmInterface):
         # self._q_valsTarget = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         # self._q_valsTarget_drop = lasagne.layers.get_output(self._modelTarget.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
-        if ("train_gan_with_gaussian_noise" in self.getSettings() and (self.getSettings()["train_gan_with_gaussian_noise"])):
-            inputs_1 = {
-                self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model.getActionSymbolicVariable(): self._model.getActions(),
-                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                self._model._Noise: self._noise_shared
-            }
-            self._generator_drop = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_1, deterministic=True)
-            self._generator = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_1, deterministic=True)
-        else:
-            inputs_1 = {
-                self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model.getActionSymbolicVariable(): self._model.getActions(),
-                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                # self._model._Noise: self._noise_shared
-            }
-            self._generator = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_1, deterministic=True)
-            self._generator_drop = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), inputs_1, deterministic=False)
-        # self._q_valsActTarget = lasagne.layers.get_output(self._modelTarget.getForwardDynamicsNetwork(), self._model.getResultStateSymbolicVariable(), deterministic=True)
-        # self._q_valsActA_drop = lasagne.layers.get_output(self._model.getForwardDynamicsNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
         
-        inputs_ = {
-                self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model.getActionSymbolicVariable(): self._model.getActions(),
-                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-                # self._model._Noise: self._noise_shared
-            }
-        self._discriminator = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=True)
-        self._discriminator_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), inputs_, deterministic=False)
-        """
-        inputs_2 = {
-            self._modelTarget.getStateSymbolicVariable(): self._model.getResultStates(),
-            self._modelTarget.getActionSymbolicVariable(): self._model.getActions()
-        }
-        """
-        
-        
-        self._diff = self._model.getRewardSymbolicVariable() - self._discriminator_drop
-        loss = T.pow(self._diff, 2)
-        self._loss = T.mean(loss)
-        
-        
-        self._diff_g = self._model.getResultStateSymbolicVariable() - self._generator_drop
-        loss_g = T.pow(self._diff_g, 2)
-        self._loss_g = T.mean(loss_g)
-    
-        # assert len(lasagne.layers.helper.get_all_params(self._l_outA)) == 16
-        # Need to remove the action layers from these params
-        self._params = lasagne.layers.helper.get_all_params(self._model.getCriticNetwork()) 
-        print ("******Number of Layers is: " + str(len(lasagne.layers.helper.get_all_params(self._model.getCriticNetwork()))))
-        print ("******Number of Action Layers is: " + str(len(lasagne.layers.helper.get_all_params(self._model.getForwardDynamicsNetwork()))))
-        self._actionParams = lasagne.layers.helper.get_all_params(self._model.getForwardDynamicsNetwork())
-        self._givens_ = {
-                self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model.getActionSymbolicVariable(): self._model.getActions(),
-                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-                # self._model._Noise: self._noise_shared
-            }
-        
-        self._critic_regularization = (self._critic_regularization_weight * 
-                                       lasagne.regularization.regularize_network_params(
-                                            self._model.getCriticNetwork(), lasagne.regularization.l2))
-        
-        ## MSE update
-        self._value_grad = T.grad(self._loss + self._critic_regularization
-                                                     , self._params)
-        print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-        self._updates_ = lasagne.updates.adam(self._value_grad
-                    , self._params, self._learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
-        
-        if ("train_gan_with_gaussian_noise" in settings_ and (settings_["train_gan_with_gaussian_noise"])):
-            self._actGivens = {
-                self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model.getActionSymbolicVariable(): self._model.getActions(),
-                # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                self._model._Noise: self._noise_shared
-            }
-            self._actGivens_MSE = {
-                self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model.getActionSymbolicVariable(): self._model.getActions(),
-                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                self._model._Noise: self._noise_shared
-            }
-        else:
-            self._actGivens = {
-                self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model.getActionSymbolicVariable(): self._model.getActions(),
-                # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                # self._model._Noise: self._noise_shared
-            }
-            self._actGivens_MSE = {
-                self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model.getActionSymbolicVariable(): self._model.getActions(),
-                # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                # self._model._Noise: self._noise_shared
-            }
-        
-        self._actor_regularization = (self._regularization_weight * 
-                                       lasagne.regularization.regularize_network_params(
-                                            self._model.getForwardDynamicsNetwork(), lasagne.regularization.l2))
-        ## MSE update
-        self._gen_grad = T.grad(self._loss_g + self._actor_regularization
-                                                     , self._actionParams)
-        print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
-        self._updates_generator = lasagne.updates.adam(self._gen_grad
-                    , self._actionParams, self._learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
-        
-        ## Some cool stuff to backprop action gradients
-        
-        self._result_state_grad = T.matrix("Action_Grad")
-        self._result_state_grad.tag.test_value = np.zeros((self._batch_size,self._state_length), dtype=np.dtype(self.getSettings()['float_type']))
-        
-        self._result_state_grad_shared = theano.shared(
-            np.zeros((self._batch_size, self._state_length),
-                      dtype=self.getSettings()['float_type']))
-        
-        ### Maximize wrt q function
-        
-        self._result_state_mean_grads = T.grad(cost=None, wrt=self._actionParams,
-                                                    known_grads={self._generator: self._result_state_grad_shared}),
-        print ("Action grads: ", self._result_state_mean_grads[0])
-        ## When passing in gradients it needs to be a proper list of gradient expressions
-        self._result_state_mean_grads = list(self._result_state_mean_grads[0])
-        # print ("isinstance(self._action_mean_grads, list): ", isinstance(self._action_mean_grads, list))
-        # print ("Action grads: ", self._action_mean_grads)
-        self._generatorGRADUpdates = lasagne.updates.adam(self._result_state_mean_grads, self._actionParams, 
-                    self._learning_rate * 0.1,  beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
-        
-        self._givens_grad = {
-                self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model.getActionSymbolicVariable(): self._model.getActions(),
-                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            }
-        
-        
-        ### Some other stuff to learn a reward function
-        self._inputs_reward_ = {
-            self._model.getStateSymbolicVariable(): self._model.getStates(),
-            self._model.getActionSymbolicVariable(): self._model.getActions(),
-        }
-        self._reward = lasagne.layers.get_output(self._model.getRewardNetwork(), self._inputs_reward_, deterministic=True)
-        self._reward_drop = lasagne.layers.get_output(self._model.getRewardNetwork(), self._inputs_reward_, deterministic=False)
-        ## because rewards are noramlized then scaled by the discount factor to the value stay between -1,1.
-        self._reward_diff = (self._model.getRewardSymbolicVariable() * (1.0 / (1.0 - self.getSettings()['discount_factor']))) - self._reward_drop
-        self.__Reward = self._model.getRewardSymbolicVariable()
-        print ("self.__Reward", self.__Reward)
-        # self._reward_diff = (self._model.getRewardSymbolicVariable()) - self._reward_drop
-        self._reward_loss_ = T.mean(T.pow(self._reward_diff, 2),axis=1)
-        self._reward_loss = T.mean(self._reward_loss_)
-        
-        self._reward_diff_NoDrop = (self._model.getRewardSymbolicVariable()* (1.0 / (1.0- self.getSettings()['discount_factor']))) - self._reward
-        # self._reward_diff_NoDrop = (self._model.getRewardSymbolicVariable()) - self._reward
-        self._reward_loss_NoDrop_ = T.mean(T.pow(self._reward_diff_NoDrop, 2),axis=1)
-        self._reward_loss_NoDrop = T.mean(self._reward_loss_NoDrop_)
-        self._reward_params = lasagne.layers.helper.get_all_params(self._model.getRewardNetwork())
-        self._reward_givens_ = {
-                self._model.getStateSymbolicVariable() : self._model.getStates(),
-                # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
-                self._model.getActionSymbolicVariable(): self._model.getActions(),
-                self._model.getRewardSymbolicVariable() : self._model.getRewards(),
-            }
-        self._reward_updates_ = lasagne.updates.adam(self._reward_loss + (self._regularization_weight * lasagne.regularization.regularize_network_params(
-            self._model.getRewardNetwork(), lasagne.regularization.l2)), self._reward_params, self._learning_rate, beta1=0.9, beta2=0.999, epsilon=self._rms_epsilon)
         
         GANKeras.compile(self)
         
+        self._genloss = (self._model.getCriticNetwork()(self._model.getStateSymbolicVariable(), 
+                            self._model.getActionSymbolicVariable(),
+                            self._model.getForwardDynamicsNetwork(
+                                self._model.getStateSymbolicVariable(), 
+                                self._model.getActionSymbolicVariable(),
+                                self._model._Noise
+                                                         )))
+        
     def compile(self):
         
-        self._train = theano.function([], [self._loss, self._discriminator], updates=self._updates_, givens=self._givens_)
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
+                                    amsgrad=True)
+        print ("Clipping: ", sgd.decay)
+        print("sgd, critic: ", sgd)
+        self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
         
-        # self._trainActor = theano.function([], [actLoss, self._q_valsActA], updates=actionUpdates, givens=actGivens)
-        # self._trainActor = theano.function([], [self._q_func], updates=self._actionUpdates, givens=self._actGivens)
-        self._trainGenerator  = theano.function([], [], updates=self._generatorGRADUpdates, givens=self._actGivens)
-        self._trainGenerator_MSE = theano.function([], [], updates=self._updates_generator, givens=self._actGivens_MSE)
-        self._discriminate = theano.function([], self._discriminator,
-                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
-                                               self._model.getActionSymbolicVariable(): self._model.getActions(),
-                                               self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                                               })
         
-        #self._q_val_Target = theano.function([], self._q_valsB_, givens=self._givens_grad)
-        if ("train_gan_with_gaussian_noise" in self.getSettings() and (self.getSettings()["train_gan_with_gaussian_noise"])):
-            self._generate = theano.function([], self._generator,
-                   givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
-                           self._model.getActionSymbolicVariable(): self._model.getActions(),
-                           # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                           self._model._Noise: self._noise_shared})
-        else:
-            self._generate = theano.function([], self._generator,
-                                       givens={self._model.getStateSymbolicVariable(): self._model.getStates(),
-                                               self._model.getActionSymbolicVariable(): self._model.getActions(),
-                                               # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                                               self._model._Noise: self._noise_shared})
-        """
-        inputs_ = [
-                   self._model.getStateSymbolicVariable(), 
-                   self._model.getRewardSymbolicVariable(), 
-                   # ResultState
-                   ]
-        self._bellman_error = theano.function(inputs=inputs_, outputs=self._diff, allow_input_downcast=True)
-        """
-        # self._diffs = theano.function(input=[State])
-        self._bellman_error = theano.function(inputs=[], outputs=self._loss_g, allow_input_downcast=True, givens={
-                self._model.getStateSymbolicVariable(): self._model.getStates(),
-                self._model.getActionSymbolicVariable(): self._model.getActions(),
-                self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-                self._model._Noise: self._noise_shared
-            })
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
+                                    amsgrad=True)
+        print ("Clipping: ", sgd.decay)
+        print("sgd, critic: ", sgd)
+        self._model.getRewardNetwork().compile(loss='mse', optimizer=sgd)
         
-        # self._get_action_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._actionInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
-        self._get_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._stateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
-        self._get_result_state_grad = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._discriminator), [self._model._resultStateInputVar] + self._params), allow_input_downcast=True, givens=self._givens_grad)
-        self._get_action_grad = theano.function([], outputs=T.grad(cost=None, wrt=[self._model._actionInputVar] + self._actionParams,
-                                                            known_grads={self._generator: self._result_state_grad_shared}), 
-                                         allow_input_downcast=True, 
-                                         givens= self._actGivens)
         
-        # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads((self._reward_loss_NoDrop), [lasagne.layers.get_all_layers(self._model.getRewardNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True,
-        self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [self._model._actionInputVar] + self._reward_params), allow_input_downcast=True, 
-                                                givens=self._inputs_reward_)
+        def neg_y(true_y, pred_y):
+            return -pred_y
         
-        self._train_reward = theano.function([], [self._reward_loss], updates=self._reward_updates_, givens=self._reward_givens_)
-        self._predict_reward = theano.function([], self._reward,
-                                       givens=self._inputs_reward_)
-        self._reward_error = theano.function(inputs=[], outputs=self._reward_diff, allow_input_downcast=True, givens=self._reward_givens_)
-        self._reward_values = theano.function(inputs=[], outputs=self.__Reward, allow_input_downcast=True, givens={
-                                # self._model.getStateSymbolicVariable() : self._model.getStates(),
-                                # self._model.getResultStateSymbolicVariable() : self._model.getResultStates(),
-                                # self._model.getActionSymbolicVariable(): self._model.getActions(),
-                                self._model.getRewardSymbolicVariable() : self._model.getRewards(),
-                            })
+        
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
+                                    amsgrad=True)
+        print ("Clipping: ", sgd.decay)
+        print("sgd, critic: ", sgd)
+        self._model.getForwardDynamicsNetwork().compile(loss=[self._genloss], optimizer=sgd)
+        
+        
         
     def getStateGrads(self, states, actions=None, alreadyNormed=False):
         """
@@ -388,7 +199,6 @@ class GANKeras(AlgorithmInterface):
         
     def trainCritic(self, states, actions, result_states, rewards):
         
-        self.setData(states, actions, result_states, rewards)
         noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
         # print ("Shapes: ", states.shape, actions.shape, rewards.shape, result_states.shape, falls.shape, noise.shape)
         self._noise_shared.set_value(noise)

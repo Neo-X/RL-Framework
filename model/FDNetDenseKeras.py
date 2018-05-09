@@ -36,7 +36,21 @@ class FDNetDenseKeras(ModelInterface):
         self._result_state_length = state_length
         
         batch_size=32
-        # data types for model
+        ### data types for model
+        # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name="State")
+        self._State = keras.layers.Input(shape=(self._state_length,), name="State")
+        # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
+        # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
+        self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState")
+        # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
+        # self._Reward = K.variable(value=np.random.rand(self._batch_size,1), name="Reward")
+        self._Reward = keras.layers.Input(shape=(1,), name="Reward")
+        # self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
+        # self._Action = K.variable(value=np.random.rand(self._batch_size, self._action_length), name="Action")
+        self._Action = keras.layers.Input(shape=(self._action_length,), name="Action")
+        # self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
+        # self._Reward = K.variable(value=np.random.rand(self._batch_size,1), name="Reward")
+        self._Noise = keras.layers.Input(shape=(1,), name="Reward")
         
         input = Input(shape=(self._state_length,))
         self._stateInput = input

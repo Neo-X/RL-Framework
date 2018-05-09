@@ -107,11 +107,9 @@ class GAN(AlgorithmInterface):
         }
         """
         
-        
         self._diff = self._model.getRewardSymbolicVariable() - self._discriminator_drop
         loss = T.pow(self._diff, 2)
         self._loss = T.mean(loss)
-        
         
         self._diff_g = self._model.getResultStateSymbolicVariable() - self._generator_drop
         loss_g = T.pow(self._diff_g, 2)

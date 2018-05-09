@@ -55,7 +55,9 @@ if __name__ == '__main__':
     file.close()
     import os    
     os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
-        
+    if ("learning_backend" in settings):
+        # KERAS_BACKEND=tensorflow
+        os.environ['KERAS_BACKEND'] = settings['learning_backend']
     # import theano
     # from theano import tensor as T
     from model.ModelUtil import scale_action
