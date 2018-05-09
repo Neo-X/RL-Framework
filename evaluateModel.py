@@ -137,6 +137,7 @@ class SimContainer(object):
                     
                     
                     # action_[1] = 1.0
+                    self._action = self._action
                     print( "New action: ", self._action)
                     self._exp.updateAction(self._action)
                 
