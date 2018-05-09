@@ -58,7 +58,7 @@ if __name__ == '__main__':
         
     # import theano
     # from theano import tensor as T
-    from model.ModelUtil import *
+    from model.ModelUtil import scale_action
     from algorithm.ForwardDynamics import ForwardDynamics
     from util.ExperienceMemory import ExperienceMemory
     from util.SimulationUtil import createForwardDynamicsModel, createRLAgent
@@ -70,8 +70,10 @@ if __name__ == '__main__':
     action_bounds = np.array([[-10.0],[10.0]])
     result_state_bounds = np.array([[-50.0]*trajectory_length,[50.0]*trajectory_length])
     reward_bounds = np.array([[0.0],[1.0]])
+    ## NUmber of true samples
     experience_length = 500
-    num_samples = 10
+    ### How many samples to create from adding noise to a try sample
+    num_samples = 100
     batch_size=64
     # states = np.repeat([np.linspace(-5.0, 5.0, experience_length)],2, axis=0)
     velocities = np.linspace(1.0, 15.0, experience_length)
@@ -130,7 +132,7 @@ if __name__ == '__main__':
         next_state_ = np.array([next_states_[arr[i]]])
         given_states.append(state_)
         # print "Action: " + str([actions[i]])
-        experience.insert(state_, action_, next_state_, np.array([1]))
+        experience.insert(state_, action_, next_state_, np.array([[1]]))
         # print ("Added tuple: ", i)
     
     errors=[]
@@ -147,27 +149,32 @@ if __name__ == '__main__':
         errors.append(error)
         if (i % 100 == 0):
             print ("Iteration: ", i)
-            print ("discriminator loss: ", error, " generator loss: ", lossActor)
+            print ("discriminator loss (discriminator_value, MSE): ", error, " generator loss: ", lossActor)
         # print "Error: " + str(error)
     
     
     # states = np.linspace(-5.0, 5.0, experience_length)
     test_index = 400
-    states_ = np.array(states_)
-    print(states_[test_index])
-    
+    states_ = np.array(states_, dtype=settings['float_type'])
+    next_states_ = np.array(next_states_, dtype=settings['float_type']) 
+    actions = np.array(actions, dtype=settings['float_type']) 
+    print(repr(states_))
+    print(repr(actions))
+    print(repr(next_states_))
     
     gen_state = model.predict([states_[test_index]], [actions[test_index]])
+    print("gen_state: ", repr(gen_state))
     _fig, (_bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
     for j in range(3):
         test_index = int(states_.shape[0]/5) * j
         print ("test_index: ",  test_index)
-        discriminator_value = model.q_value([states_[test_index]], [actions[test_index]], next_states_[test_index])
-        _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), next_states_[test_index], linewidth=3.0, label="True function: " + str(discriminator_value), linestyle='-', marker='o')
+        discriminator_value = model.q_value([states_[test_index]], [actions[test_index]], [next_states_[test_index]])
+        _bellman_error, = _bellman_error_ax.plot(range(len(gen_state[0])), next_states_[test_index], linewidth=3.0, label="True function: " + str(discriminator_value), linestyle='-', marker='o')
         for i in range(5):
             gen_state = model.predict([states_[test_index]], [actions[test_index]])
+            print("gen_state: ", repr(gen_state))
             discriminator_value = model.q_value([states_[test_index]], [actions[test_index]], gen_state)
-            _bellman_error, = _bellman_error_ax.plot(range(len(gen_state)), gen_state, linewidth=2.0, label="Estimated function, " + str(discriminator_value), linestyle='--')
+            _bellman_error, = _bellman_error_ax.plot(range(len(gen_state[0])), gen_state[0], linewidth=2.0, label="Estimated function, " + str(discriminator_value), linestyle='--')
     # Now add the legend with some customizations.
     legend = _bellman_error_ax.legend(loc='lower right', shadow=True, ncol=1, fancybox=True)
     legend.get_frame().set_alpha(0.25)

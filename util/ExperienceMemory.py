@@ -82,7 +82,7 @@ class ExperienceMemory(object):
         # state = list(state)
         assert len(state[0]) == self._state_length, "len(state[0]) == self._state_length: " + str(state) 
         assert len(action[0]) == self._action_length, "len(action[0]) == self._action_length: " + str(action)
-        assert len(nextState[0]) == self._state_length, "len(nextState[0]) == self._state_length: "+ str(nextState)
+        assert len(nextState[0]) == self._result_state_length, "len(nextState[0]) == self._result_state_length: "+ str(nextState)
         assert len(reward[0]) == 1
         assert len(fall[0]) == 1
         assert len(G_t[0]) == 1
@@ -280,7 +280,7 @@ class ExperienceMemory(object):
         
         assert state.shape == (len(indices), self._state_length), "state.shape == (len(indices), self._state_length): " + str(state.shape) + " == " + str((len(indices), self._state_length))
         assert action.shape == (len(indices), self._action_length), "action.shape == (len(indices), self._action_length): " + str(action.shape) + " == " + str((len(indices), self._action_length))
-        assert resultState.shape == (len(indices), self._state_length), "resultState.shape == (len(indices), self._state_length): " + str(resultState.shape) + " == " + str((len(indices), self._state_length))
+        assert resultState.shape == (len(indices), self._result_state_length), "resultState.shape == (len(indices), self._result_state_length): " + str(resultState.shape) + " == " + str((len(indices), self._result_state_length))
         assert reward.shape == (len(indices), 1), "reward.shape == (len(indices), 1): " + str(reward.shape) + " == " + str((len(indices), 1))
         assert G_ts.shape == (len(indices), 1), "G_ts.shape == (len(indices), 1): " + str(G_ts.shape) + " == " + str((len(indices), 1))
         assert fall.shape == (len(indices), 1), "fall.shape == (len(indices), 1): " + str(fall.shape) + " == " + str((len(indices), 1))

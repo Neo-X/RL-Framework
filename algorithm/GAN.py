@@ -138,7 +138,7 @@ class GAN(AlgorithmInterface):
         ## MSE update
         self._value_grad = T.grad(self._loss + self._critic_regularization
                                                      , self._params)
-        print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
+        print ("Optimizing Discriminator Function with ", self.getSettings()['optimizer'], " method")
         self._updates_ = lasagne.updates.adam(self._value_grad
                     , self._params, self._learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         
@@ -175,7 +175,7 @@ class GAN(AlgorithmInterface):
         ## MSE update
         self._gen_grad = T.grad(self._loss_g + self._actor_regularization
                                                      , self._actionParams)
-        print ("Optimizing Value Function with ", self.getSettings()['optimizer'], " method")
+        print ("Optimizing Generator Function with ", self.getSettings()['optimizer'], " method")
         self._updates_generator = lasagne.updates.adam(self._gen_grad
                     , self._actionParams, self._learning_rate , beta1=0.9, beta2=0.9, epsilon=self._rms_epsilon)
         
@@ -557,9 +557,11 @@ class GAN(AlgorithmInterface):
         self._modelTarget.setStates(state)
         # action = self._q_action()
         action = norm_state(action, self.getActionBounds())
+        action = np.array(action, dtype=theano.config.floatX)
         self._model.setActions(action)
         self._modelTarget.setActions(action)
         nextState = norm_state(next_state, self.getStateBounds())
+        nextState = np.array(nextState, dtype=theano.config.floatX)
         # nextState = np.reshape(nextState, (1,20))
         self._model.setResultStates(nextState)
         self._modelTarget.setResultStates(nextState)
