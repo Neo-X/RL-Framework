@@ -178,7 +178,7 @@ class CACLA_KERAS(AlgorithmInterface):
             diff_ = advantage
         else:
             diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        print ("Action diff: ", diff_)
+        # print ("Action diff: ", diff_)
         # print ("Diff")
         # print (diff_)
         for i in range(len(diff_)):

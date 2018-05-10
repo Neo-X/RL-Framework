@@ -102,9 +102,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if type(layer_sizes[i]) is list:
                     if ( len(layer_sizes[i][1])> 1):
                         if (i == 0):
-                            networkAct = Reshape((1, self._settings['num_terrain_features'], self._settings['num_terrain_features']))(taskFeatures)
+                            networkAct = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(taskFeatures)
                         networkAct = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=(1,1),
                                                          kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+                        networkAct = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(networkAct)
                     else:
                         if (i == 0):
                             networkAct = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
@@ -218,8 +219,10 @@ class DeepNNKerasAdaptive(ModelInterface):
             if type(layer_sizes[i]) is list:
                 if ( len(layer_sizes[i][1])> 1):
                     if (i == 0):
-                        network = Reshape((1, self._settings['num_terrain_features'], self._settings['num_terrain_features']))(network)
-                    network = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=(1,1))(network)
+                        network = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(taskFeatures)
+                    network = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=(1,1),
+                                                     kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(network)
+                    network = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(network)
                 else:
                     if (i == 0):
                         network = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
