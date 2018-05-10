@@ -75,6 +75,10 @@ class GANKeras(AlgorithmInterface):
         
     def compile(self):
         
+        self._discriminate = K.function([self._model.getStateSymbolicVariable(), 
+                        self._model.getActionSymbolicVariable(),
+                        self._model.getResultStateSymbolicVariable()],
+                        [self._model.getCriticNetwork()])
         self._model._critic = Model(input=[self._model.getStateSymbolicVariable(), 
                             self._model.getActionSymbolicVariable(),
                             self._model.getResultStateSymbolicVariable()], 
@@ -142,7 +146,7 @@ class GANKeras(AlgorithmInterface):
                                 [self.__generate])
         
         
-        self.__bellman_error = K.mean(self.__generate - self._model.getResultStateSymbolicVariable())
+        self.__bellman_error = K.mean(K.abs(self.__generate - self._model.getResultStateSymbolicVariable()))
         self._bellman_error = K.function([self._model.getStateSymbolicVariable(), 
                                 self._model.getActionSymbolicVariable(),
                                 self._model._Noise,
@@ -347,11 +351,12 @@ class GANKeras(AlgorithmInterface):
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         # self._model.setStates(state)
         # self._model.setActions(action)
-        self.setData(state,action)
+        # self.setData(state,action)
         # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(1,1)))
+        noise = np.random.normal(self._noise_mean,self._noise_std, size=(1,1))
         # print ("State bounds: ", self._state_bounds)
         # print ("gen output: ", self._generate()[0])
-        state_ = scale_state(self._generate(), self._state_bounds)
+        state_ = scale_state(self._generate([state, action, noise])[0], self._state_bounds)
         # print( "self._state_bounds: ", self._state_bounds)
         # print ("scaled output: ", state_)
         return state_
@@ -362,10 +367,11 @@ class GANKeras(AlgorithmInterface):
         # self._model.setActions(actions)
         self.setData(states,actions)
         # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
+        noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
         # print ("State bounds: ", self._state_bounds)
         # print ("fd output: ", self._forwardDynamics()[0])
         # state_ = scale_state(self._generate(), self._state_bounds)
-        state_ = self._generate()
+        state_ = self._generate([state, action, noise])
         return state_
     
     def q_value(self, state):
@@ -393,19 +399,13 @@ class GANKeras(AlgorithmInterface):
         # states[0, ...] = state
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=theano.config.floatX)
-        self._model.setStates(state)
-        self._modelTarget.setStates(state)
         # action = self._q_action()
         action = norm_state(action, self.getActionBounds())
-        self._model.setActions(action)
-        self._modelTarget.setActions(action)
         nextState = norm_state(next_state, self.getStateBounds())
         # nextState = np.reshape(nextState, (1,20))
-        self._model.setResultStates(nextState)
-        self._modelTarget.setResultStates(nextState)
         
         # return scale_reward(self._discriminate(), self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
-        return self._discriminate()
+        return self._discriminate([state, action, nextState])
         # return self._q_valTarget()[0]
         # return self._q_val()[0]
     

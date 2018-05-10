@@ -174,7 +174,7 @@ if __name__ == '__main__':
         _bellman_error, = _bellman_error_ax.plot(range(len(gen_state[0])), next_states_[test_index], linewidth=3.0, label="True function: " + str(discriminator_value), linestyle='-', marker='o')
         for i in range(5):
             gen_state = model.predict([states_[test_index]], [actions[test_index]])
-            print("gen_state: ", repr(gen_state))
+            print("gen_state: ", repr(gen_state[0]))
             discriminator_value = model.q_value([states_[test_index]], [actions[test_index]], gen_state)
             _bellman_error, = _bellman_error_ax.plot(range(len(gen_state[0])), gen_state[0], linewidth=2.0, label="Estimated function, " + str(discriminator_value), linestyle='--')
     # Now add the legend with some customizations.
