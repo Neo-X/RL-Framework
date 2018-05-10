@@ -66,7 +66,7 @@ class FDNetDenseKeras(ModelInterface):
         if (not insert_action_later or (double_insert_action)):
             input = self._actor = keras.layers.concatenate(inputs=[self._stateInput, self._actionInput], axis=-1)
             
-        decrease_param_factor=int(2)
+        decrease_param_factor=int(4)
         ## Activation types
         # activation_type = elu_mine
         # activation_type=lasagne.nonlinearities.tanh
@@ -166,7 +166,7 @@ class FDNetDenseKeras(ModelInterface):
             input = keras.layers.concatenate(inputs=[input, self._noiseInput], axis=-1)
           
         # networkAct = lasagne.layers.DropoutLayer(input, p=self._dropout_p, rescale=True)
-        networkAct = Dense(int(256/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(input)
+        networkAct = Dense(int(64/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(input)
         networkAct = getKerasActivation(activation_type)(networkAct)   
         networkAct = Dropout(rate=self._dropout_p)(networkAct)
         # networkAct = weight_norm(networkAct)
@@ -190,7 +190,7 @@ class FDNetDenseKeras(ModelInterface):
         layersAct.append(networkAct)
         networkAct = keras.layers.concatenate(inputs=[layersAct[1], layersAct[0]], axis=-1)
         
-        networkAct = Dense(int(64/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+        networkAct = Dense(int(256/decrease_param_factor), kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
         networkAct = getKerasActivation(activation_type)(networkAct)   
         networkAct = Dropout(rate=self._dropout_p)(networkAct)
         

@@ -399,6 +399,8 @@ class GAN(AlgorithmInterface):
             self._experience.insertTuple(tup)
         tmp_result_states = copy.deepcopy(result_states)
         tmp_rewards = copy.deepcopy(rewards)
+        tmp_actions = copy.deepcopy(actions)
+        tmp_states = copy.deepcopy(states)
         
         ## Pull out a batch of generated samples
         states__, actions__, generated_samples, rewards__, falls__, G_ts__, exp_actions__ = self._experience.get_batch(min(states.shape[0], self._experience.samples()))

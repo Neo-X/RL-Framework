@@ -935,6 +935,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     tmp_exp_actions = []
     tmp_baselines_ = []
     tmp_advantage = []
+    ### data is in format (state, agent)
     for s in range(len(states)):
         tmp_states.extend(states[s])
         tmp_actions.extend(actions[s])
@@ -946,10 +947,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_falls.extend(falls[s])
         tmp_exp_actions.extend(exp_actions[s])
         tmp_baselines_.extend(baselines_[s])
-        
-        
-    for a_ in range(len(advantage)):
-        tmp_advantage.extend(advantage[a_])
+        ### Advantage is in a different format (agent , state)
+        adv__ = []
+        for a_ in range(len(advantage)):
+            adv__.append(advantage[a_][s])
+        tmp_advantage.extend(adv__)
     tmp_advantage = np.array(tmp_advantage)
     
     # print("tmp_rewards: ", repr(np.array(tmp_rewards)))

@@ -83,10 +83,10 @@ class GANKeras(AlgorithmInterface):
                             self._model.getActionSymbolicVariable(),
                             self._model.getResultStateSymbolicVariable()], 
                              output=self._model.getCriticNetwork())
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
-                                    amsgrad=True)
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
+                                    amsgrad=False)
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
@@ -95,10 +95,10 @@ class GANKeras(AlgorithmInterface):
         self._model._reward_net = Model(input=[self._model.getStateSymbolicVariable(), 
                             self._model.getActionSymbolicVariable()],
                             output=self._model._reward_net)
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
-                                    amsgrad=True)
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
+                                    amsgrad=False)
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
         self._model.getRewardNetwork().compile(loss='mse', optimizer=sgd)
@@ -131,10 +131,10 @@ class GANKeras(AlgorithmInterface):
                                 self._model._Noise], 
                                 output=self._genloss)
         
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
-                                    amsgrad=True)
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
+                                    amsgrad=False)
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
         self._combined.compile(loss=[neg_y], optimizer=sgd)
@@ -258,16 +258,21 @@ class GANKeras(AlgorithmInterface):
         generated_samples = np.array(self._generate([states, actions, noise]))[0]
         # print("generated_samples: ", repr(generated_samples))
         ### Put generated samples in memory
+        
         for i in range(generated_samples.shape[0]):
             next_state__ = scale_state(generated_samples[i], self._state_bounds)
             # print("next_state__: ", repr(next_state__))
             tup = ([states[i]], [actions[i]], [next_state__], [rewards[i]], [[0]], [[0]], [[0]])
             self._experience.insertTuple(tup)
         tmp_result_states = copy.deepcopy(result_states)
-        tmp_rewards = copy.deepcopy(rewards)
+        tmp_rewards = states__ = copy.deepcopy(rewards)
+        tmp_actions = actions__ = copy.deepcopy(actions)
+        tmp_states = copy.deepcopy(states)
         
         ## Pull out a batch of generated samples
-        states__, actions__, generated_samples, rewards__, falls__, G_ts__, exp_actions__ = self._experience.get_batch(min(states.shape[0], self._experience.samples()))
+        use_exp_mem = False
+        if (use_exp_mem):
+            states__, actions__, generated_samples, rewards__, falls__, G_ts__, exp_actions__ = self._experience.get_batch(min(states.shape[0], self._experience.samples()))
         """
         print("generated_samples: ", generated_samples.shape)
         print("tmp_result_states: ", tmp_result_states.shape)
@@ -280,14 +285,16 @@ class GANKeras(AlgorithmInterface):
         for i in range(int(states.shape[0]/2)):
             
             tmp_result_states[i] = generated_samples[i]
-            tmp_rewards[i] = [0] 
+            tmp_rewards[i] = [0]
+            tmp_states[i] = states__[i]
+            tmp_actions[i] = actions__[i]
 
 
         # print("Discriminator targets: ", tmp_rewards)
                     
-        self.setData(states, actions, tmp_result_states, tmp_rewards)
+        self.setData(tmp_states, tmp_actions, tmp_result_states, tmp_rewards)
         
-        score = self._model.getCriticNetwork().fit([states, actions, tmp_result_states], tmp_rewards,
+        score = self._model.getCriticNetwork().fit([tmp_states, tmp_actions, tmp_result_states], tmp_rewards,
               epochs=1, batch_size=states.shape[0],
               verbose=0
               # callbacks=[early_stopping],
@@ -320,7 +327,7 @@ class GANKeras(AlgorithmInterface):
               verbose=0
               # callbacks=[early_stopping],
               )
-        loss = score.history['loss'][0]
+        loss = -score.history['loss'][0]
         error_MSE = self._bellman_error([states, actions, noise, result_states]) 
         return (np.mean(loss), error_MSE)
         
