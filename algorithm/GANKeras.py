@@ -75,7 +75,7 @@ class GANKeras(AlgorithmInterface):
         
     def compile(self):
         
-        self._critic = Model(input=[self._model.getStateSymbolicVariable(), 
+        self._model._critic = Model(input=[self._model.getStateSymbolicVariable(), 
                             self._model.getActionSymbolicVariable(),
                             self._model.getResultStateSymbolicVariable()], 
                              output=self._model.getCriticNetwork())
@@ -88,9 +88,9 @@ class GANKeras(AlgorithmInterface):
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
         print("Discriminator Net summary: ",  self._model.getCriticNetwork().summary())
         
-        self._reward_net = Model(input=[self._model.getStateSymbolicVariable(), 
+        self._model._reward_net = Model(input=[self._model.getStateSymbolicVariable(), 
                             self._model.getActionSymbolicVariable()],
-                            output=self._reward_net)
+                            output=self._model._reward_net)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
                                     epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
@@ -106,6 +106,11 @@ class GANKeras(AlgorithmInterface):
         def neg_y(true_y, pred_y):
             return -pred_y
         
+        self._model._forward_dynamics_net = Model(input=[self._model.getStateSymbolicVariable(), 
+                        self._model.getActionSymbolicVariable(),
+                        self._model._Noise], 
+                        output=self._model._forward_dynamics_net)
+        
         self._generate = self._model.getForwardDynamicsNetwork()(
                                 [self._model.getStateSymbolicVariable(), 
                                 self._model.getActionSymbolicVariable(),
@@ -117,10 +122,10 @@ class GANKeras(AlgorithmInterface):
                             self._model.getActionSymbolicVariable(),
                             self._generate]))
         
-        self._forward_dynamics_net = Model(input=[self._model.getStateSymbolicVariable(), 
+        self._combined = Model(input=[self._model.getStateSymbolicVariable(), 
                                 self._model.getActionSymbolicVariable(),
                                 self._model._Noise], 
-                                output=_genloss)
+                                output=self._genloss)
         
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
@@ -128,8 +133,8 @@ class GANKeras(AlgorithmInterface):
                                     amsgrad=True)
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
-        self._genloss.compile(loss=[neg_y], optimizer=sgd)
-        print("FD Net summary: ",  self._genloss.summary())
+        self._combined.compile(loss=[neg_y], optimizer=sgd)
+        print("FD Net summary: ",  self._combined.summary())
         
         
         
