@@ -33,15 +33,15 @@ class FDNetDenseKeras(ModelInterface):
 
         super(FDNetDenseKeras,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
         
-        self._result_state_length = state_length
-        
+        # self._result_state_length = state_length
+        print ("size_of_result_state: ", self._result_state_length)
         batch_size=32
         ### data types for model
         # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name="State")
         self._State = keras.layers.Input(shape=(self._state_length,), name="State")
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
-        self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState")
+        self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
         # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._Reward = K.variable(value=np.random.rand(self._batch_size,1), name="Reward")
         self._Reward = keras.layers.Input(shape=(1,), name="Reward")
@@ -214,19 +214,3 @@ class FDNetDenseKeras(ModelInterface):
             # self._forward_dynamics_net = Model(input=[self._stateInput, self._actionInput], output=networkAct)
             self._forward_dynamics_net = networkAct
 
-        self._states_shared = theano.shared(
-            np.zeros((batch_size, self._state_length),
-                     dtype=theano.config.floatX))
-
-        self._next_states_shared = theano.shared(
-            np.zeros((batch_size, self._result_state_length),
-                     dtype=theano.config.floatX))
-
-        self._actions_shared = theano.shared(
-            np.zeros((batch_size, self._action_length), dtype=theano.config.floatX),
-            )
-        
-        self._rewards_shared = theano.shared(
-            np.zeros((self._batch_size, 1), dtype=theano.config.floatX),
-            broadcastable=(False, True))
-        

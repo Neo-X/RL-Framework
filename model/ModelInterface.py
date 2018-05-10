@@ -45,6 +45,10 @@ class ModelInterface(object):
         self._batch_size=settings_['batch_size']
         self._state_length = n_in
         self._action_length = n_out
+        if ('size_of_result_state' in settings_):
+            self._result_state_length = settings_['size_of_result_state']
+        else:
+            self._result_state_length = self._state_length
         self._settings = settings_
         # data types for model
         self._dropout_p=settings_['dropout_p']

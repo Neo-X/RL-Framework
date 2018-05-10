@@ -111,7 +111,7 @@ class GANKeras(AlgorithmInterface):
                         self._model._Noise], 
                         output=self._model._forward_dynamics_net)
         
-        self._generate = self._model.getForwardDynamicsNetwork()(
+        self.__generate = self._model.getForwardDynamicsNetwork()(
                                 [self._model.getStateSymbolicVariable(), 
                                 self._model.getActionSymbolicVariable(),
                                 self._model._Noise]
@@ -120,7 +120,7 @@ class GANKeras(AlgorithmInterface):
         self._genloss = (self._model.getCriticNetwork()(
                             [self._model.getStateSymbolicVariable(), 
                             self._model.getActionSymbolicVariable(),
-                            self._generate]))
+                            self.__generate]))
         
         self._combined = Model(input=[self._model.getStateSymbolicVariable(), 
                                 self._model.getActionSymbolicVariable(),
@@ -136,6 +136,18 @@ class GANKeras(AlgorithmInterface):
         self._combined.compile(loss=[neg_y], optimizer=sgd)
         print("FD Net summary: ",  self._combined.summary())
         
+        self._generate = K.function([self._model.getStateSymbolicVariable(), 
+                                self._model.getActionSymbolicVariable(),
+                                self._model._Noise],
+                                [self.__generate])
+        
+        
+        self.__bellman_error = K.mean(self.__generate - self._model.getResultStateSymbolicVariable())
+        self._bellman_error = K.function([self._model.getStateSymbolicVariable(), 
+                                self._model.getActionSymbolicVariable(),
+                                self._model._Noise,
+                                self._model.getResultStateSymbolicVariable()],
+                                [self.__bellman_error])
         
         
     def getStateGrads(self, states, actions=None, alreadyNormed=False):
@@ -194,31 +206,40 @@ class GANKeras(AlgorithmInterface):
 
     def getNetworkParameters(self):
         params = []
-        params.append(lasagne.layers.helper.get_all_param_values(self._model.getCriticNetwork()))
-        params.append(lasagne.layers.helper.get_all_param_values(self._model.getForwardDynamicsNetwork()))
-        params.append(lasagne.layers.helper.get_all_param_values(self._model.getRewardNetwork()))
-        params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getCriticNetwork()))
-        params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getForwardDynamicsNetwork()))
-        params.append(lasagne.layers.helper.get_all_param_values(self._modelTarget.getRewardNetwork()))
+        params.append(copy.deepcopy(self._model.getCriticNetwork().get_weights()))
+        params.append(copy.deepcopy(self._model.getRewardNetwork().get_weights()))
+        params.append(copy.deepcopy(self._model.getForwardDynamicsNetwork().get_weights()))
+        params.append(copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
+        params.append(copy.deepcopy(self._modelTarget.getRewardNetwork().get_weights()))
+        params.append(copy.deepcopy(self._modelTarget.getForwardDynamicsNetwork().get_weights()))
         return params
         
     def setNetworkParameters(self, params):
-        lasagne.layers.helper.set_all_param_values(self._model.getCriticNetwork(), params[0])
-        lasagne.layers.helper.set_all_param_values(self._model.getForwardDynamicsNetwork(), params[1])
-        lasagne.layers.helper.set_all_param_values(self._model.getRewardNetwork(), params[2])
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getCriticNetwork(), params[3])
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getForwardDynamicsNetwork(), params[4])
-        lasagne.layers.helper.set_all_param_values(self._modelTarget.getRewardNetwork(), params[5])
+        
+        # print("setting critic net params", )
+        # print ("same nets:", len(params[0]), self._model.getCriticNetwork().get_weights())
+        self._model.getCriticNetwork().set_weights(params[0])
+        # print("setting actor net params")
+        self._model.getRewardNetwork().set_weights( params[1] )
+        self._model.getForwardDynamicsNetwork().set_weights( params[1] )
+        # print("setting critic target net params")
+        self._modelTarget.getCriticNetwork().set_weights( params[2])
+        # print("setting actor target net params")
+        self._modelTarget.getRewardNetwork().set_weights( params[3])
+        self._modelTarget.getForwardDynamicsNetwork().set_weights( params[3])
         
     def setData(self, states, actions, result_states=None, rewards=None):
-        self._model.setStates(states)
-        self._model.setActions(actions)
+        # self._model.setStates(states)
+        # self._model.setActions(actions)
+        pass
+        """
         if not (result_states is None):
             self._model.setResultStates(result_states)
         if not (rewards is None):
             self._model.setRewards(rewards)
         noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
         self._noise_shared.set_value(noise)
+        """
         # noise = np.zeros((states.shape[0],1))
         # self._noise_shared.set_value(noise)
             
@@ -226,15 +247,17 @@ class GANKeras(AlgorithmInterface):
     def trainCritic(self, states, actions, result_states, rewards):
         
         noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
-        # print ("Shapes: ", states.shape, actions.shape, rewards.shape, result_states.shape, falls.shape, noise.shape)
-        self._noise_shared.set_value(noise)
+        # print ("Shapes: ", states.shape, actions.shape, rewards.shape, result_states.shape)
+        # self._noise_shared.set_value(noise)
         self._updates += 1
         ## Compute actions for TargetNet
-        generated_samples = self._generate()
+        generated_samples = np.array(self._generate([states, actions, noise]))[0]
+        # print("generated_samples: ", repr(generated_samples))
         ### Put generated samples in memory
         for i in range(generated_samples.shape[0]):
             next_state__ = scale_state(generated_samples[i], self._state_bounds)
-            tup = ([states[i]], [actions[i]], [next_state__], [rewards[i]], [0], [0], [0])
+            # print("next_state__: ", repr(next_state__))
+            tup = ([states[i]], [actions[i]], [next_state__], [rewards[i]], [[0]], [[0]], [[0]])
             self._experience.insertTuple(tup)
         tmp_result_states = copy.deepcopy(result_states)
         tmp_rewards = copy.deepcopy(rewards)
@@ -260,14 +283,19 @@ class GANKeras(AlgorithmInterface):
                     
         self.setData(states, actions, tmp_result_states, tmp_rewards)
         
-        loss, _ = self._train()
+        score = self._model.getCriticNetwork().fit([states, actions, tmp_result_states], tmp_rewards,
+              epochs=1, batch_size=states.shape[0],
+              verbose=0
+              # callbacks=[early_stopping],
+              )
+        loss = score.history['loss'][0]
         # print("Discriminator loss: ", loss)
         return loss
         
     def trainActor(self, states, actions, result_states, rewards):
-        self.setData(states, actions, result_states, rewards)
+        # self.setData(states, actions, result_states, rewards)
         
-            
+        noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
         # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
         ## Add MSE term
         if ( 'train_gan_mse' in self.getSettings() and 
@@ -279,43 +307,18 @@ class GANKeras(AlgorithmInterface):
         loss = 0
         # print("******** Not learning actor right now *****")
         # return loss
-        generated_samples = self.predict_batch(states, actions)
-        result_state_grads = self.getResultStateGrads(generated_samples, actions, alreadyNormed=True)[0]
-        discriminator_value = self._discriminate() 
-        
-        """
-            From DEEP REINFORCEMENT LEARNING IN PARAMETERIZED ACTION SPACE
-            Hausknecht, Matthew and Stone, Peter
-            
-            actions.shape == result_state_grads.shape
-        """
-        use_parameter_grad_inversion=True
-        if ( use_parameter_grad_inversion ):
-            for i in range(result_state_grads.shape[0]):
-                for j in range(result_state_grads.shape[1]):
-                    if (result_state_grads[i,j] > 0):
-                        inversion = (1.0 - generated_samples[i,j]) / 2.0
-                    else:
-                        inversion = ( generated_samples[i,j] - (-1.0)) / 2.0
-                    result_state_grads[i,j] = result_state_grads[i,j] * inversion
-                    
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
-            print("Policy mean: ", np.mean(self._generate(), axis=0))
-            print("Mean action grad: ", np.mean(result_state_grads, axis=0), " std ", np.std(result_state_grads, axis=0))
+            pass
         
-        ## Set data for gradient
-        self._model.setResultStates(result_states)
-        self._modelTarget.setResultStates(result_states)
-        
-        # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
-        error_MSE = self._bellman_error()
-        ## Why the -1.0??
-        ## Because the SGD method is always performing MINIMIZATION!!
-        self._result_state_grad_shared.set_value(-1.0*result_state_grads)
-        self._trainGenerator()
-        # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
-        error_MSE = self._bellman_error() 
-        return (np.mean(discriminator_value), error_MSE)
+        ### The rewards are not used in this update
+        score = self._combined.fit([states, actions, noise], rewards,
+              epochs=1, batch_size=states.shape[0],
+              verbose=0
+              # callbacks=[early_stopping],
+              )
+        loss = score.history['loss'][0]
+        error_MSE = self._bellman_error([states, actions, noise, result_states]) 
+        return (np.mean(loss), error_MSE)
         
     def train(self, states, actions, result_states, rewards):
         loss = self.trainCritic(states, actions, result_states, rewards)
@@ -464,17 +467,17 @@ class GANKeras(AlgorithmInterface):
         return predicted_reward
     
     def bellman_error(self, states, actions, result_states, rewards):
-        self.setData(states, actions, result_states, rewards)
-        return self._bellman_error()
+        # self.setData(states, actions, result_states, rewards)
+        return self._bellman_error([states, actions, noise, result_states]) 
     
     def reward_error(self, states, actions, result_states, rewards):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
-        self.setData(states, actions, result_states, rewards)
-        return self._reward_error()
+        # self.setData(states, actions, result_states, rewards)
+        return 0
 
     
     def setStateBounds(self, state_bounds):
-        super(GAN,self).setStateBounds(state_bounds)
+        super(GANKeras,self).setStateBounds(state_bounds)
         """
         print ("")
         print("Setting GAN state bounds: ", state_bounds)
@@ -484,11 +487,11 @@ class GANKeras(AlgorithmInterface):
         self._experience.setStateBounds(copy.deepcopy(self.getStateBounds()))
         
     def setActionBounds(self, action_bounds):
-        super(GAN,self).setActionBounds(action_bounds)
+        super(GANKeras,self).setActionBounds(action_bounds)
         self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
         
     def setRewardBounds(self, reward_bounds):
-        super(GAN,self).setRewardBounds(reward_bounds)
+        super(GANKeras,self).setRewardBounds(reward_bounds)
         self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
         
         
