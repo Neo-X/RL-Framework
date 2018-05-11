@@ -202,12 +202,19 @@ def trainModelParallel(inputData):
         exp_val = None
         
         ### These are the workers for training
-        (sim_workers, sim_work_queues) = createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, None, None, exp_val, state_bounds, action_bounds, reward_bounds)
+        (sim_workers, sim_work_queues) = createSimWorkers(settings, input_anchor_queue, 
+                                              output_experience_queue, eval_episode_data_queue, 
+                                              None, None, exp_val, state_bounds, action_bounds, 
+                                              reward_bounds)
         
         eval_sim_workers = sim_workers
         eval_sim_work_queues = sim_work_queues
         if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-            (eval_sim_workers, eval_sim_work_queues) = createSimWorkers(settings, input_anchor_queue_eval, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds, default_sim_id=settings['override_sim_env_id'])
+            (eval_sim_workers, eval_sim_work_queues) = createSimWorkers(settings, input_anchor_queue_eval, 
+                                                            output_experience_queue, eval_episode_data_queue, 
+                                                            None, forwardDynamicsModel, exp_val, state_bounds, 
+                                                            action_bounds, reward_bounds, 
+                                                            default_sim_id=settings['override_sim_env_id'])
         else:
             input_anchor_queue_eval = input_anchor_queue
         
@@ -1024,28 +1031,22 @@ def trainModelParallel(inputData):
                 
             if (round_ % settings['saving_update_freq_num_rounds']) == 0:
             
-                if (settings['train_forward_dynamics']):
-                    file_name_dynamics=directory+"forward_dynamics_"+".pkl"
-                    f = open(file_name_dynamics, 'wb')
-                    dill.dump(masterAgent.getForwardDynamics(), f)
-                    f.close()
-                    if mean_dynamicsLosses < best_dynamicsLosses:
-                        best_dynamicsLosses = mean_dynamicsLosses
-                        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
-                            print ("Saving BEST current forward dynamics agent: " + str(best_dynamicsLosses))
-                        file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
-                        f = open(file_name_dynamics, 'wb')
-                        dill.dump(masterAgent.getForwardDynamics(), f)
-                        f.close()
+                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+                    print ("Saving current masterAgent")
+                masterAgent.saveTo(directory)
+                
+                if ( settings['train_forward_dynamics'] and 
+                     (mean_dynamicsLosses < best_dynamicsLosses)):
+                    best_dynamicsLosses = mean_dynamicsLosses
+                    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+                        print ("Saving BEST current forward dynamics agent: " + str(best_dynamicsLosses))
+                    masterAgent.saveTo(directory, bestFD=True)
                         
                 if (mean_eval > best_eval):
                     best_eval = mean_eval
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
                         print ("Saving BEST current agent: " + str(best_eval))
-                    file_name=directory+getAgentName()+"_Best.pkl"
-                    f = open(file_name, 'wb')
-                    dill.dump(masterAgent.getPolicy(), f)
-                    f.close()
+                    masterAgent.saveTo(directory, bestPolicy=True)
                     
                 if settings['save_trainData']:
                     fp = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", 'w')
@@ -1059,13 +1060,6 @@ def trainModelParallel(inputData):
                         
             # mean_reward = std_reward = mean_bellman_error = std_bellman_error = mean_discount_error = std_discount_error = None
             # if ( round_ % 10 ) == 0 :
-                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
-                    print ("Saving current masterAgent")
-                
-                file_name=directory+getAgentName()+".pkl"
-                f = open(file_name, 'wb')
-                dill.dump(masterAgent.getPolicy(), f)
-                f.close()
                 
             gc.collect()    
             # print (h.heap())

@@ -505,6 +505,43 @@ class LearningAgent(AgentInterface):
         self.getPolicy().setRewardBounds(bounds)
         if (self._settings['train_forward_dynamics']):
             self.getForwardDynamics().setRewardBounds(bounds)
+            
+    def saveTo(self, directory, bestPolicy=False, bestFD=False):
+        import dill
+        from util.SimulationUtil import getAgentName
+        suffix = ".pkl"
+        if ( bestPolicy == True):
+            suffix = "_Best.pkl"
+        file_name=directory+getAgentName()+suffix
+        f = open(file_name, 'wb')
+        dill.dump(self.getPolicy(), f)
+        f.close()
+        
+        suffix = ".pkl"
+        if ( bestFD == True):
+            suffix = "_Best.pkl"
+        if (self._settings['train_forward_dynamics']):
+            file_name_dynamics=directory+"forward_dynamics_"+suffix
+            f = open(file_name_dynamics, 'wb')
+            dill.dump(self.getForwardDynamics(), f)
+            f.close()
+        
+    def loadFrom(self, directory, best=False):
+        import dill
+        from util.SimulationUtil import getAgentName
+        suffix = ".pkl"
+        if ( bestPolicy == True):
+            suffix = "_Best.pkl"
+        file_name=directory+getAgentName()+"_Best.pkl"
+        f = open(file_name, 'rb')
+        self.setPolicy(dill.load(f))
+        f.close()
+        
+        if (self._settings['train_forward_dynamics']):
+            file_name_dynamics=directory+"forward_dynamics_"+suffix
+            f = open(file_name_dynamics, 'rb')
+            self.setForwardDynamics(dill.load(f))
+            f.close()
 
 import copy
 # class LearningWorker(threading.Thread):
