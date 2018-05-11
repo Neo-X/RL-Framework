@@ -52,7 +52,8 @@ class DeepNNKerasAdaptive(ModelInterface):
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
         super(DeepNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
-        
+        import tensorflow as tf
+        setattr(tf.keras.layers.Lambda , '__deepcopy__', lambda self, _: self)
         self._networkSettings = {}
         if ("network_settings" in settings_):
             self._networkSettings = settings_["network_settings"]
@@ -82,7 +83,10 @@ class DeepNNKerasAdaptive(ModelInterface):
         taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'],))(self._stateInput)
         # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(self._stateInput)
         characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'],))(self._stateInput)
-
+        """
+        taskFeatures = self._stateInput
+        characterFeatures = self._stateInput
+        """
         perform_pooling=True
         if ( "perform_convolution_pooling" in self._networkSettings):
             perform_pooling = self._networkSettings["perform_convolution_pooling"]
@@ -117,7 +121,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 elif ( layer_sizes[i] == "merge_features"):
                     networkAct = Flatten()(networkAct)
-                    networkAct = Concatenate(axis=1)([networkAct, characterFeatures])
+                    # networkAct = Concatenate(axis=1)([networkAct, characterFeatures])
                 else:
                     networkAct = Dense(layer_sizes[i], 
                                        kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
@@ -225,6 +229,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(network)
                 else:
                     if (i == 0):
+                        # network = Reshape((self._state_length, 1))(taskFeatures)
                         network = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
                     network = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=1)(network)
                     if (perform_pooling):

@@ -15,6 +15,7 @@ from keras.layers.merge import Concatenate
 from keras.layers.advanced_activations import LeakyReLU
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
+import keras
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -26,8 +27,25 @@ class DeepNNKeras(ModelInterface):
 
         super(DeepNNKeras,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
+        self._networkSettings = {}
+        if ("network_settings" in settings_):
+            self._networkSettings = settings_["network_settings"]
+        ### data types for model
+        # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name="State")
+        self._State = keras.layers.Input(shape=(self._state_length,), name="State")
+        # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
+        # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
+        self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState")
+        # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
+        # self._Reward = K.variable(value=np.random.rand(self._batch_size,1), name="Reward")
+        self._Reward = keras.layers.Input(shape=(1,), name="Reward")
+        # self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
+        # self._Action = K.variable(value=np.random.rand(self._batch_size, self._action_length), name="Action")
+        self._Action = keras.layers.Input(shape=(self._action_length,), name="Action")
+        # self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
+        
         ### Apparently after the first layer the patch axis is left out for most of the Keras stuff...
-        input = Input(shape=(self._state_length,))
+        input = self._State
         # input.trainable = True
         print ("Input ",  input)
         
@@ -48,10 +66,10 @@ class DeepNNKeras(ModelInterface):
         # 1 output, linear activation
         network = Dense(1, init='uniform')(network)
         network = Activation('linear')(network)
-        self._critic = Model(input=input, output=network)
+        self._critic = network
         
         
-        inputAct = Input(shape=(self._state_length, ))
+        inputAct = self._State
         # inputAct.trainable = True
         print ("Input ",  inputAct)
         networkAct = Dense(128, init='uniform')(inputAct)
@@ -65,7 +83,7 @@ class DeepNNKeras(ModelInterface):
         # 1 output, linear activation
         networkAct = Dense(self._action_length, init='uniform')(networkAct)
         networkAct = Activation('linear')(networkAct)
-        self._actor = Model(input=inputAct, output=networkAct)
+        self._actor = networkAct
         
 
     ### Setting network input values ###    

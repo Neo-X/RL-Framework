@@ -94,8 +94,10 @@ class OpenAIGymEnv(SimInterface):
                 state__.append(state_[i] )
         """
         state = np.array(state_)
-        
-        state = np.reshape(state, (-1, len(state_)))
+        if (self._settings['environment_type'] == 'RLSimulations'):
+            pass
+        else:
+            state = np.reshape(state, (-1, len(state_)))
         
         return state
     

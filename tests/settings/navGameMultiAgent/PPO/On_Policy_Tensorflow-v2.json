@@ -319,5 +319,7 @@
 	"comment__": "If already annealing on-policy then enabling this will anneal the std for the policy",
 "anneal_policy_std": false,
 	"comment__": "anneal the probability of performing explorative actions, set to >= 1.0 to perform only exploration actions",
-"anneal_exploration": 0.5
+"anneal_exploration": 0.5,
+	"comment__": "Which backend to use for keras [theano|tensorflow]",
+"learning_backend": "tensorflow"
 }

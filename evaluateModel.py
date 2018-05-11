@@ -225,6 +225,16 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
     # settings['shouldRender'] = True
     import os    
     os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+    if ("learning_backend" in settings):
+        # KERAS_BACKEND=tensorflow
+        os.environ['KERAS_BACKEND'] = settings['learning_backend']
+    import keras
+    from util.MakeKerasPicklable import make_keras_picklable
+    import theano
+    keras.backend.set_floatx(settings['float_type'])
+    print ("K.floatx()", keras.backend.floatx())
+    print ("theano.config.floatX", theano.config.floatX)
+    make_keras_picklable()
     
     from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor, getAgentName
     from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, getAgentName

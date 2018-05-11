@@ -607,6 +607,7 @@ class PPO_KERAS(AlgorithmInterface):
     
     def q_values(self, states):
         states = np.array(states, dtype=self._settings['float_type'])
+        # print("states: ", repr(states))
         values = self._value([states,0])[0]
         # print ("values: ", repr(np.array(values)))
         return values
