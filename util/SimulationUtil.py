@@ -529,6 +529,11 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         except:
             print ("Membrane/gymdrl not installed")
             pass
+        try:
+            import pybullet_envs
+        except:
+            print ("pybullet not installed")
+            pass
         from OpenGL import GL
         # load_roboschool
         # print(envs.registry.all())

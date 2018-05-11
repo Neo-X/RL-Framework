@@ -11,6 +11,11 @@ try:
 except:
     print ("Membrane/gymdrl not installed")
     pass
+try:
+    import pybullet_envs
+except:
+    print ("pybullet not installed")
+    pass
 from OpenGL import GL
 import numpy as np
 # print(envs.registry.all())
@@ -19,7 +24,7 @@ import numpy as np
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 # env = gym.make('MembraneTarget-v0')
-env = gym.make('RoboschoolReacher-v1')
+env = gym.make('AntBulletEnv-v0')
 # MembraneHardware-v0
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
