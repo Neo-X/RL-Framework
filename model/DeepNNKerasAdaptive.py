@@ -1,4 +1,7 @@
 
+import tensorflow as tf
+setattr(tf.keras.layers.Lambda , '__deepcopy__', lambda self, _: self)
+        
 import theano
 from theano import tensor as T
 import numpy as np
@@ -46,14 +49,13 @@ def getKerasActivation(type_name):
     else:
         print ("Activation type unknown: ", type_name)
         sys.exit()
+        
 
 class DeepNNKerasAdaptive(ModelInterface):
     
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
         super(DeepNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
-        import tensorflow as tf
-        setattr(tf.keras.layers.Lambda , '__deepcopy__', lambda self, _: self)
         self._networkSettings = {}
         if ("network_settings" in settings_):
             self._networkSettings = settings_["network_settings"]
@@ -80,9 +82,13 @@ class DeepNNKerasAdaptive(ModelInterface):
         # input.trainable = True
         print ("self._stateInput ",  self._stateInput)
         
-        taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']], output_shape=(self._settings['num_terrain_features'],))(self._stateInput)
+        def keras_slice(x):
+            return x[:,0:self._settings['num_terrain_features']]
+        def keras_slice2(x):
+            return x[:,self._settings['num_terrain_features']:self._state_length]
+        taskFeatures = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],))(self._stateInput)
         # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(self._stateInput)
-        characterFeatures = Lambda(lambda x: x[:,self._settings['num_terrain_features']:self._state_length], output_shape=(self._state_length-self._settings['num_terrain_features'],))(self._stateInput)
+        characterFeatures = Lambda(keras_slice2, output_shape=(self._state_length-self._settings['num_terrain_features'],))(self._stateInput)
         """
         taskFeatures = self._stateInput
         characterFeatures = self._stateInput

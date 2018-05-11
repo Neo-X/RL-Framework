@@ -98,6 +98,8 @@ class SimWorker(Process):
         # from pympler import muppy
         np.random.seed(self._process_random_seed)
         import os
+        import tensorflow as tf
+        setattr(tf.keras.layers.Lambda , '__deepcopy__', lambda self, _: self)
         
         # print ("SW model: ", self._model.getPolicy())
         # print ("Thread: ", self._model._exp)
