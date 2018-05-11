@@ -555,7 +555,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         from rlsimenv.EnvWrapper import getEnv
         from sim.OpenAIGymEnv import OpenAIGymEnv
         env_name = config_file
-        env = getEnv(env_name)
+        env = getEnv(env_name, render=render)
         
         conf = copy.deepcopy(settings)
         conf['render'] = render

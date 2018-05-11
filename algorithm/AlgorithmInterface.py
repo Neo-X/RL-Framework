@@ -590,6 +590,7 @@ class AlgorithmInterface(object):
         f.close()
         
     def loadFrom(self, fileName):
+        import dill
         suffix = ".pkl"
         file_name=fileName+suffix
         f = open(file_name, 'rb')

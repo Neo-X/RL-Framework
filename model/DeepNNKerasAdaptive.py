@@ -82,13 +82,15 @@ class DeepNNKerasAdaptive(ModelInterface):
         # input.trainable = True
         print ("self._stateInput ",  self._stateInput)
         
-        def keras_slice(x):
-            return x[:,0:self._settings['num_terrain_features']]
-        def keras_slice2(x):
-            return x[:,self._settings['num_terrain_features']:self._state_length]
-        taskFeatures = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],))(self._stateInput)
+        ### It is complicated to serialize lambda functions, better to define a function
+        def keras_slice(x, begin,end):
+            return x[:,begin:end]
+        taskFeatures = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
+                              arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(self._stateInput)
         # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(self._stateInput)
-        characterFeatures = Lambda(keras_slice2, output_shape=(self._state_length-self._settings['num_terrain_features'],))(self._stateInput)
+        characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
+                                   arguments={'begin': self._settings['num_terrain_features'], 
+                                              'end': self._state_length})(self._stateInput)
         """
         taskFeatures = self._stateInput
         characterFeatures = self._stateInput

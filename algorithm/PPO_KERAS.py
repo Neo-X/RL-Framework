@@ -687,13 +687,6 @@ class PPO_KERAS(AlgorithmInterface):
         
     def loadFrom(self, fileName):
         from keras.models import load_model
-        """
-        suffix = ".pkl"
-        file_name=directory+suffix
-        f = open(file_name, 'rb')
-        self = dill.load(f)
-        f.close()
-        """
         def pos_y(true_y, pred_y):
             return self._actLoss
         suffix = ".h5"

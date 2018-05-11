@@ -1644,7 +1644,7 @@ def modelEvaluationParallel(settings_file_name):
         sw.join()
         
 
-def modelEvaluation(settings_file_name, runLastModel=False, settings=None):
+def modelEvaluation(settings_file_name, runLastModel=False, settings=None, render=True):
     
     from model.ModelUtil import getSettings
     if (settings is None):
@@ -1716,7 +1716,7 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None):
     if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
         sim_index = settings['override_sim_env_id']
     # exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
-    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
+    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=render, index=sim_index)
     
     if ( settings['use_simulation_sampling'] ):
         sampler = createSampler(settings, exp)
@@ -1860,5 +1860,5 @@ if __name__ == "__main__":
 
     print ("Settings: " + str(json.dumps(settings, indent=4)))
     
-    modelEvaluation(sys.argv[1], runLastModel=False, settings=settings)
+    modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render=True)
     
