@@ -274,6 +274,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
         f = open(file_name, 'rb')
         model = dill.load(f)
         model.setSettings(settings)
+        model.loadFrom(directory+getAgentName())
         f.close()
     elif ( "Deep_NN2" == algorihtm_type):
         from model.RLDeepNet import RLDeepNet

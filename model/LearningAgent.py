@@ -507,24 +507,17 @@ class LearningAgent(AgentInterface):
             self.getForwardDynamics().setRewardBounds(bounds)
             
     def saveTo(self, directory, bestPolicy=False, bestFD=False):
-        import dill
         from util.SimulationUtil import getAgentName
-        suffix = ".pkl"
+        suffix = ""
         if ( bestPolicy == True):
-            suffix = "_Best.pkl"
-        file_name=directory+getAgentName()+suffix
-        f = open(file_name, 'wb')
-        dill.dump(self.getPolicy(), f)
-        f.close()
+            suffix = "_Best"
+        self.getPolicy().saveTo(directory+getAgentName()+suffix )
         
-        suffix = ".pkl"
+        suffix = ""
         if ( bestFD == True):
-            suffix = "_Best.pkl"
+            suffix = "_Best"
         if (self._settings['train_forward_dynamics']):
-            file_name_dynamics=directory+"forward_dynamics_"+suffix
-            f = open(file_name_dynamics, 'wb')
-            dill.dump(self.getForwardDynamics(), f)
-            f.close()
+            self.getForwardDynamics().saveTo(directory+"forward_dynamics"+suffix)
         
     def loadFrom(self, directory, best=False):
         import dill

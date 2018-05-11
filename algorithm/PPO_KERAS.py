@@ -95,11 +95,11 @@ class PPO_KERAS(AlgorithmInterface):
         self._modelTarget._critic = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._critic)
         print("Target Critic summary: ", self._modelTarget._critic.summary())
         
-        self._value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
-        self._value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
+        self.__value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
+        self.__value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
         
-        _target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self._value_Target)
-        self._loss = K.mean(0.5 * (self._value - _target) ** 2)
+        _target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self.__value_Target)
+        self._loss = K.mean(0.5 * (self.__value - _target) ** 2)
         
         
         self._q_valsActA = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
@@ -201,7 +201,7 @@ class PPO_KERAS(AlgorithmInterface):
         print("sgd, actor: ", sgd)
         print ("Clipping: ", sgd.decay)
         """
-        self._model.getActorNetwork().compile(loss=poli_loss(
+        self._m7odel.getActorNetwork().compile(loss=poli_loss(
                     state=self._model.getStateSymbolicVariable(),
                     action=self._model.getActionSymbolicVariable(),
                     advantage=self._Advantage,
@@ -298,11 +298,11 @@ class PPO_KERAS(AlgorithmInterface):
                                   # ,on_unused_input='warn'
                                   )
         
-        gradients = K.gradients(K.mean(self._value), [self._model.getStateSymbolicVariable()]) # gradient tensors
+        gradients = K.gradients(K.mean(self.__value), [self._model.getStateSymbolicVariable()]) # gradient tensors
         self._get_gradients = K.function(inputs=[self._model.getStateSymbolicVariable(),  K.learning_phase()], outputs=gradients)
         
-        self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self._value])
-        self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self._value_Target])
+        self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
+        self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
         
         self._policy_mean = K.function([self._model.getStateSymbolicVariable(), 
                                           K.learning_phase()], [self._q_valsActA])
@@ -600,7 +600,8 @@ class PPO_KERAS(AlgorithmInterface):
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        value = scale_reward(self._value([state,0])[0], self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        value = scale_reward(self._model.getCriticNetwork().predict(state), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # value = scale_reward(self._value([state,0])[0], self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # print ("value: ", repr(np.array(value)))
         return value
         # return self._q_val()[0]
@@ -608,7 +609,8 @@ class PPO_KERAS(AlgorithmInterface):
     def q_values(self, states):
         states = np.array(states, dtype=self._settings['float_type'])
         # print("states: ", repr(states))
-        values = self._value([states,0])[0]
+        values = self._model.getCriticNetwork().predict(states)
+        # values = self._value([states,0])[0]
         # print ("values: ", repr(np.array(values)))
         return values
     
@@ -644,6 +646,65 @@ class PPO_KERAS(AlgorithmInterface):
     
     def get_critic_loss(self):
         return self._get_critic_loss([])
+    
+    def saveTo(self, fileName):
+        # print(self, "saving model")
+        import dill
+        suffix = ".h5"
+        ### Save models
+        self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
+        self._model._actor.save(fileName+"_actor"+suffix, overwrite=True)
+        self._model._critic.save(fileName+"_critic"+suffix, overwrite=True)
+        self._modelTarget._actor.save(fileName+"_actor_T"+suffix, overwrite=True)
+        self._modelTarget._critic.save(fileName+"_critic_T"+suffix, overwrite=True)
+        ### Make a temp copy of models
+        model_actor_train = self._model._actor_train
+        model_actor = self._model._actor
+        model_critic = self._model._critic
+        modelTarget_actor = self._modelTarget._actor
+        modelTarget_critic = self._modelTarget._critic
+        ### Set models to none so they are not saved with this pickling... Because Keras does not pickle well.
+        self._model._actor_train = None
+        self._model._actor = None
+        self._model._critic = None
+        self._modelTarget._actor = None
+        self._modelTarget._critic = None
+        ### Pickle this class
+        suffix = ".pkl"
+        file_name=fileName+suffix
+        f = open(file_name, 'wb')
+        dill.dump(self, f)
+        f.close()
+        ### Restore models
+        # self._model = model
+        # self._modelTarget = modelTarget
+        self._model._actor_train = model_actor_train
+        self._model._actor = model_actor
+        self._model._critic = model_critic
+        self._modelTarget._actor = modelTarget_actor
+        self._modelTarget._critic = modelTarget_critic
+        print ("self._model._actor_train: ", self._model._actor_train)
+        
+    def loadFrom(self, fileName):
+        from keras.models import load_model
+        """
+        suffix = ".pkl"
+        file_name=directory+suffix
+        f = open(file_name, 'rb')
+        self = dill.load(f)
+        f.close()
+        """
+        def pos_y(true_y, pred_y):
+            return self._actLoss
+        suffix = ".h5"
+        with K.get_session().graph.as_default() as g:
+            self._model._actor = load_model(fileName+"_actor"+suffix)
+            self._model._critic = load_model(fileName+"_critic"+suffix)
+            self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
+            self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
+        # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
+        # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
+        # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
         
 from collections import OrderedDict
 def adam_updates(loss, params, learning_rate=0.001, beta1=0.9,

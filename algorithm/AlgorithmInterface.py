@@ -579,3 +579,19 @@ class AlgorithmInterface(object):
     
     def get_critic_loss(self):
         return self._get_critic_loss()
+    
+    def saveTo(self, fileName):
+        # print(self, "saving model")
+        import dill
+        suffix = ".pkl"
+        file_name=fileName+suffix
+        f = open(file_name, 'wb')
+        dill.dump(self, f)
+        f.close()
+        
+    def loadFrom(self, fileName):
+        suffix = ".pkl"
+        file_name=fileName+suffix
+        f = open(file_name, 'rb')
+        self = dill.load(f)
+        f.close()
