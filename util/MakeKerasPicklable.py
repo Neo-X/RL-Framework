@@ -6,7 +6,7 @@
 import types
 import tempfile
 import keras.models
-from keras.layers.core import Dense, Dropout, Activation, Reshape, Flatten, Lambda
+# from keras.layers.core import Dense, Dropout, Activation, Reshape, Flatten, Lambda
 
 
 def make_keras_picklable():
@@ -15,7 +15,9 @@ def make_keras_picklable():
     # setattr(tf.contrib.rnn.BasicLSTMCell, '__deepcopy__', lambda self, _: self)
     # setattr(tf.contrib.rnn.MultiRNNCell, '__deepcopy__', lambda self, _: self)
     # setattr(Lambda, '__deepcopy__', lambda self, _: self)
+    pass
 
+    """
     def __getstate__(self):
         model_str = ""
         with tempfile.NamedTemporaryFile(suffix='.hdf5', delete=True) as fd:
@@ -35,3 +37,4 @@ def make_keras_picklable():
     cls = keras.models.Model
     cls.__getstate__ = __getstate__
     cls.__setstate__ = __setstate__
+    """
