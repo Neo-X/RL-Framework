@@ -1,8 +1,8 @@
 {
     "comment__": "Type of model/network to use for the actor and critic",
-"model_type": "model.DeepCNN2D.DeepCNN2D",
+"model_type": "model.DeepNNKerasAdaptive.DeepNNKerasAdaptive",
     "comment__": "Learning algorithm to use",
-"agent_name": "algorithm.A_CACLA.A_CACLA",
+"agent_name": "algorithm.CACLA_KERAS.CACLA_KERAS",
     "comment__": "Folder to store the training data in.",
 "data_folder": "Biped3d_Walk_Waypoint_Crowd_On_Policy/With_Vel/Large_Blocks-v4",
 	"comment": "initial probability of selecting a random action",
@@ -326,9 +326,9 @@
 	"comment__": "Load a saved and pre-trained forward dynamics model",
 "load_saved_fd_model": false,
 	"comment__": "A list describing the size of the layers for the NN",
-"critic_network_layer_sizes": [64, 32, 16],
+"critic_network_layer_sizes": [[16,[8,8]], [16,[4,4]], "merge_features", 128, 64, 32],
 	"comment__": "A list describing the size of the layers for the NN",
-"policy_network_layer_sizes": [64, 32],
+"policy_network_layer_sizes": [[16,[8,8]], [16,[4,4]], "merge_features", 128, 64],
 	"comment__": "Activation function to use for the std part of the policy",
 "_last_std_policy_layer_activation_type": "softplus",
 	"comment__": "type of activation to use",
@@ -395,7 +395,5 @@
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
 "pretrain_critic": 0,
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
-"ppo_et_factor": 1.25,
-	"comment__": "Which backend to use for keras [theano|tensorflow]",
-"learning_backend": "tensorflow"
+"ppo_et_factor": 1.25
 }
