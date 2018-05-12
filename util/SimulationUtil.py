@@ -473,6 +473,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         conf = json.load(file)
         # print ("Settings: " + str(json.dumps(conf)))
         file.close()
+        conf.update( settings.items() )
         conf['render'] = render
         exp = GapGame2D(conf)
         exp = GapGame2DEnv(exp, settings)
