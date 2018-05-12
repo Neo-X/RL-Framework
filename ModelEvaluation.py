@@ -15,7 +15,7 @@ import time
 import copy
 import numpy as np
 from model.ModelUtil import *
-# import memory_profiler
+import memory_profiler
 # import resources
 
 # class SimWorker(threading.Thread):
@@ -92,7 +92,7 @@ class SimWorker(Process):
         self._exp = exp_
         self._model.setEnvironment(self._exp)
         
-    # @profile(precision=5)
+    @profile(precision=5)
     def run(self):
         # from pympler import summary
         # from pympler import muppy
