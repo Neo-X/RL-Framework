@@ -22,7 +22,7 @@ class TestSaveAndLoad(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
-        settings['rounds'] = 10
+        settings['rounds'] = 5
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         settings['visualize_expected_value'] = False
@@ -41,7 +41,7 @@ class TestSaveAndLoad(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
-        settings['rounds'] = 10
+        settings['rounds'] = 5
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         settings['visualize_expected_value'] = False
