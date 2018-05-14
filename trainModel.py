@@ -573,10 +573,9 @@ def trainModelParallel(inputData):
             if (k > len(title)): ## name does not contain a .
                 k = 0 
             title = title[k:]
-            env_name = settings['environment_type']
-            if (env_name == "open_AI_Gym"):
-                env_name = settings['sim_config_file']
-            rlv = RLVisualize(title=title + " agent on " + str(env_name), settings=settings)
+            if (settings['environment_type'] == "open_AI_Gym"):
+                settings['environment_type'] = settings['sim_config_file']
+            rlv = RLVisualize(title=title + " agent on " + str(settings['environment_type']), settings=settings)
             rlv.setInteractive()
             rlv.init()
         if (settings['train_forward_dynamics']):
@@ -947,27 +946,51 @@ def trainModelParallel(inputData):
                         if (settings['train_reward_predictor']):
                             trainData["mean_forward_dynamics_reward_loss"].append(mean_dynamicsRewardLosses)
                             trainData["std_forward_dynamics_reward_loss"].append(std_dynamicsRewardLosses)
+                    ### Lets always save a figure for the learning...
+                    rlv_ = RLVisualize(title=settings['sim_config_file'] + " agent on " + str(settings['environment_type']), settings=settings)
+                    rlv_.init()
+                    rlv_.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
+                    rlv_.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
+                    rlv_.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
+                    rlv_.redraw()
+                    rlv_.saveVisual(directory+getAgentName())
+                    del rlv_
                     if settings['visualize_learning']:
                         rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
                         rlv.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
                         rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
                         rlv.redraw()
-                        rlv.setInteractiveOff()
-                        rlv.saveVisual(directory+getAgentName())
-                        rlv.setInteractive()
+                        # rlv.setInteractiveOff()
+                        # rlv.saveVisual(directory+getAgentName())
+                        # rlv.setInteractive()
                         # rlv.redraw()
-                    if (settings['train_forward_dynamics'] and settings['visualize_learning']):
-                        nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
-                        nlv.redraw()
-                        nlv.setInteractiveOff()
-                        nlv.saveVisual(directory+"trainingGraphNN")
-                        nlv.setInteractive()
+                    
+                    if (settings['train_forward_dynamics']):
+                        nlv_ = NNVisualize(title=str("Dynamics Model") + " with " + settings['sim_config_file'], settings=settings)
+                        nlv_.init()
+                        nlv_.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
+                        nlv_.redraw()
+                        nlv_.saveVisual(directory+"trainingGraphNN")
+                        del nlv_
                         if (settings['train_reward_predictor']):
-                            rewardlv.updateLoss(np.array(trainData["mean_forward_dynamics_reward_loss"]), np.array(trainData["std_forward_dynamics_reward_loss"]))
-                            rewardlv.redraw()
-                            rewardlv.setInteractiveOff()
-                            rewardlv.saveVisual(directory+"rewardTrainingGraph")
-                            rewardlv.setInteractive()
+                            rewardlv_ = NNVisualize(title=str("Reward Model") + " with " + settings['sim_config_file'], settings=settings)
+                            rewardlv_.init()
+                            rewardlv_.updateLoss(np.array(trainData["mean_forward_dynamics_reward_loss"]), np.array(trainData["std_forward_dynamics_reward_loss"]))
+                            rewardlv_.redraw()
+                            rewardlv_.saveVisual(directory+"rewardTrainingGraph")
+                            del rewardlv_
+                        if (settings['visualize_learning']):
+                            nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
+                            nlv.redraw()
+                            nlv.setInteractiveOff()
+                            nlv.saveVisual(directory+"trainingGraphNN")
+                            nlv.setInteractive()
+                            if (settings['train_reward_predictor']):
+                                rewardlv.updateLoss(np.array(trainData["mean_forward_dynamics_reward_loss"]), np.array(trainData["std_forward_dynamics_reward_loss"]))
+                                rewardlv.redraw()
+                                rewardlv.setInteractiveOff()
+                                rewardlv.saveVisual(directory+"rewardTrainingGraph")
+                                rewardlv.setInteractive()
                     if (settings['debug_critic']):
                         
                         mean_criticLosses = np.mean(criticLosses)
