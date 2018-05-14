@@ -6,9 +6,13 @@ from sim.SimInterface import SimInterface
 import copy 
 # import scipy.integrate as integrate
 # import matplotlib.animation as animation
-import gym
-from gym import wrappers
-from gym import envs
+try:
+    import gym
+    from gym import wrappers
+    from gym import envs
+except:
+    print("openAI gym is not installed")
+    pass
 # import roboschool
 from OpenGL import GL
 # print(envs.registry.all())
