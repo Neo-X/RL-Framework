@@ -1277,8 +1277,8 @@ if (__name__ == "__main__"):
     
     options = getOptions(sys.argv)
     options = vars(options)
-    print("options: ", options)
-    print("options['configFile']: ", options['configFile'])
+    # print("options: ", options)
+    # print("options['configFile']: ", options['configFile'])
         
     file = open(options['configFile'])
     settings = json.load(file)
@@ -1294,7 +1294,7 @@ if (__name__ == "__main__"):
                 settings[option] = False
         # settings['num_available_threads'] = options['num_available_threads']
 
-    print ("Settings: " + str(json.dumps(settings, indent=4)))
+    # print ("Settings: " + str(json.dumps(settings, indent=4)))
     metaSettings = None
     if ( 'metaConfigFile' in settings and (settings['metaConfigFile'] is not None)):
         ### Import meta settings

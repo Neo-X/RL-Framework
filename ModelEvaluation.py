@@ -1167,7 +1167,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     if ("num_on_policy_rollouts" in settings):
         min_samples = settings["num_on_policy_rollouts"] * settings["max_epoch_length"]
     else:
-        min_samples = settings["epochs"]
+        min_samples = settings["epochs"] * settings["max_epoch_length"]
     if (   ("anneal_exploration" in settings) 
          and (settings['anneal_exploration'] != False)
          # and (r < (max(float(settings['anneal_exploration']), epsilon * p))) ) 
@@ -1178,12 +1178,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
             print("Updated min sample from collection is: ", min_samples)
     
-    while ((i < anchors) or 
-           (
-            (("sample_single_trajectories" in settings and (settings["sample_single_trajectories"] == True)))
-            and
-            (len(states) < (min_samples))
-            ) 
+    while ( (len(states) < (min_samples))
             ):
         
         j = 0
