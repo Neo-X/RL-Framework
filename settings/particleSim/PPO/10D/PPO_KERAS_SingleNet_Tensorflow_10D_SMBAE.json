@@ -292,7 +292,7 @@
 		"comment__": "Whether or not the network should include pooling layers between convolutions.",
 	"perform_convolution_pooling": true,
 		"comment__": "Change where the network splits for a single network model",
-	"split_single_net_earlier": false
+	"split_single_net_earlier": true
 },
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
 "learning_backend": "tensorflow",
