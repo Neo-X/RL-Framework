@@ -303,7 +303,7 @@
 	"comment__": "Prevents the critic from including MBAE actions in it's policy estimation.",
 "give_mbae_actions_to_critic": false,
 	"comment__": "anneal the probability of performing explorative actions, set to >= 1.0 to perform only exploration actions",
-"anneal_exploration": 0.5,
+"anneal_exploration": 1.0,
 	"comment__": "Additional on-policy training updates",
 "additional_on-poli_trianing_updates": 2
 }
