@@ -567,7 +567,9 @@ def trainModelParallel(inputData):
         
         if ( settings['save_trainData'] or settings['visualize_learning']):
             from RLVisualize import RLVisualize
-            if (settings['train_forward_dynamics']):
+            if (settings['train_forward_dynamics']
+                or settings['debug_critic']
+                or settings['debug_actor']):
                 from NNVisualize import NNVisualize
             
         if settings['visualize_learning']:

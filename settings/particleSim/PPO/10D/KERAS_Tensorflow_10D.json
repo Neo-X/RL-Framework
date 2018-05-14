@@ -106,7 +106,7 @@
     "comment__": "What method to use to select actions during bootstrapping",
 "bootsrap_with_discrete_policy": true,
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
-"max_epoch_length": 128,
+"max_epoch_length": 64,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
 "reward_lower_bound": -10.5,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",
@@ -279,7 +279,7 @@
 	"comment__": "last policy type of activation to use",
 "last_policy_layer_activation_type": "tanh",
 	"comment__": "type of activation to use for policy",
-"policy_activation_type": "tanh",
+"policy_activation_type": "leaky_rectify",
 	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
 "normalize_advantage": true,
 	"comment__": "This overrides all of the envs to be a single one from the list of sim environments",
@@ -303,7 +303,7 @@
 	"comment__": "Prevents the critic from including MBAE actions in it's policy estimation.",
 "give_mbae_actions_to_critic": false,
 	"comment__": "anneal the probability of performing explorative actions, set to >= 1.0 to perform only exploration actions",
-"anneal_exploration": 1.0,
+"anneal_exploration": false,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 2
+"additional_on-poli_trianing_updates": 1
 }
