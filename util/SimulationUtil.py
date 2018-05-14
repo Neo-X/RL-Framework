@@ -268,14 +268,30 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
             num_actions = action_bounds.shape[1]
             
     if (settings['load_saved_model'] == True):
-        directory= getDataDirectory(settings)
-        print ("Loading pre compiled network")
-        file_name=directory+getAgentName()+"_Best.pkl"
-        f = open(file_name, 'rb')
-        model = dill.load(f)
-        model.setSettings(settings)
-        model.loadFrom(directory+getAgentName())
-        f.close()
+        if ("learning_backend" in settings and (settings['learning_backend'] == "tensorflow")):
+            from algorithm.AlgorithmInterface import AlgorithmInterface
+            # modelClass = my_import(path_)
+            modelAlgorithm = locate(algorihtm_type)
+            if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
+                model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+                model.setSettings(settings)
+                model.loadFrom(directory+getAgentName())
+                print("Loaded algorithm: ", model)
+                # return model
+            else:
+                print ("Unknown learning algorithm type: " + str(algorihtm_type))
+                raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+            # sys.exit(2)
+        else:
+            directory= getDataDirectory(settings)
+            print ("Loading pre compiled network")
+            file_name=directory+getAgentName()+"_Best.pkl"
+            f = open(file_name, 'rb')
+            model = dill.load(f)
+            model.setSettings(settings)
+            model.loadFrom(directory+getAgentName())
+            f.close()
     elif ( "Deep_NN2" == algorihtm_type):
         from model.RLDeepNet import RLDeepNet
         model = RLDeepNet(n_in=len(state_bounds[0]), n_out=num_actions, state_bounds=state_bounds, 

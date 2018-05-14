@@ -4,7 +4,7 @@ import sys
 import copy
 sys.path.append('../')
 from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward
-from algorithm.AlgorithmInterface import AlgorithmInterface
+from algorithm.KERASAlgorithm import KERASAlgorithm
 from model.LearningUtil import loglikelihood_keras, likelihood_keras, kl_keras, kl_D_keras, entropy_keras
 from keras.optimizers import SGD
 # from keras.utils.np_utils import to_categoricalnetwork
@@ -41,7 +41,7 @@ def flatten(data):
         else:
             yield i
 
-class PPO_KERAS(AlgorithmInterface):
+class PPO_KERAS(KERASAlgorithm):
     
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
 
@@ -144,7 +144,7 @@ class PPO_KERAS(AlgorithmInterface):
         # sgd = SGD(lr=0.001, momentum=0.9)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(1e-8),
                                     amsgrad=True)
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
@@ -196,7 +196,7 @@ class PPO_KERAS(AlgorithmInterface):
         
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0), 
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(1e-8), 
                                     amsgrad=True)
         print("sgd, actor: ", sgd)
         print ("Clipping: ", sgd.decay)
@@ -647,87 +647,3 @@ class PPO_KERAS(AlgorithmInterface):
     def get_critic_loss(self):
         return self._get_critic_loss([])
     
-    def saveTo(self, fileName):
-        # print(self, "saving model")
-        import dill
-        suffix = ".h5"
-        ### Save models
-        self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
-        self._model._actor.save(fileName+"_actor"+suffix, overwrite=True)
-        self._model._critic.save(fileName+"_critic"+suffix, overwrite=True)
-        self._modelTarget._actor.save(fileName+"_actor_T"+suffix, overwrite=True)
-        self._modelTarget._critic.save(fileName+"_critic_T"+suffix, overwrite=True)
-        ### Make a temp copy of models
-        model_actor_train = self._model._actor_train
-        model_actor = self._model._actor
-        model_critic = self._model._critic
-        modelTarget_actor = self._modelTarget._actor
-        modelTarget_critic = self._modelTarget._critic
-        ### Set models to none so they are not saved with this pickling... Because Keras does not pickle well.
-        self._model._actor_train = None
-        self._model._actor = None
-        self._model._critic = None
-        self._modelTarget._actor = None
-        self._modelTarget._critic = None
-        ### Pickle this class
-        suffix = ".pkl"
-        file_name=fileName+suffix
-        f = open(file_name, 'wb')
-        dill.dump(self, f)
-        f.close()
-        ### Restore models
-        # self._model = model
-        # self._modelTarget = modelTarget
-        self._model._actor_train = model_actor_train
-        self._model._actor = model_actor
-        self._model._critic = model_critic
-        self._modelTarget._actor = modelTarget_actor
-        self._modelTarget._critic = modelTarget_critic
-        print ("self._model._actor_train: ", self._model._actor_train)
-        
-    def loadFrom(self, fileName):
-        from keras.models import load_model
-        def pos_y(true_y, pred_y):
-            return self._actLoss
-        suffix = ".h5"
-        with K.get_session().graph.as_default() as g:
-            self._model._actor = load_model(fileName+"_actor"+suffix)
-            self._model._critic = load_model(fileName+"_critic"+suffix)
-            self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
-            self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
-        # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
-        # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
-        # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
-        
-from collections import OrderedDict
-def adam_updates(loss, params, learning_rate=0.001, beta1=0.9,
-         beta2=0.999, epsilon=1e-8):
-
-    all_grads = K.gradients(loss, params)
-    t_prev = K.variable(value=np.array(0,dtype="float32"))
-    updates = OrderedDict()
-
-    t = t_prev + 1
-    a_t = learning_rate*K.sqrt(1-beta2**t)/(1-beta1**t)
-
-    for param, g_t in zip(params, all_grads):
-        # value = param.get_value(borrow=True)
-        value = K.eval(param)
-        m_prev = K.variable(value=np.zeros(value.shape, dtype=value.dtype)
-                            # ,broadcastable=param.broadcastable
-                            )
-        v_prev = K.variable(value=np.zeros(value.shape, dtype=value.dtype)
-                            # ,broadcastable=param.broadcastable
-                            )
-
-        m_t = beta1*m_prev + (1-beta1)*g_t
-        v_t = beta2*v_prev + (1-beta2)*g_t**2
-        step = a_t*m_t/(K.sqrt(v_t) + epsilon)
-
-        updates[m_prev] = m_t
-        updates[v_prev] = v_t
-        updates[param] = param - step
-
-    updates[t_prev] = t
-    return updates
-
