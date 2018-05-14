@@ -560,7 +560,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         
         conf = copy.deepcopy(settings)
         conf['render'] = render
-        if (env.getNumberofAgents() > 0):
+        if (env.getNumberofAgents() > 1):
             exp = OpenAIGymEnv(env, conf, multiAgent=True)
         else:
             exp = OpenAIGymEnv(env, conf, multiAgent=False)
