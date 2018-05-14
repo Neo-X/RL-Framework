@@ -236,7 +236,7 @@ class LearningAgent(AgentInterface):
                                 print ("Training loss is Odd: ", loss)
                             
                     else:
-                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(self._settings["value_function_batch_size"])
+                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(value_function_batch_size)
                         loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print("Critic loss: ", loss)

@@ -90,7 +90,7 @@
     "comment__": "Some parameter for rmsprop stocastic gradient optimization method.",
 "rms_epsilon": 0.000001,
     "comment__": "Number of training updates before the target network is updated",
-"steps_until_target_network_update": 100000000,
+"steps_until_target_network_update": 10,
     "comment__": "Initial factor epsilon in multiplied by (This value will slowly be reduced during training)",
 "epsilon_annealing": 0.8,
     "comment__": "Different ways of calculating the scaling method used normalize the input and outputs of the network from the bootstrapping samples. minmax, input and output are -mean/max-min. variance, input and output are -mean/(std*2), given, use the bounds provided in this file",
@@ -98,7 +98,7 @@
     "comment__": "load a pretrained model for the controller",
 "load_saved_model": false,
 	"comment__": "Number of updates the critic should perform per actor update",
-"critic_updates_per_actor_update": 1,
+"critic_updates_per_actor_update": 10,
     "comment__": "weather or not to clamp actions to stay inside the action boundaries",
 "clamp_actions_to_stay_inside_bounds": false,
     "comment__": "Number of initial actions to sample before calculating input/output scaling and starting to train.",
@@ -211,7 +211,7 @@
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy",
 "on_policy": true,
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
-"use_stocastic_policy": true,
+"use_stocastic_policy": false,
 	"comment__": "Whether or  not to train the critic at all. Usually used for debugging",
 "train_critic": true,
 		"comment__": "What type of regularization to use",
@@ -303,7 +303,7 @@
 	"comment__": "Prevents the critic from including MBAE actions in it's policy estimation.",
 "give_mbae_actions_to_critic": false,
 	"comment__": "anneal the probability of performing explorative actions, set to >= 1.0 to perform only exploration actions",
-"anneal_exploration": false,
+"anneal_exploration": 0.5,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 2
+"additional_on-poli_trianing_updates": 4
 }

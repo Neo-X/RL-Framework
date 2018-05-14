@@ -1184,22 +1184,13 @@ def trainModelParallel(inputData):
             exp_val.finish()
         
         print ("Save last versions of files.")
-        file_name=directory+getAgentName()+".pkl"
-        f = open(file_name, 'wb')
-        dill.dump(masterAgent.getPolicy(), f)
-        f.close()
+        masterAgent.saveTo(directory)
         
         f = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", "w")
         for key in trainData:
             trainData[key] = [float(i) for i in trainData[key]]
         json.dump(trainData, f, sort_keys=True, indent=4)
         f.close()
-        
-        if (settings['train_forward_dynamics']):
-            file_name_dynamics=directory+"forward_dynamics_"+".pkl"
-            f = open(file_name_dynamics, 'wb')
-            dill.dump(masterAgent.getForwardDynamics(), f)
-            f.close()
         
         """except: # catch *all* exceptions
         e = sys.exc_info()[0]
