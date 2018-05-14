@@ -11,4 +11,8 @@ To run something from the RLSimulationEnvironments in the container
 sudo docker run glen:latest /bin/bash -c "python3 /root/playground/RLSimulationEnvironments/EnvTester.py"
 ```
 
+Run terrainRL
+```
+sudo docker run -e TERRAINRL_PATH=/root/playground/TerrainRL/ glen:latest /bin/bash -c "python3 /root/playground/TerrainRL/simAdapter/terrainRLSimTest.py"
+```
 

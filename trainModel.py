@@ -270,8 +270,6 @@ def trainModelParallel(inputData):
         
         
         from util.ExperienceMemory import ExperienceMemory
-        from RLVisualize import RLVisualize
-        from NNVisualize import NNVisualize
         
         from sim.PendulumEnvState import PendulumEnvState
         from sim.PendulumEnv import PendulumEnv
@@ -567,6 +565,11 @@ def trainModelParallel(inputData):
         global _sim_work_queues
         _sim_work_queues = sim_work_queues
         
+        if ( settings['save_trainData'] or settings['visualize_learning']):
+            from RLVisualize import RLVisualize
+            if (settings['train_forward_dynamics']):
+                from NNVisualize import NNVisualize
+            
         if settings['visualize_learning']:
             title = settings['agent_name']
             k = title.rfind(".") + 1
@@ -947,14 +950,15 @@ def trainModelParallel(inputData):
                             trainData["mean_forward_dynamics_reward_loss"].append(mean_dynamicsRewardLosses)
                             trainData["std_forward_dynamics_reward_loss"].append(std_dynamicsRewardLosses)
                     ### Lets always save a figure for the learning...
-                    rlv_ = RLVisualize(title=settings['sim_config_file'] + " agent on " + str(settings['environment_type']), settings=settings)
-                    rlv_.init()
-                    rlv_.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
-                    rlv_.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
-                    rlv_.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
-                    rlv_.redraw()
-                    rlv_.saveVisual(directory+getAgentName())
-                    del rlv_
+                    if ( settings['save_trainData']):
+                        rlv_ = RLVisualize(title=settings['sim_config_file'] + " agent on " + str(settings['environment_type']), settings=settings)
+                        rlv_.init()
+                        rlv_.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
+                        rlv_.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
+                        rlv_.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
+                        rlv_.redraw()
+                        rlv_.saveVisual(directory+getAgentName())
+                        del rlv_
                     if settings['visualize_learning']:
                         rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
                         rlv.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
@@ -965,7 +969,7 @@ def trainModelParallel(inputData):
                         # rlv.setInteractive()
                         # rlv.redraw()
                     
-                    if (settings['train_forward_dynamics']):
+                    if (settings['train_forward_dynamics'] and settings['save_trainData']):
                         nlv_ = NNVisualize(title=str("Dynamics Model") + " with " + settings['sim_config_file'], settings=settings)
                         nlv_.init()
                         nlv_.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
@@ -1071,15 +1075,14 @@ def trainModelParallel(inputData):
                         print ("Saving BEST current agent: " + str(best_eval))
                     masterAgent.saveTo(directory, bestPolicy=True)
                     
-                if settings['save_trainData']:
-                    fp = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", 'w')
-                    # print ("Train data: ", trainData)
-                    ## because json does not serialize np.float32 
-                    for key in trainData:
-                        trainData[key] = [float(i) for i in trainData[key]]
-                    json.dump(trainData, fp)
-                    fp.close()
-                    # draw data
+                fp = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", 'w')
+                # print ("Train data: ", trainData)
+                ## because json does not serialize np.float32 
+                for key in trainData:
+                    trainData[key] = [float(i) for i in trainData[key]]
+                json.dump(trainData, fp)
+                fp.close()
+                # draw data
                         
             # mean_reward = std_reward = mean_bellman_error = std_bellman_error = mean_discount_error = std_discount_error = None
             # if ( round_ % 10 ) == 0 :
