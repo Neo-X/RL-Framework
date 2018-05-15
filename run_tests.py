@@ -16,10 +16,10 @@ if __name__ == '__main__':
     t0 = time.time()
     if ( len(sys.argv) == 2 and sys.argv[1] == "Test"):
         print ("test run")
-        pytest.main(['tests/', '--junitxml=' + jUnitFileName, '--no-print-logs'])
+        pytest.main(['tests/', '--junitxml=' + jUnitFileName, '--no-print-logs', '--show-progress'])
     else:
         print ("Starting full run: ")
-        pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4', '--show-capture=no'])
+        pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4', '--show-capture=no', '--show-progress'])
         # pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
     t1 = time.time()
     sim_time_ = datetime.timedelta(seconds=(t1-t0))

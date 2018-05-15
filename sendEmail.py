@@ -93,7 +93,7 @@ if __name__ == '__main__':
         print ("Settings: " + str(json.dumps(settings_)))
         file.close()
         
-        sendEmail("Testing", "Nothing", settings=settings_, testing=True)
+        sendEmail("Testing", "Nothing", hyperSettings=settings_, testing=True)
     elif (len(sys.argv) == 3):
         settingsFileName = sys.argv[1] 
         file = open(settingsFileName)
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         print ("Settings: " + str(json.dumps(settings_)))
         file.close()
         
-        sendEmail("Testing", "Nothing", settings=settings_, testing=False)
+        sendEmail("Testing", "Nothing", hyperSettings=settings_, testing=False)
     
     elif (len(sys.argv) == 4):
         settingsFileName = sys.argv[1] 
@@ -110,7 +110,7 @@ if __name__ == '__main__':
         print ("Settings: " + str(json.dumps(settings_)))
         file.close()
         
-        sendEmail("Testing", "Nothing", settings=settings_, simSettings=sys.argv[2], testing=False)
+        sendEmail("Testing", "Nothing", hyperSettings=settings_, simSettings=sys.argv[2], testing=False)
         
     else:
         sendEmail("Testing", "Nothing", hyperSettings={}, testing=True)
