@@ -52,13 +52,13 @@ class KERASAlgorithm(AlgorithmInterface):
         import dill
         suffix = ".h5"
         ### Save models
-        self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
+        # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
         self._model._actor.save(fileName+"_actor"+suffix, overwrite=True)
         self._model._critic.save(fileName+"_critic"+suffix, overwrite=True)
         self._modelTarget._actor.save(fileName+"_actor_T"+suffix, overwrite=True)
         self._modelTarget._critic.save(fileName+"_critic_T"+suffix, overwrite=True)
         ### Make a temp copy of models
-        model_actor_train = self._model._actor_train
+        # model_actor_train = self._model._actor_train
         model_actor = self._model._actor
         model_critic = self._model._critic
         modelTarget_actor = self._modelTarget._actor
@@ -80,12 +80,12 @@ class KERASAlgorithm(AlgorithmInterface):
         ### Restore models
         # self._model = model
         # self._modelTarget = modelTarget
-        self._model._actor_train = model_actor_train
+        # self._model._actor_train = model_actor_train
         self._model._actor = model_actor
         self._model._critic = model_critic
         self._modelTarget._actor = modelTarget_actor
         self._modelTarget._critic = modelTarget_critic
-        print ("self._model._actor_train: ", self._model._actor_train)
+        # print ("self._model._actor_train: ", self._model._actor_train)
         
     def loadFrom(self, fileName):
         from keras.models import load_model
