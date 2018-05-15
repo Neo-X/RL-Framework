@@ -3,6 +3,7 @@ import smtplib
 import socket
 import sys
 import getpass
+import os
 
 # Import the email modules we'll need
 from email.mime.text import MIMEText
@@ -65,7 +66,8 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False,
         msg.attach(msgFiles)
     
     # Assume we know that the image files are all in PNG format
-    if ( (pictureFile is not None) ):
+    if ( (pictureFile is not None) 
+         and os.path.exists(pictureFile)):
         # for file in pngfiles:
         # Open the files in binary mode.  Let the MIMEImage class automatically
         # guess the specific image type.
