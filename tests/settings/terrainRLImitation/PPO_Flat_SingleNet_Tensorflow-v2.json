@@ -39,7 +39,6 @@
 "expereince_length": 10000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [[ 
-				
 				0.06586086, -0.33134258, -0.22473772, -0.08842427, -0.24940665,
 		        -0.15451589, -0.49955064, -0.44008026, -0.59096092, -0.27878672,
 		        -0.14038287, -0.28852576, -0.20101279, -0.22234532, -0.22769515,
@@ -100,7 +99,7 @@
     "comment__": "How often to save the training data and plotting data",
 "saving_update_freq_num_rounds": 10,
     "comment__": "Number of treads that can be run in parallel during training",
-"num_available_threads": 16,
+"num_available_threads": 8,
     "comment__": "Length of the queues used to pass simulation data between the simulation workers and the learning agent(s).",
 "queue_size_limit": 10,
     "comment__": "Number of actions performed between training updates",
@@ -277,7 +276,7 @@
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy rollouts to perform per epoch",
-"num_on_policy_rollouts": 16,
+"num_on_policy_rollouts": 8,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": false,
 	"comment__": "PPO should use seperate networks for the value and policy functions",
@@ -354,7 +353,7 @@
 	"split_single_net_earlier": true
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
-"pretrain_critic": 0,
+"pretrain_critic": 100,
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
 "ppo_et_factor": 1.25,
 	"comment__": "higher level controller timestep",
