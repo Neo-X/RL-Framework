@@ -42,9 +42,11 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False,
     msg['Subject'] = subject
     # msg['From'] = 'csguestn@dyn.cs.sfu.ca'
     msg['From'] = fromEmail
-    msg['To'] = 'gberseth@cs.ubc.ca'
+    toEmail = 'gberseth@cs.ubc.ca'
     if ( 'to_email_address' in hyperSettings):
-        msg['To'] = hyperSettings['to_email_address']
+        toEmail = hyperSettings['to_email_address']
+    msg['To'] = toEmail
+    print("To email: ", msg['To'])
     
     # print("Email message: ", msg)
     

@@ -17,7 +17,7 @@
 "mail_server_name": "localhost",
 	"comment__": "from email address",
 "from_email_address": "glen",
-	"comment__": "from email address",
+	"comment__": "to email address",
 "to_email_address": "glen.berseth@elementai.com",
 	"comment__": "Flag to say this is a testing run",
 "testing": false,
