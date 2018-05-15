@@ -1293,6 +1293,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             state_bounds = np.array(settings['state_bounds'], dtype=float)
         else:
             print ("State scaling strategy unknown: ", (settings['state_normalization']))
+            sys.exit()
             
         ## Cast data to the proper type
         state_bounds = np.array(state_bounds, dtype=settings['float_type'])

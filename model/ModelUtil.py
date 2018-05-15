@@ -942,7 +942,9 @@ def fixBounds(bounds):
         if (diff[i] < epsilon ):
             bounds[1][i] = bounds[1][i] + epsilon
             bounds[0][i] = bounds[0][i] - epsilon
-        if ((not np.isfinite(diff[i]) or (diff[i] != diff[i]))):
+        elif ((not np.isfinite(diff[i]))
+               # or (diff[i] != diff[i])
+              ):
             ## Fix inf and nan
             bounds[1][i] = epsilon*10
             bounds[0][i] = -epsilon*10
