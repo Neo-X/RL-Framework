@@ -373,16 +373,21 @@ class PPO_KERAS(KERASAlgorithm):
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
-        # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-        y_ = self._value_Target([result_states,0])[0]
-        # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-        # target_ = rewards + ((self._discount_factor * y_) * falls)
-        target_ = rewards + ((self._discount_factor * y_))
+        if ('dont_use_td_learning' in self.getSettings() 
+            and self.getSettings()['dont_use_td_learning'] == True):
+            target_ = G_t * (1.0-self.getSettings()['discount_factor'])
+        else:
+            # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
+            y_ = self._value_Target([result_states,0])[0]
+            # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
+            # target_ = rewards + ((self._discount_factor * y_) * falls)
+            target_ = rewards + ((self._discount_factor * y_))
         target_ = np.array(target_, dtype=self._settings['float_type'])
         # states = np.array(states, dtype=self._settings['float_type'])
         # print ("target type: ", target_.dtype)
         # print ("states type: ", states.dtype)
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
+        
         score = self._model.getCriticNetwork().fit(states, target_,
               epochs=1, batch_size=states.shape[0],
               verbose=0
@@ -462,10 +467,14 @@ class PPO_KERAS(KERASAlgorithm):
             if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
                 
                 # (lossActor, r_) = self.trainPolicy([states, actions, result_states, rewards, advantage, p])
-                y_ = self._value_Target([result_states,0])[0]
-                # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-                # target_ = rewards + ((self._discount_factor * y_) * falls)
-                target_ = rewards + ((self._discount_factor * y_))
+                if ('dont_use_td_learning' in self.getSettings() 
+                and self.getSettings()['dont_use_td_learning'] == True):
+                    target_ = G_t * (1.0-self.getSettings()['discount_factor'])
+                else:
+                    y_ = self._value_Target([result_states,0])[0]
+                    # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
+                    # target_ = rewards + ((self._discount_factor * y_) * falls)
+                    target_ = rewards + ((self._discount_factor * y_))
                 target_ = np.array(target_, dtype=self._settings['float_type'])
                 action_old = self._modelTarget.getActorNetwork().predict(states)
                 ### Anneal learning rate
