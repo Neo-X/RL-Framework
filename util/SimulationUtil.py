@@ -133,7 +133,9 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
         n_out_ = len(action_bounds[0])
     else:
         n_out_ = len(action_bounds)
-    if (model_type == "Deep_Dropout" ):
+    if (settings['load_saved_model'] == True):
+        return None
+    elif (model_type == "Deep_Dropout" ):
         from model.DeepDropout import DeepDropout
         model = DeepDropout(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
@@ -269,6 +271,10 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
     if (settings['load_saved_model'] == True):
         if ("learning_backend" in settings and (settings['learning_backend'] == "tensorflow")):
             from algorithm.AlgorithmInterface import AlgorithmInterface
+            settings_ = copy.deepcopy(settings)
+            ### This is faster....
+            settings_['load_saved_model'] = False
+            networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings_)
             # modelClass = my_import(path_)
             modelAlgorithm = locate(algorihtm_type)
             if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
