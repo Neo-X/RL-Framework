@@ -723,6 +723,7 @@ def trainModelParallel(inputData):
                     (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__) = tuples
                     # print("**** training states: ", np.array(__states).shape)
                     # print("**** training __result_states: ", np.array(__result_states).shape)
+                    # print("__G_ts: ", __G_ts)
                     # print ("Actions before: ", __actions)
                     # print("Adv: ", advantage__)
                     if ( ('anneal_on_policy' in settings) and settings['anneal_on_policy']):  
@@ -732,7 +733,7 @@ def trainModelParallel(inputData):
                         
                     for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
-                                           _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, p=p_tmp_)
+                                           _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_)
                     
                     data = ('Update_Policy', p_tmp_, 
                             masterAgent.getStateBounds(),
@@ -772,7 +773,7 @@ def trainModelParallel(inputData):
                 # print ("Current Tuple: " + str(learningNamespace.experience.current()))
                 # print ("masterAgent.getExperience().samples() >= batch_size: ", masterAgent.getExperience().samples(), " >= ", batch_size)
                 if masterAgent.getExperience().samples() >= batch_size:
-                    states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
+                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
                     error = masterAgent.bellman_error(states, actions, rewards, result_states, falls)
                     # print ("Error: ", error)
@@ -1326,11 +1327,11 @@ if (__name__ == "__main__"):
     simData = []
     if ( (metaSettings is None)
         or ((metaSettings is not None) and (not metaSettings['testing'])) ):
-        try:
+        # try:
             simData = trainModelParallel((sys.argv[1], settings))
-        except:
+        # except:
             ### Nothing to really do, but can still send email of progress
-            pass
+            # pass
     t1 = time.time()
     sim_time_ = datetime.timedelta(seconds=(t1-t0))
     print ("Model training complete in " + str(sim_time_) + " seconds")

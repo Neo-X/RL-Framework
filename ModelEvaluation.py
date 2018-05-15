@@ -1096,7 +1096,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             # print ("Evaluated Actions: ", actions)
             # print ("Evaluated Rewards: ", rewards)
             if model.getExperience().samples() >= settings['batch_size']:
-                _states, _actions, _result_states, _rewards, falls, _G_ts, exp_actions = model.getExperience().get_batch(batch_size)
+                _states, _actions, _result_states, _rewards, falls, _G_ts, exp_actions, advantage = model.getExperience().get_batch(batch_size)
                 error = model.bellman_error(_states, _actions, _rewards, _result_states, falls)
                 # print("Episode bellman error: ", error)
             else :
@@ -1247,7 +1247,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     state_bounds = np.array(settings['state_bounds'], dtype=float)
     
     if (settings["bootsrap_with_discrete_policy"]) and (settings['bootstrap_samples'] > 0):
-        (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
+        (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
                                                                                                                    eval_episode_data_queue=eval_episode_data_queue)
         # states = np.array(states)
         # states = np.append(states, state_bounds,0) # Adding that already specified bounds will ensure the final calculated is beyond these
@@ -1256,7 +1256,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         print (" Shape result states: ", resultStates.shape)
         print (" Shape rewards_: ", rewards_.shape)
         print (" Shape falls: ", falls_.shape)
-        print (" Shape advantage: ", G_ts_.shape)
+        print (" Shape G_ts_: ", G_ts_.shape)
+        print (" Shape advantage: ", advantage_.shape)
         print (" Shape exp_actions: ", exp_actions.shape)
         
         state_bounds = np.ones((2,states.shape[1]))
@@ -1325,13 +1326,13 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         experience.setRewardBounds(reward_bounds)
         experience.setActionBounds(action_bounds)
         
-        for state, action, resultState, reward_, fall_, G_t, exp_action in zip(states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions):
+        for state, action, resultState, reward_, fall_, G_t, exp_action, adv in zip(states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_):
             # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
             if settings['action_space_continuous']:
                 # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
-                experience.insertTuple(([state], [action], [resultState], [reward_], [fall_], [G_t], [exp_action]))
+                experience.insertTuple(([state], [action], [resultState], [reward_], [fall_], [G_t], [exp_action], [adv]))
             else:
-                experience.insertTuple(([state], [action], [resultState], [reward_], [falls_], G_t, [exp_action]))
+                experience.insertTuple(([state], [action], [resultState], [reward_], [falls_], G_t, [exp_action], [adv]))
             # else:
                 # print ("Tuple with reward: " + str(reward_) + " skipped")
         # sys.exit()
@@ -1367,6 +1368,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
     rewards = []
     falls = []
     G_ts = []
+    advantage = []
     exp_actions = []
     # anchor_data_file = open(settings["anchor_file"])
     # _anchors = getAnchors(anchor_data_file)
@@ -1388,7 +1390,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         # if self._p <= 0.0:
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out
-        (states_, actions_, result_states_, rewards_, falls_, G_t_, advantage, exp_actions_) = tuples
+        (states_, actions_, result_states_, rewards_, falls_, G_t_, advantage_, exp_actions_) = tuples
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print ("Shape other states_: ", np.array(states_).shape)
             print ("Shape other action_: ", np.array(actions_).shape)
@@ -1399,6 +1401,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         resultStates.extend(result_states_)
         falls.extend(falls_)
         G_ts.extend(G_t_)
+        advantage.extend(advantage_)
         exp_actions.extend(exp_actions_)
         
         i=i+len(states_)
@@ -1414,7 +1417,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
 
     print ("Done collecting experience.")
     return (np.array(states), np.array(actions), np.array(resultStates), np.array(rewards), 
-            np.array(falls), np.array(G_ts), np.array(exp_actions))  
+            np.array(falls), np.array(G_ts), np.array(exp_actions), np.array(advantage))  
 
 
 def modelEvaluationParallel(settings_file_name):

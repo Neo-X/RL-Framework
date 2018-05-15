@@ -78,7 +78,7 @@ class LearningAgent(AgentInterface):
         return self._expBuff_FD  
     
     def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
-              _exp_actions=None, p=1.0):
+              _exp_actions=None, _G_t=None, p=1.0):
         if self._useLock:
             self._accesLock.acquire()
         loss = 0
@@ -122,6 +122,7 @@ class LearningAgent(AgentInterface):
             tmp_result_states = [] 
             tmp_rewards = []
             tmp_falls = []
+            tmp_G_t = []
             tmp_advantage = []
             tmp_exp_action = []
             # print ("Advantage:", _advantage)
@@ -133,8 +134,8 @@ class LearningAgent(AgentInterface):
             
             ### Causes the new scaling values to be computed but not applied. They are applied later after the updates
             self.getExperience()._settings["state_normalization"] = "variance"
-            for (state__, action__, next_state__, reward__, fall__, advantage__, exp_action__) in zip(_states, _actions, _result_states, _rewards, _falls, _advantage, _exp_actions):
-                if (checkValidData(state__, action__, next_state__, reward__) and checkDataIsValid(advantage__)):
+            for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, advantage__) in zip(_states, _actions, _result_states, _rewards, _falls, _G_t, _exp_actions, _advantage):
+                if (checkValidData(state__, action__, next_state__, reward__) and checkDataIsValid(advantage__), checkDataIsValid(G_t__)):
                     tmp_states.append(state__)
                     tmp_actions.append(action__)
                     tmp_result_states.append(next_state__)
@@ -142,8 +143,9 @@ class LearningAgent(AgentInterface):
                     tmp_falls.append(fall__)
                     tmp_advantage.append(advantage__)
                     tmp_exp_action.append(exp_action__)
+                    tmp_G_t.append(G_t__)
                     # print("adv__:", advantage__)
-                    tup = ([state__], [action__], [next_state__], [reward__], [fall__], [advantage__], [exp_action__])
+                    tup = ([state__], [action__], [next_state__], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
                     self.getExperience().insertTuple(tup)
                     if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                         self.getFDExperience().insertTuple(tup)
@@ -174,6 +176,7 @@ class LearningAgent(AgentInterface):
                 _rewards = np.reshape(_rewards, (len(tmp_states), 1))
                 _falls = np.array(tmp_falls, dtype='int8')
                 _advantage = np.array(tmp_advantage, dtype=self._settings['float_type'])
+                _G_t = np.array(tmp_G_t, dtype=self._settings['float_type'])
                 _exp_action = np.array(tmp_exp_action, dtype=self._settings['float_type'])
                 # print("Not Falls: ", _falls)
                 # print("Rewards: ", _rewards)
@@ -200,7 +203,7 @@ class LearningAgent(AgentInterface):
                             if ( self._settings['agent_name'] == "algorithm.QProp.QProp"
                               or (self._settings['agent_name'] == 'algorithm.QPropKeras.QPropKeras')
                               ):
-                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
                                 loss = self._pol.trainOnPolicyCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                             # loss = self._pol.trainOnPolicyCritic(states=tmp_states, actions=tmp_actions, rewards=tmp_rewards, result_states=tmp_result_states, falls=tmp_falls)
                             # print ("Number of samples:", self._expBuff.samples())
@@ -208,15 +211,15 @@ class LearningAgent(AgentInterface):
                                  (self._settings['give_mbae_actions_to_critic'] == False)):
                                 # if ( np.random.random() >= self._settings['model_based_action_omega']):
                                 if ( np.random.random() >= -1.0):
-                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
-                                    loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
+                                    loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__, G_t=G_ts__)
                                 else:
                                     # print('off-policy action update')
-                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
+                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
                                     actions____ = self._pol.predict_batch(states=result_states__) 
                                     predicted_result_states__ = self._fd.predict_batch(states=result_states__, actions=actions____)
                                     rewards____ = self._fd.predict_reward_batch(states=result_states__, actions=actions____)
-                                    loss = self._pol.trainCritic(states=result_states__, actions=actions____, rewards=rewards____, result_states=predicted_result_states__, falls=falls__)
+                                    loss = self._pol.trainCritic(states=result_states__, actions=actions____, rewards=rewards____, result_states=predicted_result_states__, falls=falls__, G_t=G_ts__)
                             else:
                                 if ( 'keep_seperate_fd_exp_buffer' in self._settings 
                                      and (self._settings['keep_seperate_fd_exp_buffer'] == True)
@@ -224,10 +227,10 @@ class LearningAgent(AgentInterface):
                                      and (self._settings['train_critic_with_fd_data'] == True)
                                      ):
                                     # print ("Using seperate (off-policy) exp mem for Q model")
-                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self.getFDExperience().get_batch(value_function_batch_size)
+                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(value_function_batch_size)
                                 else:
-                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
-                                loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
+                                loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__, G_t=G_ts__)
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print("Critic loss: ", loss)
                             if not np.isfinite(loss) or (loss > 500) :
@@ -236,8 +239,8 @@ class LearningAgent(AgentInterface):
                                 print ("Training loss is Odd: ", loss)
                             
                     else:
-                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_batch(value_function_batch_size)
-                        loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                        _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_batch(value_function_batch_size)
+                        loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, G_t=G_ts__)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print("Critic loss: ", loss)
                         if not np.isfinite(loss) or (loss > 500) :
@@ -255,9 +258,9 @@ class LearningAgent(AgentInterface):
                         for i in range(self._settings['critic_updates_per_actor_update']):
                             if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                                 # print ("Using seperate (off-policy) exp mem for FD model")
-                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self.getFDExperience().get_batch(value_function_batch_size)
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(value_function_batch_size)
                             else:
-                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__ = self.getExperience().get_batch(value_function_batch_size)
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getExperience().get_batch(value_function_batch_size)
                             dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__)
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Forward Dynamics Loss: ", dynamicsLoss)
@@ -302,15 +305,15 @@ class LearningAgent(AgentInterface):
                          ( self._settings['use_multiple_policy_updates'] == True) ):
                         for i in range(self._settings['critic_updates_per_actor_update']):
                         
-                            _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
+                            _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
                             
                             loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, 
-                                                         falls=_falls, advantage=_advantage, exp_actions=exp_actions__, 
+                                                         falls=_falls, advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, 
                                                          forwardDynamicsModel=self._fd, p=p)
                     else:
-                        _states, _actions, _result_states, _rewards, _falls, _advantage, exp_actions__ = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
+                        _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
                         loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
-                                                     advantage=_advantage, exp_actions=exp_actions__, forwardDynamicsModel=self._fd,
+                                                     advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
                                                      p=p)
                     t1 = time.time()
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
@@ -338,16 +341,16 @@ class LearningAgent(AgentInterface):
                     if ( 'give_mbae_actions_to_critic' in self._settings and 
                          (self._settings['give_mbae_actions_to_critic'] == False)):
                         # if ( np.random.random() >= self._settings['model_based_action_omega']):
-                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.getNonMBAEBatch(value_function_batch_size)
-                        loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
-                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
+                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = self._expBuff.getNonMBAEBatch(value_function_batch_size)
+                        loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, G_t=G_ts__)
+                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = self._expBuff.get_batch(value_function_batch_size)
                     else:
-                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
-                        loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = self._expBuff.get_batch(value_function_batch_size)
+                        loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, G_t=G_ts__)
                         if ('rebatch_data' in self._settings 
                             and (self._settings['rebatch_data'] == True)
                             ):
-                            _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self._expBuff.get_batch(value_function_batch_size)
+                            _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = self._expBuff.get_batch(value_function_batch_size)
 
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Critic loss: ", loss)
@@ -365,7 +368,7 @@ class LearningAgent(AgentInterface):
                     t1 = time.time()
                     loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, 
                                                  result_states=_result_states, falls=_falls, advantage=_advantage, 
-                                                 exp_actions=_exp_actions, forwardDynamicsModel=self._fd, p=p)
+                                                 exp_actions=_exp_actions, G_t=G_ts__, forwardDynamicsModel=self._fd, p=p)
                     t1 = time.time()
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
@@ -375,7 +378,7 @@ class LearningAgent(AgentInterface):
                     t1 = time.time()
                     if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                         # print ("Using seperate (off-policy) exp mem for FD model")
-                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions = self.getFDExperience().get_batch(value_function_batch_size)
+                        _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = self.getFDExperience().get_batch(value_function_batch_size)
                         
                     dynamicsLoss = self._fd.train(states=_states, actions=_actions, result_states=_result_states, rewards=_rewards)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -596,7 +599,7 @@ class LearningWorker(Process):
             # print ("Learning agent experience size: " + str(self._agent._expBuff.samples()))
             step_ += 1
             if self._agent._expBuff.samples() > self._agent._settings["batch_size"] and ((step_ >= self._agent._settings['sim_action_per_training_update']) ):
-                __states, __actions, __result_states, __rewards, __falls, __G_ts, __exp_actions = self._agent._expBuff.get_batch(self._agent._settings["batch_size"])
+                __states, __actions, __result_states, __rewards, __falls, __G_ts, __exp_actions, __advantage = self._agent._expBuff.get_batch(self._agent._settings["batch_size"])
                 # print ("States: " + str(__states) + " ResultsStates: " + str(__result_states) + " Rewards: " + str(__rewards) + " Actions: " + str(__actions))
                 (loss, dynamicsLoss) = self._agent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states, _falls=__falls)
                 # print ("Master Agent Running training step, loss: " + str(loss) + " PID " + str(os.getpid()))

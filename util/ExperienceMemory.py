@@ -59,6 +59,7 @@ class ExperienceMemory(object):
             self._reward_history = (np.zeros((self._history_size, 1), dtype='float32'))
             self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
             self._discounted_sum_history = (np.zeros((self._history_size, 1), dtype='float32'))
+            self._advantage_history = (np.zeros((self._history_size, 1), dtype='float32'))
             self._exp_action_history = (np.zeros((self._history_size, 1), dtype='int8'))
         else:
             self._state_history = (np.zeros((self._history_size, self._state_length), dtype='float64'))
@@ -70,14 +71,15 @@ class ExperienceMemory(object):
             self._reward_history = (np.zeros((self._history_size, 1), dtype='float64'))
             self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
             self._discounted_sum_history = (np.zeros((self._history_size, 1), dtype='float64'))
+            self._advantage_history = (np.zeros((self._history_size, 1), dtype='float64'))
             self._exp_action_history = (np.zeros((self._history_size, 1), dtype='int8'))
         
     def insertTuple(self, tuple):
         
-        (state, action, nextState, reward, fall, G_t, exp_action) = tuple
-        self.insert(state, action, nextState, reward, fall, G_t, exp_action)
+        (state, action, nextState, reward, fall, G_t, exp_action, advantage) = tuple
+        self.insert(state, action, nextState, reward, fall, G_t, exp_action, advantage)
         
-    def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]], exp_action=[[0]]):
+    def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]], exp_action=[[0]], advantage=[[0]]):
         # print "Instert State: " + str(state)
         # state = list(state)
         assert len(state[0]) == self._state_length, "len(state[0]) == self._state_length: " + str(state) 
@@ -112,6 +114,7 @@ class ExperienceMemory(object):
         self._reward_history[self._history_update_index] = copy.deepcopy(np.array(reward))
         self._fall_history[self._history_update_index] = copy.deepcopy(np.array(fall))
         self._discounted_sum_history[self._history_update_index] = copy.deepcopy(np.array(G_t))
+        self._advantage_history[self._history_update_index] = copy.deepcopy(np.array(advantage))
         self._exp_action_history[self._history_update_index] = copy.deepcopy(np.array(exp_action))
         # print ("fall: ", fall)
         # print ("self._fall_history: ", self._fall_history[self._history_update_index])
@@ -218,6 +221,7 @@ class ExperienceMemory(object):
         fall = []
         G_ts = []
         exp_actions = []
+        advantage = []
         indices = set([])
         trys = 0
         # scale_state(self._state_history[i], self._state_bounds)
@@ -251,6 +255,7 @@ class ExperienceMemory(object):
                 reward.append(norm_state(self._reward_history[i] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
             fall.append(self._fall_history[i])
             G_ts.append(self._discounted_sum_history[i])
+            advantage.append(self._advantage_history[i])
             exp_actions.append(self._exp_action_history[i])
             
         # print c
@@ -265,6 +270,7 @@ class ExperienceMemory(object):
             reward = np.array(reward, dtype='float32')
             # fall = np.array(fall, dtype='int8')
             G_ts = np.array(G_ts, dtype='float32')
+            advantage = np.array(advantage, dtype='float32')
         else:
             state = np.array(state, dtype='float64')
             if (self._continuous_actions):
@@ -274,6 +280,7 @@ class ExperienceMemory(object):
             resultState = np.array(resultState, dtype='float64')
             reward = np.array(reward, dtype='float64')
             G_ts = np.array(G_ts, dtype='float64')
+            advantage = np.array(advantage, dtype='float32')
         
         fall = np.array(fall, dtype='int8')
         exp_actions = np.array(exp_actions, dtype='int8')
@@ -285,9 +292,10 @@ class ExperienceMemory(object):
         assert G_ts.shape == (len(indices), 1), "G_ts.shape == (len(indices), 1): " + str(G_ts.shape) + " == " + str((len(indices), 1))
         assert fall.shape == (len(indices), 1), "fall.shape == (len(indices), 1): " + str(fall.shape) + " == " + str((len(indices), 1))
         assert exp_actions.shape == (len(indices), 1), "exp_actions.shape == (len(indices), 1): " + str(exp_actions.shape) + " == " + str((len(indices), 1))
+        assert advantage.shape == (len(indices), 1), "G_ts.shape == (len(indices), 1): " + str(advantage.shape) + " == " + str((len(indices), 1))
         # assert len(np.unique(indices)[0]) == batch_size, "np.unique(indices).shape[0] == batch_size: " + str(np.unique(indices).shape[0]) + " == " + str(batch_size)
         
-        return (state, action, resultState, reward, fall, G_ts, exp_actions)
+        return (state, action, resultState, reward, fall, G_ts, exp_actions, advantage)
     
     def setStateBounds(self, _state_bounds):
         self._state_bounds = _state_bounds
@@ -322,6 +330,7 @@ class ExperienceMemory(object):
         hf.create_dataset('_reward_history', data=self._reward_history)
         hf.create_dataset('_fall_history', data=self._fall_history)
         hf.create_dataset('_discounted_sum_history', data=self._discounted_sum_history)
+        hf.create_dataset('_advantage_history', data=self._advantage_history)
         hf.create_dataset('_exp_action_history', data=self._exp_action_history)
         
         hf.create_dataset('_history_size', data=[self._history_size])
@@ -345,6 +354,7 @@ class ExperienceMemory(object):
         self._reward_history = np.array(hf.get('_reward_history'))
         self._fall_history = np.array(hf.get('_fall_history'))
         self._discounted_sum_history = np.array(hf.get('_discounted_sum_history'))
+        self._advantage_history = np.array(hf.get('_advantage_history'))
         self._exp_action_history = np.array(hf.get('_exp_action_history'))
         
         self._history_size = int(hf.get('_history_size')[()])

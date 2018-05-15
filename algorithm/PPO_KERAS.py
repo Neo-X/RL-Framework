@@ -363,7 +363,7 @@ class PPO_KERAS(KERASAlgorithm):
         pass
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
-    def trainCritic(self, states, actions, rewards, result_states, falls):
+    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]]):
         if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
             # print("self.getSettings()[\"ppo_use_seperate_nets\"]: ", self.getSettings()["ppo_use_seperate_nets"])
             return 0
@@ -394,6 +394,7 @@ class PPO_KERAS(KERASAlgorithm):
         return loss
     
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, 
+                   G_t=[[0]],
                    forwardDynamicsModel=None, p=1.0):
         lossActor = 0
         # print ("PPO p:", p)
