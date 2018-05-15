@@ -16,7 +16,7 @@
 	"comment__": "The fully qualified name of the mail server to use",
 "mail_server_name": "localhost",
 	"comment__": "from email address",
-"from_email_address": "glen",
+"from_email_address": "glen@dc1-8gpu-01.elementai.lan",
 	"comment__": "to email address",
 "to_email_address": "glen.berseth@elementai.com",
 	"comment__": "Flag to say this is a testing run",
