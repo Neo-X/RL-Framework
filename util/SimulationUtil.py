@@ -133,9 +133,7 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
         n_out_ = len(action_bounds[0])
     else:
         n_out_ = len(action_bounds)
-    if (settings['load_saved_model'] == True):
-        return None
-    elif (model_type == "Deep_Dropout" ):
+    if (model_type == "Deep_Dropout" ):
         from model.DeepDropout import DeepDropout
         model = DeepDropout(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                           action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
@@ -266,13 +264,15 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
     if settings['action_space_continuous']:
             action_bounds = np.array(settings["action_bounds"], dtype=float)
             num_actions = action_bounds.shape[1]
-            
+    
+    directory= getDataDirectory(settings)
     if (settings['load_saved_model'] == True):
         if ("learning_backend" in settings and (settings['learning_backend'] == "tensorflow")):
             from algorithm.AlgorithmInterface import AlgorithmInterface
             # modelClass = my_import(path_)
             modelAlgorithm = locate(algorihtm_type)
             if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
+                print ("networkModel: ", networkModel)
                 model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
                 model.setSettings(settings)
@@ -284,7 +284,6 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                 raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
             # sys.exit(2)
         else:
-            directory= getDataDirectory(settings)
             print ("Loading pre compiled network")
             file_name=directory+getAgentName()+"_Best.pkl"
             f = open(file_name, 'rb')
