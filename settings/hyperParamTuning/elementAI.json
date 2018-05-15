@@ -17,6 +17,8 @@
 "mail_server_name": "localhost",
 	"comment__": "from email address",
 "from_email_address": "glen",
+	"comment__": "from email address",
+"to_email_address": "glen.berseth@elementai.com",
 	"comment__": "Flag to say this is a testing run",
 "testing": false,
 	"comment__": "Type of curve to blend values along [linear|squared|exponential]",
