@@ -136,10 +136,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                             networkActVel = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=(1,1),
                                                          kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkActVel)
                         if (perform_pooling):
-                            networkAct = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(networkAct)
+                            networkAct = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(networkAct)
                             if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
-                                networkActVel = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(networkActVel)
+                                networkActVel = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(networkActVel)
                     else:
                         if (i == 0):
                             networkAct = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
@@ -276,10 +276,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                         networkVel = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=(1,1),
                                                      kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkVel)
                     if (perform_pooling):
-                        network = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(network)
+                        network = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(network)
                         if ('split_terrain_input' in self._networkSettings 
                             and self._networkSettings['split_terrain_input']):
-                            networkVel = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(networkVel)
+                            networkVel = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(networkVel)
                 else:
                     if (i == 0):
                         # network = Reshape((self._state_length, 1))(taskFeatures)
