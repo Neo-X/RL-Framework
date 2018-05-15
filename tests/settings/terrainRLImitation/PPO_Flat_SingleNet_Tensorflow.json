@@ -351,6 +351,7 @@
 		"comment__": "Whether or not the network should include pooling layers between convolutions.",
 	"perform_convolution_pooling": true,
 		"comment__": "Change where the network splits for a single network model",
+	"split_single_net_earlier": true
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
 "pretrain_critic": 0,
