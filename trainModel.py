@@ -581,8 +581,8 @@ def trainModelParallel(inputData):
             if (settings['environment_type'] == "open_AI_Gym"):
                 settings['environment_type'] = settings['sim_config_file']
             rlv = RLVisualize(title=title + " agent on " + str(settings['environment_type']), settings=settings)
-            rlv.setInteractive()
             rlv.init()
+            rlv.setInteractive()
         if (settings['train_forward_dynamics']):
             if settings['visualize_learning']:
                 title = settings['forward_dynamics_model_type']
@@ -591,8 +591,8 @@ def trainModelParallel(inputData):
                     k = 0 
                 title = title[k:]
                 nlv = NNVisualize(title=str("Dynamics Model") + " with " + title, settings=settings)
-                nlv.setInteractive()
                 nlv.init()
+                nlv.setInteractive()
             if (settings['train_reward_predictor']):
                 if settings['visualize_learning']:
                     title = settings['forward_dynamics_model_type']
@@ -602,8 +602,8 @@ def trainModelParallel(inputData):
                     
                     title = title[k:]
                     rewardlv = NNVisualize(title=str("Reward Model") + " with " + title, settings=settings)
-                    rewardlv.setInteractive()
                     rewardlv.init()
+                    rewardlv.setInteractive()
                  
         if (settings['debug_critic']):
             criticLosses = []
@@ -618,8 +618,8 @@ def trainModelParallel(inputData):
                 critic_loss_viz.setInteractive()
                 critic_loss_viz.init()
                 critic_regularization_viz = NNVisualize(title=str("Critic Reg Cost") + " with " + title)
-                critic_regularization_viz.setInteractive()
                 critic_regularization_viz.init()
+                critic_regularization_viz.setInteractive()
             
         if (settings['debug_actor']):
             actorLosses = []
@@ -634,8 +634,8 @@ def trainModelParallel(inputData):
                 actor_loss_viz.setInteractive()
                 actor_loss_viz.init()
                 actor_regularization_viz = NNVisualize(title=str("Actor Reg Cost") + " with " + title)
-                actor_regularization_viz.setInteractive()
                 actor_regularization_viz.init()
+                actor_regularization_viz.setInteractive()
 
             
         trainData = {}
@@ -955,12 +955,14 @@ def trainModelParallel(inputData):
                     ### Lets always save a figure for the learning...
                     if ( settings['save_trainData'] and (not settings['visualize_learning'])):
                         rlv_ = RLVisualize(title=settings['sim_config_file'] + " agent on " + str(settings['environment_type']), settings=settings)
+                        rlv_.useAGGBackend()
                         rlv_.init()
                         rlv_.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
                         rlv_.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
                         rlv_.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
                         rlv_.redraw()
                         rlv_.saveVisual(directory+getAgentName())
+                        rlv_.useOriginalBackend()
                         del rlv_
                     if settings['visualize_learning']:
                         rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
@@ -974,17 +976,21 @@ def trainModelParallel(inputData):
                     if (settings['train_forward_dynamics'] and settings['save_trainData']
                         and (not settings['visualize_learning'])):
                         nlv_ = NNVisualize(title=str("Dynamics Model") + " with " + settings['sim_config_file'], settings=settings)
+                        nlv_.useAGGBackend()
                         nlv_.init()
                         nlv_.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
                         nlv_.redraw()
                         nlv_.saveVisual(directory+"trainingGraphNN")
+                        nlv_.useOriginalBackend()
                         del nlv_
                         if (settings['train_reward_predictor']):
                             rewardlv_ = NNVisualize(title=str("Reward Model") + " with " + settings['sim_config_file'], settings=settings)
+                            rewardlv_.useAGGBackend()
                             rewardlv_.init()
                             rewardlv_.updateLoss(np.array(trainData["mean_forward_dynamics_reward_loss"]), np.array(trainData["std_forward_dynamics_reward_loss"]))
                             rewardlv_.redraw()
                             rewardlv_.saveVisual(directory+"rewardTrainingGraph")
+                            rewardlv_.useOriginalBackend()
                             del rewardlv_
                         if (settings['visualize_learning']):
                             nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
