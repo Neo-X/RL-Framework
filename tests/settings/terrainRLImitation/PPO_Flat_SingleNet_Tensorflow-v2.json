@@ -292,7 +292,7 @@
 	"comment__": "Whether or not to use a stochastic forward dynamics model",
 "use_stochastic_forward_dynamics": false,
 	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
-"normalize_advantage": false,
+"normalize_advantage": true,
 	"comment__": "use a special annealing schedule that will being at 1 and end at 0",
 "annealing_schedule": "linear",
 	"comment__": "Use the annealing schedule in on policy learning",

@@ -375,7 +375,7 @@ class PPO_KERAS(KERASAlgorithm):
         self._updates += 1
         if ('dont_use_td_learning' in self.getSettings() 
             and self.getSettings()['dont_use_td_learning'] == True):
-            if ( False ):
+            if ( True ):
                 y_ = self._value_Target([result_states,0])[0]
                 # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
                 # target_ = rewards + ((self._discount_factor * y_) * falls)
@@ -485,7 +485,7 @@ class PPO_KERAS(KERASAlgorithm):
                 # (lossActor, r_) = self.trainPolicy([states, actions, result_states, rewards, advantage, p])
                 if ('dont_use_td_learning' in self.getSettings() 
                 and self.getSettings()['dont_use_td_learning'] == True):
-                    if ( False ):
+                    if ( True ):
                         y_ = self._value_Target([result_states,0])[0]
                         # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
                         # target_ = rewards + ((self._discount_factor * y_) * falls)

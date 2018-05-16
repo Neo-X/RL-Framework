@@ -35,11 +35,16 @@ borgy submit -i images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/root/p
 
 Run a simulation  
 ```
-borgy submit -i images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/root/playground/TerrainRL/ -- /bin/bash -c "pushd /root/playground/RL-Framework/; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=false --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json"
+borgy submit -i images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/root/playground/TerrainRL/ -- /bin/bash -c "pushd /root/playground/RL-Framework/; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json"
 ```
 
+### Info from man page
 
-### Helpful commands
+--req-cores float32       Cores required (default 1)
+--req-gpus int            GPUS required
+--req-ram-gbytes int      RAM required in Gb (default 1)
+
+## Helpful commands
 
 Commit docker container
 ```
