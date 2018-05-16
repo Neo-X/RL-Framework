@@ -1,4 +1,4 @@
-import matplotlib
+import matplotlib.pyplot as plt
 # from matplotlib import mpl
 import numpy as np
 # import matplotlib.animation as animation
@@ -41,12 +41,12 @@ class NNVisualize(object):
         
         self._fig.set_size_inches(8.0, 12.5, forward=True)
         """
-        self._plot_backend = matplotlib.get_backend()
         
     def init(self):
-        import matplotlib.pyplot as plt
         """
-            One plots
+            Three plots
+            bellman error
+            average reward
             discounted reward error
         """
         # self._fig, (self._bellman_error_ax, self._reward_ax, self._discount_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
@@ -107,11 +107,6 @@ class NNVisualize(object):
         plt.close(self._fig)
         plt.close()
         
-    def useAGGBackend(self):
-        matplotlib.use('Agg')
-        
-    def useOriginalBackend(self):
-        matplotlib.use(self._plot_backend)
         
 if __name__ == "__main__":
     

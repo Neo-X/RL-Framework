@@ -1,4 +1,4 @@
-import matplotlib
+import matplotlib.pyplot as plt
 # from matplotlib import mpl
 import numpy as np
 # import matplotlib.animation as animation
@@ -27,10 +27,27 @@ class RLVisualize(object):
             self._iteration_scale = 1
             self._sim_iteration_scale = 1
         self._title=title
-        self._plot_backend = matplotlib.get_backend()
+        self._fig, (self._bellman_error_ax, self._reward_ax, self._discount_error_ax) = plt.subplots(3, 1, sharey=False, sharex=True)
+        self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
+        self._bellman_error_std = self._bellman_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
+        self._bellman_error_ax.set_title('Bellman Error')
+        self._bellman_error_ax.set_ylabel("Absolute Error")
+        self._bellman_error_ax.grid(b=True, which='major', color='black', linestyle='--')
+        self._reward, = self._reward_ax.plot([], [], linewidth=2.0)
+        self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
+        self._reward_ax.set_title('Mean Reward')
+        self._reward_ax.set_ylabel("Reward")
+        self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')
+        self._discount_error, = self._discount_error_ax.plot([], [], linewidth=2.0)
+        self._discount_error_std = self._discount_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
+        self._discount_error_ax.set_title('Discount Error')
+        self._discount_error_ax.set_ylabel("Absolute Error")
+        self._discount_error_ax.grid(b=True, which='major', color='black', linestyle='--')
+        plt.xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale))
+        
+        self._fig.set_size_inches(8.0, 12.5, forward=True)
         
     def init(self):
-        import matplotlib.pyplot as plt
         """
             Three plots
             bellman error
@@ -91,18 +108,15 @@ class RLVisualize(object):
         self._discount_error_ax.autoscale()
         
     def show(self):
-        import matplotlib.pyplot as plt
         plt.show()
         
     def redraw(self):
         self._fig.canvas.draw()
         
     def setInteractive(self):
-        import matplotlib.pyplot as plt
         plt.ion()
         
     def setInteractiveOff(self):
-        import matplotlib.pyplot as plt
         plt.ioff()
         
     def saveVisual(self, fileName):
@@ -115,12 +129,6 @@ class RLVisualize(object):
         """
         plt.close(self._fig)
         plt.close()
-        
-    def useAGGBackend(self):
-        matplotlib.use('Agg')
-        
-    def useOriginalBackend(self):
-        matplotlib.use(self._plot_backend)
         
         
 if __name__ == "__main__":
