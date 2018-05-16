@@ -1334,11 +1334,12 @@ if (__name__ == "__main__"):
     simData = []
     if ( (metaSettings is None)
         or ((metaSettings is not None) and (not metaSettings['testing'])) ):
-        # try:
+        try:
             simData = trainModelParallel((sys.argv[1], settings))
-        # except:
+        except:
             ### Nothing to really do, but can still send email of progress
-            # pass
+            print_full_stack()
+            pass
     t1 = time.time()
     sim_time_ = datetime.timedelta(seconds=(t1-t0))
     print ("Model training complete in " + str(sim_time_) + " seconds")
