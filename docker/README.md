@@ -49,7 +49,7 @@ borgy submit --req-cores=5 --req-ram-gbytes=5 -w /home/${USER} --image=images.bo
 ```
 
 ```
-borgy submit --req-cores=10 --req-ram-gbytes=5 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /playground/RL-Framework; python3 tuneHyperParameters.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json settings/hyperParamTuning/element/normalize_advantage.json"
+borgy submit --req-cores=10 --req-ram-gbytes=5 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json settings/hyperParamTuning/element/normalize_advantage.json"
 ```
 
 ### Info from man page

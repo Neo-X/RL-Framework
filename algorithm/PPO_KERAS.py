@@ -466,7 +466,7 @@ class PPO_KERAS(KERASAlgorithm):
             # print("Scale advantage")
             advantage = np.array((advantage / action_bound_std(self.getRewardBounds()) ) * (1.0-self.getSettings()['discount_factor']),
                                   dtype=self._settings['float_type'])
-            print ("advantage mean, std ", np.mean(advantage), np.std(advantage) )
+            # print ("advantage mean, std ", np.mean(advantage), np.std(advantage) )
         ### check to not perform updates when r gets to large.
         et_factor = 1.2
         if ("ppo_et_factor" in self.getSettings()):
