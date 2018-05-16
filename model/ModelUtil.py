@@ -194,23 +194,6 @@ def norm_action(action_, action_bounds_):
     tmp = action_ - avg
     return (tmp) / (std)
 
-def norm_actions(actions_, action_bounds_):
-    """
-        
-        Normalizes the action 
-        Where the middle of the action bounds are mapped to 0
-        upper bound will correspond to 1 and -1 to the lower
-        from environment space to normalized space
-        
-        norm_action = ( action - mean ) / var
-    """
-    
-    
-    avg = (action_bounds_[0] + action_bounds_[1])/2.0
-    std = (action_bounds_[1] - action_bounds_[0])/2.0
-    # return (action_ - (avg)) / (action_bounds_[1]-avg)
-    return (actions_ - (std)) / (var)
-
 def scale_action(normed_action_, action_bounds_):
     """
         from normalize space back to environment space

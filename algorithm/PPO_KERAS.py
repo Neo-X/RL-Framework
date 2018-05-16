@@ -375,12 +375,15 @@ class PPO_KERAS(KERASAlgorithm):
         self._updates += 1
         if ('dont_use_td_learning' in self.getSettings() 
             and self.getSettings()['dont_use_td_learning'] == True):
-            y_ = self._value_Target([result_states,0])[0]
-            # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-            # target_ = rewards + ((self._discount_factor * y_) * falls)
-            target_ = rewards + ((self._discount_factor * y_))
-            target_2 = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
-            target = (target_ + target_2) / 2.0
+            if ( False ):
+                y_ = self._value_Target([result_states,0])[0]
+                # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
+                # target_ = rewards + ((self._discount_factor * y_) * falls)
+                target_ = rewards + ((self._discount_factor * y_))
+                target_2 = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
+                target = (target_ + target_2) / 2.0
+            else:
+                target_ = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
         else:
             # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
             y_ = self._value_Target([result_states,0])[0]
@@ -461,7 +464,7 @@ class PPO_KERAS(KERASAlgorithm):
             advantage = np.array((advantage - mean) / std, dtype=self._settings['float_type'])
         else:
             # print("Scale advantage")
-            advantage = np.array(norm_reward(advantage * (1.0-self.getSettings()['discount_factor']), self.getRewardBounds()),
+            advantage = np.array((advantage / action_bound_std(self.getRewardBounds()) ) * (1.0-self.getSettings()['discount_factor']),
                                   dtype=self._settings['float_type'])
             print ("advantage mean, std ", np.mean(advantage), np.std(advantage) )
         ### check to not perform updates when r gets to large.
@@ -482,12 +485,15 @@ class PPO_KERAS(KERASAlgorithm):
                 # (lossActor, r_) = self.trainPolicy([states, actions, result_states, rewards, advantage, p])
                 if ('dont_use_td_learning' in self.getSettings() 
                 and self.getSettings()['dont_use_td_learning'] == True):
-                    y_ = self._value_Target([result_states,0])[0]
-                    # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-                    # target_ = rewards + ((self._discount_factor * y_) * falls)
-                    target_ = rewards + ((self._discount_factor * y_))
-                    target_2 = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
-                    target = (target_ + target_2) / 2.0
+                    if ( False ):
+                        y_ = self._value_Target([result_states,0])[0]
+                        # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
+                        # target_ = rewards + ((self._discount_factor * y_) * falls)
+                        target_ = rewards + ((self._discount_factor * y_))
+                        target_2 = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
+                        target = (target_ + target_2) / 2.0
+                    else:
+                        target_ = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
                     
                 else:
                     y_ = self._value_Target([result_states,0])[0]
