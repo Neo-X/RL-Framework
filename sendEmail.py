@@ -82,9 +82,13 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False,
     if ( testing ):
         return
     # Send the message via our own SMTP server.
-    s = smtplib.SMTP(hyperSettings['mail_server_name'])
-    s.send_message(msg)
-    s.quit()
+    server = smtplib.SMTP(hyperSettings['mail_server_name'])
+    if ("from_email_password" in hyperSettings):
+        server.ehlo()
+        server.starttls()
+        server.login(fromEmail,hyperSettings['from_email_password'])
+    server.send_message(msg)
+    server.quit()
     print ("Email sent.")
 
 
