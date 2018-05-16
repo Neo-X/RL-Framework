@@ -3,7 +3,7 @@
 
 This folder contains some scripts and files to run simulations in a docker image.
 
-### Examples
+## Docker Examples
 
 To run something from the RLSimulationEnvironments in the container
 
@@ -30,7 +30,7 @@ docker run -e TERRAINRL_PATH=/root/playground/TerrainRL/ glen:latest /bin/bash -
 
 Submit to send an email.  
 ```
-borgy submit -i images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /root/playground/RL-Framework/; python3 sendEmail.py settings/hyperParamTuning/elementAI.json True"
+borgy submit -w /home/${USER} -i images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /root/playground/RL-Framework/; python3 sendEmail.py settings/hyperParamTuning/elementAI.json True"
 ```
 
 Run a simulation  
@@ -40,12 +40,16 @@ borgy submit --req-cores=1 --req-ram-gbytes=1 -w /home/${USER} --image=images.bo
 
 Run a META simulation  
 ```
-borgy submit --req-cores=5 --req-ram-gbytes=5 --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /playground/RL-Framework; python3 trainMetaModel.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json 5 5"
+borgy submit --req-cores=4 --req-ram-gbytes=4 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /playground/RL-Framework; python3 trainMetaModel.py tests/settings/particleSim/PPO/PPO_KERAS.json settings/hyperParamTuning/elementAI.json 2 2"
 ```
 
 Run a Tuning simulation  
 ```
-borgy submit --req-cores=5 --req-ram-gbytes=5 --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /playground/RL-Framework; python3 trainMetaModel.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json 5 5"
+borgy submit --req-cores=5 --req-ram-gbytes=5 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /playground/RL-Framework; python3 tuneHyperParameters.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json settings/hyperParamTuning/element/normalize_advantage.json"
+```
+
+```
+borgy submit --req-cores=10 --req-ram-gbytes=5 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /playground/RL-Framework; python3 tuneHyperParameters.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json settings/hyperParamTuning/element/normalize_advantage.json"
 ```
 
 ### Info from man page
