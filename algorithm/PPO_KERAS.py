@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import copy
 sys.path.append('../')
-from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward
+from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward, norm_reward
 from algorithm.KERASAlgorithm import KERASAlgorithm
 from model.LearningUtil import loglikelihood_keras, likelihood_keras, kl_keras, kl_D_keras, entropy_keras
 from keras.optimizers import SGD
