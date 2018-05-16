@@ -450,7 +450,15 @@ class PPO_KERAS(KERASAlgorithm):
         if ( 'advantage_scaling' in self.getSettings() and ( self.getSettings()['advantage_scaling'] != False) ):
             std = std / self.getSettings()['advantage_scaling']
             mean = 0.0
-        advantage = np.array((advantage - mean) / std, dtype=self._settings['float_type'])
+        if ('normalize_advantage' in self.getSettings()
+            and (self.getSettings()['normalize_advantage'] == True)):
+            # print("Normalize advantage")
+            advantage = np.array((advantage - mean) / std, dtype=self._settings['float_type'])
+        else:
+            # print("Scale advantage")
+            advantage = np.array(norm_reward(advantage, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor']),
+                                  dtype=self._settings['float_type'])
+            print ("advantage mean, std ", np.mean(advantage), np.std(advantage) )
         ### check to not perform updates when r gets to large.
         et_factor = 1.2
         if ("ppo_et_factor" in self.getSettings()):
