@@ -30,12 +30,22 @@ docker run -e TERRAINRL_PATH=/root/playground/TerrainRL/ glen:latest /bin/bash -
 
 Submit to send an email.  
 ```
-borgy submit -i images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/root/playground/TerrainRL/ -- /bin/bash -c "pushd /root/playground/RL-Framework/; python3 sendEmail.py settings/hyperParamTuning/elementAI.json True"
+borgy submit -i images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /root/playground/RL-Framework/; python3 sendEmail.py settings/hyperParamTuning/elementAI.json True"
 ```
 
 Run a simulation  
 ```
-borgy submit -i images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/root/playground/TerrainRL/ -- /bin/bash -c "pushd /root/playground/RL-Framework/; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json"
+borgy submit --req-cores=1 --req-ram-gbytes=1 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /playground/RL-Framework; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim 2> $BORGY_JOB_ID.err > $BORGY_JOB_ID.out"
+```
+
+Run a META simulation  
+```
+borgy submit --req-cores=5 --req-ram-gbytes=5 --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /playground/RL-Framework; python3 trainMetaModel.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json 5 5"
+```
+
+Run a Tuning simulation  
+```
+borgy submit --req-cores=5 --req-ram-gbytes=5 --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /playground/RL-Framework; python3 trainMetaModel.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json 5 5"
 ```
 
 ### Info from man page
