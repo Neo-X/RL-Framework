@@ -379,7 +379,7 @@ class PPO_KERAS(KERASAlgorithm):
             # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
             # target_ = rewards + ((self._discount_factor * y_) * falls)
             target_ = rewards + ((self._discount_factor * y_))
-            target_2 = norm_reward(G_t * (1.0-self.getSettings()['discount_factor']), self.getRewardBounds())
+            target_2 = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
             target = (target_ + target_2) / 2.0
         else:
             # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
@@ -486,7 +486,7 @@ class PPO_KERAS(KERASAlgorithm):
                     # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
                     # target_ = rewards + ((self._discount_factor * y_) * falls)
                     target_ = rewards + ((self._discount_factor * y_))
-                    target_2 = norm_reward(G_t * (1.0-self.getSettings()['discount_factor']), self.getRewardBounds())
+                    target_2 = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
                     target = (target_ + target_2) / 2.0
                     
                 else:
