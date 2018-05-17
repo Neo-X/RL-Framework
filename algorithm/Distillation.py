@@ -379,7 +379,7 @@ class Distillation(AlgorithmInterface):
         
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
-    def trainCritic(self, states, actions, rewards, result_states, falls):
+    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]]):
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
         # print("Value function rewards: ", rewards)
@@ -408,7 +408,8 @@ class Distillation(AlgorithmInterface):
         
         return loss
     
-    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, forwardDynamicsModel=None):
+    def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, 
+                   G_t=[[0]], forwardDynamicsModel=None, p=1.0):
         lossActor = 0
         
         ### Update actions to expert actions. Some were selected from current policy
