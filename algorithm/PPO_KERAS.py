@@ -468,6 +468,12 @@ class PPO_KERAS(KERASAlgorithm):
                                   dtype=self._settings['float_type'])
             # print ("advantage mean, std ", np.mean(advantage), np.std(advantage) )
         ### check to not perform updates when r gets to large.
+        if ('anneal_learning_rate' in self.getSettings()
+            and (self.getSettings()['anneal_learning_rate'] == False)):
+            print("Not annealing learning rate")
+            pass
+        else:
+            K.set_value(self._model._actor_train.optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
         et_factor = 1.2
         if ("ppo_et_factor" in self.getSettings()):
             et_factor = self.getSettings()["ppo_et_factor"]
@@ -503,7 +509,6 @@ class PPO_KERAS(KERASAlgorithm):
                 target_ = np.array(target_, dtype=self._settings['float_type'])
                 action_old = self._modelTarget.getActorNetwork().predict(states)
                 ### Anneal learning rate
-                K.set_value(self._model._actor_train.optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
                 # print ("model learning rate: ", K.get_value(self._model._actor_train.optimizer.lr))
                 self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], [actions, target_],
                       epochs=1, batch_size=states.shape[0],
@@ -517,7 +522,6 @@ class PPO_KERAS(KERASAlgorithm):
                 # action_old = self._modelTarget.getActorNetwork().predict([states, actions, advantage, advantage])[:,:self._action_length]
                 action_old = self._modelTarget.getActorNetwork().predict(states)
                 ### Anneal learning rate
-                K.set_value(self._model._actor_train.optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
                 self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], actions,
                       epochs=1, batch_size=states.shape[0],
                       verbose=0

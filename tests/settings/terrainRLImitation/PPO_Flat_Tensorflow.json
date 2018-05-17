@@ -238,7 +238,7 @@
 	"comment__": "Random seed value for the simulation to use",
 "random_seed": 1234,
 	"comment__": "KL divergence threshold between policy updates",
-"kl_divergence_threshold": 0.1,
+"kl_divergence_threshold": 0.2,
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy",
 "on_policy": true,
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
@@ -359,5 +359,7 @@
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
 "learning_backend": "tensorflow",
 	"comment__": "Use an L2 loss over for the value function over the G_t from rollouts (no TD loss)",
-"dont_use_td_learning": true
+"dont_use_td_learning": true,
+	"comment__": "Anneal the learning rate",
+"anneal_learning_rate": false
 }
