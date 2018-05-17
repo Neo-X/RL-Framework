@@ -5,7 +5,12 @@ This folder contains some scripts and files to run simulations in a docker image
 
 ## Docker Examples
 
-To run something from the RLSimulationEnvironments in the container
+Login to the container and mount a folder inside the docker image/container
+```
+docker run -v /mnt/home/${USER}:/home/glen -it images.borgy.elementai.lan/borsh:latest bash
+```
+
+To run something from the RLSimulationEnvironments
 
 ```
 sudo docker run glen:latest /bin/bash -c "python3 /root/playground/RLSimulationEnvironments/EnvTester.py"
@@ -13,43 +18,43 @@ sudo docker run glen:latest /bin/bash -c "python3 /root/playground/RLSimulationE
 
 Run terrainRL
 ```
-sudo docker run -e TERRAINRL_PATH=/root/playground/TerrainRL/ glen:latest /bin/bash -c "python3 /root/playground/TerrainRL/simAdapter/terrainRLSimTest.py"
+sudo docker run -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ glen:latest /bin/bash -c "python3 /root/playground/TerrainRL/simAdapter/terrainRLSimTest.py"
 ```
 
 To run a learning simulation
 
 ```
-sudo docker run -e TERRAINRL_PATH=/root/playground/TerrainRL/ glen:latest /bin/bash -c "pushd /root/playground/RL-Framework/; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=false --num_rounds=20"
+sudo docker run -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ glen:latest /bin/bash -c "pushd /root/playground/RL-Framework/; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=false --num_rounds=20"
 ```
 
 Run a simulation and email the results
 ```
-docker run -e TERRAINRL_PATH=/root/playground/TerrainRL/ glen:latest /bin/bash -c "pushd /root/playground/RL-Framework/; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=false --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json"
+docker run -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ glen:latest /bin/bash -c "pushd /root/playground/RL-Framework/; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=false --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json"
 ```
 ## Submitting things to borgy
 
 Submit to send an email.  
 ```
-borgy submit -w /home/${USER} -i images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /root/playground/RL-Framework/; python3 sendEmail.py settings/hyperParamTuning/elementAI.json True"
+borgy submit -w /home/${USER} -i images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework/; python3 sendEmail.py settings/hyperParamTuning/elementAI.json True"
 ```
 
 Run a simulation  
 ```
-borgy submit --req-cores=1 --req-ram-gbytes=1 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /playground/RL-Framework; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim 2> $BORGY_JOB_ID.err > $BORGY_JOB_ID.out"
+borgy submit --req-cores=1 --req-ram-gbytes=1 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim 2> $BORGY_JOB_ID.err > $BORGY_JOB_ID.out"
 ```
 
 Run a META simulation  
 ```
-borgy submit --req-cores=4 --req-ram-gbytes=4 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /playground/RL-Framework; python3 trainMetaModel.py tests/settings/particleSim/PPO/PPO_KERAS.json settings/hyperParamTuning/elementAI.json 2 2"
+borgy submit --req-cores=4 --req-ram-gbytes=4 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 trainMetaModel.py tests/settings/particleSim/PPO/PPO_KERAS.json settings/hyperParamTuning/elementAI.json 2 2"
 ```
 
 Run a Tuning simulation  
 ```
-borgy submit --req-cores=5 --req-ram-gbytes=5 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /playground/RL-Framework; python3 tuneHyperParameters.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json settings/hyperParamTuning/element/normalize_advantage.json"
+borgy submit --req-cores=5 --req-ram-gbytes=5 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json settings/hyperParamTuning/element/normalize_advantage.json"
 ```
 
 ```
-borgy submit --req-cores=10 --req-ram-gbytes=5 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json settings/hyperParamTuning/element/normalize_advantage.json"
+borgy submit --req-cores=10 --req-ram-gbytes=10 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json settings/hyperParamTuning/element/normalize_advantage.json"
 ```
 
 ### Info from man page
@@ -63,8 +68,8 @@ borgy submit --req-cores=10 --req-ram-gbytes=5 -w /home/${USER} --image=images.b
 Commit docker container
 ```
 sudo docker commit d4aad5674841 glen:latest
-sudo docker tag glen:latest images.borgy.elementai.lan/glen:latest
-sudo docker push images.borgy.elementai.lan/glen:latest
+sudo docker tag glen:latest images.borgy.elementai.lan/glen:new
+sudo docker push images.borgy.elementai.lan/glen:new
 ```
 
 open images as iteractive container

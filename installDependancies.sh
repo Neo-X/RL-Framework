@@ -12,9 +12,9 @@ pip3 install matplotlib
 # pip3 install Lasagne==0.1
 pip3 install --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
 ### One of these should work... Curse you Lasagne...
-cp patches/pool.py ~/.local/lib/python3.5/site-packages/lasagne/layers/
-cp patches/pool.py ~/.local/lib/python3.6/site-packages/lasagne/layers/
-cp patches/pool.py ~/.local/lib/python2.7/site-packages/lasagne/layers/
+# cp patches/pool.py ~/.local/lib/python3.5/site-packages/lasagne/layers/
+# cp patches/pool.py ~/.local/lib/python3.6/site-packages/lasagne/layers/
+# cp patches/pool.py ~/.local/lib/python2.7/site-packages/lasagne/layers/
 pip3 install dill
 pip3 install pathos
 pip3 install pyOpenGL
