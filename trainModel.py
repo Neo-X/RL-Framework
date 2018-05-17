@@ -1352,7 +1352,6 @@ if (__name__ == "__main__"):
         import tarfile
         from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
         from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory, getAgentName
-        from tools.PlotMetadataSimulation import plotMetaDataSimulation
         import os
         
         ### Create a tar file of all the sim data
@@ -1367,7 +1366,6 @@ if (__name__ == "__main__"):
             ## Add pictures to tar file
             _data_dir = getDataDirectory(settings)
             addPicturesToTarBall(dataTar, settings, data_folder=_data_dir)
-            # figure_file_name = root_data_dir +
             pictureFileName=  root_data_dir + getAgentName() + ".png"
         except Exception as e:
             # dataTar.close()
@@ -1376,7 +1374,7 @@ if (__name__ == "__main__"):
         dataTar.close()
         
         
-        ## Send an email so I know this has completed
+        ## Send an email so I know this training has completed
         contents_ = json.dumps(metaSettings, indent=4, sort_keys=True)
         sendEmail(subject="Simulation complete: " + str(sim_time_), contents=contents_, hyperSettings=metaSettings, simSettings=options['configFile'], dataFile=tarFileName,
                   pictureFile=pictureFileName) 
