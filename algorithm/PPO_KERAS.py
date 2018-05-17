@@ -470,7 +470,6 @@ class PPO_KERAS(KERASAlgorithm):
         ### check to not perform updates when r gets to large.
         if ('anneal_learning_rate' in self.getSettings()
             and (self.getSettings()['anneal_learning_rate'] == False)):
-            print("Not annealing learning rate")
             pass
         else:
             K.set_value(self._model._actor_train.optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
