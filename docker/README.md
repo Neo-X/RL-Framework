@@ -93,3 +93,10 @@ open images as iteractive container
 sudo docker run -it glen:latest /bin/bash
 ```
 
+Find children of docker image
+```
+for i in $(docker images -q)
+do
+    docker history $i | grep -q 8d5495222da7 && echo $i
+done | sort -u
+```
