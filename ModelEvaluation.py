@@ -1142,7 +1142,7 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
 
 # @profile(precision=5)
 def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None, type=None, p=1):
-    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
         print ("Simulating epochs in Parallel:")
     j=0
     discounted_values = []
