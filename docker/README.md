@@ -38,6 +38,12 @@ Submit to send an email.
 borgy submit -w /home/${USER} -i images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework/; python3 sendEmail.py settings/hyperParamTuning/elementAI.json True"
 ```
 
+Simulate TerrainRLSIM
+Submit to send an email.  
+```
+borgy submit -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/TerrainRL/simAdapter; python3 terrainRLSimTest.py"
+```
+
 Run a simulation  
 ```
 borgy submit --req-cores=1 --req-ram-gbytes=1 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim 2> $BORGY_JOB_ID.err > $BORGY_JOB_ID.out"
@@ -55,6 +61,10 @@ borgy submit --req-cores=5 --req-ram-gbytes=5 -w /home/${USER} --image=images.bo
 
 ```
 borgy submit --restartable --req-cores=10 --req-ram-gbytes=10 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json settings/hyperParamTuning/element/normalize_advantage.json"
+```
+
+```
+borgy submit --restartable --req-cores=48 --req-ram-gbytes=48 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py settings/terrainRLImitate/PPO/Flat_Tensorflow.json settings/hyperParamTuning/element/normalize_advantage.json"
 ```
 
 ### Info from man page
