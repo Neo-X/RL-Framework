@@ -11,9 +11,9 @@ import numpy as np
 
 import random
 # import cPickle
-import dill
-import dill as pickle
-import dill as cPickle
+# import dill
+# import dill as pickle
+# import dill as cPickle
 
 import cProfile, pstats, io
 # import memory_profiler
@@ -1232,6 +1232,7 @@ def trainModelParallel(inputData):
         ### And errors in terinating processes properly...
         gc.collect()
         ### Return the collected training data
+        trainData['masterAgent'] = masterAgent
         return trainData
         
 import inspect

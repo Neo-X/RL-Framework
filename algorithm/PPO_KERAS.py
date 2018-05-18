@@ -1,5 +1,6 @@
 import numpy as np
 # import lasagne
+import h5py
 import sys
 import copy
 sys.path.append('../')
@@ -688,6 +689,13 @@ class PPO_KERAS(KERASAlgorithm):
     def saveTo(self, fileName):
         # print(self, "saving model")
         import dill
+        hf = h5py.File(fileName+"_bounds.h5", "w")
+        hf.create_dataset('_state_bounds', data=self.getStateBounds())
+        hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
+        hf.create_dataset('_action_bounds', data=self.getActionBounds())
+        # hf.create_dataset('_result_state_bounds', data=self.getResultStateBounds())
+        hf.flush()
+        hf.close()
         suffix = ".h5"
         ### Save models
         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)

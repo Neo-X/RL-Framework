@@ -1827,7 +1827,18 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
         input_anchor_queue.put(None)
        """ 
     print ("Average Reward: " + str(mean_reward))
+    evalData = {}
+    evalData['mean_reward'] = mean_reward
+    evalData['std_reward'] = std_reward
+    evalData['mean_bellman_error'] = mean_bellman_error
+    evalData['std_bellman_error'] = std_bellman_error
+    evalData['mean_discount_error'] = mean_discount_error
+    evalData['std_discount_error'] = std_discount_error
+    evalData['mean_eval'] = mean_eval
+    evalData['std_eval'] = std_eval
+    evalData['masterAgent'] = masterAgent
     
+    return evalData
     
 if __name__ == "__main__":
     """
