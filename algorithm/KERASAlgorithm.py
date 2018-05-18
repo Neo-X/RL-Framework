@@ -92,6 +92,7 @@ class KERASAlgorithm(AlgorithmInterface):
         def pos_y(true_y, pred_y):
             return self._actLoss
         suffix = ".h5"
+        print ("Loading agent: ", fileName)
         # with K.get_session().graph.as_default() as g:
         self._model._actor = load_model(fileName+"_actor"+suffix)
         self._model._critic = load_model(fileName+"_critic"+suffix)

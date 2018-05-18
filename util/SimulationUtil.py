@@ -282,7 +282,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                 model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
                 model.setSettings(settings)
-                model.loadFrom(directory+getAgentName())
+                model.loadFrom(directory+getAgentName()+"_Best")
                 print("Loaded algorithm: ", model)
                 # return model
             else:
