@@ -1235,7 +1235,9 @@ def trainModelParallel(inputData):
         ### And errors in terinating processes properly...
         gc.collect()
         ### Return the collected training data
-        trainData['masterAgent'] = masterAgent
+        if ("return_model" in settings 
+            and (settings['return_model'] == True)):
+            trainData['masterAgent'] = masterAgent
         return trainData
         
 import inspect

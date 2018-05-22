@@ -29,6 +29,7 @@ class TestSaveAndLoad(object):
         settings["plotting_update_freq_num_rounds"] = 2
         settings["saving_update_freq_num_rounds"] =  2
         settings["state_normalization"] = "variance"
+        settings["return_model"] = True
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         settings['visualize_expected_value'] = False
@@ -58,6 +59,7 @@ class TestSaveAndLoad(object):
         settings["plotting_update_freq_num_rounds"] = 2
         settings["saving_update_freq_num_rounds"] =  2
         settings["state_normalization"] = "variance"
+        settings["return_model"] = True
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         settings['visualize_expected_value'] = False
@@ -87,6 +89,7 @@ class TestSaveAndLoad(object):
         settings["plotting_update_freq_num_rounds"] = 2
         settings["saving_update_freq_num_rounds"] =  2
         settings["state_normalization"] = "variance"
+        settings["return_model"] = True
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         settings['visualize_expected_value'] = False
