@@ -968,6 +968,7 @@ def trainModelParallel(inputData):
                         rlv_.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
                         rlv_.redraw()
                         rlv_.saveVisual(directory+getAgentName())
+                        rlv_.finish()
                         del rlv_
                     if settings['visualize_learning']:
                         rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
@@ -985,6 +986,7 @@ def trainModelParallel(inputData):
                         nlv_.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
                         nlv_.redraw()
                         nlv_.saveVisual(directory+"trainingGraphNN")
+                        nlv_.finish()
                         del nlv_
                         if (settings['train_reward_predictor']):
                             rewardlv_ = NNVisualize(title=str("Reward Model") + " with " + settings['sim_config_file'], settings=settings)
@@ -992,6 +994,7 @@ def trainModelParallel(inputData):
                             rewardlv_.updateLoss(np.array(trainData["mean_forward_dynamics_reward_loss"]), np.array(trainData["std_forward_dynamics_reward_loss"]))
                             rewardlv_.redraw()
                             rewardlv_.saveVisual(directory+"rewardTrainingGraph")
+                            rewardlv_.finish()
                             del rewardlv_
                         if (settings['visualize_learning']):
                             nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
