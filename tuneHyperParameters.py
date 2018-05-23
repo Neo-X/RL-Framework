@@ -129,7 +129,7 @@ def get_param_values(hyper_settings):
     return params_
     
 
-def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_path=None):
+def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, saved_fd_model_path=None):
     """
         For some set of parameters the function will sample a number of them
         In order to find a more optimal configuration.
@@ -138,14 +138,8 @@ def tuneHyperParameters(simsettingsFileName, hyperSettings=None, saved_fd_model_
     
     result_data = {}
     
-    file = open(simsettingsFileName)
-    settings = json.load(file)
-    print ("Settings: " + str(json.dumps(settings, indent=4)))
-    file.close()
-    file = open(hyperSettings)
-    hyper_settings = json.load(file)
-    print ("Settings: " + str(json.dumps(settings, indent=4)))
-    file.close()
+    settings = simSettings
+    hyper_settings = hyperSettings
     num_sim_samples = hyper_settings['meta_sim_samples']
     
     ## Check to see if there exists a saved fd model, if so save the path in the hyper settings
@@ -218,8 +212,7 @@ if (__name__ == "__main__"):
         print("python tuneHyperParameters.py <sim_settings_file> <tuning_settings_file>")
         sys.exit()
     elif (len(sys.argv) == 3):
-        result = tuneHyperParameters(sys.argv[1], sys.argv[2])
-        
+
         hyperSettingsFileName = sys.argv[2] 
         file = open(hyperSettingsFileName)
         hyperSettings_ = json.load(file)
@@ -231,6 +224,8 @@ if (__name__ == "__main__"):
         simSettings_ = json.load(file)
         print ("Settings: " + str(json.dumps(simSettings_, indent=4)))
         file.close()
+        
+        result = tuneHyperParameters(simsettingsFileName=simsettingsFileName, simSettings=simSettings_, hyperSettings=hyperSettings_)
         
         root_data_dir = getRootDataDirectory(simSettings_)+"/"
         

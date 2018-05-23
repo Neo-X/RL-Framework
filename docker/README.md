@@ -67,6 +67,10 @@ borgy submit --restartable --req-cores=10 --req-ram-gbytes=10 -w /home/${USER} -
 borgy submit --restartable --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py settings/terrainRLImitate/PPO/Flat_Tensorflow.json settings/hyperParamTuning/element/normalize_advantage.json"
 ```
 
+Run tests
+```
+borgy submit --restartable --req-cores=24 --req-ram-gbytes=48 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 run_tests.py settings/hyperParamTuning/run_tests.json"
+```
 ### Info from man page
 
 --cpu float32             Cores required (alias of --req-cores) (default 1)
