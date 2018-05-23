@@ -9,6 +9,10 @@ Login to the container and mount a folder inside the docker image/container
 ```
 docker run -v /mnt/home/${USER}:/home/glen -it images.borgy.elementai.lan/glen:latest bash
 ```
+Login to a running container
+```
+docker exec -ti {container id} bash
+```
 
 To run something from the RLSimulationEnvironments
 
@@ -35,7 +39,7 @@ docker run -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ glen:latest /bin/b
 
 Submit to send an email.  
 ```
-borgy submit -w /home/${USER} -i images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework/; python3 sendEmail.py settings/hyperParamTuning/elementAI.json True"
+borgy submit -w /home/${USER} -i images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework/; screen -S sessionName bash -c 'python3 sendEmail.py settings/hyperParamTuning/elementAI.json True'"
 ```
 
 Simulate TerrainRLSIM
@@ -56,11 +60,7 @@ borgy submit --req-cores=4 --req-ram-gbytes=4 -w /home/${USER} --image=images.bo
 
 Run a Tuning simulation  
 ```
-borgy submit --req-cores=5 --req-ram-gbytes=5 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json settings/hyperParamTuning/element/normalize_advantage.json"
-```
-
-```
-borgy submit --restartable --req-cores=10 --req-ram-gbytes=10 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json settings/hyperParamTuning/element/normalize_advantage.json"
+borgy submit --restartable --req-cores=10 --req-ram-gbytes=10 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c "pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2-test.json settings/hyperParamTuning/element/normalize_advantage.json"
 ```
 
 ```
@@ -109,4 +109,14 @@ for i in $(docker images -q)
 do
     docker history $i | grep -q 8d5495222da7 && echo $i
 done | sort -u
+```
+
+Connect to a running borgy job
+```
+borgy exec {job id} bash
+```
+
+Run a command in a screen session and exits when the command is done.
+```
+screen -S sessionName bash -c 'for((i=1;i<=100;i+=1)); do echo "Welcome $i times"; sleep 1; done'
 ```
