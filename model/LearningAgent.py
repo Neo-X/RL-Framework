@@ -150,8 +150,12 @@ class LearningAgent(AgentInterface):
                     if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                         self.getFDExperience().insertTuple(tup)
                     num_samples_ = num_samples_ + 1
-                # else:
-                    # print ("Tuple invalid:")
+
+            ### If for some reason the data was all garbage, skip this training update.
+            if (self._expBuff.samples() < value_function_batch_size 
+                or (self._expBuff.samples() < self._settings["batch_size"])):
+                print("Data was mostly/all garbage or your batch size is larger than the data collected.")
+                return 0
             t1 = time.time()
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                 sim_time_ = datetime.timedelta(seconds=(t1-t0))
