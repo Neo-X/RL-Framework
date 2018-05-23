@@ -134,6 +134,7 @@ class PPO_KERAS(KERASAlgorithm):
         # self._actLoss = ((T.mean(self._actLoss_) )) + -self._actor_regularization
         # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy )))
         self._actLoss = -1.0 * K.mean(self._actLoss_)
+        self._actLoss_tmp = self._actLoss
         if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
             self._actLoss = self._actLoss + self._loss  
         
@@ -236,6 +237,15 @@ class PPO_KERAS(KERASAlgorithm):
         print ("build regularizers")
         self._get_actor_regularization = K.function([], [self._actor_regularization])
         self._get_critic_regularization = K.function([], [self._critic_regularization])
+        self._get_critic_loss = K.function([self._model.getStateSymbolicVariable(),
+                                            self._model.getRewardSymbolicVariable(), 
+                                            self._model.getResultStateSymbolicVariable()], [self._loss])
+        self._get_actor_loss = K.function([self._model.getStateSymbolicVariable(),
+                                                 self._model.getActionSymbolicVariable(),
+                                                 self._Advantage,
+                                                 self._Anneal  
+                                                 # ,K.learning_phase()
+                                                 ], [self._actLoss_tmp])
         print ("build actor updates")
         """
         if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
@@ -677,14 +687,15 @@ class PPO_KERAS(KERASAlgorithm):
     def get_actor_regularization(self):
         return self._get_actor_regularization([])
     
-    def get_actor_loss(self):
-        return 0
+    def get_actor_loss(self, state, action, reward, nextState, advantage):
+        anneal = (np.asarray(advantage) * 0.0) + 1.0
+        return self._get_actor_loss([state, action, advantage, anneal])
     
     def get_critic_regularization(self):
         return self._get_critic_regularization([])
     
-    def get_critic_loss(self):
-        return self._get_critic_loss([])
+    def get_critic_loss(self, state, action, reward, nextState):
+        return self._get_critic_loss([state, reward, nextState])
     
     def saveTo(self, fileName):
         # print(self, "saving model")

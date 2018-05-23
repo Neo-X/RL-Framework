@@ -58,6 +58,9 @@ class CACLA_KERAS(KERASAlgorithm):
         self.__value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
         self.__value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
         
+        _target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self.__value_Target)
+        self._loss = K.mean(0.5 * (self.__value - _target) ** 2)
+        
         CACLA_KERAS.compile(self)
         
     def compile(self):
@@ -90,6 +93,9 @@ class CACLA_KERAS(KERASAlgorithm):
         print ("build regularizers")
         self._get_actor_regularization = K.function([], [self._actor_regularization])
         self._get_critic_regularization = K.function([], [self._critic_regularization])
+        self._get_critic_loss = K.function([self._model.getStateSymbolicVariable(),
+                                            self._model.getRewardSymbolicVariable(), 
+                                            self._model.getResultStateSymbolicVariable()], [self._loss])
         
         self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
@@ -362,11 +368,11 @@ class CACLA_KERAS(KERASAlgorithm):
     def get_actor_regularization(self):
         return self._get_actor_regularization([])
     
-    def get_actor_loss(self):
+    def get_actor_loss(self, state, action, reward, nextState, advantage):
         return 0
     
     def get_critic_regularization(self):
         return self._get_critic_regularization([])
     
-    def get_critic_loss(self):
-        return self._get_critic_loss([])
+    def get_critic_loss(self, state, action, reward, nextState):
+        return self._get_critic_loss([state, reward, nextState])

@@ -786,7 +786,7 @@ def trainModelParallel(inputData):
                     # print ("Error: ", error)
                     bellman_errors.append(error)
                     if (settings['debug_critic']):
-                        loss__ = masterAgent.getPolicy().get_critic_loss() # uses previous call batch data
+                        loss__ = masterAgent.getPolicy().get_critic_loss(states, actions, rewards, result_states)
                         criticLosses.append(loss__)
                         regularizationCost__ = masterAgent.getPolicy().get_critic_regularization()
                         criticRegularizationCosts.append(regularizationCost__)
@@ -798,7 +798,7 @@ def trainModelParallel(inputData):
                         print("Policy log prob: ", masterAgent.getPolicy()._get_log_prob())
                         print( "Actor loss: ", masterAgent.getPolicy()._get_action_diff())
                         """
-                        loss__ = masterAgent.getPolicy().get_actor_loss() # uses previous call batch data
+                        loss__ = masterAgent.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage)
                         actorLosses.append(loss__)
                         regularizationCost__ = masterAgent.getPolicy().get_actor_regularization()
                         actorRegularizationCosts.append(regularizationCost__)
