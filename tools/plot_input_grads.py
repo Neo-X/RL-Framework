@@ -566,5 +566,6 @@ plt.legend()
 
 plt.tight_layout()
 plt.savefig("input_grads.svg")
+plt.savefig("input_grads.png")
 plt.show()
 
