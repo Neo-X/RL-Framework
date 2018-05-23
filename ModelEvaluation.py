@@ -1261,6 +1261,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         print (" Shape advantage: ", advantage_.shape)
         print (" Shape exp_actions: ", exp_actions.shape)
         
+        scale_factor = 1.0
+        
         state_bounds = np.ones((2,states.shape[1]))
         
         state_avg = states[:settings['bootstrap_samples']].mean(0)
@@ -1280,15 +1282,15 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             # action_bounds[1] = actions[:settings['bootstrap_samples']].max(0)
         elif (settings['state_normalization'] == "variance" or
               settings['state_normalization'] == "adaptive"):
-            print ("(state_avg - (state_stddev * 2.0)): ", (state_avg - (state_stddev * 2.0)))
-            state_bounds[0] = (state_avg - (state_stddev * 2.0))
-            state_bounds[1] = (state_avg + (state_stddev * 2.0))
+            print ("(state_avg - (state_stddev * ", scale_factor, ")): ", (state_avg - (state_stddev * scale_factor)))
+            state_bounds[0] = (state_avg - (state_stddev * scale_factor))
+            state_bounds[1] = (state_avg + (state_stddev * scale_factor))
         elif (settings['state_normalization'] == "adaptive"):
-            print ("(state_avg - (state_stddev * 2.0)): ", (state_avg - (state_stddev * 2.0)))
-            state_bounds[0] = (state_avg - (state_stddev * 2.0))
-            state_bounds[1] = (state_avg + (state_stddev * 2.0))
-            reward_bounds[0] = (reward_avg - (reward_stddev * 2.0))
-            reward_bounds[1] = (reward_avg + (reward_stddev * 2.0))
+            print ("(state_avg - (state_stddev * ", scale_factor, ")): ", (state_avg - (state_stddev * scale_factor)))
+            state_bounds[0] = (state_avg - (state_stddev * scale_factor))
+            state_bounds[1] = (state_avg + (state_stddev * scale_factor))
+            reward_bounds[0] = (reward_avg - (reward_stddev * scale_factor))
+            reward_bounds[1] = (reward_avg + (reward_stddev * scale_factor))
             # action_bounds[0] = action_avg - action_stddev
             # action_bounds[1] = action_avg + action_stddev
         elif (settings['state_normalization'] == "given"):

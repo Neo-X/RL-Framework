@@ -171,28 +171,29 @@ class ExperienceMemory(object):
             
     def _updateScaling(self):
         
-            # state_std = np.maximum(np.sqrt(self._state_var[0]), 0.05)
-            state_std = np.sqrt(self._state_var[0])
-            # print("Running mean: ", self._state_mean)
-            # print("Running std: ", state_std)
-            low = self._state_mean[0] - (state_std*2.0)
-            high = self._state_mean[0] + (state_std*2.0)
-            # self.setStateBounds(np.array([low,high]))
-            self.setStateBounds(fixBounds(np.array([low,high])))
-            
-            # print("New scaling parameters: ", self.getStateBounds())
-            
-            # print("Running reward mean: ", self._reward_mean)
-            # print("Running reward std: ", np.sqrt(self._reward_var))
-            low = self._reward_mean[0] - (np.sqrt(self._reward_var[0])*2)
-            high = self._reward_mean[0] + (np.sqrt(self._reward_var[0])*2)
-            self.setRewardBounds(np.array([low,high]))
-            # print("New scaling parameters: ", self.getStateBounds())
-            """
-            low = self._action_mean[0] - np.sqrt(self._action_var[0])
-            high = self._action_mean[0] + np.sqrt(self._action_var[0])
-            self.setActionBounds(np.array([low,high]))
-            """
+        scale_factor = 1.0
+        # state_std = np.maximum(np.sqrt(self._state_var[0]), 0.05)
+        state_std = np.sqrt(self._state_var[0])
+        # print("Running mean: ", self._state_mean)
+        # print("Running std: ", state_std)
+        low = self._state_mean[0] - (state_std*scale_factor)
+        high = self._state_mean[0] + (state_std*scale_factor)
+        # self.setStateBounds(np.array([low,high]))
+        self.setStateBounds(fixBounds(np.array([low,high])))
+        
+        # print("New scaling parameters: ", self.getStateBounds())
+        
+        # print("Running reward mean: ", self._reward_mean)
+        # print("Running reward std: ", np.sqrt(self._reward_var))
+        low = self._reward_mean[0] - (np.sqrt(self._reward_var[0])*scale_factor)
+        high = self._reward_mean[0] + (np.sqrt(self._reward_var[0])*scale_factor)
+        self.setRewardBounds(np.array([low,high]))
+        # print("New scaling parameters: ", self.getStateBounds())
+        """
+        low = self._action_mean[0] - np.sqrt(self._action_var[0])
+        high = self._action_mean[0] + np.sqrt(self._action_var[0])
+        self.setActionBounds(np.array([low,high]))
+        """
         
     def get_exporation_action_batch(self, batch_size=32):
         return self.get_batch(batch_size=batch_size, excludeActionTypes=[0])

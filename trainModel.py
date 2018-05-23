@@ -14,7 +14,7 @@ import random
 # import dill
 # import dill as pickle
 # import dill as cPickle
-
+from util.utils import *
 import cProfile, pstats, io
 # import memory_profiler
 # import psutil
@@ -283,14 +283,14 @@ def trainModelParallel(inputData):
         if not os.path.exists(directory):
             os.makedirs(directory)
             
-            
-        # copy settings file
-        # file = open(settingsFileName, 'r')
+        ### Put git versions in settings file before save
+        settings['git_revision_hash'] = get_git_revision_hash()
+        settings['git_revision_short_hash'] = get_git_revision_short_hash()     
+        ### copy settings file
         out_file_name=directory+os.path.basename(settingsFileName)
         print ("Saving settings file with data: ", out_file_name)
         out_file = open(out_file_name, 'w')
         out_file.write(json.dumps(settings, indent=4))
-        # file.close()
         out_file.close()
         ### Try and save algorithm and model files for reference
         if "." in settings['model_type']:
