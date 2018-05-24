@@ -186,7 +186,7 @@ def trainMetaModel_(args):
             result = trainMetaModel(args[1], samples=int(simSettings_['meta_sim_samples']), settings=copy.deepcopy(simSettings_), numThreads=int(simSettings_['meta_sim_threads']), hyperSettings=hyperSettings_)
         
         directory= getBaseDataDirectory(simSettings_)
-        out_file_name=directory+os.path.basename(simsettingsFileName)
+        out_file_name=directory+os.path.basename(simSettings_['configFile'])
         print ("Saving settings file with data to: ", out_file_name)
         out_file = open(out_file_name, 'w')
         out_file.write(json.dumps(simSettings_, indent=4))
