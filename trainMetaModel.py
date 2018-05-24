@@ -140,30 +140,41 @@ def trainMetaModel_(args):
     sys.argv
     args = sys.argv
     
-    if (len(args) == 1):
-        print("Please incluse sim settings file: ", len(args))
-        print("python trainMetaModel.py <sim_settings_file> <hyper_settings_file> <num_samples>")
+    from util.simOptions import getOptions
+    
+    options = getOptions(sys.argv)
+    options = vars(options)
+        
+    if ((options['configFile'] == None) 
+        or (options['metaConfigFile'] == None)
+        or (options['meta_sim_samples'] == None)
+        or (options['meta_sim_threads'] == None)):
+        print("Please include sim settings file: ", len(args))
+        print("python trainMetaModel.py --config=<sim_settings_file> --metaConfig=<hyper_settings_file> --meta_sim_samples=<num_samples> --meta_sim_threads<num_threads>")
         sys.exit()
-    elif (len(args) == 2):
-        print("Please incluse sim settings file: ", len(args))
-        print("python trainMetaModel.py <sim_settings_file> <hyper_settings_file> <num_samples>")
-        sys.exit()
-    elif (len(args) == 3):
-        print("Please incluse sim settings file: ", len(args))
-        print("python trainMetaModel.py <sim_settings_file> <hyper_settings_file> <num_samples>")
-        sys.exit()
-    elif ((len(args) == 5) or (len(args) == 6)):
-        settingsFileName = args[2] 
-        file = open(settingsFileName)
-        hyperSettings_ = json.load(file)
-        print ("Settings: " + str(json.dumps(hyperSettings_)))
+    else:
+        file = open(options['configFile'])
+        simSettings_ = json.load(file)
         file.close()
         
-        simsettingsFileName = args[1]
-        file = open(simsettingsFileName)
-        simSettings_ = json.load(file)
-        print ("Settings: " + str(json.dumps(simSettings_, indent=4)))
-        file.close()
+        for option in options:
+            if ( not (options[option] is None) ):
+                print ("Updating option: ", option, " = ", options[option])
+                simSettings_[option] = options[option]
+                if ( options[option] == 'true'):
+                    simSettings_[option] = True
+                elif ( options[option] == 'false'):
+                    simSettings_[option] = False
+            # settings['num_available_threads'] = options['num_available_threads']
+        
+        # print ("Settings: " + str(json.dumps(settings, indent=4)))
+        hyperSettings_ = None
+        if ( 'metaConfigFile' in simSettings_ and (simSettings_['metaConfigFile'] is not None)):
+            ### Import meta settings
+            file = open(simSettings_['metaConfigFile'])
+            hyperSettings_ = json.load(file)
+            file.close()
+        
         simSettings_['data_folder'] = simSettings_['data_folder'] + "/"
         
         root_data_dir = getRootDataDirectory(simSettings_)+"/"
@@ -172,7 +183,7 @@ def trainMetaModel_(args):
             hyperSettings_['saved_model_path'] = args[5]
             result = trainMetaModel(args[1], samples=int(args[3]), settings=copy.deepcopy(simSettings_), numThreads=int(args[4]), hyperSettings=hyperSettings_)
         else:
-            result = trainMetaModel(args[1], samples=int(args[3]), settings=copy.deepcopy(simSettings_), numThreads=int(args[4]), hyperSettings=hyperSettings_)
+            result = trainMetaModel(args[1], samples=int(simSettings_['meta_sim_samples']), settings=copy.deepcopy(simSettings_), numThreads=int(simSettings_['meta_sim_threads']), hyperSettings=hyperSettings_)
         
         directory= getBaseDataDirectory(simSettings_)
         out_file_name=directory+os.path.basename(simsettingsFileName)
@@ -217,12 +228,7 @@ def trainMetaModel_(args):
         contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
         sendEmail(subject="Simulation complete: " + result['sim_time'], contents=contents_, hyperSettings=hyperSettings_, simSettings=args[1], dataFile=tarFileName,
                   pictureFile=pictureFileName)    
-          
-    else:
-        print("Please specify arguments properly, ", len(args))
-        print("args: ", args)
-        print("python trainMetaModel.py <sim_settings_file> <hyper_settings_file> <num_samples>")
-    
+
 
 if (__name__ == "__main__"):
         

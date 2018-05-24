@@ -10,8 +10,7 @@
             ]
         ]
     },
-    "ppo_use_seperate_nets": true,
-    "rounds": 1000,
+        "rounds": 1000,
     "reward_smoother": "gaussian",
     "reward_bounds": [
         [

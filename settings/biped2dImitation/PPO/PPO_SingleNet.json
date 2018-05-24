@@ -284,8 +284,6 @@
 	"comment__": "number of on policy rollouts to perform per epoch",
 "num_on_policy_rollouts": 10,
 	"comment__": "PPO should use seperate networks for the value and policy functions",
-"ppo_use_seperate_nets": false,
-	"comment__": "Whether or not to use random actions for the MBAE exploration",
 "use_random_actions_for_MBAE": false,
 	"comment__": "Only use exploratory actions to update the policy",
 "only_use_exp_actions_for_poli_updates": true,

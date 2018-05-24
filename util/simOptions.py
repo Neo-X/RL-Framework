@@ -39,6 +39,24 @@ def getOptions(_args=None):
               type=int,
               metavar="INTEGER", help="The number of processes the SteerStats script can use")
     
+    parser.add_option("--meta_sim_samples", "--mp",
+              action="store", dest="meta_sim_samples", default=None,
+              type=int,
+              metavar="INTEGER", 
+              help="Number of simulation samples to compute to use for Meta simulation, running a number of simulations and taking the average of them")
+    
+    parser.add_option("--meta_sim_threads", "--mt",
+              action="store", dest="meta_sim_threads", default=None,
+              type=int,
+              metavar="INTEGER", 
+              help="Number of threads to use for Meta simulation, running a number of simulations and taking the average of them")
+    
+    parser.add_option("--tuning_threads", "--tt",
+              action="store", dest="tuning_threads", default=None,
+              type=int,
+              metavar="INTEGER", 
+              help="Number of threads to use for hyper parameter tuning")
+    
     parser.add_option("--bootstrap_samples",
               action="store", dest="bootstrap_samples", default=None,
               type=int,

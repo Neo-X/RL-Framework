@@ -259,7 +259,6 @@
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": false,
 	"comment__": "PPO should use seperate networks for the value and policy functions",
-"ppo_use_seperate_nets": true,
 	"comment__": "Use the action gradients from MBAE to update the policy mean (Model-Based Policy Gradient)",
 "use_MBPG": true,
 	"comment__": "Batch size for the value function network",

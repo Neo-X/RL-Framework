@@ -75,7 +75,7 @@ class PPO_KERAS(KERASAlgorithm):
                  self._Anneal
                   ]
         
-        if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+        if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
             self._model._actor_train = Model(inputs=input_, outputs=[self._model._actor, self._model._critic])
         else:
             self._model._actor_train = Model(inputs=input_, outputs=self._model._actor)
@@ -135,7 +135,7 @@ class PPO_KERAS(KERASAlgorithm):
         # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy )))
         self._actLoss = -1.0 * K.mean(self._actLoss_)
         self._actLoss_tmp = self._actLoss
-        if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+        if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
             self._actLoss = self._actLoss + self._loss  
         
         # self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
@@ -209,7 +209,7 @@ class PPO_KERAS(KERASAlgorithm):
                     advantage=self._Advantage,
                     anneal=self._Anneal), optimizer=sgd)
         """
-        if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+        if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
             self._model._actor_train.compile(
                         loss=[poli_loss(action_old=self._PoliAction,
                                         advantage=self._Advantage, 
@@ -248,7 +248,7 @@ class PPO_KERAS(KERASAlgorithm):
                                                  ], [self._actLoss_tmp])
         print ("build actor updates")
         """
-        if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+        if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
             ### Hck for now until I properly support keras optimizers
             poli_updates = adam_updates(self._actLoss + self._critic_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal)
             if ("learning_backend" in self.getSettings() and (self.getSettings()["learning_backend"] == "tensorflow")):
@@ -375,8 +375,8 @@ class PPO_KERAS(KERASAlgorithm):
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
     def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]]):
-        if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
-            # print("self.getSettings()[\"ppo_use_seperate_nets\"]: ", self.getSettings()["ppo_use_seperate_nets"])
+        if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
+            # print("self.getSettings()[\"use_single_network\"]: ", self.getSettings()["use_single_network"])
             return 0
         self.setData(states, actions, rewards, result_states, falls)
         # print ("Performing Critic trainning update")
@@ -496,7 +496,7 @@ class PPO_KERAS(KERASAlgorithm):
                 # print ("Network Params mean: ", np.mean(np.array(list(flatten(self.getNetworkParameters()[1])))))
                 # print ("States shape: ", np.array(states).shape)
                         ### For now don't include dropout in policy updates
-            if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
+            if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
                 
                 # (lossActor, r_) = self.trainPolicy([states, actions, result_states, rewards, advantage, p])
                 if ('dont_use_td_learning' in self.getSettings() 

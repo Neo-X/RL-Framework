@@ -282,7 +282,6 @@
 "anneal_mbae": false,
 	"comment__": "The number of critic updates that are done between every dyna update step.",
 "dyna_update_lag_steps": 2,
-	"comment__": "Whether or not to use random actions for the MBAE exploration",
 "use_random_actions_for_MBAE": false,
 	"comment__": "Only use exploratory actions to update the policy",
 "only_use_exp_actions_for_poli_updates": true,
