@@ -202,30 +202,46 @@ if (__name__ == "__main__"):
     import tarfile
     from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
     from sendEmail import sendEmail
+    from util.simOptions import getOptions
     
-    if (len(sys.argv) == 1):
-        print("Please incluse sim settings file")
-        print("python tuneHyperParameters.py <sim_settings_file> <tuning_settings_file>")
+    options = getOptions(sys.argv)
+    options = vars(options)
+    
+    if ((options['configFile'] == None) 
+        or (options['metaConfigFile'] == None)
+        or (options['meta_sim_samples'] == None)
+        or (options['meta_sim_threads'] == None)):
+        print("Please include sim settings file: ", len(args))
+        print("python tuneHyperParameters.py --config=<sim_settings_file> --metaConfig=<hyper_settings_file> --meta_sim_samples=<num_samples> --meta_sim_threads<num_threads>")
         sys.exit()
-    elif (len(sys.argv) == 2):
-        print("Please incluse sim settings file")
-        print("python tuneHyperParameters.py <sim_settings_file> <tuning_settings_file>")
-        sys.exit()
-    elif (len(sys.argv) == 3):
+    else:
 
-        hyperSettingsFileName = sys.argv[2] 
-        file = open(hyperSettingsFileName)
-        hyperSettings_ = json.load(file)
-        print ("Settings: " + str(json.dumps(hyperSettings_)))
-        file.close()
-        
-        simsettingsFileName = sys.argv[1]
-        file = open(simsettingsFileName)
+        file = open(options['configFile'])
         simSettings_ = json.load(file)
-        print ("Settings: " + str(json.dumps(simSettings_, indent=4)))
         file.close()
         
-        result = tuneHyperParameters(simsettingsFileName=simsettingsFileName, simSettings=simSettings_, hyperSettings=hyperSettings_)
+        for option in options:
+            if ( not (options[option] is None) ):
+                print ("Updating option: ", option, " = ", options[option])
+                simSettings_[option] = options[option]
+                if ( options[option] == 'true'):
+                    simSettings_[option] = True
+                elif ( options[option] == 'false'):
+                    simSettings_[option] = False
+            # settings['num_available_threads'] = options['num_available_threads']
+        
+        # print ("Settings: " + str(json.dumps(settings, indent=4)))
+        hyperSettings_ = None
+        ### Import meta settings
+        file = open(simSettings_['metaConfigFile'])
+        hyperSettings_ = json.load(file)
+        file.close()
+        for option in ['meta_sim_threads', 'tuning_threads', 'meta_sim_samples']:
+            if ( not (options[option] is None) ):
+                print ("Updating Meta option: ", option, " = ", options[option])
+                hyperSettings_[option] = options[option]
+        
+        result = tuneHyperParameters(simsettingsFileName=simSettings_['configFile'], simSettings=simSettings_, hyperSettings=hyperSettings_)
         
         root_data_dir = getRootDataDirectory(simSettings_)+"/"
         
@@ -269,12 +285,8 @@ if (__name__ == "__main__"):
             testing_ = True
         else:
             testing_ = False 
-        sendEmail(subject="Simulation complete: " + result['sim_time'], contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1], dataFile=tarFileName, testing=testing_, 
+        sendEmail(subject="Simulation complete: " + result['sim_time'], 
+                  contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1], 
+                  dataFile=tarFileName, testing=testing_, 
                   pictureFile=pictureFileName)
-    else:
-        print("Please specify arguments properly, ")
-        print(sys.argv)
-        print("python tuneHyperParameters.py <sim_settings_file> <tuning_settings_file>")
-    
-        
         
