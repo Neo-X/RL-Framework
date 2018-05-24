@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.CACLA_KERAS.CACLA_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_3D_Symetric-v0/Tensorflow-v2",
+"data_folder": "PD_Humanoid_3D_Symetric-v0/Tensorflow-v2_advantage",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -440,5 +440,7 @@
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
 "learning_backend": "tensorflow",
 	"comment__": "Use an L2 loss over for the value function over the G_t from rollouts (no TD loss)",
-"dont_use_td_learning": true
+"dont_use_td_learning": true,
+	"comment__": "Use advantage estimate instead of critic for selecting good actions to learn from CACLA",
+"CACLA_use_advantage": true
 }
