@@ -239,7 +239,8 @@ class PPO_KERAS(KERASAlgorithm):
         self._get_critic_regularization = K.function([], [self._critic_regularization])
         self._get_critic_loss = K.function([self._model.getStateSymbolicVariable(),
                                             self._model.getRewardSymbolicVariable(), 
-                                            self._model.getResultStateSymbolicVariable()], [self._loss])
+                                            self._model.getResultStateSymbolicVariable(),
+                                            K.learning_phase()], [self._loss])
         self._get_actor_loss = K.function([self._model.getStateSymbolicVariable(),
                                                  self._model.getActionSymbolicVariable(),
                                                  self._Advantage,
@@ -695,7 +696,7 @@ class PPO_KERAS(KERASAlgorithm):
         return self._get_critic_regularization([])
     
     def get_critic_loss(self, state, action, reward, nextState):
-        return self._get_critic_loss([state, reward, nextState])
+        return self._get_critic_loss([state, reward, nextState, 0])
     
     def saveTo(self, fileName):
         # print(self, "saving model")
