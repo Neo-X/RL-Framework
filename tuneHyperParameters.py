@@ -208,10 +208,8 @@ if (__name__ == "__main__"):
     options = vars(options)
     
     if ((options['configFile'] == None) 
-        or (options['metaConfigFile'] == None)
-        or (options['meta_sim_samples'] == None)
-        or (options['meta_sim_threads'] == None)):
-        print("Please include sim settings file: ", len(args))
+        or (options['metaConfigFile'] == None)):
+        print("Please include sim settings file: ", len(sys.args))
         print("python tuneHyperParameters.py --config=<sim_settings_file> --metaConfig=<hyper_settings_file> --meta_sim_samples=<num_samples> --meta_sim_threads<num_threads>")
         sys.exit()
     else:
