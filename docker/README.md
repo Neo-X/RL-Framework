@@ -55,7 +55,7 @@ borgy submit --req-cores=1 --req-ram-gbytes=1 -w /home/${USER} --image=images.bo
 
 Run a META simulation  
 ```
-borgy submit --req-cores=4 --req-ram-gbytes=4 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainMetaModel.py --config=tests/settings/particleSim/PPO/PPO_KERAS.json --metaConfig=settings/hyperParamTuning/elementAI.json 2 2 2> $BORGY_JOB_ID.err > $BORGY_JOB_ID.out'
+borgy submit --req-cores=4 --req-ram-gbytes=4 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainMetaModel.py --config=tests/settings/particleSim/PPO/PPO_KERAS.json --metaConfig=settings/hyperParamTuning/elementAI.json --meta_sim_samples=2 --meta_sim_threads=2 2> $BORGY_JOB_ID.err > $BORGY_JOB_ID.out'
 ```
 
 Run a Tuning simulation  

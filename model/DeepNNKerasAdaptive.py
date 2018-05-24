@@ -311,6 +311,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             
         if ( "use_single_network" in self._settings and 
              (self._settings['use_single_network'] == True)):
+            print ("Using a single network model")
             if ("split_single_net_earlier" in self._networkSettings and 
                     self._networkSettings["split_single_net_earlier"] == True):
                 second_last_layer_ = Dense(layer_sizes[len(layer_sizes)-1],
