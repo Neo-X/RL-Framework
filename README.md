@@ -48,7 +48,7 @@ As a temporary workaround, I use the following hack:
 ## Using The system
 
 ```
-python3 trainModel.py --config settings/particleSim/PPO/PPO.json
+python3 trainModel.py --config=settings/particleSim/PPO/PPO.json
 ```
 
 ### Running meta simulations
@@ -56,7 +56,7 @@ python3 trainModel.py --config settings/particleSim/PPO/PPO.json
 These simulations are designed to sample a few simulations in order to get a more reasonable average of the performance of a method.
 
 ```
-python3 tuneHyperParameters.py tests/settings/particleSim/PPO/PPO_KERAS_Tensorflow.json settings/hyperParamTuning/elementAI.json
+python3 tuneHyperParameters.py --config=tests/settings/particleSim/PPO/PPO_KERAS_Tensorflow.json --metaConfig=settings/hyperParamTuning/elementAI.json --meta_sim_samples=5 --meta_sim_threads=5 --tuning_threads=2
 ```
 
 
