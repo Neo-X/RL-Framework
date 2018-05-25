@@ -64,21 +64,24 @@ class GymMultiCharActor(ActorInterface):
         tmp_reward_sum=0
         # print ("sim: ", sim, " sim.needUpdatedAction(): ", sim.needUpdatedAction())
         # print ("sim.agentHasFallen(): ", sim.endOfEpoch())
+        reward_ = np.array(sim.getEnvironment().calcRewards())
         while (not sim.needUpdatedAction() and (updates_ < 100)
                # and (not sim.endOfEpoch())
                ):
             # sim.updateAction(action_)
             self.updateActor(sim, action_)
             updates_+=1
+            reward_ = reward_ + np.array(sim.getEnvironment().calcRewards())
             # print("Update #: ", updates_)
         if (updates_ == 0): #Something went wrong...
             print("There were no updates... This is bad")
             return np.array(sim.getEnvironment().calcRewards()) * 0.0
         # reward_ = np.reshape(sim.getEnvironment().calcRewards(), (len(action_),1))
-        reward_ = sim.getEnvironment().calcRewards()
+        # reward_ = sim.getEnvironment().calcRewards()
+        reward_ = reward_/updates_
         # print ("reward_: ", reward_)
         self._reward_sum = self._reward_sum + np.mean(reward_)
-        return reward_
+        return reward_[0][0]
         
     
     def getEvaluationData(self):
