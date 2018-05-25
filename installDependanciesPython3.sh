@@ -3,7 +3,6 @@
 # Maybe just run the first one with sudo
 
 apt-get -y install python3-dev python3-pip
-# sudo apt-get -y install python3-tk
 
 pip3 install --user numpy
 pip3 install --user theano==1.0.1
@@ -24,6 +23,6 @@ pip3 install --user tensorflow
 ## Does not work in Python3
 # pip3 install pyODE
 pip3 install --user h5py
-pip3 install --user python3-tk
 
+apt-get -y install python3-tk
 
