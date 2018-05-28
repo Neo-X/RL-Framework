@@ -64,7 +64,7 @@ borgy submit --restartable --req-cores=10 --req-ram-gbytes=10 -w /home/${USER} -
 ```
 
 ```
-borgy submit --restartable --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow.json --metaConfig=settings/hyperParamTuning/element/normalize_advantage.json --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=1 | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=1 | tee -a $BORGY_JOB_ID.out'
 ```
 
 Run tests
