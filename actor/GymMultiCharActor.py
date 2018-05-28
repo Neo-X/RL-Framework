@@ -79,9 +79,10 @@ class GymMultiCharActor(ActorInterface):
         # reward_ = np.reshape(sim.getEnvironment().calcRewards(), (len(action_),1))
         # reward_ = sim.getEnvironment().calcRewards()
         reward_ = reward_/updates_
-        # print ("reward_: ", reward_)
+        # print ("reward_: ", repr(reward_))
         self._reward_sum = self._reward_sum + np.mean(reward_)
-        return reward_[0][0]
+        # return reward_[0][0]
+        return reward_
         
     
     def getEvaluationData(self):

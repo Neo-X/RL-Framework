@@ -727,10 +727,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             agent_not_fell = actor.hasNotFallen(exp)
             # print ("performed action: ", reward)
         # print ("Reward: ", reward_)
+        assert len(np.array(reward_).shape) == 2
         baseline.append(model.q_value(state_))
         G_t.append(np.array([[0]])) # *(1.0-discount_factor)))
         for i in range(len(G_t)):
-            if type(reward_) is list:
+            if isinstance(reward_, (list, tuple, np.ndarray)):
                 G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (np.array(reward_) ))))
                 # print( "reward: ", repr(np.array(reward_)) )
                 # print( "G_t: ", repr(np.array(G_t)) )
@@ -811,6 +812,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("States shape: ", np.array(states[last_epoch_end:]).shape)
                     path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
                     # print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
+                    # print (repr(np.array(rewards[last_epoch_end:])))
                     path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
                     path["terminated"] = False
                     # print("rewards: ", rewards[last_epoch_end:])
