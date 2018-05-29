@@ -248,7 +248,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Activation('linear')(network)
                 self._value_function = network
                 # self._value_function = Model(input=self._stateInput, output=network)
-                print("Value Function summary: ", self._value_function.summary())
+                # print("Value Function summary: ", self._value_function.summary())
                 
                 
             print ("Creating DPG network")

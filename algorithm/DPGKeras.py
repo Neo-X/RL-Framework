@@ -13,6 +13,7 @@ from keras.optimizers import SGD
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
 import keras
+from keras.models import Sequential, Model
 
 
 # For debugging
@@ -32,27 +33,37 @@ class DPGKeras(AlgorithmInterface):
         
         super(DPGKeras,self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
 
-        self._modelTarget = copy.deepcopy(model)
+        self._model._actor = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=self._model._actor)
+        print("Actor summary: ", self._model._actor.summary())
+        self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable(),
+                                              self._model.getActionSymbolicVariable()], outputs=self._model._critic)
+        print("Critic summary: ", self._model._critic.summary())
+        
+        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        self._modelTarget._actor = Model(inputs=[self._modelTarget.getStateSymbolicVariable()], outputs=self._modelTarget._actor)
+        print("Target Actor summary: ", self._modelTarget._actor.summary())
+        self._modelTarget._critic = Model(inputs=[self._modelTarget.getStateSymbolicVariable(),
+                                                  self._modelTarget.getActionSymbolicVariable()], outputs=self._modelTarget._critic)
+        print("Target Critic summary: ", self._modelTarget._critic.summary())
         
         
         self._discount_factor= self.getSettings()['discount_factor']
         self._rho = self.getSettings()['rho']
         self._rms_epsilon = self.getSettings()['rms_epsilon']
         
-        self._q_valsActA = self._model.getActorNetwork()(self._model._stateInput)[:,:self._action_length]
-        self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model._stateInput)[:,:self._action_length]
+        self._q_valsActA = self._model.getActorNetwork()([self._model.getStateSymbolicVariable()])[:,:self._action_length]
+        self._q_valsActTarget_State = self._modelTarget.getActorNetwork()([self._model.getStateSymbolicVariable()])[:,:self._action_length]
 
-        self._q_valsActASTD = ( T.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
-        self._q_valsActTargetSTD = (T.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
+        self._q_valsActASTD = ( K.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+        self._q_valsActTargetSTD = (K.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
                 
         # self._q_function = self._model.getCriticNetwork()(self._model.getStateSymbolicVariable(), self._q_valsActA)
-        self._q_function = self._model.getCriticNetwork()([self._model._stateInput, self._q_valsActA])
-        self._q_function_Target = self._model.getCriticNetwork()([self._model._stateInput, self._model._actionInput])
+        self._q_function = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+        self._q_function_Target = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
         
         
         # print ("Initial W " + str(self._w_o.get_value()) )
         
-            ## TD update
         DPGKeras.compile(self)
         
     def compile(self):
@@ -73,38 +84,42 @@ class DPGKeras(AlgorithmInterface):
         
         # self._actor_optimizer = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
         # updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=-T.mean(self._q_function), constraints=[])
-        updates= adam_updates(-T.mean(self._q_function), self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
-        self._trainPolicy = theano.function([self._model._stateInput], 
-                                           [self._q_function], 
-                                           updates= updates)
+        # updates= adam_updates(-T.mean(self._q_function), self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
+        # self._trainPolicy = theano.function([self._model._stateInput], 
+        #                                    [self._q_function], 
+        #                                    updates= updates)
         
-        
-        weights = [self._model._actionInput]
-        
-        gradients = K.gradients(T.mean(self._q_function), [self._model._stateInput]) # gradient tensors
+        # gradients = K.gradients(T.mean(self._q_function), [self._model._stateInput]) # gradient tensors
 
-        self._get_gradients = K.function(inputs=[self._model._stateInput], outputs=gradients)
+        # self._get_gradients = K.function(inputs=[self._model._stateInput], outputs=gradients)
         
-        self._q_func = K.function([self._model._stateInput], [self._q_function])
+        self._q_func = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()], [self._q_function])
         
         self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
         
-        # updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=gradients, constraints=[])
-        ### Train the Q network, just uses MSE
-        # self._train_q = Model(inputs=[self._states, self._targets])
-        # self._model.getCriticNetwork().compile(loss='mse',
-        #                          optimizer=Adam(lr=2.0e-4, beta_1=0.5))
-        # self._train_q.summary()
+        # For the combined model we will only train the actor
+        self._model.getCriticNetwork().trainable = False
         
+        def neg_y(true_y, pred_y):
+            return -pred_y
         
-        # self._train_policy = K.function([self._states, ytrue],[loss, accuracy],updates=updates)
-        ### Compute and return the target q value
-        # self._q_target = K.function([self._states, self._rewards],[self._y_target])
-        # self._q_action = K.function([self._states, self._rewards],[self._y_target])
-        ### Train the policy network
-        # self._model.getActorNetwork().compile(loss=neg_y, optimizer=self._actor_optimizer)
+        self._act = self._model.getActorNetwork()(
+                                [self._model.getStateSymbolicVariable()])
+        self._qFunc = (self._model.getCriticNetwork()(
+                            [self._model.getStateSymbolicVariable(), 
+                             self._act]))
         
+        self._combined = Model(input=[self._model.getStateSymbolicVariable()], 
+                                output=self._qFunc)
         
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), 
+                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
+                                    amsgrad=False)
+        print ("Clipping: ", sgd.decay)
+        print("sgd, critic: ", sgd)
+        self._combined.compile(loss=[neg_y], optimizer=sgd)
+        print("combined qFun Net summary: ",  self._combined.summary())
         
     def getGrads(self, states, actions=None, alreadyNormed=False):
         """
@@ -218,7 +233,7 @@ class DPGKeras(AlgorithmInterface):
         
         loss = self._model.getCriticNetwork().fit([states, actions], target_tmp_,
                         batch_size=states.shape[0],
-                        nb_epoch=1,
+                        epochs=1,
                         verbose=False,
                         shuffle=False)
         
@@ -236,7 +251,15 @@ class DPGKeras(AlgorithmInterface):
         loss = 0
         # loss = self._trainActor()
         
-        q_fun = np.mean(self._trainPolicy(states))
+        ### The rewards are not used in this update, just a placeholder
+        score = self._combined.fit([states], rewards,
+              epochs=1, batch_size=states.shape[0],
+              verbose=0
+              # callbacks=[early_stopping],
+              )
+        q_fun = -score.history['loss'][0]
+        
+        # q_fun = np.mean(self._trainPolicy(states))
         
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
