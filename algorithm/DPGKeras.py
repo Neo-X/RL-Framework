@@ -53,15 +53,20 @@ class DPGKeras(AlgorithmInterface):
         
         self._q_valsActA = self._model.getActorNetwork()([self._model.getStateSymbolicVariable()])[:,:self._action_length]
         self._q_valsActTarget_State = self._modelTarget.getActorNetwork()([self._model.getStateSymbolicVariable()])[:,:self._action_length]
+        self._q_valsActTarget_ResultState = self._modelTarget.getActorNetwork()([self._model.getResultStateSymbolicVariable()])[:,:self._action_length]
 
         self._q_valsActASTD = ( K.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         self._q_valsActTargetSTD = (K.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
                 
         # self._q_function = self._model.getCriticNetwork()(self._model.getStateSymbolicVariable(), self._q_valsActA)
         self._q_function = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
-        self._q_function_Target = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+        self._q_function_Target = self._model.getCriticNetwork()([self._model.getResultStateSymbolicVariable(), self._q_valsActTarget_ResultState])
+        # self._q_function_Target = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
         
-        
+        q_vals_b = self._q_function_Target
+        target_tmp_ = self._model.getRewardSymbolicVariable() + ((self._discount_factor * q_vals_b ))
+        diff = target_tmp_ - self._q_function
+        self._q_loss = K.mean(K.mean(diff, axis=-1))
         # print ("Initial W " + str(self._w_o.get_value()) )
         
         DPGKeras.compile(self)
@@ -101,7 +106,7 @@ class DPGKeras(AlgorithmInterface):
         self._model.getCriticNetwork().trainable = False
         
         def neg_y(true_y, pred_y):
-            return -pred_y
+            return K.mean(-pred_y)
         
         self._act = self._model.getActorNetwork()(
                                 [self._model.getStateSymbolicVariable()])
@@ -112,7 +117,7 @@ class DPGKeras(AlgorithmInterface):
         self._combined = Model(input=[self._model.getStateSymbolicVariable()], 
                                 output=self._qFunc)
         
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), 
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
                                     epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
                                     amsgrad=False)
@@ -120,6 +125,28 @@ class DPGKeras(AlgorithmInterface):
         print("sgd, critic: ", sgd)
         self._combined.compile(loss=[neg_y], optimizer=sgd)
         print("combined qFun Net summary: ",  self._combined.summary())
+        
+        if (self.getSettings()["regularization_weight"] > 0.0000001):
+            self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
+        else:
+            self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
+        
+        if (self.getSettings()["critic_regularization_weight"] > 0.0000001):
+            self._critic_regularization = K.sum(self._model.getCriticNetwork().losses)
+        else:
+            self._critic_regularization = K.sum(self._model.getCriticNetwork().losses)
+            
+        self._get_actor_regularization = K.function([], [self._actor_regularization])
+        self._get_critic_regularization = K.function([], [self._critic_regularization])
+        self._get_critic_loss = K.function([self._model.getStateSymbolicVariable(),
+                                            self._model.getActionSymbolicVariable(),
+                                            self._model.getRewardSymbolicVariable(), 
+                                            self._model.getResultStateSymbolicVariable(),
+                                            K.learning_phase()
+                                            ], [self._q_loss])
+        self._get_actor_loss = K.function([self._model.getStateSymbolicVariable()
+                                                 # ,K.learning_phase()
+                                                 ], [self._qFunc])
         
     def getGrads(self, states, actions=None, alreadyNormed=False):
         """
@@ -219,9 +246,9 @@ class DPGKeras(AlgorithmInterface):
         
         # self.setData(states, actions, rewards, result_states, falls)
         ## get actions for target policy
-        target_actions = self._modelTarget.getActorNetwork().predict(states, batch_size=states.shape[0])
+        target_actions = self._modelTarget.getActorNetwork().predict(result_states, batch_size=states.shape[0])
         ## Get next q value
-        q_vals_b = self._modelTarget.getCriticNetwork().predict([states, target_actions], batch_size=states.shape[0])
+        q_vals_b = self._modelTarget.getCriticNetwork().predict([result_states, target_actions], batch_size=states.shape[0])
         # q_vals_b = self._q_val()
         ## Compute target values
         # target_tmp_ = rewards + ((self._discount_factor* q_vals_b )* falls)
@@ -339,7 +366,21 @@ class DPGKeras(AlgorithmInterface):
         values =  self._model.getCriticNetwork().predict([states, poli_mean], batch_size=states.shape[0])
         bellman_error = target_ - values
         return bellman_error
-        # return self._bellman_errorTarget()        
+        # return self._bellman_errorTarget()     
+        
+    def get_actor_regularization(self):
+        return self._get_actor_regularization([])
+    
+    def get_actor_loss(self, state, action, reward, nextState, advantage):
+        return self._get_actor_loss([state])
+    
+    def get_critic_regularization(self):
+        return self._get_critic_regularization([])
+    
+    def get_critic_loss(self, state, action, reward, nextState):
+        return self._get_critic_loss([state, action, reward, nextState, 0])   
+    
+    
 from collections import OrderedDict
 def adam_updates(loss, params, learning_rate=0.001, beta1=0.9,
          beta2=0.999, epsilon=1e-8):

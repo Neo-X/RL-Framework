@@ -190,8 +190,10 @@ class PPO_KERAS(KERASAlgorithm):
                 ppo_epsilon = self.getSettings()['kl_divergence_threshold']
                 actLoss_2 = (K.clip(_r, 1.0 - (ppo_epsilon * anneal), 1 + (ppo_epsilon * anneal)), advantage)
                 actLoss_ = K.minimum(actLoss_, actLoss_2)
-                actLoss = -1.0 * K.mean(actLoss_)
-                return actLoss
+                ### Average across action dimensions
+                actLoss = -1.0 * K.mean(actLoss_, axis=-1)
+                ### Average over batch
+                return K.mean(actLoss)
             
             return loss
         
