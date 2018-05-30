@@ -25,9 +25,7 @@ pip3.6 install --user theano==1.0.1
 pip3.6 install --user matplotlib
 pip3.6 install --user Lasagne==0.1
 ### One of these should work... Curse you Lasagne...
-cp patches/pool.py ~/.local/lib/python3.5/site-packages/lasagne/layers/
-cp patches/pool.py ~/.local/lib/python3.6/site-packages/lasagne/layers/
-cp patches/pool.py ~/.local/lib/python2.7/site-packages/lasagne/layers/
+cp ../patches/pool.py ~/.local/lib/python3.6/site-packages/lasagne/layers/
 pip3.6 install --user dill
 pip3.6 install --user pathos
 pip3.6 install --user pyOpenGL
@@ -39,9 +37,9 @@ pip3.6 install --user tensorflow
 # pip3 install pyODE
 pip3.6 install --user h5py
 
-apt-get -y install python3-tk
+sudo apt-get -y install python3-tk
 
 #### Only if you want to replace python3.5
 # sudo ln -s /usr/bin/python3.6 /usr/local/bin/python3
-# sudo ln -s /usr/local/bin/pip /usr/local/bin/pip3
+# sudo ln -s /usr/local/bin/pip3.6 /usr/local/bin/pip3
 
