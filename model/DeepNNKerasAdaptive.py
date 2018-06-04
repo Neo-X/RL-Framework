@@ -133,7 +133,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                          kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                         if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
-                            networkActVel = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=(1,1),
+                            networkActVel = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=(1,1),
                                                          kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkActVel)
                         if (perform_pooling):
                             networkAct = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(networkAct)
@@ -273,7 +273,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                     if ('split_terrain_input' in self._networkSettings 
                             and self._networkSettings['split_terrain_input']):
-                        networkVel = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=(1,1),
+                        networkVel = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=(1,1),
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(networkVel)
                     if (perform_pooling):
                         network = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(network)
