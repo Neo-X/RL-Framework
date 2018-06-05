@@ -2,7 +2,8 @@
 ## This script is designed to make it easier to start a number of simulation
 
 ## declare an array variable
-declare -a metaExps=("settings/hyperParamTuning/element/activation_type.json" 
+declare -a metaExps=(
+				"settings/hyperParamTuning/element/activation_type.json" 
 				"settings/hyperParamTuning/element/anneal_exploration.json" 
 				"settings/hyperParamTuning/element/anneal_learning_rate.json" 		
 				"settings/hyperParamTuning/element/batch_size.json" 
@@ -15,14 +16,16 @@ declare -a metaExps=("settings/hyperParamTuning/element/activation_type.json"
 				"settings/hyperParamTuning/element/policy_activation_type.json" 		
 				"settings/hyperParamTuning/element/policy_network_layer_sizes.json" 		
 				"settings/hyperParamTuning/element/state_normalization.json" 		
-				"settings/hyperParamTuning/element/use_single_network.json")
+				"settings/hyperParamTuning/element/use_single_network.json"
+)
 simConfigFile=$1
 ## now loop through the above array
-for i in "${metaExps[@]}"
+for metaConfig in "${metaExps[@]}"
 do
-   echo "$i"
+   echo "$metaConfig"
    # or do whatever with individual element of the array
 	echo "$simConfigFile"
+	echo "borgy submit --restartable --req-cores=32 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=$simConfigFile --metaConfig=$metaConfig --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --num_rounds=500 | tee -a $BORGY_JOB_ID.out'"
 done
 
 
