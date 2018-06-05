@@ -1233,10 +1233,10 @@ def trainModelParallel(inputData):
                 actor_loss_viz.finish()
                 actor_regularization_viz.finish()
                 
-        keras.backend.get_session().close()
         sess = keras.backend.get_session()
-        del sess
         keras.backend.clear_session()
+        sess.close()
+        del sess
         ### This will find ALL your memory deallocation issues in C++...
         ### And errors in terinating processes properly...
         gc.collect()

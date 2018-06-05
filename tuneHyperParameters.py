@@ -5,7 +5,6 @@ import sys
 import json
 import copy
 from pathos.threading import ThreadPool
-from pathos.multiprocessing import ProcessingPool
 import time
 import datetime
 from tools.PlotMetadataSimulation import plotMetaDataSimulation

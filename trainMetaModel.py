@@ -4,7 +4,6 @@ from trainModel import trainModelParallel
 import sys
 import json
 import copy
-from pathos.threading import ThreadPool
 from pathos.multiprocessing import ProcessingPool
 # from threading import ThreadPool
 import time
