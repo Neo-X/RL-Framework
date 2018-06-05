@@ -57,6 +57,13 @@ def getOptions(_args=None):
               metavar="INTEGER", 
               help="Number of threads to use for hyper parameter tuning")
     
+
+    parser.add_option("--num_param_samples", "--nps",
+              action="store", dest="num_param_samples", default=None,
+              type=int,
+              metavar="INTEGER", 
+              help="Number of samples to evaluation between the given bounds")
+        
     parser.add_option("--bootstrap_samples",
               action="store", dest="bootstrap_samples", default=None,
               type=int,

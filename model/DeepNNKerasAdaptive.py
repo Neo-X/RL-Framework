@@ -53,9 +53,9 @@ def getKerasActivation(type_name):
 
 class DeepNNKerasAdaptive(ModelInterface):
     
-    def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
 
-        super(DeepNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(DeepNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         self._networkSettings = {}
         if ("network_settings" in settings_):
             self._networkSettings = settings_["network_settings"]

@@ -33,7 +33,7 @@ _output_experience_queue = None
 _eval_episode_data_queue = None
 _sim_work_queues = []
 
-def createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds):
+def createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds, print_info=False):
     """
         Create the Learning Agent to be used
     """
@@ -368,7 +368,7 @@ def trainModelParallel(inputData):
         # mgr = multiprocessing.Manager()
         # namespace = mgr.Namespace()
         
-        model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+        model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings, print_info=True)
         forwardDynamicsModel = None
         if (settings['train_forward_dynamics']):
             if ( settings['forward_dynamics_model_type'] == "SingleNet"):
@@ -384,7 +384,7 @@ def trainModelParallel(inputData):
             # forwardDynamicsModel.setEnvironment(exp)
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
-        (agent, learning_workers) = createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds)
+        (agent, learning_workers) = createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds, print_info=True)
         masterAgent = agent
         # print ("NameSpace: " + str(namespace))
         # sys.exit(0)

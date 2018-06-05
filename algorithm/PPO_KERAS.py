@@ -44,9 +44,9 @@ def flatten(data):
 
 class PPO_KERAS(KERASAlgorithm):
     
-    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
 
-        super(PPO_KERAS,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(PPO_KERAS,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         
         print ("PPO_KERAS: created models")
         # self._modelTarget = model
@@ -80,21 +80,25 @@ class PPO_KERAS(KERASAlgorithm):
         else:
             self._model._actor_train = Model(inputs=input_, outputs=self._model._actor)
         self._model._actor = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._actor)
-        print("Actor summary: ", self._model._actor_train.summary())
+        if (print_info):
+            print("Actor summary: ", self._model._actor_train.summary())
         self._model._critic = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._critic)
-        print("Critic summary: ", self._model._critic.summary())
+        if (print_info):
+            print("Critic summary: ", self._model._critic.summary())
         ## Target network
         # self._modelTarget = copy.deepcopy(model)
-        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         input_Target = [self._modelTarget.getStateSymbolicVariable(),
                  self._PoliAction,
                  self._Advantage,
                  self._Anneal
                   ]
         self._modelTarget._actor = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._actor)
-        print("Target Actor summary: ", self._modelTarget._actor.summary())
+        if (print_info):
+            print("Target Actor summary: ", self._modelTarget._actor.summary())
         self._modelTarget._critic = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._critic)
-        print("Target Critic summary: ", self._modelTarget._critic.summary())
+        if (print_info):
+            print("Target Critic summary: ", self._modelTarget._critic.summary())
         
         self.__value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
         self.__value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])

@@ -16,7 +16,7 @@ from model.LearningUtil import loglikelihood, likelihood, kl, entropy, flatgrad,
 
 class AlgorithmInterface(object):
     
-    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
 
         ## primary network, don't make a copy of this
         self._model = model

@@ -22,7 +22,7 @@ from collections import OrderedDict
 
 class DPGKeras(AlgorithmInterface):
     
-    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
         """
             In order to get this to work we need to be careful not to update the actor parameters
             when updating the critic. This can be an issue when the Concatenating networks together.
@@ -31,7 +31,7 @@ class DPGKeras(AlgorithmInterface):
             Care needs to be taken to make sure only the parameters of the second network are updated.
         """
         
-        super(DPGKeras,self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(DPGKeras,self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
 
         self._model._actor = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=self._model._actor)
         print("Actor summary: ", self._model._actor.summary())
@@ -39,7 +39,7 @@ class DPGKeras(AlgorithmInterface):
                                               self._model.getActionSymbolicVariable()], outputs=self._model._critic)
         print("Critic summary: ", self._model._critic.summary())
         
-        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
         self._modelTarget._actor = Model(inputs=[self._modelTarget.getStateSymbolicVariable()], outputs=self._modelTarget._actor)
         print("Target Actor summary: ", self._modelTarget._actor.summary())
         self._modelTarget._critic = Model(inputs=[self._modelTarget.getStateSymbolicVariable(),

@@ -128,7 +128,7 @@ def validateSettings(settings):
     """
     return settings
 
-def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, settings):
+def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, settings, print_info=False):
     if settings['action_space_continuous']:
         n_out_ = len(action_bounds[0])
     else:
@@ -239,7 +239,8 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
         modelClass = locate(model_type)
         if ( issubclass(modelClass, ModelInterface)): ## Double check this load will work
             model = modelClass(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
-                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings,
+                              print_info=print_info)
             print("Created model: ", model)
             return model
         else:
@@ -258,10 +259,10 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
 
     return model
 
-def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds, settings):
+def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds, settings, print_info=False):
     
     action_bounds = np.array(settings['action_bounds'])
-    networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings)
+    networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings, print_info=print_info)
     num_actions= discrete_actions.shape[0] # number of rows
     if settings['action_space_continuous']:
             action_bounds = np.array(settings["action_bounds"], dtype=float)
@@ -413,7 +414,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
         modelAlgorithm = locate(algorihtm_type)
         if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
             model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings, print_info=print_info)
             print("Loaded algorithm: ", model)
             # return model
         else:

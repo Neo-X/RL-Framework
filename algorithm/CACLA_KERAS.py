@@ -19,9 +19,9 @@ from keras.models import Sequential, Model
 
 class CACLA_KERAS(KERASAlgorithm):
     
-    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
 
-        super(CACLA_KERAS,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(CACLA_KERAS,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
         
         ## primary network
         ## primary network
@@ -32,7 +32,7 @@ class CACLA_KERAS(KERASAlgorithm):
         print("Critic summary: ", self._model._critic.summary())
         ## Target network
         # self._modelTarget = copy.deepcopy(model)
-        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
         self._modelTarget._actor = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._actor)
         print("Target Actor summary: ", self._modelTarget._actor.summary())
         self._modelTarget._critic = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._critic)

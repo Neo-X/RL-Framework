@@ -44,9 +44,9 @@ def flatten(data):
 
 class KERASAlgorithm(AlgorithmInterface):
     
-    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
 
-        super(KERASAlgorithm,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(KERASAlgorithm,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
         
     def saveTo(self, fileName):
         # print(self, "saving model")

@@ -39,7 +39,7 @@ def leaky_relu(x):
 
 class ModelInterface(object):
     
-    def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
 
         # super(DeepCACLADropout,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         self._batch_size=settings_['batch_size']
