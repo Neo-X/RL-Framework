@@ -103,6 +103,8 @@ class SimWorker(Process):
         # print ("Thread: ", self._model._exp)
         import keras
         import theano
+        # import tensorflow as tf
+        # keras.backend.set_session(tf.Session(graph=tf.Graph()))
         keras.backend.set_floatx(self._settings['float_type'])
         print ("K.floatx()", keras.backend.floatx())
         print ("theano.config.floatX", theano.config.floatX)
@@ -384,8 +386,10 @@ class SimWorker(Process):
                 # summary.print_(sum1)
         print ("Simulation Worker Complete: ", os.getpid())
         self._exp.finish()
-        keras.backend.get_session().close()
+        sess = keras.backend.get_session()
         keras.backend.clear_session()
+        sess.close()
+        del sess
         gc.collect()
         return
         

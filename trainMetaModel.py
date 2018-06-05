@@ -4,6 +4,7 @@ from trainModel import trainModelParallel
 import sys
 import json
 import copy
+import gc
 from pathos.multiprocessing import ProcessingPool
 # from threading import ThreadPool
 import time
@@ -37,7 +38,8 @@ def _trainMetaModel(input):
 def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hyperSettings=None):
     import shutil
     import os
-    
+    # import tensorflow as tf
+    # keras.backend.set_session(tf.Session(graph=tf.Graph()))
     result_data = {}
     result_data['settings_files'] = []
     
@@ -117,7 +119,6 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     result_data['raw_sim_time_in_seconds'] = t1-t0
     result_data['Number_of_simulations_sampled'] = samples
     result_data['Number_of_threads_used'] = numThreads
-    
     return result_data
     # trainModelParallel(settingsFileName, copy.deepcopy(settings))
         

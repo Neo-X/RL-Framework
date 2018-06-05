@@ -251,6 +251,8 @@ def trainModelParallel(inputData):
         import keras
         from util.MakeKerasPicklable import make_keras_picklable
         import theano
+        # import tensorflow as tf
+        # keras.backend.set_session(tf.Session())
         keras.backend.set_floatx(settings['float_type'])
         print ("K.floatx()", keras.backend.floatx())
         print ("theano.config.floatX", theano.config.floatX)
