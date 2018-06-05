@@ -41,6 +41,21 @@ def flatten(data):
                 yield j
         else:
             yield i
+    
+def getOptimizer(lr, settings):
+    """
+        Function to make it easier to select the SGD optimizer to use
+    """
+    if ( "optimizer" in settings 
+         and ( settings["optimizer"] == "sgd")):
+        sgd = keras.optimizers.SGD(lr=lr, momentum=settings["rho"], decay=0.0, nesterov=False)
+    else:
+        sgd = keras.optimizers.Adam(lr=np.float32(lr), 
+                                beta_1=settings["rms_epsilon"], beta_2=np.float32(0.999), 
+                                epsilon=np.float32(settings["rms_epsilon"]), decay=0.0,
+                                amsgrad=False)
+    return sgd
+    
 
 class PPO_KERAS(KERASAlgorithm):
     
@@ -148,10 +163,8 @@ class PPO_KERAS(KERASAlgorithm):
         
     def compile(self):
         # sgd = SGD(lr=0.001, momentum=0.9)
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
-                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(1e-8),
-                                    amsgrad=False)
+        sgd = getOptimizer(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+                                    settings=self.getSettings())
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
@@ -202,10 +215,8 @@ class PPO_KERAS(KERASAlgorithm):
             return loss
         
         
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
-                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(1e-8), 
-                                    amsgrad=False)
+        sgd = sgd = getOptimizer(lr=np.float32(self.getSettings()['learning_rate']), 
+                                    settings=self.getSettings())
         print("sgd, actor: ", sgd)
         print ("Clipping: ", sgd.decay)
         """
