@@ -17,7 +17,7 @@ from util.ExperienceMemory import ExperienceMemory
 
 class QProp(AlgorithmInterface):
     
-    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
         """
             In order to get this to work we need to be careful not to update the actor parameters
             when updating the critic. This can be an issue when the Concatenating networks together.

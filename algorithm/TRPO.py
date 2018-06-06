@@ -27,7 +27,7 @@ from algorithm.AlgorithmInterface import AlgorithmInterface
 
 class TRPO(AlgorithmInterface):
     
-    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
 
         super(TRPO,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         

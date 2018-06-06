@@ -21,7 +21,7 @@ from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl, kl
 
 class PPO(AlgorithmInterface):
     
-    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
 
         super(PPO,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         # scale = (bounds[1][i]-bounds[0][i])/2.0

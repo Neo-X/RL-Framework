@@ -16,9 +16,9 @@ from model.LearningUtil import loglikelihood, kl, entropy, change_penalty
 
 class A_CACLA(AlgorithmInterface):
     
-    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
 
-        super(A_CACLA,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(A_CACLA,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         
         # create a small convolutional neural network
         
