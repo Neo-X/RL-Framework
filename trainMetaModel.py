@@ -5,8 +5,9 @@ import sys
 import json
 import copy
 import gc
-from pathos.multiprocessing import ProcessingPool
+# from pathos.multiprocessing import ProcessingPool
 # from multiprocessing import Pool as ProcessingPool
+from util.Multiprocessing import MyPool as ProcessingPool
 import time
 import datetime
 
