@@ -106,8 +106,6 @@ class SimWorker(Process):
         # import tensorflow as tf
         # keras.backend.set_session(tf.Session(graph=tf.Graph()))
         keras.backend.set_floatx(self._settings['float_type'])
-        print ("K.floatx()", keras.backend.floatx())
-        print ("theano.config.floatX", theano.config.floatX)
         
         # if ("learning_backend" in self._settings and (self._settings["learning_backend"] == "tensorflow")):
         print("Creating new policy in process:")

@@ -178,7 +178,7 @@ def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, sa
         sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads'], copy.deepcopy(hyper_settings)))
     
     # p = ProcessingPool(2)
-    p = ThreadPool(hyper_settings['tuning_threads'])
+    p = ThreadPool(hyper_settings['tuning_threads'], maxtasksperchild=1)
     t0 = time.time()
     result = p.map(_trainMetaModel, sim_data)
     t1 = time.time()

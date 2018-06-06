@@ -6,7 +6,7 @@ import json
 import copy
 import gc
 from pathos.multiprocessing import ProcessingPool
-# from threading import ThreadPool
+# from multiprocessing import Pool as ProcessingPool
 import time
 import datetime
 
@@ -103,8 +103,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
                 shutil.copy2(hyperSettings['saved_model_folder']+"/_" + str(i)+'/'+settings['model_type']+'/'+getAgentName()+".pkl", directory+getAgentName()+"_Best.pkl" )
                 
         
-    # p = ThreadPool(numThreads)
-    p = ProcessingPool(numThreads)
+    p = ProcessingPool(numThreads, maxtasksperchild=1)
     t0 = time.time()
     # print ("hyperSettings: ", hyper_settings)
     if ( (hyperSettings is not None) and ('testing' in hyper_settings and (hyper_settings['testing']))):
@@ -114,7 +113,6 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     t1 = time.time()
     print ("Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
     # print (result)
-
     result_data['sim_time'] = "Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds"
     result_data['raw_sim_time_in_seconds'] = t1-t0
     result_data['Number_of_simulations_sampled'] = samples

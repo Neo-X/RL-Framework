@@ -2,8 +2,8 @@
 import numpy as np
 import random
 import h5py
-from model.ModelUtil import *
-from model.ModelUtil import validBounds, fixBounds, anneal_value
+from model.ModelUtil import validBounds, fixBounds, anneal_value, norm_state, norm_action, norm_reward, checkValidData
+import copy
 import sys
 
 

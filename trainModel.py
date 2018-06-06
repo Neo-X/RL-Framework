@@ -33,6 +33,23 @@ _output_experience_queue = None
 _eval_episode_data_queue = None
 _sim_work_queues = []
 
+def removeCachedLibraries():
+    
+    
+    sys.modules.pop("keras.backend", None)
+    sys.modules.pop("keras.backend.common", None)
+    sys.modules.pop("keras.backend.tensorflow_backend", None)
+
+    """
+    offending_libraries = ['keras', 'lasagne', 'tensorflow', 'theano' , 'algorithm']
+    loadedModules = copy.deepcopy(list(sys.modules.keys()))
+    for key in loadedModules:
+        if ( any(substring in key for substring in offending_libraries) ):
+            print ("key: ", key) 
+            sys.modules.pop(key, None)
+    """        
+    # print ("sys.modules: ", sys.modules)
+
 def createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds, print_info=False):
     """
         Create the Learning Agent to be used
@@ -145,6 +162,7 @@ def trainModelParallel(inputData):
         settings = inputData[1]
         settings['sample_single_trajectories'] = True
         np.random.seed(int(settings['random_seed']))
+        removeCachedLibraries()
     # pr = cProfile.Profile()
     # pr.enable()
     # try:
@@ -248,15 +266,16 @@ def trainModelParallel(inputData):
                     print (sw)
                     sw.start()
             
+        # print ("sys.modules1: ", sys.modules)
         import keras
-        from util.MakeKerasPicklable import make_keras_picklable
+        # from util.MakeKerasPicklable import make_keras_picklable
         import theano
         # import tensorflow as tf
         # keras.backend.set_session(tf.Session())
         keras.backend.set_floatx(settings['float_type'])
         print ("K.floatx()", keras.backend.floatx())
         print ("theano.config.floatX", theano.config.floatX)
-        make_keras_picklable()
+        # make_keras_picklable()
         
         ## Theano needs to be imported after the flags are set.
         # from ModelEvaluation import *
@@ -1239,6 +1258,7 @@ def trainModelParallel(inputData):
         keras.backend.clear_session()
         sess.close()
         del sess
+        # print ("sys.modules: ", json.dumps(str(sys.modules), indent=2))
         ### This will find ALL your memory deallocation issues in C++...
         ### And errors in terinating processes properly...
         gc.collect()
