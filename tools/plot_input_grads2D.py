@@ -2,11 +2,12 @@
 """
 Bar chart demo with pairs of bars grouped for easy comparison.
 """
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import matplotlib.pyplot as plt
 
 bar_width = 0.35
-
+terrain_shape = [32,32]
 opacity = 0.4
 
 grad = [1.61925509e-05, 9.20366983e-06, 1.58728508e-05, 9.55116047e-06,
@@ -807,21 +808,81 @@ grad = [1.61925509e-05, 9.20366983e-06, 1.58728508e-05, 9.55116047e-06,
 
 print("Number of state features: ", len(grad))
 
-index = np.arange(len(grad))
 
-rects1 = plt.bar(index, grad, bar_width,
+# Working with multiple figure windows and subplots
+import matplotlib.pyplot as plt
+import numpy as np
+
+terrain_items = terrain_shape[0]*terrain_shape[1]
+
+ter_ind = 0
+_x = np.arange(terrain_shape[0])
+_y = np.arange(terrain_shape[1])
+_xx, _yy = np.meshgrid(_x, _y)
+x, y = _xx.ravel(), _yy.ravel()
+top = grad[ter_ind*terrain_items:terrain_items*(ter_ind+1)]
+bottom = np.zeros_like(top)
+width = depth = 1
+
+fig1 = plt.figure(ter_ind+1)
+ax1 = fig1.add_subplot(111, projection='3d')
+ax1.set_xlabel('State Feature')
+ax1.set_ylabel('Average gradient')
+ax1.set_title('Velocity X State Feature')
+rects1 = ax1.bar3d(x, y, bottom, width, depth, top,
                  alpha=opacity,
                  color='b',
                  )
+plt.tight_layout()
+plt.savefig("input_grads" + str(ter_ind) + ".svg")
+plt.savefig("input_grads" + str(ter_ind) + ".png")
 
+ter_ind = 1
+top = grad[ter_ind*terrain_items:terrain_items*(ter_ind+1)]
+fig1 = plt.figure(ter_ind+1)
+ax1 = fig1.add_subplot(111, projection='3d')
+ax1.set_xlabel('State Feature')
+ax1.set_ylabel('Average gradient')
+ax1.set_title('Velocity Y State Feature')
+rects1 = ax1.bar3d(x, y, bottom, width, depth, top,
+                 alpha=opacity,
+                 color='b',
+                 )
+plt.tight_layout()
+plt.savefig("input_grads" + str(ter_ind) + ".svg")
+plt.savefig("input_grads" + str(ter_ind) + ".png")
+
+ter_ind = 2
+top = grad[ter_ind*terrain_items:terrain_items*(ter_ind+1)]
+fig1 = plt.figure(ter_ind+1)
+ax1 = fig1.add_subplot(111, projection='3d')
+ax1.set_xlabel('State Feature')
+ax1.set_ylabel('Average gradient')
+ax1.set_title('Terrain State Feature')
+rects1 = ax1.bar3d(x, y, bottom, width, depth, top,
+                 alpha=opacity,
+                 color='b',
+                 )
+plt.tight_layout()
+plt.savefig("input_grads" + str(ter_ind) + ".svg")
+plt.savefig("input_grads" + str(ter_ind) + ".png")
+
+plt.figure(4)
 plt.xlabel('State Feature')
 plt.ylabel('Average gradient')
-plt.title('Comparing input feature gradients')
+plt.title('Character State Feature')
+index = np.arange(len(grad)- 3*terrain_items)
+rects2 = plt.bar(index, grad[3*terrain_items:len(grad) ], bar_width,
+                 alpha=opacity,
+                 color='b',
+                 )
+plt.tight_layout()
+plt.savefig("input_grads.svg")
+plt.savefig("input_grads.png")
+
 # plt.xticks(index + bar_width / 2, ('A', 'B', 'C', 'D', 'E'))
 plt.legend()
 
 plt.tight_layout()
-plt.savefig("input_grads.svg")
-plt.savefig("input_grads.png")
 plt.show()
 

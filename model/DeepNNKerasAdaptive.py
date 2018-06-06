@@ -88,8 +88,10 @@ class DeepNNKerasAdaptive(ModelInterface):
         if ('split_terrain_input' in self._networkSettings 
             and self._networkSettings['split_terrain_input']):
             mid = int((self._settings['num_terrain_features']/3) * 2)
-            velFeatures = Lambda(keras_slice, output_shape=(mid,),
-                              arguments={'begin': 0, 'end': mid})(self._stateInput)
+            velFeatures_x = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
+                              arguments={'begin': 0, 'end': int(mid/2)})(self._stateInput)
+            velFeatures_y = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
+                              arguments={'begin': int(mid/2), 'end': mid})(self._stateInput)
             taskFeatures = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
                               arguments={'begin': mid, 'end': self._settings['num_terrain_features']})(self._stateInput)
         else:
@@ -124,7 +126,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                         if (i == 0):
                             if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
-                                networkActVel = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 2))(velFeatures)
+                                networkActVel_x = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_x)
+                                networkActVel_y = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_y)
                                 networkAct = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(taskFeatures)
                             else:    
                                 networkAct = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(taskFeatures)
@@ -133,13 +136,17 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                          kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                         if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
-                            networkActVel = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=(1,1),
-                                                         kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkActVel)
+                            networkActVel_x = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=(1,1),
+                                                         kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkActVel_x)
+                            networkActVel_y = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=(1,1),
+                                                         kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkActVel_y)
+                                                                     
                         if (perform_pooling):
                             networkAct = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(networkAct)
                             if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
-                                networkActVel = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(networkActVel)
+                                networkActVel_x = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(networkActVel_x)
+                                networkActVel_y = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(networkActVel_y)
                     else:
                         if (i == 0):
                             networkAct = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
@@ -153,8 +160,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                     networkAct = Flatten()(networkAct)
                     if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
-                        networkActVel = Flatten()(networkActVel)
-                        networkAct = Concatenate(axis=1)([networkActVel, networkAct, characterFeatures])
+                        networkActVel_x = Flatten()(networkActVel_x)
+                        networkActVel_y = Flatten()(networkActVel_y)
+                        networkAct = Concatenate(axis=1)([networkActVel_x, networkActVel_y, networkAct, characterFeatures])
                     else:
                         networkAct = Concatenate(axis=1)([networkAct, characterFeatures])
                 else:
@@ -194,7 +202,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             # self._actor = Model(input=[self._stateInput, self._actionInput], output=self._actor)
             # print("Actor summary: ", self._actor.summary())
             
-        
+        """
         layer_sizes = self._settings['critic_network_layer_sizes']
         if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras" 
              or (self._settings["agent_name"] == "algorithm.QPropKeras.QPropKeras")
@@ -253,6 +261,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 
             print ("Creating DPG network")
             # input = Concatenate()([characterFeatures, self._actionInput])
+        """
         
         print ("Critic Network layer sizes: ", layer_sizes)
         network = self._stateInput
@@ -265,7 +274,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                     if (i == 0):
                         if ('split_terrain_input' in self._networkSettings 
                         and self._networkSettings['split_terrain_input']):
-                            networkVel = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 2))(velFeatures)
+                            networkVel_x = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_x)
+                            networkVel_y = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_y)
                             network = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(taskFeatures)
                         else:    
                             network = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(taskFeatures)
@@ -273,13 +283,16 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                     if ('split_terrain_input' in self._networkSettings 
                             and self._networkSettings['split_terrain_input']):
-                        networkVel = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=(1,1),
-                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(networkVel)
+                        networkVel_x = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=(1,1),
+                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(networkVel_x)
+                        networkVel_y = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=(1,1),
+                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(networkVel_y)            
                     if (perform_pooling):
                         network = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(network)
                         if ('split_terrain_input' in self._networkSettings 
                             and self._networkSettings['split_terrain_input']):
-                            networkVel = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(networkVel)
+                            networkVel_x = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(networkVel_x)
+                            networkVel_y = keras.layers.AveragePooling2D(pool_size=2, strides=None, padding='valid')(networkVel_y)
                 else:
                     if (i == 0):
                         # network = Reshape((self._state_length, 1))(taskFeatures)
@@ -297,8 +310,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Flatten()(network)
                 if ('split_terrain_input' in self._networkSettings 
                     and self._networkSettings['split_terrain_input']):
-                    networkVel = Flatten()(networkVel)
-                    network = Concatenate(axis=1)([networkVel, network, characterFeatures])
+                    networkVel_x = Flatten()(networkVel_x)
+                    networkVel_y = Flatten()(networkVel_y)
+                    network = Concatenate(axis=1)([networkVel_x, networkVel_y, network, characterFeatures])
                 else:
                     network = Concatenate(axis=1)([network, characterFeatures])
             else:
