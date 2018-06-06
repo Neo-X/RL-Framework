@@ -166,7 +166,7 @@ def trainModelParallel(inputData):
         settings = inputData[1]
         settings['sample_single_trajectories'] = True
         np.random.seed(int(settings['random_seed']))
-        removeCachedLibraries()
+        # removeCachedLibraries()
         loadedModules = copy.deepcopy(list(sys.modules.keys()))
     # pr = cProfile.Profile()
     # pr.enable()
