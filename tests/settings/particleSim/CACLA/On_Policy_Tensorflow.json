@@ -330,7 +330,7 @@
 	"split_single_net_earlier": true
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
-"pretrain_critic": 0,
+"pretrain_critic": 10,
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
 "learning_backend": "tensorflow"
 }
