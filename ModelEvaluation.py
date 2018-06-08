@@ -1261,6 +1261,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     state_bounds = np.array(settings['state_bounds'], dtype=float)
     
     if (settings["bootsrap_with_discrete_policy"]) and (settings['bootstrap_samples'] > 0):
+        print ("Collecting bootstrap samples from simulation")
         (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
                                                                                                                    eval_episode_data_queue=eval_episode_data_queue)
         # states = np.array(states)
@@ -1353,6 +1354,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                 # print ("Tuple with reward: " + str(reward_) + " skipped")
         # sys.exit()
     else: ## Most likely performing continuation learning
+        print ("Skipping bootstrap samples from simulation")
         if settings['action_space_continuous']:
             experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
         else:

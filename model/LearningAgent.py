@@ -177,7 +177,7 @@ class LearningAgent(AgentInterface):
                     _actions = np.array(norm_action(np.array(tmp_actions), self._pol.getActionBounds()), dtype=self._settings['float_type'])
                 _result_states = np.array(norm_action(np.array(tmp_result_states), self._pol.getStateBounds()), dtype=self._settings['float_type'])
                 # reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
-                _rewards = np.array(norm_state(tmp_rewards , self._reward_bounds ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type'])
+                _rewards = np.array(norm_state(tmp_rewards , self._pol.getRewardBounds() ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type'])
                 _rewards = np.reshape(_rewards, (len(tmp_states), 1))
                 _falls = np.array(tmp_falls, dtype='int8')
                 _advantage = np.array(tmp_advantage, dtype=self._settings['float_type'])
