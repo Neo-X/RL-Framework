@@ -62,8 +62,7 @@ def createLearningAgent(settings, output_experience_queue, state_bounds, action_
     
     learning_workers = []
     for process in range(1):
-        agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+        agent = LearningAgent(settings_=settings)
         
         agent.setSettings(settings)
         
@@ -96,8 +95,7 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
         ### Using a wrapper for the type of actor now
         actor = createActor(settings['environment_type'], settings, None)
         
-        agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+        agent = LearningAgent(settings_=settings)
         
         agent.setSettings(settings)
         agent.setPolicy(model)
@@ -279,6 +277,8 @@ def trainModelParallel(inputData):
         # import tensorflow as tf
         # keras.backend.set_session(tf.Session())
         keras.backend.set_floatx(settings['float_type'])
+        if ("image_data_format" in settings):
+            keras.backend.set_image_data_format(settings['image_data_format'])
         print ("K.floatx()", keras.backend.floatx())
         print ("theano.config.floatX", theano.config.floatX)
         # make_keras_picklable()
@@ -372,7 +372,8 @@ def trainModelParallel(inputData):
             # Check that the action bounds are spcified correctly
             print("Action bounds invalid: ", action_bounds)
             sys.exit()
-        if (not validBounds(state_bounds)):
+        if ( (state_bounds != "ask_env") 
+             and not validBounds(state_bounds)):
             # Probably did not collect enough bootstrapping samples to get good state bounds.
             print("State bounds invalid: ", state_bounds)
             state_bounds = fixBounds(np.array(state_bounds))
@@ -394,6 +395,30 @@ def trainModelParallel(inputData):
 
         # mgr = multiprocessing.Manager()
         # namespace = mgr.Namespace()
+        ## This needs to be done after the simulation worker processes are created
+        # exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'], )
+        if (int(settings["num_available_threads"]) == -1
+            or (state_bounds == "ask_env")): # This is okay if there is one thread only...
+            exp_val = createEnvironment(settings["forwardDynamics_config_file"], settings['environment_type'], settings, render=settings['shouldRender'], index=0)
+            exp_val.setActor(actor)
+            exp_val.getActor().init()
+            exp_val.init()
+            if ((state_bounds == "ask_env")):
+                print ("Getting state bounds from environment")
+                s_min = exp_val.getEnvironment().observation_space.getMinimum()
+                s_max = exp_val.getEnvironment().observation_space.getMaximum()
+                print (exp_val.getEnvironment().observation_space.getMinimum())
+                settings['state_bounds'] = [s_min,s_max]
+                state_bounds = settings['state_bounds']
+                
+        
+        ### This is for a single-threaded Synchronous sim only.
+        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
+            sim_workers[0].setEnvironment(exp_val)
+            sim_workers[0].start()
+            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+                eval_sim_workers[0].setEnvironment(exp_val)
+                eval_sim_workers[0].start()
         
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings, print_info=True)
         forwardDynamicsModel = None
@@ -423,21 +448,6 @@ def trainModelParallel(inputData):
             matplotlib.use('Agg')
             print("********Using non interactive matplotlib interface")
         
-        ## This needs to be done after the simulation worker processes are created
-        # exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'], )
-        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
-            exp_val = createEnvironment(settings["forwardDynamics_config_file"], settings['environment_type'], settings, render=settings['shouldRender'], index=0)
-            exp_val.setActor(actor)
-            exp_val.getActor().init()
-            exp_val.init()
-        
-        ### This is for a single-threaded Synchronous sim only.
-        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
-            sim_workers[0].setEnvironment(exp_val)
-            sim_workers[0].start()
-            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-                eval_sim_workers[0].setEnvironment(exp_val)
-                eval_sim_workers[0].start()
         
         masterAgent.setPolicy(model)
         if (settings['train_forward_dynamics']):

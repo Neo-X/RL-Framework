@@ -106,13 +106,11 @@ class SimWorker(Process):
         # import tensorflow as tf
         # keras.backend.set_session(tf.Session(graph=tf.Graph()))
         keras.backend.set_floatx(self._settings['float_type'])
-        
+        if ("image_data_format" in self._settings):
+            keras.backend.set_image_data_format(self._settings['image_data_format'])
         # if ("learning_backend" in self._settings and (self._settings["learning_backend"] == "tensorflow")):
-        print("Creating new policy in process:")
-        self._model.setPolicy(self.createNewModel())
-        self._model.setForwardDynamics(self.createNewFDModel())
         
-        ## This is no needed if there is one thread only...
+        ## This is not needed if there is one thread only...
         if (int(self._settings["num_available_threads"]) > 0): 
             from util.SimulationUtil import createEnvironment
             print ("************************************Creating simulation environments for simulation workers")
@@ -127,6 +125,16 @@ class SimWorker(Process):
             self._model.setEnvironment(self._exp)
         else:
             print ("sim thread exp: ", self._exp)
+        
+        if (self._settings['state_bounds'] == "ask_env"):
+            print ("Getting state bounds from environment")
+            s_min = self._exp.getEnvironment().observation_space.getMinimum()
+            s_max = self._exp.getEnvironment().observation_space.getMaximum()
+            print (self._exp.getEnvironment().observation_space.getMinimum())
+            self._settings['state_bounds'] = [s_min,s_max]
+        print("Creating new policy in process:")
+        self._model.setPolicy(self.createNewModel())
+        self._model.setForwardDynamics(self.createNewFDModel())
         
         ## This get is fine, it is the first one that I want to block on.
         print ("Waiting for initial policy update.", self._message_queue)

@@ -17,8 +17,9 @@ import datetime
 
 class LearningAgent(AgentInterface):
     
-    def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
-        super(LearningAgent,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+    def __init__(self, settings_):
+        super(LearningAgent,self).__init__(n_in=None, n_out=None, state_bounds=None, 
+                                           action_bounds=None, reward_bound=None, settings_=settings_)
         self._useLock = False
         if self._useLock:
             self._accesLock = threading.Lock()
