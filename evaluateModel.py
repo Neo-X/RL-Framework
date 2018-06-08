@@ -131,7 +131,7 @@ class SimContainer(object):
                     # grad_ = [0]
                     self._grad_sum += np.abs(grad_)
                     self._num_actions +=1
-                    # print ("Input grad: ", repr(self._grad_sum/self._num_actions))
+                    print ("Input grad: ", repr(self._grad_sum/self._num_actions))
                     # print ("Input grad: ", str(self._grad_sum/self._num_actions))
                     # print ("Input grad: ", self._grad_sum/self._num_actions)
                     
