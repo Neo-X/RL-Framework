@@ -204,8 +204,8 @@ class DeepNNKerasAdaptive(ModelInterface):
             # self._actor = Model(input=[self._stateInput, self._actionInput], output=self._actor)
             # print("Actor summary: ", self._actor.summary())
             
-        """
         layer_sizes = self._settings['critic_network_layer_sizes']
+        """
         if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras" 
              or (self._settings["agent_name"] == "algorithm.QPropKeras.QPropKeras")
              ):
