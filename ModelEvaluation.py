@@ -1746,8 +1746,7 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
         print ("thread together exp: ", masterAgent._exp)
         # sys.exit()
     else:
-        masterAgent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                                  action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+        masterAgent = LearningAgent(settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     if (runLastModel == True):

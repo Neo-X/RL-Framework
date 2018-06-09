@@ -270,8 +270,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
     # actor = ActorInterface(discrete_actions)
     actor = createActor(str(settings['environment_type']),settings, experience)
-    masterAgent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+    masterAgent = LearningAgent(settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     if (runLastModel == True):
