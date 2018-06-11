@@ -331,7 +331,11 @@ class PPO_KERAS(KERASAlgorithm):
         self._get_gradients = K.function(inputs=[self._model.getStateSymbolicVariable(),  K.learning_phase()], outputs=gradients)
         
         self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
-        self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
+        if ("use_target_net_for_critic" in self.getSettings() and
+            (self.getSettings()["use_target_net_for_critic"] == False)):
+            self._value_Target = self._value
+        else:
+            self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
         
         self._policy_mean = K.function([self._model.getStateSymbolicVariable(), 
                                           K.learning_phase()], [self._q_valsActA])

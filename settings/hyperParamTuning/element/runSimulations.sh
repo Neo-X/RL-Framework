@@ -22,8 +22,9 @@ declare -a metaExps=(
 				"settings/hyperParamTuning/element/policy_network_layer_sizes.json" 		
 				"settings/hyperParamTuning/element/ppo_et_factor.json"
 				"settings/hyperParamTuning/element/pretrain_critic.json" 
-				"settings/hyperParamTuning/element/state_normalization.json" 		
+				"settings/hyperParamTuning/element/state_normalization.json"		
 				"settings/hyperParamTuning/element/use_single_network.json"
+				"settings/hyperParamTuning/element/use_target_net_for_critic.json"
 )
 
 simConfigFile=$1

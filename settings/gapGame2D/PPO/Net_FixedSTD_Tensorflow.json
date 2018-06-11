@@ -355,6 +355,12 @@
 "pretrain_critic": 50,
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
 "ppo_et_factor": 1.25,
+	"comment__": "Which backend to use for keras [theano|tensorflow]",
+"learning_backend": "tensorflow",
+	"comment__": "Use an L2 loss over for the value function over the G_t from rollouts (not TD loss)",
+"dont_use_td_learning": true,
+	"comment__": "Anneal the learning rate",
+"anneal_learning_rate": true,
 	"comment__": "Use a target network for the value function.",
-"use_target_net_for_critic": true
+"use_target_net_for_critic": false
 }
