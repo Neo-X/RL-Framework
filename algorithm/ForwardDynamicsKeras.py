@@ -11,6 +11,7 @@ from keras.optimizers import SGD
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
 import keras
+from keras.models import Sequential, Model
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -18,7 +19,7 @@ from algorithm.AlgorithmInterface import AlgorithmInterface
 
 class ForwardDynamicsKeras(AlgorithmInterface):
     
-    def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0):
+    def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
 
         super(ForwardDynamicsKeras,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
         self._model = model
@@ -27,6 +28,14 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         
         condition_reward_on_result_state = False
         self._train_combined_loss = False
+        
+        inputs_ = [self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()] 
+        self._model._forward_dynamics_net = Model(inputs=inputs_, outputs=self._model._actor)
+        if (print_info):
+            print("FD Net summary: ", self._model._forward_dynamics_net.summary())
+        self._model._reward_net = Model(inputs=inputs_, outputs=self._model._reward_net)
+        if (print_info):
+            print("Reward Net summary: ", self._model._reward_net.summary())
         
         ### data types for model
         self._fd_grad_target = T.matrix("FD_Grad")
@@ -37,8 +46,8 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         
         ##
         
-        self._forward = self._model.getForwardDynamicsNetwork()([self._model._stateInput, self._model._actionInput])
-        self._reward = self._model.getRewardNetwork()([self._model._stateInput, self._model._actionInput])
+        self._forward = self._model.getForwardDynamicsNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+        self._reward = self._model.getRewardNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
         
         ForwardDynamicsKeras.compile(self)
     
@@ -56,28 +65,28 @@ class ForwardDynamicsKeras(AlgorithmInterface):
 
         self._params = self._model.getForwardDynamicsNetwork().trainable_weights        
         """
-        weights = [self._model._actionInput]
-        gradients = K.gradients(T.mean(self._q_function), [self._model._stateInput]) # gradient tensors
+        weights = [self._model.getActionSymbolicVariable()]
+        gradients = K.gradients(T.mean(self._q_function), [self._model.getStateSymbolicVariable()]) # gradient tensors
         ### DPG related functions
-        self._get_gradients = K.function(inputs=[self._model._stateInput], outputs=gradients)
+        self._get_gradients = K.function(inputs=[self._model.getStateSymbolicVariable()], outputs=gradients)
         """
         ### Get reward input grad
-        weights = [self._model._actionInput]
-        reward_gradients = K.gradients(T.mean(self._reward), [self._model._actionInput]) # gradient tensors
+        weights = [self._model.getActionSymbolicVariable()]
+        # reward_gradients = K.gradients(T.mean(self._reward), [self._model.getActionSymbolicVariable()]) # gradient tensors
         ### DPG related functions
-        self._get_grad_reward = K.function(inputs=[self._model._stateInput, self._model._actionInput, K.learning_phase()], outputs=reward_gradients)
+        #self._get_grad_reward = K.function(inputs=[self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], outputs=reward_gradients)
         
         
-        self._get_grad = theano.function([self._model._stateInput, self._model._actionInput, K.learning_phase()], outputs=T.grad(cost=None, wrt=[self._model._actionInput] + self._params,
-                                                            known_grads={self._forward: self._fd_grad_target_shared}), 
-                                         allow_input_downcast=True)
+        # self._get_grad = theano.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], outputs=T.grad(cost=None, wrt=[self._model.getActionSymbolicVariable()] + self._params,
+        #                                                    known_grads={self._forward: self._fd_grad_target_shared}), 
+        #                                 allow_input_downcast=True)
         
         # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads((self._reward_loss_NoDrop), [lasagne.layers.get_all_layers(self._model.getRewardNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True,
-        # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [self._model._actionInputVar] + self._reward_params), allow_input_downcast=True, 
+        # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [self._model.getActionSymbolicVariable()Var] + self._reward_params), allow_input_downcast=True, 
         #                                         givens=self._inputs_reward_)
         
-        self.fd = K.function([self._model._stateInput, self._model._actionInput, K.learning_phase()], [self._forward])
-        self.reward = K.function([self._model._stateInput, self._model._actionInput, K.learning_phase()], [self._reward])
+        self.fd = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._forward])
+        self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
         
     def getNetworkParameters(self):
         params = []

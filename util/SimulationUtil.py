@@ -821,7 +821,7 @@ def createSampler(settings, exp):
     
     return sampler
 
-def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel, reward_bounds=0):
+def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel, reward_bounds=0, print_info=True):
     
     if settings["forward_dynamics_predictor"] == "simulator":
         from model.ForwardDynamicsSimulator import ForwardDynamicsSimulator
@@ -872,7 +872,8 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                     forwardDynamicsModel = modelAlgorithm(fd_net, state_length=len(state_bounds[0]), action_length=len(action_bounds[0]),
                                             state_bounds=state_bounds, 
                                   action_bounds=action_bounds, settings_=settings,
-                                  reward_bounds=reward_bounds)
+                                  reward_bounds=reward_bounds, 
+                                  print_info=print_info)
                     print("Loaded FD algorithm: ", forwardDynamicsModel)
                     # return model
                 else:
@@ -951,7 +952,7 @@ def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
         modelClass = locate(settings["forward_dynamics_model_type"])
         if ( issubclass(modelClass, ModelInterface)): ## Double check this load will work
             model = modelClass(len(state_bounds[0]), len(action_bounds[0]), 
-                                                        state_bounds, action_bounds, settings)
+                                                        state_bounds, action_bounds, settings_=settings, reward_bound=settings["reward_bounds"])
             print("Created model: ", model)
             return model
         else:

@@ -106,7 +106,7 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
             
             sampler = createSampler(settings, exp_)
             ## This should be some kind of copy of the simulator not a network
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp_)
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp_, print_info=True)
             sampler.setForwardDynamics(forwardDynamicsModel)
             # sampler.setPolicy(model)
             agent.setSampler(sampler)
@@ -425,12 +425,12 @@ def trainModelParallel(inputData):
         if (settings['train_forward_dynamics']):
             if ( settings['forward_dynamics_model_type'] == "SingleNet"):
                 print ("Creating forward dynamics network: Using single network model")
-                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model)
+                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model, print_info=True)
                 # forwardDynamicsModel = model
             else:
                 print ("Creating forward dynamics network")
                 # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
-                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None)
+                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
             # masterAgent.setForwardDynamics(forwardDynamicsModel)
             forwardDynamicsModel.setActor(actor)
             # forwardDynamicsModel.setEnvironment(exp)

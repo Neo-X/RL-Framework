@@ -1,7 +1,4 @@
 
-import tensorflow as tf
-setattr(tf.keras.layers.Lambda , '__deepcopy__', lambda self, _: self)
-        
 import theano
 from theano import tensor as T
 import numpy as np
@@ -156,6 +153,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                             networkAct = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(networkAct)
                     # networkAct = Dense(layer_sizes[i], 
                     #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+                elif ( layer_sizes[i] == "integrate_actor_part"):
+                    networkAct = Concatenate()([networkAct, self._actionInput])
                 elif ( layer_sizes[i] == "merge_features"):
                     networkAct = Flatten()(networkAct)
                     if ('split_terrain_input' in self._networkSettings 
@@ -174,7 +173,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             # inputAct.trainable = True
             print ("Network: ", networkAct)         
             networkAct_ = networkAct
-            networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+            networkAct = Dense(n_out, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
             networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
     
             self._actor = networkAct
