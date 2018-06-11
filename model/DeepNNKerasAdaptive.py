@@ -119,7 +119,17 @@ class DeepNNKerasAdaptive(ModelInterface):
                 second_last_layer = networkAct
                 # networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
                 if type(layer_sizes[i]) is list:
-                    if ( len(layer_sizes[i][1])> 1):
+                    if (layer_sizes[i][0] == "reshape_for_deconv"):
+                        if (len(layer_sizes[i][1]) > 2):
+                            networkAct = Reshape((layer_sizes[i][1][0], layer_sizes[i][1][1], layer_sizes[i][1][2]))(networkAct)
+                        else:
+                            networkAct = Reshape((layer_sizes[i][1][0], layer_sizes[i][1][1]))(networkAct)
+                    elif (layer_sizes[i][0] == "deconv"):
+                        if (len(layer_sizes[i][2]) > 1):
+                            networkAct = keras.layers.Deconv2D(layer_sizes[i][1], kernel_size=layer_sizes[i][2])(networkAct)
+                        else:
+                            networkAct = keras.layers.Deconv2D(layer_sizes[i][1], kernel_size=[layer_sizes[i][2][0], 1])(networkAct)
+                    elif ( len(layer_sizes[i][1])> 1):
                         if (i == 0):
                             if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
@@ -144,6 +154,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                                 and self._networkSettings['split_terrain_input']):
                                 networkActVel_x = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(networkActVel_x)
                                 networkActVel_y = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(networkActVel_y)
+                    # elif (layer_sizes[i][0] == "reshape"):
+                    #     networkAct = Reshape((1, layer_sizes[i][1][0]))(networkAct)
+                        
                     else:
                         if (i == 0):
                             networkAct = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
@@ -155,6 +168,18 @@ class DeepNNKerasAdaptive(ModelInterface):
                     #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 elif ( layer_sizes[i] == "integrate_actor_part"):
                     networkAct = Concatenate()([networkAct, self._actionInput])
+                elif ( layer_sizes[i] == "mark_middle"):
+                    self._networkActMiddle = networkAct
+                elif ( layer_sizes[i] == "branch_char_state"):
+                    self._networkActMiddleChar = Dense(32, 
+                                       kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._networkActMiddle)
+                    self._networkActMiddleChar = getKerasActivation(self._settings['policy_activation_type'])(self._networkActMiddleChar)
+                    self._networkActMiddleChar = Dense((self._state_length) - self._settings['num_terrain_features'], 
+                                       kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._networkActMiddleChar)
+                    self._networkActMiddleChar = getKerasActivation(self._settings['policy_activation_type'])(self._networkActMiddleChar)
+                    
+                elif ( layer_sizes[i] == "merge_state_types"):
+                    networkAct = Concatenate(axis=1)([networkAct, self._networkActMiddleChar])
                 elif ( layer_sizes[i] == "merge_features"):
                     networkAct = Flatten()(networkAct)
                     if ('split_terrain_input' in self._networkSettings 
@@ -166,15 +191,17 @@ class DeepNNKerasAdaptive(ModelInterface):
                         networkAct = Concatenate(axis=1)([networkAct, characterFeatures])
                 elif ( layer_sizes[i] == "flatten_features"):
                     networkAct = Flatten()(networkAct)
+                elif ( layer_sizes[i] == "flatten_features"):
+                    networkAct = Flatten()(networkAct)
                 else:
                     networkAct = Dense(layer_sizes[i], 
                                        kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                     networkAct = getKerasActivation(self._settings['policy_activation_type'])(networkAct)
             # inputAct.trainable = True
-            print ("Network: ", networkAct)         
             networkAct_ = networkAct
-            networkAct = Dense(n_out, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-            networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
+            if (layer_sizes[-1] != "merge_state_types"):
+                networkAct = Dense(n_out, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+                networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
     
             self._actor = networkAct
                     
