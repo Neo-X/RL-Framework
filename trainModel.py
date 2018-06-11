@@ -1034,18 +1034,18 @@ def trainModelParallel(inputData):
                             rewardlv_.saveVisual(directory+"rewardTrainingGraph")
                             rewardlv_.finish()
                             del rewardlv_
-                        if (settings['visualize_learning']):
-                            nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
-                            nlv.redraw()
-                            nlv.setInteractiveOff()
-                            nlv.saveVisual(directory+"trainingGraphNN")
-                            nlv.setInteractive()
-                            if (settings['train_reward_predictor']):
-                                rewardlv.updateLoss(np.array(trainData["mean_forward_dynamics_reward_loss"]), np.array(trainData["std_forward_dynamics_reward_loss"]))
-                                rewardlv.redraw()
-                                rewardlv.setInteractiveOff()
-                                rewardlv.saveVisual(directory+"rewardTrainingGraph")
-                                rewardlv.setInteractive()
+                    if (settings['visualize_learning'] and settings['train_forward_dynamics']):
+                        nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
+                        nlv.redraw()
+                        nlv.setInteractiveOff()
+                        nlv.saveVisual(directory+"trainingGraphNN")
+                        nlv.setInteractive()
+                        if (settings['train_reward_predictor']):
+                            rewardlv.updateLoss(np.array(trainData["mean_forward_dynamics_reward_loss"]), np.array(trainData["std_forward_dynamics_reward_loss"]))
+                            rewardlv.redraw()
+                            rewardlv.setInteractiveOff()
+                            rewardlv.saveVisual(directory+"rewardTrainingGraph")
+                            rewardlv.setInteractive()
                     if (settings['debug_critic']):
                         
                         mean_criticLosses = np.mean(criticLosses)

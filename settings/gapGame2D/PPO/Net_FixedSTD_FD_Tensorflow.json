@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Gaps_Sphere/Net_FixedSTD",
+"data_folder": "Gaps_Sphere/Net_FixedSTD_FD_Tensorflow",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -352,7 +352,7 @@
 	"split_single_net_earlier": true
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
-"pretrain_critic": 50,
+"pretrain_critic": 0,
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
 "ppo_et_factor": 1.25,
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
@@ -368,5 +368,7 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [[4,[8]], [8,[4]], "merge_features", "integrate_actor_part", 64, 32, 16],
 	"comment__": "A list describing the size of the layers for the NN",
-"reward_network_layer_sizes": [[4,[8]], [8,[4]], "merge_features", "integrate_actor_part", 64, 32]
+"reward_network_layer_sizes": [[4,[8]], [8,[4]], "merge_features", "integrate_actor_part", 64, 32],
+	"comment__": "The number of fd network to be done per actor update.",
+"fd_updates_per_actor_update": 10
 }
