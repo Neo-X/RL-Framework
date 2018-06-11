@@ -11,6 +11,7 @@ declare -a metaExps=(
 				"settings/hyperParamTuning/element/clamp_actions_to_stay_inside_bounds.json" 
 				"settings/hyperParamTuning/element/critic_learning_rate.json" 
 				"settings/hyperParamTuning/element/exploration_rate.json" 
+				"settings/hyperParamTuning/element/GAE_lambda.json"
 				"settings/hyperParamTuning/element/initial_temperature.json" 
 				"settings/hyperParamTuning/element/kl_divergence_threshold.json" 
 				"settings/hyperParamTuning/element/normalize_advantage.json" 
