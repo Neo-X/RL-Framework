@@ -39,13 +39,13 @@ docker run -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ glen:latest /bin/b
 
 Submit to send an email.  
 ```
-borgy submit -w /home/${USER} -i images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework/; python3 sendEmail.py settings/hyperParamTuning/elementAI.json True | tee -a $BORGY_JOB_ID.out'
+borgy submit -w /home/${USER} -i images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework/; python3 sendEmail.py settings/hyperParamTuning/elementAI.json True | tee -a $BORGY_JOB_ID.out'
 ```
 
 Simulate TerrainRLSIM
 Submit to send an email.  
 ```
-borgy submit -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/TerrainRL/simAdapter; python3 terrainRLSimTest.py | tee -a $BORGY_JOB_ID.out'
+borgy submit -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/TerrainRL/simAdapter; python3 terrainRLSimTest.py | tee -a $BORGY_JOB_ID.out'
 ```
 
 Run a simulation  
@@ -55,21 +55,21 @@ borgy submit --req-cores=1 --req-ram-gbytes=1 -w /home/${USER} --image=images.bo
 
 Run a META simulation  
 ```
-borgy submit --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainMetaModel.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow_NoPhase.json --metaConfig=settings/hyperParamTuning/elementAI.json --meta_sim_samples=3 --meta_sim_threads=3 | tee -a $BORGY_JOB_ID.out'
+borgy submit --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainMetaModel.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow_NoPhase.json --metaConfig=settings/hyperParamTuning/elementAI.json --meta_sim_samples=3 --meta_sim_threads=3 | tee -a $BORGY_JOB_ID.out'
 ```
 
 Run a Tuning simulation  
 ```
-borgy submit --restartable --req-cores=10 --req-ram-gbytes=10 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2-test.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json --meta_sim_samples=5 --meta_sim_threads=5 --tuning_threads=2 | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-cores=10 --req-ram-gbytes=10 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2-test.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json --meta_sim_samples=5 --meta_sim_threads=5 --tuning_threads=2 | tee -a $BORGY_JOB_ID.out'
 ```
 
 ```
-borgy submit --restartable --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=1 | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=1 | tee -a $BORGY_JOB_ID.out'
 ```
 
 Run tests
 ```
-borgy submit --restartable --req-cores=24 --req-ram-gbytes=48 -w /home/${USER} --image=images.borgy.elementai.lan/glen:new -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 run_tests.py settings/hyperParamTuning/run_tests.json | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-cores=24 --req-ram-gbytes=48 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 run_tests.py settings/hyperParamTuning/run_tests.json | tee -a $BORGY_JOB_ID.out'
 ```
 ### Info from man page
 
