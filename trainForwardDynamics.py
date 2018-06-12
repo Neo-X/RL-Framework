@@ -23,7 +23,9 @@ def trainForwardDynamics(settings):
     np.random.seed(23)
     import os    
     os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
-    
+    if ("learning_backend" in settings):
+            # KERAS_BACKEND=tensorflow
+            os.environ['KERAS_BACKEND'] = settings['learning_backend']
     # import theano
     # from theano import tensor as T
     # import lasagne
@@ -153,7 +155,8 @@ def trainForwardDynamics(settings):
     trainData["std_eval"]=[]
     # dynamicsLosses=[]
     best_dynamicsLosses=1000000
-    _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__ = experience.get_batch(batch_size)
+    _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
+    # states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage
     """
     _states = theano.shared(np.array(_states, dtype=theano.config.floatX))
     _actions = theano.shared(np.array(_actions, dtype=theano.config.floatX))
@@ -164,7 +167,7 @@ def trainForwardDynamics(settings):
     for round_ in range(rounds):
         t0 = time.time()
         for epoch in range(epochs):
-            _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__ = experience.get_batch(batch_size)
+            _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
             # print _actions 
             # dynamicsLoss = forwardDynamicsModel.train(states=_states, actions=_actions, result_states=_result_states)
             # forwardDynamicsModel.setData(_states, _actions, _result_states)
