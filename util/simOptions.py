@@ -4,8 +4,7 @@ import sys
 def getOptions(_args=None):
     parser = OptionParser()
 
-
-    parser.add_option("--load_saved_model",
+    parser.add_option("--load_saved_model", "--continue_training",
               action="store", dest="load_saved_model", default=None,
               # type=int,
               metavar="STRING", 

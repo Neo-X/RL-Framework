@@ -25,6 +25,7 @@ declare -a metaExps=(
 				"settings/hyperParamTuning/element/state_normalization.json"		
 				"settings/hyperParamTuning/element/use_single_network.json"
 				"settings/hyperParamTuning/element/use_target_net_for_critic.json"
+				"settings/hyperParamTuning/element/value_function_batch_size.json"
 )
 
 simConfigFile=$1

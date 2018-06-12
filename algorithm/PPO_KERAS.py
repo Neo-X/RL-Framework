@@ -428,13 +428,18 @@ class PPO_KERAS(KERASAlgorithm):
         # print ("target type: ", target_.dtype)
         # print ("states type: ", states.dtype)
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
-        
-        score = self._model.getCriticNetwork().fit(states, target_,
-              epochs=1, batch_size=states.shape[0],
-              verbose=0
-              # callbacks=[early_stopping],
-              )
-        loss = score.history['loss'][0]
+        v = self.q_values(states)
+        c_error = np.mean(np.mean(np.square(v - target_), axis=1))
+        # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
+        if (c_error < 1.0):
+            score = self._model.getCriticNetwork().fit(states, target_,
+                  epochs=1, batch_size=states.shape[0],
+                  verbose=0
+                  # callbacks=[early_stopping],
+                  )
+            loss = score.history['loss'][0]
+        else:
+            loss = 0
         # print(" Critic loss: ", loss)
         
         return loss

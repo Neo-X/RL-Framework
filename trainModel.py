@@ -410,6 +410,10 @@ def trainModelParallel(inputData):
                 print (exp_val.getEnvironment().observation_space.getMinimum())
                 settings['state_bounds'] = [s_min,s_max]
                 state_bounds = settings['state_bounds']
+                if (int(settings["num_available_threads"]) != -1):
+                    print ("Removing extra environment.")
+                    exp_val.finish()
+                    
                 
         
         ### This is for a single-threaded Synchronous sim only.

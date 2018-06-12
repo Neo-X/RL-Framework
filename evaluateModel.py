@@ -229,12 +229,10 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         # KERAS_BACKEND=tensorflow
         os.environ['KERAS_BACKEND'] = settings['learning_backend']
     import keras
-    from util.MakeKerasPicklable import make_keras_picklable
     import theano
     keras.backend.set_floatx(settings['float_type'])
     print ("K.floatx()", keras.backend.floatx())
     print ("theano.config.floatX", theano.config.floatX)
-    make_keras_picklable()
     
     from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor, getAgentName
     from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, getAgentName
@@ -262,12 +260,26 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         action_bounds = np.array(settings["action_bounds"], dtype=float)
     
     print ("Sim config file name: " + str(settings["sim_config_file"]))
-    
+    # this is the process that selects which game to play
+    sim_index=0
+    if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+        sim_index = settings['override_sim_env_id']
+    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
+    if ((state_bounds == "ask_env")):
+        print ("Getting state bounds from environment")
+        s_min = exp.getEnvironment().observation_space.getMinimum()
+        s_max = exp.getEnvironment().observation_space.getMaximum()
+        print (exp.getEnvironment().observation_space.getMinimum())
+        settings['state_bounds'] = [s_min,s_max]
+        state_bounds = settings['state_bounds']
     ### Using a wrapper for the type of actor now
+    """
     if action_space_continuous:
         experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
     else:
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+    """
+    experience=None
     # actor = ActorInterface(discrete_actions)
     actor = createActor(str(settings['environment_type']),settings, experience)
     masterAgent = LearningAgent(settings_=settings)
@@ -303,11 +315,6 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         print ("Transferring task portion of model.")
         model.setTaskNetworkParameters(taskModel)
 
-    # this is the process that selects which game to play
-    sim_index=0
-    if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-        sim_index = settings['override_sim_env_id']
-    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
     if (settings['train_forward_dynamics']):
         # actor.setForwardDynamicsModel(forwardDynamicsModel)
         forwardDynamicsModel.setActor(actor)
