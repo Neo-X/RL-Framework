@@ -179,6 +179,10 @@ class CACLA_KERAS(KERASAlgorithm):
                     exp_actions=None, G_t=[[0]], forwardDynamicsModel=None, p=1.0):
         lossActor = 0
         
+        if ('anneal_learning_rate' in self.getSettings()
+            and (self.getSettings()['anneal_learning_rate'] == True)):
+            K.set_value(self._model.getActorNetwork().optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
+            
         if ( 'CACLA_use_advantage' in self.getSettings() 
              and (self.getSettings()['CACLA_use_advantage'] == True)):
             # print ("Using advantage for CACLA")
@@ -212,11 +216,22 @@ class CACLA_KERAS(KERASAlgorithm):
             # self.setData(tmp_states, tmp_actions, tmp_rewards, tmp_result_states, tmp_falls)
             # self._tmp_diff_shared.set_value(tmp_diff)
             # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
-            score = self._model.getActorNetwork().fit(np.array(tmp_states), np.array(tmp_actions),
-              epochs=1, batch_size=len(tmp_actions),
-              verbose=0
-              # callbacks=[early_stopping],
-              )
+            if ("CACLA_use_advantage_action_weighting" in self.getSettings()
+                and self.getSettings()["CACLA_use_advantage_action_weighting"] == True):
+        
+                score = self._model.getActorNetwork().fit(np.array(tmp_states), np.array(tmp_actions),
+                  epochs=1, batch_size=len(tmp_actions),
+                  verbose=0,
+                  sample_weight=np.reshape(np.array(tmp_diff), (len(tmp_actions)))
+                  # callbacks=[early_stopping],
+                  )
+            else:
+                score = self._model.getActorNetwork().fit(np.array(tmp_states), np.array(tmp_actions),
+                  epochs=1, batch_size=len(tmp_actions),
+                  verbose=0
+                  # callbacks=[early_stopping],
+                  )
+                
             lossActor = score.history['loss'][0]
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor, " actor buffer size: ", len(self._actor_buffer_actions))
@@ -224,7 +239,7 @@ class CACLA_KERAS(KERASAlgorithm):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
                 actions_ = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
                 print("Mean action: ", np.mean(actions_, axis=0), " std ", np.std(actions_, axis=0))
-            ### Remove batch from buffer
+            ### Remove batch from actor buffer
             self._actor_buffer_states=self._actor_buffer_states[self.getSettings()['batch_size']:]
             self._actor_buffer_actions = self._actor_buffer_actions[self.getSettings()['batch_size']:]
             self._actor_buffer_rewards = self._actor_buffer_rewards[self.getSettings()['batch_size']:]
@@ -232,16 +247,6 @@ class CACLA_KERAS(KERASAlgorithm):
             self._actor_buffer_falls =self._actor_buffer_falls[self.getSettings()['batch_size']:]
             self._actor_buffer_diff = self._actor_buffer_diff[self.getSettings()['batch_size']:]
         
-            # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
-            # lossActor, _ = self._trainActor()
-            # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
-            # print( " Actor loss: ", lossActor)
-            # print("Diff for actor: ", self._get_diff())
-            # print ("Tmp_diff: ", tmp_diff)
-            # print ( "Action before diff: ", self._get_actor_diff_())
-            # print( "Action diff: ", self._get_action_diff())
-            # return np.sqrt(lossActor);
-            
         return lossActor
     
     def train(self, states, actions, rewards, result_states, falls):
