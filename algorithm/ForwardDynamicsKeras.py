@@ -138,13 +138,17 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         # self.setData(states, actions)
         return self._get_grad_reward([states, actions, 0])[0]
                 
-    def train(self, states, actions, result_states, rewards):
+    def train(self, states, actions, result_states, rewards, updates=1, batch_size=None):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         # self.setData(states, actions, result_states, rewards)
         # print ("Performing Critic trainning update")
         #if (( self._updates % self._weight_update_steps) == 0):
         #    self.updateTargetModel()
         self._updates += 1
+        if (batch_size is None):
+            batch_size_=states.shape[0]
+        else:
+            batch_size_=batch_size
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
         if ( self._train_combined_loss ):
             pass
@@ -152,7 +156,7 @@ class ForwardDynamicsKeras(AlgorithmInterface):
             # loss = self._train_combined()
         else:
             score = self._model.getForwardDynamicsNetwork().fit([states, actions], result_states,
-              nb_epoch=1, batch_size=states.shape[0],
+              epochs=updates, batch_size=batch_size_,
               verbose=0
               # callbacks=[early_stopping],
               )
@@ -161,7 +165,7 @@ class ForwardDynamicsKeras(AlgorithmInterface):
                 # print ("self._reward_bounds: ", self._reward_bounds)
                 # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
                 score = self._model.getRewardNetwork().fit([states, actions], rewards,
-                  nb_epoch=1, batch_size=states.shape[0],
+                  epochs=updates, batch_size=batch_size_,
                   verbose=0
                   # callbacks=[early_stopping],
                   )

@@ -1,5 +1,8 @@
 #!/bin/bash
 ## This script is designed to make it easier to start a number of simulation
+## example:
+## ./settings/hyperParamTuning/element/runSimulations.sh settings/terrainRLImitate3D/CACLA/Humanoid1_Run_Tensorflow.json
+
 
 ## declare an array variable
 declare -a metaExps=(

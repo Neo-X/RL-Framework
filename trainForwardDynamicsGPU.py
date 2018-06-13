@@ -110,7 +110,7 @@ class LearnWorkerr(Process):
         if (settings['train_forward_dynamics']):
             if ( settings['forward_dynamics_model_type'] == "SingleNet"):
                 print ("Creating forward dynamics network: Using single network model")
-                model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+                # model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
                 forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model,
                                                                   reward_bounds=reward_bounds)
                 # forwardDynamicsModel = model
@@ -159,7 +159,7 @@ class LearnWorkerr(Process):
         trainData["std_eval"]=[]
         # dynamicsLosses=[]
         best_dynamicsLosses=1000000
-        _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__ = experience.get_batch(batch_size)
+        _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
         """
         _states = theano.shared(np.array(_states, dtype=theano.config.floatX))
         _actions = theano.shared(np.array(_actions, dtype=theano.config.floatX))
@@ -170,11 +170,11 @@ class LearnWorkerr(Process):
         for round_ in range(rounds):
             t0 = time.time()
             for epoch in range(epochs):
-                _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__ = experience.get_batch(batch_size)
+                _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(4096)
                 # print _actions 
                 # dynamicsLoss = forwardDynamicsModel.train(states=_states, actions=_actions, result_states=_result_states)
                 # forwardDynamicsModel.setData(_states, _actions, _result_states)
-                dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
+                dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards, updates=20, batch_size=32)
                 # dynamicsLoss = forwardDynamicsModel._train()
             t1 = time.time()
             if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
@@ -254,6 +254,33 @@ def trainForwardDynamics(settings):
     
     learner = LearnWorkerr(settings)
     learner.start()
+
+    import time
+    time.sleep(30)
+    print ("******Creating extra unneeded model:")    
+    from util.SimulationUtil import createForwardDynamicsModel, createRLAgent, getDataDirectory
+    from util.ExperienceMemory import ExperienceMemory
+    model=None
+    directory= getDataDirectory(settings)
+    reward_bounds = np.array(settings['reward_bounds'])
+    state_bounds = np.array(settings['state_bounds'])
+    action_bounds = np.array(settings["action_bounds"], dtype=float)
+    forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model,
+                                                                  reward_bounds=reward_bounds)
+    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
+    experience.setSettings(settings)
+    file_name=directory+getAgentName()+"_expBufferInit.hdf5"
+    # experience.saveToFile(file_name)
+    experience.loadFromFile(file_name)
+    
+    for epoch in range(100000):
+        _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(4096)
+        # print _actions 
+        # dynamicsLoss = forwardDynamicsModel.train(states=_states, actions=_actions, result_states=_result_states)
+        # forwardDynamicsModel.setData(_states, _actions, _result_states)
+        dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards, updates=20, batch_size=32)
+        print("outer learning: ", dynamicsLoss)
+    
     learner.join()
     return None
 

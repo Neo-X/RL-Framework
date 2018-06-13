@@ -106,7 +106,7 @@ def trainForwardDynamics(settings):
     if (settings['train_forward_dynamics']):
         if ( settings['forward_dynamics_model_type'] == "SingleNet"):
             print ("Creating forward dynamics network: Using single network model")
-            model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+            # model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model,
                                                               reward_bounds=reward_bounds)
             # forwardDynamicsModel = model
