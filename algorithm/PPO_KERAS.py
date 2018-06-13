@@ -431,7 +431,7 @@ class PPO_KERAS(KERASAlgorithm):
         v = self.q_values(states)
         c_error = np.mean(np.mean(np.square(v - target_), axis=1))
         # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
-        if (c_error < 1.0):
+        if (c_error < 0.25):
             score = self._model.getCriticNetwork().fit(states, target_,
                   epochs=1, batch_size=states.shape[0],
                   verbose=0
