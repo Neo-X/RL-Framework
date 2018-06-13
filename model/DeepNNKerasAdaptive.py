@@ -70,7 +70,9 @@ class DeepNNKerasAdaptive(ModelInterface):
         self._Action = keras.layers.Input(shape=(self._action_length,), name="Action")
         # self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         
-        
+        data_format_ = keras.backend.image_data_format()
+        if ("image_data_format" in self._networkSettings ):
+            data_format_ = self._networkSettings["image_data_format"]
         ### Apparently after the first layer the patch axis is left out for most of the Keras stuff...
         # input = Input(shape=(self._state_length,))
         self._stateInput = self._State
@@ -133,27 +135,39 @@ class DeepNNKerasAdaptive(ModelInterface):
                         if (i == 0):
                             if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
-                                networkActVel_x = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_x)
-                                networkActVel_y = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_y)
-                                networkAct = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(taskFeatures)
+                                if ("image_data_format" in self._networkSettings 
+                                    and (self._networkSettings["image_data_format"] == "channels_first")):
+                                    networkActVel_x = Reshape((1, self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(velFeatures_x)
+                                    networkActVel_y = Reshape((1, self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(velFeatures_y)
+                                    networkAct = Reshape((1, self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(taskFeatures)
+                                else:
+                                    networkActVel_x = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_x)
+                                    networkActVel_y = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_y)
+                                    networkAct = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(taskFeatures)
                             else:    
                                 networkAct = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(taskFeatures)
                         
                         networkAct = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=(1,1),
-                                                         kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+                                                         kernel_regularizer=regularizers.l2(self._settings['regularization_weight']), 
+                                                        data_format=data_format_)(networkAct)
                         if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
                             networkActVel_x = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=(1,1),
-                                                         kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkActVel_x)
+                                                         kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
+                                                         data_format=data_format_)(networkActVel_x)
                             networkActVel_y = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=(1,1),
-                                                         kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkActVel_y)
+                                                         kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
+                                                         data_format=data_format_)(networkActVel_y)
                                                                      
                         if (perform_pooling):
-                            networkAct = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(networkAct)
+                            networkAct = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
+                                                                   data_format=data_format_)(networkAct)
                             if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
-                                networkActVel_x = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(networkActVel_x)
-                                networkActVel_y = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(networkActVel_y)
+                                networkActVel_x = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
+                                                                            data_format=data_format_)(networkActVel_x)
+                                networkActVel_y = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
+                                                                            data_format=data_format_)(networkActVel_y)
                     # elif (layer_sizes[i][0] == "reshape"):
                     #     networkAct = Reshape((1, layer_sizes[i][1][0]))(networkAct)
                         
@@ -302,25 +316,37 @@ class DeepNNKerasAdaptive(ModelInterface):
                     if (i == 0):
                         if ('split_terrain_input' in self._networkSettings 
                         and self._networkSettings['split_terrain_input']):
-                            networkVel_x = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_x)
-                            networkVel_y = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_y)
-                            network = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(taskFeatures)
+                            if ("image_data_format" in self._networkSettings 
+                                and (self._networkSettings["image_data_format"] == "channels_first")):
+                                networkVel_x = Reshape((1, self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(velFeatures_x)
+                                networkVel_y = Reshape((1, self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(velFeatures_y)
+                                network = Reshape((1, self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(taskFeatures)
+                            else:
+                                networkVel_x = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_x)
+                                networkVel_y = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_y)
+                                network = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(taskFeatures)
                         else:    
                             network = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(taskFeatures)
                     network = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=(1,1),
-                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
+                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                                     data_format=data_format_)(network)
                     if ('split_terrain_input' in self._networkSettings 
                             and self._networkSettings['split_terrain_input']):
                         networkVel_x = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=(1,1),
-                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(networkVel_x)
+                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                                     data_format=data_format_)(networkVel_x)
                         networkVel_y = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=(1,1),
-                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(networkVel_y)            
+                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']), 
+                                                     data_format=data_format_)(networkVel_y)            
                     if (perform_pooling):
-                        network = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(network)
+                        network = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
+                                                            data_format=data_format_)(network)
                         if ('split_terrain_input' in self._networkSettings 
                             and self._networkSettings['split_terrain_input']):
-                            networkVel_x = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(networkVel_x)
-                            networkVel_y = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid')(networkVel_y)
+                            networkVel_x = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
+                                                                     data_format=data_format_)(networkVel_x)
+                            networkVel_y = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid',
+                                                                     data_format=data_format_)(networkVel_y)
                 else:
                     if (i == 0):
                         # network = Reshape((self._state_length, 1))(taskFeatures)
