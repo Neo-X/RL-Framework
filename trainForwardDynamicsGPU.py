@@ -42,7 +42,7 @@ class LearnWorkerr(Process):
         import time  
         import theano
         import theano.gpuarray
-        theano.gpuarray.use(device='cuda0')
+        # theano.gpuarray.use(device='cuda0')
         
         settings = validateSettings(settings)
         
