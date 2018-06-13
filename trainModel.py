@@ -274,7 +274,13 @@ def trainModelParallel(inputData):
         import keras
         # from util.MakeKerasPicklable import make_keras_picklable
         import theano
-        # import tensorflow as tf
+        if ("learning_backend" in settings and
+            (settings["learning_backend"] == "tensorflow")):
+            import tensorflow as tf
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
+            session = tf.Session(config=config)
+            keras.backend.set_session(session)
         # keras.backend.set_session(tf.Session())
         keras.backend.set_floatx(settings['float_type'])
         if ("image_data_format" in settings):

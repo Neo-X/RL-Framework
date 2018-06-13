@@ -103,8 +103,16 @@ class SimWorker(Process):
         # print ("Thread: ", self._model._exp)
         import keras
         import theano
-        # import tensorflow as tf
-        # keras.backend.set_session(tf.Session(graph=tf.Graph()))
+        if ("learning_backend" in self._settings and
+            (self._settings["learning_backend"] == "tensorflow")):
+            import tensorflow as tf
+            # import tensorflow as tf
+            config = tf.ConfigProto()
+            config.gpu_options.allow_growth = True
+            session = tf.Session(config=config)
+            keras.backend.set_session(session)
+        
+        
         keras.backend.set_floatx(self._settings['float_type'])
         if ("image_data_format" in self._settings):
             keras.backend.set_image_data_format(self._settings['image_data_format'])
