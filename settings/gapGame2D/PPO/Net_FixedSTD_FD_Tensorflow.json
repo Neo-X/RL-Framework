@@ -370,5 +370,7 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [[4,[8]], [8,[4]], "merge_features", 64, "integrate_actor_part", 32],
 	"comment__": "The number of fd network to be done per actor update.",
-"fd_updates_per_actor_update": 10
+"fd_updates_per_actor_update": 1,
+	"comment__": "Lets the network models handle the training and batch processing",
+"model_perform_batch_training": true
 }

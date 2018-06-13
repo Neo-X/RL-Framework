@@ -145,12 +145,12 @@ class CACLA_KERAS(KERASAlgorithm):
         pass
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
-    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]]):
-        if ("ppo_use_seperate_nets" in self.getSettings() and ( self.getSettings()["ppo_use_seperate_nets"] == False)):
-            # print("self.getSettings()[\"ppo_use_seperate_nets\"]: ", self.getSettings()["ppo_use_seperate_nets"])
-            return 0
-        self.setData(states, actions, rewards, result_states, falls)
-        # print ("Performing Critic trainning update")
+    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]],
+                    updates=1, batch_size=None):
+        if (batch_size is None):
+            batch_size_=states.shape[0]
+        else:
+            batch_size_=batch_size
         
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
@@ -166,7 +166,7 @@ class CACLA_KERAS(KERASAlgorithm):
         # print ("states type: ", states.dtype)
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
         score = self._model.getCriticNetwork().fit(states, target_,
-              epochs=1, batch_size=states.shape[0],
+              epochs=updates, batch_size=batch_size_,
               verbose=0
               # callbacks=[early_stopping],
               )
@@ -176,7 +176,11 @@ class CACLA_KERAS(KERASAlgorithm):
         return loss
     
     def trainActor(self, states, actions, rewards, result_states, falls, advantage,
-                    exp_actions=None, G_t=[[0]], forwardDynamicsModel=None, p=1.0):
+                    exp_actions=None, G_t=[[0]], forwardDynamicsModel=None, p=1.0, updates=1, batch_size=None):
+        if (batch_size is None):
+            batch_size_=states.shape[0]
+        else:
+            batch_size_=batch_size
         lossActor = 0
         
         if ('anneal_learning_rate' in self.getSettings()

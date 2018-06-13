@@ -396,13 +396,16 @@ class PPO_KERAS(KERASAlgorithm):
         pass
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
-    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]]):
+    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]],
+                    updates=1, batch_size=None):
         if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
             # print("self.getSettings()[\"use_single_network\"]: ", self.getSettings()["use_single_network"])
             return 0
-        self.setData(states, actions, rewards, result_states, falls)
-        # print ("Performing Critic trainning update")
-        
+        if (batch_size is None):
+            batch_size_=states.shape[0]
+        else:
+            batch_size_=batch_size
+                
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
@@ -433,7 +436,7 @@ class PPO_KERAS(KERASAlgorithm):
         # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
         if (c_error < 0.25):
             score = self._model.getCriticNetwork().fit(states, target_,
-                  epochs=1, batch_size=states.shape[0],
+                  epochs=updates, batch_size=batch_size_,
                   verbose=0
                   # callbacks=[early_stopping],
                   )
@@ -445,9 +448,12 @@ class PPO_KERAS(KERASAlgorithm):
         return loss
     
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, 
-                   G_t=[[0]],
-                   forwardDynamicsModel=None, p=1.0):
+                   G_t=[[0]], forwardDynamicsModel=None, p=1.0, updates=1, batch_size=None):
         lossActor = 0
+        if (batch_size is None):
+            batch_size_=states.shape[0]
+        else:
+            batch_size_=batch_size
         # print ("PPO p:", p)
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
@@ -548,7 +554,7 @@ class PPO_KERAS(KERASAlgorithm):
                 ### Anneal learning rate
                 # print ("model learning rate: ", K.get_value(self._model._actor_train.optimizer.lr))
                 self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], [actions, target_],
-                      epochs=1, batch_size=states.shape[0],
+                      epochs=updates, batch_size=batch_size_,
                       verbose=0,
                       # p_=p,
                       # callbacks=self._callbacks_list,
@@ -560,7 +566,7 @@ class PPO_KERAS(KERASAlgorithm):
                 action_old = self._modelTarget.getActorNetwork().predict(states)
                 ### Anneal learning rate
                 self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], actions,
-                      epochs=1, batch_size=states.shape[0],
+                      epochs=updates, batch_size=batch_size_,
                       verbose=0
                       # callbacks=[early_stopping],
                       )

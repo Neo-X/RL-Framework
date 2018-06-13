@@ -196,9 +196,67 @@ class LearningAgent(AgentInterface):
                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                     print ("additional_on_poli_trianing_updates: ", additional_on_poli_trianing_updates)
                 
-                if ( additional_on_poli_trianing_updates < 1 ):
+                if ( additional_on_poli_trianing_updates < 1 ): ## should have at least one training update
                     additional_on_poli_trianing_updates = 1  
+                    
+            ## This lets the model do most of the training and batching, more efficient
+            if ("model_perform_batch_training" in self._settings 
+                and (self._settings["model_perform_batch_training"] == True )):
+                ### Get all the data
+                if (self._settings['train_critic']):
+                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(self._expBuff.samples(), self._settings["expereince_length"]))
+                    vf_updates = additional_on_poli_trianing_updates
+                    if ("critic_updates_per_actor_update" in self._settings 
+                        and (self._settings['critic_updates_per_actor_update'] > 1)):
+                        vf_updates = vf_updates * self._settings['critic_updates_per_actor_update']
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print ("Performing ", vf_updates, " critic updates")
+                    loss = self._pol.trainCritic(states=states__, actions=actions__, 
+                                                 rewards=rewards__, result_states=result_states__, 
+                                                 falls=falls__, G_t=G_ts__, updates=vf_updates, 
+                                                 batch_size=value_function_batch_size)
+                if (self._settings['train_forward_dynamics']):
+                    if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
+                        # print ("Using seperate (off-policy) exp mem for FD model")
+                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(min(self.getFDExperience().samples(), self._settings["expereince_length"]))
+                    else:
+                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getExperience().get_batch(min(self._expBuff.samples(), self._settings["expereince_length"]))
+                    fd_updates = additional_on_poli_trianing_updates
+                    if ("fd_updates_per_actor_update" in self._settings 
+                        and (self._settings['fd_updates_per_actor_update'] > 1)):
+                        fd_updates = fd_updates * self._settings['fd_updates_per_actor_update']
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print ("Performing ", fd_updates, " fd updates")
+                    dynamicsLoss = self._fd.train(states=states__, actions=actions__, 
+                                                  result_states=result_states__, rewards=rewards__, 
+                                                  updates=fd_updates, batch_size=value_function_batch_size)
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print ("Forward Dynamics Loss: ", dynamicsLoss)
                 
+                if (self._settings['train_actor']):
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print ("Performing ", additional_on_poli_trianing_updates, " policy updates")
+                        
+                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(self._expBuff.samples(), self._settings["expereince_length"]))
+                    loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
+                                                     advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
+                                                     p=p, updates=additional_on_poli_trianing_updates, batch_size=self._settings["batch_size"])
+                dynamicsLoss = 0
+                
+                if ('state_normalization' in self._settings and 
+                    (self._settings["state_normalization"] == "adaptive")):
+                    self.getExperience()._updateScaling()
+                    self.setStateBounds(self.getExperience().getStateBounds())
+                    self.setActionBounds(self.getExperience().getActionBounds())
+                    self.setRewardBounds(self.getExperience().getRewardBounds())
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        print("Learner, Scaling State params: ", self.getStateBounds())
+                        print("Learner, Scaling Action params: ", self.getActionBounds())
+                        print("Learner, Scaling Reward params: ", self.getRewardBounds())
+                    
+                return (loss, dynamicsLoss)
+                        
+                                
             for ii__ in range(additional_on_poli_trianing_updates):
                 if (self._settings['train_critic']):
                     t0 = time.time()

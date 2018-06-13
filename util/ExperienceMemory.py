@@ -208,8 +208,8 @@ class ExperienceMemory(object):
         """
         len(experience > batch_size
         """
-        assert batch_size <= self._history_size
-        assert batch_size <= self.samples()
+        # assert batch_size <= self._history_size, "batch_size <= self._history_size: " + str(batch_size) +" <=  " + str(self._history_size)
+        assert batch_size <= self.samples(), "batch_size <= self.samples(): " + str(batch_size) +" <=  " + str(self.samples())
         # indices = list(nprnd.randint(low=0, high=len(experience), size=batch_size))
         max_size = min(self._history_size, self.samples())
         # print ("Indicies: " , indices)
