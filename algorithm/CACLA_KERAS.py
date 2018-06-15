@@ -101,80 +101,6 @@ class CACLA_KERAS(KERASAlgorithm):
         self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
         
-    def getGrads(self, states, alreadyNormed=False):
-        """
-            The states should be normalized
-        """
-        # self.setData(states, actions, rewards, result_states)
-        if ( alreadyNormed == False):
-            states = norm_state(states, self._state_bounds)
-        states = np.array(states, dtype=self._settings['float_type'])
-        # grads = np.reshape(np.array(self._get_gradients([states])[0], dtype=self._settings['float_type']), (states.shape[0],states.shape[1]))
-        grads = np.array(self._get_gradients([states, 0]), dtype=self._settings['float_type'])
-        # print ("State grads: ", grads.shape)
-        # print ("State grads: ", repr(grads))
-        return grads
-        
-    def updateTargetModel(self):
-        print ("Updating target Model")
-        """
-            Target model updates
-        """
-        self._modelTarget.getCriticNetwork().set_weights( copy.deepcopy(self._model.getCriticNetwork().get_weights()))
-        self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
-    
-    def getNetworkParameters(self):
-        params = []
-        params.append(copy.deepcopy(self._model.getCriticNetwork().get_weights()))
-        params.append(copy.deepcopy(self._model.getActorNetwork().get_weights()))
-        params.append(copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
-        params.append(copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
-        return params
-    
-    def setNetworkParameters(self, params):
-        """
-        for i in range(len(params[0])):
-            params[0][i] = np.array(params[0][i], dtype=self._settings['float_type'])
-            """
-        self._model.getCriticNetwork().set_weights(params[0])
-        self._model.getActorNetwork().set_weights( params[1] )
-        self._modelTarget.getCriticNetwork().set_weights( params[2])
-        self._modelTarget.getActorNetwork().set_weights( params[3])
-    
-    def setData(self, states, actions, rewards, result_states, fallen):
-        pass
-        # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
-        
-    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]],
-                    updates=1, batch_size=None):
-        if (batch_size is None):
-            batch_size_=states.shape[0]
-        else:
-            batch_size_=batch_size
-        
-        if (( self._updates % self._weight_update_steps) == 0):
-            self.updateTargetModel()
-        self._updates += 1
-        # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-        y_ = self._value_Target([result_states,0])[0]
-        # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-        # target_ = rewards + ((self._discount_factor * y_) * falls)
-        target_ = rewards + ((self._discount_factor * y_))
-        target_ = np.array(target_, dtype=self._settings['float_type'])
-        # states = np.array(states, dtype=self._settings['float_type'])
-        # print ("target type: ", target_.dtype)
-        # print ("states type: ", states.dtype)
-        # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
-        score = self._model.getCriticNetwork().fit(states, target_,
-              epochs=updates, batch_size=batch_size_,
-              verbose=0
-              # callbacks=[early_stopping],
-              )
-        loss = score.history['loss'][0]
-        # print(" Critic loss: ", loss)
-        
-        return loss
-    
     def trainActor(self, states, actions, rewards, result_states, falls, advantage,
                     exp_actions=None, G_t=[[0]], forwardDynamicsModel=None, p=1.0, updates=1, batch_size=None):
         if (batch_size is None):
@@ -253,27 +179,6 @@ class CACLA_KERAS(KERASAlgorithm):
         
         return lossActor
     
-    def train(self, states, actions, rewards, result_states, falls):
-        loss = self.trainCritic(states, actions, rewards, result_states, falls)
-        lossActor = self.trainActor(states, actions, rewards, result_states, falls)
-        return loss
-    
-    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
-        # states[0, ...] = state
-        # state = np.array(state, dtype=self._settings['float_type'])
-        state = norm_state(state, self._state_bounds)
-        state = np.array(state, dtype=self._settings['float_type'])
-        self._model.setStates(state)
-        # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
-        # if deterministic_:
-        action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1), self._action_bounds)
-        # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
-        # else:
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
-        # action_ = q_valsActA[0]
-        return action_
     
     def predict_std(self, state, deterministic_=True, p=1.0):
         state = norm_state(state, self._state_bounds)   
@@ -283,49 +188,6 @@ class CACLA_KERAS(KERASAlgorithm):
         action_std = self._q_action_std([state])[0] * action_bound_std(self._action_bounds)
         # print ("Policy std: ", action_std)
         return action_std
-    
-    def predictWithDropout(self, state, deterministic_=True):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
-        # states[0, ...] = state
-        state = np.array(state, dtype=self._settings['float_type'])
-        state = norm_state(state, self._state_bounds)
-        self._model.setStates(state)
-        # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
-        # if deterministic_:
-        action_ = scale_action(self._model.getActorNetwork().predict(states, batch_size=1)[0], self._action_bounds)
-        # else:
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
-        # action_ = q_valsActA[0]
-        return action_
-    
-    def q_value(self, state):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
-        # states[0, ...] = state
-        state = norm_state(state, self._state_bounds)
-        state = np.array(state, dtype=self._settings['float_type'])
-        # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        value = scale_reward(self._model.getCriticNetwork().predict(state), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-        # value = scale_reward(self._value([state,0])[0], self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-        # print ("value: ", repr(np.array(value)))
-        return value
-        # return self._q_val()[0]
-    
-    def q_values(self, states):
-        states = np.array(states, dtype=self._settings['float_type'])
-        # print("states: ", repr(states))
-        values = self._model.getCriticNetwork().predict(states)
-        # values = self._value([states,0])[0]
-        # print ("values: ", repr(np.array(values)))
-        return values
-    
-    def q_valueWithDropout(self, state):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
-        # states[0, ...] = state
-        state = np.array(state, dtype=self._settings['float_type'])
-        state = norm_state(state, self._state_bounds)
-        self._model.setStates(state)
-        return scale_reward(self._q_val_drop(), self.getRewardBounds())
     
     def bellman_error(self, states, actions, rewards, result_states, falls):
         """
