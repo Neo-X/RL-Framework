@@ -26,7 +26,7 @@
     "comment__": "Number of epoch/episode to evaluate the policy over",
 "eval_epochs": 16,
     "comment__": "Discount factor used during learning",
-"discount_factor": 0.98,
+"discount_factor": 0.95,
     "comment__": "Should the training be plotted during learning",
 "visualize_learning": true,
     "comment__": "Whether or not to save the plotted data while learning",
@@ -105,7 +105,7 @@
     "comment__": "load a pretrained model for the controller",
 "load_saved_model": false,
 	"comment__": "Number of updates the critic should perform per actor update",
-"critic_updates_per_actor_update": 1,
+"critic_updates_per_actor_update": 2,
     "comment__": "weather or not to clamp actions to stay inside the action boundaries",
 "clamp_actions_to_stay_inside_bounds": false,
     "comment__": "Number of initial actions to sample before calculating input/output scaling and starting to train.",
@@ -240,7 +240,7 @@
 	"comment__": "generalized advantage estimation lambda in [0,1], when =0, this is just a one step return (lots of bias), when =1, use only data no variance reduction",
 "GAE_lambda": 0.95,
 	"comment__": "Whether or not to take a couple of on policy updates",
-"use_multiple_policy_updates": true,	
+"use_multiple_policy_updates": false,	
 	"comment__": "Whether or not to clear the experience memory after each update is done, for pure on policy methods",
 "clear_exp_mem_on_poli": true,
 	"comment__": "Disable scaling for inputs and outputs of networks",
@@ -280,7 +280,7 @@
 	"comment__": "type of activation to use",
 "activation_type": "leaky_rectify",
 	"comment__": "type of activation to use for policy",
-"policy_activation_type": "leaky_rectify",
+"policy_activation_type": "tanh",
 	"comment__": "last policy type of activation to use",
 "last_policy_layer_activation_type": "tanh",
 	"comment__": "Use a different off-policy experience memory for the fd learning",
@@ -337,5 +337,5 @@
 	"comment__": "Anneal the learning rate",
 "anneal_learning_rate": true,
 	"comment__": "Use a target network for the value function.",
-"use_target_net_for_critic": false
+"use_target_net_for_critic": true
 }
