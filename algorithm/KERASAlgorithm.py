@@ -4,7 +4,7 @@ import h5py
 import sys
 import copy
 sys.path.append('../')
-from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward
+from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward, norm_reward
 from algorithm.AlgorithmInterface import AlgorithmInterface
 from model.LearningUtil import loglikelihood_keras, likelihood_keras, kl_keras, kl_D_keras, entropy_keras
 from keras.optimizers import SGD
@@ -120,7 +120,7 @@ class KERASAlgorithm(AlgorithmInterface):
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
         c_error = np.mean(np.mean(np.square(v - target_), axis=1))
         # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
-        if (c_error < 1.0):
+        if (c_error < 10.0):
             score = self._model.getCriticNetwork().fit(states, target_,
                   epochs=updates, batch_size=batch_size_,
                   verbose=0

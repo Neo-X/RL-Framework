@@ -126,7 +126,7 @@
     "comment__": "Initial factor epsilon in multiplied by (This value will slowly be reduced during training)",
 "epsilon_annealing": 0.8,
     "comment__": "Different ways of calculating the scaling method used normalize the input and outputs of the network from the bootstrapping samples. minmax, input and output are -mean/max-min. variance, input and output are -mean/(std*2), given, use the bounds provided in this file, adaptive, compute std/mean over all data collected",
-"state_normalization": "variance",
+"state_normalization": "adaptive",
     "comment__": "load a pretrained model for the controller",
 "load_saved_model": false,
 	"comment__": "Number of updates the critic should perform per actor update",
@@ -347,7 +347,7 @@
 	"comment__": "Network settings",
 "network_settings": {
 		"comment__": "Whether or not the network should include pooling layers between convolutions.",
-	"perform_convolution_pooling": true,
+	"perform_convolution_pooling": false,
 		"comment__": "Change where the network splits for a single network model",
 	"split_single_net_earlier": true
 },
