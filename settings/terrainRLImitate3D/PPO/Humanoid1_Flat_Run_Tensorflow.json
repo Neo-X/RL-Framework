@@ -280,7 +280,7 @@
 	"comment__": "type of activation to use",
 "activation_type": "leaky_rectify",
 	"comment__": "type of activation to use for policy",
-"policy_activation_type": "tanh",
+"policy_activation_type": "leaky_rectify",
 	"comment__": "last policy type of activation to use",
 "last_policy_layer_activation_type": "tanh",
 	"comment__": "Use a different off-policy experience memory for the fd learning",

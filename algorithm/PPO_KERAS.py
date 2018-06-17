@@ -449,7 +449,7 @@ class PPO_KERAS(KERASAlgorithm):
         # r_ = np.mean(self._r(states, actions, p))
         # r_ = np.mean(self._r(states, actions, 0))
         ### Give the metric some relative unit independent of action size
-        r_ = np.mean(self._r([states, actions])[0]) / self._action_length
+        r_ = ( 1 - np.mean(self._r([states, actions])[0])) / float(self._action_length)
         # r_ = 0.98
         std = np.std(advantage)
         mean = np.mean(advantage)
@@ -471,10 +471,11 @@ class PPO_KERAS(KERASAlgorithm):
             pass
         else:
             K.set_value(self._model._actor_train.optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
-        et_factor = 1.2
+        et_factor = 0.2
         if ("ppo_et_factor" in self.getSettings()):
-            et_factor = self.getSettings()["ppo_et_factor"]
-        if (r_ < (et_factor)) and ( r_ > (1.0/et_factor)):  ### update not to large
+            et_factor = self.getSettings()["ppo_et_factor"] - 1.0
+            print("Updated et_factor: ", et_factor)
+        if (r_ < (et_factor)) and ( r_ > (-et_factor)):  ### update not to large
             # lossActor = score.history['loss'][0]
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy probability ratio: ", np.mean(r_))
@@ -553,7 +554,7 @@ class PPO_KERAS(KERASAlgorithm):
                     # print ("Network Params mean: ", np.mean(np.array(self.getNetworkParameters()[1])))
         else:
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                print ("Policy Gradient too large: ", np.mean(r_))
+                print ("Policy Gradient too large: ", r_)
             
         return lossActor
     
