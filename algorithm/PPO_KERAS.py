@@ -474,7 +474,7 @@ class PPO_KERAS(KERASAlgorithm):
         et_factor = 0.2
         if ("ppo_et_factor" in self.getSettings()):
             et_factor = self.getSettings()["ppo_et_factor"] - 1.0
-            print("Updated et_factor: ", et_factor)
+            # print("Updated et_factor: ", et_factor)
         if (r_ < (et_factor)) and ( r_ > (-et_factor)):  ### update not to large
             # lossActor = score.history['loss'][0]
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
