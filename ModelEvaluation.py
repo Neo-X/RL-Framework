@@ -77,6 +77,21 @@ class SimWorker(Process):
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, self._settings)
         return forwardDynamicsModel
     
+    def createSampler(self, fd, exp_, actor):
+        from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, createActor
+        print("Creating simulation sampler")
+        sampler = createSampler(self._settings, exp_)
+        ## This should be some kind of copy of the simulator not a network
+        if (self._settings['forward_dynamics_predictor'] == "network"):
+            forwardDynamicsModel = fd
+        else:
+            state_bounds = np.array(self._settings['state_bounds'])
+            action_bounds = np.array(self._settings['action_bounds']) 
+            forwardDynamicsModel = createForwardDynamicsModel(self._settings, state_bounds, action_bounds, actor, exp_, agentModel=None, print_info=True)
+        sampler.setForwardDynamics(forwardDynamicsModel)
+        # sampler.setPolicy(model)
+        return sampler
+    
     def current_mem_usage(self):
         try:
             import resource
@@ -143,6 +158,9 @@ class SimWorker(Process):
         print("Creating new policy in process:")
         self._model.setPolicy(self.createNewModel())
         self._model.setForwardDynamics(self.createNewFDModel())
+        if ( self._settings['use_simulation_sampling'] ):
+            self._model.setSampler(self.createSampler(self._model.getForwardDynamics(), 
+                                                      self._exp, self._actor))
         
         ## This get is fine, it is the first one that I want to block on.
         print ("Waiting for initial policy update.", self._message_queue)
@@ -441,7 +459,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         omega = settings["omega"]
         noise = action_bounds[0] * 0.0
         
-    
+    if ( (bootstrapping == True) and 
+         (settings["exploration_method"] == "sampling") ):
+        settings = copy.deepcopy(settings)
+        settings["exploration_method"] = "gaussian_network"
+    # print("bootstrapping: ", bootstrapping, " settings[exploration_method]: ", settings["exploration_method"])
     # print ("Start sim state bounds: ", model.getStateBounds())
     action_selection = range(len(settings["discrete_actions"]))   
     reward_bounds = np.array(settings['reward_bounds'] )
@@ -1270,6 +1292,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     ## Easy hack to fix issue with training for MBAE needing a LearningAgent with forward dyanmics model and not just algorithm
     settings = copy.deepcopy(settings)
     settings['use_model_based_action_optimization'] = False
+    if (settings["exploration_method"] == "sampling"):
+        settings['exploration_method'] = "gaussian_network"
     action_selection = range(len(settings["discrete_actions"]))
     print ("Action selection: " + str(action_selection))
     # state_bounds = np.array(settings['state_bounds'])

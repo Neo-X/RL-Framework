@@ -1246,6 +1246,7 @@ def trainModelParallel(inputData):
         
         print ("Save last versions of files.")
         masterAgent.saveTo(directory)
+        masterAgent.finish()
         
         f = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", "w")
         for key in trainData:

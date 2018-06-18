@@ -240,7 +240,7 @@ class SequentialMCSampler(Sampler):
             del y
         
         self.updateSampleWeights()
-        print ("Starting Importance Sampling: *******")
+        # print ("Starting Importance Sampling: *******")
         # print ("Current state sample: " + str(current_state_copy.getParams()))
         for i in range(self.getSettings()["adaptive_samples"]): # 100 samples from pdf
             # print ("Data probabilities: " + str(self._data[:,1]))
@@ -357,7 +357,7 @@ class SequentialMCSampler(Sampler):
             
             self.sampleModel(model=self._pol, forwardDynamics=self._fd, current_state=state)
             action = self.getBestSample()
-            self._exp.setSimState(state)
+            # self._exp.setSimState(state)
             # if isinstance(self._fd, ForwardDynamicsSimulator):
             #     self._fd._sim.setState(state)
             # print ("Best Action SMC: " + str(action))
