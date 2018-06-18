@@ -150,3 +150,20 @@ class OpenAIGymEnv(SimInterface):
     def computeReward(self, current_state, prediction):
         return self.getEnvironment().computeReward(current_state, prediction)
     
+    def getStateFromSimState(self, simState):
+        """
+            Converts a detailed simulation state to a state better suited for learning
+        """
+        return self.getEnvironment().getStateFromSimState(simState)
+
+    def getSimState(self):
+        """
+            Gets a more detailed state that can be used to re-initilize the state of the character back to this state later.
+        """
+        return self.getEnvironment().getSimState()
+    
+    def setSimState(self, simState):
+        """
+            Sets the state of the simulation to the given state
+        """
+        self.getEnvironment().setSimState(simState)

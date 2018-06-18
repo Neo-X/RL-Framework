@@ -22,7 +22,7 @@ class ForwardDynamicsSimulatorProcess(Process):
         self._input_queue= input_state_queue
         self._output_state_queue = outpout_state_queue
         # self._exp = exp # Only used to pull some data from
-        # self._c = characterSim.Configuration(str(settings['forwardDynamics_config_file']))
+        # self._c = characterSim.Configuration(str(settings['sim_config_file']))
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
         
         # this is the process that selects which game to play
@@ -42,7 +42,7 @@ class ForwardDynamicsSimulatorProcess(Process):
         from util.SimulationUtil import createEnvironment
         # import characterSim
         # sim = characterSim.Experiment(self._c)
-        sim = createEnvironment(str(self._settings["forwardDynamics_config_file"]), str(self._settings['environment_type']), self._settings, render=False)
+        sim = createEnvironment(str(self._settings["sim_config_file"]), str(self._settings['environment_type']), self._settings, render=False)
         sim.getActor().init()   
         sim.init()
         self._sim = sim # The real simulator that is used for predictions
@@ -54,18 +54,18 @@ class ForwardDynamicsSimulatorProcess(Process):
             if tmp == None:
                 break
             elif (tmp[0] == 'init'):
-                print ("Init Epoch in FDSP:")
+                # print ("Init Epoch in FDSP:")
                 self._sim.getActor().initEpoch()
-                self._sim.getEnvironment().clear()
-                for anchor_ in tmp[1]:
+                # self._sim.getEnvironment().clear()
+                #for anchor_ in tmp[1]:
                     # print (_anchor)
                     # anchor_ = self._exp.getEnvironment().getAnchor(anchor)
-                    self._sim.getEnvironment().addAnchor(anchor_[0], anchor_[1], anchor_[2])
+                #    self._sim.getEnvironment().addAnchor(anchor_[0], anchor_[1], anchor_[2])
                 # simState = self._exp.getSimState()
                 # self._sim.setSimState(simState)
                 # self._sim.generateEnvironmentSample()
                 self._sim.initEpoch()
-                print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
+                # print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
                 
             else:
                 (state__c, action) = tmp
@@ -108,16 +108,17 @@ class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
         
    
     def initEpoch(self, exp_):
-        print ("Init FD epoch: ")
+        # print ("Init FD epoch: ")
         # self._sim.getActor().initEpoch()
         # self._sim.getEnvironment().clear()
         anchors = []
+        """
         for anchor in range(exp_.getEnvironment().numAnchors()):
             # print (_anchor)
             anchor_ = exp_.getEnvironment().getAnchor(anchor)
             anchors.append([anchor_.getX(), anchor_.getY(), anchor_.getZ()])
             # self._sim.getEnvironment().addAnchor(anchor_.getX(), anchor_.getY(), anchor_.getZ())
-            
+        """ 
         
         # simState = self._exp.getSimState()
         # self._sim.setSimState(simState)

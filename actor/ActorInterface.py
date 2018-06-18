@@ -74,7 +74,6 @@ class ActorInterface(object):
         
 def reward(previous_state, current_state):
     current_state = current_state[0]
-    # print("current_state: ", current_state)
     vel_dif  = np.abs(current_state[-1] - 1.0)
     reward = math.exp((vel_dif*vel_dif)*-2.0)
     return reward

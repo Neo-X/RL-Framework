@@ -608,11 +608,15 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         action = thompsonExploration(model, settings["exploration_rate"], state_)
                     elif ((settings['exploration_method'] == 'sampling')):
                         ## Use a sampling method to find a good action
-                        # sim_state_ = exp.getSimState()
-                        sim_state_ = state_
+                        if (settings["forward_dynamics_predictor"] == "simulator"
+                            or (settings["forward_dynamics_predictor"] == "simulator_parallel")):
+                            sim_state_ = exp.getSimState()
+                        else:
+                            sim_state_ = state_
+                        # print ("explore on state: ", sim_state_)
                         action = model.getSampler().predict(sim_state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         action = [action]
-                        print("samples action: ", action)
+                        # print("samples action: ", action)
                     else:
                         print ("Exploration method unknown: " + str(settings['exploration_method']))
                         sys.exit(1)
@@ -1586,7 +1590,7 @@ def modelEvaluationParallel(settings_file_name):
                 sw.start()
             
     ## This needs to be done after the simulation work processes are created
-    exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'])
+    exp_val = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'])
     exp_val.setActor(actor)
     exp_val.getActor().init()
     exp_val.init()

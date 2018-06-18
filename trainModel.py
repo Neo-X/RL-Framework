@@ -402,10 +402,10 @@ def trainModelParallel(inputData):
         # mgr = multiprocessing.Manager()
         # namespace = mgr.Namespace()
         ## This needs to be done after the simulation worker processes are created
-        # exp_val = createEnvironment(str(settings["forwardDynamics_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'], )
+        # exp_val = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'], )
         if (int(settings["num_available_threads"]) == -1
             or (state_bounds == "ask_env")): # This is okay if there is one thread only...
-            exp_val = createEnvironment(settings["forwardDynamics_config_file"], settings['environment_type'], settings, render=settings['shouldRender'], index=0)
+            exp_val = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=settings['shouldRender'], index=0)
             exp_val.setActor(actor)
             exp_val.getActor().init()
             exp_val.init()

@@ -23,7 +23,7 @@ class ForwardDynamicsSimulator(AgentInterface):
         
     def initSim(self, settings):
         from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
-        sim = createEnvironment(str(settings["forwardDynamics_config_file"]), str(settings['environment_type']), settings)
+        sim = createEnvironment(str(settings["sim_config_file"]), str(settings['environment_type']), settings)
         ## The real simulator that is used for predictions
         
         self._sim = sim
@@ -53,7 +53,7 @@ class ForwardDynamicsSimulator(AgentInterface):
         self._sim.setSimState(state_)
         
     def initEpoch(self, exp):
-        print ("Init FD epoch: ")
+        # print ("Init FD epoch: ")
         self._sim.getActor().initEpoch()
         # self._sim.getEnvironment().clear()
         """
@@ -66,7 +66,7 @@ class ForwardDynamicsSimulator(AgentInterface):
         self._sim.setSimState(simState)
         # self._sim.generateEnvironmentSample()
         self._sim.initEpoch()
-        print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
+        # print ("Number of anchors is " + str(self._sim.getEnvironment().numAnchors()))
         
     def predict(self, state, action):
         """
