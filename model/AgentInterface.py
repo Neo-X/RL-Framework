@@ -45,3 +45,6 @@ class AgentInterface(object):
     
     def setEnvironment(self, exp):
         pass
+    
+    def finish(self):
+        pass

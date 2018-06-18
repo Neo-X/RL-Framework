@@ -99,6 +99,10 @@ class Sampler(LearningAgent):
         return self.getBestSample()[1]
     """
     
+    def finish(self):
+        print("Ending sampler")
+        self._fd.finish()
+    
 if __name__ == '__main__':
     
     samp = Sampler()

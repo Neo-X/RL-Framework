@@ -97,12 +97,13 @@ def modelSampling(settings):
             forwardDynamicsModel = dill.load(f)
             f.close()
             agent.setForwardDynamics(forwardDynamicsModel)
+            """
         else:
             
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel=None, print_info=True)
             # forwardDynamicsModel.initEpoch(exp)
             agent.setForwardDynamics(forwardDynamicsModel)
-        
+        """
         if ( settings['use_simulation_sampling'] ):
             
             sampler = createSampler(settings, exp)
@@ -131,6 +132,10 @@ def modelSampling(settings):
                                                 bootstrapping=True, visualizeEvaluation=None, p=10.0, sampling=True)
 
         print ("Average Reward: " + str(mean_reward))
+        
+        exp.finish()
+        agent.finish()
+        
     #except Exception, e:
     #    print "Error: " + str(e)
     #    raise e

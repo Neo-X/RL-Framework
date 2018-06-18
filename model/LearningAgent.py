@@ -602,6 +602,12 @@ class LearningAgent(AgentInterface):
             f = open(file_name_dynamics, 'rb')
             self.setForwardDynamics(dill.load(f))
             f.close()
+            
+            
+    def finish(self):
+        if (self.getSampler() is not None):
+            self.getSampler().finish()
+        
 
 import copy
 # class LearningWorker(threading.Thread):

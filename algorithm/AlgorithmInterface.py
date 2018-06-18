@@ -596,3 +596,6 @@ class AlgorithmInterface(object):
         f = open(file_name, 'rb')
         self = dill.load(f)
         f.close()
+        
+    def finish(self):
+        pass

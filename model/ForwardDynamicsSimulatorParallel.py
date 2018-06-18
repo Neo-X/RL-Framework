@@ -1,7 +1,4 @@
-import theano
-from theano import tensor as T
 import numpy as np
-import lasagne
 import sys
 sys.path.append('../')
 sys.path.append("../characterSimAdapter/")
@@ -86,7 +83,8 @@ class ForwardDynamicsSimulatorProcess(Process):
                 # characterSim.State(current_state_copy.getID(), current_state_copy.getParams())
                 
                 self._output_state_queue.put((reward, state_))
-            
+        print("Done with FD simulator process")
+        return 0
 
 class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
     
@@ -100,7 +98,7 @@ class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
         self._input_state_queue = Queue(1)
         
     def init(self, state_length, action_length, state_bounds, action_bounds, actor, exp, settings):
-        
+        print ("Starting fd simulator")
         self._worker = ForwardDynamicsSimulatorProcess(state_length, action_length, state_bounds, action_bounds, actor, exp, settings,
                                                        self._output_state_queue, self._input_state_queue)
         
@@ -162,3 +160,7 @@ class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
         state__ = characterSim.State(state__[0], state__[1])
         return state__
         """
+
+    def finish(self):
+        self._output_state_queue.put(None)
+        self._worker.join()
