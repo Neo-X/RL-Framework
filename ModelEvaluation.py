@@ -1688,12 +1688,10 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
         # KERAS_BACKEND=tensorflow
         os.environ['KERAS_BACKEND'] = settings['learning_backend']
     import keras
-    from util.MakeKerasPicklable import make_keras_picklable
     import theano
     keras.backend.set_floatx(settings['float_type'])
     print ("K.floatx()", keras.backend.floatx())
     print ("theano.config.floatX", theano.config.floatX)
-    make_keras_picklable()
     ## Theano needs to be imported after the flags are set.
     # from ModelEvaluation import *
     # from model.ModelUtil import *

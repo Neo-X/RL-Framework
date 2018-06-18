@@ -147,3 +147,6 @@ class OpenAIGymEnv(SimInterface):
             print ("Simulator does not support setting random seed")
             print (inst)
     
+    def computeReward(self, current_state, prediction):
+        return self.getEnvironment().computeReward(current_state, prediction)
+    

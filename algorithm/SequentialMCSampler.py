@@ -49,7 +49,7 @@ class SequentialMCSampler(Sampler):
         self._fd.setEnvironment(exp)
     
     def sampleModel(self, model, forwardDynamics, current_state):
-        print ("Starting SMC sampling")
+        print ("Starting SMC sampling: exp: ", self._exp )
         state__ = self._exp.getSimState()
         _bestSample = self._sampleModel(model, forwardDynamics, current_state, self._look_ahead)
         self._exp.setSimState(state__)
@@ -219,7 +219,7 @@ class SequentialMCSampler(Sampler):
                         # break
                     
                     predictions.append(prediction)
-                    y.append(reward(current_state_[0], prediction))
+                    y.append(self._exp.computeReward(current_state_[0], prediction))
                     current_state_ = prediction
             # print (pa, y, id(y))
             if ( np.all(np.isfinite(y)) and (np.all(np.greater(y, -10000.0))) and (np.all(np.less(y, 10000.0))) ): # lots of nan values for some reason...
@@ -309,7 +309,7 @@ class SequentialMCSampler(Sampler):
                         print("Reached bad state in search")
                         # break
                     predictions.append(prediction)
-                    y.append(reward(current_state_[0], prediction))
+                    y.append(self._exp.computeReward(current_state_[0], prediction))
                     current_state_ = prediction
                     
             # print (pa, y)
