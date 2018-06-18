@@ -72,7 +72,13 @@ class ActorInterface(object):
         pass
         
         
-        
+def reward(previous_state, current_state):
+    current_state = current_state[0]
+    # print("current_state: ", current_state)
+    vel_dif  = np.abs(current_state[-1] - 1.0)
+    reward = math.exp((vel_dif*vel_dif)*-2.0)
+    return reward
+"""
 def reward(previous_state, current_state):
     index_start=3
     v1_x = previous_state[index_start]
@@ -96,7 +102,7 @@ def reward(previous_state, current_state):
     
     d = math.sqrt((dx*dx)+(dy*dy))
     return -d
-    
+   """ 
 def travelDist(previous_state, current_state):
     index_start=3
     a0x_in_s0 = previous_state[index_start+2]

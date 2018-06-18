@@ -816,8 +816,16 @@ def createSampler(settings, exp):
         print ("Using Sampling Method: " + str(settings['sampling_method']))
         sampler = ForwardPlanner(exp, settings['look_ahead_planning_steps'])
     else:
-        print ("Sampler method not supported: " + str(settings['sampling_method']) )
-        sys.exit()
+        from algorithm.Sampler import Sampler
+        # modelClass = my_import(path_)
+        modelAlgorithm = locate(settings['sampling_method'])
+        if ( issubclass(modelAlgorithm, Sampler)): ## Double check this load will work
+            sampler = modelAlgorithm(exp, settings['look_ahead_planning_steps'], settings)
+            print("Loaded sampler: ", sampler)
+            # return model
+        else:
+            print ("Sampler method not supported: " + str(settings['sampling_method']) )
+            sys.exit()
     
     return sampler
 

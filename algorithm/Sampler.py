@@ -7,7 +7,7 @@ class Sampler(LearningAgent):
     """    
     def __init__(self, settings):
 
-        super(Sampler,self).__init__(None, None, None, None, None, settings)
+        super(Sampler,self).__init__(settings)
         
         self._x=[]
         self._samples=[]
@@ -75,7 +75,7 @@ class Sampler(LearningAgent):
     def setBestSample(self, samp): 
         self._bestSample = samp
     
-    def predict(self, state, evaluation_=False):
+    def predict(self, state, evaluation_=False, p=1.0, sim_index=None, bootstrapping=False):
         """
             Returns the best action
         """
@@ -86,6 +86,7 @@ class Sampler(LearningAgent):
             action = action[0]
             return action
         else:
+            print ("Not sampling action: " + str(action))
             return super(Sampler, self).predict(state, evaluation_=evaluation_)
         
     def initEpoch(self, exp_):

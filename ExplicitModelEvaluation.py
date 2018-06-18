@@ -32,7 +32,8 @@ def modelSampling(settings):
         from RLVisualize import RLVisualize
         from NNVisualize import NNVisualize
                 
-        print "Sim config file name: " + str(settings["sim_config_file"])
+        directory= getDataDirectory(settings)
+        print ("Sim config file name: ", str(settings["sim_config_file"]))
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
         action_space_continuous=settings['action_space_continuous']
         state_bounds = np.array(settings['state_bounds'])
@@ -56,8 +57,7 @@ def modelSampling(settings):
         
         data_folder = getDataDirectory(settings)
         
-        agent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+        agent = LearningAgent(settings_=settings)
             
         agent.setSettings(settings)
         
@@ -65,7 +65,12 @@ def modelSampling(settings):
         # if (settings['use_actor_policy_action_suggestion']):
         # file_name=data_folder+getAgentName()+"_Best.pkl"
         # model = dill.load(open(file_name))
-        
+        settings["load_saved_model"] = True
+        # settings["load_saved_model"] = "network_and_scales"
+        model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+        settings["load_saved_model"] = False
+        print ("State Length: ", len(model.getStateBounds()[0]) )
+        agent.setPolicy(model)
             
         
         # sampler.setPolicy(model)
@@ -78,7 +83,7 @@ def modelSampling(settings):
         exp.init()
         
         if (settings['train_forward_dynamics']):
-            file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
+            file_name_dynamics=directory+"forward_dynamics"+"_Best.pkl"
             # file_name=directory+getAgentName()+".pkl"
             f = open(file_name_dynamics, 'r')
             forwardDynamicsModel = dill.load(f)
@@ -86,7 +91,7 @@ def modelSampling(settings):
             agent.setForwardDynamics(forwardDynamicsModel)
         else:
             
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel=None, print_info=True)
             # forwardDynamicsModel.initEpoch(exp)
             agent.setForwardDynamics(forwardDynamicsModel)
         
@@ -94,7 +99,7 @@ def modelSampling(settings):
             
             sampler = createSampler(settings, exp)
             ## This should be some kind of copy of the simulator not a network
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel=None, print_info=True)
             sampler.setForwardDynamics(forwardDynamicsModel)
             # sampler.setPolicy(model)
             agent.setSampler(sampler)
@@ -111,13 +116,13 @@ def modelSampling(settings):
         
         agent.setSettings(settings)
         agent.setExperience(experience)
-        # agent.setPolicy(model)
+        agent.setPolicy(model)
     
-        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error = evalModel(actor, exp, agent, settings["discount_factor"], 
+        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, agent, settings["discount_factor"], 
                                                 anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings, print_data=True, 
                                                 bootstrapping=True, visualizeEvaluation=None, p=10.0, sampling=True)
 
-        print "Average Reward: " + str(mean_reward)
+        print ("Average Reward: " + str(mean_reward))
     #except Exception, e:
     #    print "Error: " + str(e)
     #    raise e

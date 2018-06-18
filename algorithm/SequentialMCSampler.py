@@ -10,7 +10,7 @@ import copy
 import os
 # For debugging
 # theano.config.mode='FAST_COMPILE'
-from model.Sampler import Sampler
+from algorithm.Sampler import Sampler
 from model.ForwardDynamicsSimulator import ForwardDynamicsSimulator
 from actor.ActorInterface import *
 
@@ -27,6 +27,12 @@ class Sample(object):
     
     def __eq__(self, other):
         return self._val == other._val
+    
+    def __lt__(self, other):
+        return self._val < other._val
+    
+    def __gt__(self, other):
+        return self._val > other._val
 
 class SequentialMCSampler(Sampler):
     """
@@ -66,7 +72,7 @@ class SequentialMCSampler(Sampler):
         if isinstance(forwardDynamics, ForwardDynamicsSimulator):
             # current_state_copy = characterSim.State(current_state.getID(), current_state.getParams())
             current_state_copy = current_state
-        # print ("Suggested Action: " + str(action) + " for state: " + str(current_state_copy))
+        # print ("Current State: " + str(current_state))
         _action_params = []
         samples = []
         if self.getSettings()["use_actor_policy_action_suggestion"]:
@@ -182,7 +188,7 @@ class SequentialMCSampler(Sampler):
                     
                     current_state__ = self._exp.getStateFromSimState(current_state_)
                     init_states.append(current_state__)
-                    (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=actions[a])
+                    (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=[actions[a]])
                     # epochEnded = forwardDynamics.endOfEpoch()
                     # print ("Epoch Ended: ", epochEnded, " on action: ", a)
                     prediction_ = self._exp.getStateFromSimState(prediction)
@@ -207,13 +213,13 @@ class SequentialMCSampler(Sampler):
                 # actions = chunks(sample, _action_dimension)
                 for a in range(len(actions)):
                     init_states.append(current_state_)
-                    prediction = forwardDynamics.predict(state=current_state_, action=actions[a])
+                    prediction = forwardDynamics.predict(state=current_state_, action=[actions[a]])
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
                         print("Reached bad state in search")
                         # break
                     
                     predictions.append(prediction)
-                    y.append(reward(current_state_, prediction))
+                    y.append(reward(current_state_[0], prediction))
                     current_state_ = prediction
             # print (pa, y, id(y))
             if ( np.all(np.isfinite(y)) and (np.all(np.greater(y, -10000.0))) and (np.all(np.less(y, 10000.0))) ): # lots of nan values for some reason...
@@ -275,7 +281,7 @@ class SequentialMCSampler(Sampler):
                         # break
                     current_state__ = self._exp.getStateFromSimState(current_state_)
                     init_states.append(current_state__)
-                    (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=actions[a])
+                    (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=[actions[a]])
                     # epochEnded = forwardDynamics.endOfEpoch()
                     # print ("Epoch Ended: ", epochEnded, " on action: ", a)
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
@@ -298,12 +304,12 @@ class SequentialMCSampler(Sampler):
                 # actions = chunks(sample, _action_dimension)
                 for a in range(len(actions)):
                     init_states.append(current_state_)
-                    prediction = forwardDynamics.predict(state=current_state_, action=actions[a])
+                    prediction = forwardDynamics.predict(state=current_state_, action=[actions[a]])
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
                         print("Reached bad state in search")
                         # break
                     predictions.append(prediction)
-                    y.append(reward(current_state_, prediction))
+                    y.append(reward(current_state_[0], prediction))
                     current_state_ = prediction
                     
             # print (pa, y)
@@ -333,7 +339,7 @@ class SequentialMCSampler(Sampler):
             discounted_sum += (math.pow(discount_factor,state_num) * rewards[state_num])
         return discounted_sum
     
-    def predict(self, state, evaluation_=False):
+    def predict(self, state, evaluation_=False, p=1.0, sim_index=None, bootstrapping=False):
         """
             Returns the best action
         """

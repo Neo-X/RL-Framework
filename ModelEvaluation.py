@@ -608,8 +608,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         action = thompsonExploration(model, settings["exploration_rate"], state_)
                     elif ((settings['exploration_method'] == 'sampling')):
                         ## Use a sampling method to find a good action
-                        sim_state_ = exp.getSimState()
+                        # sim_state_ = exp.getSimState()
+                        sim_state_ = state_
                         action = model.getSampler().predict(sim_state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                        action = [action]
+                        print("samples action: ", action)
                     else:
                         print ("Exploration method unknown: " + str(settings['exploration_method']))
                         sys.exit(1)
@@ -1042,8 +1045,8 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         # print (states, actions, rewards, result_states, discounted_sum, value)
         error = np.mean(np.fabs(error))
         # print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With reward_sum: " + str(np.sum(rewards)) + " bellman error: " + str(error))
-        discounted_values.append(discounted_sum)
-        values.append(value)
+        discounted_values.extend(np.array(discounted_sum))
+        values.extend(np.array(value))
         # print ("Rewards over eval epoch: ", rewards)
         # This works better because epochs can terminate early, which is bad.
         reward_over_epocs.append(np.mean(np.array(rewards)))
@@ -1053,8 +1056,11 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         print ("Reward for best epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
         print ("reward_over_epocs" + str(reward_over_epocs))
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
-        print ("Discounted sum: ", discounted_values)
-        print ("Initial values: ", values)
+        print ("Discounted sum: ", np.array(discounted_values))
+        print ("Initial values: ", np.array(values))
+        for i in range(len(discounted_values)):
+            print ("len(discounted_values[",i,"]): ", np.array(discounted_values[i]).shape, " len(values[",i,"]): ", 
+                   np.array(values[i]).shape)
     mean_reward = np.mean(reward_over_epocs)
     std_reward = np.std(reward_over_epocs)
     mean_bellman_error = np.mean(bellman_errors)
@@ -1144,8 +1150,8 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
         print ("Discounted sum: ", np.array(discounted_values))
         print ("Initial values: ", np.array(values))
         for i in range(len(discounted_values)):
-            print ("len(discounted_values[i]): ", len(discounted_values[i]), " len(discounted_values[i]): ", 
-                   len(values[i]))
+            print ("len(discounted_values[",i,"]): ", np.array(discounted_values[i]).shape, " len(values[",i,"]): ", 
+                   np.array(values[i]).shape)
     mean_reward = np.mean(reward_over_epocs)
     std_reward = np.std(reward_over_epocs)
     mean_bellman_error = np.mean(bellman_errors)

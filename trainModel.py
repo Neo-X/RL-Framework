@@ -79,7 +79,7 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
     
     from model.LearningAgent import LearningAgent, LearningWorker
     from ModelEvaluation import SimWorker
-    from util.SimulationUtil import createActor, getAgentName
+    from util.SimulationUtil import createActor, getAgentName, createSampler, createForwardDynamicsModel
     
     sim_workers = []
     sim_work_queues = []
@@ -106,7 +106,7 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
             
             sampler = createSampler(settings, exp_)
             ## This should be some kind of copy of the simulator not a network
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp_, print_info=True)
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp_, agentModel=None, print_info=True)
             sampler.setForwardDynamics(forwardDynamicsModel)
             # sampler.setPolicy(model)
             agent.setSampler(sampler)
