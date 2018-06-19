@@ -25,7 +25,7 @@ class GANKeras(AlgorithmInterface):
         maximize D while minimizing G
     """
     
-    def __init__(self,  model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0):
+    def __init__(self,  model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
 
         print("Building GAN Model")
         super(GANKeras,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
@@ -50,7 +50,7 @@ class GANKeras(AlgorithmInterface):
         self._experience.setActionBounds(copy.deepcopy(self.getActionBounds()))
                 
         # self._modelTarget = copy.deepcopy(model)
-        self._modelTarget = type(self._model)(state_length, action_length, state_bounds, action_bounds, settings_)
+        self._modelTarget = type(self._model)(state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_, print_info=print_info)
             
         # print ("Initial W " + str(self._w_o.get_value()) )
         

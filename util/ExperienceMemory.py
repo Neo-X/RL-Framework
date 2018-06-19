@@ -225,16 +225,13 @@ class ExperienceMemory(object):
         advantage = []
         indices = set([])
         trys = 0
-        # scale_state(self._state_history[i], self._state_bounds)
         ### collect batch and try at most 3 times the batch size for valid tuples
         while len(indices) <  batch_size and (trys < batch_size*3):
         # for i in indices:
             trys = trys + 1
             i = (random.sample(set(range(0, max_size))-indices, 1))[0]
             ## skip tuples that were not exploration actions
-            # print ("self._exp_action_history[",i,"]: ", self._exp_action_history[i])
             if ( self._exp_action_history[i] in excludeActionTypes):
-                # print ("Skipping none exploration action")
                 continue
             indices.add(i)
             

@@ -355,5 +355,4 @@
 "model_perform_batch_training": false,
 	"comment__": "Allows the learningAgent to evaluate using the MBRL method",
 "evalaute_with_MBRL": true
-	
 }
