@@ -463,6 +463,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
          (settings["exploration_method"] == "sampling") ):
         settings = copy.deepcopy(settings)
         settings["exploration_method"] = "gaussian_network"
+        settings["evalaute_with_MBRL"] = False
     # print("bootstrapping: ", bootstrapping, " settings[exploration_method]: ", settings["exploration_method"])
     # print ("Start sim state bounds: ", model.getStateBounds())
     action_selection = range(len(settings["discrete_actions"]))   
@@ -688,7 +689,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 exp_action = int(0) 
                 # return pa1
                 ## For sampling method to skip sampling during evaluation.
-                pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                use_MBRL = False
+                if ("evalaute_with_MBRL" in settings and
+                    (settings["evalaute_with_MBRL"] == True) ):
+                    use_MBRL = True
+
+                pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, 
+                                   bootstrapping=bootstrapping, use_mbrl=use_MBRL)
                 
                 action = pa
                 # print ("Exploitation: ", action , " epsilon: ", epsilon * p)

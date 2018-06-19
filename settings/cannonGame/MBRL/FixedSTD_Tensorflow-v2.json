@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "CannonGame-v0/FixedSTD_MBRL_Tensorflow",
+"data_folder": "CannonGame-v0/FixedSTD_MBRL_Tensorflow-v2",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -352,5 +352,8 @@
 	"comment__": "The number of fd network to be done per actor update.",
 "fd_updates_per_actor_update": 5,
 	"comment__": "Lets the network models handle the training and batch processing",
-"model_perform_batch_training": false
+"model_perform_batch_training": false,
+	"comment__": "Allows the learningAgent to evaluate using the MBRL method",
+"evalaute_with_MBRL": true
+	
 }

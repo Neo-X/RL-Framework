@@ -489,10 +489,14 @@ class LearningAgent(AgentInterface):
             self._accesLock.release()
         return (loss, dynamicsLoss) 
     
-    def predict(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
+    def predict(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False, use_mbrl=False):
         if self._useLock:
             self._accesLock.acquire()
-        act = self._pol.predict(state, evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+        if (use_mbrl):
+            action = self.getSampler().predict(state, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+            act = [action]
+        else:
+            act = self._pol.predict(state, evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
         if self._useLock:
             self._accesLock.release()
         return act
