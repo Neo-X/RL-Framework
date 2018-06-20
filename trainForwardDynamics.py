@@ -21,17 +21,16 @@ def trainForwardDynamics(settings):
     # from model.ModelUtil import *
     
     np.random.seed(23)
-    import os    
-    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
-    if ("learning_backend" in settings):
-            # KERAS_BACKEND=tensorflow
-            os.environ['KERAS_BACKEND'] = settings['learning_backend']
+    from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+    setupEnvironmentVariable(settings)
+    setupLearningBackend(settings)
+    
     # import theano
     # from theano import tensor as T
     # import lasagne
     from util.SimulationUtil import validateSettings
     from util.SimulationUtil import getDataDirectory
-    from util.SimulationUtil import createForwardDynamicsModel, createRLAgent
+    from util.SimulationUtil import createForwardDynamicsModel, createRLAgent, createEnvironment
     from model.NeuralNetwork import NeuralNetwork
     from util.ExperienceMemory import ExperienceMemory
     import matplotlib.pyplot as plt
@@ -82,7 +81,6 @@ def trainForwardDynamics(settings):
     train_on_validation_set=settings["train_on_validation_set"]
     state_bounds = np.array(settings['state_bounds'])
     discrete_actions = np.array(settings['discrete_actions'])
-    print ("Sim config file name: ", str(settings["sim_config_file"]))
     # c = characterSim.Configuration(str(settings["sim_config_file"]))
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     action_space_continuous=settings['action_space_continuous']
@@ -90,6 +88,24 @@ def trainForwardDynamics(settings):
     # print states2
     if action_space_continuous:
         action_bounds = np.array(settings["action_bounds"], dtype=float)
+    print ("Sim config file name: ", str(settings["sim_config_file"]))
+    
+    if ((state_bounds == "ask_env")):
+        exp_val = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=settings['shouldRender'], index=0)
+        # exp_val.setActor(actor)
+        exp_val.getActor().init()
+        exp_val.init()
+        print ("Getting state bounds from environment")
+        s_min = exp_val.getEnvironment().observation_space.getMinimum()
+        s_max = exp_val.getEnvironment().observation_space.getMaximum()
+        print (exp_val.getEnvironment().observation_space.getMinimum())
+        settings['state_bounds'] = [s_min,s_max]
+        state_bounds = settings['state_bounds']
+        print ("Removing extra environment.")
+        exp_val.finish()
+    
+    print ("state_bounds: ", state_bounds)
+    print ("action_bounds: ", action_bounds)
     
     if action_space_continuous:
         experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
@@ -163,14 +179,12 @@ def trainForwardDynamics(settings):
     _result_states = theano.shared(np.array(_result_states, dtype=theano.config.floatX))
     _rewards = theano.shared(np.array(_rewards, dtype=theano.config.floatX))
     """
-    forwardDynamicsModel.setData(_states, _actions, _result_states)
     for round_ in range(rounds):
         t0 = time.time()
         for epoch in range(epochs):
             _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
             # print _actions 
             # dynamicsLoss = forwardDynamicsModel.train(states=_states, actions=_actions, result_states=_result_states)
-            # forwardDynamicsModel.setData(_states, _actions, _result_states)
             dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
             # dynamicsLoss = forwardDynamicsModel._train()
         t1 = time.time()

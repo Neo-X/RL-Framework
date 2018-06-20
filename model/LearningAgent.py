@@ -568,14 +568,26 @@ class LearningAgent(AgentInterface):
         self.getPolicy().setStateBounds(bounds)
         if (self._settings['train_forward_dynamics']):
             self.getForwardDynamics().setStateBounds(bounds)
+            if ( 'keep_seperate_fd_exp_buffer' in self._settings 
+                 and (self._settings['keep_seperate_fd_exp_buffer'])
+                 and (self.getFDExperience() is not None)):
+                self.getFDExperience().setStateBounds(bounds)
     def setActionBounds(self, bounds):
         self.getPolicy().setActionBounds(bounds)
         if (self._settings['train_forward_dynamics']):
             self.getForwardDynamics().setActionBounds(bounds)
+            if ( 'keep_seperate_fd_exp_buffer' in self._settings 
+                 and (self._settings['keep_seperate_fd_exp_buffer'])
+                 and (self.getFDExperience() is not None)):
+                self.getFDExperience().setActionBounds(bounds)
     def setRewardBounds(self, bounds):
         self.getPolicy().setRewardBounds(bounds)
         if (self._settings['train_forward_dynamics']):
             self.getForwardDynamics().setRewardBounds(bounds)
+            if ( 'keep_seperate_fd_exp_buffer' in self._settings 
+                 and (self._settings['keep_seperate_fd_exp_buffer'])
+                 and (self.getFDExperience() is not None)):
+                self.getFDExperience().setRewardBounds(bounds)
             
     def saveTo(self, directory, bestPolicy=False, bestFD=False):
         from util.SimulationUtil import getAgentName

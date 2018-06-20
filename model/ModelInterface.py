@@ -52,7 +52,7 @@ class ModelInterface(object):
         self._settings = settings_
         # data types for model
         self._dropout_p=settings_['dropout_p']
-        
+        print("Model dropout: ", self._dropout_p)
         ### Get a type of activation to use
         self._activation_type=leaky_relu
         self._policy_activation_type=leaky_relu

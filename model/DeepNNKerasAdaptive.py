@@ -79,6 +79,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         # input2 = Input(shape=(self._action_length,)) 
         self._actionInput = self._Action
         # input.trainable = True
+        
         print ("self._stateInput ",  self._stateInput)
         
         ### It is complicated to serialize lambda functions, better to define a function
@@ -211,9 +212,15 @@ class DeepNNKerasAdaptive(ModelInterface):
                     networkAct = Dense(layer_sizes[i], 
                                        kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                     networkAct = getKerasActivation(self._settings['policy_activation_type'])(networkAct)
+                if ( self._dropout_p > 0.001 
+                     and ("use_dropout_in_actor" in self._settings 
+                          and (self._settings["use_dropout_in_actor"] == True)) ):
+                    networkAct = Dropout(rate=self._dropout_p)(networkAct)
             # inputAct.trainable = True
             networkAct_ = networkAct
-            if (layer_sizes[-1] != "merge_state_types"):
+            if (layer_sizes[-1] != "merge_state_types"
+                and ( not ("fd_network_leave_off_end" in self._settings 
+                           and (self._settings["fd_network_leave_off_end"] == True )))):
                 networkAct = Dense(n_out, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
     
@@ -376,8 +383,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Dense(layer_sizes[i],
                                 kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                 network = getKerasActivation(self._settings['activation_type'])(network)
-                if ( self._dropout_p > 0.001 ):
-                    network = Dropout(rate=self._dropout_p)(network)
+            if ( self._dropout_p > 0.001 ):
+                network = Dropout(rate=self._dropout_p)(network)
             
         if ( "use_single_network" in self._settings and 
              (self._settings['use_single_network'] == True)):

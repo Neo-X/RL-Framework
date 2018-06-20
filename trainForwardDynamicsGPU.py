@@ -246,11 +246,9 @@ def trainForwardDynamics(settings):
     # from model.ModelUtil import *
     
     np.random.seed(23)
-    import os    
-    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
-    if ("learning_backend" in settings):
-            # KERAS_BACKEND=tensorflow
-            os.environ['KERAS_BACKEND'] = settings['learning_backend']
+    from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+    setupEnvironmentVariable(settings)
+    setupLearningBackend(settings)
     
     learner = LearnWorkerr(settings)
     learner.start()

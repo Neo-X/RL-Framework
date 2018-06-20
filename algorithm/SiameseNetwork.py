@@ -37,30 +37,45 @@ def compute_accuracy(predictions, labels):
     '''
     return labels[predictions.ravel() < 0.5].mean()
 
-def create_pairs(x):
+def create_pairs2(x):
     '''Positive and negative pair creation.
     Alternates between positive and negative pairs.
     '''
+    noise_scale = 0.025
     pair1 = []
     pair2 = []
     labels = []
     n = x.shape[0] - 1
-    indices = list(nprnd.randint(low=0, high=n, size=n))
+    indices = list(np.random.randint(low=0, high=n, size=n))
     for i in range(n):
         ### Identical pair
         i = indices[i]
-        pair1 += [x[i]]
-        pair2 += [x[i]]
+        noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
+        x1 = [x[i] + noise]
+        noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
+        x2 = [x[i] + noise]
+        if (np.random.rand() > 0.5):
+            pair1 += x1
+            pair2 += x2
+        else:
+            pair1 += x2
+            pair2 += x1
         ### Different pair
         z=i
         while (z == i): ## get result that is not the same
-            z = np.random.randint(low=0, high=n)[0]
-        pair1 += [x[i]]
-        pair2 += [x[z]]
-        
+            z = np.random.randint(low=0, high=n)
+        noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
+        x1 = [x[i] + noise]
+        noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
+        x2 = [x[z] + noise]
+        if (np.random.rand() > 0.5):
+            pair1 += x1
+            pair2 += x2
+        else:
+            pair1 += x2
+            pair2 += x1
         labels += [1, 0]
     return np.array(pair1), np.array(pair2), np.array(labels)
-
 
 class SiameseNetwork(AlgorithmInterface):
     
@@ -92,7 +107,7 @@ class SiameseNetwork(AlgorithmInterface):
         processed_a = self._model._actor(self._model.getStateSymbolicVariable())
         processed_b = self._model._actor(self._model.getResultStateSymbolicVariable())
         
-        distance = Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
+        distance = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
 
         self._model._actor = Model(inputs=[self._model.getStateSymbolicVariable(),
                                self._model.getResultStateSymbolicVariable()], outputs=distance)
@@ -104,8 +119,10 @@ class SiameseNetwork(AlgorithmInterface):
         self._model._actor.compile(loss=contrastive_loss, optimizer=sgd)
 
         
-        self.fd = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._forward])
-        self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
+        self._contrastive_loss = K.function([self._model.getStateSymbolicVariable(), 
+                                             self._model.getResultStateSymbolicVariable()], 
+                                            [distance])
+        # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
         
     def getNetworkParameters(self):
         params = []
@@ -150,17 +167,23 @@ class SiameseNetwork(AlgorithmInterface):
             results_states will come from the imitation agent
         """
         states = np.concatenate((states, result_states), axis=0)
-        te_pair1, te_pair2, te_y = create_pairs(states)
+        te_pair1, te_pair2, te_y = create_pairs2(states)
         self._updates += 1
         if (batch_size is None):
             batch_size_=states.shape[0]
         else:
             batch_size_=batch_size
-        score = self._model.getActorNetwork().fit([te_pair1, te_pair2], te_y,
-          epochs=updates, batch_size=batch_size_,
-          verbose=0
-          )
-        loss = score.history['loss'][0]
+            
+        loss = 0
+        dist = np.mean(self._contrastive_loss([te_pair1, te_pair2]))
+        print("Distance: ", dist)
+        if ( dist > 0):
+            score = self._model.getActorNetwork().fit([te_pair1, te_pair2], te_y,
+              epochs=updates, batch_size=batch_size_,
+              verbose=0
+              )
+            loss = score.history['loss'][0]
+            print ("loss: ", loss)
         return loss
     
     def predict(self, state, action):
@@ -168,8 +191,8 @@ class SiameseNetwork(AlgorithmInterface):
             Compute distance between two states
         """
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = scale_state(self.fd([state, action,0])[0], self._state_bounds)
+        action = np.array(norm_action(action, self._state_bounds), dtype=self.getSettings()['float_type'])
+        state_ = scale_state(self._model.getActorNetwork().predict([state, action])[0], self._state_bounds)
         return state_
     
     def predictWithDropout(self, state, action):
@@ -213,11 +236,11 @@ class SiameseNetwork(AlgorithmInterface):
     def bellman_error(self, states, actions, result_states, rewards):
         
         states = np.concatenate((states, result_states), axis=0)
-        te_pair1, te_pair2, te_y = create_pairs(states)
+        te_pair1, te_pair2, te_y = create_pairs2(states)
         
-        predicted_y = self.predict(te_pair1, te_pair2)
+        predicted_y = self._model.getActorNetwork().predict([te_pair1, te_pair2])
         te_acc = compute_accuracy(predicted_y, te_y)
-        return diff
+        return te_acc
     
     def reward_error(self, states, actions, result_states, rewards):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
