@@ -220,21 +220,12 @@ class SimContainer(object):
 
 def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
 
+    from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     if ( settings is None):
         settings = getSettings(settings_file_name)
     # settings['shouldRender'] = True
-    import os    
-    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
-    if ("learning_backend" in settings):
-        # KERAS_BACKEND=tensorflow
-        os.environ['KERAS_BACKEND'] = settings['learning_backend']
-    import keras
-    import theano
-    keras.backend.set_floatx(settings['float_type'])
-    if ("image_data_format" in settings):
-        keras.backend.set_image_data_format(settings['image_data_format'])
-    print ("K.floatx()", keras.backend.floatx())
-    print ("theano.config.floatX", theano.config.floatX)
+    setupEnvironmentVariable(settings)
+    setupLearningBackend(settings)
     
     from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor, getAgentName
     from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, getAgentName

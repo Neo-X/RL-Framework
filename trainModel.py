@@ -167,18 +167,12 @@ def trainModelParallel(inputData):
         np.random.seed(int(settings['random_seed']))
         # removeCachedLibraries()
         loadedModules = copy.deepcopy(list(sys.modules.keys()))
+        from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+        # settings['shouldRender'] = True
     # pr = cProfile.Profile()
     # pr.enable()
     # try:
-        import os    
-        if ( 'THEANO_FLAGS' in os.environ): 
-            os.environ['THEANO_FLAGS'] = os.environ['THEANO_FLAGS']+"mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
-        else:
-            os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
-            
-        if ("learning_backend" in settings):
-            # KERAS_BACKEND=tensorflow
-            os.environ['KERAS_BACKEND'] = settings['learning_backend']
+        setupEnvironmentVariable(settings)
             
         rounds = settings["rounds"]
         epochs = settings["epochs"]
@@ -270,28 +264,9 @@ def trainModelParallel(inputData):
                     print (sw)
                     sw.start()
             
-        # print ("sys.modules1: ", sys.modules)
-        import keras
-        # from util.MakeKerasPicklable import make_keras_picklable
-        import theano
-        if ("learning_backend" in settings and
-            (settings["learning_backend"] == "tensorflow")):
-            import tensorflow as tf
-            config = tf.ConfigProto()
-            config.gpu_options.allow_growth = True
-            session = tf.Session(config=config)
-            keras.backend.set_session(session)
-        # keras.backend.set_session(tf.Session())
-        keras.backend.set_floatx(settings['float_type'])
-        if ("image_data_format" in settings):
-            keras.backend.set_image_data_format(settings['image_data_format'])
-        print ("K.floatx()", keras.backend.floatx())
-        print ("theano.config.floatX", theano.config.floatX)
-        # make_keras_picklable()
-        
         ## Theano needs to be imported after the flags are set.
-        # from ModelEvaluation import *
-        # from model.ModelUtil import *
+        setupLearningBackend(settings)
+        
         # print ( "theano.config.mode: ", theano.config.mode)
         from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience, simEpoch, evalModel, simModelParrallel
         from model.ModelUtil import validBounds, fixBounds, anneal_value

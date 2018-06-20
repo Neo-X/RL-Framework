@@ -113,25 +113,9 @@ class SimWorker(Process):
         # from pympler import muppy
         np.random.seed(self._process_random_seed)
         import os
-        
-        # print ("SW model: ", self._model.getPolicy())
-        # print ("Thread: ", self._model._exp)
-        import keras
-        import theano
-        if ("learning_backend" in self._settings and
-            (self._settings["learning_backend"] == "tensorflow")):
-            import tensorflow as tf
-            # import tensorflow as tf
-            config = tf.ConfigProto()
-            config.gpu_options.allow_growth = True
-            session = tf.Session(config=config)
-            keras.backend.set_session(session)
-        
-        
-        keras.backend.set_floatx(self._settings['float_type'])
-        if ("image_data_format" in self._settings):
-            keras.backend.set_image_data_format(self._settings['image_data_format'])
-        # if ("learning_backend" in self._settings and (self._settings["learning_backend"] == "tensorflow")):
+        from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+
+        setupLearningBackend(self._settings)
         
         ## This is not needed if there is one thread only...
         if (int(self._settings["num_available_threads"]) > 0): 
@@ -1714,21 +1698,12 @@ def modelEvaluationParallel(settings_file_name):
 def modelEvaluation(settings_file_name, runLastModel=False, settings=None, render=True):
     
     from model.ModelUtil import getSettings
+    from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     if (settings is None):
         settings = getSettings(settings_file_name)
     # settings['shouldRender'] = True
-    import os    
-    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
-    if ("learning_backend" in settings):
-        # KERAS_BACKEND=tensorflow
-        os.environ['KERAS_BACKEND'] = settings['learning_backend']
-    import keras
-    import theano
-    keras.backend.set_floatx(settings['float_type'])
-    if ("image_data_format" in settings):
-        keras.backend.set_image_data_format(settings['image_data_format'])
-    print ("K.floatx()", keras.backend.floatx())
-    print ("theano.config.floatX", theano.config.floatX)
+    setupEnvironmentVariable(settings)
+    setupLearningBackend(settings)
     ## Theano needs to be imported after the flags are set.
     # from ModelEvaluation import *
     # from model.ModelUtil import *

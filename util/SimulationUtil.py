@@ -27,6 +27,32 @@ import gc
 # from guppy import hpy; h=hpy()
 # from memprof import memprof
 
+
+def setupEnvironmentVariable(settings):
+    import os    
+    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+    if ("learning_backend" in settings):
+        # KERAS_BACKEND=tensorflow
+        os.environ['KERAS_BACKEND'] = settings['learning_backend']
+        
+def setupLearningBackend(settings):
+    import keras
+    # from util.MakeKerasPicklable import make_keras_picklable
+    import theano
+    if ("learning_backend" in settings and
+        (settings["learning_backend"] == "tensorflow")):
+        import tensorflow as tf
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = True
+        session = tf.Session(config=config)
+        keras.backend.set_session(session)
+    # keras.backend.set_session(tf.Session())
+    keras.backend.set_floatx(settings['float_type'])
+    if ("image_data_format" in settings):
+        keras.backend.set_image_data_format(settings['image_data_format'])
+    print ("K.floatx()", keras.backend.floatx())
+    print ("theano.config.floatX", theano.config.floatX)
+    
 def loadNetwork(net_file_path):
     print("Loading model: ", net_file_path)
     f = open(net_file_path, 'rb')
