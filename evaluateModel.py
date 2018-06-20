@@ -231,6 +231,8 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
     import keras
     import theano
     keras.backend.set_floatx(settings['float_type'])
+    if ("image_data_format" in settings):
+        keras.backend.set_image_data_format(settings['image_data_format'])
     print ("K.floatx()", keras.backend.floatx())
     print ("theano.config.floatX", theano.config.floatX)
     
