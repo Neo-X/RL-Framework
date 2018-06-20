@@ -250,8 +250,6 @@ class KERASAlgorithm(AlgorithmInterface):
         
     def loadFrom(self, fileName):
         from keras.models import load_model
-        def pos_y(true_y, pred_y):
-            return self._actLoss
         suffix = ".h5"
         print ("Loading agent: ", fileName)
         # with K.get_session().graph.as_default() as g:

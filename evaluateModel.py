@@ -289,14 +289,18 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         file_name=directory+getAgentName()+".pkl"
     else:
         file_name=directory+getAgentName()+"_Best.pkl"
-    """
-    f = open(file_name, 'rb')
-    model = dill.load(f)
-    f.close()
-    """
     settings["load_saved_model"] = True
     # settings["load_saved_model"] = "network_and_scales"
     model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+    save_copy_in_theano = True
+    if (save_copy_in_theano):
+        import dill
+        file_name="agent_Best.pkl"
+        f = open(file_name, 'wb')
+        dill.dump(model, f)
+        f.close()
+    
+
     
     if (settings['train_forward_dynamics']):
         file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"

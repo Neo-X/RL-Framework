@@ -3,7 +3,9 @@ import math
 from actor.ActorInterface import ActorInterface
 import numpy as np
 from model.ModelUtil import reward_smoother
-import dill
+import dill, copy
+from algorithm.KERASAlgorithm import KERASAlgorithm
+from util.SimulationUtil import createNetworkModel, createRLAgent
 
 class GymMultiCharActor(ActorInterface):
     
@@ -20,14 +22,31 @@ class GymMultiCharActor(ActorInterface):
         False,        True,        True,        True,        True,        True,        True]
         
         self._llc_policy = None
-        
+        model = None
         if ('llc_policy_model_path' in self._settings):
             print ("Loading pre compiled network")
             file_name=self._settings['llc_policy_model_path']
+            """
+            if (file_name[-5:] == '.json'): ### Keras model
+                import json
+                file = open(file_name)
+                settings = json.load(file)
+                file.close()
+                
+                settings["load_saved_model"] = True
+                # settings["load_saved_model"] = "network_and_scales"
+                model = createRLAgent(settings['agent_name'], state_bounds=settings["state_bounds"],
+                                       discrete_actions=np.array([[0]]), 
+                                       reward_bounds=settings["reward_bounds"], 
+                                       settings=settings)
+    
+            else: ### Lasagne model
+            """
             f = open(file_name, 'rb')
             model = dill.load(f)
             # model.setSettings(settings_)
             f.close()
+                
             self._llc_policy = model
         
     def updateAction(self, sim, action_):
