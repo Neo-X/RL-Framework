@@ -17,7 +17,7 @@ sudo python3.6 get-pip.py
 # do not run this with sudo 
 # Maybe just run the first one with sudo
 
-apt-get -y install python3-dev python3-pip
+sudo apt-get -y install python3-dev python3-pip
 
 pip3.6 install --user numpy
 pip3.6 install --user theano==1.0.1
