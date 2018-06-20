@@ -90,6 +90,11 @@ class KERASAlgorithm(AlgorithmInterface):
         
     def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]],
                     updates=1, batch_size=None):
+        
+        if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
+            # print("self.getSettings()[\"use_single_network\"]: ", self.getSettings()["use_single_network"])
+            return 0
+
         if (batch_size is None):
             batch_size_=states.shape[0]
         else:
