@@ -296,7 +296,8 @@ class GANKeras(AlgorithmInterface):
         
         score = self._model.getCriticNetwork().fit([tmp_states, tmp_actions, tmp_result_states], tmp_rewards,
               epochs=1, batch_size=states.shape[0],
-              verbose=0
+              verbose=0,
+              shuffle=True
               # callbacks=[early_stopping],
               )
         loss = score.history['loss'][0]
@@ -324,7 +325,8 @@ class GANKeras(AlgorithmInterface):
         ### The rewards are not used in this update
         score = self._combined.fit([states, actions, noise], rewards,
               epochs=1, batch_size=states.shape[0],
-              verbose=0
+              verbose=0,
+              shuffle=True
               # callbacks=[early_stopping],
               )
         loss = -score.history['loss'][0]

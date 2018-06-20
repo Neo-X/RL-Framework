@@ -78,6 +78,8 @@ def trainForwardDynamics(settings):
     # max_reward=settings["max_reward"]
     reward_bounds = np.array(settings['reward_bounds'])
     batch_size=settings["batch_size"]
+    if ("value_function_batch_size" in settings):
+        batch_size = settings['value_function_batch_size']
     train_on_validation_set=settings["train_on_validation_set"]
     state_bounds = np.array(settings['state_bounds'])
     discrete_actions = np.array(settings['discrete_actions'])

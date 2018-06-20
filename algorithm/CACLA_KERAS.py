@@ -152,13 +152,15 @@ class CACLA_KERAS(KERASAlgorithm):
                 score = self._model.getActorNetwork().fit(np.array(tmp_states), np.array(tmp_actions),
                   epochs=1, batch_size=len(tmp_actions),
                   verbose=0,
+                  shuffle=True,
                   sample_weight=np.reshape(np.array(tmp_diff), (len(tmp_actions)))
                   # callbacks=[early_stopping],
                   )
             else:
                 score = self._model.getActorNetwork().fit(np.array(tmp_states), np.array(tmp_actions),
                   epochs=1, batch_size=len(tmp_actions),
-                  verbose=0
+                  verbose=0,
+                  shuffle=True
                   # callbacks=[early_stopping],
                   )
                 

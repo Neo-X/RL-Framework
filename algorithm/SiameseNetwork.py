@@ -74,7 +74,7 @@ def create_pairs2(x):
         else:
             pair1 += x2
             pair2 += x1
-        labels += [1, 0]
+        labels += [[1], [0]]
     return np.array(pair1), np.array(pair2), np.array(labels)
 
 class SiameseNetwork(AlgorithmInterface):
@@ -166,7 +166,7 @@ class SiameseNetwork(AlgorithmInterface):
             states will come for the agent and
             results_states will come from the imitation agent
         """
-        states = np.concatenate((states, result_states), axis=0)
+        # states = np.concatenate((states, result_states), axis=0)
         te_pair1, te_pair2, te_y = create_pairs2(states)
         self._updates += 1
         if (batch_size is None):
@@ -175,24 +175,34 @@ class SiameseNetwork(AlgorithmInterface):
             batch_size_=batch_size
             
         loss = 0
-        dist = np.mean(self._contrastive_loss([te_pair1, te_pair2]))
-        print("Distance: ", dist)
+        dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2]))[0]
+        dist = np.mean(dist_)
+        te_y = np.array(te_y)
+        # print("Distance: ", dist)
+        # print("targets: ", te_y)
+        # print("pairs: ", te_pair1)
+        # print("Distance.shape, targets.shape: ", dist_.shape, te_y.shape)
+        # print("Distance, targets: ", np.concatenate((dist_, te_y), axis=1))
         if ( dist > 0):
             score = self._model.getActorNetwork().fit([te_pair1, te_pair2], te_y,
               epochs=updates, batch_size=batch_size_,
-              verbose=0
+              verbose=0,
+              shuffle=True
               )
             loss = score.history['loss'][0]
             print ("loss: ", loss)
         return loss
     
-    def predict(self, state, action):
+    def predict(self, state, state2):
         """
             Compute distance between two states
         """
+        # print("state shape: ", np.array(state).shape)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        action = np.array(norm_action(action, self._state_bounds), dtype=self.getSettings()['float_type'])
-        state_ = scale_state(self._model.getActorNetwork().predict([state, action])[0], self._state_bounds)
+        state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
+        state_ = self._model.getActorNetwork().predict([state, state2])[0]
+        # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2]))[0]
+        # print("state_ shape: ", np.array(state_).shape)
         return state_
     
     def predictWithDropout(self, state, action):
