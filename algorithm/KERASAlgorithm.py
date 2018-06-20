@@ -120,16 +120,16 @@ class KERASAlgorithm(AlgorithmInterface):
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
         c_error = np.mean(np.mean(np.square(v - target_), axis=1))
         # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
-        if (c_error < 10.0):
-            score = self._model.getCriticNetwork().fit(states, target_,
-                  epochs=updates, batch_size=batch_size_,
-                  verbose=0
-                  # callbacks=[early_stopping],
-                  )
-            loss = score.history['loss'][0]
-        else:
-            print ("Critic error to high:", c_error)
-            loss = 0
+        # if (c_error < 10.0):
+        score = self._model.getCriticNetwork().fit(states, target_,
+              epochs=updates, batch_size=batch_size_,
+              verbose=0
+              # callbacks=[early_stopping],
+              )
+        loss = score.history['loss'][0]
+        #else:
+        #    print ("Critic error to high:", c_error)
+        #    loss = 0
         # print(" Critic loss: ", loss)
         
         return loss
