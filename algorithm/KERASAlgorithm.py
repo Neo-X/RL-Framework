@@ -222,36 +222,9 @@ class KERASAlgorithm(AlgorithmInterface):
         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
         self._model._actor.save(fileName+"_actor"+suffix, overwrite=True)
         self._model._critic.save(fileName+"_critic"+suffix, overwrite=True)
-        self._modelTarget._actor.save(fileName+"_actor_T"+suffix, overwrite=True)
-        self._modelTarget._critic.save(fileName+"_critic_T"+suffix, overwrite=True)
-        ### Make a temp copy of models
-        # model_actor_train = self._model._actor_train
-        model_actor = self._model._actor
-        model_critic = self._model._critic
-        modelTarget_actor = self._modelTarget._actor
-        modelTarget_critic = self._modelTarget._critic
-        ### Set models to none so they are not saved with this pickling... Because Keras does not pickle well.
-        self._model._actor_train = None
-        self._model._actor = None
-        self._model._critic = None
-        self._modelTarget._actor = None
-        self._modelTarget._critic = None
-        ### Pickle this class
-        """
-        suffix = ".pkl"
-        file_name=fileName+suffix
-        f = open(file_name, 'wb')
-        dill.dump(self, f)
-        f.close()
-        """
-        ### Restore models
-        # self._model = model
-        # self._modelTarget = modelTarget
-        # self._model._actor_train = model_actor_train
-        self._model._actor = model_actor
-        self._model._critic = model_critic
-        self._modelTarget._actor = modelTarget_actor
-        self._modelTarget._critic = modelTarget_critic
+        if (self._modelTarget is not None):
+            self._modelTarget._actor.save(fileName+"_actor_T"+suffix, overwrite=True)
+            self._modelTarget._critic.save(fileName+"_critic_T"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
         
     def loadFrom(self, fileName):
@@ -261,8 +234,9 @@ class KERASAlgorithm(AlgorithmInterface):
         # with K.get_session().graph.as_default() as g:
         self._model._actor = load_model(fileName+"_actor"+suffix)
         self._model._critic = load_model(fileName+"_critic"+suffix)
-        self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
-        self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
+        if (self._modelTarget is not None):
+            self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
+            self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
         # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
         # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])

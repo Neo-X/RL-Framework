@@ -15,7 +15,7 @@ from keras.models import Sequential, Model
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
-from algorithm.AlgorithmInterface import AlgorithmInterface
+from algorithm.KERASAlgorithm import KERASAlgorithm
 
 def euclidean_distance(vects):
     x, y = vects
@@ -77,7 +77,7 @@ def create_pairs2(x):
         labels += [[1], [0]]
     return np.array(pair1), np.array(pair2), np.array(labels)
 
-class SiameseNetwork(AlgorithmInterface):
+class SiameseNetwork(KERASAlgorithm):
     
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
 
@@ -94,8 +94,12 @@ class SiameseNetwork(AlgorithmInterface):
         if (print_info):
             print("FD Net summary: ", self._model._actor.summary())
         
+        inputs_ = [self._model.getStateSymbolicVariable()] 
+        self._model._critic = Model(inputs=inputs_, outputs=self._model._critic)
+        if (print_info):
+            print("FD Reward Net summary: ", self._model._critic.summary())
 
-        
+        self._modelTarget = None
         SiameseNetwork.compile(self)
     
     def compile(self):
