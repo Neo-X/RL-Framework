@@ -314,8 +314,10 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         print ("Critic Network layer sizes: ", layer_sizes)
         network = self._stateInput
+        """
         if ( self._dropout_p > 0.001 ):
             network = Dropout(rate=self._dropout_p)(network)
+        """
         for i in range(len(layer_sizes)):
             second_last_layer = network
             if type(layer_sizes[i]) is list:
