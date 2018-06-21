@@ -353,5 +353,4 @@
 "fd_network_dropout": 0.1,
 	"comment__": "Use learned reward function",
 "use_learned_reward_function": true
-	
 }

@@ -44,6 +44,12 @@ def getOptions(_args=None):
               metavar="INTEGER", 
               help="Number of simulation samples to compute to use for Meta simulation, running a number of simulations and taking the average of them")
     
+    parser.add_option("--num_on_policy_rollouts", "--rollouts",
+              action="store", dest="num_on_policy_rollouts", default=None,
+              type=int,
+              metavar="INTEGER", 
+              help="Number of on policy rollouts to perform per epoch.")
+    
     parser.add_option("--meta_sim_threads", "--mt",
               action="store", dest="meta_sim_threads", default=None,
               type=int,
