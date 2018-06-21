@@ -13,9 +13,6 @@ sudo python3.6 get-pip.py
 
 ### python3.6 and pip3.6 should work now.
 
-#!/bin/bash
-# do not run this with sudo 
-# Maybe just run the first one with sudo
 
 sudo apt-get -y install python3-dev python3-pip
 
@@ -39,6 +36,9 @@ pip3.6 install --user h5py
 
 sudo apt-get -y install python3-tk
 
+#!/bin/bash
+# do not run this with sudo 
+# Maybe just run the first one with sudo
 #### Only if you want to replace python3.5
 # sudo ln -s /usr/bin/python3.6 /usr/local/bin/python3
 # sudo ln -s /usr/local/bin/pip3.6 /usr/local/bin/pip3
