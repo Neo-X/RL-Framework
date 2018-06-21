@@ -769,7 +769,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ("use_learned_reward_function" in settings
             and (settings["use_learned_reward_function"] == True)):
             reward_ = exp.computeImitationReward(model.getForwardDynamics().predict)
-            print ("Imitation reward: ", reward_)
+            # print ("Imitation reward: ", reward_)
         baseline.append(model.q_value(state_))
         G_t.append(np.array([[0]])) # *(1.0-discount_factor)))
         for i in range(len(G_t)):
