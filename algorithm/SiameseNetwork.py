@@ -30,7 +30,8 @@ def contrastive_loss(y_true, y_pred):
     http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
     '''
     margin = 1
-    return K.mean(y_true * K.square(y_pred) + (1 - y_true) * K.square(K.maximum(margin - y_pred, 0)))
+    ####           Make these smaller               While making these bigger
+    return K.mean((y_true * K.square(y_pred)) + ((1 - y_true) * K.square(K.maximum(margin - y_pred, 0))))
 
 def compute_accuracy(predictions, labels):
     '''Compute classification accuracy with a fixed threshold on distances.
@@ -41,7 +42,7 @@ def create_pairs2(x):
     '''Positive and negative pair creation.
     Alternates between positive and negative pairs.
     '''
-    noise_scale = 0.025
+    noise_scale = 0.001
     pair1 = []
     pair2 = []
     labels = []

@@ -185,9 +185,9 @@ class ExperienceMemory(object):
         
         # print("Running reward mean: ", self._reward_mean)
         # print("Running reward std: ", np.sqrt(self._reward_var))
-        # low = self._reward_mean[0] - (np.sqrt(self._reward_var[0])*scale_factor)
-        # high = self._reward_mean[0] + (np.sqrt(self._reward_var[0])*scale_factor)
-        # self.setRewardBounds(np.array([low,high]))
+        low = self._reward_mean[0] - (np.sqrt(self._reward_var[0])*scale_factor)
+        high = self._reward_mean[0] + (np.sqrt(self._reward_var[0])*scale_factor)
+        self.setRewardBounds(np.array([low,high]))
         # print("New scaling parameters: ", self.getStateBounds())
         """
         low = self._action_mean[0] - np.sqrt(self._action_var[0])

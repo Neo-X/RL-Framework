@@ -256,10 +256,27 @@ def trainForwardDynamics(settings):
 if __name__ == '__main__':
     
     settingsFileName = sys.argv[1]
-    file = open(settingsFileName)
+
+    from util.simOptions import getOptions
+    
+    options = getOptions(sys.argv)
+    options = vars(options)
+    
+    file = open(options['configFile'])
     settings = json.load(file)
-    print ("Settings: " , str(json.dumps(settings)))
     file.close()
+
+        
+    for option in options:
+        if ( not (options[option] is None) ):
+            print ("Updateing option: ", option, " = ", options[option])
+            settings[option] = options[option]
+            if ( options[option] == 'true'):
+                settings[option] = True
+            elif ( options[option] == 'false'):
+                settings[option] = False
+    # settings['num_available_threads'] = options['num_available_threads']
+
     
     trainForwardDynamics(settings)
     
