@@ -348,7 +348,7 @@
 	"comment__": "The number of fd network to be done per actor update.",
 "fd_updates_per_actor_update": 5,
 	"comment__": "Lets the network models handle the training and batch processing",
-"model_perform_batch_training": true,
+"model_perform_batch_training": false,
 	"comment__": "Dropout for fd network",
 "fd_network_dropout": 0.1,
 	"comment__": "Use learned reward function",
