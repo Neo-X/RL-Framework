@@ -296,7 +296,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
 
     
     if (settings['train_forward_dynamics']):
-        file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
+        file_name_dynamics=directory+"forward_dynamics"+"_Best.pkl"
         # file_name=directory+getAgentName()+".pkl"
         f = open(file_name_dynamics, 'rb')
         forwardDynamicsModel = dill.load(f)
