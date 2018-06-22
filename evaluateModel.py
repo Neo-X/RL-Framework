@@ -294,14 +294,14 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         f.close()
     
 
-    
+    """
     if (settings['train_forward_dynamics']):
         file_name_dynamics=directory+"forward_dynamics"+"_Best.pkl"
         # file_name=directory+getAgentName()+".pkl"
         f = open(file_name_dynamics, 'rb')
         forwardDynamicsModel = dill.load(f)
         f.close()
-    
+    """
     if ( settings["use_transfer_task_network"] ):
         task_directory = getTaskDataDirectory(settings)
         file_name=directory+getAgentName()+"_Best.pkl"

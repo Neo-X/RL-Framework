@@ -82,13 +82,16 @@ if __name__ == '__main__':
     for i in range(num_samples_to_keep):
         action_ = [allAction[arr[i]]]
         given_actions.append(action_)
-        state_ = [states[arr[i]]]
+        state_ = [[states[arr[i]]]]
         given_states.append(state_)
         # print "Action: " + str([actions[i]])
-        experience.insert(state_, action_, state_, np.array([0]))
+        experience.insert(state_, action_, state_,[[0]])
+    
+    print("given states: " , np.array(given_states)[:,0,0], 
+          "given actions: ", np.array(given_actions)[:,0,0])
     
     errors=[]
-    for i in range(5000):
+    for i in range(500):
         _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
         # print _actions 
         error = model.train(_states, _actions)
@@ -97,13 +100,13 @@ if __name__ == '__main__':
     
     
     states = np.linspace(-10.0, 10.0, experience_length)
-    actionsNoNoise = np.array(map(f, states))
+    actionsNoNoise = list(map(f, states))
     
-    predicted_actions_ = np.array(map(model.predict, states))
+    predicted_actions_ = np.array(list(map(model.predict, states)))
     # print ("Predicted actions: ", predicted_actions_)
     predicted_actions = predicted_actions_[:,0]
     predicted_actions2 = predicted_actions_[:,1]
-    predicted_actions_dropout_ = np.array(map(model.predictWithDropout, states))
+    predicted_actions_dropout_ = np.array(list(map(model.predictWithDropout, states)))
     predicted_actions_dropout = predicted_actions_dropout_[:,0]
     predicted_actions_dropout2 = predicted_actions_dropout_[:,1]
     predicted_actions_var_ = []
@@ -143,6 +146,8 @@ if __name__ == '__main__':
     upper_var2 = np.array(upper_var2)
     
     # print("given_actions: ", given_actions)
+    print("given states: " , np.array(given_states)[:,0], 
+          "given actions: ", np.array(given_actions)[:,0,0])
     std = 1.0
     # _fig, (_bellman_error_ax, _reward_ax, _discount_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
     _fig, (_bellman_error_ax,_bellman_error_ax2) = plt.subplots(2, 1, sharey=False, sharex=True)
@@ -150,7 +155,7 @@ if __name__ == '__main__':
     _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_dropout, linewidth=2.0, color='r', label="Estimated function with dropout")
     _bellman_error, = _bellman_error_ax.plot(states, predicted_actions, linewidth=2.0, color='g', label="Estimated function")
     _bellman_error, = _bellman_error_ax.plot(states, actionsNoNoise, linewidth=2.0, label="True function")
-    _bellman_error = _bellman_error_ax.scatter(given_states, np.array(given_actions)[:,0], label="Data trained on")
+    _bellman_error = _bellman_error_ax.scatter(np.array(given_states)[:,0,0], np.array(given_actions)[:,0,0], label="Data trained on")
     _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_var, linewidth=2.0, label="Variance")
     _bellman_error_std = _bellman_error_ax.fill_between(states, lower_var, upper_var, facecolor='green', alpha=0.25)
     plt.grid(b=True, which='major', color='black', linestyle='-')
@@ -159,12 +164,12 @@ if __name__ == '__main__':
     _bellman_error_ax.set_ylabel("Absolute Error")
     # _bellman_error_std = _bellman_error_ax.fill_between(states, predicted_actions - predicted_actions_var,
     #                                                     predicted_actions + predicted_actions_var, facecolor='green', alpha=0.5)
-    actionsNoNoise2 = np.array(map(f2, states)) 
+    actionsNoNoise2 = np.array(list(map(f2, states))) 
     _bellman_error, = _bellman_error_ax2.plot(old_states, actions2, linewidth=2.0, color='y', label="True function with noise")
     _bellman_error, = _bellman_error_ax2.plot(states, predicted_actions_dropout2, linewidth=2.0, color='r', label="Estimated function with dropout")
     _bellman_error, = _bellman_error_ax2.plot(states, predicted_actions2, linewidth=2.0, color='g', label="Estimated function")
     _bellman_error, = _bellman_error_ax2.plot(states, actionsNoNoise2, linewidth=2.0, label="Action2")
-    _bellman_error = _bellman_error_ax2.scatter(given_states, np.array(given_actions)[:,1], label="Data trained on")
+    _bellman_error = _bellman_error_ax2.scatter(np.array(given_states)[:,0,0], np.array(given_actions)[:,0,1], label="Data trained on")
     _bellman_error_std = _bellman_error_ax2.fill_between(states, lower_var2, upper_var2, facecolor='green', alpha=0.25)
     _bellman_error, = _bellman_error_ax2.plot(states, predicted_actions_var2, linewidth=2.0, label="Variance")
     # _bellman_error_ax.set_title("True function")
