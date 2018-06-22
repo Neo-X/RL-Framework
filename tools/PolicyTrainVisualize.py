@@ -164,8 +164,9 @@ class PolicyTrainVisualize(object):
                     mean_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
                     # std_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_discount_error"][:new_length], new_shape), axis=1)
                     # std = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_eval"][:new_length], new_shape), axis=1)
-                    means_.append(mean)
-                    mean_values_.append(mean_value)
+                    if (np.all(np.isfinite(mean))):
+                        means_.append(mean)
+                        mean_values_.append(mean_value)
                 
                 print("means_: ", means_)
                 """          
@@ -203,7 +204,7 @@ class PolicyTrainVisualize(object):
                 self._reward, = self._reward_ax.plot(x_range_, mean, 
                                                      linewidth=3.0, 
                                                      c=colour_,
-                                                     label=self._otherDatas[j][i]['name'])
+                                                     label=self._otherDatas[j][i]['name'] + " samples: " + str(len(means_)))
                 print("Line colour: ", self._reward.get_color())
                 self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
                                                                               np.array(mean) - std, 
