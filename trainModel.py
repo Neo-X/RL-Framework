@@ -1255,13 +1255,12 @@ def trainModelParallel(inputData):
             if (settings['visualize_learning']):
                 actor_loss_viz.finish()
                 actor_regularization_viz.finish()
-                
+        
+        import keras        
         sess = keras.backend.get_session()
         keras.backend.clear_session()
         sess.close()
         del sess
-        loadedModulesEnd = copy.deepcopy(list(sys.modules.keys()))
-        print("new Modules: ", set(loadedModulesEnd) - set(loadedModules))
         # print ("sys.modules: ", json.dumps(str(sys.modules), indent=2))
         ### This will find ALL your memory deallocation issues in C++...
         ### And errors in terinating processes properly...
