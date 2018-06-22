@@ -168,7 +168,7 @@
 	"comment__": "visualize the loss and regularization cost of the actor. Warning: might use a lot of memory",
 "debug_actor": false,
 	"comment__": "float type to use, if for example you want to train on the GPU use float32",
-"float_type": "float64",
+"float_type": "float32",
 	"comment__": "What processor type to perform the training on [cpu|gpu]",
 "training_processor_type": "cpu",
 	"comment__": "optimizer is the type of optimization algorithm to use",
@@ -231,5 +231,5 @@
 	"comment__": "How many gradient steps model based actino exploration should take",
 "num_mbae_steps": 1,
 	"comment__": "Whether or not to use a stocastic forward dyanmics model",
-"use_stochastic_forward_dynamics": true	
+"use_stochastic_forward_dynamics": true
 }

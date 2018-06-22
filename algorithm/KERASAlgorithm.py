@@ -156,7 +156,8 @@ class KERASAlgorithm(AlgorithmInterface):
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
-        action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1)[:,:self._action_length], self._action_bounds)
+        action_ = scale_action(self._model.getActorNetwork().predict([state], 
+                                 batch_size=1)[:,:self._action_length], self._action_bounds)
         # action_ = scale_action(self._model.getActorNetwork().predict([state, np.zeros((1,2)), np.zeros((1,1)), np.zeros((1,1))], batch_size=1)[:,:self._action_length], self._action_bounds)
         # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
         # else:

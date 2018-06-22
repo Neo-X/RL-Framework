@@ -59,11 +59,11 @@ if __name__ == '__main__':
     states = np.append(states, np.linspace(-1.0, 5.0, experience_length/2))
     old_states = states
     # print states
-    actions = np.array(map(fNoise, states))
-    actions2 = np.array(map(f2Noise, states))
+    actions = list(map(fNoise, states))
+    actions2 = list(map(f2Noise, states))
     allAction = np.transpose(np.concatenate(([actions], [actions2]), axis=0))
-    actionsNoNoise = np.array(map(f, states))
-    actionsNoNoise2 = np.array(map(f2, states))
+    actionsNoNoise = list(map(f, states))
+    actionsNoNoise2 = list(map(f2, states))
     
     # states2 = np.transpose(np.repeat([states], 2, axis=0))
     # print states2
@@ -74,22 +74,22 @@ if __name__ == '__main__':
     experience.setRewardBounds(reward_bounds)
     experience.setActionBounds(action_bounds)
     experience.setSettings(settings)
-    arr = range(experience_length)
+    arr = list(range(experience_length))
     random.shuffle(arr)
     num_samples_to_keep=300
     given_actions=[]
     given_states=[]
     for i in range(num_samples_to_keep):
-        action_ = np.array(allAction[arr[i]])
+        action_ = [allAction[arr[i]]]
         given_actions.append(action_)
-        state_ = np.array([states[arr[i]]])
+        state_ = [states[arr[i]]]
         given_states.append(state_)
         # print "Action: " + str([actions[i]])
         experience.insert(state_, action_, state_, np.array([0]))
     
     errors=[]
-    for i in range(50000):
-        _states, _actions, _result_states, _rewards, fals_, _G_ts = experience.get_batch(batch_size)
+    for i in range(5000):
+        _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
         # print _actions 
         error = model.train(_states, _actions)
         errors.append(error)
@@ -120,9 +120,9 @@ if __name__ == '__main__':
     predicted_actions_var = np.array(predicted_actions_var_)[:,0]
     predicted_actions_var2 = np.array(predicted_actions_var_)[:,1]
     # states=np.reshape(states, (experience_length,1))
-    print "states shape: " + str(states.shape)
-    print "var shape: " + str(predicted_actions_var.shape)
-    print "act shape: " + str(predicted_actions.shape)
+    print ("states shape: " + str(states.shape))
+    print ("var shape: " + str(predicted_actions_var.shape))
+    print ("act shape: " + str(predicted_actions.shape))
     
     # print "var : " + str(predicted_actions_var)
     # print "act : " + str(predicted_actions)

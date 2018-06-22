@@ -4,7 +4,8 @@ import numpy as np
 import lasagne
 import sys
 sys.path.append('../learn/')
-from ExperienceMemory import ExperienceMemory
+sys.path.append('../')
+import json
 import math
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import axes3d
@@ -47,43 +48,49 @@ if __name__ == '__main__':
     states_X = np.reshape(X, (-1,))
     states_Y = np.reshape(Y, (-1,))
     
-    states_ = np.array(zip(states_X, states_Y))
+    states_ = list(zip(states_X, states_Y))
     
     
     
     
     # print states_
-    actions = np.array(map(fNoise2, states_X, states_Y))
-    actionsNoNoise = np.array(map(f2, states_Y, states_Y))
+    actions = list(map(fNoise2, states_X, states_Y))
+    actionsNoNoise = list(map(f2, states_Y, states_Y))
     
-    print "length: " + str(len(states_))
-    print  states_[-10:]
+    # print ("states: ", states_)
+    print ("length: " + str(len(states_)))
+    print (states_[-10:])
     
     actions_ = np.reshape(actions, (experience_length,-1))
     
-    model = DropoutNetwork(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds)
+    model = DropoutNetwork(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, settings_=settings)
     
-    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True)
+    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), 
+                                  experience_length, continuous_actions=True, settings=settings)
+    experience.setStateBounds(state_bounds)
+    experience.setActionBounds(action_bounds)
+    experience.setRewardBounds(reward_bounds)
     for i in range(len(states_)):
-        action_ = np.array([actions[i]])
-        state_ = np.array([states_[i]])
-        # print "Action: " + str([actions[i]])
+        action_ = [[actions[i]]]
+        state_ = [states_[i]]
+        print ("Action: " + str(action_))
+        print ("State: " + str(state_))
         experience.insert(norm_state(state_, state_bounds), norm_action(action_, action_bounds),
-                           norm_state(state_, state_bounds), norm_reward(np.array([0]), reward_bounds))
+                           norm_state(state_, state_bounds), norm_reward([[0]], reward_bounds))
     
     
-    print "Experience samples: " + str(experience.samples())
+    print ("Experience samples: " + str(experience.samples()))
     errors=[]
-    for i in range(250000):
-        _states, _actions, _result_states, _rewards = experience.get_batch(batch_size)
+    for i in range(2500):
+        _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
         # print _actions 
         error = model.train(_states, _actions)
         errors.append(error)
         # print "Error: " + str(error)
     
     
-    predicted_actions = np.array(map(model.predict, states_))
-    predicted_actions_dropout = np.array(map(model.predictWithDropout, states))
+    predicted_actions = list(map(model.predict, states_))
+    predicted_actions_dropout = list(map(model.predictWithDropout, states))
     predicted_actions_var = []
     
     l=0.1
@@ -104,9 +111,9 @@ if __name__ == '__main__':
     # predictions = model.predictWithDropout(samp_)
     predicted_actions_var = np.reshape(np.array(predicted_actions_var), (len(predicted_actions_var),-1))
     # states=np.reshape(states, (experience_length,1))
-    print "states shape: " + str(states.shape)
-    print "var shape: " + str(predicted_actions_var.shape)
-    print "act shape: " + str(predicted_actions.shape)
+    print ("states shape: " + str(states.shape))
+    print ("var shape: " + str(predicted_actions_var.shape))
+    print ("act shape: " + str(predicted_actions.shape))
     
     upper_var = predicted_actions + np.array(predicted_actions_var)
     lower_var = predicted_actions - np.array(predicted_actions_var)
@@ -127,7 +134,7 @@ if __name__ == '__main__':
     er = plt.figure(2)
     plt.plot(range(len(errors)), errors)
     
-    print "Max var: " + str(np.max(predicted_actions_var))
-    print "Min var: " + str(np.min(predicted_actions_var))
+    print ("Max var: " + str(np.max(predicted_actions_var)))
+    print ("Min var: " + str(np.min(predicted_actions_var)))
     
     plt.show()

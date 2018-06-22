@@ -4,12 +4,12 @@ import numpy as np
 import lasagne
 import sys
 sys.path.append('../')
-from ModelUtil import *
+from model.ModelUtil import *
 
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
-from AgentInterface import AgentInterface
+from model.AgentInterface import AgentInterface
 
 class DropoutNetwork(AgentInterface):
     
@@ -78,8 +78,8 @@ class DropoutNetwork(AgentInterface):
             State: State,
             # Action: Action,
         }
-        self._forward = lasagne.layers.get_output(self._l_out, inputs_, deterministic=True)
-        self._forward_dropout = lasagne.layers.get_output(self._l_out, inputs_, deterministic=False)
+        self._forward = lasagne.layers.get_output(self._l_out, State, deterministic=True)
+        self._forward_dropout = lasagne.layers.get_output(self._l_out, State, deterministic=False)
         
         # self._target = (Reward + self._discount_factor * self._q_valsB)
         self._diff = Action - self._forward_dropout
