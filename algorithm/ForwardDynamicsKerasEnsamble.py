@@ -160,36 +160,37 @@ class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
             # loss = self._train_combined()
         else:
             losses = []
-            for i in range(self._fd_ensemble_size):
-                score = self._models[i].getForwardDynamicsNetwork().fit([states, actions], result_states,
+            member = np.random.randint(low=0, high=self._fd_ensemble_size)
+            # for i in range(self._fd_ensemble_size):
+            score = self._models[member].getForwardDynamicsNetwork().fit([states, actions], result_states,
+              epochs=updates, batch_size=batch_size_,
+              verbose=0,
+              shuffle=True
+              # callbacks=[early_stopping],
+              )
+            losses.append(score.history['loss'][0])
+            if ( self.getSettings()['train_reward_predictor']):
+                # print ("self._reward_bounds: ", self._reward_bounds)
+                # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
+                score = self._models[member].getRewardNetwork().fit([states, actions], rewards,
                   epochs=updates, batch_size=batch_size_,
                   verbose=0,
-                  shuffle=True
+                  shuffel=True
                   # callbacks=[early_stopping],
                   )
-                losses.append(score.history['loss'][0])
-                if ( self.getSettings()['train_reward_predictor']):
-                    # print ("self._reward_bounds: ", self._reward_bounds)
-                    # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
-                    score = self._models[i].getRewardNetwork().fit([states, actions], rewards,
-                      epochs=updates, batch_size=batch_size_,
-                      verbose=0,
-                      shuffel=True
-                      # callbacks=[early_stopping],
-                      )
-                    lossReward = score.history['loss'][0]
-                    if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                        print ("Loss Reward: ", lossReward)
-                if ( 'train_state_encoding' in self.getSettings() and (self.getSettings()['train_state_encoding'])):
-                    pass
-                    # lossEncoding = self._train_state_encoding()
-                    # if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                    #    print ("Loss Encoding: ", lossEncoding)     
+                lossReward = score.history['loss'][0]
+                if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                    print ("Loss Reward: ", lossReward)
+            if ( 'train_state_encoding' in self.getSettings() and (self.getSettings()['train_state_encoding'])):
+                pass
+                # lossEncoding = self._train_state_encoding()
+                # if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                #    print ("Loss Encoding: ", lossEncoding)     
         # This undoes the Actor parameter updates as a result of the Critic update.
         # print (diff_)
         return np.mean(losses)
     
-    def predict(self, state, action, member=1):
+    def predict(self, state, action, member=0):
         # print("State: ", state)
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
@@ -197,7 +198,7 @@ class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
         state_ = scale_state(self.fds[member]([state, action,0])[0], self._state_bounds)
         return state_
     
-    def predictWithDropout(self, state, action, member=1):
+    def predictWithDropout(self, state, action, member=0):
         # print("State: ", state)
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
