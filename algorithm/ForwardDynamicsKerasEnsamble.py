@@ -17,25 +17,47 @@ from keras.models import Sequential, Model
 # theano.config.mode='FAST_COMPILE'
 from algorithm.AlgorithmInterface import AlgorithmInterface
 
-class ForwardDynamicsKeras(AlgorithmInterface):
+class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
     
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
 
-        super(ForwardDynamicsKeras,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
-        self._model = model
+        super(ForwardDynamicsKerasEnsamble,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
+        self._fd_ensemble_size = self.getSettings()['fd_ensemble_size']
         self._learning_rate = self.getSettings()["fd_learning_rate"]
         self._regularization_weight = 1e-6
         
+        model_ = model
+        inputs_ = [model_.getStateSymbolicVariable(), model_.getActionSymbolicVariable()] 
+        model_._forward_dynamics_net = Model(inputs=inputs_, outputs=model_._actor)
+        if (print_info):
+            print("FD Net summary: ", model_._forward_dynamics_net.summary())
+        model_._reward_net = Model(inputs=inputs_, outputs=model_._reward_net)
+        if (print_info):
+            print("Reward Net summary: ", model_._reward_net.summary())
+        
         condition_reward_on_result_state = False
         self._train_combined_loss = False
+        self._forwards = [model_.getForwardDynamicsNetwork()([model_.getStateSymbolicVariable(), model_.getActionSymbolicVariable()])]
+        self._rewards = [model_.getRewardNetwork()([model_.getStateSymbolicVariable(), model_.getActionSymbolicVariable()])]
         
-        inputs_ = [self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()] 
-        self._model._forward_dynamics_net = Model(inputs=inputs_, outputs=self._model._actor)
-        if (print_info):
-            print("FD Net summary: ", self._model._forward_dynamics_net.summary())
-        self._model._reward_net = Model(inputs=inputs_, outputs=self._model._reward_net)
-        if (print_info):
-            print("Reward Net summary: ", self._model._reward_net.summary())
+        self._models = [model_]
+        
+        for i in range(self._fd_ensemble_size-1):
+            ### create new instance of model
+            model_ = type(model)(state_length, action_length, state_bounds, 
+                                 action_bounds, reward_bounds, settings_, print_info=print_info)
+            inputs_ = [model_.getStateSymbolicVariable(), model_.getActionSymbolicVariable()]
+            ### Compile networks 
+            model_._forward_dynamics_net = Model(inputs=inputs_, outputs=model_._actor)
+            if (print_info):
+                print("FD Net summary: ", model_._forward_dynamics_net.summary())
+            model_._reward_net = Model(inputs=inputs_, outputs=model_._reward_net)
+            if (print_info):
+                print("Reward Net summary: ", model_._reward_net.summary())
+                
+            self._forwards.append(model_.getForwardDynamicsNetwork()([model_.getStateSymbolicVariable(), model_.getActionSymbolicVariable()]))
+            self._rewards.append(model_.getRewardNetwork()([model_.getStateSymbolicVariable(), model_.getActionSymbolicVariable()]))
+            self._models.append(model_)
         
         ### data types for model
         self._fd_grad_target = T.matrix("FD_Grad")
@@ -46,57 +68,39 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         
         ##
         
-        self._forward = self._model.getForwardDynamicsNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
-        self._reward = self._model.getRewardNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
         
-        ForwardDynamicsKeras.compile(self)
+        ForwardDynamicsKerasEnsamble.compile(self)
     
     def compile(self):
+        self.fds = []
+        self.rewards = []
         # sgd = SGD(lr=0.001, momentum=0.9)
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
-        print ("Clipping: ", sgd.decay)
-        print("sgd, critic: ", sgd)
-        self._model.getRewardNetwork().compile(loss='mse', optimizer=sgd)
-        # sgd = SGD(lr=0.0005, momentum=0.9)
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
-        print("sgd, actor: ", sgd)
-        print ("Clipping: ", sgd.decay)
-        self._model.getForwardDynamicsNetwork().compile(loss='mse', optimizer=sgd)
-
-        self._params = self._model.getForwardDynamicsNetwork().trainable_weights        
-        """
-        weights = [self._model.getActionSymbolicVariable()]
-        gradients = K.gradients(T.mean(self._q_function), [self._model.getStateSymbolicVariable()]) # gradient tensors
-        ### DPG related functions
-        self._get_gradients = K.function(inputs=[self._model.getStateSymbolicVariable()], outputs=gradients)
-        """
-        ### Get reward input grad
-        weights = [self._model.getActionSymbolicVariable()]
-        # reward_gradients = K.gradients(T.mean(self._reward), [self._model.getActionSymbolicVariable()]) # gradient tensors
-        ### DPG related functions
-        #self._get_grad_reward = K.function(inputs=[self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], outputs=reward_gradients)
-        
-        
-        # self._get_grad = theano.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], outputs=T.grad(cost=None, wrt=[self._model.getActionSymbolicVariable()] + self._params,
-        #                                                    known_grads={self._forward: self._fd_grad_target_shared}), 
-        #                                 allow_input_downcast=True)
-        
-        # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads((self._reward_loss_NoDrop), [lasagne.layers.get_all_layers(self._model.getRewardNetwork())[0].input_var] + self._reward_params), allow_input_downcast=True,
-        # self._get_grad_reward = theano.function([], outputs=lasagne.updates.get_or_compute_grads(T.mean(self._reward), [self._model.getActionSymbolicVariable()Var] + self._reward_params), allow_input_downcast=True, 
-        #                                         givens=self._inputs_reward_)
-        
-        self.fd = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._forward])
-        self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
+        for i in range(self._fd_ensemble_size):
+            sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
+            print ("Clipping: ", sgd.decay)
+            print("sgd, critic: ", sgd)
+            self._models[i].getRewardNetwork().compile(loss='mse', optimizer=sgd)
+            # sgd = SGD(lr=0.0005, momentum=0.9)
+            sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
+            print("sgd, actor: ", sgd)
+            print ("Clipping: ", sgd.decay)
+            self._models[i].getForwardDynamicsNetwork().compile(loss='mse', optimizer=sgd)
+    
+            
+            self.fds.append(K.function([self._models[i].getStateSymbolicVariable(), self._models[i].getActionSymbolicVariable(), K.learning_phase()], [self._forwards[i]]))
+            self.rewards.append(K.function([self._models[i].getStateSymbolicVariable(), self._models[i].getActionSymbolicVariable(), K.learning_phase()], [self._rewards[i]]))
         
     def getNetworkParameters(self):
         params = []
-        params.append(copy.deepcopy(self._model.getForwardDynamicsNetwork().get_weights()))
-        params.append(copy.deepcopy(self._model.getRewardNetwork().get_weights()))
+        for i in range(self._fd_ensemble_size):
+            params.append(copy.deepcopy(self._models[i].getForwardDynamicsNetwork().get_weights()))
+            params.append(copy.deepcopy(self._models[i].getRewardNetwork().get_weights()))
         return params
     
     def setNetworkParameters(self, params):
-        self._model.getForwardDynamicsNetwork().set_weights(params[0])
-        self._model.getRewardNetwork().set_weights( params[1] )
+        for i in range(self._fd_ensemble_size):
+            self._model.getForwardDynamicsNetwork().set_weights(params[(i*2) + 0])
+            self._model.getRewardNetwork().set_weights( params[(i*2) + 1] )
         
     def setData(self, states, actions, result_states=None, rewards=None):
         pass
@@ -155,46 +159,50 @@ class ForwardDynamicsKeras(AlgorithmInterface):
             # loss = self._train_combined()
             # loss = self._train_combined()
         else:
-            score = self._model.getForwardDynamicsNetwork().fit([states, actions], result_states,
-              epochs=updates, batch_size=batch_size_,
-              verbose=0
-              # callbacks=[early_stopping],
-              )
-            loss = score.history['loss'][0]
-            if ( self.getSettings()['train_reward_predictor']):
-                # print ("self._reward_bounds: ", self._reward_bounds)
-                # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
-                score = self._model.getRewardNetwork().fit([states, actions], rewards,
+            losses = []
+            for i in range(self._fd_ensemble_size):
+                score = self._models[i].getForwardDynamicsNetwork().fit([states, actions], result_states,
                   epochs=updates, batch_size=batch_size_,
-                  verbose=0
+                  verbose=0,
+                  shuffle=True
                   # callbacks=[early_stopping],
                   )
-                lossReward = score.history['loss'][0]
-                if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                    print ("Loss Reward: ", lossReward)
-            if ( 'train_state_encoding' in self.getSettings() and (self.getSettings()['train_state_encoding'])):
-                pass
-                # lossEncoding = self._train_state_encoding()
-                # if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                #    print ("Loss Encoding: ", lossEncoding)     
+                losses.append(score.history['loss'][0])
+                if ( self.getSettings()['train_reward_predictor']):
+                    # print ("self._reward_bounds: ", self._reward_bounds)
+                    # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
+                    score = self._models[i].getRewardNetwork().fit([states, actions], rewards,
+                      epochs=updates, batch_size=batch_size_,
+                      verbose=0,
+                      shuffel=True
+                      # callbacks=[early_stopping],
+                      )
+                    lossReward = score.history['loss'][0]
+                    if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                        print ("Loss Reward: ", lossReward)
+                if ( 'train_state_encoding' in self.getSettings() and (self.getSettings()['train_state_encoding'])):
+                    pass
+                    # lossEncoding = self._train_state_encoding()
+                    # if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                    #    print ("Loss Encoding: ", lossEncoding)     
         # This undoes the Actor parameter updates as a result of the Critic update.
         # print (diff_)
-        return loss
+        return np.mean(losses)
     
-    def predict(self, state, action):
+    def predict(self, state, action, member=1):
         # print("State: ", state)
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = scale_state(self.fd([state, action,0])[0], self._state_bounds)
+        state_ = scale_state(self.fds[member]([state, action,0])[0], self._state_bounds)
         return state_
     
-    def predictWithDropout(self, state, action):
+    def predictWithDropout(self, state, action, member=1):
         # print("State: ", state)
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = scale_state(self.fd([state, action,1])[0], self._state_bounds)
+        state_ = scale_state(self.fds[member]([state, action,1])[0], self._state_bounds)
         return state_
     
     def predict_std(self, state, action, p=1.0):
@@ -203,12 +211,12 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         state_ = self._forwardDynamics_std() * (action_bound_std(self._state_bounds))
         return state_
     
-    def predict_reward(self, state, action):
+    def predict_reward(self, state, action, member=0):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        predicted_reward = self.reward([state, action, 0])[0]
+        predicted_reward = self.rewards[member]([state, action, 0])[0]
         reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_state(predicted_reward, self._reward_bounds)

@@ -40,34 +40,39 @@ if __name__ == '__main__':
     settings = json.load(file)
     print ("Settings: " + str(json.dumps(settings)))
     file.close()
-    import os    
-    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
-        
+
+    from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+    setupEnvironmentVariable(settings)
+    setupLearningBackend(settings)        
+    
     # import theano
     # from theano import tensor as T
     from model.ModelUtil import *
-    from model.DropoutNetwork import DropoutNetwork
+    from util.SimulationUtil import createForwardDynamicsModel, createRLAgent, createEnvironment
     from util.ExperienceMemory import ExperienceMemory
     
-    state_bounds = np.array([[-5.0],[5.0]])
-    action_bounds = np.array([[-3.0,-6.0*f2_scale],[2.0, 1.0*f2_scale]])
-    reward_bounds = np.array([[-3.0],[1.0]])
+    state_bounds =  np.array([[-5.0],[5.0]])
+    # action_bounds = np.array([[-6.0*f2_scale],[1.0*f2_scale]])
+    action_bounds = np.array([[-5.0],[5.0]])
+    reward_bounds = np.array([[-5.0],[5.0]])
     experience_length = 300
     batch_size=32
     # states = np.repeat([np.linspace(-5.0, 5.0, experience_length)],2, axis=0)
-    states = np.linspace(-5.0,-1.0, experience_length/2)
-    states = np.append(states, np.linspace(-1.0, 5.0, experience_length/2))
+    states = np.linspace(state_bounds[0][0],-1.0, experience_length/2)
+    states = np.append(states, np.linspace(1.0, state_bounds[1][0], experience_length/2))
     old_states = states
     # print states
-    actions = list(map(fNoise, states))
-    actions2 = list(map(f2Noise, states))
-    allAction = np.transpose(np.concatenate(([actions], [actions2]), axis=0))
-    actionsNoNoise = list(map(f, states))
-    actionsNoNoise2 = list(map(f2, states))
+    actions = list(map(f2Noise, states))
+    allAction = actions
+    actionsNoNoise = list(map(f2, states))
     
     # states2 = np.transpose(np.repeat([states], 2, axis=0))
     # print states2
-    model = DropoutNetwork(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, settings)
+    # model = DropoutNetwork(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, settings)
+    print ("Creating forward dynamics network")
+    # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+    model = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None,
+                                                      reward_bounds=reward_bounds)
     
     experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True, settings=settings)
     experience.setStateBounds(state_bounds)
@@ -80,7 +85,7 @@ if __name__ == '__main__':
     given_actions=[]
     given_states=[]
     for i in range(num_samples_to_keep):
-        action_ = [allAction[arr[i]]]
+        action_ = [[allAction[arr[i]]]]
         given_actions.append(action_)
         state_ = [[states[arr[i]]]]
         given_states.append(state_)
@@ -88,37 +93,42 @@ if __name__ == '__main__':
         experience.insert(state_, action_, state_,[[0]])
     
     errors=[]
-    for i in range(500):
+    for i in range(1000):
         _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
-        # print _actions 
-        error = model.train(_states, _actions)
+        # print _actions
+        # dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards) 
+        error = model.train(_states, _states*0.0, _actions, _rewards)
         errors.append(error)
         # print "Error: " + str(error)
     
     
-    states = np.linspace(-10.0, 10.0, experience_length)
-    actionsNoNoise = list(map(f, states))
+    states = np.linspace(state_bounds[0][0]*2, state_bounds[1][0]*2, experience_length)
+    actionsNoNoise = list(map(f2, states))
     
-    predicted_actions_ = np.array(list(map(model.predict, states)))
+    predicted_actions_ = model.predict( np.reshape([states], newshape=(experience_length,1)), 
+                                        np.reshape([states], newshape=(experience_length,1)) * 0)
     # print ("Predicted actions: ", predicted_actions_)
     predicted_actions = predicted_actions_[:,0]
-    predicted_actions2 = predicted_actions_[:,1]
-    predicted_actions_dropout_ = np.array(list(map(model.predictWithDropout, states)))
+    # predicted_actions2 = predicted_actions_[:,1]
+    predicted_actions_dropout_ = model.predictWithDropout(np.reshape([states], newshape=(experience_length,1)), 
+                                                          np.reshape([states], newshape=(experience_length,1))) * 0
     predicted_actions_dropout = predicted_actions_dropout_[:,0]
-    predicted_actions_dropout2 = predicted_actions_dropout_[:,1]
+    # predicted_actions_dropout2 = predicted_actions_dropout_[:,1]
     predicted_actions_var_ = []
     
     # print ("modelPrecsionInv: ", modelPrecsionInv)
     predictions = []
     for i in range(len(states)):
         
-        var_ = getModelPredictionUncertanty(model, state=states[i], length=0.5, num_samples=128)
+        var_ = getFDModelPredictionUncertanty(model, state=np.reshape([states[i]], newshape=(1,1)), 
+                                              action=np.reshape([states[i]], newshape=(1,1)) * 0,
+                                               length=0.5, num_samples=128)
         # print var_
         predicted_actions_var_.append(var_)
         predictions=[]
     # predictions = model.predictWithDropout(samp_)
     predicted_actions_var = np.array(predicted_actions_var_)[:,0]
-    predicted_actions_var2 = np.array(predicted_actions_var_)[:,1]
+    # predicted_actions_var2 = np.array(predicted_actions_var_)[:,1]
     # states=np.reshape(states, (experience_length,1))
     print ("states shape: " + str(states.shape))
     print ("var shape: " + str(predicted_actions_var.shape))
@@ -129,36 +139,44 @@ if __name__ == '__main__':
     
     lower_var=[]
     upper_var=[]
-    lower_var2=[]
-    upper_var2=[]
+    # lower_var2=[]
+    # upper_var2=[]
     for i in range(len(states)):
         lower_var.append(predicted_actions[i]-predicted_actions_var[i])
         upper_var.append(predicted_actions[i]+predicted_actions_var[i])
-        lower_var2.append(predicted_actions2[i]-predicted_actions_var2[i])
-        upper_var2.append(predicted_actions2[i]+predicted_actions_var2[i])
+        # lower_var2.append(predicted_actions2[i]-predicted_actions_var2[i])
+        # upper_var2.append(predicted_actions2[i]+predicted_actions_var2[i])
      
     lower_var = np.array(lower_var)
     upper_var = np.array(upper_var)
-    lower_var2 = np.array(lower_var2)
-    upper_var2 = np.array(upper_var2)
+    # lower_var2 = np.array(lower_var2)
+    # upper_var2 = np.array(upper_var2)
     
     # print("given_actions: ", given_actions)
     std = 1.0
     # _fig, (_bellman_error_ax, _reward_ax, _discount_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-    _fig, (_bellman_error_ax,_bellman_error_ax2) = plt.subplots(2, 1, sharey=False, sharex=True)
+    _fig, (_bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
     _bellman_error, = _bellman_error_ax.plot(old_states, actions, linewidth=2.0, color='y', label="True function with noise")
     _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_dropout, linewidth=2.0, color='r', label="Estimated function with dropout")
     _bellman_error, = _bellman_error_ax.plot(states, predicted_actions, linewidth=2.0, color='g', label="Estimated function")
+    """
+    for i in range(1, 5):
+        predicted_actions = model.predict( np.reshape([states], newshape=(experience_length,1)), 
+                                            np.reshape([states], newshape=(experience_length,1)) * 0,
+                                            i)
+        _bellman_error, = _bellman_error_ax.plot(states, predicted_actions, linewidth=2.0, color='g', label="Estimated function")
+    """
     _bellman_error, = _bellman_error_ax.plot(states, actionsNoNoise, linewidth=2.0, label="True function")
     _bellman_error = _bellman_error_ax.scatter(np.array(given_states)[:,0,0], np.array(given_actions)[:,0,0], label="Data trained on")
     _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_var, linewidth=2.0, label="Variance")
-    _bellman_error_std = _bellman_error_ax.fill_between(states, lower_var, upper_var, facecolor='green', alpha=0.25)
+    _bellman_error_std = _bellman_error_ax.fill_between(states, lower_var[:,0], upper_var[:,0], facecolor='green', alpha=0.25)
     plt.grid(b=True, which='major', color='black', linestyle='-')
     plt.grid(b=True, which='minor', color='g', linestyle='--')
     legend = _bellman_error_ax.legend(loc='lower right', shadow=True)
     _bellman_error_ax.set_ylabel("Absolute Error")
     # _bellman_error_std = _bellman_error_ax.fill_between(states, predicted_actions - predicted_actions_var,
-    #                                                     predicted_actions + predicted_actions_var, facecolor='green', alpha=0.5)
+    # 
+    """                                                    predicted_actions + predicted_actions_var, facecolor='green', alpha=0.5)
     actionsNoNoise2 = np.array(list(map(f2, states))) 
     _bellman_error, = _bellman_error_ax2.plot(old_states, actions2, linewidth=2.0, color='y', label="True function with noise")
     _bellman_error, = _bellman_error_ax2.plot(states, predicted_actions_dropout2, linewidth=2.0, color='r', label="Estimated function with dropout")
@@ -172,7 +190,7 @@ if __name__ == '__main__':
     legend = _bellman_error_ax2.legend(loc='lower right', shadow=True)
     plt.grid(b=True, which='major', color='black', linestyle='-')
     plt.grid(b=True, which='minor', color='g', linestyle='--')
-
+    """
 
     """
     _reward, = _reward_ax.plot([], [], linewidth=2.0)

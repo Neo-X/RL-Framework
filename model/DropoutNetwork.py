@@ -18,7 +18,7 @@ class DropoutNetwork(AgentInterface):
         super(DropoutNetwork,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
         
         batch_size=32
-        dropout_p=0.50
+        dropout_p=0.10
         # data types for model
         State = T.matrix("State")
         State.tag.test_value = np.random.rand(batch_size,self._state_length)

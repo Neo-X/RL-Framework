@@ -857,6 +857,25 @@ def getModelPredictionUncertanty(model, state, length=4.1, num_samples=32):
     variance__ = (modelPrecsionInv) + np.var(predictions_, axis=0)
     return variance__
 
+def getFDModelPredictionUncertanty(model, state, action, length=4.1, num_samples=32):
+    """
+        Computes the optimal action to be taken given
+        the forwardDynamicsModel f and
+        the value function (model) v
+    """
+    lSquared =(length**2)
+    modelPrecsionInv = ((lSquared * (1.0 - model.getSettings()['dropout_p'])) / 
+                        (2*model.getSettings()['expereince_length']*
+                         model.getSettings()['regularization_weight'] ))**-1
+    # print "Model Precision Inverse:" + str(modelPrecsionInv)
+    predictions_ = []
+    # print "Sample: " + str(samp_)
+    for pi in range(num_samples):
+        predictions_.append( (model.predictWithDropout(state, action)))
+    # print "Predictions: " + str(predictions_)
+    variance__ = (modelPrecsionInv) + np.var(predictions_, axis=0)
+    return variance__
+
 def getModelValueUncertanty(model, state, length=4.1, num_samples=32):
     """
         Computes the optimal action to be taken given

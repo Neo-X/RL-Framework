@@ -301,6 +301,11 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         f = open(file_name_dynamics, 'rb')
         forwardDynamicsModel = dill.load(f)
         f.close()
+    if (settings['train_forward_dynamics']):
+        # actor.setForwardDynamicsModel(forwardDynamicsModel)
+        forwardDynamicsModel.setActor(actor)
+        masterAgent.setForwardDynamics(forwardDynamicsModel)
+        # forwardDynamicsModel.setEnvironment(exp)
     """
     if ( settings["use_transfer_task_network"] ):
         task_directory = getTaskDataDirectory(settings)
@@ -312,11 +317,6 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         print ("Transferring task portion of model.")
         model.setTaskNetworkParameters(taskModel)
 
-    if (settings['train_forward_dynamics']):
-        # actor.setForwardDynamicsModel(forwardDynamicsModel)
-        forwardDynamicsModel.setActor(actor)
-        masterAgent.setForwardDynamics(forwardDynamicsModel)
-        # forwardDynamicsModel.setEnvironment(exp)
     # actor.setPolicy(model)
     exp.setActor(actor)
     exp.getActor().init()   
