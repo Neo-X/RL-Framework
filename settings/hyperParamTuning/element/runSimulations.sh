@@ -16,7 +16,8 @@ declare -a metaExps=(
 				"settings/hyperParamTuning/element/clamp_actions_to_stay_inside_bounds.json" 
 				"settings/hyperParamTuning/element/critic_learning_rate.json"
 				"settings/hyperParamTuning/element/critic_updates_per_actor_update.json"
-				"settings/hyperParamTuning/element/dont_use_td_learning.json" 
+				"settings/hyperParamTuning/element/dont_use_td_learning.json"
+				"settings/hyperParamTuning/element/dropout_p.json" 
 				"settings/hyperParamTuning/element/exploration_rate.json" 
 #				"settings/hyperParamTuning/element/GAE_lambda.json"
 				"settings/hyperParamTuning/element/initial_temperature.json" 
@@ -29,7 +30,7 @@ declare -a metaExps=(
  				"settings/hyperParamTuning/element/ppo_et_factor.json"
 				"settings/hyperParamTuning/element/pretrain_critic.json" 
 #				"settings/hyperParamTuning/element/state_normalization.json"		
-# 				"settings/hyperParamTuning/element/use_single_network.json"
+				"settings/hyperParamTuning/element/use_single_network.json"
  				"settings/hyperParamTuning/element/use_target_net_for_critic.json"
 #				"settings/hyperParamTuning/element/value_function_batch_size.json"
 )
