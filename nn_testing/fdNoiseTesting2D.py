@@ -54,7 +54,7 @@ if __name__ == '__main__':
     file.close()
     num_members = settings['fd_ensemble_size']
     
-    use_f_function=False
+    use_f_function=True
 
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     setupEnvironmentVariable(settings)
