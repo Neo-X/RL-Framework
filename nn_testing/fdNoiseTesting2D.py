@@ -34,6 +34,18 @@ def f2Noise(x):
         out = out + n
     return out
 
+def createData(bounds, num_samples):
+    samples = []
+    scaling = (bounds[1][0] - bounds[0][0]) / 2.0
+    mean = (bounds[1][0] + bounds[0][0]) / 2.0
+    while (len(samples) < num_samples):
+        samp = (((np.random.rand()-0.5) * 2.0) * scaling ) + mean
+        if (samp < -1 or (samp > 0)):
+            samples.append(samp)
+        print ("samp: ", samp)
+            
+    return samples
+
 if __name__ == '__main__':
     
     file = open(sys.argv[1])
@@ -41,13 +53,13 @@ if __name__ == '__main__':
     print ("Settings: " + str(json.dumps(settings)))
     file.close()
     num_members = settings['fd_ensemble_size']
+    
+    use_f_function=False
 
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     setupEnvironmentVariable(settings)
     setupLearningBackend(settings)        
     
-    # import theano
-    # from theano import tensor as T
     from model.ModelUtil import *
     from util.SimulationUtil import createForwardDynamicsModel, createRLAgent, createEnvironment
     from util.ExperienceMemory import ExperienceMemory
@@ -56,16 +68,23 @@ if __name__ == '__main__':
     # action_bounds = np.array([[-6.0*f2_scale],[1.0*f2_scale]])
     action_bounds = np.array([[-5.0],[5.0]])
     reward_bounds = np.array([[-5.0],[5.0]])
-    experience_length = 300
+    experience_length = 500
     batch_size=32
     # states = np.repeat([np.linspace(-5.0, 5.0, experience_length)],2, axis=0)
     states = np.linspace(state_bounds[0][0],-1.0, experience_length/2)
     states = np.append(states, np.linspace(1.0, state_bounds[1][0], experience_length/2))
+    states = createData(state_bounds, num_samples=experience_length)
     old_states = states
     # print states
-    actions = list(map(f2Noise, states))
+    if use_f_function:
+        actions = list(map(fNoise, states))
+    else:
+        actions = list(map(f2Noise, states))
     allAction = actions
-    actionsNoNoise = list(map(f2, states))
+    if use_f_function:
+        actionsNoNoise = list(map(f, states))
+    else:
+        actionsNoNoise = list(map(f2, states))
     
     # states2 = np.transpose(np.repeat([states], 2, axis=0))
     # print states2
@@ -104,7 +123,10 @@ if __name__ == '__main__':
     
     print("Done training")
     states = np.linspace(state_bounds[0][0]*2, state_bounds[1][0]*2, experience_length)
-    actionsNoNoise = list(map(f2, states))
+    if use_f_function:
+        actionsNoNoise = list(map(f, states))
+    else:
+        actionsNoNoise = list(map(f2, states))
     predicted_actions = []
     predicted_actions_dropout = []
     predicted_actions_std = []
@@ -136,7 +158,7 @@ if __name__ == '__main__':
     std = 1.0
     # _fig, (_bellman_error_ax, _reward_ax, _discount_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
     _fig, (_bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-    _bellman_error, = _bellman_error_ax.plot(old_states, actions, linewidth=2.0, color='y', label="True function with noise")
+    # _bellman_error, = _bellman_error_ax.plot(old_states, actions, linewidth=2.0, color='y', label="True function with noise")
     
     for i in range(num_members):
         _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_dropout[i], linewidth=2.0, color='r', label="Estimated function with dropout")

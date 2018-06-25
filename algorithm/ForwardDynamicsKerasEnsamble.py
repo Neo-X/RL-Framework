@@ -79,8 +79,8 @@ class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
             action_true = action_true[:,:self._state_length]
             action_pred_mean = action_pred[:,:self._state_length]
             action_pred_std = action_pred[:,self._state_length:]
-            prob = likelihood_keras(action_true, action_pred_mean, action_pred_std, self._state_length)
-            
+            prob = loglikelihood_keras(action_true, action_pred_mean, action_pred_std, self._state_length)
+            # entropy = 0.5 * T.mean(T.log(2 * np.pi * action_pred_std + 1 ) )
             actLoss = -1.0 * K.mean(prob, axis=-1)
             ### Average over batch
             return K.mean(actLoss)
@@ -210,7 +210,7 @@ class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = scale_state(np.array(self.fds[member]([state, action,1]))[0,:,:self._state_length], self._state_bounds)
+        state_ = scale_state(np.array(self.fds[member]([state, action,0]))[0,:,:self._state_length], self._state_bounds)
         # print("state:", state_)
         return state_
     
@@ -227,7 +227,7 @@ class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
     def predict_std(self, state, action, p=1.0, member=0):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = np.array(self.fds[member]([state, action,1]))[0,:,self._state_length:] * (action_bound_std(self._state_bounds))
+        state_ = np.array(self.fds[member]([state, action,0]))[0,:,self._state_length:] * (action_bound_std(self._state_bounds))
         # state_ = self._forwardDynamics_std() * (action_bound_std(self._state_bounds))
         return state_
     
