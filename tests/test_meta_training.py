@@ -75,3 +75,28 @@ class TestMetaTraining(object):
         simData = tuneHyperParameters(simsettingsFileName=filename, simSettings=settings, hyperSettings=metaSettings)
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None    
+        
+    def test_metaTraining_multiple_params_to_tune(self):
+        """
+        Test that PPO can still learn a good policy on 2d particle sim
+        """
+        filename = "tests/settings/gapGame2D/PPO/FixedSTD_Tensorflow-v2_dropout.json"
+        file = open(filename)
+        settings = json.load(file)
+        file.close()
+        metaSettings = "settings/hyperParamTuning/element/dropout_p_and_use_dropout_in_actor.json"
+        file = open(metaSettings)
+        metaSettings = json.load(file)
+        file.close()
+        settings['visualize_learning'] = False
+        settings['shouldRender'] = False
+        settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 25
+        metaSettings['meta_sim_samples'] = 2
+        metaSettings['meta_sim_threads'] = 2
+        metaSettings['tuning_threads'] = 2 # 4 samples total
+        metaSettings['num_param_samples'] = [[2], [2]]
+        metaSettings['testing'] = True
+        simData = tuneHyperParameters(simsettingsFileName=filename, simSettings=settings, hyperSettings=metaSettings)
+        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
+        assert simData != None    
