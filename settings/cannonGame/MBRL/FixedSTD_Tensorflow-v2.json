@@ -267,7 +267,7 @@
 	"comment__": "Load a saved and pre-trained forward dynamics model",
 "load_saved_fd_model": false,
 	"comment__": "Whether or not to use a stochastic forward dynamics model",
-"use_stochastic_forward_dynamics": false,
+"use_stochastic_forward_dynamics": true,
 	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
 "normalize_advantage": true,
 	"comment__": "use a special annealing schedule that will being at 1 and end at 0",
@@ -344,7 +344,7 @@
 	"comment__": "The name of the FD algorithm to load",
 "fd_algorithm": "algorithm.ForwardDynamicsKeras.ForwardDynamicsKeras",
 	"comment__": "A list describing the size of the layers for the NN",
-"fd_network_layer_sizes": [32, 32, "integrate_actor_part", 32],
+"fd_network_layer_sizes": [64, 32, "integrate_actor_part", 32],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [32, 32, "integrate_actor_part", 32],
 	"comment__": "last policy type of activation to use",
@@ -354,5 +354,9 @@
 	"comment__": "Lets the network models handle the training and batch processing",
 "model_perform_batch_training": false,
 	"comment__": "Allows the learningAgent to evaluate using the MBRL method",
-"evalaute_with_MBRL": true
+"evalaute_with_MBRL": true,
+	"comment__": "Dropout for fd network",
+"fd_network_dropout": 0.1,
+	"comment__": "number of fd models in the ensemble",
+"fd_ensemble_size": 1
 }

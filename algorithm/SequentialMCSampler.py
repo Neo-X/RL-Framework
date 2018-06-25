@@ -213,7 +213,11 @@ class SequentialMCSampler(Sampler):
                 # actions = chunks(sample, _action_dimension)
                 for a in range(len(actions)):
                     init_states.append(current_state_)
-                    prediction = forwardDynamics.predict(state=current_state_, action=[actions[a]])
+                    if ("use_stochastic_forward_dynamics" in self.getSettings()
+                        and (self.getSettings()["use_stochastic_forward_dynamics"])):
+                        prediction = sampleStochasticModel( forwardDynamics, current_state_, [actions[a]])
+                    else:
+                        prediction = forwardDynamics.predict(state=current_state_, action=[actions[a]])
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
                         print("Reached bad state in search")
                         # break
@@ -304,7 +308,11 @@ class SequentialMCSampler(Sampler):
                 # actions = chunks(sample, _action_dimension)
                 for a in range(len(actions)):
                     init_states.append(current_state_)
-                    prediction = forwardDynamics.predict(state=current_state_, action=[actions[a]])
+                    if ("use_stochastic_forward_dynamics" in self.getSettings()
+                        and (self.getSettings()["use_stochastic_forward_dynamics"])):
+                        prediction = sampleStochasticModel( forwardDynamics, current_state_, [actions[a]])
+                    else:
+                        prediction = forwardDynamics.predict(state=current_state_, action=[actions[a]])
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
                         print("Reached bad state in search")
                         # break
