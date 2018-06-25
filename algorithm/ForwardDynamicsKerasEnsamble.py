@@ -81,9 +81,10 @@ class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
             action_pred_std = action_pred[:,self._state_length:]
             prob = loglikelihood_keras(action_true, action_pred_mean, action_pred_std, self._state_length)
             # entropy = 0.5 * T.mean(T.log(2 * np.pi * action_pred_std + 1 ) )
-            actLoss = -1.0 * K.mean(prob, axis=-1)
+            # actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)) + (entropy * 1e-2))
+            actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)))
             ### Average over batch
-            return K.mean(actLoss)
+            return actLoss
             
         # sgd = SGD(lr=0.001, momentum=0.9)
         for i in range(self._fd_ensemble_size):
@@ -227,7 +228,11 @@ class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
     def predict_std(self, state, action, p=1.0, member=0):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = np.array(self.fds[member]([state, action,0]))[0,:,self._state_length:] * (action_bound_std(self._state_bounds))
+        if ("use_stochastic_forward_dynamics" in self.getSettings()
+            and (self.getSettings()['use_stochastic_forward_dynamics'] == True)):
+            state_ = np.array(self.fds[member]([state, action,0]))[0,:,self._state_length:] * (action_bound_std(self._state_bounds))
+        else:
+            state_ = self.predict(state, action, member) * 0
         # state_ = self._forwardDynamics_std() * (action_bound_std(self._state_bounds))
         return state_
     

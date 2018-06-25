@@ -37,7 +37,8 @@ class ExperienceMemory(object):
             self._result_state_length = result_state_length
         # self._settings = settings
         self._history_update_index=0 # where the next experience should write
-        self._inserts=0
+        self._samples=0 # Number of inserts since last clear()
+        self._inserts=0 # total number of inserts
         self.clear()
         # self._state_history = theano.shared(np.zeros((self._history_size, state_length)))
         # self._action_history = theano.shared(np.zeros((self._history_size, action_length)))
@@ -46,7 +47,7 @@ class ExperienceMemory(object):
         
     def clear(self):
         self._history_update_index=0 # where the next experience should write
-        self._inserts=0 ## How many samples are in the buffer
+        self._samples=0 ## How many samples are in the buffer
         
         if (self._settings['float_type'] == 'float32'):
             
@@ -121,18 +122,20 @@ class ExperienceMemory(object):
         
         self._inserts+=1
         self._history_update_index+=1
+        self._samples+=1
         self.updateScalling(state, action, nextState, reward)
         
-        
-    def samples(self):
+    def inserts(self):
         return self._inserts
+    def samples(self):
+        return self._samples
     
     def history_size(self):
         return self._history_size
     
     def updateScalling(self, state, action, nextState, reward):
         
-        if (self.samples() == 1):
+        if (self.inserts() == 1):
             self._state_mean =  self._state_history[0]
             self._state_var = np.zeros_like(state)
             
@@ -143,31 +146,31 @@ class ExperienceMemory(object):
             self._action_var = np.zeros_like(action)
         else:
             x_mean_old = self._state_mean
-            self._state_mean = self._state_mean + ((state - self._state_mean)/self.samples())
+            self._state_mean = self._state_mean + ((state - self._state_mean)/self.inserts())
             
             reward_mean_old = self._reward_mean
-            self._reward_mean = self._reward_mean + ((reward - self._reward_mean)/self.samples())
+            self._reward_mean = self._reward_mean + ((reward - self._reward_mean)/self.inserts())
             
             action_mean_old = self._action_mean
-            self._action_mean = self._action_mean + ((action - self._action_mean)/self.samples())
+            self._action_mean = self._action_mean + ((action - self._action_mean)/self.inserts())
         
-        if ( self.samples() == 2):
+        if ( self.inserts() == 2):
             self._state_var = (self._state_history[1] - ((self._state_history[0]+self._state_history[1])/2.0)**2)/2.0
             self._reward_var = (self._reward_history[1] - ((self._reward_history[0]+self._reward_history[1])/2.0)**2)/2.0
             self._action_var = (self._action_history[1] - ((self._action_history[0]+self._action_history[1])/2.0)**2)/2.0
             
-        elif (self.samples() > 2):
-            self._state_var = (((self.samples()-2)*self._state_var) + ((self.samples()-1)*(x_mean_old - self._state_mean)**2) + ((state - self._state_mean)**2))
-            self._state_var = (self._state_var/float(self.samples()-1))
+        elif (self.inserts() > 2):
+            self._state_var = (((self.inserts()-2)*self._state_var) + ((self.inserts()-1)*(x_mean_old - self._state_mean)**2) + ((state - self._state_mean)**2))
+            self._state_var = (self._state_var/float(self.inserts()-1))
             
-            self._reward_var = (((self.samples()-2)*self._reward_var) + ((self.samples()-1)*(reward_mean_old - self._reward_mean)**2) + ((reward - self._reward_mean)**2))
-            self._reward_var = (self._reward_var/float(self.samples()-1))
+            self._reward_var = (((self.inserts()-2)*self._reward_var) + ((self.inserts()-1)*(reward_mean_old - self._reward_mean)**2) + ((reward - self._reward_mean)**2))
+            self._reward_var = (self._reward_var/float(self.inserts()-1))
             
-            self._action_var = (((self.samples()-2)*self._action_var) + ((self.samples()-1)*(action_mean_old - self._action_mean)**2) + ((action - self._action_mean)**2))
-            self._action_var = (self._action_var/float(self.samples()-1))
+            self._action_var = (((self.inserts()-2)*self._action_var) + ((self.inserts()-1)*(action_mean_old - self._action_mean)**2) + ((action - self._action_mean)**2))
+            self._action_var = (self._action_var/float(self.inserts()-1))
             
-        if ( 'state_normalization' in self._settings and self._settings["state_normalization"] == "adaptive"):
-            self._updateScaling()
+        # if ( 'state_normalization' in self._settings and self._settings["state_normalization"] == "adaptive"):
+        #     self._updateScaling()
             
     def _updateScaling(self):
         

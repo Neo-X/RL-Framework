@@ -16,11 +16,14 @@ def f(x):
 def f2(x):
     return ((math.cos(x*2)-0.75)*(math.sin(x/2)+0.75))*f2_scale
 
+def f3(x):
+    return ((math.fabs(x)*2))
+
 def fNoise(x):
     out = f(x)
     if (x > -1.0) and (x < 0.0):
         # print "Adding noise"
-        r = random.choice([0,1])
+        # r = random.choice([0,1])
         n = np.random.normal(0, 0.2 * (np.abs(x)+1), 1)[0]
         out = out + n
     return out
@@ -29,9 +32,18 @@ def f2Noise(x):
     out = f2(x)
     if (x > -2.0) and (x < -1.0):
         # print "Adding noise"
-        r = random.choice([0,1])
-        n = np.random.normal(0, 1.2 * (np.abs(x)+1), 1)[0]
-        out = out + n
+        # r = random.choice([0,1])
+       n = np.random.normal(0, 1.2 * (np.abs(x)+1), 1)[0]
+       out = out + n
+    return out
+
+def f3Noise(x):
+    out = f3(x)
+    # if (x > -2.0) and (x < -1.0):
+        # print "Adding noise"
+        # r = random.choice([0,1])
+    #     n = np.random.normal(0, 1.2 * (np.abs(x)+1), 1)[0]
+    #     out = out + n
     return out
 
 def createData(bounds, num_samples):
@@ -54,7 +66,8 @@ if __name__ == '__main__':
     file.close()
     num_members = settings['fd_ensemble_size']
     
-    use_f_function=True
+    f_function=f2
+    f_function_noise=f2Noise
 
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     setupEnvironmentVariable(settings)
@@ -68,23 +81,15 @@ if __name__ == '__main__':
     # action_bounds = np.array([[-6.0*f2_scale],[1.0*f2_scale]])
     action_bounds = np.array([[-5.0],[5.0]])
     reward_bounds = np.array([[-5.0],[5.0]])
-    experience_length = 500
-    batch_size=32
+    experience_length = 5000
+    batch_size=64
     # states = np.repeat([np.linspace(-5.0, 5.0, experience_length)],2, axis=0)
-    states = np.linspace(state_bounds[0][0],-1.0, experience_length/2)
-    states = np.append(states, np.linspace(1.0, state_bounds[1][0], experience_length/2))
     states = createData(state_bounds, num_samples=experience_length)
     old_states = states
     # print states
-    if use_f_function:
-        actions = list(map(fNoise, states))
-    else:
-        actions = list(map(f2Noise, states))
+    actions = list(map(f_function_noise, states))
     allAction = actions
-    if use_f_function:
-        actionsNoNoise = list(map(f, states))
-    else:
-        actionsNoNoise = list(map(f2, states))
+    actionsNoNoise = list(map(f_function, states))
     
     # states2 = np.transpose(np.repeat([states], 2, axis=0))
     # print states2
@@ -104,7 +109,7 @@ if __name__ == '__main__':
     num_samples_to_keep=300
     given_actions=[]
     given_states=[]
-    for i in range(num_samples_to_keep):
+    for i in range(experience_length):
         action_ = [[allAction[arr[i]]]]
         given_actions.append(action_)
         state_ = [[states[arr[i]]]]
@@ -112,32 +117,36 @@ if __name__ == '__main__':
         # print "Action: " + str([actions[i]])
         experience.insert(state_, action_, state_,[[0]])
     
+    experience._updateScaling()
+    model.setStateBounds(experience.getStateBounds())
+    model.setActionBounds(experience.getActionBounds())
+    model.setRewardBounds(experience.getRewardBounds())
     errors=[]
     for i in range(50000):
         _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
         # print _actions
+        # print("mean shape: ", np.array(_states).shape, 
+        #       " min: ", np.min(_states),
+        #      " max: ", np.max(_states))
         # dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards) 
-        error = model.train(_states, _states*0.0, _actions, _rewards)
+        error = model.train(_states, _states + 1, _actions, _rewards)
         errors.append(error)
         # print "Error: " + str(error)
     
     print("Done training")
-    states = np.linspace(state_bounds[0][0]*2, state_bounds[1][0]*2, experience_length)
-    if use_f_function:
-        actionsNoNoise = list(map(f, states))
-    else:
-        actionsNoNoise = list(map(f2, states))
+    states = np.linspace(state_bounds[0][0]*2, state_bounds[1][0]*2, num_samples_to_keep)
+    actionsNoNoise = list(map(f_function, states))
     predicted_actions = []
     predicted_actions_dropout = []
     predicted_actions_std = []
     predicted_actions_var = []
     for i in range(num_members):
-        predicted_actions.append(model.predict( np.reshape([states], newshape=(experience_length,1)), 
-                                            np.reshape([states], newshape=(experience_length,1)) * 0, i))
-        predicted_actions_std.append(model.predict_std( np.reshape([states], newshape=(experience_length,1)), 
-                                            np.reshape([states], newshape=(experience_length,1)) * 0, i))
-        predicted_actions_dropout.append(model.predictWithDropout(np.reshape([states], newshape=(experience_length,1)), 
-                                                          np.reshape([states], newshape=(experience_length,1)) * 0, i))
+        predicted_actions.append(model.predict( np.reshape([states], newshape=(num_samples_to_keep,1)), 
+                                            np.reshape([states], newshape=(num_samples_to_keep,1)) + 1, i))
+        predicted_actions_std.append(model.predict_std( np.reshape([states], newshape=(num_samples_to_keep,1)), 
+                                            np.reshape([states], newshape=(num_samples_to_keep,1)) + 1, i))
+        predicted_actions_dropout.append(model.predictWithDropout(np.reshape([states], newshape=(num_samples_to_keep,1)), 
+                                                          np.reshape([states], newshape=(num_samples_to_keep,1)) + 1, i))
     
         predictions = []
         predicted_actions_var_ = []
