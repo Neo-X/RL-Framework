@@ -13,6 +13,9 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
             and (settings_["fd_network_dropout"] > 0.001)):
             settings_['dropout_p'] = settings_["fd_network_dropout"]
             settings_["use_dropout_in_actor"] = True
+        if ("use_stochastic_forward_dynamics" in settings_
+                and (settings_['use_stochastic_forward_dynamics'] == True)):
+            settings_['use_stocastic_policy'] = True
         super(FDNNKerasAdaptive,self).__init__(n_in, n_in, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         self._forward_dynamics_net = self._actor
         self._reward_net = self._critic

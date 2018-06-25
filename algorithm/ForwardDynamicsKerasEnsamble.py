@@ -6,8 +6,8 @@ import sys
 sys.path.append('../')
 from model.ModelUtil import *
 from model.LearningUtil import loglikelihood, loglikelihoodMEAN, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat, likelihood, loglikelihoodMEAN
-from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl, kl_D, entropy, flatgrad, zipsame, get_params_flat, setFromFlat
 from keras.optimizers import SGD
+from model.LearningUtil import loglikelihood_keras, likelihood_keras, kl_keras, kl_D_keras, entropy_keras
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
 import keras
@@ -74,6 +74,17 @@ class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
     def compile(self):
         self.fds = []
         self.rewards = []
+        
+        def loss_std(action_true, action_pred):
+            action_true = action_true[:,:self._state_length]
+            action_pred_mean = action_pred[:,:self._state_length]
+            action_pred_std = action_pred[:,self._state_length:]
+            prob = likelihood_keras(action_true, action_pred_mean, action_pred_std, self._state_length)
+            
+            actLoss = -1.0 * K.mean(prob, axis=-1)
+            ### Average over batch
+            return K.mean(actLoss)
+            
         # sgd = SGD(lr=0.001, momentum=0.9)
         for i in range(self._fd_ensemble_size):
             sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
@@ -84,7 +95,11 @@ class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
             sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
-            self._models[i].getForwardDynamicsNetwork().compile(loss='mse', optimizer=sgd)
+            if ("use_stochastic_forward_dynamics" in self.getSettings()
+                and (self.getSettings()['use_stochastic_forward_dynamics'] == True)):
+                self._models[i].getForwardDynamicsNetwork().compile(loss=loss_std, optimizer=sgd)
+            else:
+                self._models[i].getForwardDynamicsNetwork().compile(loss='mse', optimizer=sgd)
     
             
             self.fds.append(K.function([self._models[i].getStateSymbolicVariable(), self._models[i].getActionSymbolicVariable(), K.learning_phase()], [self._forwards[i]]))
@@ -195,7 +210,8 @@ class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = scale_state(self.fds[member]([state, action,0])[0], self._state_bounds)
+        state_ = scale_state(np.array(self.fds[member]([state, action,1]))[0,:,:self._state_length], self._state_bounds)
+        # print("state:", state_)
         return state_
     
     def predictWithDropout(self, state, action, member=0):
@@ -203,13 +219,16 @@ class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = scale_state(self.fds[member]([state, action,1])[0], self._state_bounds)
+        # state_ = scale_state(self.fds[member]([state, action,1])[0][:][:self._state_length], self._state_bounds)
+        state_ = scale_state(np.array(self.fds[member]([state, action,1]))[0,:,:self._state_length], self._state_bounds)
+        # print("state dropout:", state_)
         return state_
     
-    def predict_std(self, state, action, p=1.0):
+    def predict_std(self, state, action, p=1.0, member=0):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = self._forwardDynamics_std() * (action_bound_std(self._state_bounds))
+        state_ = np.array(self.fds[member]([state, action,1]))[0,:,self._state_length:] * (action_bound_std(self._state_bounds))
+        # state_ = self._forwardDynamics_std() * (action_bound_std(self._state_bounds))
         return state_
     
     def predict_reward(self, state, action, member=0):

@@ -40,6 +40,7 @@ if __name__ == '__main__':
     settings = json.load(file)
     print ("Settings: " + str(json.dumps(settings)))
     file.close()
+    num_members = settings['fd_ensemble_size']
 
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     setupEnvironmentVariable(settings)
@@ -106,9 +107,12 @@ if __name__ == '__main__':
     actionsNoNoise = list(map(f2, states))
     predicted_actions = []
     predicted_actions_dropout = []
+    predicted_actions_std = []
     predicted_actions_var = []
-    for i in range(5):
+    for i in range(num_members):
         predicted_actions.append(model.predict( np.reshape([states], newshape=(experience_length,1)), 
+                                            np.reshape([states], newshape=(experience_length,1)) * 0, i))
+        predicted_actions_std.append(model.predict_std( np.reshape([states], newshape=(experience_length,1)), 
                                             np.reshape([states], newshape=(experience_length,1)) * 0, i))
         predicted_actions_dropout.append(model.predictWithDropout(np.reshape([states], newshape=(experience_length,1)), 
                                                           np.reshape([states], newshape=(experience_length,1)) * 0, i))
@@ -134,9 +138,10 @@ if __name__ == '__main__':
     _fig, (_bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
     _bellman_error, = _bellman_error_ax.plot(old_states, actions, linewidth=2.0, color='y', label="True function with noise")
     
-    for i in range(5):
+    for i in range(num_members):
         _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_dropout[i], linewidth=2.0, color='r', label="Estimated function with dropout")
         _bellman_error, = _bellman_error_ax.plot(states, predicted_actions[i], linewidth=2.0, color='g', label="Estimated function")
+        _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_std[i], linewidth=2.0, color='b', label="Estimated function STD")
         _bellman_error, = _bellman_error_ax.plot(states, predicted_actions_var[i][:,0], linewidth=2.0, label="Variance")
         _bellman_error_std = _bellman_error_ax.fill_between(states, predicted_actions[i][:,0] - predicted_actions_var[i][:,0],
                                                              predicted_actions[i][:,0] + predicted_actions_var[i][:,0], facecolor='green', alpha=0.25)
