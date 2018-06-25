@@ -344,7 +344,7 @@
 	"comment__": "The name of the FD algorithm to load",
 "fd_algorithm": "algorithm.ForwardDynamicsKerasEnsamble.ForwardDynamicsKerasEnsamble",
 	"comment__": "A list describing the size of the layers for the NN",
-"fd_network_layer_sizes": [128, 128, "integrate_actor_part", 128],
+"fd_network_layer_sizes": [128, 64, "integrate_actor_part", 32],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [32, 32, "integrate_actor_part", 32],
 	"comment__": "last policy type of activation to use",
@@ -358,5 +358,5 @@
 	"comment__": "Dropout for fd network",
 "fd_network_dropout": 0.1,
 	"comment__": "number of fd models in the ensemble",
-"fd_ensemble_size": 2
+"fd_ensemble_size": 5
 }

@@ -118,6 +118,12 @@ class DeepNNKerasAdaptive(ModelInterface):
             layer_sizes = self._settings['policy_network_layer_sizes']
             print ("Actor Network layer sizes: ", layer_sizes)
             networkAct = self._stateInput
+            
+            if ( self._dropout_p > 0.001 
+                 and ("use_dropout_in_actor" in self._settings 
+                      and (self._settings["use_dropout_in_actor"] == True)) ):
+                networkAct = Dropout(rate=self._dropout_p)(networkAct)
+            
             for i in range(len(layer_sizes)):
                 second_last_layer = networkAct
                 # networkAct = Dense(layer_sizes[i], init='uniform')(inputAct)
@@ -448,6 +454,35 @@ class DeepNNKerasAdaptive(ModelInterface):
         """ 
         # print("Critic summary: ", self._critic.summary())
 
+    def train(self, states, actions):
+        score = self._actor.fit([states], actions,
+              epochs=1, batch_size=32,
+              verbose=0,
+              shuffle=True
+              # callbacks=[early_stopping],
+              )
+        return score.history['loss'][0]
+        
+    def compile(self):
+        self._actor = Model(inputs=[self.getStateSymbolicVariable()], 
+                            outputs=self._actor)
+        print("Net summary: ", self._actor.summary())
+        sgd = keras.optimizers.Adam(lr=np.float32(0.0001), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(0.000001), decay=np.float32(0.0))
+        self._actor.compile(loss='mse', optimizer=sgd)
+        
+        self._f = self._actor([self.getStateSymbolicVariable()])
+        self._forward = K.function([self.getStateSymbolicVariable(), K.learning_phase()], [self._f])
+        
+    def predict(self, state):
+        state = [np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])]
+        # print("state:", state)
+        y = scale_state(self._forward([state,0])[0][0], self._action_bounds)
+        # print("y: ", y)
+        return y
+    def predictWithDropout(self, state):
+        state = [np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])]
+        y = scale_state(self._forward([state,1])[0][0], self._action_bounds)
+        return y    
 
     ### Setting network input values ###    
     def setStates(self, states):

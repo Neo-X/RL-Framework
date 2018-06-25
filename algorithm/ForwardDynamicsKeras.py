@@ -3,6 +3,7 @@ from theano import tensor as T
 import numpy as np
 # import lasagne
 import sys
+from Crypto.Random.random import shuffle
 sys.path.append('../')
 from model.ModelUtil import *
 from model.LearningUtil import loglikelihood, loglikelihoodMEAN, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat, likelihood, loglikelihoodMEAN
@@ -157,7 +158,8 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         else:
             score = self._model.getForwardDynamicsNetwork().fit([states, actions], result_states,
               epochs=updates, batch_size=batch_size_,
-              verbose=0
+              verbose=0,
+              shuffle=True
               # callbacks=[early_stopping],
               )
             loss = score.history['loss'][0]
@@ -166,7 +168,8 @@ class ForwardDynamicsKeras(AlgorithmInterface):
                 # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
                 score = self._model.getRewardNetwork().fit([states, actions], rewards,
                   epochs=updates, batch_size=batch_size_,
-                  verbose=0
+                  verbose=0,
+                  shuffle=True
                   # callbacks=[early_stopping],
                   )
                 lossReward = score.history['loss'][0]

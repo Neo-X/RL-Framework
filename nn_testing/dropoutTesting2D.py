@@ -40,13 +40,16 @@ if __name__ == '__main__':
     settings = json.load(file)
     print ("Settings: " + str(json.dumps(settings)))
     file.close()
-    import os    
-    os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
+    from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+    setupEnvironmentVariable(settings)
+    setupLearningBackend(settings)        
         
     # import theano
     # from theano import tensor as T
     from model.ModelUtil import *
+    from util.SimulationUtil import createForwardDynamicsModel, createRLAgent, createEnvironment
     from model.DropoutNetwork import DropoutNetwork
+    from model.DeepNNKerasAdaptive import DeepNNKerasAdaptive
     from util.ExperienceMemory import ExperienceMemory
     
     state_bounds = np.array([[-5.0],[5.0]])
@@ -68,6 +71,9 @@ if __name__ == '__main__':
     # states2 = np.transpose(np.repeat([states], 2, axis=0))
     # print states2
     model = DropoutNetwork(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, settings)
+    # model = DeepNNKerasAdaptive(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, 
+    #                             reward_bound=reward_bounds, settings_=settings)
+    # model.compile()
     
     experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True, settings=settings)
     experience.setStateBounds(state_bounds)
@@ -88,7 +94,7 @@ if __name__ == '__main__':
         experience.insert(state_, action_, state_,[[0]])
     
     errors=[]
-    for i in range(500):
+    for i in range(5000):
         _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
         # print _actions 
         error = model.train(_states, _actions)
@@ -100,7 +106,7 @@ if __name__ == '__main__':
     actionsNoNoise = list(map(f, states))
     
     predicted_actions_ = np.array(list(map(model.predict, states)))
-    # print ("Predicted actions: ", predicted_actions_)
+    print ("Predicted actions: ", predicted_actions_)
     predicted_actions = predicted_actions_[:,0]
     predicted_actions2 = predicted_actions_[:,1]
     predicted_actions_dropout_ = np.array(list(map(model.predictWithDropout, states)))

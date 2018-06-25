@@ -113,7 +113,7 @@ if __name__ == '__main__':
         experience.insert(state_, action_, state_,[[0]])
     
     errors=[]
-    for i in range(5000):
+    for i in range(50000):
         _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
         # print _actions
         # dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards) 

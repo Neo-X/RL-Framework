@@ -42,6 +42,8 @@ class ModelInterface(object):
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
 
         # super(DeepCACLADropout,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        self._state_bounds = state_bounds
+        self._action_bounds = action_bounds
         self._batch_size=settings_['batch_size']
         self._state_length = n_in
         self._action_length = len(action_bounds[0])
