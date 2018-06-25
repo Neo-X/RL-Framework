@@ -122,7 +122,7 @@ if __name__ == '__main__':
     model.setActionBounds(experience.getActionBounds())
     model.setRewardBounds(experience.getRewardBounds())
     errors=[]
-    for i in range(50000):
+    for i in range(5000):
         _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
         # print _actions
         # print("mean shape: ", np.array(_states).shape, 

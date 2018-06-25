@@ -897,9 +897,10 @@ def getModelValueUncertanty(model, state, length=4.1, num_samples=32):
     return variance__
 
 def sampleStochasticModel(forwardDynamics, state, action):
-    prediction = forwardDynamics.predictWithDropout(state=current_state_, action=[actions[a]])
-    std__ = forwardDynamics.predict_std(state=current_state_, action=[actions[a]])
-    noise__ = np.random.normal(std__ * 0, std__, 1)[0]
+    prediction = forwardDynamics.predictWithDropout(state=state, action=action)
+    std__ = forwardDynamics.predict_std(state=state, action=action)
+    print("std__: ", std__[0])
+    noise__ = np.random.normal(loc=std__[0] * 0, scale=std__[0], size=1)[0]
     prediction = prediction + noise__
     return prediction
     

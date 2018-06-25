@@ -191,7 +191,7 @@ class ForwardDynamicsKerasEnsamble(AlgorithmInterface):
                 score = self._models[member].getRewardNetwork().fit([states, actions], rewards,
                   epochs=updates, batch_size=batch_size_,
                   verbose=0,
-                  shuffel=True
+                  shuffle=True
                   # callbacks=[early_stopping],
                   )
                 lossReward = score.history['loss'][0]
