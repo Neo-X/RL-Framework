@@ -449,7 +449,11 @@ class PPO_KERAS(KERASAlgorithm):
         # r_ = np.mean(self._r(states, actions, p))
         # r_ = np.mean(self._r(states, actions, 0))
         ### Give the metric some relative unit independent of action size
-        r_ = ( 1 - np.mean(self._r([states, actions, 0])[0])) / float(self._action_length)
+        if ("scale_r_by_action_size" in self.getSettings()
+            and (self.getSettings()["scale_r_by_action_size"] == False)):
+            r_ = ( 1 - np.mean(self._r([states, actions, 0])[0])) 
+        else:
+            r_ = ( 1 - np.mean(self._r([states, actions, 0])[0])) / float(self._action_length)
         # r_ = 0.98
         std = np.std(advantage)
         mean = np.mean(advantage)

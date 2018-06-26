@@ -342,7 +342,7 @@
 	"comment__": "Network settings",
 "network_settings": {
 		"comment__": "Whether or not the network should include pooling layers between convolutions.",
-	"perform_convolution_pooling": true,
+	"perform_convolution_pooling": false,
 		"comment__": "Change where the network splits for a single network model",
 	"split_single_net_earlier": true
 },
