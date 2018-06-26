@@ -18,7 +18,7 @@ class Sampler(LearningAgent):
     def generateSamplesFromNormal(self, mean, num_samples=25, repeate=1, variance_=[0.03]):
         if np.isscalar(variance_):
             variance_ = [variance_]*mean.shape[0]
-        # print ("input Var: " + str(variance_))
+        print ("input mean: ", mean, " input Var: " + str(variance_))
         samples = np.random.multivariate_normal(mean, np.diag(variance_), num_samples)
         return samples  
     

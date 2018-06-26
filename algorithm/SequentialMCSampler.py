@@ -131,8 +131,8 @@ class SequentialMCSampler(Sampler):
                     else:
                         variance__=[variance____]*(len(pa)*look_ahead)
                 else:
-                    variance__=[variance____]*len(action)
                     pa = model.predict(current_state_copy2)
+                    variance__=[variance____]*pa.size
                 
                 action = pa
                 _action_params.extend(action)
