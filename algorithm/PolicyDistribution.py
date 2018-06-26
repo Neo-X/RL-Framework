@@ -111,7 +111,7 @@ class PolicyDistribution(KERASAlgorithm):
         
         
         score = self._model.getActorNetwork().fit(np.array(states), np.array(actions),
-          epochs=1, batch_size=len(tmp_actions),
+          epochs=1, batch_size=len(actions),
           verbose=0,
           shuffle=True
           # callbacks=[early_stopping],

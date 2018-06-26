@@ -132,7 +132,7 @@ class SequentialMCSampler(Sampler):
                         variance__=[variance____]*(len(pa)*look_ahead)
                 else:
                     pa = model.predict(current_state_copy2)
-                    variance__=[variance____]*pa.size
+                    variance__=[variance____]*pa.size*look_ahead
                 
                 action = pa
                 _action_params.extend(action)
@@ -148,7 +148,7 @@ class SequentialMCSampler(Sampler):
             # print ("Number of initial random samples: ", num_samples_)
             # variance__=[variance____]*(len(_action_params))
             _action_params = np.ravel(_action_params)
-            print ("_action_params: ", _action_params, " variance: ", variance__, " for pid: ", os.getpid())
+            # print ("_action_params: ", _action_params, " variance: ", variance__, " for pid: ", os.getpid())
             samples = self.generateSamplesFromNormal(mean=_action_params, num_samples=num_samples_, variance_=variance__)
         else:
             num_samples_ = self.getSettings()["num_uniform_action_samples"] * (_action_dimension)
