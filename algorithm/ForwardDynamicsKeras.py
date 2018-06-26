@@ -16,9 +16,9 @@ from keras.models import Sequential, Model
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
-from algorithm.AlgorithmInterface import AlgorithmInterface
+from algorithm.KERASAlgorithm import KERASAlgorithm
 
-class ForwardDynamicsKeras(AlgorithmInterface):
+class ForwardDynamicsKeras(KERASAlgorithm):
     
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
 
@@ -242,3 +242,20 @@ class ForwardDynamicsKeras(AlgorithmInterface):
         predicted_y = self.predict_reward(states, actions)
         diff = np.mean(np.abs(predicted_y - result_states))
         return diff
+
+    def saveTo(self, fileName):
+        # print(self, "saving model")
+        import dill
+        hf = h5py.File(fileName+"_bounds.h5", "w")
+        hf.create_dataset('_state_bounds', data=self.getStateBounds())
+        hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
+        hf.create_dataset('_action_bounds', data=self.getActionBounds())
+        # hf.create_dataset('_result_state_bounds', data=self.getResultStateBounds())
+        hf.flush()
+        hf.close()
+        suffix = ".h5"
+        ### Save models
+        # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
+        self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
+        self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+        # print ("self._model._actor_train: ", self._model._actor_train)
