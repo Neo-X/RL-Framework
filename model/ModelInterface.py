@@ -9,6 +9,10 @@ from model.ModelUtil import *
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 
+# elu
+def elu_mine(x):
+    return theano.tensor.switch(x > 0, x, theano.tensor.expm1(x))
+
 def getActivationType(type_name):
     # try:
     import lasagne.nonlinearities
@@ -24,6 +28,8 @@ def getActivationType(type_name):
         activation_type = lasagne.nonlinearities.sigmoid
     elif (type_name == 'softplus'):
         activation_type = theano.tensor.nnet.softplus
+    elif (type_name == 'elu'):
+        activation_type = elu_mine
     else:
         print("Activation type: ", type_name, " not recognized")
     return activation_type

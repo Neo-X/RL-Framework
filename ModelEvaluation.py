@@ -77,7 +77,7 @@ class SimWorker(Process):
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, self._settings)
         return forwardDynamicsModel
     
-    def createSampler(self, fd, exp_, actor):
+    def createSampler(self, poli, fd, exp_, actor):
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, createActor
         print("Creating simulation sampler")
         sampler = createSampler(self._settings, exp_)
@@ -89,7 +89,7 @@ class SimWorker(Process):
             action_bounds = np.array(self._settings['action_bounds']) 
             forwardDynamicsModel = createForwardDynamicsModel(self._settings, state_bounds, action_bounds, actor, exp_, agentModel=None, print_info=True)
         sampler.setForwardDynamics(forwardDynamicsModel)
-        # sampler.setPolicy(model)
+        sampler.setPolicy(poli)
         return sampler
     
     def current_mem_usage(self):
@@ -143,7 +143,8 @@ class SimWorker(Process):
         self._model.setPolicy(self.createNewModel())
         self._model.setForwardDynamics(self.createNewFDModel())
         if ( self._settings['use_simulation_sampling'] ):
-            self._model.setSampler(self.createSampler(self._model.getForwardDynamics(), 
+            self._model.setSampler(self.createSampler(self._model.getPolicy(),
+                                                      self._model.getForwardDynamics(), 
                                                       self._exp, self._actor))
         
         ## This get is fine, it is the first one that I want to block on.

@@ -80,7 +80,8 @@ class SequentialMCSampler(Sampler):
             variance__=[variance____]
             current_state_copy2 = copy.deepcopy(current_state_copy)
             current_state_copy__ = self._exp.getStateFromSimState(current_state_copy)
-            _bestSample[0] = model.predict(np.array([current_state_copy__]))
+            action = model.predict(current_state_copy__)
+            _bestSample[0] = action
             ## Get first action
             for i in range(look_ahead):
                 if isinstance(forwardDynamics, ForwardDynamicsSimulator):
@@ -136,14 +137,18 @@ class SequentialMCSampler(Sampler):
                 action = pa
                 _action_params.extend(action)
                 # print ("Suggested Action: " + str(action) + " for state: " + str(current_state_copy) + " " + str(current_state_copy.getParams()) + " with variance: " + str(variance__))
-                current_state_copy3 = forwardDynamics._predict(state__c=current_state_copy2, action=pa)
+                if isinstance(forwardDynamics, ForwardDynamicsSimulator):
+                    current_state_copy3 = forwardDynamics._predict(state__c=current_state_copy2, action=pa)
+                else:
+                    current_state_copy3 = forwardDynamics.predict(current_state_copy2, action)
                 # samples = self.generateSamples(_action_bounds,  num_samples=5)
                 # samples = self.generateSamples(bounds,  num_samples=self._settings["num_uniform_action_samples"])
             # num_samples_ = pow(self.getSettings()["num_uniform_action_samples"], _action_dimension)
             num_samples_ = self.getSettings()["num_uniform_action_samples"] * (_action_dimension)
             # print ("Number of initial random samples: ", num_samples_)
             # variance__=[variance____]*(len(_action_params))
-            # print ("_action_params: ", _action_params, " variance: ", variance__, " for pid: ", os.getpid())
+            _action_params = np.ravel(_action_params)
+            print ("_action_params: ", _action_params, " variance: ", variance__, " for pid: ", os.getpid())
             samples = self.generateSamplesFromNormal(mean=_action_params, num_samples=num_samples_, variance_=variance__)
         else:
             num_samples_ = self.getSettings()["num_uniform_action_samples"] * (_action_dimension)
