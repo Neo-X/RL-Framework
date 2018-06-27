@@ -513,9 +513,9 @@ class LearningAgent(AgentInterface):
         
         if ("use_dual_state_representations" in self.getSettings()
             and (self.getSettings()["use_dual_state_representations"] == True)):
-            print ("State before: ", state)
+            # print ("State before: ", state)
             state = [state[0][0]]
-            print ("State after: ", state)
+            # print ("State after: ", state)
         if (use_mbrl):
             action = self.getSampler().predict(state, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
             act = [action]
@@ -583,11 +583,13 @@ class LearningAgent(AgentInterface):
     def bellman_error(self, state, action, reward, result_state, fall):
         if self._useLock:
             self._accesLock.acquire()
+        """
         if ("use_dual_state_representations" in self.getSettings()
             and (self.getSettings()["use_dual_state_representations"] == True)):
             print ("State: ", state)
             state = state[0]
             print ("State: ", state)
+        """
         err = self._pol.bellman_error(state, action, reward, result_state, fall)
         if self._useLock:
             self._accesLock.release()

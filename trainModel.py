@@ -408,14 +408,20 @@ def trainModelParallel(inputData):
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings, print_info=True)
         forwardDynamicsModel = None
         if (settings['train_forward_dynamics']):
+            state_bounds__ = state_bounds
+            if ("use_dual_state_representations" in settings
+                    and (settings["use_dual_state_representations"] == True)):
+                    state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
+                                     [1] * settings["fd_num_terrain_features"]])
             if ( settings['forward_dynamics_model_type'] == "SingleNet"):
                 print ("Creating forward dynamics network: Using single network model")
-                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model, print_info=True)
+                
+                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds__, action_bounds, None, None, agentModel=model, print_info=True)
                 # forwardDynamicsModel = model
             else:
                 print ("Creating forward dynamics network")
                 # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
-                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
+                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds__, action_bounds, None, None, agentModel=None, print_info=True)
             # masterAgent.setForwardDynamics(forwardDynamicsModel)
             forwardDynamicsModel.setActor(actor)
             # forwardDynamicsModel.setEnvironment(exp)
@@ -536,9 +542,17 @@ def trainModelParallel(inputData):
         
         if (settings['train_forward_dynamics']):
             if ( not settings['load_saved_model'] ):
-                forwardDynamicsModel.setStateBounds(state_bounds)
-                forwardDynamicsModel.setActionBounds(action_bounds)
-                forwardDynamicsModel.setRewardBounds(reward_bounds)
+                if ("use_dual_state_representations" in settings
+                    and (settings["use_dual_state_representations"] == True)):
+                    state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
+                                     [1] * settings["fd_num_terrain_features"]])
+                    forwardDynamicsModel.setStateBounds(state_bounds__)
+                    forwardDynamicsModel.setActionBounds(action_bounds)
+                    forwardDynamicsModel.setRewardBounds(reward_bounds)
+                else:
+                    forwardDynamicsModel.setStateBounds(state_bounds)
+                    forwardDynamicsModel.setActionBounds(action_bounds)
+                    forwardDynamicsModel.setRewardBounds(reward_bounds)
             masterAgent.setForwardDynamics(forwardDynamicsModel)
         
         ## Now everything related to the exp memory needs to be updated
@@ -846,6 +860,10 @@ def trainModelParallel(inputData):
                         print (states, actions, rewards, result_states)
                         
                     if (settings['train_forward_dynamics']):
+                        if ( 'keep_seperate_fd_exp_buffer' in settings 
+                             and (settings['keep_seperate_fd_exp_buffer'])):
+                            states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getFDExperience().get_batch(batch_size)
+                            
                         dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
                         dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
                         dynamicsLosses.append(dynamicsLoss)
