@@ -818,11 +818,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         result_states___.append(resultState_)
         if (worker_id is not None):
             # print("Pushing working id as fall value: ", [worker_id])
-            falls.append([[worker_id]] * np.array(state_).shape[0])
+            falls.append([[worker_id]] * len(state_))
         else:
             # print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])
-            falls.append([[agent_not_fell]] * np.array(state_).shape[0])
-        exp_act = [[exp_action]]  * np.array(state_).shape[0]
+            falls.append([[agent_not_fell]] * len(state_))
+        exp_act = [[exp_action]]  * len(state_)
         # print ("exp_act: " , exp_act)
         exp_actions.append(exp_act)
         # print ("falls: ", falls)
@@ -857,11 +857,19 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print ("time index: ", i_)
             # print ("states shape: ", states[0].shape)
             if ('use_GAE' in settings and ( settings['use_GAE'] == True)):
-                for a in range(states[0].shape[0]):
+                for a in range(len(states[0])):
                     # print ("Computing advantage for agent: ", a)
                     path = {}
                     ### timestep, agent, state
                     # print ("States shape: ", np.array(states[last_epoch_end:]).shape)
+                    ### TODO: I think this happens to work because of the checking for states by agent index which is 0...
+                    """
+                    if ("use_dual_state_representations" in settings
+                        and (settings["use_dual_state_representations"] == True)):
+                        path['states'] = copy.deepcopy(np.array([y[0] for y in states[last_epoch_end:]])[:,a,:])
+                        print ("path['states']: ", path['states'].shape)
+                    else:
+                    """
                     path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
                     # print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
                     # print (repr(np.array(rewards[last_epoch_end:])))
