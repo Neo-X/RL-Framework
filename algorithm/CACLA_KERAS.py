@@ -65,12 +65,16 @@ class CACLA_KERAS(KERASAlgorithm):
         
     def compile(self):
         # sgd = SGD(lr=0.001, momentum=0.9)
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), beta_1=np.float32(0.9), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
         # sgd = SGD(lr=0.0005, momentum=0.9)
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), beta_1=np.float32(0.9), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
+                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
         print("sgd, actor: ", sgd)
         print ("Clipping: ", sgd.decay)
         self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)

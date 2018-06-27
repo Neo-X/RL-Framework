@@ -51,7 +51,7 @@ def getOptimizer(lr, settings):
         sgd = keras.optimizers.SGD(lr=lr, momentum=settings["rho"], decay=0.0, nesterov=False)
     else:
         sgd = keras.optimizers.Adam(lr=np.float32(lr), 
-                                beta_1=settings["rms_epsilon"], beta_2=np.float32(0.999), 
+                                beta_1=settings["rho"], beta_2=np.float32(0.999), 
                                 epsilon=np.float32(settings["rms_epsilon"]), decay=0.0,
                                 amsgrad=False)
     return sgd
