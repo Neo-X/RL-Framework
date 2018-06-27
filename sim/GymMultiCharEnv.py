@@ -89,7 +89,8 @@ class GymMultiCharEnv(SimInterface):
         # self._previous_observation = observation
         
         # state_ = np.array(self._previous_observation)
-        state_ = np.array(self._previous_observation)
+        # state_ = np.array(self._previous_observation)
+        state_ = self._previous_observation
         # state = np.reshape(state_, (len(state_), -1))
         
         return state_
