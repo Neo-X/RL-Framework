@@ -83,7 +83,7 @@ class ExperienceMemory(object):
     def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]], exp_action=[[0]], advantage=[[0]]):
         # print "Instert State: " + str(state)
         # state = list(state)
-        assert len(state[0]) == self._state_length, "len(state[0]) == self._state_length: " + str(state) 
+        assert len(state[0]) == self._state_length, "len(state[0]) == self._state_length: " + str(self._state_length) + " state: " + str(state) 
         assert len(action[0]) == self._action_length, "len(action[0]) == self._action_length: " + str(action)
         assert len(nextState[0]) == self._result_state_length, "len(nextState[0]) == self._result_state_length: "+ str(nextState)
         assert len(reward[0]) == 1

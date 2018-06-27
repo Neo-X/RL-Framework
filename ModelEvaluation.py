@@ -57,6 +57,11 @@ class SimWorker(Process):
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, createActor
         print ("Creating new FD model with different session")
         state_bounds = np.array(self._settings['state_bounds'])
+        if ("use_dual_state_representations" in self._settings
+            and (self._settings["use_dual_state_representations"] == True)):
+            state_bounds = np.array([[0] * self._settings["fd_num_terrain_features"], 
+                                     [1] * self._settings["fd_num_terrain_features"]])
+            print("fd state bounds:", state_bounds)
         action_bounds = np.array(self._settings['action_bounds']) 
         np.array(self._settings['reward_bounds'])
         
@@ -1023,6 +1028,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ( len(stds) > 0):
             print("Mean actions std:  ", np.mean(stds, axis=0) )
     """
+    """
     assert np.array(tmp_states).shape == (i_ * len(states[0]), len(model.getStateBounds()[0])), "np.array(tmp_states).shape: " + str(np.array(tmp_states).shape) + " == " + str((i_ * len(states[0]), len(model.getStateBounds()[0])))
     assert np.array(tmp_states).shape == np.array(tmp_res_states).shape, "np.array(tmp_states).shape == np.array(tmp_res_states).shape: " + str(np.array(tmp_states).shape) + " == " + str(np.array(tmp_res_states).shape)
     assert np.array(tmp_rewards).shape == (i_ * len(states[0]), 1), "np.array(tmp_rewards).shape: " + str(np.array(tmp_rewards).shape) + " == " + str((i_ * len(states[0]), 1))
@@ -1032,6 +1038,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     assert np.array(tmp_advantage).shape == np.array(tmp_exp_actions).shape, "np.array(tmp_advantage).shape == np.array(tmp_exp_actions).shape: " + str(np.array(tmp_advantage).shape) + " == " + str(np.array(tmp_exp_actions).shape)
     assert np.array(tmp_advantage).shape == np.array(tmp_baselines_).shape, "np.array(tmp_advantage).shape == np.array(tmp_baselines_).shape: " + str(np.array(tmp_advantage).shape) + " == " + str(np.array(tmp_baselines_).shape)
     assert np.array(tmp_baselines_).shape == np.array(tmp_discounted_sum).shape, "np.array(tmp_baselines_).shape == np.array(tmp_discounted_sum).shape: " + str(np.array(tmp_baselines_).shape) + " == " + str(np.array(tmp_discounted_sum).shape)
+    """
     # print("***** Sim Actions std:  ", np.std((actions), axis=0) )
     # print("***** Sim State mean:  ", np.mean((states), axis=0) )
     # print("***** Sim Next State mean:  ", np.mean((result_states___), axis=0) )
@@ -1322,28 +1329,36 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         state_bounds = np.ones((2,states.shape[1]))
         
-        state_avg = states[:settings['bootstrap_samples']].mean(0)
-        state_stddev = states[:settings['bootstrap_samples']].std(0)
-        reward_avg = rewards_[:settings['bootstrap_samples']].mean(0)
-        reward_stddev = rewards_[:settings['bootstrap_samples']].std(0)
-        action_avg = actions[:settings['bootstrap_samples']].mean(0)
-        action_stddev = actions[:settings['bootstrap_samples']].std(0)
-        print("Computed state min bound: ", state_avg - state_stddev)
-        print("Computed state max bound: ", state_avg + state_stddev)
         if (settings['state_normalization'] == "minmax"):
-            state_bounds[0] = states[:settings['bootstrap_samples']].min(0)
-            state_bounds[1] = states[:settings['bootstrap_samples']].max(0)
-            reward_bounds[0] = rewards_[:settings['bootstrap_samples']].min(0)
-            reward_bounds[1] = rewards_[:settings['bootstrap_samples']].max(0)
-            # action_bounds[0] = actions[:settings['bootstrap_samples']].min(0)
-            # action_bounds[1] = actions[:settings['bootstrap_samples']].max(0)
+            state_bounds[0] = states[:settings['bootstrap_samples']].min()
+            state_bounds[1] = states[:settings['bootstrap_samples']].max()
+            reward_bounds[0] = rewards_[:settings['bootstrap_samples']].min()
+            reward_bounds[1] = rewards_[:settings['bootstrap_samples']].max()
+            # action_bounds[0] = actions[:settings['bootstrap_samples']].min()
+            # action_bounds[1] = actions[:settings['bootstrap_samples']].max()
         elif (settings['state_normalization'] == "variance" or
               settings['state_normalization'] == "adaptive"):
+            state_avg = states[:settings['bootstrap_samples']].mean()
+            state_stddev = states[:settings['bootstrap_samples']].std()
+            reward_avg = rewards_[:settings['bootstrap_samples']].mean()
+            reward_stddev = rewards_[:settings['bootstrap_samples']].std()
+            action_avg = actions[:settings['bootstrap_samples']].mean()
+            action_stddev = actions[:settings['bootstrap_samples']].std()
+            print("Computed state min bound: ", state_avg - state_stddev)
+            print("Computed state max bound: ", state_avg + state_stddev)
             print ("(state_avg - (state_stddev * ", scale_factor, ")): ", (state_avg - (state_stddev * scale_factor)))
             state_bounds[0] = (state_avg - (state_stddev * scale_factor))
             state_bounds[1] = (state_avg + (state_stddev * scale_factor))
         elif (settings['state_normalization'] == "adaptive"):
             print ("(state_avg - (state_stddev * ", scale_factor, ")): ", (state_avg - (state_stddev * scale_factor)))
+            state_avg = states[:settings['bootstrap_samples']].mean()
+            state_stddev = states[:settings['bootstrap_samples']].std()
+            reward_avg = rewards_[:settings['bootstrap_samples']].mean()
+            reward_stddev = rewards_[:settings['bootstrap_samples']].std()
+            action_avg = actions[:settings['bootstrap_samples']].mean()
+            action_stddev = actions[:settings['bootstrap_samples']].std()
+            print("Computed state min bound: ", state_avg - state_stddev)
+            print("Computed state max bound: ", state_avg + state_stddev)
             state_bounds[0] = (state_avg - (state_stddev * scale_factor))
             state_bounds[1] = (state_avg + (state_stddev * scale_factor))
             reward_bounds[0] = (reward_avg - (reward_stddev * scale_factor))
@@ -1369,12 +1384,12 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         experience.setSettings(settings)
         
         
-        print ("State Mean:" + str(state_avg))
-        print ("State Variance: " + str(state_stddev))
-        print ("Reward Mean:" + str(reward_avg))
-        print ("Reward Variance: " + str(reward_stddev))
-        print ("Action Mean:" + str(action_avg))
-        print ("Action Variance: " + str(action_stddev))
+        # print ("State Mean:" + str(state_avg))
+        # print ("State Variance: " + str(state_stddev))
+        # print ("Reward Mean:" + str(reward_avg))
+        # print ("Reward Variance: " + str(reward_stddev))
+        # print ("Action Mean:" + str(action_avg))
+        # print ("Action Variance: " + str(action_stddev))
         print ("Max State:" + str(state_bounds[1]))
         print ("Min State:" + str(state_bounds[0]))
         print ("Max Reward:" + str(reward_bounds[1]))
@@ -1388,6 +1403,10 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         for state, action, resultState, reward_, fall_, G_t, exp_action, adv in zip(states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_):
             # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
+            if ("use_dual_state_representations" in settings
+                and (settings["use_dual_state_representations"] == True)):
+                state = state[0]
+                resultState = resultState[0]
             if settings['action_space_continuous']:
                 # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
                 experience.insertTuple(([state], [action], [resultState], [reward_], [fall_], [G_t], [exp_action], [adv]))

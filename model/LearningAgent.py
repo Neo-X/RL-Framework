@@ -136,7 +136,16 @@ class LearningAgent(AgentInterface):
             ### Causes the new scaling values to be computed but not applied. They are applied later after the updates
             self.getExperience()._settings["state_normalization"] = "variance"
             for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, advantage__) in zip(_states, _actions, _result_states, _rewards, _falls, _G_t, _exp_actions, _advantage):
-                if (checkValidData(state__, action__, next_state__, reward__) and checkDataIsValid(advantage__), checkDataIsValid(G_t__)):
+
+                state___ = state__
+                next_state___ = next_state__
+                if ("use_dual_state_representations" in self._settings
+                        and (self._settings["use_dual_state_representations"] == True)):
+                    state___ = state__[0]
+                    next_state___ = next_state__[0]
+                    # print("state: ", state___)
+                if (checkValidData(state___, action__, next_state___, reward__) and 
+                    checkDataIsValid(advantage__), checkDataIsValid(G_t__)):
                     tmp_states.append(state__)
                     tmp_actions.append(action__)
                     tmp_result_states.append(next_state__)
@@ -147,8 +156,14 @@ class LearningAgent(AgentInterface):
                     tmp_G_t.append(G_t__)
                     # print("adv__:", advantage__)
                     tup = ([state__], [action__], [next_state__], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
+                    if ("use_dual_state_representations" in self._settings
+                        and (self._settings["use_dual_state_representations"] == True)):
+                        tup = ([state__[0]], [action__], [next_state__[0]], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
                     self.getExperience().insertTuple(tup)
                     if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
+                        if ("use_dual_state_representations" in self._settings
+                        and (self._settings["use_dual_state_representations"] == True)):
+                            tup = ([np.ravel(state__[1])], [action__], [np.ravel(next_state__[1])], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
                         self.getFDExperience().insertTuple(tup)
                     num_samples_ = num_samples_ + 1
 
@@ -166,6 +181,7 @@ class LearningAgent(AgentInterface):
                 print ("self._expBuff.samples(): ", self.getExperience().samples(), " states.shape: ", np.array(_states).shape)
                 print ("exp_actions sum: ", np.sum(tmp_exp_action))
             if (len(_states) > 0):
+                """
                 _states = np.array(norm_action(np.array(tmp_states), self._pol.getStateBounds()), dtype=self._settings['float_type'])
                 # print("Learning Agent: Get state bounds: ", self._pol.getStateBounds())
                 # print ("ExpMem: Get state bounds ", self._expBuff.getStateBounds())
@@ -183,6 +199,8 @@ class LearningAgent(AgentInterface):
                 _advantage = np.array(tmp_advantage, dtype=self._settings['float_type'])
                 _G_t = np.array(tmp_G_t, dtype=self._settings['float_type'])
                 _exp_action = np.array(tmp_exp_action, dtype=self._settings['float_type'])
+                """
+                pass
                 # print("Not Falls: ", _falls)
                 # print("Rewards: ", _rewards)
                 # print ("Actions after: ", _actions)
@@ -492,6 +510,12 @@ class LearningAgent(AgentInterface):
     def predict(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False, use_mbrl=False):
         if self._useLock:
             self._accesLock.acquire()
+        
+        if ("use_dual_state_representations" in self.getSettings()
+            and (self.getSettings()["use_dual_state_representations"] == True)):
+            # print ("State: ", state)
+            state = [state[0][0]]
+            # print ("State: ", state)
         if (use_mbrl):
             action = self.getSampler().predict(state, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
             act = [action]
@@ -504,6 +528,11 @@ class LearningAgent(AgentInterface):
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:
             self._accesLock.acquire()
+        if ("use_dual_state_representations" in self.getSettings()
+            and (self.getSettings()["use_dual_state_representations"] == True)):
+            # print ("State: ", state)
+            state = [state[0][0]]
+            # print ("State: ", state)
         std = self._pol.predict_std(state, p=p)
         if self._useLock:
             self._accesLock.release()
@@ -512,6 +541,11 @@ class LearningAgent(AgentInterface):
     def predictWithDropout(self, state):
         if self._useLock:
             self._accesLock.acquire()
+        if ("use_dual_state_representations" in self.getSettings()
+            and (self.getSettings()["use_dual_state_representations"] == True)):
+            # print ("State: ", state)
+            state = [state[0][0]]
+            # print ("State: ", state)
         act = self._pol.predictWithDropout(state)
         if self._useLock:
             self._accesLock.release()
@@ -523,6 +557,11 @@ class LearningAgent(AgentInterface):
     def q_value(self, state):
         if self._useLock:
             self._accesLock.acquire()
+        if ("use_dual_state_representations" in self.getSettings()
+            and (self.getSettings()["use_dual_state_representations"] == True)):
+            # print ("State: ", state)
+            state = [state[0][0]]
+            # print ("State: ", state)
         q = self._pol.q_value(state)
         if self._useLock:
             self._accesLock.release()
@@ -531,6 +570,11 @@ class LearningAgent(AgentInterface):
     def q_values(self, state):
         if self._useLock:
             self._accesLock.acquire()
+        if ("use_dual_state_representations" in self.getSettings()
+            and (self.getSettings()["use_dual_state_representations"] == True)):
+            # print ("State: ", state)
+            state = [state[0][0]]
+            # print ("State: ", state)
         q = self._pol.q_values(state)
         if self._useLock:
             self._accesLock.release()
@@ -539,6 +583,11 @@ class LearningAgent(AgentInterface):
     def bellman_error(self, state, action, reward, result_state, fall):
         if self._useLock:
             self._accesLock.acquire()
+        if ("use_dual_state_representations" in self.getSettings()
+            and (self.getSettings()["use_dual_state_representations"] == True)):
+            # print ("State: ", state)
+            state = [state[0][0]]
+            # print ("State: ", state)
         err = self._pol.bellman_error(state, action, reward, result_state, fall)
         if self._useLock:
             self._accesLock.release()
@@ -567,11 +616,15 @@ class LearningAgent(AgentInterface):
     def setStateBounds(self, bounds):
         self.getPolicy().setStateBounds(bounds)
         if (self._settings['train_forward_dynamics']):
-            self.getForwardDynamics().setStateBounds(bounds)
-            if ( 'keep_seperate_fd_exp_buffer' in self._settings 
-                 and (self._settings['keep_seperate_fd_exp_buffer'])
-                 and (self.getFDExperience() is not None)):
-                self.getFDExperience().setStateBounds(bounds)
+            if ("use_dual_state_representations" in self._settings
+                and (self._settings["use_dual_state_representations"] == True)):
+                pass
+            else:
+                self.getForwardDynamics().setStateBounds(bounds)
+                if ( 'keep_seperate_fd_exp_buffer' in self._settings 
+                     and (self._settings['keep_seperate_fd_exp_buffer'])
+                     and (self.getFDExperience() is not None)):
+                    self.getFDExperience().setStateBounds(bounds)
     def setActionBounds(self, bounds):
         self.getPolicy().setActionBounds(bounds)
         if (self._settings['train_forward_dynamics']):

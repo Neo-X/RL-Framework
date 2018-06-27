@@ -225,8 +225,8 @@ class DeepNNKerasAdaptive(ModelInterface):
             # inputAct.trainable = True
             networkAct_ = networkAct
             if (layer_sizes[-1] != "merge_state_types"
-                and ( not ("fd_network_leave_off_end" in self._settings 
-                           and (self._settings["fd_network_leave_off_end"] == True )))):
+                and ( not ("network_leave_off_end" in self._settings 
+                           and (self._settings["network_leave_off_end"] == True )))):
                 networkAct = Dense(n_out, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
     
