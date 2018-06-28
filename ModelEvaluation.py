@@ -844,10 +844,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (((exp.endOfEpoch() and settings['reset_on_fall'] and (not evaluation)) )  
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
                 ):
+            """
             if (settings['on_policy']):
                 evalDatas.append(np.sum(rewards[last_epoch_end:])/float(settings['max_epoch_length']))
             else:
-                evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
+            """
+            evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
             """
             if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
                 # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
@@ -918,10 +920,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         i_ += 1
         
         
+    """
     if (settings['on_policy']):
         evalDatas.append(np.sum(rewards[last_epoch_end:])/float(settings['max_epoch_length']))
     else:
-        evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
+    """
+    evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
     evalData = [np.mean(evalDatas)]
     G_ts.extend(copy.deepcopy(G_t))
     baselines_.extend(copy.deepcopy(baseline))
