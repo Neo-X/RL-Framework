@@ -953,7 +953,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     """
     if ('use_GAE' in settings and ( settings['use_GAE'] == True)):
         if (len(states[last_epoch_end:]) > 0):
-            for a in range(states[0].shape[0]):
+            for a in range(len(states[0])):
                 # print ("Computing advantage for agent: ", a)
                 path = {}
                 ### timestep, agent, state
