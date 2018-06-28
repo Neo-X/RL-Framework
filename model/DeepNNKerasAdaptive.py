@@ -240,14 +240,14 @@ class DeepNNKerasAdaptive(ModelInterface):
                     second_last_layer = getKerasActivation(self._settings['policy_activation_type'])(second_last_layer)
                     with_std = Dense(n_out, 
                                 kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
-                                # kernel_initializer=(keras.initializers.VarianceScaling(scale=1.01,
-                                #  mode='fan_avg', distribution='uniform', seed=None) )
+                                kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
+                                mode='fan_avg', distribution='uniform', seed=None) )
                                      )(second_last_layer)
                 else:
                     with_std = Dense(n_out, 
                                 kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
-                                # kernel_initializer=(keras.initializers.VarianceScaling(scale=1.01,
-                                 # mode='fan_avg', distribution='uniform', seed=None) )
+                                kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
+                                mode='fan_avg', distribution='uniform', seed=None) )
                                      )(networkAct_)
                 with_std = getKerasActivation(self._settings['_last_std_policy_layer_activation_type'])(with_std)
                 # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
