@@ -5,7 +5,7 @@ import sys
 import copy
 sys.path.append('../')
 from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward, norm_reward
-from algorithm.KERASAlgorithm import KERASAlgorithm
+from algorithm.KERASAlgorithm import *
 from model.LearningUtil import loglikelihood_keras, likelihood_keras, kl_keras, kl_D_keras, entropy_keras
 from keras.optimizers import SGD
 # from keras.utils.np_utils import to_categoricalnetwork
@@ -42,19 +42,6 @@ def flatten(data):
         else:
             yield i
     
-def getOptimizer(lr, settings):
-    """
-        Function to make it easier to select the SGD optimizer to use
-    """
-    if ( "optimizer" in settings 
-         and ( settings["optimizer"] == "sgd")):
-        sgd = keras.optimizers.SGD(lr=lr, momentum=settings["rho"], decay=0.0, nesterov=False)
-    else:
-        sgd = keras.optimizers.Adam(lr=np.float32(lr), 
-                                beta_1=settings["rho"], beta_2=np.float32(0.999), 
-                                epsilon=np.float32(settings["rms_epsilon"]), decay=0.0,
-                                amsgrad=False)
-    return sgd
     
 
 class PPO_KERAS(KERASAlgorithm):

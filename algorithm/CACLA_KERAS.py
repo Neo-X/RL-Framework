@@ -5,7 +5,7 @@ import sys
 import copy
 sys.path.append('../')
 from model.ModelUtil import *
-from algorithm.KERASAlgorithm import KERASAlgorithm
+from algorithm.KERASAlgorithm import *
 from model.LearningUtil import loglikelihood, kl, entropy, change_penalty
 from keras.optimizers import SGD
 # from keras.utils.np_utils import to_categoricalnetwork
@@ -65,16 +65,14 @@ class CACLA_KERAS(KERASAlgorithm):
         
     def compile(self):
         # sgd = SGD(lr=0.001, momentum=0.9)
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), 
-                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
+        sgd = getOptimizer(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+                                    settings=self.getSettings())
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
         # sgd = SGD(lr=0.0005, momentum=0.9)
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
-                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
+        sgd = sgd = getOptimizer(lr=np.float32(self.getSettings()['learning_rate']), 
+                                    settings=self.getSettings())
         print("sgd, actor: ", sgd)
         print ("Clipping: ", sgd.decay)
         self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
