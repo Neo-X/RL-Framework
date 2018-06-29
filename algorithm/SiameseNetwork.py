@@ -169,9 +169,11 @@ class SiameseNetwork(KERASAlgorithm):
     def train(self, states, actions, result_states, rewards, updates=1, batch_size=None):
         """
             states will come for the agent and
-            results_states will come from the imitation agent
+            results_states can come from the imitation agent
         """
-        # states = np.concatenate((states, result_states), axis=0)
+        if ("replace_next_state_with_imitation_viz_state" in self.getSettings()
+            and (self.getSettings()["replace_next_state_with_imitation_viz_state"] == True)):
+            states = np.concatenate((states, result_states), axis=0)
         te_pair1, te_pair2, te_y = create_pairs2(states)
         self._updates += 1
         if (batch_size is None):
