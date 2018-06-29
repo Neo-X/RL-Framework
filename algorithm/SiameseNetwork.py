@@ -153,7 +153,7 @@ class SiameseNetwork(KERASAlgorithm):
         # print ("states shape: ", states.shape, " actions shape: ", actions.shape)
         # grad = self._get_grad([states, actions])[0]
         grad = np.zeros_like(states)
-        print ("grad: ", grad)
+        # print ("grad: ", grad)
         return grad
     
     def getRewardGrads(self, states, actions, alreadyNormed=False):

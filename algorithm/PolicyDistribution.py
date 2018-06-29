@@ -117,6 +117,8 @@ class PolicyDistribution(KERASAlgorithm):
           # callbacks=[early_stopping],
               )
         
+        lossActor = score.history['loss'][0]
+        # print("Policy Loss: ", lossActor)
         return lossActor
     
     
