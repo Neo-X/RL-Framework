@@ -407,6 +407,7 @@ class SimWorker(Process):
                 # sum1 = summary.summarize(all_objects)
                 # summary.print_(sum1)
         print ("Simulation Worker Complete: ", os.getpid())
+        import keras
         self._exp.finish()
         sess = keras.backend.get_session()
         keras.backend.clear_session()
