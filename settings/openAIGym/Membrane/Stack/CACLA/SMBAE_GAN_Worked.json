@@ -200,7 +200,7 @@
     "give_mbae_actions_to_critic": true,
     "collect_tuples_in_batches": false,
     "epsilon": 1.0,
-    "use_stocastic_policy": false,
+    "use_stochastic_policy": false,
     "use_model_based_action_optimization": true,
     "average_parameter_change": 0.25,
     "use_simulation_sampling": false,

@@ -232,7 +232,7 @@ class DeepNNKerasAdaptive(ModelInterface):
     
             self._actor = networkAct
                     
-            if (self._settings['use_stocastic_policy']):
+            if (self._settings['use_stochastic_policy']):
                 if ("split_single_net_earlier" in self._networkSettings and 
                     self._networkSettings["split_single_net_earlier"] == True):
                     second_last_layer = Dense(layer_sizes[len(layer_sizes)-1], 
@@ -416,7 +416,7 @@ class DeepNNKerasAdaptive(ModelInterface):
     
             self._actor = networkAct
                     
-            if (self._settings['use_stocastic_policy']):
+            if (self._settings['use_stochastic_policy']):
                 if ("split_single_net_earlier" in self._networkSettings and 
                     (self._networkSettings["split_single_net_earlier"] == True)):
                     second_last_layer = Dense(layer_sizes[len(layer_sizes)-1],

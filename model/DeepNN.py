@@ -56,7 +56,7 @@ class DeepNN(ModelInterface):
                 networkAct, num_units=self._action_length,
                 nonlinearity=lasagne.nonlinearities.linear)
         # self._b_o = init_b_weights((n_out,))
-        if (self._settings['use_stocastic_policy']):
+        if (self._settings['use_stochastic_policy']):
             with_std = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._action_length,
                     nonlinearity=theano.tensor.nnet.softplus)

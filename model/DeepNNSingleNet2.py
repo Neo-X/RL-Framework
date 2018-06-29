@@ -50,7 +50,7 @@ class DeepNNSingleNet2(ModelInterface):
                 networkMid, num_units=self._action_length,
                 nonlinearity=self._last_policy_layer_activation_type)
         
-        if (self._settings['use_stocastic_policy']):
+        if (self._settings['use_stochastic_policy']):
             with_std = lasagne.layers.DenseLayer(
                     networkMid, num_units=self._action_length,
                     nonlinearity=self._last_std_policy_layer_activation_type,

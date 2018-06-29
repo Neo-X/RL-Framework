@@ -80,7 +80,7 @@ class DeepNNSingleNet(ModelInterface):
                 networkMiddle, num_units=self._action_length,
                 nonlinearity=last_policy_layer_activation_type)
         
-        if (self._settings['use_stocastic_policy'] and ( not ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])))):
+        if (self._settings['use_stochastic_policy'] and ( not ( 'use_fixed_std' in self.getSettings() and ( self.getSettings()['use_fixed_std'])))):
             print ("Adding stochastic layer")
             with_std = lasagne.layers.DenseLayer(
                     networkMiddle, num_units=self._action_length,

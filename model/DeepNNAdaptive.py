@@ -50,7 +50,7 @@ class DeepNNAdaptive(ModelInterface):
                 networkAct, num_units=self._action_length,
                 nonlinearity=self._last_policy_layer_activation_type)
         # self._b_o = init_b_weights((n_out,))
-        if (self._settings['use_stocastic_policy']):
+        if (self._settings['use_stochastic_policy']):
             with_std = lasagne.layers.DenseLayer(
                     networkAct, num_units=self._action_length,
                     ### Reduce the initial size of std
@@ -87,7 +87,7 @@ class DeepNNAdaptive(ModelInterface):
                             network, num_units=self._action_length,
                             nonlinearity=self._last_policy_layer_activation_type)
                     # self._b_o = init_b_weights((n_out,))
-                    if (self._settings['use_stocastic_policy']):
+                    if (self._settings['use_stochastic_policy']):
                         with_std = lasagne.layers.DenseLayer(
                                 network, num_units=self._action_length,
                                 ### Reduce the initial size of std

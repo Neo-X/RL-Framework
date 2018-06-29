@@ -683,7 +683,7 @@ class DeepCNNSingleNet(ModelInterface):
                     networkMiddle, num_units=self._action_length,
                     nonlinearity=lasagne.nonlinearities.linear)
         
-        if (self._settings['use_stocastic_policy']):
+        if (self._settings['use_stochastic_policy']):
             with_std = lasagne.layers.DenseLayer(
                     networkMiddle, num_units=self._action_length,
                     nonlinearity=theano.tensor.nnet.softplus)

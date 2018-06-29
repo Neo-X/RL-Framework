@@ -79,7 +79,7 @@ class MBRL_KERAS(KERASAlgorithm):
         # self._Advantage = K.placeholder(shape=(1,), name="Advantage")
         
         self._PoliAction = keras.layers.Input(shape=(self._action_length,), name="PoliAction")
-        if ( 'use_stocastic_policy' in self.getSettings() and ( self.getSettings()['use_stocastic_policy'])):
+        if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])):
             self._PoliAction = keras.layers.Input(shape=(self._action_length*2,), name="PoliAction")
         
         ## primary network
@@ -123,14 +123,14 @@ class MBRL_KERAS(KERASAlgorithm):
         
         
         self._q_valsActA = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
-        if ( 'use_stocastic_policy' in self.getSettings() and ( self.getSettings()['use_stocastic_policy'])): 
+        if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])): 
             # self._q_valsActASTD = (self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) + 1e-2
             self._q_valsActASTD = ((self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) * self.getSettings()['exploration_rate']) + 1e-2
         else:
             self._q_valsActASTD = ( K.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         
         self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
-        if ( 'use_stocastic_policy' in self.getSettings() and ( self.getSettings()['use_stocastic_policy'])): 
+        if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])): 
             # self._q_valsActTargetSTD = (self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) + 1e-2
             self._q_valsActTargetSTD = ((self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) * self.getSettings()['exploration_rate']) + 1e-2 
         else:
@@ -189,7 +189,7 @@ class MBRL_KERAS(KERASAlgorithm):
         def poli_loss(action_old, advantage, anneal):
             ## Compute on-policy policy gradient
             action_old_mean = action_old[:,:self._action_length]
-            if ( 'use_stocastic_policy' in self.getSettings() and ( self.getSettings()['use_stocastic_policy'])):
+            if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])):
                 action_old_std = action_old[:,self._action_length:]
             else:
                 action_old_std = (K.ones_like(action_old_mean)) * self.getSettings()['exploration_rate']
@@ -197,7 +197,7 @@ class MBRL_KERAS(KERASAlgorithm):
             def loss(action_true, action_pred):
                 action_true = action_true[:,:self._action_length]
                 action_pred_mean = action_pred[:,:self._action_length]
-                if ( 'use_stocastic_policy' in self.getSettings() and ( self.getSettings()['use_stocastic_policy'])):
+                if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])):
                     action_pred_std = action_pred[:,self._action_length:]
                 else:
                     action_pred_std = (K.ones_like(action_pred_mean)) * self.getSettings()['exploration_rate']

@@ -602,7 +602,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                             noise = OUNoise(theta=0.15, sigma=settings["exploration_rate"], previousNoise=noise)
                             action = pa + (noise * action_bound_std(action_bounds))
                     elif ( (settings['exploration_method'] == 'gaussian_network' or 
-                          (settings['use_stocastic_policy'] == True))
+                          (settings['use_stochastic_policy'] == True))
                           or (settings['exploration_method'] == 'gaussian_random')
                            ):
                         pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)

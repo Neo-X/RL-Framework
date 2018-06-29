@@ -79,7 +79,7 @@
     "save_trainData": true,
     "train_actor": true,
         "epsilon": 1.0,
-    "use_stocastic_policy": true,
+    "use_stochastic_policy": true,
     "epsilon_annealing": 0.8,
     "critic_learning_rate": 0.0002,
     "only_use_exp_actions_for_poli_updates": true,

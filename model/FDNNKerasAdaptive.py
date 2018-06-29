@@ -17,7 +17,7 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
             settings_["use_dropout_in_actor"] = True
         if ("use_stochastic_forward_dynamics" in settings_
                 and (settings_['use_stochastic_forward_dynamics'] == True)):
-            settings_['use_stocastic_policy'] = True
+            settings_['use_stochastic_policy'] = True
         ### For using two different state descriptions
         if ("fd_terrain_shape" in settings_):
             settings_["terrain_shape"] = settings_["fd_terrain_shape"]
