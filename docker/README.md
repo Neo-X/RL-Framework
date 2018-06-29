@@ -124,3 +124,8 @@ Run a command in a screen session and exits when the command is done.
 ```
 screen -S sessionName bash -c 'for((i=1;i<=100;i+=1)); do echo "Welcome $i times"; sleep 1; done'
 ```
+
+Kill all active borgy jobs
+```
+borgy ps --state alive|cut -d’ ' -f1|tail -n +2|xargs borgy kill
+```
