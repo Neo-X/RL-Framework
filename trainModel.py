@@ -148,7 +148,7 @@ def pretrainCritic(masterAgent):
     masterAgent.setSettings(settings__)
     masterAgent.getPolicy().setSettings(settings__)
     # masterAgent.getForwardDynamics().setSettings(settings)
-    for i in range(settings__["pretrain_critic"]):
+    for i in range(int(settings__["pretrain_critic"])):
         masterAgent.train(_states=[], _actions=[], _rewards=[], _result_states=[],
                                        _falls=[], _advantage=[], _exp_actions=[], 
                                        _G_t=[], p=1.0)
