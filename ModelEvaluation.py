@@ -776,6 +776,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ("use_learned_reward_function" in settings
             and (settings["use_learned_reward_function"] == True)):
             reward_ = exp.computeImitationReward(model.getForwardDynamics().predict)
+            
         # print ("reward: ", reward_)
         baseline.append(model.q_value(state_))
         G_t.append(np.array([[0]])) # *(1.0-discount_factor)))
@@ -790,6 +791,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 reward_ = [[reward_]]
         
         resultState_ = exp.getState()
+        if ("replace_next_state_with_imitation_viz_state" in settings
+            and (settings["replace_next_state_with_imitation_viz_state"] == True)):
+            # print ("resultState_: ", resultState_)
+            resultState_[0][1] = exp.getEnvironment().getImitationVisualState()
         
         ## For testing remove later
         if (settings["use_back_on_track_forcing"] and (not evaluation)):
@@ -1042,6 +1047,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             print("Mean actions std:  ", np.mean(stds, axis=0) )
     """
     """
+    ### Doesn't work with simulations that have multiple state types/definitions
     assert np.array(tmp_states).shape == (i_ * len(states[0]), len(model.getStateBounds()[0])), "np.array(tmp_states).shape: " + str(np.array(tmp_states).shape) + " == " + str((i_ * len(states[0]), len(model.getStateBounds()[0])))
     assert np.array(tmp_states).shape == np.array(tmp_res_states).shape, "np.array(tmp_states).shape == np.array(tmp_res_states).shape: " + str(np.array(tmp_states).shape) + " == " + str(np.array(tmp_res_states).shape)
     assert np.array(tmp_rewards).shape == (i_ * len(states[0]), 1), "np.array(tmp_rewards).shape: " + str(np.array(tmp_rewards).shape) + " == " + str((i_ * len(states[0]), 1))

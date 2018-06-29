@@ -359,5 +359,7 @@
 	"comment__": "Size and shape of terrain",
 "fd_terrain_shape": [3,12,12],
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
-"fd_num_terrain_features": 432
+"fd_num_terrain_features": 432,
+	"comment__": "replace the viz state in the next state with the state from the imitation agent",
+"replace_next_state_with_imitation_viz_state": true
 }
