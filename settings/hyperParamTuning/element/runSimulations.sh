@@ -35,7 +35,7 @@ declare -a metaExps=(
 #				"settings/hyperParamTuning/element/value_function_batch_size.json"
 )
 
-rounds=250
+rounds=600
 simConfigFile=$1
 ## now loop through the above array
 for metaConfig in "${metaExps[@]}"
