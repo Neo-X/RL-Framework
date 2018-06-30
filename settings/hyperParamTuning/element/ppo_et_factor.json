@@ -8,7 +8,7 @@
 	"comment__": "Name of the parameters that we want to tune",
 "param_to_tune": ["ppo_et_factor"],
 	"comment__": "Parameter bounds, for which values will be sampled",
-"param_bounds": [[1.025, 1.05, 1.1]],
+"param_bounds": [[1.1, 1.25, 1.5]],
 	"comment__": "parameter value type [int|float|bool]",
 "param_data_type": ["float"],
 	"comment__": "Number of samples to evaluation between the given bounds",
