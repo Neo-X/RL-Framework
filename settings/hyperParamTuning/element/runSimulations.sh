@@ -1,7 +1,7 @@
 #!/bin/bash
 ## This script is designed to make it easier to start a number of simulation
 ## example:
-## ./settings/hyperParamTuning/element/runSimulations.sh settings/terrainRLImitate3D/CACLA/Humanoid1_Run_Tensorflow.json
+## ./settings/hyperParamTuning/element/runSimulations.sh settings/terrainRLImitate3D/CACLA/Humanoid1_Run_Tensorflow.json 250
 
 
 ## declare an array variable
@@ -35,7 +35,7 @@ declare -a metaExps=(
 #				"settings/hyperParamTuning/element/value_function_batch_size.json"
 )
 
-rounds=600
+rounds=$2
 simConfigFile=$1
 ## now loop through the above array
 for metaConfig in "${metaExps[@]}"
