@@ -266,7 +266,8 @@ if (__name__ == "__main__"):
             plotMetaDataSimulation(root_data_dir, simSettings_, polt_settings_files, folder=figure_file_name)
             ## Add pictures to tar file
             addPicturesToTarBall(dataTar, simSettings_)
-            pictureFileName=figure_file_name + "MBAE_Training_curves.png"
+            pictureFileName=[figure_file_name + "Training_curves.png", 
+                             figure_file_name + "Training_curves_discounted_error.png"]
         except Exception as e:
             dataTar.close()
             print("Error plotting data there my not be a DISPLAY available.")

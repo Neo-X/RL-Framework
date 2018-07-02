@@ -66,7 +66,20 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False,
         msg.attach(msgFiles)
     
     # Assume we know that the image files are all in PNG format
-    if ( (pictureFile is not None) 
+    if (type(pictureFile) is list):
+        for i in range(len(pictureFile)):
+            if ( os.path.exists(pictureFile[i])):
+                # for file in pngfiles:
+                # Open the files in binary mode.  Let the MIMEImage class automatically
+                # guess the specific image type.
+                print ("Attaching image: ", pictureFile[i])
+                fp = open(pictureFile[i], 'rb')
+                img = MIMEImage(fp.read())
+                fp.close()
+                img.add_header('Content-Disposition', 'attachment', filename=pictureFile[i])
+                msg.attach(img)
+        
+    elif ( (pictureFile is not None) 
          and os.path.exists(pictureFile)):
         # for file in pngfiles:
         # Open the files in binary mode.  Let the MIMEImage class automatically
