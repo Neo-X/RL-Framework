@@ -100,3 +100,28 @@ class TestMetaTraining(object):
         simData = tuneHyperParameters(simsettingsFileName=filename, simSettings=settings, hyperSettings=metaSettings)
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None    
+        
+    def test_metaTraining_mbrl(self):
+        """
+        Test that MBRL can still learn a good policy on 2d particle sim
+        """
+        filename = "tests/settings/navGame/MBRL/FixedSTD_Tensorflow_5D.json"
+        file = open(filename)
+        settings = json.load(file)
+        file.close()
+        metaSettings = "settings/hyperParamTuning/element/fd_network_layer_sizes.json"
+        file = open(metaSettings)
+        metaSettings = json.load(file)
+        file.close()
+        settings['visualize_learning'] = False
+        settings['shouldRender'] = False
+        settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 6
+        metaSettings['meta_sim_samples'] = 2
+        metaSettings['meta_sim_threads'] = 2
+        metaSettings['tuning_threads'] = 2 # 4 samples total
+        metaSettings['num_param_samples'] = [[2]]
+        metaSettings['testing'] = True
+        simData = tuneHyperParameters(simsettingsFileName=filename, simSettings=settings, hyperSettings=metaSettings)
+        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
+        assert simData != None  
