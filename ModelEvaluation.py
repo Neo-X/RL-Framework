@@ -1349,41 +1349,25 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         state_bounds = np.ones((2,states.shape[1]))
         
         if (settings['state_normalization'] == "minmax"):
-            state_bounds[0] = states[:settings['bootstrap_samples']].min()
-            state_bounds[1] = states[:settings['bootstrap_samples']].max()
-            reward_bounds[0] = rewards_[:settings['bootstrap_samples']].min()
-            reward_bounds[1] = rewards_[:settings['bootstrap_samples']].max()
-            # action_bounds[0] = actions[:settings['bootstrap_samples']].min()
-            # action_bounds[1] = actions[:settings['bootstrap_samples']].max()
+            state_bounds[0] = np.min(states[:settings['bootstrap_samples']], axis=0)
+            state_bounds[1] = np.max(states[:settings['bootstrap_samples']], axis=0)
+            reward_bounds[0] = np.min(rewards_[:settings['bootstrap_samples']], axis=0)
+            reward_bounds[1] = np.max(rewards_[:settings['bootstrap_samples']], axis=0)
+            # action_bounds[0] = np.min(actions[:settings['bootstrap_samples']], axis=0)
+            # action_bounds[1] = np.max(actions[:settings['bootstrap_samples']], axis=0)
         elif (settings['state_normalization'] == "variance" or
               settings['state_normalization'] == "adaptive"):
-            state_avg = states[:settings['bootstrap_samples']].mean()
-            state_stddev = states[:settings['bootstrap_samples']].std()
-            reward_avg = rewards_[:settings['bootstrap_samples']].mean()
-            reward_stddev = rewards_[:settings['bootstrap_samples']].std()
-            action_avg = actions[:settings['bootstrap_samples']].mean()
-            action_stddev = actions[:settings['bootstrap_samples']].std()
+            state_avg = np.mean(states[:settings['bootstrap_samples']], axis=0)
+            state_stddev = np.std(states[:settings['bootstrap_samples']], axis=0)
+            reward_avg = np.mean(rewards_[:settings['bootstrap_samples']], axis=0)
+            reward_stddev = np.std(rewards_[:settings['bootstrap_samples']], axis=0)
+            action_avg = np.mean(actions[:settings['bootstrap_samples']], axis=0)
+            action_stddev = np.std(actions[:settings['bootstrap_samples']], axis=0)
             print("Computed state min bound: ", state_avg - state_stddev)
             print("Computed state max bound: ", state_avg + state_stddev)
             print ("(state_avg - (state_stddev * ", scale_factor, ")): ", (state_avg - (state_stddev * scale_factor)))
             state_bounds[0] = (state_avg - (state_stddev * scale_factor))
             state_bounds[1] = (state_avg + (state_stddev * scale_factor))
-        elif (settings['state_normalization'] == "adaptive"):
-            print ("(state_avg - (state_stddev * ", scale_factor, ")): ", (state_avg - (state_stddev * scale_factor)))
-            state_avg = states[:settings['bootstrap_samples']].mean()
-            state_stddev = states[:settings['bootstrap_samples']].std()
-            reward_avg = rewards_[:settings['bootstrap_samples']].mean()
-            reward_stddev = rewards_[:settings['bootstrap_samples']].std()
-            action_avg = actions[:settings['bootstrap_samples']].mean()
-            action_stddev = actions[:settings['bootstrap_samples']].std()
-            print("Computed state min bound: ", state_avg - state_stddev)
-            print("Computed state max bound: ", state_avg + state_stddev)
-            state_bounds[0] = (state_avg - (state_stddev * scale_factor))
-            state_bounds[1] = (state_avg + (state_stddev * scale_factor))
-            reward_bounds[0] = (reward_avg - (reward_stddev * scale_factor))
-            reward_bounds[1] = (reward_avg + (reward_stddev * scale_factor))
-            # action_bounds[0] = action_avg - action_stddev
-            # action_bounds[1] = action_avg + action_stddev
         elif (settings['state_normalization'] == "given"):
             # pass # Use bound specified in file
             state_bounds = np.array(settings['state_bounds'], dtype=float)
@@ -1401,7 +1385,6 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
         experience.setSettings(settings)
-        
         
         # print ("State Mean:" + str(state_avg))
         # print ("State Variance: " + str(state_stddev))
