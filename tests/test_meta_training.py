@@ -116,10 +116,10 @@ class TestMetaTraining(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
-        settings['rounds'] = 6
+        settings['rounds'] = 4
         metaSettings['meta_sim_samples'] = 2
         metaSettings['meta_sim_threads'] = 2
-        metaSettings['tuning_threads'] = 2 # 4 samples total
+        metaSettings['tuning_threads'] = 3 # 4 samples total
         metaSettings['num_param_samples'] = [[2]]
         metaSettings['testing'] = True
         simData = tuneHyperParameters(simsettingsFileName=filename, simSettings=settings, hyperSettings=metaSettings)
