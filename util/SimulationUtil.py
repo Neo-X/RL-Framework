@@ -287,7 +287,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
     if (settings['load_saved_model'] == True):
         if ("learning_backend" in settings and 
             ((settings['learning_backend'] == "tensorflow")
-             # or (settings['learning_backend'] == "theano")
+             or (settings['learning_backend'] == "theano")
             )):
             from algorithm.AlgorithmInterface import AlgorithmInterface
             settings_ = copy.deepcopy(settings)
