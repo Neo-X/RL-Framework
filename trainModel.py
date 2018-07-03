@@ -1,5 +1,6 @@
 import copy
 import sys
+from tensorflow.python.platform.benchmark import TensorFlowBenchmark
 # from pygments.lexers.theorem import LeanLexer
 sys.setrecursionlimit(50000)
 import os
@@ -1261,11 +1262,13 @@ def trainModelParallel(inputData):
                 actor_loss_viz.finish()
                 actor_regularization_viz.finish()
         
-        import keras        
-        sess = keras.backend.get_session()
-        keras.backend.clear_session()
-        sess.close()
-        del sess
+        if ("learning_backend" in settings and
+            (settings["learning_backend"] == "tensorflow")):
+            import keras        
+            sess = keras.backend.get_session()
+            keras.backend.clear_session()
+            sess.close()
+            del sess
         # print ("sys.modules: ", json.dumps(str(sys.modules), indent=2))
         ### This will find ALL your memory deallocation issues in C++...
         ### And errors in terinating processes properly...

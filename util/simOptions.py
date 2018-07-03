@@ -134,6 +134,13 @@ def getOptions(_args=None):
           metavar="STRING", 
           help="Whether or not to draw/render the simulation")
     
+    parser.add_option("--learning_backend", "--backend", 
+          action="store", dest="learning_backend", default=None,
+          # type='choice',
+          # choices=['true', 'false', None],
+          metavar="STRING", 
+          help="Which backend to use for keras [theano|tensorflow]")
+    
     parser.add_option("--save_trainData", 
           action="store", dest="save_trainData", default=None,
           type='choice',

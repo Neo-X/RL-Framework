@@ -528,7 +528,7 @@ class PPO_KERAS(KERASAlgorithm):
                 """
             # (lossActor, r_) = self.trainPolicy(states, actions, advantage, 1.0)
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                r_ = np.mean(self._r([states, actions])[0])
+                r_ = np.mean(self._r([states, actions, 0])[0])
                 print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
             
             if ( (not np.isfinite(lossActor)) or (not np.isfinite(np.mean(r_)))):
@@ -540,7 +540,7 @@ class PPO_KERAS(KERASAlgorithm):
                 self._model.getCriticNetwork().set_weights( copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
                 self._model.getActorNetwork().set_weights( copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
                 if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                    r_ = np.mean(self._r([states, actions])[0])
+                    r_ = np.mean(self._r([states, actions, 0])[0])
                     print ("Policy probability ratio: ", np.mean(r_))
                     print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
                     print ("Policy std: ", np.mean(self.q_valsActASTD([states, 0])[0], axis=0))
