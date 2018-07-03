@@ -1407,9 +1407,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
             if ("use_dual_state_representations" in settings
                 and (settings["use_dual_state_representations"] == True)):
-                pass
-                # state = state[0]
-                # resultState = resultState[0]
+                state = state[0]
+                resultState = resultState[0]
             if settings['action_space_continuous']:
                 # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
                 experience.insertTuple(([state], [action], [resultState], [reward_], [fall_], [G_t], [exp_action], [adv]))
