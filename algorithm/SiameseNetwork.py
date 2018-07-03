@@ -196,7 +196,7 @@ class SiameseNetwork(KERASAlgorithm):
               verbose=0,
               shuffle=True
               )
-            loss = score.history['loss'][0]
+            loss = np.mean(score.history['loss'])
             print ("loss: ", loss)
         return loss
     

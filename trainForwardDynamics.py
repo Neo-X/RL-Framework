@@ -184,10 +184,13 @@ def trainForwardDynamics(settings):
     for round_ in range(rounds):
         t0 = time.time()
         for epoch in range(epochs):
-            _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
-            # print _actions 
-            # dynamicsLoss = forwardDynamicsModel.train(states=_states, actions=_actions, result_states=_result_states)
-            dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
+            if ( "model_perform_batch_training" in settings
+                 and (settings["model_perform_batch_training"] == True)):
+                _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(min(experience.samples(), settings["expereince_length"]))
+                dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards, updates=16, batch_size=settings["batch_size"])
+            else:
+                _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
+                dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
             # dynamicsLoss = forwardDynamicsModel._train()
         t1 = time.time()
         if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
