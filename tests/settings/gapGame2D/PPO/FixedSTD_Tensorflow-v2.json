@@ -356,5 +356,5 @@
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
 "ppo_et_factor": 1.5,
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
-"learning_backend": "tensorflow"
+"learning_backend": "theano"
 }

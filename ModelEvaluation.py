@@ -135,6 +135,13 @@ class SimWorker(Process):
             np.random.seed(self._process_random_seed)
             ## The sampler might need this new model if threads > 1
             self._model.setEnvironment(self._exp)
+            print("Creating new policy in process:")
+            self._model.setPolicy(self.createNewModel())
+            self._model.setForwardDynamics(self.createNewFDModel())
+            if ( self._settings['use_simulation_sampling'] ):
+                self._model.setSampler(self.createSampler(self._model.getPolicy(),
+                                                          self._model.getForwardDynamics(), 
+                                                          self._exp, self._actor))
         else:
             print ("sim thread exp: ", self._exp)
         
@@ -144,13 +151,6 @@ class SimWorker(Process):
             s_max = self._exp.getEnvironment().observation_space.getMaximum()
             print (self._exp.getEnvironment().observation_space.getMinimum())
             self._settings['state_bounds'] = [s_min,s_max]
-        print("Creating new policy in process:")
-        self._model.setPolicy(self.createNewModel())
-        self._model.setForwardDynamics(self.createNewFDModel())
-        if ( self._settings['use_simulation_sampling'] ):
-            self._model.setSampler(self.createSampler(self._model.getPolicy(),
-                                                      self._model.getForwardDynamics(), 
-                                                      self._exp, self._actor))
         
         ## This get is fine, it is the first one that I want to block on.
         print ("Waiting for initial policy update.", self._message_queue)
@@ -1630,10 +1630,10 @@ def modelEvaluationParallel(settings_file_name):
         sim_workers.append(w)
         
     if (int(settings["num_available_threads"]) != 1): # This is okay if there is one thread only...
-            for sw in sim_workers:
-                print ("Sim worker")
-                print (sw)
-                sw.start()
+        for sw in sim_workers:
+            print ("Sim worker")
+            print (sw)
+            sw.start()
             
     ## This needs to be done after the simulation work processes are created
     exp_val = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'])
@@ -1654,7 +1654,7 @@ def modelEvaluationParallel(settings_file_name):
     
     exp.getActor().init()   
     exp.init()
-    if (int(settings["num_available_threads"]) == 1): # This is okay if there is one thread only...
+    if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
         sim_workers[0].setEnvironment(exp_val)
         sim_workers[0].start()
         
