@@ -141,6 +141,13 @@ def getOptions(_args=None):
           metavar="STRING", 
           help="Whether or not to save plots of the training results during learning")
     
+    parser.add_option("--save_experience_memory", "--save_experience", 
+          action="store", dest="save_experience_memory", default=None,
+          type='choice',
+          choices=['true', 'false', None],
+          metavar="STRING", 
+          help="Whether or not to save the experience memory after performing initial bootstrapping.")
+    
     parser.add_option("--shouldRender", "--render",
           action="store", dest="shouldRender", default=None,
           type='choice',

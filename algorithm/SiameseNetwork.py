@@ -42,7 +42,7 @@ def create_pairs2(x):
     '''Positive and negative pair creation.
     Alternates between positive and negative pairs.
     '''
-    noise_scale = 0.001
+    noise_scale = 0.02
     pair1 = []
     pair2 = []
     labels = []

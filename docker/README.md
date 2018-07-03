@@ -52,6 +52,10 @@ Run a simulation
 ```
 borgy submit --req-cores=1 --req-ram-gbytes=1 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
 ```
+or for multi char sim
+```
+borgy submit --req-cores=16 --req-ram-gbytes=16 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=settings/terrainRLMultiChar/HLC/CACLA/LargeBlocks_MultiChar_WithVelocity_OnPolicy-v3.json --plot=false --save_trainData=false --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
+```
 
 Run a META simulation  
 ```
@@ -69,7 +73,7 @@ borgy submit --restartable --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} -
 
 Run tests
 ```
-borgy submit --restartable --req-cores=24 --req-ram-gbytes=48 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 run_tests.py settings/hyperParamTuning/run_tests.json | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-cores=32 --req-ram-gbytes=64 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 run_tests.py settings/hyperParamTuning/run_tests.json | tee -a $BORGY_JOB_ID.out'
 ```
 ### Info from man page
 

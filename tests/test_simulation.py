@@ -101,7 +101,22 @@ class TestSimulation(object):
             assert ( len(tmp_falls) == i)
             assert ( len(tmp_G_ts) == i)
             assert ( len(tmp_advantage) == i)
-            assert ( len(tmp_exp_actions) == i)   
+            assert ( len(tmp_exp_actions) == i)
+            
+    def test_get_state_size_from_env(self):
+        filename = "tests/settings/gapGame2D/PPO/FixedSTD_Tensorflow-v2.json"
+        file = open(filename)
+        settings = json.load(file)
+        file.close()
+        settings['state_bounds'] = "ask_env"
+        settings['visualize_learning'] = False
+        settings['shouldRender'] = False
+        settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 2
+        settings['pretrain_critic'] = 0
+        simData = trainModelParallel((filename, settings))
+        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
+        assert simData != None   
 
 if __name__ == '__main__':
     pytest.main([__file__])

@@ -25,7 +25,6 @@ class TestLearning(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None
-            
 
 if __name__ == '__main__':
     pytest.main([__file__])

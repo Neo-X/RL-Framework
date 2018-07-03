@@ -132,6 +132,12 @@ class SimWorker(Process):
             self._exp.getActor().init()   
             self._exp.init()
             self._exp.setRandomSeed(self._process_random_seed)
+            if (self._settings['state_bounds'] == "ask_env"):
+                print ("Getting state bounds from environment")
+                s_min = self._exp.getEnvironment().observation_space.getMinimum()
+                s_max = self._exp.getEnvironment().observation_space.getMaximum()
+                print (self._exp.getEnvironment().observation_space.getMinimum())
+                self._settings['state_bounds'] = [s_min,s_max]
             np.random.seed(self._process_random_seed)
             ## The sampler might need this new model if threads > 1
             self._model.setEnvironment(self._exp)
@@ -145,12 +151,6 @@ class SimWorker(Process):
         else:
             print ("sim thread exp: ", self._exp)
         
-        if (self._settings['state_bounds'] == "ask_env"):
-            print ("Getting state bounds from environment")
-            s_min = self._exp.getEnvironment().observation_space.getMinimum()
-            s_max = self._exp.getEnvironment().observation_space.getMaximum()
-            print (self._exp.getEnvironment().observation_space.getMinimum())
-            self._settings['state_bounds'] = [s_min,s_max]
         
         ## This get is fine, it is the first one that I want to block on.
         print ("Waiting for initial policy update.", self._message_queue)
@@ -1407,8 +1407,9 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
             if ("use_dual_state_representations" in settings
                 and (settings["use_dual_state_representations"] == True)):
-                state = state[0]
-                resultState = resultState[0]
+                pass
+                # state = state[0]
+                # resultState = resultState[0]
             if settings['action_space_continuous']:
                 # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
                 experience.insertTuple(([state], [action], [resultState], [reward_], [fall_], [G_t], [exp_action], [adv]))

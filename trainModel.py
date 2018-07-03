@@ -33,27 +33,6 @@ _output_experience_queue = None
 _eval_episode_data_queue = None
 _sim_work_queues = []
 
-def removeCachedLibraries():
-    
-    file = open("newModules.json")
-    data = json.load(file)
-    file.close()
-    newmodules = data["newModules"]
-    sys.modules.pop("keras.backend", None)
-    sys.modules.pop("keras.backend.common", None)
-    sys.modules.pop("keras.backend.tensorflow_backend", None)
-
-    
-    offending_libraries = ['keras', 'lasagne', 'tensorflow', 'theano' , 'algorithm']
-    loadedModules = copy.deepcopy(list(sys.modules.keys()))
-    # for key in loadedModules:
-    for key in newmodules:
-        if ( any(substring in key for substring in offending_libraries) ):
-            print ("key: ", key) 
-            sys.modules.pop(key, None)
-            
-    # print ("sys.modules: ", sys.modules)
-
 def createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds, print_info=False):
     """
         Create the Learning Agent to be used
@@ -165,8 +144,6 @@ def trainModelParallel(inputData):
         settings = inputData[1]
         settings['sample_single_trajectories'] = True
         np.random.seed(int(settings['random_seed']))
-        # removeCachedLibraries()
-        loadedModules = copy.deepcopy(list(sys.modules.keys()))
         from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
         # settings['shouldRender'] = True
     # pr = cProfile.Profile()
