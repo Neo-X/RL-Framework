@@ -1,7 +1,7 @@
 import copy
 import sys
-from tensorflow.python.platform.benchmark import TensorFlowBenchmark
-# from pygments.lexers.theorem import LeanLexer
+import traceback
+import logging
 sys.setrecursionlimit(50000)
 import os
 import json
@@ -1110,10 +1110,10 @@ def trainModelParallel(inputData):
                 
             gc.collect()    
             # print (h.heap())
-    except:
+    except Exception as e:
         ### Nothing to really do, but can still send email of progress
-        print("Printing stack trace:")
-        error = print_full_stack() 
+        error = traceback.format_exc() 
+        logging.error(error)
         print ("Caught error: ", error)
         trainData['error'] = error 
         # bellman_error = np.fabs(np.array(bellman_error))

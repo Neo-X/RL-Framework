@@ -221,12 +221,15 @@ class LearningAgent(AgentInterface):
             if ("model_perform_batch_training" in self._settings 
                 and (self._settings["model_perform_batch_training"] == True )):
                 ### Get all the data
+                additional_on_poli_trianing_updates_ = self._settings["additional_on-poli_trianing_updates"]
+                if ( additional_on_poli_trianing_updates_ < 1 ): ## should have at least one training update
+                    additional_on_poli_trianing_updates_ = 1
                 if (self._settings['train_critic']):
                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(self._expBuff.samples(), self._settings["expereince_length"]))
-                    vf_updates = additional_on_poli_trianing_updates
+                    vf_updates = additional_on_poli_trianing_updates_
                     if ("critic_updates_per_actor_update" in self._settings 
                         and (self._settings['critic_updates_per_actor_update'] > 1)):
-                        vf_updates = vf_updates * self._settings['critic_updates_per_actor_update']
+                        vf_updates = int(vf_updates * self._settings['critic_updates_per_actor_update'])
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Performing ", vf_updates, " critic updates")
                     loss = self._pol.trainCritic(states=states__, actions=actions__, 
@@ -239,10 +242,10 @@ class LearningAgent(AgentInterface):
                         states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(min(self.getFDExperience().samples(), self._settings["expereince_length"]))
                     else:
                         states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getExperience().get_batch(min(self._expBuff.samples(), self._settings["expereince_length"]))
-                    fd_updates = additional_on_poli_trianing_updates
+                    fd_updates = additional_on_poli_trianing_updates_
                     if ("fd_updates_per_actor_update" in self._settings 
                         and (self._settings['fd_updates_per_actor_update'] > 1)):
-                        fd_updates = fd_updates * self._settings['fd_updates_per_actor_update']
+                        fd_updates = int(fd_updates * self._settings['fd_updates_per_actor_update'])
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Performing ", fd_updates, " fd updates")
                     dynamicsLoss = self._fd.train(states=states__, actions=actions__, 
@@ -253,12 +256,12 @@ class LearningAgent(AgentInterface):
                 
                 if (self._settings['train_actor']):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print ("Performing ", additional_on_poli_trianing_updates, " policy updates")
+                        print ("Performing ", int(additional_on_poli_trianing_updates_), " policy updates")
                         
                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(self._expBuff.samples(), self._settings["expereince_length"]))
                     loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
                                                      advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
-                                                     p=p, updates=additional_on_poli_trianing_updates, batch_size=self._settings["batch_size"])
+                                                     p=p, updates=int(additional_on_poli_trianing_updates_), batch_size=self._settings["batch_size"])
                 dynamicsLoss = 0
                 
                 if ('state_normalization' in self._settings and 
