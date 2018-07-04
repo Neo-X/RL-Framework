@@ -149,6 +149,28 @@ def trainModelParallel(inputData):
         # settings['shouldRender'] = True
     # pr = cProfile.Profile()
     # pr.enable()
+    trainData = {}
+    trainData["mean_reward"]=[]
+    trainData["std_reward"]=[]
+    trainData["mean_bellman_error"]=[]
+    trainData["std_bellman_error"]=[]
+    trainData["mean_discount_error"]=[]
+    trainData["std_discount_error"]=[]
+    trainData["mean_forward_dynamics_loss"]=[]
+    trainData["std_forward_dynamics_loss"]=[]
+    trainData["mean_forward_dynamics_reward_loss"]=[]
+    trainData["std_forward_dynamics_reward_loss"]=[]
+    trainData["mean_eval"]=[]
+    trainData["std_eval"]=[]
+    trainData["mean_critic_loss"]=[]
+    trainData["std_critic_loss"]=[]
+    trainData["mean_critic_regularization_cost"]=[]
+    trainData["std_critic_regularization_cost"]=[]
+    trainData["mean_actor_loss"]=[]
+    trainData["std_actor_loss"]=[]
+    trainData["mean_actor_regularization_cost"]=[]
+    trainData["std_actor_regularization_cost"]=[]
+    trainData["anneal_p"]=[]
     try:
         setupEnvironmentVariable(settings)
             
@@ -668,30 +690,6 @@ def trainModelParallel(inputData):
                 actor_regularization_viz.setInteractive()
                 actor_regularization_viz.init()
 
-            
-        trainData = {}
-        trainData["mean_reward"]=[]
-        trainData["std_reward"]=[]
-        trainData["mean_bellman_error"]=[]
-        trainData["std_bellman_error"]=[]
-        trainData["mean_discount_error"]=[]
-        trainData["std_discount_error"]=[]
-        trainData["mean_forward_dynamics_loss"]=[]
-        trainData["std_forward_dynamics_loss"]=[]
-        trainData["mean_forward_dynamics_reward_loss"]=[]
-        trainData["std_forward_dynamics_reward_loss"]=[]
-        trainData["mean_eval"]=[]
-        trainData["std_eval"]=[]
-        trainData["mean_critic_loss"]=[]
-        trainData["std_critic_loss"]=[]
-        trainData["mean_critic_regularization_cost"]=[]
-        trainData["std_critic_regularization_cost"]=[]
-        trainData["mean_actor_loss"]=[]
-        trainData["std_actor_loss"]=[]
-        trainData["mean_actor_regularization_cost"]=[]
-        trainData["std_actor_regularization_cost"]=[]
-        trainData["anneal_p"]=[]
-        
         if (False ):
             print("State Bounds:", masterAgent.getStateBounds())
             print("Action Bounds:", masterAgent.getActionBounds())

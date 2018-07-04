@@ -1289,7 +1289,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         j = 0
         # while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
         while (j < abs(settings['num_available_threads'])):
-            (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get(timeout=timeout_/60)
+            (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get(timeout=timeout_)
             discounted_sum.append(discounted_sum_)
             value.append(value_)
             evalData.append(evalData_)

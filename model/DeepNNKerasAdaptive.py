@@ -212,8 +212,6 @@ class DeepNNKerasAdaptive(ModelInterface):
                         networkAct = Concatenate(axis=1)([networkAct, characterFeatures])
                 elif ( layer_sizes[i] == "flatten_features"):
                     networkAct = Flatten()(networkAct)
-                elif ( layer_sizes[i] == "flatten_features"):
-                    networkAct = Flatten()(networkAct)
                 else:
                     networkAct = Dense(layer_sizes[i], 
                                        kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
