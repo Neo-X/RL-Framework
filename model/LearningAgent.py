@@ -231,7 +231,7 @@ class LearningAgent(AgentInterface):
                         and (self._settings['critic_updates_per_actor_update'] > 1)):
                         vf_updates = int(vf_updates * self._settings['critic_updates_per_actor_update'])
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print ("Performing ", vf_updates, " critic updates")
+                        print ("Performing ", vf_updates, " critic epochs")
                     loss = self._pol.trainCritic(states=states__, actions=actions__, 
                                                  rewards=rewards__, result_states=result_states__, 
                                                  falls=falls__, G_t=G_ts__, updates=vf_updates, 
@@ -247,7 +247,7 @@ class LearningAgent(AgentInterface):
                         and (self._settings['fd_updates_per_actor_update'] > 1)):
                         fd_updates = int(fd_updates * self._settings['fd_updates_per_actor_update'])
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print ("Performing ", fd_updates, " fd updates")
+                        print ("Performing ", fd_updates, " fd epoch")
                     dynamicsLoss = self._fd.train(states=states__, actions=actions__, 
                                                   result_states=result_states__, rewards=rewards__, 
                                                   updates=fd_updates, batch_size=value_function_batch_size)
@@ -256,11 +256,11 @@ class LearningAgent(AgentInterface):
                 
                 if (self._settings['train_actor']):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print ("Performing ", int(additional_on_poli_trianing_updates_), " policy updates")
+                        print ("Performing ", int(additional_on_poli_trianing_updates_), " policy epoch(s)")
                         
                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(self._expBuff.samples(), self._settings["expereince_length"]))
-                    loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
-                                                     advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
+                    loss_ = self._pol.trainActor(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__, 
+                                                     advantage=advantage__, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
                                                      p=p, updates=int(additional_on_poli_trianing_updates_), batch_size=self._settings["batch_size"])
                 dynamicsLoss = 0
                 
