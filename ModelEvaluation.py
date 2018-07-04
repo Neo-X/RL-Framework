@@ -505,6 +505,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     evalDatas=[]
     stds=[]
     bad_sim_state = False
+    if ("divide_by_zero2" in settings
+        and (settings["divide_by_zero2"] == True)
+        and (not bootstrapping)):
+        d = 3 / 0
     
     # while not exp.endOfEpoch():
     i_ = 0
@@ -1226,6 +1230,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
         print ("Simulating epochs in Parallel:")
     j=0
+    timeout_ = 60 * 10 ### 10 min timeout
     discounted_values = []
     bellman_errors = []
     reward_over_epocs = []
@@ -1284,7 +1289,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         j = 0
         # while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
         while (j < abs(settings['num_available_threads'])):
-            (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get()
+            (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get(timeout=timeout_/60)
             discounted_sum.append(discounted_sum_)
             value.append(value_)
             evalData.append(evalData_)

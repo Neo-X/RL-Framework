@@ -140,16 +140,16 @@ def pretrainCritic(masterAgent):
 # @profile(precision=5)
 # def trainModelParallel(settingsFileName, settings):
 def trainModelParallel(inputData):
-        # (sys.argv[1], settings)
-        settingsFileName = inputData[0]
-        settings = inputData[1]
-        settings['sample_single_trajectories'] = True
-        np.random.seed(int(settings['random_seed']))
-        from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+    # (sys.argv[1], settings)
+    settingsFileName = inputData[0]
+    settings = inputData[1]
+    settings['sample_single_trajectories'] = True
+    np.random.seed(int(settings['random_seed']))
+    from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
         # settings['shouldRender'] = True
     # pr = cProfile.Profile()
     # pr.enable()
-    # try:
+    try:
         setupEnvironmentVariable(settings)
             
         rounds = settings["rounds"]
@@ -747,6 +747,9 @@ def trainModelParallel(inputData):
                                                eval_episode_data_queue=eval_episode_data_queue, 
                                                anchors=settings['num_on_policy_rollouts']
                                                ,p=p)
+                    if ("divide_by_zero" in settings
+                        and (settings["divide_by_zero"] == True)):
+                        d = 3 / 0
                     #else:
                     #    out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
                     #                   print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
@@ -1131,7 +1134,12 @@ def trainModelParallel(inputData):
                 
             gc.collect()    
             # print (h.heap())
-            
+    except:
+        ### Nothing to really do, but can still send email of progress
+        print("Printing stack trace:")
+        error = print_full_stack() 
+        print ("Caught error: ", error)
+        trainData['error'] = error 
         # bellman_error = np.fabs(np.array(bellman_error))
         # print ("Mean Bellman error: " + str(np.mean(np.fabs(bellman_error))))
         # print ("STD Bellman error: " + str(np.std(np.fabs(bellman_error))))
@@ -1143,141 +1151,144 @@ def trainModelParallel(inputData):
         # print ("Discounted reward difference Avg: " +  str(np.mean(np.fabs(discounted_values - values))))
         # print ("Discounted reward difference STD: " +  str(np.std(np.fabs(discounted_values - values))))
         # reward_over_epoc = np.array(reward_over_epoc)
-        print ("Terminating Workers")
-        if (settings['on_policy']):
-            for m_q in sim_work_queues:
+    print ("Terminating Workers")
+    if (settings['on_policy']):
+        for m_q in sim_work_queues:
+            ## block on full queue
+            m_q.put(None)
+        if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+            for m_q in eval_sim_work_queues:
                 ## block on full queue
                 m_q.put(None)
-            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-                for m_q in eval_sim_work_queues:
-                    ## block on full queue
-                    m_q.put(None)
-            for sw in sim_workers: # Should update these more often
-                sw.join()
-            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-                for sw in eval_sim_workers: # Should update these more often
-                    sw.join() 
-        else:
-            for sw in sim_workers: 
-                input_anchor_queue.put(None)
-            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-                for sw in eval_sim_workers: 
-                    input_anchor_queue_eval.put(None)
-            print ("Joining Workers"        )
-            for sw in sim_workers: # Should update these more often
-                sw.join()
-            if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-                for sw in eval_sim_workers: # Should update these more often
-                    sw.join() 
-        
-        # input_anchor_queue.close()            
-        # input_anchor_queue_eval.close()
-        
-        if (not settings['on_policy']):    
-            print ("Terminating learners"        )
-            if ( output_experience_queue != None):
-                for lw in learning_workers: # Should update these more often
-                    output_experience_queue.put(None)
-                    output_experience_queue.put(None)
-                output_experience_queue.close()
-            print ("Joining learners"        )  
-            """
-            for m_q in sim_work_queues:  
-                print(masterAgent_message_queue.get(False))
-                # print(masterAgent_message_queue.get(False))
-            while (not masterAgent_message_queue.empty()):
-                ## Don't block
-                try:
-                    data = masterAgent_message_queue.get(False)
-                except Exception as inst:
-                    print ("training: In model parameter message queue empty: ", masterAgent_message_queue.qsize())
-            """
-            for i in range(len(learning_workers)): # Should update these more often
-                print ("Joining learning worker ", i , " of ", len(learning_workers))
-                learning_workers[i].join()
-        
-        for i in range(len(sim_work_queues)):
-            print ("sim_work_queues size: ", sim_work_queues[i].qsize())
-            while (not sim_work_queues[i].empty()): ### Empty the queue
-                ## Don't block
-                try:
-                    data_ = sim_work_queues[i].get(False)
-                except Exception as inst:
-                    # print ("SimWorker model parameter message queue empty.")
-                    pass
-            # sim_work_queues[i].cancel_join_thread()
-            print ("sim_work_queues size: ", sim_work_queues[i].qsize())
-            
-            
-        for i in range(len(eval_sim_work_queues)):
-            print ("eval_sim_work_queues size: ", eval_sim_work_queues[i].qsize())
-            while (not eval_sim_work_queues[i].empty()): ### Empty the queue
-                ## Don't block
-                try:
-                    data_ = eval_sim_work_queues[i].get(False)
-                except Exception as inst:
-                    # print ("SimWorker model parameter message queue empty.")
-                    pass
-            print ("eval_sim_work_queues size: ", eval_sim_work_queues[i].qsize())
+        for sw in sim_workers: # Should update these more often
+            sw.join()
+        if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+            for sw in eval_sim_workers: # Should update these more often
+                sw.join() 
+    else:
+        for sw in sim_workers: 
+            input_anchor_queue.put(None)
+        if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+            for sw in eval_sim_workers: 
+                input_anchor_queue_eval.put(None)
+        print ("Joining Workers"        )
+        for sw in sim_workers: # Should update these more often
+            sw.join()
+        if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+            for sw in eval_sim_workers: # Should update these more often
+                sw.join() 
+    
+    # input_anchor_queue.close()            
+    # input_anchor_queue_eval.close()
+    
+    if (not settings['on_policy']):    
+        print ("Terminating learners"        )
+        if ( output_experience_queue != None):
+            for lw in learning_workers: # Should update these more often
+                output_experience_queue.put(None)
+                output_experience_queue.put(None)
+            output_experience_queue.close()
+        print ("Joining learners"        )  
+        """
+        for m_q in sim_work_queues:  
+            print(masterAgent_message_queue.get(False))
+            # print(masterAgent_message_queue.get(False))
+        while (not masterAgent_message_queue.empty()):
+            ## Don't block
+            try:
+                data = masterAgent_message_queue.get(False)
+            except Exception as inst:
+                print ("training: In model parameter message queue empty: ", masterAgent_message_queue.qsize())
+        """
+        for i in range(len(learning_workers)): # Should update these more often
+            print ("Joining learning worker ", i , " of ", len(learning_workers))
+            learning_workers[i].join()
+    
+    for i in range(len(sim_work_queues)):
+        print ("sim_work_queues size: ", sim_work_queues[i].qsize())
+        while (not sim_work_queues[i].empty()): ### Empty the queue
+            ## Don't block
+            try:
+                data_ = sim_work_queues[i].get(False)
+            except Exception as inst:
+                # print ("SimWorker model parameter message queue empty.")
+                pass
+        # sim_work_queues[i].cancel_join_thread()
+        print ("sim_work_queues size: ", sim_work_queues[i].qsize())
         
         
-        print ("Finish sim")
-        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
-            exp_val.finish()
-        
-        print ("Save last versions of files.")
-        masterAgent.saveTo(directory)
-        masterAgent.finish()
-        
-        f = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", "w")
-        for key in trainData:
-            trainData[key] = [float(i) for i in trainData[key]]
-        json.dump(trainData, f, sort_keys=True, indent=4)
-        f.close()
-        
-        """except: # catch *all* exceptions
-        e = sys.exc_info()[0]
-        print ("Error: " + str(e))
-        print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward))
-        
-        """ 
-        
-        print("Delete any plots being used")
-        
-        if settings['visualize_learning']:    
-            rlv.finish()
-        if (settings['train_forward_dynamics']):
+    for i in range(len(eval_sim_work_queues)):
+        print ("eval_sim_work_queues size: ", eval_sim_work_queues[i].qsize())
+        while (not eval_sim_work_queues[i].empty()): ### Empty the queue
+            ## Don't block
+            try:
+                data_ = eval_sim_work_queues[i].get(False)
+            except Exception as inst:
+                # print ("SimWorker model parameter message queue empty.")
+                pass
+        print ("eval_sim_work_queues size: ", eval_sim_work_queues[i].qsize())
+    
+    
+    print ("Finish sim")
+    if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
+        exp_val.finish()
+    
+    print ("Save last versions of files.")
+    masterAgent.saveTo(directory)
+    masterAgent.finish()
+    
+    f = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", "w")
+    for key in trainData:
+        if (key == 'error'):
+            continue
+        # print ("trainData[",key,"]", trainData[key])
+        trainData[key] = [float(i) for i in trainData[key]]
+    json.dump(trainData, f, sort_keys=True, indent=4)
+    f.close()
+    
+    """except: # catch *all* exceptions
+    e = sys.exc_info()[0]
+    print ("Error: " + str(e))
+    print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward))
+    
+    """ 
+    
+    print("Delete any plots being used")
+    
+    if settings['visualize_learning']:    
+        rlv.finish()
+    if (settings['train_forward_dynamics']):
+        if settings['visualize_learning']:
+            nlv.finish()
+        if (settings['train_reward_predictor']):
             if settings['visualize_learning']:
-                nlv.finish()
-            if (settings['train_reward_predictor']):
-                if settings['visualize_learning']:
-                    rewardlv.finish()
-                 
-        if (settings['debug_critic']):
-            if (settings['visualize_learning']):
-                critic_loss_viz.finish()
-                critic_regularization_viz.finish()
-        if (settings['debug_actor']):
-            if (settings['visualize_learning']):
-                actor_loss_viz.finish()
-                actor_regularization_viz.finish()
-        
-        if ("learning_backend" in settings and
-            (settings["learning_backend"] == "tensorflow")):
-            import keras        
-            sess = keras.backend.get_session()
-            keras.backend.clear_session()
-            sess.close()
-            del sess
-        # print ("sys.modules: ", json.dumps(str(sys.modules), indent=2))
-        ### This will find ALL your memory deallocation issues in C++...
-        ### And errors in terinating processes properly...
-        gc.collect()
-        ### Return the collected training data
-        if ("return_model" in settings 
-            and (settings['return_model'] == True)):
-            trainData['masterAgent'] = masterAgent
-        return trainData
+                rewardlv.finish()
+             
+    if (settings['debug_critic']):
+        if (settings['visualize_learning']):
+            critic_loss_viz.finish()
+            critic_regularization_viz.finish()
+    if (settings['debug_actor']):
+        if (settings['visualize_learning']):
+            actor_loss_viz.finish()
+            actor_regularization_viz.finish()
+    
+    if ("learning_backend" in settings and
+        (settings["learning_backend"] == "tensorflow")):
+        import keras        
+        sess = keras.backend.get_session()
+        keras.backend.clear_session()
+        sess.close()
+        del sess
+    # print ("sys.modules: ", json.dumps(str(sys.modules), indent=2))
+    ### This will find ALL your memory deallocation issues in C++...
+    ### And errors in terinating processes properly...
+    gc.collect()
+    ### Return the collected training data
+    if ("return_model" in settings 
+        and (settings['return_model'] == True)):
+        trainData['masterAgent'] = masterAgent
+    return trainData
         
 import inspect
 def print_full_stack(tb=None):
@@ -1287,17 +1298,19 @@ def print_full_stack(tb=None):
     """
     if tb is None:
         tb = sys.exc_info()[2]
-
+    out = ""
     print ('Traceback (most recent call last):')
     if (not (tb == None)):
         for item in reversed(inspect.getouterframes(tb.tb_frame)[1:]):
-            print (' File "{1}", line {2}, in {3}\n'.format(*item),)
+            out = out + ' File "{1}", line {2}, in {3}\n'.format(*item)
             for line in item[4]:
-                print (' ' + line.lstrip(),)
+                out = out + ' ' + line.lstrip()
             for item in inspect.getinnerframes(tb):
-                print (' File "{1}", line {2}, in {3}\n'.format(*item),)
+                out = out + ' File "{1}", line {2}, in {3}\n'.format(*item)
             for line in item[4]:
-                print (' ' + line.lstrip(),)
+                out = out + ' ' + line.lstrip()
+    print (out)
+    return out
             
 import signal
 import sys
@@ -1383,8 +1396,8 @@ if (__name__ == "__main__"):
             simData = trainModelParallel((sys.argv[1], settings))
         # except:
             ### Nothing to really do, but can still send email of progress
+            # print("Printing stack trace:")
             # print_full_stack()
-            # pass
     t1 = time.time()
     sim_time_ = datetime.timedelta(seconds=(t1-t0))
     print ("Model training complete in " + str(sim_time_) + " seconds")
@@ -1421,7 +1434,12 @@ if (__name__ == "__main__"):
         
         ## Send an email so I know this training has completed
         contents_ = json.dumps(metaSettings, indent=4, sort_keys=True)
-        sendEmail(subject="Simulation complete: " + str(sim_time_), contents=contents_, hyperSettings=metaSettings, simSettings=options['configFile'], dataFile=tarFileName,
+        sub = "Simulation complete: " + str(sim_time_)
+        if ('error' in simData):
+            contents_ = contents_ + "\n" + simData['error']
+            sub = "ERROR*****     " + "Simulation terminated: " + str(sim_time_)
+         
+        sendEmail(subject=sub, contents=contents_, hyperSettings=metaSettings, simSettings=options['configFile'], dataFile=tarFileName,
                   pictureFile=pictureFileName) 
 
 
