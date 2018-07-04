@@ -747,6 +747,7 @@ def trainModelParallel(inputData):
                                                eval_episode_data_queue=eval_episode_data_queue, 
                                                anchors=settings['num_on_policy_rollouts']
                                                ,p=p)
+                    
                     if ("divide_by_zero" in settings
                         and (settings["divide_by_zero"] == True)):
                         d = 3 / 0
