@@ -699,14 +699,6 @@ def trainModelParallel(inputData):
             print("Exp State Bounds: ", experience.getStateBounds())
             print("Exp Action Bounds: ", experience.getActionBounds())
             
-        ### clear data defore training
-        """
-        for m_q in sim_work_queues:
-            print("checking queues for data before learning", m_q, m_q.qsize() )
-            data__ = m_q.get(message)
-            # print ("data__: ", data__)
-        """
-        
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)):
             pretrainCritic(masterAgent)
         
@@ -727,20 +719,10 @@ def trainModelParallel(inputData):
             if ( settings['load_saved_model'] ):
                 p = settings['min_epsilon']
                 
-            # print ("Model pointers: val, ", masterAgent._pol.getModel(), 
-            #        " poli, ", masterAgent._pol.getModel(),  " fd, ", masterAgent._fd.getModel())
-            
-            # for sm in sim_workers:
-                # sm.setP(p)
             # pr = cProfile.Profile()
             for epoch in range(epochs):
                 if (settings['on_policy']):
                     
-                    # if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                        # print ("masterAgent State Bounds: ", masterAgent.getPolicy().getStateBounds())
-                        # masterAgent.getExperience()
-                        # if (settings['train_forward_dynamics']):
-                            # print ("masterAgent FD State Bounds: ", masterAgent.getForwardDynamics().getStateBounds())
                     # if ( settings['num_available_threads'] > 1 ):  
                     out = simModelParrallel( sw_message_queues=sim_work_queues,
                                                model=masterAgent, settings=settings, 
@@ -756,11 +738,6 @@ def trainModelParallel(inputData):
                     #                   print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
                     (tuples, discounted_sum, q_value, evalData) = out
                     (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__) = tuples
-                    # print("**** training states: ", np.array(__states).shape)
-                    # print("**** training __result_states: ", np.array(__result_states).shape)
-                    # print("__G_ts: ", __G_ts)
-                    # print ("Actions before: ", __actions)
-                    # print("Adv: ", advantage__)
                     if ( ('anneal_on_policy' in settings) and settings['anneal_on_policy']):  
                         p_tmp_ = p 
                     else:
