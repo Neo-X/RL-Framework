@@ -221,12 +221,13 @@ class LearningAgent(AgentInterface):
             if ("model_perform_batch_training" in self._settings 
                 and (self._settings["model_perform_batch_training"] == True )):
                 ### Get all the data
+                batch_ratio = value_function_batch_size / self._setting["batch_size"]
                 additional_on_poli_trianing_updates_ = self._settings["additional_on-poli_trianing_updates"]
                 if ( additional_on_poli_trianing_updates_ < 1 ): ## should have at least one training update
                     additional_on_poli_trianing_updates_ = 1
                 if (self._settings['train_critic']):
                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(self._expBuff.samples(), self._settings["expereince_length"]))
-                    vf_updates = additional_on_poli_trianing_updates_
+                    vf_updates = additional_on_poli_trianing_updates_ * batch_ratio
                     if ("critic_updates_per_actor_update" in self._settings 
                         and (self._settings['critic_updates_per_actor_update'] > 1)):
                         vf_updates = int(vf_updates * self._settings['critic_updates_per_actor_update'])
@@ -242,7 +243,7 @@ class LearningAgent(AgentInterface):
                         states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(min(self.getFDExperience().samples(), self._settings["expereince_length"]))
                     else:
                         states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getExperience().get_batch(min(self._expBuff.samples(), self._settings["expereince_length"]))
-                    fd_updates = additional_on_poli_trianing_updates_
+                    fd_updates = additional_on_poli_trianing_updates_ * batch_ratio
                     if ("fd_updates_per_actor_update" in self._settings 
                         and (self._settings['fd_updates_per_actor_update'] > 1)):
                         fd_updates = int(fd_updates * self._settings['fd_updates_per_actor_update'])
