@@ -230,7 +230,7 @@ class LearningAgent(AgentInterface):
                     vf_updates = additional_on_poli_trianing_updates_ * batch_ratio
                     if ("critic_updates_per_actor_update" in self._settings 
                         and (self._settings['critic_updates_per_actor_update'] > 1)):
-                        vf_updates = int(min(vf_updates * self._settings['critic_updates_per_actor_update'], 1))
+                        vf_updates = int(max(vf_updates * self._settings['critic_updates_per_actor_update'], 1))
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Performing ", vf_updates, " critic epochs")
                     loss = self._pol.trainCritic(states=states__, actions=actions__, 
@@ -246,7 +246,7 @@ class LearningAgent(AgentInterface):
                     fd_updates = additional_on_poli_trianing_updates_ * batch_ratio
                     if ("fd_updates_per_actor_update" in self._settings 
                         and (self._settings['fd_updates_per_actor_update'] > 1)):
-                        fd_updates = int(min(fd_updates * self._settings['fd_updates_per_actor_update'], 1))
+                        fd_updates = int(max(fd_updates * self._settings['fd_updates_per_actor_update'], 1))
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Performing ", fd_updates, " fd epoch")
                     dynamicsLoss = self._fd.train(states=states__, actions=actions__, 
