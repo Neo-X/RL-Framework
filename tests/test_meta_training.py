@@ -95,7 +95,7 @@ class TestMetaTraining(object):
         metaSettings['meta_sim_samples'] = 2
         metaSettings['meta_sim_threads'] = 2
         metaSettings['tuning_threads'] = 2 # 4 samples total
-        metaSettings['num_param_samples'] = [[2], [2]]
+        metaSettings['num_param_samples'] = [2, 2]
         metaSettings['testing'] = True
         simData = tuneHyperParameters(simsettingsFileName=filename, simSettings=settings, hyperSettings=metaSettings)
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5

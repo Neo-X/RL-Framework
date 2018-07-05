@@ -14,6 +14,12 @@ Login to a running container
 docker exec -ti {container id} bash
 ```
 
+To login while using a GPU [you need to reserve a GPU first](https://elementai.atlassian.net/wiki/spaces/DEV/pages/6698906/Using+GPU+nodes)
+```
+NV_GPU=3 nvidia-docker run -v /mnt/home/${USER}:/home/glen -it images.borgy.elementai.lan/glen:latest bash
+```
+
+
 To run something from the RLSimulationEnvironments
 
 ```

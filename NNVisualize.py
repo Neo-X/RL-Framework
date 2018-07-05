@@ -53,8 +53,8 @@ class NNVisualize(object):
         self._fig, (self._bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
         self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
         self._bellman_error_std = self._bellman_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
-        self._bellman_error_ax.set_title('Error')
-        self._bellman_error_ax.set_ylabel("Absolute Error")
+        self._bellman_error_ax.set_title('Error', fontsize=18)
+        self._bellman_error_ax.set_ylabel("Absolute Error", fontsize=16)
         """
         self._reward, = self._reward_ax.plot([], [], linewidth=2.0)
         self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
@@ -66,10 +66,10 @@ class NNVisualize(object):
         self._discount_error_ax.set_ylabel("Absolute Error")
         plt.xlabel("Iteration")
         """
-        self._fig.suptitle(self._title, fontsize=18)
+        self._fig.suptitle(self._title, fontsize=16)
         plt.grid(b=True, which='major', color='black', linestyle='--')
         plt.grid(b=True, which='minor', color='g', linestyle='--')
-        plt.xlabel("Iteration x" + str(self._iteration_scale))
+        plt.xlabel("Iteration x" + str(self._iteration_scale), fontsize=18)
         
         self._fig.set_size_inches(8.0, 4.5, forward=True)
         
