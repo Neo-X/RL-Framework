@@ -407,12 +407,14 @@ class SimWorker(Process):
                 # sum1 = summary.summarize(all_objects)
                 # summary.print_(sum1)
         print ("Simulation Worker Complete: ", os.getpid())
-        import keras
+        if ("learning_backend" in self._settings and
+            (self._settings["learning_backend"] == "tensorflow")):
+            import keras
+            sess = keras.backend.get_session()
+            keras.backend.clear_session()
+            sess.close()
+            del sess
         self._exp.finish()
-        sess = keras.backend.get_session()
-        keras.backend.clear_session()
-        sess.close()
-        del sess
         gc.collect()
         return
         

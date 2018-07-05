@@ -41,9 +41,9 @@ simConfigFile=$1
 ## now loop through the above array
 for metaConfig in "${metaExps[@]}"
 do
-	echo "$metaConfig"
+	# echo "$metaConfig"
 	# or do whatever with individual element of the array
-	echo "$simConfigFile"
+	# echo "$simConfigFile"
 	
 	command="borgy submit --restartable --req-cores=32 --req-ram-gbytes=32 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config="$simConfigFile" --metaConfig="$metaConfig" --meta_sim_samples=4 --meta_sim_threads=4 --tuning_threads=1 --num_rounds="$rounds" | tee -a $BORGY_JOB_ID.out'"
 	echo $command
