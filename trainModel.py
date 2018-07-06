@@ -721,8 +721,8 @@ def trainModelParallel(inputData):
             for epoch in range(epochs):
                 if (settings['on_policy']):
                     
-                    if ( settings['num_available_threads'] > 0 ):  
-                        out = simModelParrallel( sw_message_queues=sim_work_queues,
+                    # if ( settings['num_available_threads'] > 0 ):  
+                    out = simModelParrallel( sw_message_queues=sim_work_queues,
                                                model=masterAgent, settings=settings, 
                                                eval_episode_data_queue=eval_episode_data_queue, 
                                                anchors=settings['num_on_policy_rollouts']
@@ -731,9 +731,9 @@ def trainModelParallel(inputData):
                     if ("divide_by_zero" in settings
                         and (settings["divide_by_zero"] == True)):
                         d = 3 / 0
-                    else: ### No threads synchronous simulation and learning
-                        out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
-                                       print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
+                    # else: ### No threads synchronous simulation and learning
+                    #     out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
+                    #                    print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
                     (tuples, discounted_sum, q_value, evalData) = out
                     (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__) = tuples
                     if ( ('anneal_on_policy' in settings) and settings['anneal_on_policy']):  
