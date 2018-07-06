@@ -1052,7 +1052,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ( len(stds) > 0):
             print("Mean actions std:  ", np.mean(stds, axis=0) )
     """
-    print ("tmp_actions: ", tmp_actions)
+    # print ("tmp_actions: ", tmp_actions)
     """
     ### Doesn't work with simulations that have multiple state types/definitions
     assert np.array(tmp_states).shape == (i_ * len(states[0]), len(model.getStateBounds()[0])), "np.array(tmp_states).shape: " + str(np.array(tmp_states).shape) + " == " + str((i_ * len(states[0]), len(model.getStateBounds()[0])))
