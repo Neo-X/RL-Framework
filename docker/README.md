@@ -56,11 +56,15 @@ borgy submit -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e 
 
 Run a simulation  
 ```
-borgy submit --req-cores=1 --req-ram-gbytes=1 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
+borgy submit --req-cores=1 --req-ram-gbytes=1 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/ -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
 ```
 or for multi char sim
 ```
 borgy submit --req-cores=16 --req-ram-gbytes=16 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=settings/terrainRLMultiChar/HLC/CACLA/LargeBlocks_MultiChar_WithVelocity_OnPolicy-v3.json --plot=false --save_trainData=false --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
+```
+Using a GPU
+```
+borgy submit --req-gpus=1 --req-cores=6 --req-ram-gbytes=6 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/ -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py--config=settings/projectileGame/PPO/Viz_Imitation_2.json -p 4 --shouldRender=true --rollouts=4 --bootstrap_samples=100 --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
 ```
 
 Run a META simulation  
@@ -123,6 +127,11 @@ for i in $(docker images -q)
 do
     docker history $i | grep -q 8d5495222da7 && echo $i
 done | sort -u
+```
+
+To remove an image that is no longer used
+```
+docker rmi <img_id>
 ```
 
 Connect to a running borgy job
