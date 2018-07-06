@@ -14,7 +14,8 @@ except:
     print("openAI gym is not installed")
     pass
 # import roboschool
-from OpenGL import GL
+### This help openAIGym but breaks my headless rendering
+# from OpenGL import GL
 # print(envs.registry.all())
 from model.ModelUtil import getOptimalAction, getMBAEAction
 

@@ -125,7 +125,8 @@ class SiameseNetwork(KERASAlgorithm):
 
         
         self._contrastive_loss = K.function([self._model.getStateSymbolicVariable(), 
-                                             self._model.getResultStateSymbolicVariable()], 
+                                             self._model.getResultStateSymbolicVariable(),
+                                             K.learning_phase()], 
                                             [distance])
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
         
@@ -182,7 +183,7 @@ class SiameseNetwork(KERASAlgorithm):
             batch_size_=batch_size
             
         loss = 0
-        dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2]))[0]
+        dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
         dist = np.mean(dist_)
         te_y = np.array(te_y)
         # print("Distance: ", dist)
@@ -208,7 +209,7 @@ class SiameseNetwork(KERASAlgorithm):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
         state_ = self._model.getActorNetwork().predict([state, state2])[0]
-        # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2]))[0]
+        # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
         # print("state_ shape: ", np.array(state_).shape)
         return state_
     

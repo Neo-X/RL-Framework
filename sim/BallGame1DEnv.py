@@ -77,8 +77,6 @@ class BallGame1DEnv(SimInterface):
 # http://matplotlib.sourceforge.net/api/animation_api.html
 #ani.save('particle_box.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 
-# plt.show()
-
 if __name__ == '__main__':
     
     np.random.seed(seed=10)
