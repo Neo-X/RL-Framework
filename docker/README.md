@@ -115,6 +115,10 @@ sudo docker commit d4aad5674841 glen:latest
 sudo docker tag glen:latest images.borgy.elementai.lan/glen:latest
 sudo docker push images.borgy.elementai.lan/glen:latest
 ```
+As one command
+```
+docker commit d4aad5674841 glen:latest; docker tag glen:latest images.borgy.elementai.lan/glen:latest; docker push images.borgy.elementai.lan/glen:latest
+```
 
 open images as iteractive container
 ```

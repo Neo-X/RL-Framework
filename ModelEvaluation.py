@@ -1052,6 +1052,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ( len(stds) > 0):
             print("Mean actions std:  ", np.mean(stds, axis=0) )
     """
+    print ("tmp_actions: ", tmp_actions)
     """
     ### Doesn't work with simulations that have multiple state types/definitions
     assert np.array(tmp_states).shape == (i_ * len(states[0]), len(model.getStateBounds()[0])), "np.array(tmp_states).shape: " + str(np.array(tmp_states).shape) + " == " + str((i_ * len(states[0]), len(model.getStateBounds()[0])))
@@ -1466,7 +1467,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
     episode_ = 0
     while i < samples:
         ## Actor should be FIRST here
-        if ( ( sim_work_queues is None ) or (eval_episode_data_queue is None)):
+        if ( ( sim_work_queues is None ) or (eval_episode_data_queue is None)): ## off-policy version
             out = simEpoch(actor=actor, exp=exp, model=model, discount_factor=settings['discount_factor'], anchors=episode_, 
                                action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
                                 p=1.0, validation=settings['train_on_validation_set'], bootstrapping=True, epsilon=1.0)
