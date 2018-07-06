@@ -10,5 +10,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
         curl \
         vim 
+RUN pip3 install scikit-image
 
 CMD ["/bin/bash"]

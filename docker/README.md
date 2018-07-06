@@ -64,7 +64,7 @@ borgy submit --req-cores=16 --req-ram-gbytes=16 -w /home/${USER} --image=images.
 ```
 Using a GPU
 ```
-borgy submit --req-gpus=1 --req-cores=6 --req-ram-gbytes=6 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/ -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py--config=settings/projectileGame/PPO/Viz_Imitation_2.json -p 4 --shouldRender=true --rollouts=4 --bootstrap_samples=100 --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
+borgy submit --req-gpus=1 --req-cores=6 --req-ram-gbytes=6 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/ -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=settings/projectileGame/PPO/Viz_Imitation.json -p 4 --shouldRender=true --rollouts=4 --bootstrap_samples=100 --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
 ```
 
 Run a META simulation  
