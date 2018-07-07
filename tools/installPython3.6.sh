@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo add-apt-repository ppa:jonathonf/python-3.6  # (only for 16.04 LTS)
+sudo add-apt-repository ppa:jonathonf/python-3.6  # (only for Ubuntu 16.04 LTS)
 
 ## Then, run the following (this works out-of-the-box on 16.10 and 17.04):
 
@@ -16,13 +16,13 @@ sudo python3.6 get-pip.py
 ### python3.6 and pip3.6 should work now.
 
 
-sudo apt-get -y install python3-dev python3-pip
+# sudo apt-get -y install python3-dev python3-pip
 
 pip3.6 install $user numpy
 pip3.6 install $user theano==1.0.1
 # pip install matplotlib
 pip3.6 install $user matplotlib
-pip3.6 install $user Lasagne==0.1
+pip3.6 pip install $user --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
 ### One of these should work... Curse you Lasagne...
 cp ../patches/pool.py ~/.local/lib/python3.6/site-packages/lasagne/layers/
 pip3.6 install $user dill

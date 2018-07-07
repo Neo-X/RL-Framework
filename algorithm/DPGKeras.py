@@ -7,7 +7,7 @@ import sys
 import copy
 sys.path.append('../')
 from model.ModelUtil import *
-from algorithm.AlgorithmInterface import AlgorithmInterface
+from algorithm.KERASAlgorithm import KERASAlgorithm
 from model.LearningUtil import loglikelihood, kl, entropy, change_penalty
 from keras.optimizers import SGD
 # from keras.utils.np_utils import to_categoricalnetwork
@@ -20,7 +20,7 @@ from keras.models import Sequential, Model
 # theano.config.mode='FAST_COMPILE'
 from collections import OrderedDict
 
-class DPGKeras(AlgorithmInterface):
+class DPGKeras(KERASAlgorithm):
     
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
         """

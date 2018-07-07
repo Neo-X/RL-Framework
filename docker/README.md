@@ -66,6 +66,10 @@ Using a GPU
 ```
 borgy submit --req-gpus=1 --req-cores=6 --req-ram-gbytes=6 -w /home/${USER} -w /usr/lib/nvidia-390 --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=settings/projectileGame/PPO/Viz_Imitation.json -p 4 --rollouts=4 --bootstrap_samples=100 --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
 ```
+With GPU training on tensorflow
+```
+borgy submit --req-gpus=1 --req-cores=8 --req-ram-gbytes=8 -w /home/${USER} -w /usr/lib/nvidia-390 --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -- /bin/bash -c 'source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=settings/projectileGame/PPO/Viz_Imitation.json -p 4 --rollouts=4 --bootstrap_samples=100 --save_trainData=true --num_rounds=1 --plot=false --save_trainData=true --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out; deactivate'
+```
 
 Run a META simulation  
 ```
