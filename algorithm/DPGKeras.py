@@ -60,8 +60,8 @@ class DPGKeras(AlgorithmInterface):
                 
         # self._q_function = self._model.getCriticNetwork()(self._model.getStateSymbolicVariable(), self._q_valsActA)
         self._q_function = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
-        self._q_function_Target = self._model.getCriticNetwork()([self._model.getResultStateSymbolicVariable(), self._q_valsActTarget_ResultState])
-        # self._q_function_Target = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+        # self._q_function_Target = self._model.getCriticNetwork()([self._model.getResultStateSymbolicVariable(), self._q_valsActTarget_ResultState])
+        self._q_function_Target = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
         
         q_vals_b = self._q_function_Target
         target_tmp_ = self._model.getRewardSymbolicVariable() + ((self._discount_factor * q_vals_b ))

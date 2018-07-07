@@ -15,6 +15,7 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/CACLA_use_advantage_action_weighting.json"
 # 				"settings/hyperParamTuning/element/clamp_actions_to_stay_inside_bounds.json" 
 # 				"settings/hyperParamTuning/element/critic_learning_rate.json"
+				"settings/hyperParamTuning/element/critic_network_layer_sizes.json"
 # 				"settings/hyperParamTuning/element/critic_updates_per_actor_update.json"
 # 				"settings/hyperParamTuning/element/dont_use_td_learning.json"
 # 				"settings/hyperParamTuning/element/dropout_p.json" 
