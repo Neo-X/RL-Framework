@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ### Sets up an environment for training tensoflow on the GPU
+### Make sure you have cuba 8.0 and cudnn 6 installed already.
 
 ## install virtual env
 sudo apt-get install python-virtualenv
