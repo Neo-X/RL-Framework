@@ -64,7 +64,7 @@ borgy submit --req-cores=16 --req-ram-gbytes=16 -v /usr/lib/nvidia-390/:/usr/lib
 ```
 or for multi char sim
 ```
-borgy submit --req-cores=16 --req-ram-gbytes=16 -v /usr/lib/nvidia-390:/usr/lib/nvidia-390 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=settings/terrainRLMultiChar/HLC/CACLA/LargeBlocks_MultiChar_WithVelocity_OnPolicy-OLDLLC.json --plot=false --save_trainData=true --num_rounds=250 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
+borgy submit --req-cores=16 --req-ram-gbytes=16 -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=settings/terrainRLMultiChar/HLC/CACLA/LargeBlocks_MultiChar_WithVelocity_OnPolicy-OLDLLC.json --plot=false --save_trainData=true --num_rounds=250 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
 ```
 Using a GPU
 ```

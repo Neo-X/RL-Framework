@@ -447,6 +447,7 @@ class PPO_KERAS(KERASAlgorithm):
         if ( 'advantage_scaling' in self.getSettings() and ( self.getSettings()['advantage_scaling'] != False) ):
             std = std / self.getSettings()['advantage_scaling']
             mean = 0.0
+            print ("advantage_scaling: ", std)
         if ('normalize_advantage' in self.getSettings()
             and (self.getSettings()['normalize_advantage'] == True)):
             # print("Normalize advantage")
