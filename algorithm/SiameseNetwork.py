@@ -265,3 +265,25 @@ class SiameseNetwork(KERASAlgorithm):
         predicted_y = self.predict_reward(states, actions)
         diff = np.mean(np.abs(predicted_y - result_states))
         return diff
+
+    def loadFrom(self, fileName):
+        import h5py
+        from keras.models import load_model
+        suffix = ".h5"
+        print ("Loading agent: ", fileName)
+        # with K.get_session().graph.as_default() as g:
+        self._model._actor = load_model(fileName+"_actor"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
+        self._model._critic = load_model(fileName+"_critic"+suffix)
+        if (self._modelTarget is not None):
+            self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
+            self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
+        # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
+        # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
+        # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
+        hf = h5py.File(fileName+"_bounds.h5",'r')
+        self.setStateBounds(np.array(hf.get('_state_bounds')))
+        self.setRewardBounds(np.array(hf.get('_reward_bounds')))
+        self.setActionBounds(np.array(hf.get('_action_bounds')))
+        # self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
+        hf.close()
+        

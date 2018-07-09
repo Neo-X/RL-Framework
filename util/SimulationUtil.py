@@ -860,7 +860,7 @@ def createSampler(settings, exp):
     return sampler
 
 def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel, reward_bounds=0, print_info=True):
-    
+    directory= getDataDirectory(settings)
     if settings["forward_dynamics_predictor"] == "simulator":
         from model.ForwardDynamicsSimulator import ForwardDynamicsSimulator
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
@@ -879,21 +879,50 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
         forwardDynamicsModel = dill.load(open(file_name_dynamics))
     elif settings["forward_dynamics_predictor"] == "network":
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
-        if (settings['load_saved_model'] == True):
-            print ("Loading pre compiled network")
-            directory= getDataDirectory(settings)
-            file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
-            f = open(file_name_dynamics, 'rb')
-            forwardDynamicsModel = dill.load(f)
-            f.close()
-        elif (('load_saved_fd_model' in settings and 
+        if (settings['load_saved_model'] == True 
+            or ('load_saved_fd_model' in settings and 
              (settings['load_saved_fd_model']))):
-            print ("Loading pre trained network")
-            directory= getDataDirectory(settings)
-            file_name_dynamics=directory+"forward_dynamics_"+"_Best_pretrain.pkl"
-            f = open(file_name_dynamics, 'rb')
-            forwardDynamicsModel = dill.load(f)
-            f.close()
+            print ("Loading pre compiled fd network")
+            if ("learning_backend" in settings and 
+                ((settings['learning_backend'] == "tensorflow")
+                 or (settings['learning_backend'] == "theano")
+                )):
+                from algorithm.AlgorithmInterface import AlgorithmInterface
+                state_bounds__ = state_bounds
+                if ("use_dual_state_representations" in settings
+                        and (settings["use_dual_state_representations"] == True)):
+                        state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
+                                         [1] * settings["fd_num_terrain_features"]])
+                settings_ = copy.deepcopy(settings)
+                ### This is faster....
+                settings_['load_saved_model'] = False
+                networkModel = createForwardDynamicsNetwork(state_bounds__, action_bounds, settings)
+                # networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings_)
+                # modelClass = my_import(path_)
+                algorihtm_type = settings['fd_algorithm']
+                modelAlgorithm = locate(algorihtm_type)
+                if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
+                    print ("networkModel: ", networkModel)
+                    forwardDynamicsModel = modelAlgorithm(networkModel, state_length=len(state_bounds__[0]), 
+                                           action_length=len(action_bounds[0]), state_bounds=state_bounds, 
+                                  action_bounds=action_bounds, reward_bounds=reward_bounds, settings_=settings)
+                    forwardDynamicsModel.setSettings(settings)
+                    forwardDynamicsModel.loadFrom(directory+"forward_dynamics"+"_Best")
+                    print("Loaded algorithm: ", forwardDynamicsModel)
+                    # return model
+                else:
+                    print ("Unknown learning algorithm type: " + str(algorihtm_type))
+                    raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+                # sys.exit(2)
+            else:
+                print ("Loading pre compiled network")
+                file_name=directory+getAgentName()+"_Best.pkl"
+                f = open(file_name, 'rb')
+                forwardDynamicsModel = dill.load(f)
+                f.close()
+                forwardDynamicsModel.setSettings(settings)
+                forwardDynamicsModel.loadFrom(directory+"forward_dynamics"+"_Best")
+            print ("FD state bounds: ", forwardDynamicsModel.getStateBounds())
         else:
             if ( settings['forward_dynamics_model_type'] == "SingleNet"):
                 ## Hopefully this will allow for parameter sharing across both models...

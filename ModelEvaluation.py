@@ -1827,12 +1827,9 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
     
     if (settings['train_forward_dynamics']):
         if (runLastModel == True):
-            file_name_dynamics=directory+"forward_dynamics_"+".pkl"
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
         else:
-            file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
-        f = open(file_name_dynamics, 'rb')
-        forwardDynamicsModel = dill.load(f)
-        f.close()
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
     
     if ( settings["use_transfer_task_network"] ):
         task_directory = getTaskDataDirectory(settings)
