@@ -6,7 +6,7 @@ import warnings
 from model.ModelUtil import *
 from trainModel import trainModelParallel
 from trainForwardDynamics import trainForwardDynamics
-
+### These don't work anymore...
 class TestFDModel(object):
 
     def test_gan_lasagne(self):

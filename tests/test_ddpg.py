@@ -45,7 +45,7 @@ class TestDDPG(object):
         """
         
         """
-        filename = "tests/settings/gapGame2D/DDPG/On_Policy_Tensorflow.json"
+        filename = "tests/settings/gapGame2D/DDPG/Off_Policy_Tensorflow.json"
         file = open(filename)
         settings = json.load(file)
         file.close()

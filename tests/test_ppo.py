@@ -20,6 +20,8 @@ class TestPPO(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 2
+        settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
@@ -35,6 +37,8 @@ class TestPPO(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 2
+        settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
@@ -50,6 +54,8 @@ class TestPPO(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 2
+        settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
@@ -65,6 +71,8 @@ class TestPPO(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 2
+        settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
@@ -80,6 +88,8 @@ class TestPPO(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 2
+        settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
@@ -95,6 +105,8 @@ class TestPPO(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 2
+        settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
@@ -111,6 +123,8 @@ class TestPPO(object):
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
         simData = trainModelParallel((filename, settings))
+        settings['rounds'] = 2
+        settings['rollouts'] = 4
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
         
@@ -125,6 +139,8 @@ class TestPPO(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 2
+        settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
@@ -140,6 +156,8 @@ class TestPPO(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 2
+        settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
@@ -155,6 +173,8 @@ class TestPPO(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 2
+        settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5    
@@ -170,6 +190,8 @@ class TestPPO(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 2
+        settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > 0.65
@@ -185,6 +207,8 @@ class TestPPO(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 2
+        settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > 0.65

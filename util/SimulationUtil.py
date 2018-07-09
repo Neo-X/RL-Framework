@@ -41,6 +41,7 @@ def setupLearningBackend(settings):
     import theano
     if ("learning_backend" in settings and
         (settings["learning_backend"] == "tensorflow")):
+        from keras.backend import tensorflow_backend
         import tensorflow as tf
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True

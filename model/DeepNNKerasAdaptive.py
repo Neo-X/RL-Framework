@@ -183,7 +183,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                     else:
                         if (i == 0):
                             networkAct = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
-                        networkAct = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=1,
+                        stride_ = 1
+                        if (len(layer_sizes[i]) > 2):
+                            stride_ = layer_sizes[i][2]
+                        networkAct = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride_,
                                                          kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                         if (perform_pooling):
                             networkAct = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(networkAct)
@@ -371,7 +374,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                     if (i == 0):
                         # network = Reshape((self._state_length, 1))(taskFeatures)
                         network = Reshape((self._settings['num_terrain_features'], 1))(taskFeatures)
-                    network = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=1,
+                    stride_ = 1
+                    if (len(layer_sizes[i]) > 2):
+                        stride_ = layer_sizes[i][2]
+                    network = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride_,
                                                   kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                     if (perform_pooling):
                         network = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(network)

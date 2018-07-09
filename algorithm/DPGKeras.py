@@ -379,33 +379,3 @@ class DPGKeras(KERASAlgorithm):
     
     def get_critic_loss(self, state, action, reward, nextState):
         return self._get_critic_loss([state, action, reward, nextState, 0])   
-    
-    
-from collections import OrderedDict
-def adam_updates(loss, params, learning_rate=0.001, beta1=0.9,
-         beta2=0.999, epsilon=1e-8):
-
-    all_grads = T.grad(loss, params)
-    t_prev = theano.shared(np.array(0,dtype="float64"))
-    updates = OrderedDict()
-
-    t = t_prev + 1
-    a_t = learning_rate*T.sqrt(1-beta2**t)/(1-beta1**t)
-
-    for param, g_t in zip(params, all_grads):
-        value = param.get_value(borrow=True)
-        m_prev = theano.shared(np.zeros(value.shape, dtype=value.dtype),
-                               broadcastable=param.broadcastable)
-        v_prev = theano.shared(np.zeros(value.shape, dtype=value.dtype),
-                               broadcastable=param.broadcastable)
-
-        m_t = beta1*m_prev + (1-beta1)*g_t
-        v_t = beta2*v_prev + (1-beta2)*g_t**2
-        step = a_t*m_t/(T.sqrt(v_t) + epsilon)
-
-        updates[m_prev] = m_t
-        updates[v_prev] = v_t
-        updates[param] = param - step
-
-    updates[t_prev] = t
-    return updates
