@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_2D_Symetric-NoPhase-v0/_Tensorflow",
+"data_folder": "PD_Humanoid_2D_Symetric-NoPhase-v0/_3",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -324,7 +324,7 @@
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
 "train_critic_with_fd_data": true,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 0.5,
+"additional_on-poli_trianing_updates": 1.0,
 	"comment__": "Use average of policy std as mbae learning rate",
 "use_std_avg_as_mbae_learning_rate": true,
 	"comment__": "Use the on-policy value function to compute state gradients instead of off-policy one for SMBAE.",
@@ -357,7 +357,7 @@
 	"comment__": "Use an L2 loss over for the value function over the G_t from rollouts (no TD loss)",
 "dont_use_td_learning": false,
 	"comment__": "Anneal the learning rate",
-"anneal_learning_rate": true,
+"anneal_learning_rate": false,
 	"comment__": "Scale the PPO policy distribution change metric by action size",
 "scale_r_by_action_size": false
 }
