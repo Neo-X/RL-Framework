@@ -124,6 +124,7 @@ def pretrainCritic(masterAgent):
     settings__2 = copy.deepcopy(masterAgent.getSettings())
     settings__["train_actor"] = False
     settings__["clear_exp_mem_on_poli"] = False
+    ### Projects for the case when they are singular and don't want to skip training the critic and train the policy
     settings__["ppo_use_seperate_nets"] = True
     masterAgent.setSettings(settings__)
     masterAgent.getPolicy().setSettings(settings__)

@@ -34,7 +34,7 @@ sudo docker run -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ glen:latest /
 To run a learning simulation
 
 ```
-sudo docker run -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ glen:latest /bin/bash -c "pushd /root/playground/RL-Framework/; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=false --num_rounds=20"
+sudo docker run -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ glen:latest /bin/bash -c "pushd /root/playground/RL-Framework/; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=true --num_rounds=20"
 ```
 
 Run a simulation and email the results
