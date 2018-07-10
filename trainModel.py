@@ -58,7 +58,7 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
     """
     
     from model.LearningAgent import LearningAgent, LearningWorker
-    from ModelEvaluation import SimWorker
+    from simulation.SimWorker import SimWorker
     from util.SimulationUtil import createActor, getAgentName, createSampler, createForwardDynamicsModel
     
     sim_workers = []
@@ -269,7 +269,10 @@ def trainModelParallel(inputData):
         setupLearningBackend(settings)
         
         # print ( "theano.config.mode: ", theano.config.mode)
-        from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience, simEpoch, evalModel, simModelParrallel
+        from simulation.SimWorker import SimWorker
+        from simulation.simEpoch import simEpoch, simModelParrallel
+        from simulation.evalModel import evalModelParrallel, evalModel
+        from simulation.collectExperience import collectExperience
         from model.ModelUtil import validBounds, fixBounds, anneal_value
         from model.LearningAgent import LearningAgent, LearningWorker
         from util.SimulationUtil import validateSettings

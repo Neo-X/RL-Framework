@@ -220,17 +220,24 @@ class LearningAgent(AgentInterface):
             ## This lets the model do most of the training and batching, more efficient
             if ("model_perform_batch_training" in self._settings 
                 and (self._settings["model_perform_batch_training"] == True )):
-                ### Get all the data
+                ### How many more times should the value function see the data
                 batch_ratio = value_function_batch_size / self._settings["batch_size"]
+                ### Compensate for the ratio collected each run and the size of the replay buffer
+                min_samples = self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"]
+                data_ratio = min_samples / self.getExperience().samples()
+                batch_ratio = batch_ratio * data_ratio
+                
+                
                 additional_on_poli_trianing_updates_ = self._settings["additional_on-poli_trianing_updates"]
                 if ( additional_on_poli_trianing_updates_ < 1 ): ## should have at least one training update
                     additional_on_poli_trianing_updates_ = 1
                 if (self._settings['train_critic']):
                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(self._expBuff.samples(), self._settings["expereince_length"]))
-                    vf_updates = additional_on_poli_trianing_updates_ * batch_ratio
+                    vf_updates = int(additional_on_poli_trianing_updates_ * batch_ratio)
                     if ("critic_updates_per_actor_update" in self._settings 
                         and (self._settings['critic_updates_per_actor_update'] > 1)):
-                        vf_updates = int(max(vf_updates * self._settings['critic_updates_per_actor_update'], 1))
+                        vf_updates = int(vf_updates * self._settings['critic_updates_per_actor_update'])
+                    vf_updates = max(vf_updates, 1)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Performing ", vf_updates, " critic epochs")
                     loss = self._pol.trainCritic(states=states__, actions=actions__, 
@@ -243,12 +250,14 @@ class LearningAgent(AgentInterface):
                         states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(min(self.getFDExperience().samples(), self._settings["expereince_length"]))
                     else:
                         states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getExperience().get_batch(min(self._expBuff.samples(), self._settings["expereince_length"]))
-                    fd_updates = additional_on_poli_trianing_updates_ * batch_ratio
+                    fd_updates = int(additional_on_poli_trianing_updates_ * batch_ratio)
                     if ("fd_updates_per_actor_update" in self._settings 
                         and (self._settings['fd_updates_per_actor_update'] > 1)):
                         fd_updates = int(max(fd_updates * self._settings['fd_updates_per_actor_update'], 1))
+                    fd_updates = max(fd_updates, 1)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print ("Performing ", fd_updates, " fd epoch")
+                        print ("Performing ", fd_updates, " fd epochs")
+                        
                     dynamicsLoss = self._fd.train(states=states__, actions=actions__, 
                                                   result_states=result_states__, rewards=rewards__, 
                                                   updates=fd_updates, batch_size=value_function_batch_size)
