@@ -350,7 +350,7 @@
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
 	"comment__": "type of activation to use for policy",
-"fd_policy_activation_type": "relu",
+"fd_policy_activation_type": "leaky_rectify",
 	"comment__": "last policy type of activation to use",
 "last_fd_layer_activation_type": "linear",
 	"comment__": "The number of fd network to be done per actor update.",
