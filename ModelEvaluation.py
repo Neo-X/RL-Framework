@@ -1799,18 +1799,7 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
         sim_index = settings['override_sim_env_id']
     # exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
     exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=render, index=sim_index)
-    
-    if ( settings['use_simulation_sampling'] ):
-        sampler = createSampler(settings, exp)
-        ## This should be some kind of copy of the simulator not a network
-        forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp)
-        sampler.setForwardDynamics(forwardDynamicsModel)
-        # sampler.setPolicy(model)
-        masterAgent = sampler
-        print ("thread together exp: ", masterAgent._exp)
-        # sys.exit()
-    else:
-        masterAgent = LearningAgent(settings_=settings)
+    masterAgent = LearningAgent(settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     if (runLastModel == True):
@@ -1831,7 +1820,18 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
         else:
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
-    
+
+    if ( settings['use_simulation_sampling'] ):
+        sampler = createSampler(settings, exp)
+        ## This should be some kind of copy of the simulator not a network
+        if (not settings['train_forward_dynamics']):
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel=None, print_info=True)
+        sampler.setForwardDynamics(forwardDynamicsModel)
+        # sampler.setPolicy(model)
+        masterAgent.setSampler(sampler)
+        # print ("thread together exp: ", masterAgent._exp)
+        # sys.exit()
+            
     if ( settings["use_transfer_task_network"] ):
         task_directory = getTaskDataDirectory(settings)
         file_name=directory+getAgentName()+"_Best.pkl"

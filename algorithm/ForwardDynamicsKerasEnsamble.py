@@ -17,6 +17,17 @@ from keras.models import Sequential, Model
 # theano.config.mode='FAST_COMPILE'
 from algorithm.KERASAlgorithm import KERASAlgorithm
 
+def loss_std(action_true, action_pred):
+    action_true = action_true[:,:self._state_length]
+    action_pred_mean = action_pred[:,:self._state_length]
+    action_pred_std = action_pred[:,self._state_length:]
+    prob = loglikelihood_keras(action_true, action_pred_mean, action_pred_std, self._state_length)
+    # entropy = 0.5 * T.mean(T.log(2 * np.pi * action_pred_std + 1 ) )
+    # actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)) + (entropy * 1e-2))
+    actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)))
+    ### Average over batch
+    return actLoss
+
 class ForwardDynamicsKerasEnsamble(KERASAlgorithm):
     
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
@@ -85,7 +96,9 @@ class ForwardDynamicsKerasEnsamble(KERASAlgorithm):
             actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)))
             ### Average over batch
             return actLoss
-            
+        
+        self._loss_std = loss_std
+
         # sgd = SGD(lr=0.001, momentum=0.9)
         for i in range(self._fd_ensemble_size):
             sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
@@ -289,3 +302,16 @@ class ForwardDynamicsKerasEnsamble(KERASAlgorithm):
         self._models[0]._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
         self._models[0]._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
+        
+    def loadFrom(self, fileName):
+        from keras.models import load_model
+        import h5py
+        suffix = ".h5"
+        print ("Loading agent: ", fileName)
+        self._model._forward_dynamics_net = load_model(fileName+"_FD"+suffix, custom_objects={'loss_std': self._loss_std})
+        self._model._reward_net = load_model(fileName+"_reward"+suffix)
+        hf = h5py.File(fileName+"_bounds.h5",'r')
+        self.setStateBounds(np.array(hf.get('_state_bounds')))
+        self.setRewardBounds(np.array(hf.get('_reward_bounds')))
+        self.setActionBounds(np.array(hf.get('_action_bounds')))
+        hf.close()

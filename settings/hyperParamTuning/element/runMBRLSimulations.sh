@@ -20,6 +20,9 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/dont_use_td_learning.json"
 # 				"settings/hyperParamTuning/element/dropout_p.json" 
 				"settings/hyperParamTuning/element/exploration_rate.json" 
+				"settings/hyperParamTuning/element/fd_network_dropout.json"
+				"settings/hyperParamTuning/element/fd_network_layer_sizes.json"
+				"settings/hyperParamTuning/element/fd_policy_activation_type.json"
 #				"settings/hyperParamTuning/element/GAE_lambda.json"
 # 				"settings/hyperParamTuning/element/initial_temperature.json" 
 #  				"settings/hyperParamTuning/element/kl_divergence_threshold.json" 
@@ -35,7 +38,6 @@ declare -a metaExps=(
 #  				"settings/hyperParamTuning/element/use_stocastic_policy.json"
 #  				"settings/hyperParamTuning/element/use_target_net_for_critic.json"
 #				"settings/hyperParamTuning/element/value_function_batch_size.json"
-				"settings/hyperParamTuning/element/fd_network_layer_sizes.json"
 )
 
 rounds=$2
@@ -47,7 +49,7 @@ do
 	# or do whatever with individual element of the array
 	# echo "$simConfigFile"
 	
-	command="borgy submit --restartable --req-cores=32 --req-ram-gbytes=32 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/ -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config="$simConfigFile" --metaConfig="$metaConfig" --meta_sim_samples=4 --meta_sim_threads=4 --tuning_threads=1 --num_rounds="$rounds" | tee -a $BORGY_JOB_ID.out'"
+	command="borgy submit --restartable --req-cores=32 --req-ram-gbytes=32 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config="$simConfigFile" --metaConfig="$metaConfig" --meta_sim_samples=4 --meta_sim_threads=4 --tuning_threads=1 --num_rounds="$rounds" | tee -a $BORGY_JOB_ID.out'"
 	echo $command
 	eval $command
 done

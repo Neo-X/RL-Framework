@@ -98,7 +98,7 @@ class TestSaveAndLoad(object):
         assert np.allclose(simData['masterAgent'].getRewardBounds(), evalData['masterAgent'].getRewardBounds())
         assert np.allclose(simData['masterAgent'].getActionBounds(), evalData['masterAgent'].getActionBounds())
         assert np.allclose(simData['masterAgent'].getStateBounds(), evalData['masterAgent'].getStateBounds())
-                    
+             
 
 if __name__ == '__main__':
     pytest.main([__file__])
