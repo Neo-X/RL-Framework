@@ -41,11 +41,13 @@ class GymMultiCharEnv(SimInterface):
     def init(self):
         # self.getEnvironment().init()
         self._previous_observation = self.getEnvironment().reset()
+        # self._previous_observation = 0
         self._end_of_episode = False
         self._num_updates_since_last_action=10000
             
     def initEpoch(self):
         self._previous_observation = self.getEnvironment().reset()
+        # print ("self._previous_observation: ", self._previous_observation[0])
         if ("use_dual_state_representations" in self.getSettings()
                 and (self.getSettings()["use_dual_state_representations"] == True)):
             while not checkDataIsValid(self._previous_observation[0][0]):
@@ -53,6 +55,7 @@ class GymMultiCharEnv(SimInterface):
         else:
             while not checkDataIsValid(self._previous_observation[0]):
                 self._previous_observation = self.getEnvironment().reset()
+                # print ("self._previous_observation: ", self._previous_observation[0])
         
         self._end_of_episode = False
         self._num_updates_since_last_action=10000

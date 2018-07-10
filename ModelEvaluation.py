@@ -465,11 +465,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # epsilon = settings["epsilon"]
     # Actor should be FIRST here
     exp.getActor().initEpoch()
+    """
     if validation:
         exp.generateValidation(anchors, epoch)
     else:
         exp.generateEnvironmentSample()
-        
+    """ 
     # exp.initEpoch()
     exp.initEpoch()
     # print ("sim EXP: ", exp)
