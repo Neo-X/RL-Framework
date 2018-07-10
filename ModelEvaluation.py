@@ -257,7 +257,7 @@ class SimWorker(Process):
                 elif (bootstrapping):
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
-                            print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval,
+                            print_data=self._print_data, p=self._p, validation=self._validation, evaluation=False,
                             bootstrapping=bootstrapping)
                 else:
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
@@ -328,7 +328,7 @@ class SimWorker(Process):
                         print ("Running boostraping episode")
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
-                            print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval,
+                            print_data=self._print_data, p=self._p, validation=self._validation, evaluation=False,
                             bootstrapping=bootstrapping)
                 else: ##Normal??
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):

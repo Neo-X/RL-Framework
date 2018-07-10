@@ -51,16 +51,16 @@ borgy submit --restartable -w /home/${USER} -i images.borgy.elementai.lan/glen:l
 Simulate TerrainRLSIM
 Submit to send an email.  
 ```
-borgy submit --restartable -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/TerrainRL/simAdapter; python3 terrainRLSimTest.py | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -- /bin/bash -c 'pushd /home/glen/playground/TerrainRL/simAdapter; python3 terrainRLSimTest.py | tee -a $BORGY_JOB_ID.out'
 ```
 
 Run a simulation  
 ```
-borgy submit --restartable --req-cores=1 --req-ram-gbytes=1 -w /home/${USER} -v /usr/lib/nvidia-390:/usr/lib/nvidia-390 --image=images.borgy.elementai.lan/glen:latest -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/ -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-cores=1 --req-ram-gbytes=1 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
 ```
 or
 ```
-borgy submit --restartable --req-cores=16 --req-ram-gbytes=16 -v /usr/lib/nvidia-390/:/usr/lib/nvidia-390/ -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/  -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3.6 trainModel.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow_NoPhase.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-cores=16 --req-ram-gbytes=16 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/  -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3.6 trainModel.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow_NoPhase.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
 ```
 or for multi char sim
 ```
@@ -68,30 +68,30 @@ borgy submit --restartable --req-cores=16 --req-ram-gbytes=16 -e LD_LIBRARY_PATH
 ```
 Using a GPU
 ```
-borgy submit --restartable --req-gpus=1 --req-cores=6 --req-ram-gbytes=6 -w /home/${USER} -v /usr/lib/nvidia-390:/usr/lib/nvidia-390 --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=settings/projectileGame/PPO/Viz_Imitation.json -p 4 --rollouts=4 --bootstrap_samples=100 --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-gpus=1 --req-cores=6 --req-ram-gbytes=6 -w /home/${USER} -v /usr/lib/nvidia-390:/usr/lib/nvidia-390 --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainModel.py --config=settings/projectileGame/PPO/Viz_Imitation.json -p 4 --rollouts=4 --bootstrap_samples=100 --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
 ```
 With GPU training on tensorflow
 ```
-borgy submit --restartable --req-gpus=1 --req-cores=8 --req-ram-gbytes=8 -w /home/${USER} -v /usr/lib/nvidia-390:/usr/lib/nvidia-390 --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -- /bin/bash -c 'source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3.6 trainModel.py --config=settings/projectileGame/PPO/Viz_Imitation.json -p 4 --rollouts=4 --bootstrap_samples=100 --save_trainData=true --num_rounds=1 --plot=false --save_trainData=true --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out; deactivate'
+borgy submit --restartable --req-gpus=1 --req-cores=8 --req-ram-gbytes=8 -w /home/${USER} -v /usr/lib/nvidia-390:/usr/lib/nvidia-390 --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -- /bin/bash -c 'source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3.6 trainModel.py --config=settings/projectileGame/PPO/Viz_Imitation.json -p 4 --rollouts=4 --bootstrap_samples=100 --save_trainData=true --num_rounds=1 --plot=false --save_trainData=true --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out; deactivate'
 ```
 
 Run a META simulation  
 ```
-borgy submit --restartable --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainMetaModel.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow_NoPhase.json --metaConfig=settings/hyperParamTuning/elementAI.json --meta_sim_samples=3 --meta_sim_threads=3 | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainMetaModel.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow_NoPhase.json --metaConfig=settings/hyperParamTuning/elementAI.json --meta_sim_samples=3 --meta_sim_threads=3 | tee -a $BORGY_JOB_ID.out'
 ```
 
 Run a Tuning simulation  
 ```
-borgy submit --restartable --req-cores=10 --req-ram-gbytes=10 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2-test.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json --meta_sim_samples=5 --meta_sim_threads=5 --tuning_threads=2 | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-cores=10 --req-ram-gbytes=10 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2-test.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json --meta_sim_samples=5 --meta_sim_threads=5 --tuning_threads=2 | tee -a $BORGY_JOB_ID.out'
 ```
 
 ```
-borgy submit --restartable --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=1 | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=1 | tee -a $BORGY_JOB_ID.out'
 ```
 
 Run tests
 ```
-borgy submit --restartable --req-cores=32 --req-ram-gbytes=64 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 run_tests.py settings/hyperParamTuning/run_tests.json | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-gpus=1 --req-cores=32 --req-ram-gbytes=64 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 run_tests.py settings/hyperParamTuning/run_tests.json | tee -a $BORGY_JOB_ID.out'
 ```
 ### Info from man page
 
