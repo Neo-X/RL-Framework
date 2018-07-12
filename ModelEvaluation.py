@@ -293,6 +293,18 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
         action_bounds = np.array(settings["action_bounds"], dtype=float)
     
     print ("Sim config file name: " + str(settings["sim_config_file"]))
+    sim_index=0
+    if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+        sim_index = settings['override_sim_env_id']
+    # exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
+    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=render, index=sim_index)
+    if (state_bounds == "ask_env"): # This is okay if there is one thread only...
+        print ("Getting state bounds from environment")
+        s_min = exp.getEnvironment().observation_space.getMinimum()
+        s_max = exp.getEnvironment().observation_space.getMaximum()
+        print (exp.getEnvironment().observation_space.getMinimum())
+        settings['state_bounds'] = [s_min,s_max]
+        state_bounds = settings['state_bounds']
     
     ### Using a wrapper for the type of actor now
     if action_space_continuous:
@@ -302,11 +314,6 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
     # actor = ActorInterface(discrete_actions)
     actor = createActor(str(settings['environment_type']),settings, experience)
     
-    sim_index=0
-    if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-        sim_index = settings['override_sim_env_id']
-    # exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
-    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=render, index=sim_index)
     masterAgent = LearningAgent(settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
