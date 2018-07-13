@@ -202,7 +202,7 @@ class PPO_KERAS(KERASAlgorithm):
             
             return loss
         
-        
+        self._poli_loss = poli_loss
         sgd = sgd = getOptimizer(lr=np.float32(self.getSettings()['learning_rate']), 
                                     settings=self.getSettings())
         print("sgd, actor: ", sgd)
@@ -637,7 +637,7 @@ class PPO_KERAS(KERASAlgorithm):
         # with K.get_session().graph.as_default() as g:
         self._model._actor = load_model(fileName+"_actor"+suffix)
         self._model._critic = load_model(fileName+"_critic"+suffix)
-        self._model._actor_train = load_model(fileName+"_actor_train"+suffix)
+        # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': self._poli_loss})
         if (self._modelTarget is not None):
             self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
             self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)

@@ -463,7 +463,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             """
             state_num=0
             # print ("time index: ", i_)
-            # print ("states shape: ", states[0].shape)
+            print ("states shape: ", np.array(states).shape)
             if ('use_GAE' in settings and ( settings['use_GAE'] == True)):
                 for a in range(len(states[0])):
                     # print ("Computing advantage for agent: ", a)
