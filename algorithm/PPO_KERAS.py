@@ -624,8 +624,31 @@ class PPO_KERAS(KERASAlgorithm):
         hf.close()
         suffix = ".h5"
         ### Save models
-        # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
-        self._model._actor.save(fileName+"_actor"+suffix, overwrite=True)
-        self._model._critic.save(fileName+"_critic"+suffix, overwrite=True)
-        self._modelTarget._actor.save(fileName+"_actor_T"+suffix, overwrite=True)
-        self._modelTarget._critic.save(fileName+"_critic_T"+suffix, overwrite=True)
+        self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True, include_optimizer=True)
+        self._model._actor.save(fileName+"_actor"+suffix, overwrite=True, include_optimizer=True)
+        self._model._critic.save(fileName+"_critic"+suffix, overwrite=True, include_optimizer=True)
+        self._modelTarget._actor.save(fileName+"_actor_T"+suffix, overwrite=True, include_optimizer=True)
+        self._modelTarget._critic.save(fileName+"_critic_T"+suffix, overwrite=True, include_optimizer=True)
+
+    def loadFrom(self, fileName):
+        from keras.models import load_model
+        suffix = ".h5"
+        print ("Loading agent: ", fileName)
+        # with K.get_session().graph.as_default() as g:
+        self._model._actor = load_model(fileName+"_actor"+suffix)
+        self._model._critic = load_model(fileName+"_critic"+suffix)
+        self._model._actor_train = load_model(fileName+"_actor_train"+suffix)
+        if (self._modelTarget is not None):
+            self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
+            self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
+        # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
+        # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
+        # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
+        hf = h5py.File(fileName+"_bounds.h5",'r')
+        self.setStateBounds(np.array(hf.get('_state_bounds')))
+        self.setRewardBounds(np.array(hf.get('_reward_bounds')))
+        self.setActionBounds(np.array(hf.get('_action_bounds')))
+        # self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
+        hf.close()
+        
+
