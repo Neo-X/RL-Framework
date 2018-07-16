@@ -464,5 +464,5 @@ if __name__ == "__main__":
 
     print ("Settings: " + str(json.dumps(settings, indent=4)))
     
-    modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render=True)
+    modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render=False)
     
