@@ -577,7 +577,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         except:
             print ("pybullet not installed")
             pass
-        from OpenGL import GL
+        # from OpenGL import GL
         # load_roboschool
         # print(envs.registry.all())
         

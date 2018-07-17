@@ -16,7 +16,7 @@ try:
 except:
     print ("pybullet not installed")
     pass
-from OpenGL import GL
+# from OpenGL import GL
 import numpy as np
 # print(envs.registry.all())
 # env = gym.make('CartPole-v0')

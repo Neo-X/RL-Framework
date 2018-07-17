@@ -181,7 +181,7 @@ class PPO_KERAS(KERASAlgorithm):
             else:
                 action_old_std = (K.ones_like(action_old_mean)) * self.getSettings()['exploration_rate']
             
-            def loss(action_true, action_pred):
+            def loss2(action_true, action_pred):
                 action_true = action_true[:,:self._action_length]
                 action_pred_mean = action_pred[:,:self._action_length]
                 if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])):
@@ -199,8 +199,9 @@ class PPO_KERAS(KERASAlgorithm):
                 actLoss = -1.0 * K.mean(actLoss_, axis=-1)
                 ### Average over batch
                 return K.mean(actLoss)
-            
-            return loss
+
+            self.__loss = loss2
+            return loss2
         
         self._poli_loss = poli_loss
         sgd = sgd = getOptimizer(lr=np.float32(self.getSettings()['learning_rate']), 
@@ -637,7 +638,15 @@ class PPO_KERAS(KERASAlgorithm):
         # with K.get_session().graph.as_default() as g:
         self._model._actor = load_model(fileName+"_actor"+suffix)
         self._model._critic = load_model(fileName+"_critic"+suffix)
-        # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': self._poli_loss})
+        print ("self._Advantage: ", self._Advantage)
+        self._model._actor_train = load_model(fileName+"_actor_train"+suffix, 
+                                              custom_objects={
+                                                              'Advantage': self._Advantage
+                                                              ,'loss': self._poli_loss(self._PoliAction,
+                                                                                      self._Advantage, 
+                                                                                      self._Anneal)
+                                                              # ,'loss': self.__loss
+                                                              })
         if (self._modelTarget is not None):
             self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
             self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
@@ -650,5 +659,8 @@ class PPO_KERAS(KERASAlgorithm):
         self.setActionBounds(np.array(hf.get('_action_bounds')))
         # self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
         hf.close()
+        
+        PPO_KERAS.compile(self)
+        self.updateTargetModel()
         
 

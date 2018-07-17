@@ -7,9 +7,9 @@ A 2D bouncing ball environment
 import sys, os, random, time
 from math import *
 import numpy as np
-from OpenGL.GL import *
-from OpenGL.GLU import *
-from OpenGL.GLUT import *
+# from OpenGL.GL import *
+# from OpenGL.GLU import *
+# from OpenGL.GLUT import *
 import ode
 # from twisted.protocols import stateful
 import copy

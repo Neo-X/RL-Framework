@@ -10,7 +10,7 @@ import copy
 # from gym import wrappers
 # from gym import envs
 # import roboschool
-from OpenGL import GL
+# from OpenGL import GL
 from model.ModelUtil import checkDataIsValid
 
 from model.ModelUtil import getOptimalAction, getMBAEAction

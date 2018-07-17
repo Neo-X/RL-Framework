@@ -1,7 +1,7 @@
 import gym
 
 from simbiconAdapter import simbiconSim
-from OpenGL import GL
+# from OpenGL import GL
 import numpy as np
 # print(envs.registry.all())
 # env = gym.make('CartPole-v0')

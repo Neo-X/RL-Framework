@@ -84,9 +84,13 @@ Run a Tuning simulation
 ```
 borgy submit --restartable --req-cores=10 --req-ram-gbytes=10 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2-test.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json --meta_sim_samples=5 --meta_sim_threads=5 --tuning_threads=2 | tee -a $BORGY_JOB_ID.out'
 ```
-
 ```
 borgy submit --restartable --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=1 | tee -a $BORGY_JOB_ID.out'
+```
+
+Tuning simulation with GPU
+```
+ borgy submit --restartable --req-gpus=1 --req-cores=32 --req-ram-gbytes=32 -w /home/${USER} -v /usr/lib/nvidia-390:/usr/lib/nvidia-390 --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e LD_LIBRARY_PATH=/usr/lib/nvidia-390/:/usr/lib/x86_64-linux-gnu/mesa/:/usr/lib/x86_64-linux-gnu/mesa-egl/ -- /bin/bash -c 'source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3.6 tuneHyperParameters.py --config=settings/projectileGame/PPO/Viz_Imitation.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json -p 4 --rollouts=4 --bootstrap_samples=100 --save_trainData=true --plot=false --save_trainData=true --meta_sim_samples=4 --meta_sim_threads=4 --tuning_threads=1 --num_rounds=10 | tee -a $BORGY_JOB_ID.out; deactivate'
 ```
 
 Run tests
