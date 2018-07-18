@@ -720,9 +720,9 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             # sw_message_queues[j].put(episodeData)
             if (settings['on_policy']):
                 # print ("sw_message_queues[j].maxsize: ", sw_message_queues[j].qsize() )
-                sw_message_queues[j].put(episodeData)
+                sw_message_queues[j].put(episodeData, timeout=timeout_)
             else:
-                sw_message_queues.put(episodeData)
+                sw_message_queues.put(episodeData, timeout=timeout_)
             j += 1
             
         j = 0

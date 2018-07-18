@@ -333,61 +333,7 @@ class PPO_KERAS(KERASAlgorithm):
                                           K.learning_phase()], [self._q_valsActASTD]) 
         
         print ("Done building PPO KERAS")
-
-    """     
-    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]],
-                    updates=1, batch_size=None):
-        if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
-            # print("self.getSettings()[\"use_single_network\"]: ", self.getSettings()["use_single_network"])
-            return 0
-        if (batch_size is None):
-            batch_size_=states.shape[0]
-        else:
-            batch_size_=batch_size
-                
-        if (( self._updates % self._weight_update_steps) == 0):
-            self.updateTargetModel()
-        self._updates += 1
-        if ('dont_use_td_learning' in self.getSettings() 
-            and self.getSettings()['dont_use_td_learning'] == True):
-            if ( True ):
-                y_ = self._value_Target([result_states,0])[0]
-                # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-                # target_ = rewards + ((self._discount_factor * y_) * falls)
-                target_ = rewards + ((self._discount_factor * y_))
-                target_2 = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
-                target = (target_ + target_2) / 2.0
-            else:
-                target_ = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
-        else:
-            # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-            y_ = self._value_Target([result_states,0])[0]
-            # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-            # target_ = rewards + ((self._discount_factor * y_) * falls)
-            target_ = rewards + ((self._discount_factor * y_))
-        target_ = np.array(target_, dtype=self._settings['float_type'])
-        # states = np.array(states, dtype=self._settings['float_type'])
-        # print ("target type: ", target_.dtype)
-        # print ("states type: ", states.dtype)
-        v = self.q_values(states)
-        v_ = self._value_Target([states,0])[0]
-        print ("Critic Target: ", np.concatenate((v, y_, v - y_, v - v_, rewards, target_) ,axis=1) )
-        c_error = np.mean(np.mean(np.square(v - target_), axis=1))
-        # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
-        if (c_error < 0.25):
-            score = self._model.getCriticNetwork().fit(states, target_,
-                  epochs=updates, batch_size=batch_size_,
-                  verbose=0
-                  # callbacks=[early_stopping],
-                  )
-            loss = score.history['loss'][0]
-        else:
-            print ("Critic error to high:", c_error)
-            loss = 0
-        # print(" Critic loss: ", loss)
         
-        return loss
-"""    
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, 
                    G_t=[[0]], forwardDynamicsModel=None, p=1.0, updates=1, batch_size=None):
         lossActor = 0

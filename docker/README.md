@@ -164,3 +164,5 @@ Kill all active borgy jobs
 ```
 borgy ps --state alive|cut -d’ ' -f1|tail -n +2|xargs borgy kill
 ```
+
+/usr/local/nvidia/lib:/usr/local/nvidia/lib64
