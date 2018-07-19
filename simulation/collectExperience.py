@@ -103,6 +103,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         # print ("Reward Variance: " + str(reward_stddev))
         # print ("Action Mean:" + str(action_avg))
         # print ("Action Variance: " + str(action_stddev))
+        print ("State Length:" + str(len(state_bounds[1])))
         print ("Max State:" + str(state_bounds[1]))
         print ("Min State:" + str(state_bounds[0]))
         print ("Max Reward:" + str(reward_bounds[1]))
@@ -135,6 +136,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         # sys.exit()
     else: ## Most likely performing continuation learning
         print ("Skipping bootstrap samples from simulation")
+        print ("State length: ", len(model.getStateBounds()[0]))
         if settings['action_space_continuous']:
             experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
         else:
@@ -143,6 +145,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             experience.setStateBounds(model.getStateBounds())
             experience.setRewardBounds(model.getRewardBounds())
             experience.setActionBounds(model.getActionBounds())
+        
         """
         (states, actions, resultStates, rewards_) = collectExperienceActionsContinuous(exp, settings['expereince_length'], settings=settings, action_selection=action_selection)
         # states = np.array(states)

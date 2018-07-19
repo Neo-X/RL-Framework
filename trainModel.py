@@ -489,10 +489,16 @@ def trainModelParallel(inputData):
                 experiencefd = ExperienceMemory(settings["fd_num_terrain_features"], len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
                 state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
                                      [1] * settings["fd_num_terrain_features"]])
+                experiencefd.setStateBounds(state_bounds__)
             else:
-                experiencefd = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
+                experiencefd = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], 
+                                                continuous_actions=True, settings = settings, result_state_length=settings["dense_state_size"])
+                res_state_bounds__ = np.array([[-1] * settings["dense_state_size"], 
+                                     [1] * settings["dense_state_size"]])
                 state_bounds__ = state_bounds
-            experiencefd.setStateBounds(state_bounds__)
+                ### Usually the state and next state are the same size, not in this case...
+                experiencefd.setStateBounds(state_bounds__)
+                experiencefd.setResultStateBounds(res_state_bounds__)
             experiencefd.setActionBounds(action_bounds)
             experiencefd.setRewardBounds(reward_bounds)
             masterAgent.setFDExperience(copy.deepcopy(experiencefd))

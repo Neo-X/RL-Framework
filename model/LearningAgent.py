@@ -163,7 +163,11 @@ class LearningAgent(AgentInterface):
                     tup = ([state__], [action__], [next_state__], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
                     if ("use_dual_state_representations" in self._settings
                         and (self._settings["use_dual_state_representations"] == True)):
-                        tup = ([state__[0]], [action__], [next_state__[0]], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
+                        if ("use_viz_for_policy" in self._settings 
+                                and self._settings["use_viz_for_policy"] == True):
+                            tup = (state__[1], [action__], next_state__[1], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
+                        else:
+                            tup = ([state__[0]], [action__], [next_state__[0]], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
                     self.getExperience().insertTuple(tup)
                     if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                         if ("use_dual_state_representations" in self._settings

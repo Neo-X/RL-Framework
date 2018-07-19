@@ -115,7 +115,7 @@ class StateTransformationKeras(KERASAlgorithm):
             # loss = self._train_combined()
             # loss = self._train_combined()
         else:
-            score = self._model.getTransformationDynamicsNetwork().fit([states, actions], result_states,
+            score = self._model.getTransformationDynamicsNetwork().fit([states], result_states,
               epochs=updates, batch_size=batch_size_,
               verbose=0,
               shuffle=True
@@ -130,7 +130,8 @@ class StateTransformationKeras(KERASAlgorithm):
         # print("State: ", state)
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        state_ = scale_state(self.fd([state, 0])[0], self._state_bounds)
+        # state_ = scale_state(self.fd([state, 0])[0], self._state_bounds)
+        state_ = self.fd([state, 0])[0]
         return state_
     
     def predictWithDropout(self, state, action):
@@ -150,7 +151,6 @@ class StateTransformationKeras(KERASAlgorithm):
         return self.fd([states, actions, 0])[0]
 
     def bellman_error(self, states, actions, result_states, rewards):
-        self.setData(states, actions, result_states, rewards)
         predicted_y = self.predict(states, actions)
         diff = np.mean(np.abs(predicted_y - result_states))
         return diff
