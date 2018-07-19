@@ -92,7 +92,10 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         action_bounds = np.array(action_bounds, dtype=settings['float_type'])
             
         if settings['action_space_continuous']:
-            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
+            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], 
+                                          continuous_actions=True, settings = settings, 
+                                          result_state_length=settings["dense_state_size"]
+                                          )
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
         experience.setSettings(settings)
@@ -121,8 +124,10 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                 and (settings["use_dual_state_representations"] == True)):
                 if ("use_viz_for_policy" in settings 
                     and settings["use_viz_for_policy"] == True):
-                    state = state[1]
-                    resultState = resultState[1]
+                    state = state[1][0]
+                    # resultState = resultState[0][0]
+                    ### Testing to create data for fd learning
+                    resultState = resultState[0]
                 else:
                     state = state[0]
                     resultState = resultState[0]

@@ -8,6 +8,7 @@ theano.config.floatX='float32'
 import numpy as np
 import sys
 import json
+from pycparser.ply.yacc import _restart
 sys.path.append('../')
 import dill
 import datetime
@@ -120,11 +121,36 @@ def trainForwardDynamics(settings):
     state_bounds = experience._state_bounds
     print ("Samples in experience: ", experience.samples())
     
+    if ("use_dual_state_representations" in settings
+        and (settings["use_dual_state_representations"] == True)):
+        res_state_bounds__ = np.array([[-1] * settings["dense_state_size"], 
+                             [1] * settings["dense_state_size"]])
+        experience.setResultStateBounds(res_state_bounds__)
+        _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(min(experience.samples(), settings["expereince_length"]))
+        
+        ### Usually the state and next state are the same size, not in this case...
+        s_mean_ = np.mean(_states, axis=0)
+        s_std_ = np.std(_states, axis=0) + 0.1 ### hack to avoid zeros
+        s_state_bounds__ = np.array([s_mean_ - s_std_, 
+                             s_mean_ + s_std_])
+
+        experience.setStateBounds(s_state_bounds__)
+        
+        res_mean_ = np.mean(_result_states, axis=0)
+        res_std_ = np.std(_result_states, axis=0) + 0.1 ### hack to avoid zeros
+        res_state_bounds__ = np.array([res_mean_ - res_std_, 
+                             res_mean_ + res_std_])
+        # print ("result state_bounds: ", res_state_bounds__)
+        experience.setResultStateBounds(res_state_bounds__)
+        
+        
+        
     
     if (settings['train_forward_dynamics']):
         if ( settings['forward_dynamics_model_type'] == "SingleNet"):
             print ("Creating forward dynamics network: Using single network model")
             # model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+            model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings, print_info=True)
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model,
                                                               reward_bounds=reward_bounds)
             # forwardDynamicsModel = model
@@ -148,6 +174,10 @@ def trainForwardDynamics(settings):
             rewardlv = NNVisualize(title=str("Reward Model") + " with " + str(settings["model_type"]), settings=settings)
             rewardlv.setInteractive()
             rewardlv.init()
+    
+    
+    forwardDynamicsModel.setStateBounds(s_state_bounds__)
+    forwardDynamicsModel.setResultStateBounds(res_state_bounds__)
     
     # experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True)
     """
@@ -187,9 +217,10 @@ def trainForwardDynamics(settings):
             if ( "model_perform_batch_training" in settings
                  and (settings["model_perform_batch_training"] == True)):
                 _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(min(experience.samples(), settings["expereince_length"]))
-                dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards, updates=16, batch_size=settings["batch_size"])
+                dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards, updates=1, batch_size=settings["batch_size"])
             else:
                 _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
+                # print("result state shape: ", np.asarray(_result_states).shape)
                 dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
             # dynamicsLoss = forwardDynamicsModel._train()
         t1 = time.time()

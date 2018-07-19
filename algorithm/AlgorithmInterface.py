@@ -502,16 +502,22 @@ class AlgorithmInterface(object):
     
     def setStateBounds(self, bounds):
         self._state_bounds = bounds
+        self.setResultStateBounds(bounds)
     def setActionBounds(self, bounds):
         self._action_bounds = bounds
     def setRewardBounds(self, bounds):
         self._reward_bounds = bounds
+    def setResultStateBounds(self, bounds):
+        self._result_state_bounds = bounds
+        
     def getStateBounds(self):
         return self._state_bounds
     def getActionBounds(self):
         return self._action_bounds
     def getRewardBounds(self):
         return self._reward_bounds
+    def getResultStateBounds(self):
+        return self._result_state_bounds
         
         ### Setting network input values ###    
     def setStates(self, states):

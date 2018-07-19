@@ -109,18 +109,13 @@ class StateTransformationKeras(KERASAlgorithm):
         else:
             batch_size_=batch_size
         # all_paramsActA = lasagne.layers.helper.get_all_param_values(self._l_outActA)
-        if ( self._train_combined_loss ):
-            pass
-            # loss = self._train_combined()
-            # loss = self._train_combined()
-        else:
-            score = self._model.getTransformationDynamicsNetwork().fit([states], result_states,
-              epochs=updates, batch_size=batch_size_,
-              verbose=0,
-              shuffle=True
-              # callbacks=[early_stopping],
-              )
-            loss = score.history['loss'][0]
+        score = self._model.getTransformationDynamicsNetwork().fit([states], result_states,
+          epochs=updates, batch_size=batch_size_,
+          verbose=0,
+          shuffle=True
+          # callbacks=[early_stopping],
+          )
+        loss = np.mean(score.history['loss'])
         # This undoes the Actor parameter updates as a result of the Critic update.
         # print (diff_)
         return loss
@@ -129,7 +124,7 @@ class StateTransformationKeras(KERASAlgorithm):
         # print("State: ", state)
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        # state_ = scale_state(self.fd([state, 0])[0], self._state_bounds)
+        state_ = scale_state(self.fd([state, 0])[0], self.getResultStateBounds())
         state_ = self.fd([state, 0])[0]
         return state_
     

@@ -451,6 +451,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 and self._settings["use_viz_for_policy"] == True):
                 self._trans = Dense(self._settings["dense_state_size"],
                                 kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(self._networkMiddle)
+                self._trans = getKerasActivation(self._settings['last_fd_layer_activation_type'])(self._trans)
                 
             # self._actor = Model(input=self._stateInput, output=self._actor)
             # print("Actor summary: ", self._actor.summary())
