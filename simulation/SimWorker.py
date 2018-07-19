@@ -59,7 +59,8 @@ class SimWorker(Process):
         print ("Creating new FD model with different session")
         state_bounds = np.array(self._settings['state_bounds'])
         if ("use_dual_state_representations" in self._settings
-            and (self._settings["use_dual_state_representations"] == True)):
+            and (self._settings["use_dual_state_representations"] == True)
+            and (not (self._settings["forward_dynamics_model_type"] == "SingleNet"))):
             state_bounds = np.array([[0] * self._settings["fd_num_terrain_features"], 
                                      [1] * self._settings["fd_num_terrain_features"]])
             print("fd state bounds:", state_bounds)
@@ -71,7 +72,7 @@ class SimWorker(Process):
             actor = createActor(self._settings['environment_type'], self._settings, None)
             if ( self._settings['forward_dynamics_model_type'] == "SingleNet"):
                 print ("Creating forward dynamics network: Using single network model")
-                forwardDynamicsModel = createForwardDynamicsModel(self._settings, state_bounds, action_bounds, None, None, agentModel=model)
+                forwardDynamicsModel = createForwardDynamicsModel(self._settings, state_bounds, action_bounds, None, None, agentModel=self._model.getPolicy())
                 # forwardDynamicsModel = model
             else:
                 print ("Creating forward dynamics network")

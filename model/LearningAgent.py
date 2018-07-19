@@ -141,8 +141,13 @@ class LearningAgent(AgentInterface):
                 next_state___ = next_state__
                 if ("use_dual_state_representations" in self._settings
                         and (self._settings["use_dual_state_representations"] == True)):
-                    state___ = state__[0]
-                    next_state___ = next_state__[0]
+                    if ("use_viz_for_policy" in self._settings 
+                        and self._settings["use_viz_for_policy"] == True):
+                        state___ = state__[1]
+                        next_state___ = next_state__[1]
+                    else:
+                        state___ = state__[0]
+                        next_state___ = next_state__[0]
                     # print("state: ", state___)
                 if (checkValidData(state___, action__, next_state___, reward__) and 
                     checkDataIsValid(advantage__), checkDataIsValid(G_t__)):
@@ -163,7 +168,12 @@ class LearningAgent(AgentInterface):
                     if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                         if ("use_dual_state_representations" in self._settings
                         and (self._settings["use_dual_state_representations"] == True)):
-                            tup = ([np.ravel(state__[1])], [action__], [np.ravel(next_state__[1])], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
+                            if ("use_viz_for_policy" in self._settings 
+                                and self._settings["use_viz_for_policy"] == True):
+                                ### Want viz for input and dense for output to condition the preception part of the network
+                                tup = ([np.ravel(state__[1])], [action__], [np.ravel(next_state__[0])], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
+                            else:
+                                tup = ([np.ravel(state__[1])], [action__], [np.ravel(next_state__[1])], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
                         self.getFDExperience().insertTuple(tup)
                     num_samples_ = num_samples_ + 1
 
@@ -528,9 +538,12 @@ class LearningAgent(AgentInterface):
         
         if ("use_dual_state_representations" in self.getSettings()
             and (self.getSettings()["use_dual_state_representations"] == True)):
-            # print ("State before: ", state)
-            state = [state[0][0]]
-            # print ("State after: ", state)
+            if ("use_viz_for_policy" in self.getSettings() 
+                and self.getSettings()["use_viz_for_policy"] == True):
+            # print ("State: ", state)
+                state = [state[0][1].ravel()]
+            else:
+                state = [state[0][0]]
         if (use_mbrl):
             action = self.getSampler().predict(state, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
             act = [action]
@@ -545,9 +558,12 @@ class LearningAgent(AgentInterface):
             self._accesLock.acquire()
         if ("use_dual_state_representations" in self.getSettings()
             and (self.getSettings()["use_dual_state_representations"] == True)):
+            if ("use_viz_for_policy" in self.getSettings() 
+                and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-            state = [state[0][0]]
-            # print ("State: ", state)
+                state = [state[0][1].ravel()]
+            else:
+                state = [state[0][0]]
         std = self._pol.predict_std(state, p=p)
         if self._useLock:
             self._accesLock.release()
@@ -558,9 +574,12 @@ class LearningAgent(AgentInterface):
             self._accesLock.acquire()
         if ("use_dual_state_representations" in self.getSettings()
             and (self.getSettings()["use_dual_state_representations"] == True)):
+            if ("use_viz_for_policy" in self.getSettings() 
+                and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-            state = [state[0][0]]
-            # print ("State: ", state)
+                state = [state[0][1].ravel()]
+            else:
+                state = [state[0][0]]
         act = self._pol.predictWithDropout(state)
         if self._useLock:
             self._accesLock.release()
@@ -574,8 +593,12 @@ class LearningAgent(AgentInterface):
             self._accesLock.acquire()
         if ("use_dual_state_representations" in self.getSettings()
             and (self.getSettings()["use_dual_state_representations"] == True)):
+            if ("use_viz_for_policy" in self.getSettings() 
+                and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-            state = [state[0][0]]
+                state = [state[0][1].ravel()]
+            else:
+                state = [state[0][0]]
             # print ("State: ", state)
         q = self._pol.q_value(state)
         if self._useLock:
@@ -587,9 +610,12 @@ class LearningAgent(AgentInterface):
             self._accesLock.acquire()
         if ("use_dual_state_representations" in self.getSettings()
             and (self.getSettings()["use_dual_state_representations"] == True)):
+            if ("use_viz_for_policy" in self.getSettings() 
+                and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-            state = [state[0][0]]
-            # print ("State: ", state)
+                state = [state[0][1]]
+            else:
+                state = [state[0][0]]
         q = self._pol.q_values(state)
         if self._useLock:
             self._accesLock.release()

@@ -414,7 +414,8 @@ def trainModelParallel(inputData):
         if (settings['train_forward_dynamics']):
             state_bounds__ = state_bounds
             if ("use_dual_state_representations" in settings
-                    and (settings["use_dual_state_representations"] == True)):
+                    and (settings["use_dual_state_representations"] == True)
+                    and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
                     state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
                                      [1] * settings["fd_num_terrain_features"]])
             if ( settings['forward_dynamics_model_type'] == "SingleNet"):
@@ -483,14 +484,18 @@ def trainModelParallel(inputData):
         if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
             masterAgent.setFDExperience(copy.deepcopy(experience))
             if ("use_dual_state_representations" in settings
-            and (settings["use_dual_state_representations"] == True)):
+            and (settings["use_dual_state_representations"] == True)
+            and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
                 experiencefd = ExperienceMemory(settings["fd_num_terrain_features"], len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
                 state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
                                      [1] * settings["fd_num_terrain_features"]])
-                experiencefd.setStateBounds(state_bounds__)
-                experiencefd.setActionBounds(action_bounds)
-                experiencefd.setRewardBounds(reward_bounds)
-                masterAgent.setFDExperience(copy.deepcopy(experiencefd))
+            else:
+                experiencefd = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
+                state_bounds__ = state_bounds
+            experiencefd.setStateBounds(state_bounds__)
+            experiencefd.setActionBounds(action_bounds)
+            experiencefd.setRewardBounds(reward_bounds)
+            masterAgent.setFDExperience(copy.deepcopy(experiencefd))
                 
         
         if (not validBounds(action_bounds)):
@@ -547,7 +552,8 @@ def trainModelParallel(inputData):
         if (settings['train_forward_dynamics']):
             if ( not settings['load_saved_model'] ):
                 if ("use_dual_state_representations" in settings
-                    and (settings["use_dual_state_representations"] == True)):
+                    and (settings["use_dual_state_representations"] == True)
+                    and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
                     state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
                                      [1] * settings["fd_num_terrain_features"]])
                     forwardDynamicsModel.setStateBounds(state_bounds__)

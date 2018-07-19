@@ -386,6 +386,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                 #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
             elif ( layer_sizes[i] == "integrate_actor_part"):
                 network = Concatenate()([network, self._actionInput])
+            elif ( layer_sizes[i] == "mark_middle"):
+                    self._networkMiddle = network
             elif ( layer_sizes[i] == "merge_features"):
                 # network = Flatten()(network)
                 if ('split_terrain_input' in self._networkSettings 
@@ -444,6 +446,11 @@ class DeepNNKerasAdaptive(ModelInterface):
                 with_std = getKerasActivation(self._settings['_last_std_policy_layer_activation_type'])(with_std)
                 # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 self._actor = keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
+                
+            if ("use_viz_for_policy" in self._settings 
+                and self._settings["use_viz_for_policy"] == True):
+                self._trans = Dense(self._settings["dense_state_size"],
+                                kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(self._networkMiddle)
                 
             # self._actor = Model(input=self._stateInput, output=self._actor)
             # print("Actor summary: ", self._actor.summary())
@@ -514,6 +521,12 @@ class DeepNNKerasAdaptive(ModelInterface):
     
     def getValueFunction(self):
         return self._value_function
+    
+    def getTransformationDynamicsNetwork(self):
+        return self._trans
+    
+    def setTransformationDynamicsNetwork(self, net):
+        self._trans = net
     
     ######### Symbolic Variables ######
     def getStateSymbolicVariable(self):
