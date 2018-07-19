@@ -541,7 +541,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = [state[0][1].ravel()]
+                state = state[0][1]
             else:
                 state = [state[0][0]]
         if (use_mbrl):
@@ -561,7 +561,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = [state[0][1].ravel()]
+                state = state[0][1]
             else:
                 state = [state[0][0]]
         std = self._pol.predict_std(state, p=p)
@@ -577,7 +577,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = [state[0][1].ravel()]
+                state = state[0][1]
             else:
                 state = [state[0][0]]
         act = self._pol.predictWithDropout(state)
@@ -596,7 +596,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = [state[0][1].ravel()]
+                state = state[0][1]
             else:
                 state = [state[0][0]]
             # print ("State: ", state)
@@ -613,7 +613,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = [state[0][1]]
+                state = state[0][1]
             else:
                 state = [state[0][0]]
         q = self._pol.q_values(state)
