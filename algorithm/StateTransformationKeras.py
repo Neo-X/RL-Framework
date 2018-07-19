@@ -124,7 +124,7 @@ class StateTransformationKeras(KERASAlgorithm):
         # print("State: ", state)
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        state_ = scale_state(self.fd([state, 0])[0], self.getResultStateBounds())
+        # state_ = scale_state(self.fd([state, 0])[0], self.getResultStateBounds())
         state_ = self.fd([state, 0])[0]
         return state_
     
