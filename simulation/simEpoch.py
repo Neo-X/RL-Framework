@@ -115,6 +115,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # if (exp.endOfEpoch() or (reward_ < settings['reward_lower_bound'])):
         # state = exp.getState()
         state_ = exp.getState()
+        states.append(state_)
         # print ("env state: ", state_.shape)
         # print ("env state: ", state_)
     
@@ -195,7 +196,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                           ) 
                          and (not sampling)):
                         # print ("Random Guassian sample, state bounds", model.getStateBounds())
-                        pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                        if ( ("train_LSTM" in self._settings)
+                             and (self._settings["train_LSTM"] == True)):
+                            pa = model.predict(states, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                        else:
+                            pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # print ("Exploration Action: ", pa)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
@@ -418,7 +423,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             
         ### I can't just unpack the vector of states here in a multi char sim because the 
         ### Order needs to be preserved for computing the advantage.
-        states.append(state_)
         actions.append(action)
         rewards.append(reward_)
         # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)

@@ -188,7 +188,7 @@ class LearningAgent(AgentInterface):
                         
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):        
                 print ("self._expBuff.samples(): ", self.getExperience().samples(), " states.shape: ", np.array(_states).shape)
-                print ("exp_actions sum: ", np.sum(tmp_exp_action))
+                # print ("exp_actions sum: ", np.sum(tmp_exp_action))
             
             if (len(tmp_states) > 0 
                 and True):
@@ -202,6 +202,20 @@ class LearningAgent(AgentInterface):
                 _advantage = [np.array(tmp_advantage__, dtype=self._settings['float_type']) for tmp_advantage__ in tmp_advantage]
                 _G_t = [np.array(tmp_G_t__, dtype=self._settings['float_type']) for tmp_G_t__ in tmp_G_t]
                 _exp_action = [np.array(tmp_exp_action__, dtype=self._settings['float_type']) for tmp_exp_action__ in tmp_exp_action]
+                
+                if ( ("train_LSTM" in self._settings)
+                    and (self._settings["train_LSTM"] == True)):
+                    for e in range(len(_states)):
+                        loss = self._pol.trainCritic(states=_states[e], actions=_actions[e], rewards=_rewards[e], result_states=_result_states[e], falls=_falls[e], G_t=_G_t[e])
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                            print("Critic loss: ", loss)
+                        loss_ = self._pol.trainActor(states=_states[e], actions=_actions[e], rewards=_rewards[e], result_states=_result_states[e], falls=_falls[e], 
+                                                     advantage=_advantage[e], exp_actions=_exp_action[e], G_t=_G_t[e], forwardDynamicsModel=self._fd,
+                                                     p=p)
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                            print("Policy Loss: ", loss_)
+                        
+                    return
                 
                 # pass
                 # print("Not Falls: ", _falls)
