@@ -58,6 +58,12 @@ class AlgorithmInterface(object):
     def setEnvironment(self, sim):
         self._sim = sim # The real simulator that is used for predictions
         
+    def reset(self):
+        """
+            Reset any state for the agent model
+        """
+        pass
+    
     def compile(self):
         """
             Compiles the functions for this algorithm

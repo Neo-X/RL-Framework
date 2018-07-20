@@ -337,6 +337,7 @@ class PPO_KERAS(KERASAlgorithm):
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, 
                    G_t=[[0]], forwardDynamicsModel=None, p=1.0, updates=1, batch_size=None):
         lossActor = 0
+        self.reset()
         if (batch_size is None):
             batch_size_=states.shape[0]
         else:

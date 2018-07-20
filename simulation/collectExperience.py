@@ -57,7 +57,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         scale_factor = 1.0
         
-        state_bounds = np.ones((2,states.shape[1]))
+        state_bounds = np.ones((2,1))
         
         if (settings['state_normalization'] == "minmax"):
             state_bounds[0] = np.min(states[:settings['bootstrap_samples']], axis=0)
@@ -120,24 +120,26 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         for state, action, resultState, reward_, fall_, G_t, exp_action, adv in zip(states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_):
             # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
-            if ("use_dual_state_representations" in settings
-                and (settings["use_dual_state_representations"] == True)):
-                if ("use_viz_for_policy" in settings 
-                    and settings["use_viz_for_policy"] == True):
-                    state = state[1][0]
-                    resultState = resultState[0][0]
-                    ### Testing to create data for fd learning
-                    # resultState = resultState[0]
+            for j in range(len(state)):
+                    
+                if ("use_dual_state_representations" in settings
+                    and (settings["use_dual_state_representations"] == True)):
+                    if ("use_viz_for_policy" in settings 
+                        and settings["use_viz_for_policy"] == True):
+                        state = state[1][0]
+                        resultState = resultState[0][0]
+                        ### Testing to create data for fd learning
+                        # resultState = resultState[0]
+                    else:
+                        state = state[0]
+                        resultState = resultState[0]
+                if settings['action_space_continuous']:
+                    # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
+                    experience.insertTuple(([state[j]], [action[j]], [resultState[j]], [reward_[j]], [fall_[j]], [G_t[j]], [exp_action[j]], [adv[j]]))
                 else:
-                    state = state[0]
-                    resultState = resultState[0]
-            if settings['action_space_continuous']:
-                # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
-                experience.insertTuple(([state], [action], [resultState], [reward_], [fall_], [G_t], [exp_action], [adv]))
-            else:
-                experience.insertTuple(([state], [action], [resultState], [reward_], [falls_], G_t, [exp_action], [adv]))
-            # else:
-                # print ("Tuple with reward: " + str(reward_) + " skipped")
+                    experience.insertTuple(([state[j]], [action[j]], [resultState[j]], [reward_[j]], [falls_[j]], G_t[j], [exp_action[j]], [adv[j]]))
+                # else:
+                    # print ("Tuple with reward: " + str(reward_) + " skipped")
         # sys.exit()
     else: ## Most likely performing continuation learning
         print ("Skipping bootstrap samples from simulation")
@@ -210,7 +212,8 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         advantage.extend(advantage_)
         exp_actions.extend(exp_actions_)
         
-        i=i+len(states_)
+        for j in range(len(states_)):
+            i=i+len(states_[j])
         episode_ += 1
         episode_ = episode_ % settings["epochs"]
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):

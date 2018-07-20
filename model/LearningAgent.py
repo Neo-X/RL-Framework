@@ -29,6 +29,11 @@ class LearningAgent(AgentInterface):
         self._expBuff = None
         self._expBuff_FD = None
         
+    def reset(self):
+        self.getPolicy().reset()
+        if (self._settings['train_forward_dynamics']):
+            self.getForwardDynamics().reset()
+        
     def getPolicy(self):
         if self._useLock:
             self._accesLock.acquire()
@@ -137,19 +142,7 @@ class LearningAgent(AgentInterface):
             self.getExperience()._settings["state_normalization"] = "variance"
             for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, advantage__) in zip(_states, _actions, _result_states, _rewards, _falls, _G_t, _exp_actions, _advantage):
 
-                state___ = state__
-                next_state___ = next_state__
-                if ("use_dual_state_representations" in self._settings
-                        and (self._settings["use_dual_state_representations"] == True)):
-                    if ("use_viz_for_policy" in self._settings 
-                        and self._settings["use_viz_for_policy"] == True):
-                        state___ = state__[1]
-                        next_state___ = next_state__[1]
-                    else:
-                        state___ = state__[0]
-                        next_state___ = next_state__[0]
-                    # print("state: ", state___)
-                if (checkValidData(state___, action__, next_state___, reward__) and 
+                if (checkValidData(state__, action__, next_state__, reward__) and 
                     checkDataIsValid(advantage__), checkDataIsValid(G_t__)):
                     tmp_states.append(state__)
                     tmp_actions.append(action__)
@@ -159,27 +152,29 @@ class LearningAgent(AgentInterface):
                     tmp_advantage.append(advantage__)
                     tmp_exp_action.append(exp_action__)
                     tmp_G_t.append(G_t__)
-                    # print("adv__:", advantage__)
-                    tup = ([state__], [action__], [next_state__], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
-                    if ("use_dual_state_representations" in self._settings
-                        and (self._settings["use_dual_state_representations"] == True)):
-                        if ("use_viz_for_policy" in self._settings 
-                                and self._settings["use_viz_for_policy"] == True):
-                            tup = (state__[1], [action__], next_state__[1], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
-                        else:
-                            tup = ([state__[0]], [action__], [next_state__[0]], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
-                    self.getExperience().insertTuple(tup)
-                    if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
+                    
+                    for j in range(len(state__)):
+                        # print("adv__:", advantage__)
+                        tup = ([state__[j]], [action__[j]], [next_state__[j]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
                         if ("use_dual_state_representations" in self._settings
-                        and (self._settings["use_dual_state_representations"] == True)):
+                            and (self._settings["use_dual_state_representations"] == True)):
                             if ("use_viz_for_policy" in self._settings 
-                                and self._settings["use_viz_for_policy"] == True):
-                                ### Want viz for input and dense for output to condition the preception part of the network
-                                tup = ([np.ravel(state__[1])], [action__], [np.ravel(next_state__[0])], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
+                                    and self._settings["use_viz_for_policy"] == True):
+                                tup = (state__[j][1], [action__[j]], next_state__[j][1], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
                             else:
-                                tup = ([np.ravel(state__[1])], [action__], [np.ravel(next_state__[1])], [reward__], [fall__], [G_t__], [exp_action__], [advantage__])
-                        self.getFDExperience().insertTuple(tup)
-                    num_samples_ = num_samples_ + 1
+                                tup = ([state__[j][0]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
+                        self.getExperience().insertTuple(tup)
+                        if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
+                            if ("use_dual_state_representations" in self._settings
+                            and (self._settings["use_dual_state_representations"] == True)):
+                                if ("use_viz_for_policy" in self._settings 
+                                    and self._settings["use_viz_for_policy"] == True):
+                                    ### Want viz for input and dense for output to condition the preception part of the network
+                                    tup = ([state__[j][1]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
+                                else:
+                                    tup = ([state__[j][1]], [action__[j]], [next_state__[j][1]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
+                            self.getFDExperience().insertTuple(tup)
+                        num_samples_ = num_samples_ + 1
 
             ### If for some reason the data was all garbage, skip this training update.
             if (self._expBuff.samples() < value_function_batch_size 
@@ -194,12 +189,10 @@ class LearningAgent(AgentInterface):
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):        
                 print ("self._expBuff.samples(): ", self.getExperience().samples(), " states.shape: ", np.array(_states).shape)
                 print ("exp_actions sum: ", np.sum(tmp_exp_action))
-            if (len(_states) > 0):
-                """
+            
+            if (len(tmp_states) > 0 
+                and True):
                 _states = np.array(norm_action(np.array(tmp_states), self._pol.getStateBounds()), dtype=self._settings['float_type'])
-                # print("Learning Agent: Get state bounds: ", self._pol.getStateBounds())
-                # print ("ExpMem: Get state bounds ", self._expBuff.getStateBounds())
-                # print("ExpMem: Get state bounds: ", self.getExperience().getStateBounds())
                 if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
                     _actions = np.array(tmp_actions, dtype=self._settings['float_type'])
                     # _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
@@ -213,8 +206,8 @@ class LearningAgent(AgentInterface):
                 _advantage = np.array(tmp_advantage, dtype=self._settings['float_type'])
                 _G_t = np.array(tmp_G_t, dtype=self._settings['float_type'])
                 _exp_action = np.array(tmp_exp_action, dtype=self._settings['float_type'])
-                """
-                pass
+                
+                # pass
                 # print("Not Falls: ", _falls)
                 # print("Rewards: ", _rewards)
                 # print ("Actions after: ", _actions)

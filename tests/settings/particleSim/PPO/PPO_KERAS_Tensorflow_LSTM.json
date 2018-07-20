@@ -88,7 +88,7 @@
     "comment__": "Method used for action exploration",
 "exploration_method": "gaussian_network",
     "comment__": "Amount of dropout to use in the networks (if using a dropout network)",
-"dropout_p": 0.1,
+"dropout_p": 0.0,
     "comment__": "Regularization weight for the policy network",
 "regularization_weight": 0.0000,
     "comment__": "Some parameter for rmsprop stocastic gradient optimization method.",
@@ -291,5 +291,7 @@
 	"comment__": "This overrides all of the envs to be a single one from the list of sim environments",
 "override_sim_env_id": false,
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
-"learning_backend": "tensorflow"
+"learning_backend": "tensorflow",
+	"comment__": "Train using an LSTM type method",
+"train_LSTM": true
 }

@@ -77,6 +77,13 @@ class KERASAlgorithm(AlgorithmInterface):
         # print ("State grads: ", repr(grads))
         return grads
     
+    def reset(self):
+        """
+            Reset any state for the agent model
+        """
+        self._model.reset()
+        self._modelTarget.reset()
+        
     def setData(self, states, actions, rewards, result_states, fallen):
         pass
         
@@ -110,6 +117,7 @@ class KERASAlgorithm(AlgorithmInterface):
             # print("self.getSettings()[\"use_single_network\"]: ", self.getSettings()["use_single_network"])
             return 0
 
+        self.reset()
         if (batch_size is None):
             batch_size_=states.shape[0]
         else:

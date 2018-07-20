@@ -59,15 +59,19 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._networkSettings = settings_["network_settings"]
         ### data types for model
         # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name="State")
+        # self._State = keras.layers.Input(shape=(self._state_length,), name="State", batch_shape=(32,self._state_length))
         self._State = keras.layers.Input(shape=(self._state_length,), name="State")
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
+        # self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState", batch_shape=(32,self._state_length))
         self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState")
         # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._Reward = K.variable(value=np.random.rand(self._batch_size,1), name="Reward")
+        # self._Reward = keras.layers.Input(shape=(1,), name="Reward", batch_shape=(32,1))
         self._Reward = keras.layers.Input(shape=(1,), name="Reward")
         # self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
         # self._Action = K.variable(value=np.random.rand(self._batch_size, self._action_length), name="Action")
+        # self._Action = keras.layers.Input(shape=(self._action_length,), name="Action", batch_shape=(32,self._action_length))
         self._Action = keras.layers.Input(shape=(self._action_length,), name="Action")
         # self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         
@@ -141,7 +145,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                             networkAct = keras.layers.Deconv2D(layer_sizes[i][1], kernel_size=[layer_sizes[i][2][0], 1])(networkAct)
                     elif (layer_sizes[i][0] == "LSTM"):
                         networkAct = Reshape((1, 32))(networkAct)
-                        networkAct = LSTM(layer_sizes[i][1])(networkAct)
+                        networkAct = LSTM(layer_sizes[i][1], stateful=False)(networkAct)
                     elif ( len(layer_sizes[i][1])> 1):
                         if (i == 0):
                             if ('split_terrain_input' in self._networkSettings 
@@ -337,7 +341,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 
                 if (layer_sizes[i][0] == "LSTM"):
                         network = Reshape((1, 32))(network)
-                        network = LSTM(layer_sizes[i][1])(network)
+                        network = LSTM(layer_sizes[i][1], stateful=False)(network)
                         
                 elif ( len(layer_sizes[i][1])> 1):
                     if (i == 0):
@@ -547,3 +551,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         return self._Reward
     def getTargetsSymbolicVariable(self):
         return self._Target
+    
+    def reset(self):
+        self._actor.reset_states()
+        self._critic.reset_states()

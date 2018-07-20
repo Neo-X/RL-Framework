@@ -40,6 +40,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         Data exported out of here should be converted back to 2D data.
         
     """
+    ### Maybe the model has state
+    model.reset()
     if action_space_continuous:
         action_bounds = np.array(model.getActionBounds(), dtype=float)
         omega = settings["omega"]
@@ -450,78 +452,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (((exp.endOfEpoch() and settings['reset_on_fall'] and (not evaluation)) )  
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
                 ):
-            """
-            if (settings['on_policy']):
-                evalDatas.append(np.sum(rewards[last_epoch_end:])/float(settings['max_epoch_length']))
-            else:
-            """
-            evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
-            """
-            if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
-                # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
-                _output_queue.put((state_, action, [reward_], resultState, [agent_not_fell]))
-            """
-            state_num=0
-            # print ("time index: ", i_)
-            # print ("states shape: ", np.array(states).shape)
-            if ('use_GAE' in settings and ( settings['use_GAE'] == True)):
-                for a in range(len(states[0])):
-                    # print ("Computing advantage for agent: ", a)
-                    path = {}
-                    ### timestep, agent, state
-                    # print ("States shape: ", np.array(states[last_epoch_end:]).shape)
-                    ### TODO: I think this happens to work because of the checking for states by agent index which is 0...
-                    """
-                    if ("use_dual_state_representations" in settings
-                        and (settings["use_dual_state_representations"] == True)):
-                        path['states'] = copy.deepcopy(np.array([y[0] for y in states[last_epoch_end:]])[:,a,:])
-                        print ("path['states']: ", path['states'].shape)
-                    else:
-                    """
-                    path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
-                    # print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
-                    # print (repr(np.array(rewards[last_epoch_end:])))
-                    path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
-                    path["terminated"] = False
-                    # print("rewards: ", rewards[last_epoch_end:])
-                    ## Extend so that we can preserve the paths/trajectory structure.
-                    if (len(rewards[last_epoch_end:]) > 0):
-                        adv__ = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
-                        # print ("adv__ shape: ", np.array(adv__).shape)
-                        # adv__ = np.reshape(adv__, (-1, len(adv__)))
-                        # print ("adv__ shape: ", np.array(adv__))
-                        advantage.append(adv__)
-            else:
-                ### This does not seem to work anymore
-                if (len(states[last_epoch_end:]) > 0):
-                    for a in range(states[0].shape[0]):
-                        advantage.append(np.array(discounted_rewards(np.array(rewards[last_epoch_end:])[:,a,:], discount_factor)))
-                                           
-            # print ("Advantage: ", advantage)
-            G_ts.extend(copy.deepcopy(G_t))
-            # print ("G_ts: ", repr(np.array(G_ts)))
-            baselines_.extend(copy.deepcopy(baseline))
-            
-            last_epoch_end=i_+1
-            
-            G_t = []
-            baseline = []
-            exp.getActor().initEpoch()
-            if validation:
-                exp.generateValidation(anchors, (epoch * settings['max_epoch_length']) + i_)
-            else:
-                exp.generateEnvironmentSample()
-                
-            exp.initEpoch()
-            # actor.init() ## This should be removed and only exp.getActor() should be used
-            # model.initEpoch()
-            state_ = exp.getState()
-            if (not bootstrapping):
-                q_values_.append(model.q_value(state_))
-                
-            if ("sample_single_trajectories" in settings and (settings["sample_single_trajectories"] == True)):
-                i_ += 1
-                break
+            break
                 
         i_ += 1
         
@@ -703,8 +634,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
             print("Updated min sample from collection is: ", min_samples)
-    
-    while ( (len(states) < (min_samples))
+    samples__ = 0
+    while ( (samples__ < (min_samples))
             ):
         
         j = 0
@@ -741,14 +672,15 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             """
             epoch_ = epoch_ + 1
             (states_, actions_, result_states_, rewards_, falls_, G_ts_, advantage_, exp_actions_) = tuples
-            states.extend(states_)
-            actions.extend(actions_)
-            result_states.extend(result_states_)
-            rewards.extend(rewards_)
-            falls.extend(falls_)
-            G_ts.extend(G_ts_)
-            advantage.extend(advantage_)
-            exp_actions.extend(exp_actions_)
+            samples__ = samples__ + len(states_)
+            states.append(states_)
+            actions.append(actions_)
+            result_states.append(result_states_)
+            rewards.append(rewards_)
+            falls.append(falls_)
+            G_ts.append(G_ts_)
+            advantage.append(advantage_)
+            exp_actions.append(exp_actions_)
         i += j
         # print("samples collected so far: ", len(states))
         
