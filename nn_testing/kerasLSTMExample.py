@@ -13,6 +13,7 @@ def create_dataset(dataset, look_back=1):
     dataX, dataY = [], []
     for i in range(len(dataset)-look_back-1):
         a = dataset[i:(i+look_back), 0]
+        print ("a ", a)
         dataX.append(a)
         dataY.append(dataset[i + look_back, 0])
     return numpy.array(dataX), numpy.array(dataY)
@@ -36,6 +37,7 @@ testX, testY = create_dataset(test, look_back)
 # reshape input to be [samples, time steps, features]
 trainX = numpy.reshape(trainX, (trainX.shape[0], 1, trainX.shape[1]))
 testX = numpy.reshape(testX, (testX.shape[0], 1, testX.shape[1]))
+print ("trainX", trainX.shape)
 # create and fit the LSTM network
 model = Sequential()
 model.add(LSTM(4, input_shape=(1, look_back)))

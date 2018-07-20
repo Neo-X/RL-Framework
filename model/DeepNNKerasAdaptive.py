@@ -10,6 +10,7 @@ from keras.models import Sequential, Model
 from keras.optimizers import SGD
 from keras.layers import Input
 from keras.layers.core import Dense, Dropout, Activation, Reshape, Flatten, Lambda
+from keras.layers import LSTM, LSTMCell
 from keras.layers.convolutional import Conv1D
 from keras.layers.merge import Concatenate
 from keras.layers.advanced_activations import LeakyReLU
@@ -138,6 +139,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                             networkAct = keras.layers.Deconv2D(layer_sizes[i][1], kernel_size=layer_sizes[i][2])(networkAct)
                         else:
                             networkAct = keras.layers.Deconv2D(layer_sizes[i][1], kernel_size=[layer_sizes[i][2][0], 1])(networkAct)
+                    elif (layer_sizes[i][0] == "LSTM"):
+                        networkAct = Reshape((1, 32))(networkAct)
+                        networkAct = LSTM(layer_sizes[i][1])(networkAct)
                     elif ( len(layer_sizes[i][1])> 1):
                         if (i == 0):
                             if ('split_terrain_input' in self._networkSettings 
@@ -177,8 +181,6 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                                             data_format=data_format_)(networkActVel_x)
                                 networkActVel_y = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
                                                                             data_format=data_format_)(networkActVel_y)
-                    # elif (layer_sizes[i][0] == "reshape"):
-                    #     networkAct = Reshape((1, layer_sizes[i][1][0]))(networkAct)
                         
                     else:
                         if (i == 0):
@@ -332,7 +334,12 @@ class DeepNNKerasAdaptive(ModelInterface):
         for i in range(len(layer_sizes)):
             second_last_layer = network
             if type(layer_sizes[i]) is list:
-                if ( len(layer_sizes[i][1])> 1):
+                
+                if (layer_sizes[i][0] == "LSTM"):
+                        network = Reshape((1, 32))(network)
+                        network = LSTM(layer_sizes[i][1])(network)
+                        
+                elif ( len(layer_sizes[i][1])> 1):
                     if (i == 0):
                         if ('split_terrain_input' in self._networkSettings 
                         and self._networkSettings['split_terrain_input']):

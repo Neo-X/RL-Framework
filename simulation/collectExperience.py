@@ -94,7 +94,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         if settings['action_space_continuous']:
             experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], 
                                           continuous_actions=True, settings = settings, 
-                                          result_state_length=settings["dense_state_size"]
+                                          # result_state_length=settings["dense_state_size"]
                                           )
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
