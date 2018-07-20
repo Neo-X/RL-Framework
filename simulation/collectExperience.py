@@ -26,6 +26,7 @@ from simulation.simEpoch import simModelParrallel
 def collectExperience(actor, exp_val, model, settings, sim_work_queues=None, 
                       eval_episode_data_queue=None):
     from util.ExperienceMemory import ExperienceMemory
+    import itertools
     
     ## Easy hack to fix issue with training for MBAE needing a LearningAgent with forward dyanmics model and not just algorithm
     settings = copy.deepcopy(settings)
@@ -46,6 +47,18 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                                                                                                                    eval_episode_data_queue=eval_episode_data_queue)
         # states = np.array(states)
         # states = np.append(states, state_bounds,0) # Adding that already specified bounds will ensure the final calculated is beyond these
+        states = np.array(list(itertools.chain(*states)))
+        # states = np.array([states_ for states_ in s for s in states])
+        actions = np.array(list(itertools.chain(*actions)))
+        resultStates = np.array(list(itertools.chain(*resultStates)))
+        # reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
+        rewards_ = np.array(list(itertools.chain(*rewards_)))
+        # _rewards = np.reshape(_rewards, (len(tmp_states), 1))
+        falls_ = np.array(list(itertools.chain(*falls_)))
+        advantage_ = np.array(list(itertools.chain(*advantage_)))
+        G_ts_ = np.array(list(itertools.chain(*G_ts_)))
+        exp_actions = np.array(list(itertools.chain(*exp_actions)))
+        
         print (" Shape states: ", states.shape)
         print (" Shape Actions: ", actions.shape)
         print (" Shape result states: ", resultStates.shape)
@@ -57,7 +70,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         scale_factor = 1.0
         
-        state_bounds = np.ones((2,1))
+        state_bounds = np.ones((2,states.shape[1]))
         
         if (settings['state_normalization'] == "minmax"):
             state_bounds[0] = np.min(states[:settings['bootstrap_samples']], axis=0)
@@ -120,26 +133,26 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         for state, action, resultState, reward_, fall_, G_t, exp_action, adv in zip(states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_):
             # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
-            for j in range(len(state)):
+            # for j in range(len(state)):
                     
-                if ("use_dual_state_representations" in settings
-                    and (settings["use_dual_state_representations"] == True)):
-                    if ("use_viz_for_policy" in settings 
-                        and settings["use_viz_for_policy"] == True):
-                        state = state[1][0]
-                        resultState = resultState[0][0]
-                        ### Testing to create data for fd learning
-                        # resultState = resultState[0]
-                    else:
-                        state = state[0]
-                        resultState = resultState[0]
-                if settings['action_space_continuous']:
-                    # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
-                    experience.insertTuple(([state[j]], [action[j]], [resultState[j]], [reward_[j]], [fall_[j]], [G_t[j]], [exp_action[j]], [adv[j]]))
+            if ("use_dual_state_representations" in settings
+                and (settings["use_dual_state_representations"] == True)):
+                if ("use_viz_for_policy" in settings 
+                    and settings["use_viz_for_policy"] == True):
+                    state = state[1][0]
+                    resultState = resultState[0][0]
+                    ### Testing to create data for fd learning
+                    # resultState = resultState[0]
                 else:
-                    experience.insertTuple(([state[j]], [action[j]], [resultState[j]], [reward_[j]], [falls_[j]], G_t[j], [exp_action[j]], [adv[j]]))
-                # else:
-                    # print ("Tuple with reward: " + str(reward_) + " skipped")
+                    state = state[0]
+                    resultState = resultState[0]
+            if settings['action_space_continuous']:
+                # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
+                experience.insertTuple(([state], [action], [resultState], [reward_], [fall_], [G_t], [exp_action], [adv]))
+            else:
+                experience.insertTuple(([state], [action], [resultState], [reward_], [falls_], G_t, [exp_action], [adv]))
+            # else:
+                # print ("Tuple with reward: " + str(reward_) + " skipped")
         # sys.exit()
     else: ## Most likely performing continuation learning
         print ("Skipping bootstrap samples from simulation")
