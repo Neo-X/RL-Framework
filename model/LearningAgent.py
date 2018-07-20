@@ -192,20 +192,16 @@ class LearningAgent(AgentInterface):
             
             if (len(tmp_states) > 0 
                 and True):
-                _states = np.array(norm_action(np.array(tmp_states), self._pol.getStateBounds()), dtype=self._settings['float_type'])
-                if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-                    _actions = np.array(tmp_actions, dtype=self._settings['float_type'])
-                    # _actions = np.array(norm_action(np.array(tmp_actions), self._action_bounds), dtype=self._settings['float_type'])
-                else: ## Doesn't really matter for on policy methods
-                    _actions = np.array(norm_action(np.array(tmp_actions), self._pol.getActionBounds()), dtype=self._settings['float_type'])
-                _result_states = np.array(norm_action(np.array(tmp_result_states), self._pol.getStateBounds()), dtype=self._settings['float_type'])
+                _states = [np.array(norm_action(np.array(tmp_states__), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states]
+                _actions = [np.array(norm_action(np.array(tmp_actions__), self._pol.getActionBounds()), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions]
+                _result_states = [np.array(norm_action(np.array(tmp_result_states__), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states]
                 # reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
-                _rewards = np.array(norm_state(tmp_rewards , self._pol.getRewardBounds() ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type'])
-                _rewards = np.reshape(_rewards, (len(tmp_states), 1))
-                _falls = np.array(tmp_falls, dtype='int8')
-                _advantage = np.array(tmp_advantage, dtype=self._settings['float_type'])
-                _G_t = np.array(tmp_G_t, dtype=self._settings['float_type'])
-                _exp_action = np.array(tmp_exp_action, dtype=self._settings['float_type'])
+                _rewards = [np.array(norm_state(tmp_rewards__ , self._pol.getRewardBounds() ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards]
+                # _rewards = np.reshape(_rewards, (len(tmp_states), 1))
+                _falls = [np.array(tmp_falls__, dtype='int8') for tmp_falls__ in tmp_falls]
+                _advantage = [np.array(tmp_advantage__, dtype=self._settings['float_type']) for tmp_advantage__ in tmp_advantage]
+                _G_t = [np.array(tmp_G_t__, dtype=self._settings['float_type']) for tmp_G_t__ in tmp_G_t]
+                _exp_action = [np.array(tmp_exp_action__, dtype=self._settings['float_type']) for tmp_exp_action__ in tmp_exp_action]
                 
                 # pass
                 # print("Not Falls: ", _falls)
