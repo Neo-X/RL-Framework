@@ -545,9 +545,9 @@ class LearningAgent(AgentInterface):
         
         if ("use_dual_state_representations" in self.getSettings()
             and (self.getSettings()["use_dual_state_representations"] == True)):
+            print ("State: ", state)
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
-            # print ("State: ", state)
                 state = state[0][1]
             else:
                 state = [state[0][0]]

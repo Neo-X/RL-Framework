@@ -82,7 +82,8 @@ class KERASAlgorithm(AlgorithmInterface):
             Reset any state for the agent model
         """
         self._model.reset()
-        self._modelTarget.reset()
+        if not (self._modelTarget is None):
+            self._modelTarget.reset()
         
     def setData(self, states, actions, rewards, result_states, fallen):
         pass
@@ -172,6 +173,7 @@ class KERASAlgorithm(AlgorithmInterface):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
         # state = np.array(state, dtype=self._settings['float_type'])
+        print ("value state: ", state)
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
         # self._model.setStates(state)
