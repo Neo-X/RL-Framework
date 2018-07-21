@@ -144,8 +144,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                         else:
                             networkAct = keras.layers.Deconv2D(layer_sizes[i][1], kernel_size=[layer_sizes[i][2][0], 1])(networkAct)
                     elif (layer_sizes[i][0] == "LSTM"):
-                        networkAct = Reshape((1, 32))(networkAct)
-                        networkAct = LSTM(layer_sizes[i][1], stateful=False)(networkAct)
+                        networkAct = Reshape((1, layer_sizes[i][1]))(networkAct)
+                        networkAct = LSTM(layer_sizes[i][2], stateful=False)(networkAct)
                     elif ( len(layer_sizes[i][1])> 1):
                         if (i == 0):
                             if ('split_terrain_input' in self._networkSettings 
@@ -340,8 +340,9 @@ class DeepNNKerasAdaptive(ModelInterface):
             if type(layer_sizes[i]) is list:
                 
                 if (layer_sizes[i][0] == "LSTM"):
-                        network = Reshape((1, 32))(network)
-                        network = LSTM(layer_sizes[i][1], stateful=False)(network)
+                        # print ("layer.output_shape: ", keras.backend.shape(network))
+                        network = Reshape((1, layer_sizes[i][1]))(network)
+                        network = LSTM(layer_sizes[i][2], stateful=False)(network)
                         
                 elif ( len(layer_sizes[i][1])> 1):
                     if (i == 0):

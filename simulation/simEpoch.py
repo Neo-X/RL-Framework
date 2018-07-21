@@ -95,6 +95,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     last_epoch_end=0
     reward_=0
     states = [] 
+    states__ = []
     actions = []
     rewards = []
     falls = []
@@ -116,6 +117,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # state = exp.getState()
         state_ = exp.getState()
         states.append(state_)
+        states__.extend(state_)
         # print ("env state: ", state_.shape)
         # print ("env state: ", state_)
     
@@ -196,9 +198,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                           ) 
                          and (not sampling)):
                         # print ("Random Guassian sample, state bounds", model.getStateBounds())
-                        if ( ("train_LSTM" in self._settings)
-                             and (self._settings["train_LSTM"] == True)):
-                            pa = model.predict(states, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                        if ( ("train_LSTM" in settings)
+                             and (settings["train_LSTM"] == True)):
+                            # print ("LSTM states: ", states__)
+                            pa = [model.predict(states__, p=p, sim_index=worker_id, bootstrapping=bootstrapping)[0]]
                         else:
                             pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # print ("Exploration Action: ", pa)
@@ -213,7 +216,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                           (settings['use_stochastic_policy'] == True))
                           or (settings['exploration_method'] == 'gaussian_random')
                            ):
-                        pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                        if ( ("train_LSTM" in settings)
+                             and (settings["train_LSTM"] == True)):
+                            # print ("LSTM states: ", states__)
+                            pa_ = [model.predict(states__, p=p, sim_index=worker_id, bootstrapping=bootstrapping)[0]]
+                            # print ("LSTM action: ", pa_)
+                        else:
+                            pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
                             std_ = model.predict_std(state_, p=p)
@@ -283,16 +292,20 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
             else: 
                 ### exploit policy
-                # print ("exploitive action and evaluation is ", evaluation)
                 exp_action = int(0) 
-                # return pa1
                 ## For sampling method to skip sampling during evaluation.
                 use_MBRL = False
                 if ("evalaute_with_MBRL" in settings and
                     (settings["evalaute_with_MBRL"] == True) ):
                     use_MBRL = True
 
-                pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, 
+                if ( ("train_LSTM" in settings)
+                             and (settings["train_LSTM"] == True)):
+                    # print ("LSTM states: ", states__)
+                    pa = [model.predict(states__, evaluation_=evaluation, p=p, sim_index=worker_id, 
+                                   bootstrapping=bootstrapping, use_mbrl=use_MBRL)[0]]
+                else:
+                    pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, 
                                    bootstrapping=bootstrapping, use_mbrl=use_MBRL)
                 
                 action = pa
