@@ -48,7 +48,9 @@ model.compile(loss='mean_squared_error', optimizer='adam')
 model.fit(trainX, trainY, epochs=100, batch_size=1, verbose=2)
 # make predictions
 ### Test to see if predict function resets the states
+model.reset_states()
 trainPredict = [model.predict(numpy.reshape(trainX_, (1,1,1)))[0] for trainX_ in trainX]
+model.reset_states()
 testPredict = [model.predict(numpy.reshape(testX_, (1,1,1)))[0] for testX_ in testX]
 # invert predictions
 trainPredict = scaler.inverse_transform(trainPredict)
