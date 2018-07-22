@@ -173,7 +173,7 @@ class KERASAlgorithm(AlgorithmInterface):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
         # state = np.array(state, dtype=self._settings['float_type'])
-        print ("value state: ", state)
+        # print ("value state: ", state)
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
         # self._model.setStates(state)

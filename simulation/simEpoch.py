@@ -201,7 +201,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         if ( ("train_LSTM" in settings)
                              and (settings["train_LSTM"] == True)):
                             # print ("LSTM states: ", states__)
-                            pa = [model.predict(states__, p=p, sim_index=worker_id, bootstrapping=bootstrapping)[0]]
+                            # pa = [model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)[0]]
+                            pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         else:
                             pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # print ("Exploration Action: ", pa)
@@ -219,7 +220,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         if ( ("train_LSTM" in settings)
                              and (settings["train_LSTM"] == True)):
                             # print ("LSTM states: ", states__)
-                            pa_ = [model.predict(states__, p=p, sim_index=worker_id, bootstrapping=bootstrapping)[0]]
+                            # pa_ = [model.predict(states__, p=p, sim_index=worker_id, bootstrapping=bootstrapping)[0]]
+                            pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                             # print ("LSTM action: ", pa_)
                         else:
                             pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
@@ -302,8 +304,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 if ( ("train_LSTM" in settings)
                              and (settings["train_LSTM"] == True)):
                     # print ("LSTM states: ", states__)
-                    pa = [model.predict(states__, evaluation_=evaluation, p=p, sim_index=worker_id, 
-                                   bootstrapping=bootstrapping, use_mbrl=use_MBRL)[0]]
+                    # pa = [model.predict(states__, evaluation_=evaluation, p=p, sim_index=worker_id, 
+                    #                bootstrapping=bootstrapping, use_mbrl=use_MBRL)[0]]
+                    pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, 
+                                   bootstrapping=bootstrapping, use_mbrl=use_MBRL)
                 else:
                     pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, 
                                    bootstrapping=bootstrapping, use_mbrl=use_MBRL)

@@ -1,4 +1,6 @@
 # LSTM for international airline passengers problem with regression framing
+import os
+os.environ['KERAS_BACKEND'] = "tensorflow"
 import numpy
 import matplotlib.pyplot as plt
 from pandas import read_csv
@@ -13,7 +15,7 @@ def create_dataset(dataset, look_back=1):
     dataX, dataY = [], []
     for i in range(len(dataset)-look_back-1):
         a = dataset[i:(i+look_back), 0]
-        print ("a ", a)
+        # print ("a ", a)
         dataX.append(a)
         dataY.append(dataset[i + look_back, 0])
     return numpy.array(dataX), numpy.array(dataY)
@@ -45,8 +47,9 @@ model.add(Dense(1))
 model.compile(loss='mean_squared_error', optimizer='adam')
 model.fit(trainX, trainY, epochs=100, batch_size=1, verbose=2)
 # make predictions
-trainPredict = model.predict(trainX)
-testPredict = model.predict(testX)
+### Test to see if predict function resets the states
+trainPredict = [model.predict(numpy.reshape(trainX_, (1,1,1)))[0] for trainX_ in trainX]
+testPredict = [model.predict(numpy.reshape(testX_, (1,1,1)))[0] for testX_ in testX]
 # invert predictions
 trainPredict = scaler.inverse_transform(trainPredict)
 trainY = scaler.inverse_transform([trainY])
