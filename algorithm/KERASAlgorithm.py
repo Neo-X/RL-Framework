@@ -153,7 +153,7 @@ class KERASAlgorithm(AlgorithmInterface):
         score = self._model.getCriticNetwork().fit(states, target_,
               epochs=updates, batch_size=batch_size_,
               verbose=0,
-              shuffle=True
+              # shuffle=True
               # callbacks=[early_stopping],
               )
         loss = score.history['loss'][0]

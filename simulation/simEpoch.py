@@ -198,13 +198,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                           ) 
                          and (not sampling)):
                         # print ("Random Guassian sample, state bounds", model.getStateBounds())
-                        if ( ("train_LSTM" in settings)
-                             and (settings["train_LSTM"] == True)):
-                            # print ("LSTM states: ", states__)
-                            # pa = [model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)[0]]
-                            pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
-                        else:
-                            pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                        pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # print ("Exploration Action: ", pa)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
@@ -217,14 +211,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                           (settings['use_stochastic_policy'] == True))
                           or (settings['exploration_method'] == 'gaussian_random')
                            ):
-                        if ( ("train_LSTM" in settings)
-                             and (settings["train_LSTM"] == True)):
-                            # print ("LSTM states: ", states__)
-                            # pa_ = [model.predict(states__, p=p, sim_index=worker_id, bootstrapping=bootstrapping)[0]]
-                            pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
-                            # print ("LSTM action: ", pa_)
-                        else:
-                            pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                        pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
                             std_ = model.predict_std(state_, p=p)
@@ -301,15 +288,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     (settings["evalaute_with_MBRL"] == True) ):
                     use_MBRL = True
 
-                if ( ("train_LSTM" in settings)
-                             and (settings["train_LSTM"] == True)):
-                    # print ("LSTM states: ", states__)
-                    # pa = [model.predict(states__, evaluation_=evaluation, p=p, sim_index=worker_id, 
-                    #                bootstrapping=bootstrapping, use_mbrl=use_MBRL)[0]]
-                    pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, 
-                                   bootstrapping=bootstrapping, use_mbrl=use_MBRL)
-                else:
-                    pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, 
+                pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, 
                                    bootstrapping=bootstrapping, use_mbrl=use_MBRL)
                 
                 action = pa
@@ -513,6 +492,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
     advantage.append(0.0)
     """
+    ### Reset before predicting values for trajectory
+    model.reset()
     if ('use_GAE' in settings and ( settings['use_GAE'] == True)):
         if (len(states[last_epoch_end:]) > 0):
             for a in range(len(states[0])):

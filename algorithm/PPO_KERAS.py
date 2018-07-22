@@ -451,7 +451,7 @@ class PPO_KERAS(KERASAlgorithm):
                 self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], [actions, target_],
                       epochs=updates, batch_size=batch_size_,
                       verbose=0,
-                      shuffle=True
+                      # shuffle=True
                       # p_=p,
                       # callbacks=self._callbacks_list,
                       )
@@ -464,7 +464,7 @@ class PPO_KERAS(KERASAlgorithm):
                 self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], actions,
                       epochs=updates, batch_size=batch_size_,
                       verbose=0,
-                      shuffle=True
+                      # shuffle=True
                       # callbacks=[early_stopping],
                       )
                 # (lossActor, r_) = self.trainPolicy([states, actions, advantage, p])

@@ -762,7 +762,7 @@ def trainModelParallel(inputData):
                     for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
                                            _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_)
-                    
+                    masterAgent.reset()
                     data = ('Update_Policy', p_tmp_, 
                             masterAgent.getStateBounds(),
                             masterAgent.getActionBounds(),
@@ -803,10 +803,12 @@ def trainModelParallel(inputData):
                 if masterAgent.getExperience().samples() >= batch_size:
                     states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
+                    masterAgent.reset()
                     error = masterAgent.bellman_error(states, actions, rewards, result_states, falls)
                     # print ("Error: ", error)
                     bellman_errors.append(error)
                     if (settings['debug_critic']):
+                        masterAgent.reset()
                         loss__ = masterAgent.getPolicy().get_critic_loss(states, actions, rewards, result_states)
                         criticLosses.append(loss__)
                         regularizationCost__ = masterAgent.getPolicy().get_critic_regularization()
@@ -819,6 +821,7 @@ def trainModelParallel(inputData):
                         print("Policy log prob: ", masterAgent.getPolicy()._get_log_prob())
                         print( "Actor loss: ", masterAgent.getPolicy()._get_action_diff())
                         """
+                        masterAgent.reset()
                         loss__ = masterAgent.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage)
                         actorLosses.append(loss__)
                         regularizationCost__ = masterAgent.getPolicy().get_actor_regularization()
@@ -838,11 +841,12 @@ def trainModelParallel(inputData):
                         if ( 'keep_seperate_fd_exp_buffer' in settings 
                              and (settings['keep_seperate_fd_exp_buffer'])):
                             states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getFDExperience().get_batch(batch_size)
-                            
+                        masterAgent.reset()
                         dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
                         dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
                         dynamicsLosses.append(dynamicsLoss)
                         if (settings['train_reward_predictor']):
+                            masterAgent.reset()
                             dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
                             dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss))
                             dynamicsRewardLosses.append(dynamicsRewardLoss)
@@ -898,6 +902,7 @@ def trainModelParallel(inputData):
             if (not settings['on_policy']):
                 # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
                 # masterAgent.setExperience(learningNamespace.experience)
+                masterAgent.reset()
                 data = ('Update_Policy', p,
                         masterAgent.getStateBounds(),
                         masterAgent.getActionBounds(),
