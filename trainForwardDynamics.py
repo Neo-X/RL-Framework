@@ -8,7 +8,6 @@ theano.config.floatX='float32'
 import numpy as np
 import sys
 import json
-from pycparser.ply.yacc import _restart
 sys.path.append('../')
 import dill
 import datetime
