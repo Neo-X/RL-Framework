@@ -44,7 +44,9 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     if (settings["bootsrap_with_discrete_policy"]) and (settings['bootstrap_samples'] > 0):
         print ("Collecting bootstrap samples from simulation")
         (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
+        
                                                                                                                    eval_episode_data_queue=eval_episode_data_queue)
+        data__ = (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_)
         # states = np.array(states)
         # states = np.append(states, state_bounds,0) # Adding that already specified bounds will ensure the final calculated is beyond these
         states = np.array(list(itertools.chain(*states)))
@@ -178,7 +180,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         """
         
         
-    return  experience, state_bounds, reward_bounds, action_bounds
+    return  experience, state_bounds, reward_bounds, action_bounds, data__
 
 # @profile(precision=5)
 def collectExperienceActionsContinuous(actor, exp, model, samples, settings, action_selection, sim_work_queues=None, eval_episode_data_queue=None):

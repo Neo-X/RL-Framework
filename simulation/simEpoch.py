@@ -397,7 +397,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ("replace_next_state_with_imitation_viz_state" in settings
             and (settings["replace_next_state_with_imitation_viz_state"] == True)):
             # print ("resultState_: ", resultState_)
-            resultState_[0][1] = exp.getEnvironment().getImitationVisualState()
+            ob = np.asarray(exp.getEnvironment().getImitationVisualState())
+            ob = np.reshape(np.array(ob), (-1, 
+                        (np.prod(ob.shape))))
+            resultState_[0][1] = ob
         
         ## For testing remove later
         if (settings["use_back_on_track_forcing"] and (not evaluation)):

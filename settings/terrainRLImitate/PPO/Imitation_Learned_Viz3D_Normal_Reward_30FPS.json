@@ -298,7 +298,7 @@
 	"comment__": "last policy type of activation to use",
 "last_policy_layer_activation_type": "tanh",
 	"comment__": "Use a different off-policy experience memory for the fd learning",
-"keep_seperate_fd_exp_buffer": false,
+"keep_seperate_fd_exp_buffer": true,
 	"comment__": "Train a GAN to do something....",
 "train_gan": true,
 	"comment__": "Train GAN with gaussian noise",

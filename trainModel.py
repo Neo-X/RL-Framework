@@ -119,20 +119,20 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
     return (sim_workers, sim_work_queues)
     
     
-def pretrainCritic(masterAgent):
+def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_):
     settings__ = copy.deepcopy(masterAgent.getSettings())
     settings__2 = copy.deepcopy(masterAgent.getSettings())
     settings__["train_actor"] = False
-    settings__["clear_exp_mem_on_poli"] = False
-    ### Projects for the case when they are singular and don't want to skip training the critic and train the policy
+    settings__["clear_exp_mem_on_poli"] = True
+    ### Protects for the case when they are singular and don't want to skip training the critic and train the policy
     settings__["ppo_use_seperate_nets"] = True
     masterAgent.setSettings(settings__)
     masterAgent.getPolicy().setSettings(settings__)
     # masterAgent.getForwardDynamics().setSettings(settings)
     for i in range(int(settings__["pretrain_critic"])):
-        masterAgent.train(_states=[], _actions=[], _rewards=[], _result_states=[],
-                                       _falls=[], _advantage=[], _exp_actions=[], 
-                                       _G_t=[], p=1.0)
+        masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
+                                       _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
+                                       _G_t=G_ts_, p=1.0)
     ### back to normal settings
     masterAgent.setSettings(settings__2)
     masterAgent.getPolicy().setSettings(settings__2)
@@ -466,18 +466,18 @@ def trainModelParallel(inputData):
             m_q.put(message)
         
         if ( int(settings["num_available_threads"]) ==  -1):
-           experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, exp_val, model, settings,
+           experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperience(actor, exp_val, model, settings,
                            sim_work_queues=None, 
                            eval_episode_data_queue=None)
             
         else:
             if (settings['on_policy']):
                 
-                experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, None, model, settings,
+                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperience(actor, None, model, settings,
                            sim_work_queues=sim_work_queues, 
                            eval_episode_data_queue=eval_episode_data_queue)
             else:
-                experience, state_bounds, reward_bounds, action_bounds = collectExperience(actor, None, model, settings,
+                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperience(actor, None, model, settings,
                            sim_work_queues=input_anchor_queue, 
                            eval_episode_data_queue=eval_episode_data_queue)
         masterAgent.setExperience(experience)
@@ -716,7 +716,7 @@ def trainModelParallel(inputData):
             print("Exp Action Bounds: ", experience.getActionBounds())
             
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)):
-            pretrainCritic(masterAgent)
+            pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_)
         
         print ("Starting first round")
         if (settings['on_policy']):
