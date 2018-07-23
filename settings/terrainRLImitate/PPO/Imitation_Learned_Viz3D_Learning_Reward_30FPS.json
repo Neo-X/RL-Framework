@@ -337,7 +337,7 @@
 	"split_single_net_earlier": false
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
-"pretrain_critic": 10,
+"pretrain_critic": 100,
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
 "ppo_et_factor": 1.1,
 	"comment__": "higher level controller timestep",
