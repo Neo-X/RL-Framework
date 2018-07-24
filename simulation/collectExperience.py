@@ -41,6 +41,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     action_bounds = np.array(settings["action_bounds"], dtype=float)
     state_bounds = np.array(settings['state_bounds'], dtype=float)
     
+    data__ = ([],[],[],[],[],[],[],[])
+    
     if (settings["bootsrap_with_discrete_policy"]) and (settings['bootstrap_samples'] > 0):
         print ("Collecting bootstrap samples from simulation")
         (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
