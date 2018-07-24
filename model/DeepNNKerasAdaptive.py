@@ -18,11 +18,46 @@ from keras import regularizers
 import keras
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
-
+import tensorflow as tf
+from keras.layers import Layer
+from util.coordconv import *
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 from model.ModelInterface import ModelInterface
 
+class CoordConv2D(Layer):
+    """
+        https://gist.github.com/Dref360/b330e75cb121c03a0066d9587a7bfee5
+    """
+    def __init__(self, channel, kernel_size, padding='valid', **kwargs):
+        self.layer = keras.layers.Conv2D(channel, kernel_size, padding=padding)
+        self.name = 'CoordConv2D'
+        super(CoordConv2D, self).__init__(**kwargs)
+
+    def call(self, input):
+        input_shape = tf.unstack(K.shape(input))
+        if K.image_data_format() == 'channel_first':
+            bs, channel, w, h = input_shape
+        else:
+            bs, w, h, channel = input_shape
+
+        # Get indices
+        indices = tf.to_float(tf.where(K.ones([bs, w, h])))
+        canvas = K.reshape(indices, [bs, w, h, 3])[..., 1:]
+        # Normalize the canvas
+        canvas = canvas / tf.to_float(K.reshape([w, h], [1, 1, 1, 2]))
+        canvas = (canvas * 2) - 1
+
+        # If channel_first, we swap
+        if K.image_data_format() == 'channel_first':
+            canvas = K.swap_axes(canvas, [0, 3, 1, 2])
+
+        # Concatenate channel-wise
+        input = K.concatenate([input, canvas], -1)
+        return self.layer(input)
+
+    def compute_output_shape(self, input_shape):
+        return self.layer.compute_output_shape(input_shape)
 
 def getKerasActivation(type_name):
     """
@@ -164,9 +199,16 @@ class DeepNNKerasAdaptive(ModelInterface):
                         stride = (1,1)
                         if (len(layer_sizes[i]) > 2):
                             stride = layer_sizes[i][2]
+                        if ("use_coordconv_layers" in self._networkSettings 
+                            and (self._networkSettings["use_coordconv_layers"] == True)):
+                            networkAct = CoordinateChannel2D()(networkAct)
+                            #networkAct = CoordConv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], # strides=stride,
+                            #                              # kernel_regularizer=regularizers.l2(self._settings['regularization_weight'])
+                            #                              )(networkAct)
+                        # else:
                         networkAct = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride,
-                                                         kernel_regularizer=regularizers.l2(self._settings['regularization_weight']), 
-                                                        data_format=data_format_)(networkAct)
+                                                     kernel_regularizer=regularizers.l2(self._settings['regularization_weight']), 
+                                                    data_format=data_format_)(networkAct)
                         if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
                             networkActVel_x = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=stride,
@@ -192,6 +234,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                         stride_ = 1
                         if (len(layer_sizes[i]) > 2):
                             stride_ = layer_sizes[i][2]
+                        if ("use_coordconv_layers" in self._networkSettings 
+                            and (self._networkSettings["use_coordconv_layers"] == True)):
+                            networkAct = CoordinateChannel1D()(networkAct)
                         networkAct = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride_,
                                                          kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                         if (perform_pooling):
@@ -362,6 +407,14 @@ class DeepNNKerasAdaptive(ModelInterface):
                     stride = (1,1)
                     if (len(layer_sizes[i]) > 2):
                         stride = layer_sizes[i][2]
+                        
+                    if ("use_coordconv_layers" in self._networkSettings 
+                            and (self._networkSettings["use_coordconv_layers"] == True)):
+                        network = CoordinateChannel2D()(network)
+                        # network = CoordConv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], # strides=stride,
+                        #                                  # kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight'])
+                        #                                  )(network)
+                    # else:
                     network = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride,
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      data_format=data_format_)(network)
@@ -389,6 +442,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                     stride_ = 1
                     if (len(layer_sizes[i]) > 2):
                         stride_ = layer_sizes[i][2]
+                    if ("use_coordconv_layers" in self._networkSettings 
+                            and (self._networkSettings["use_coordconv_layers"] == True)):
+                        network = CoordinateChannel1D()(network)
                     network = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride_,
                                                   kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                     if (perform_pooling):

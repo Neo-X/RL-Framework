@@ -586,6 +586,7 @@ class PPO_KERAS(KERASAlgorithm):
         self._model._actor = load_model(fileName+"_actor"+suffix)
         self._model._critic = load_model(fileName+"_critic"+suffix)
         print ("self._Advantage: ", self._Advantage)
+        ### TODO: fix this, still can't load training configuration
         """
         self._model._actor_train = load_model(fileName+"_actor_train"+suffix, 
                                               custom_objects={
