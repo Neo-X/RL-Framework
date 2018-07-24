@@ -586,6 +586,7 @@ class PPO_KERAS(KERASAlgorithm):
         self._model._actor = load_model(fileName+"_actor"+suffix)
         self._model._critic = load_model(fileName+"_critic"+suffix)
         print ("self._Advantage: ", self._Advantage)
+        """
         self._model._actor_train = load_model(fileName+"_actor_train"+suffix, 
                                               custom_objects={
                                                               'Advantage': self._Advantage
@@ -594,6 +595,7 @@ class PPO_KERAS(KERASAlgorithm):
                                                                                       self._Anneal)
                                                               # ,'loss': self.__loss
                                                               })
+        """
         if (self._modelTarget is not None):
             self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
             self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
