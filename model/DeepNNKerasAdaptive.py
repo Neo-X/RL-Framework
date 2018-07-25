@@ -209,15 +209,20 @@ class DeepNNKerasAdaptive(ModelInterface):
                         networkAct = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride,
                                                      kernel_regularizer=regularizers.l2(self._settings['regularization_weight']), 
                                                     data_format=data_format_)(networkAct)
+                        networkAct = getKerasActivation(self._settings['policy_activation_type'])(networkAct)           
+                                            
                         if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
                             networkActVel_x = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=stride,
                                                          kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                                          data_format=data_format_)(networkActVel_x)
+                            networkActVel_x = getKerasActivation(self._settings['policy_activation_type'])(networkActVel_x)
                             networkActVel_y = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=stride,
                                                          kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                                          data_format=data_format_)(networkActVel_y)
-                                                                     
+                            networkActVel_y = getKerasActivation(self._settings['policy_activation_type'])(networkActVel_y)
+                            
+                                      
                         if (perform_pooling):
                             networkAct = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
                                                                    data_format=data_format_)(networkAct)
@@ -239,6 +244,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                             networkAct = CoordinateChannel1D()(networkAct)
                         networkAct = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride_,
                                                          kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+                        networkAct = getKerasActivation(self._settings['policy_activation_type'])(networkAct)
                         if (perform_pooling):
                             networkAct = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(networkAct)
                     # networkAct = Dense(layer_sizes[i], 
@@ -418,14 +424,17 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride,
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      data_format=data_format_)(network)
+                    network = getKerasActivation(self._settings['activation_type'])(network)
                     if ('split_terrain_input' in self._networkSettings 
                             and self._networkSettings['split_terrain_input']):
                         networkVel_x = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=stride,
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      data_format=data_format_)(networkVel_x)
+                        networkVel_x = getKerasActivation(self._settings['activation_type'])(networkVel_x)
                         networkVel_y = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=stride,
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']), 
-                                                     data_format=data_format_)(networkVel_y)            
+                                                     data_format=data_format_)(networkVel_y)   
+                        networkVel_y = getKerasActivation(self._settings['activation_type'])(networkVel_y)         
                     if (perform_pooling):
                         network = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
                                                             data_format=data_format_)(network)
@@ -447,6 +456,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                         network = CoordinateChannel1D()(network)
                     network = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride_,
                                                   kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
+                    network = getKerasActivation(self._settings['activation_type'])(network)
                     if (perform_pooling):
                         network = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(network)
                 # network = keras.layers.Conv2D(4, (8,1), strides=(1, 1))(network)
