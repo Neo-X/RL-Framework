@@ -145,7 +145,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         taskFeatures = self._stateInput
         characterFeatures = self._stateInput
         """
-        perform_pooling=True
+        perform_pooling=False
         if ( "perform_convolution_pooling" in self._networkSettings):
             perform_pooling = self._networkSettings["perform_convolution_pooling"]
         if ( ( "use_single_network" in self._settings and
