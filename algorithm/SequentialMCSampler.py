@@ -167,7 +167,8 @@ class SequentialMCSampler(Sampler):
             actions_ = chunks(sample, _action_dimension)
             actions=[]
             for chunk in actions_:
-                act__ = clampAction(chunk, _action_bounds)
+                # act__ = clampAction(chunk, _action_bounds)
+                act__ = chunk
                 actions.extend(act__)
             # self.updateSampleWeights()
             actions=list(chunks(actions, _action_dimension))
@@ -258,7 +259,8 @@ class SequentialMCSampler(Sampler):
             actions_ = chunks(sample, _action_dimension)
             actions=[]
             for chunk in actions_:
-                act__ = clampAction(chunk, _action_bounds)
+                # act__ = clampAction(chunk, _action_bounds)
+                act__ = chunk
                 actions.extend(act__)
             self.updateSampleWeights()
             actions=list(chunks(actions, _action_dimension))
