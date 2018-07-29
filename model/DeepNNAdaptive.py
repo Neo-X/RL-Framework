@@ -19,13 +19,13 @@ class DeepNNAdaptive(ModelInterface):
         
         # data types for model
         self._State = T.matrix("State")
-        self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
+        self._State.tag.test_value = np.array(np.random.rand(self._batch_size,self._state_length), dtype=self.getSettings()['float_type'])
         self._ResultState = T.matrix("ResultState")
-        self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
+        self._ResultState.tag.test_value = np.array(np.random.rand(self._batch_size,self._state_length), dtype=self.getSettings()['float_type'])
         self._Reward = T.col("Reward")
-        self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
+        self._Reward.tag.test_value = np.array(np.random.rand(self._batch_size,1), dtype=self.getSettings()['float_type'])
         self._Action = T.matrix("Action")
-        self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
+        self._Action.tag.test_value = np.array(np.random.rand(self._batch_size, self._action_length), dtype=self.getSettings()['float_type'])
         # create a small convolutional neural network
         stateInput = lasagne.layers.InputLayer((None, self._state_length), self._State)
         self._stateInputVar = stateInput.input_var

@@ -391,6 +391,7 @@ class AlgorithmInterface(object):
         """
         state = norm_state(state, self._state_bounds)   
         state = np.array(state, dtype=self._settings['float_type'])
+        print ("States: ", state)
         self._model.setStates(state)
         # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -400,6 +401,8 @@ class AlgorithmInterface(object):
             action_std = self._q_action_std()
             # action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
         else:
+            print ("self._action_bounds: ", self._action_bounds)
+            print ("self._q_action_std(): ", self._q_action_std())
             action_std = self._q_action_std() * (action_bound_std(self._action_bounds))
         # else:
         # action_ = scale_action(self._q_action()[0], self._action_bounds)
@@ -583,13 +586,13 @@ class AlgorithmInterface(object):
     def get_actor_regularization(self):
         return self._get_actor_regularization()
     
-    def get_actor_loss(self):
+    def get_actor_loss(self,  state, action, reward, nextState, advantage):
         return self._get_actor_loss()
 
     def get_critic_regularization(self):
         return self._get_critic_regularization()
     
-    def get_critic_loss(self):
+    def get_critic_loss(self, state, action, reward, nextState):
         return self._get_critic_loss()
     
     def saveTo(self, fileName):
