@@ -403,7 +403,7 @@ class TRPO(AlgorithmInterface):
         if ( 'advantage_scaling' in self.getSettings() and ( self.getSettings()['advantage_scaling'] != False) ):
             std = std / self.getSettings()['advantage_scaling']
             mean = 0.0
-            print ("advantage_scaling: ", std)
+            # print ("advantage_scaling: ", std)
         if ('normalize_advantage' in self.getSettings()
             and (self.getSettings()['normalize_advantage'] == True)):
             # print("Normalize advantage")
@@ -491,7 +491,7 @@ class TRPO(AlgorithmInterface):
             # print ("fvp_ : ", fvp_)
             return fvp_
         g = self.compute_policy_gradient(*args)
-        print ("g: ", g)
+        # print ("g: ", g)
         losses_before = self.compute_losses(*args)
         if np.allclose(g, 0):
             print ("got zero gradient. not updating")
@@ -529,7 +529,7 @@ class TRPO(AlgorithmInterface):
             print( "Losses before: ", self.loss_names, ", ", losses_before)
             print( "Losses after: ", self.loss_names, ", ", losses_after)
         
-        return out
+        return losses_after
         # print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
         # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
         # print( " Actor loss: ", lossActor)
