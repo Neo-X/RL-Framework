@@ -311,7 +311,7 @@
 	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
 "normalize_advantage": true,
 	"comment__": "Use a different off-policy experience memory for the fd learning",
-"keep_seperate_fd_exp_buffer": true,
+"keep_seperate_fd_exp_buffer": false,
 	"comment__": "Train a GAN to do something....",
 "train_gan": true,
 	"comment__": "Train GAN with gaussian noise",
