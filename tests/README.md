@@ -15,6 +15,7 @@ python3 -m pytest tests/ -n<number_of_processes_to_use>
 1. pip3 install --user pytest
 1. pip3 install --user junit2html
 1. pip3 install --user pytest-progress
+1. pip3 install --user pytest-timeout
 
 ### Email test results
 

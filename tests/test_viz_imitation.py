@@ -9,6 +9,7 @@ import json
 
 class TestVizImitation(object):
 
+    @pytest.mark.timeout(600)
     def test_viz_state_normal_reward(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim
@@ -26,7 +27,8 @@ class TestVizImitation(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert not (simData is None)
-        
+    
+    @pytest.mark.timeout(600)    
     def test_viz_imitation(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim
@@ -45,6 +47,7 @@ class TestVizImitation(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert not (simData is None)
     
+    @pytest.mark.timeout(600)
     def test_viz_imitation_reward_dense_state(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim
@@ -63,6 +66,7 @@ class TestVizImitation(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert not (simData is None)
     
+    @pytest.mark.timeout(600)
     def test_viz_state_normal_reward_singleNet(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim

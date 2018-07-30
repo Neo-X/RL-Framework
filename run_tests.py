@@ -14,7 +14,7 @@ def run_tests(metaSettings, test=False):
         pytest.main(['tests/', '--junitxml=' + jUnitFileName, '--no-print-logs', '--show-progress'])
     else:
         print ("Starting full run: ")
-        pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', str(metaSettings['tuning_threads']), '--show-capture=no', '--show-progress'])
+        pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', str(metaSettings['tuning_threads']), '--show-capture=no', '--show-progress', '--timeout_method=thread'])
         # pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
             
 if __name__ == '__main__':

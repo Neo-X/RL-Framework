@@ -4,7 +4,8 @@ import numpy as np
 
 import warnings
 from model.ModelUtil import *
-from ModelEvaluation import simEpoch
+from simulation.simEpoch import simEpoch, simModelParrallel
+from simulation.evalModel import evalModelParrallel, evalModel
 import json
 from actor.DoNothingActor import DoNothingActor
 from sim.DummyEnv import DummyEnv
@@ -12,6 +13,7 @@ from algorithm.ModelDummy import ModelDummy
 
 class TestSimulation(object):
     
+    @pytest.mark.timeout(600)
     def test_collect_tuples(self):
         filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD.json"
         file = open(filename)
@@ -43,7 +45,7 @@ class TestSimulation(object):
         assert ( len(tmp_advantage) == settings_['max_epoch_length'])
         assert ( len(tmp_exp_actions) == settings_['max_epoch_length'])
         
-        
+    @pytest.mark.timeout(600)    
     def test_collect_tuples_discount_sum(self):
         filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD.json"
         file = open(filename)
@@ -69,7 +71,8 @@ class TestSimulation(object):
         assert ( len(tmp_discounted_sum) == settings_['max_epoch_length'])
         assert ( len(tmp_baselines_) == settings_['max_epoch_length'])
         assert ( len(evalData) == 1)   
-        
+    
+    @pytest.mark.timeout(600)   
     def test_collect_tuples_fidd_length_episodes(self):
         filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD.json"
         file = open(filename)
@@ -102,7 +105,8 @@ class TestSimulation(object):
             assert ( len(tmp_G_ts) == i)
             assert ( len(tmp_advantage) == i)
             assert ( len(tmp_exp_actions) == i)
-            
+    
+    @pytest.mark.timeout(600)       
     def test_get_state_size_from_env(self):
         filename = "tests/settings/gapGame2D/PPO/FixedSTD_Tensorflow-v2.json"
         file = open(filename)

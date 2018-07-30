@@ -10,6 +10,7 @@ import json
 class TestPPO(object):
 
     """
+    @pytest.mark.timeout(600)
     def test_ppo_particleNav_2D(self):
         ### Test that PPO can still learn a good policy on 2d particle sim
         filename = "tests/settings/particleSim/PPO/PPO.json"
@@ -24,7 +25,8 @@ class TestPPO(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        
+    
+    @pytest.mark.timeout(600)   
     def test_ppo_keras_particleNav_2D(self):
         ### Test that PPO can still learn a good policy on 2d particle sim
         filename = "tests/settings/particleSim/PPO/PPO_KERAS.json"
@@ -41,6 +43,7 @@ class TestPPO(object):
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
     """ 
     
+    @pytest.mark.timeout(600)
     def test_ppo_keras_tensorflow_particleNav_2D(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
@@ -57,7 +60,8 @@ class TestPPO(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        
+    
+    @pytest.mark.timeout(600)    
     def test_ppo_keras_tensorflow_particleNav_2D_stochastic_policy(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
@@ -75,6 +79,7 @@ class TestPPO(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
         
+    @pytest.mark.timeout(600)    
     def test_ppo_keras_tensorflow_SingleNet_particleNav_2D(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
@@ -91,7 +96,8 @@ class TestPPO(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        
+    
+    @pytest.mark.timeout(600)    
     def test_ppo_keras_tensorflow_SingleNet_STD_Policy_particleNav_2D(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
@@ -108,7 +114,8 @@ class TestPPO(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        
+    
+    @pytest.mark.timeout(600)   
     def test_ppo_keras_tensorflow_particleNav_10D(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
@@ -125,7 +132,8 @@ class TestPPO(object):
         settings['rollouts'] = 4
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        
+    
+    @pytest.mark.timeout(600)   
     def test_ppo_keras_tensorflow_stochastic_policy_particleNav_10D(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
@@ -142,7 +150,8 @@ class TestPPO(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        
+    
+    @pytest.mark.timeout(600)    
     def test_ppo_keras_tensorflow_SingleNet_particleNav_10D(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
@@ -159,7 +168,8 @@ class TestPPO(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        
+    
+    @pytest.mark.timeout(600)    
     def test_ppo_keras_tensorflow_SingleNet_STD_Policy_particleNav_10D(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
@@ -177,6 +187,7 @@ class TestPPO(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5    
 
+    @pytest.mark.timeout(600)
     def test_ppo_keras_gapGame_2D(self):
         """
             Test that PPO can still learn a good policy on 2d gapgame sim
@@ -193,7 +204,8 @@ class TestPPO(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > 0.65
-        
+    
+    @pytest.mark.timeout(600)   
     def test_ppo_keras_gapGame_2D(self):
         """
             Test that PPO can still learn a good policy on 2d gapgame sim
