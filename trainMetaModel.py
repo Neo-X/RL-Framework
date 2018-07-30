@@ -73,6 +73,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         settings['print_level'] = "hyper_train"
         # settings['shouldRender'] = False
         settings['visualize_learning'] = False
+        ### Reduce IO
         settings['saving_update_freq_num_rounds'] = settings_original['saving_update_freq_num_rounds'] * 10
         
         if ( 'expert_policy_files' in settings):
