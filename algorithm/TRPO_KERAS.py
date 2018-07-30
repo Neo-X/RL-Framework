@@ -130,7 +130,7 @@ class TRPO_KERAS(KERASAlgorithm):
 
         prob_mean_fixed = theano.gradient.disconnected_grad(self._q_valsActA)
         prob_std_fixed = theano.gradient.disconnected_grad(self._q_valsActASTD)
-        kl_firstfixed = kl_keras(prob_mean_fixed, prob_std_fixed, self._q_valsActA, self._q_valsActASTD, self._action_length).sum()/N
+        kl_firstfixed = kl_keras(prob_mean_fixed, prob_std_fixed, self._q_valsActA, self._q_valsActASTD, self._action_length).mean()
         grads = T.grad(kl_firstfixed, params)
         self.flat_tangent = T.vector(name="flat_tan")
         shapes = [var.get_value(borrow=True).shape for var in params]
