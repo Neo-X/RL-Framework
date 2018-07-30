@@ -290,7 +290,8 @@ class TRPO_KERAS(KERASAlgorithm):
             # self._advantage_shared.set_value(advantage)
             ## Need to scale the advantage by the discount to help keep things normalized
         std = np.std(advantage)
-        mean = np.mean(advantage)
+        # mean = np.mean(advantage)
+        mean = 0
         if ( 'advantage_scaling' in self.getSettings() and ( self.getSettings()['advantage_scaling'] != False) ):
             std = std / self.getSettings()['advantage_scaling']
             mean = 0.0
