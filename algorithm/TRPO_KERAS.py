@@ -123,9 +123,9 @@ class TRPO_KERAS(KERASAlgorithm):
         self._kl_firstfixed = kl_keras(self._q_valsActTarget_State, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length).mean()
         
         # N = self._model.getStateSymbolicVariable().shape[0]
-        N = 1
+        # N = 1
         params = self._model._actor.trainable_weights
-        surr = self._actLoss * (1.0/N)
+        surr = T.mean(self._actLoss)
         self.pg = flatgrad_keras(surr, params)
 
         prob_mean_fixed = theano.gradient.disconnected_grad(self._q_valsActA)
