@@ -79,6 +79,13 @@ def flatgrad(loss, var_list):
     grads = T.grad(loss, var_list)
     return T.concatenate([g.flatten() for g in grads])
 
+def flatgrad_keras(loss, var_list):
+    """
+        Returns the gradient as a vector instead of alist of vectors
+    """
+    grads = K.gradients(loss, var_list)
+    return K.concatenate([K.reshape(g, [-1]) for g in grads])
+
 def setFromFlat(var_list, theta):
     """
         Probably does not work...
