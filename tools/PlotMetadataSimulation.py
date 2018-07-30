@@ -30,21 +30,22 @@ def getDataFolderNames(prefixPath, folderPrefix, settings):
     print ("path: ", path)
     print ("folder_: ", folder_)
     print ("name_suffix: ", name_suffix)
-    if os.path.exists(path):
-        for filename in os.listdir(path):
-            if re.match(folder_ + "\d+", filename):
-                folderNames.append(prefixPath + filename + name_suffix)
-                print ("Folder Name: ", prefixPath + filename + name_suffix)
+    if os.path.exists(path+folder_):
+        for filename in os.listdir(path+folder_):
+            print ("checking path: ", filename)
+            if re.match("_\d+", filename):
+                folderNames.append(path+folder_ + filename + name_suffix)
+                print ("***Found Folder Name: ", folderNames[-1])
     ## For the case where I put a slash at the end of the path name...
     path = path + folder_[:-1]
     print ("New path: ", path)
-    if os.path.exists(path):
-        for filename in os.listdir(path):
+    if os.path.exists(path+folder_):
+        for filename in os.listdir(path+folder_):
             print ("Testing path: ", filename)
             print ("Testing patern: ", folder_[-1:] + "\d+")
-            if re.match(folder_[-1:] + "\d+", filename):
-                folderNames.append(path + filename + name_suffix)
-                print ("Folder Name: ", path + filename + name_suffix)
+            if re.match("_\d+", filename):
+                folderNames.append(path+folder_ + filename + name_suffix)
+                print ("***Found Folder Name: ", folderNames[-1])
     return folderNames
         
 def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):   
@@ -65,7 +66,7 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
         settings = json.load(settingsFile_)
         settingsFile_.close()
     
-        folder_ = settings['data_folder'] + "_"
+        folder_ = settings['data_folder']
         data_path = getRootDataDirectory(settings)+"/"
         folderNames_ = getDataFolderNames(data_path, folder_, settings)
         trainingDatas = []
