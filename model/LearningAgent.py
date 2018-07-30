@@ -559,7 +559,7 @@ class LearningAgent(AgentInterface):
             # print ("State: ", state)
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
-                state = state[0][1]
+                state = np.array([state[0]])
             else:
                 state = [state[0][0]]
         if (use_mbrl):
@@ -579,7 +579,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = state[0][1]
+                state = np.array([state[0]])
             else:
                 state = [state[0][0]]
         std = self._pol.predict_std(state, p=p)
@@ -595,7 +595,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = state[0][1]
+                state = np.array([state[0]])
             else:
                 state = [state[0][0]]
         act = self._pol.predictWithDropout(state)
@@ -613,11 +613,11 @@ class LearningAgent(AgentInterface):
             and (self.getSettings()["use_dual_state_representations"] == True)):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
-            # print ("State: ", state)
-                state = state[0][1]
+                # print ("State: ", np.array(state[0]).shape)
+                state = np.array([state[0]])
             else:
                 state = [state[0][0]]
-            # print ("State: ", state)
+        # print ("State: ", np.array(state).shape)
         q = self._pol.q_value(state)
         if self._useLock:
             self._accesLock.release()
@@ -631,7 +631,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = state[0][1]
+                state = state[0]
             else:
                 state = [state[0][0]]
         q = self._pol.q_values(state)

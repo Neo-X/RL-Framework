@@ -211,6 +211,7 @@ class KERASAlgorithm(AlgorithmInterface):
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
+        # print ("State shape: ", state.shape)
         value = scale_reward(self._model.getCriticNetwork().predict(state), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # value = scale_reward(self._value([state,0])[0], self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # print ("value: ", repr(np.array(value)))
