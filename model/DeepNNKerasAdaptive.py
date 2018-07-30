@@ -181,6 +181,14 @@ class DeepNNKerasAdaptive(ModelInterface):
                     elif (layer_sizes[i][0] == "LSTM"):
                         networkAct = Reshape((1, layer_sizes[i][1]))(networkAct)
                         networkAct = LSTM(layer_sizes[i][2], stateful=False)(networkAct)
+                    elif (layer_sizes[i][0] == "max_pool"):
+                        networkAct = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
+                                                                   data_format=data_format_)(networkAct)
+                    elif (layer_sizes[i][0] == "avg_pool"):
+                        networkAct = keras.layers.AvgPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
+                                                                   data_format=data_format_)(networkAct)
+                    elif ( layer_sizes[i][0] == "dropout" ):
+                        networkAct = Dropout(rate=layer_sizes[i][1])(networkAct)                                                
                     elif ( len(layer_sizes[i][1])> 1):
                         if (i == 0):
                             if ('split_terrain_input' in self._networkSettings 
@@ -406,7 +414,14 @@ class DeepNNKerasAdaptive(ModelInterface):
                         # print ("layer.output_shape: ", keras.backend.shape(network))
                         network = Reshape((1, layer_sizes[i][1]))(network)
                         network = LSTM(layer_sizes[i][2], stateful=False)(network)
-                        
+                elif (layer_sizes[i][0] == "max_pool"):
+                        network = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
+                                                                   data_format=data_format_)(network)  
+                elif (layer_sizes[i][0] == "avg_pool"):
+                        network = keras.layers.AvgPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
+                                                                   data_format=data_format_)(network)  
+                elif ( layer_sizes[i][0] == "dropout" ):
+                    network = Dropout(rate=layer_sizes[i][1])(network)    
                 elif ( len(layer_sizes[i][1])> 1):
                     if (i == 0):
                         if ('split_terrain_input' in self._networkSettings 
