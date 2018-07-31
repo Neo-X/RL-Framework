@@ -151,9 +151,13 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                 if ("use_viz_for_policy" in settings 
                     and settings["use_viz_for_policy"] == True):
                     state = state[1][0]
-                    resultState = resultState[0][0]
-                    ### Testing to create data for fd learning
-                    # resultState = resultState[0]
+                    if ("replace_next_state_with_pose_state" in settings 
+                        and (settings["replace_next_state_with_pose_state"] == True)):
+                        ### grab pose data for training fd model, use next state because all fd models take state, action inputs
+                        resultState = resultState[0]
+                    else:
+                        ### grab viz data
+                        resultState = resultState[1][0]
                 else:
                     state = state[0]
                     resultState = resultState[0]

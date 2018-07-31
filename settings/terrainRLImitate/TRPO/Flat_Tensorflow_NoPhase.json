@@ -1,8 +1,8 @@
 {
 	"comment__": "Type of model/network to use for the actor and critic",
-"model_type": "model.DeepNNAdaptive.DeepNNAdaptive",
+"model_type": "model.DeepNNKerasAdaptive.DeepNNKerasAdaptive",
     "comment__": "Learning algorithm to use",
-"agent_name": "algorithm.TRPO.TRPO",
+"agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
 "data_folder": "PD_Humanoid_2D_Symetric-NoPhase-v0/_3",
 	"comment": "initial probability of selecting a random action",
