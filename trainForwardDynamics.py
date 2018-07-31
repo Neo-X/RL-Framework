@@ -52,21 +52,20 @@ def trainForwardDynamics(settings):
     if not os.path.exists(directory):
         os.makedirs(directory)
         
-    if (settings['train_forward_dynamics']):
-        if "." in settings['forward_dynamics_model_type']:
-            ### convert . to / and copy file over
-            file_name = settings['forward_dynamics_model_type']
-            k = file_name.rfind(".")
-            file_name = file_name[:k]
-            file_name_read = file_name.replace(".", "/")
-            file_name_read = file_name_read + ".py"
-            print ("model file name:", file_name)
-            print ("os.path.basename(file_name): ", os.path.basename(file_name))
-            file = open(file_name_read, 'r')
-            out_file = open(directory+file_name+".py", 'w')
-            out_file.write(file.read())
-            file.close()
-            out_file.close()
+    if "." in settings['forward_dynamics_model_type']:
+        ### convert . to / and copy file over
+        file_name = settings['forward_dynamics_model_type']
+        k = file_name.rfind(".")
+        file_name = file_name[:k]
+        file_name_read = file_name.replace(".", "/")
+        file_name_read = file_name_read + ".py"
+        print ("model file name:", file_name)
+        print ("os.path.basename(file_name): ", os.path.basename(file_name))
+        file = open(file_name_read, 'r')
+        out_file = open(directory+file_name+".py", 'w')
+        out_file.write(file.read())
+        file.close()
+        out_file.close()
             
     discrete_actions = np.array(settings['discrete_actions'])
     num_actions= discrete_actions.shape[0] # number of rows
@@ -145,29 +144,28 @@ def trainForwardDynamics(settings):
         
         
     
-    if (settings['train_forward_dynamics']):
-        if ( settings['forward_dynamics_model_type'] == "SingleNet"):
-            print ("Creating forward dynamics network: Using single network model")
-            # model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
-            model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings, print_info=True)
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model,
-                                                              reward_bounds=reward_bounds)
-            # forwardDynamicsModel = model
-        else:
-            print ("Creating forward dynamics network")
-            # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None,
-                                                              reward_bounds=reward_bounds)
-        if settings['visualize_learning']:
-            from NNVisualize import NNVisualize
-            title = file_name = settings['forward_dynamics_model_type']
-            k = title.rfind(".") + 1
-            if (k > len(title)): ## name does not contain a .
-                k = 0 
-            file_name = file_name[k:]
-            nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(file_name))
-            nlv.setInteractive()
-            nlv.init()
+    if ( settings['forward_dynamics_model_type'] == "SingleNet"):
+        print ("Creating forward dynamics network: Using single network model")
+        # model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
+        model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings, print_info=True)
+        forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model,
+                                                          reward_bounds=reward_bounds)
+        # forwardDynamicsModel = model
+    else:
+        print ("Creating forward dynamics network")
+        # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+        forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None,
+                                                          reward_bounds=reward_bounds)
+    if settings['visualize_learning']:
+        from NNVisualize import NNVisualize
+        title = file_name = settings['forward_dynamics_model_type']
+        k = title.rfind(".") + 1
+        if (k > len(title)): ## name does not contain a .
+            k = 0 
+        file_name = file_name[k:]
+        nlv = NNVisualize(title=str("Forward Dynamics Model") + " with " + str(file_name))
+        nlv.setInteractive()
+        nlv.init()
     if (settings['train_reward_predictor']):
         if settings['visualize_learning']:
             rewardlv = NNVisualize(title=str("Reward Model") + " with " + str(settings["model_type"]), settings=settings)
