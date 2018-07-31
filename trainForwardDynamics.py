@@ -150,6 +150,7 @@ def trainForwardDynamics(settings):
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings, print_info=True)
         forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model,
                                                           reward_bounds=reward_bounds)
+        forwardDynamicsModel.setResultStateBounds(res_state_bounds__)
         # forwardDynamicsModel = model
     else:
         print ("Creating forward dynamics network")

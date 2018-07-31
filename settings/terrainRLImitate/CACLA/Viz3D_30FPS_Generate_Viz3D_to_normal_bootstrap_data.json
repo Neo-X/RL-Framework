@@ -20,7 +20,7 @@
     "comment__": "Exploration distance use when randomly generating new actions",
 "exploration_rate": 0.18,
     "comment__": "Number of rounds to perform before termination",
-"rounds": 250,
+"rounds": 1000,
     "comment__": "Number of epochs to perform per round",
 "epochs": 4,
     "comment__": "Number of epoch/episode to evaluate the policy over",
@@ -319,7 +319,9 @@
 		"comment__": "Whether or not the network should include pooling layers between convolutions.",
 	"perform_convolution_pooling": false,
 		"comment__": "Change where the network splits for a single network model",
-	"split_single_net_earlier": false
+	"split_single_net_earlier": false,
+		"comment__": "Use CoordConv convolutional layers.",
+	"use_coordconv_layers": true
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
 "pretrain_critic": 0,
