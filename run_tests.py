@@ -26,7 +26,7 @@ if __name__ == '__main__':
     file.close()
     
     # pytest.main('-x {0}'.format(argument))
-    jUnitFileName = 'test_output.xml'
+    jUnitFileName = hyperSettings_['j_unit_filename']
     # Or
     t0 = time.time()
     if ( len(sys.argv) == 2 and sys.argv[1] == "Test"):
