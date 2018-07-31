@@ -127,12 +127,14 @@ def trainForwardDynamics(settings):
         _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(min(experience.samples(), settings["expereince_length"]))
         
         ### Usually the state and next state are the same size, not in this case...
-        s_mean_ = np.mean(_states, axis=0)
-        s_std_ = np.std(_states, axis=0) + 0.1 ### hack to avoid zeros
-        s_state_bounds__ = np.array([s_mean_ - s_std_, 
-                             s_mean_ + s_std_])
+        # s_mean_ = np.mean(_states, axis=0)
+        # s_std_ = np.std(_states, axis=0) + 1.1 ### hack to avoid zeros
+        # s_state_bounds__ = np.array([s_mean_ - s_std_, 
+        #                      s_mean_ + s_std_])
+        # print("s_state_bounds__: ", s_state_bounds__)
 
-        experience.setStateBounds(s_state_bounds__)
+        # experience.setStateBounds(s_state_bounds__)
+        print ("state bounds: ", experience.getStateBounds())
         
         res_mean_ = np.mean(_result_states, axis=0)
         res_std_ = np.std(_result_states, axis=0) + 0.1 ### hack to avoid zeros
@@ -141,7 +143,7 @@ def trainForwardDynamics(settings):
         # print ("result state_bounds: ", res_state_bounds__)
         experience.setResultStateBounds(res_state_bounds__)
         
-        
+        print("res_state_bounds__: ", res_state_bounds__)
         
     
     if ( settings['forward_dynamics_model_type'] == "SingleNet"):
@@ -150,7 +152,7 @@ def trainForwardDynamics(settings):
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings, print_info=True)
         forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model,
                                                           reward_bounds=reward_bounds)
-        forwardDynamicsModel.setResultStateBounds(res_state_bounds__)
+        # forwardDynamicsModel.setResultStateBounds(res_state_bounds__)
         # forwardDynamicsModel = model
     else:
         print ("Creating forward dynamics network")
@@ -174,7 +176,7 @@ def trainForwardDynamics(settings):
             rewardlv.init()
     
     
-    forwardDynamicsModel.setStateBounds(s_state_bounds__)
+    # forwardDynamicsModel.setStateBounds(s_state_bounds__)
     forwardDynamicsModel.setResultStateBounds(res_state_bounds__)
     
     # experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True)
@@ -220,6 +222,21 @@ def trainForwardDynamics(settings):
                 _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
                 # print("result state shape: ", np.asarray(_result_states).shape)
                 dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
+                if (False):
+                    import matplotlib
+                    # matplotlib.use('Agg')
+                    import matplotlib.pyplot as plt
+                    # img_ = np.reshape(viewData, (150,158,3))
+                    img_ = _states[0]
+                    img_ = np.reshape(img_[:1024], newshape=(32, 32))
+                    noise = np.random.normal(loc=0, scale=0.02, size=img_.shape)
+                    
+                    img_ = img_ + noise
+                    print("img_ shape", img_.shape, " sum: ", np.sum(img_))
+                    fig1 = plt.figure(1)
+                    plt.imshow(img_, origin='lower')
+                    plt.title("visual Data: ")
+                    # fig1.savefig("viz_state_"+str(i)+".svg")
             # dynamicsLoss = forwardDynamicsModel._train()
         t1 = time.time()
         if (round_ % settings['plotting_update_freq_num_rounds']) == 0:

@@ -185,7 +185,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                         networkAct = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=data_format_)(networkAct)
                     elif (layer_sizes[i][0] == "avg_pool"):
-                        networkAct = keras.layers.AvgPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
+                        networkAct = keras.layers.AveragePooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=data_format_)(networkAct)
                     elif ( layer_sizes[i][0] == "dropout" ):
                         networkAct = Dropout(rate=layer_sizes[i][1])(networkAct)                                                
@@ -418,7 +418,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                         network = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=data_format_)(network)  
                 elif (layer_sizes[i][0] == "avg_pool"):
-                        network = keras.layers.AvgPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
+                        network = keras.layers.AveragePooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=data_format_)(network)  
                 elif ( layer_sizes[i][0] == "dropout" ):
                     network = Dropout(rate=layer_sizes[i][1])(network)    
