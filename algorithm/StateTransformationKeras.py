@@ -30,7 +30,11 @@ class StateTransformationKeras(KERASAlgorithm):
         self._train_combined_loss = False
         
         inputs_ = [self._model.getStateSymbolicVariable()] 
-        self._model.setTransformationDynamicsNetwork(Model(inputs=inputs_, outputs=self._model._trans))
+        if ("use_single_network" in self._settings and
+               (self._settings['use_single_network'] == True)):
+            self._model.setTransformationDynamicsNetwork(Model(inputs=inputs_, outputs=self._model._trans))
+        else:
+            self._model.setTransformationDynamicsNetwork(Model(inputs=inputs_, outputs=self._model._actor))
         if (print_info):
             print("Transformation Net summary: ", self._model.getTransformationDynamicsNetwork().summary())
         

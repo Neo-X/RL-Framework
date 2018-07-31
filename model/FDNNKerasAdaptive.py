@@ -5,6 +5,7 @@ import copy
 class FDNNKerasAdaptive(DeepNNKerasAdaptive):
     
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
+        n_out = n_in
         settings_ = copy.deepcopy(settings_)
         settings_['policy_network_layer_sizes'] = settings_['fd_network_layer_sizes']
         settings_['critic_network_layer_sizes'] = settings_['reward_network_layer_sizes']
@@ -27,8 +28,12 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
             settings_["network_leave_off_end"] = settings_["fd_network_leave_off_end"]
         if ("use_dual_state_representations" in settings_
             and (settings_["use_dual_state_representations"] == True)):
-            n_in = settings_["num_terrain_features"]
-        super(FDNNKerasAdaptive,self).__init__(n_in, n_in, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
+            if ("replace_next_state_with_pose_state" in settings_ 
+                and (settings_["replace_next_state_with_pose_state"] == True)):
+                n_out = settings_["dense_state_size"]
+            else:
+                n_out = settings_["num_terrain_features"]
+        super(FDNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         self._forward_dynamics_net = self._actor
         self._reward_net = self._critic
 

@@ -233,13 +233,12 @@ def trainForwardDynamics(settings):
                 dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss_))
                 # dynamicsRewardLosses.append(dynamicsRewardLoss)
                 dynamicsRewardLosses = dynamicsRewardLoss
-            if (settings['train_forward_dynamics'] and ((round_ % settings['plotting_update_freq_num_rounds']) == 0)):
+            if ( ((round_ % settings['plotting_update_freq_num_rounds']) == 0)):
                 # dynamicsLosses.append(dynamicsLoss)
                 mean_dynamicsLosses = dynamicsLoss
                 std_dynamicsLosses = np.std((dynamicsLoss_))
-                if (settings['train_forward_dynamics']):
-                    trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
-                    trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
+                trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
+                trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
                 print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " ForwardPredictionLoss: " + str(dynamicsLoss) + " in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
                 # print ("State Bounds: ", forwardDynamicsModel.getStateBounds(), " exp: ", experience.getStateBounds())
                 # print ("Action Bounds: ", forwardDynamicsModel.getActionBounds(), " exp: ", experience.getActionBounds())
