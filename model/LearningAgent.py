@@ -559,7 +559,7 @@ class LearningAgent(AgentInterface):
             # print ("State: ", state)
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
-                state = np.array([state[0]])
+                state = np.array(state[0][1])
             else:
                 state = [state[0][0]]
         if (use_mbrl):
@@ -579,7 +579,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = np.array([state[0]])
+                state = np.array(state[0][1])
             else:
                 state = [state[0][0]]
         std = self._pol.predict_std(state, p=p)
@@ -595,7 +595,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = np.array([state[0]])
+                state = np.array(state[0][1])
             else:
                 state = [state[0][0]]
         act = self._pol.predictWithDropout(state)
@@ -614,7 +614,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
                 # print ("State: ", np.array(state[0]).shape)
-                state = np.array([state[0]])
+                state = np.array(state[0][1])
             else:
                 state = [state[0][0]]
         # print ("State: ", np.array(state).shape)
@@ -631,7 +631,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = state[0]
+                state = np.array(state[0][1])
             else:
                 state = [state[0][0]]
         q = self._pol.q_values(state)

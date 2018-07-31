@@ -19,7 +19,7 @@ from model.ModelInterface import ModelInterface
 
 class ForwardDynamicsDenseNetworkDropout(ModelInterface):
     
-    def __init__(self, state_length, action_length, state_bounds, action_bounds, settings_):
+    def __init__(self, state_length, action_length, state_bounds, action_bounds, settings_, reward_bound=None):
 
         super(ForwardDynamicsDenseNetworkDropout,self).__init__(state_length, action_length, state_bounds, action_bounds, 0, settings_)
         

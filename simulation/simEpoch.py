@@ -402,6 +402,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             ob = np.reshape(np.array(ob), (-1, 
                         (np.prod(ob.shape))))
             resultState_[0][1] = ob
+            if ("replace_next_state_with_pose_state" in settings 
+                and (settings["replace_next_state_with_pose_state"] == True)):
+                resultState_[0][1] = state_[0][0]
         
         ## For testing remove later
         if (settings["use_back_on_track_forcing"] and (not evaluation)):
