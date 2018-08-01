@@ -77,6 +77,10 @@ class StateTransformationKeras(KERASAlgorithm):
         
         self.fd = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self._forward])
         
+        
+        self._fd_regularization = K.sum(self._model.getTransformationDynamicsNetwork().losses)
+        self._get_fd_regularization = K.function([], [self._fd_regularization])
+        
     def getNetworkParameters(self):
         params = []
         params.append(copy.deepcopy(self._model.getTransformationDynamicsNetwork().get_weights()))

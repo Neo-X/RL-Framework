@@ -137,7 +137,7 @@ def trainForwardDynamics(settings):
         print ("state bounds: ", experience.getStateBounds())
         
         res_mean_ = np.mean(_result_states, axis=0)
-        res_std_ = np.std(_result_states, axis=0) + 0.1 ### hack to avoid zeros
+        res_std_ = np.std(_result_states, axis=0) * 2.0 + 0.1 ### hack to avoid zeros
         res_state_bounds__ = np.array([res_mean_ - res_std_, 
                              res_mean_ + res_std_])
         # print ("result state_bounds: ", res_state_bounds__)
@@ -216,12 +216,16 @@ def trainForwardDynamics(settings):
         for epoch in range(epochs):
             if ( "model_perform_batch_training" in settings
                  and (settings["model_perform_batch_training"] == True)):
-                _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(min(experience.samples(), settings["expereince_length"]))
+                samps = min(experience.samples(), settings["expereince_length"])
+                print ("samps: ", samps)
+                _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(samps)
                 dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards, updates=1, batch_size=settings["batch_size"])
             else:
                 _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
                 # print("result state shape: ", np.asarray(_result_states).shape)
                 dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
+                reg_loss = forwardDynamicsModel._get_fd_regularization([])
+                print("regularization_loss: ", reg_loss)
                 if (False):
                     import matplotlib
                     # matplotlib.use('Agg')
