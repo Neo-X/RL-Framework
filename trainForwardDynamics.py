@@ -137,7 +137,7 @@ def trainForwardDynamics(settings):
         print ("state bounds: ", experience.getStateBounds())
         
         res_mean_ = np.mean(_result_states, axis=0)
-        res_std_ = np.std(_result_states, axis=0) * 2.0 + 0.1 ### hack to avoid zeros
+        res_std_ = np.std(_result_states, axis=0) + 0.1 ### hack to avoid zeros
         res_state_bounds__ = np.array([res_mean_ - res_std_, 
                              res_mean_ + res_std_])
         # print ("result state_bounds: ", res_state_bounds__)
