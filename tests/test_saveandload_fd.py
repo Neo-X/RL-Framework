@@ -10,7 +10,7 @@ import json
 
 class TestSaveAndLoadFD(object):
 
-    @pytest.mark.timeout(600)
+    # @pytest.mark.timeout(600)
     def test_MBRL_keras_cannon_2D_save_and_load_FD_scaling_params(self):
         filename = "tests/settings/cannonGame/MBRL/FixedSTD_Tensorflow-v2.json"
         file = open(filename)
@@ -40,7 +40,7 @@ class TestSaveAndLoadFD(object):
         assert np.allclose(simData['masterAgent'].getForwardDynamics().getStateBounds(),
                             evalData['masterAgent'].getForwardDynamics().getStateBounds())
     
-    @pytest.mark.timeout(600)   
+    # @pytest.mark.timeout(600)   
     def test_MBRL_keras_cannon_2D_save_and_load_FD_net_params(self):
         filename = "tests/settings/cannonGame/MBRL/FixedSTD_Tensorflow-v2.json"
         file = open(filename)

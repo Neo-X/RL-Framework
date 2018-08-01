@@ -7,7 +7,7 @@ from model.ModelUtil import *
 
 class TestModel(object):
 
-    @pytest.mark.timeout(600)
+    # @pytest.mark.timeout(600)
     def test_action_normalization(self):
         d = 10
         a_ = np.random.uniform(size=d)
@@ -19,7 +19,7 @@ class TestModel(object):
         assert np.allclose(a_n, a_)
         # assert a_n == a_
 
-    @pytest.mark.timeout(600)
+    # @pytest.mark.timeout(600)
     def test_random_normal(self):
         d = 10
         samples_ = 50000

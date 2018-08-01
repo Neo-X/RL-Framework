@@ -9,7 +9,7 @@ from trainForwardDynamics import trainForwardDynamics
 ### These don't work anymore...
 class TestFDModel(object):
 
-    @pytest.mark.timeout(600)
+    # @pytest.mark.timeout(600)
     def test_gan_lasagne(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim
@@ -32,7 +32,7 @@ class TestFDModel(object):
         assert np.mean(learnData['mean_forward_dynamics_loss'][-5:]) < 0.01
         assert np.mean(learnData['mean_forward_dynamics_reward_loss'][-5:]) < 0.1
     
-    @pytest.mark.timeout(600)   
+    # @pytest.mark.timeout(600)   
     def test_gan_GPU_lasagne(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim
@@ -57,7 +57,7 @@ class TestFDModel(object):
         assert np.mean(learnData['mean_forward_dynamics_loss'][-5:]) < 0.01
         assert np.mean(learnData['mean_forward_dynamics_reward_loss'][-5:]) < 0.1
     
-    @pytest.mark.timeout(600)
+    # @pytest.mark.timeout(600)
     def test_dense_l2_lasagne(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim
@@ -80,7 +80,7 @@ class TestFDModel(object):
         assert np.mean(learnData['mean_forward_dynamics_loss'][-5:]) < 0.01
         assert np.mean(learnData['mean_forward_dynamics_reward_loss'][-5:]) < 0.1
     
-    @pytest.mark.timeout(600)    
+    # @pytest.mark.timeout(600)    
     def test_dense_l2_GPU_lasagne(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim
