@@ -222,6 +222,11 @@ class DeepNNKerasAdaptive(ModelInterface):
                                             
                         if ('split_terrain_input' in self._networkSettings 
                                 and self._networkSettings['split_terrain_input']):
+                            
+                            if ("use_coordconv_layers" in self._networkSettings 
+                            and (self._networkSettings["use_coordconv_layers"] == True)):
+                                networkActVel_x = CoordinateChannel2D()(networkActVel_x)
+                                networkActVel_y = CoordinateChannel2D()(networkActVel_y)
                             networkActVel_x = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=stride,
                                                          kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                                          bias_regularizer=regularizers.l2(self._settings['regularization_weight']),
@@ -455,6 +460,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = getKerasActivation(self._settings['activation_type'])(network)
                     if ('split_terrain_input' in self._networkSettings 
                             and self._networkSettings['split_terrain_input']):
+                        if ("use_coordconv_layers" in self._networkSettings 
+                            and (self._networkSettings["use_coordconv_layers"] == True)):
+                            networkVel_x = CoordinateChannel2D()(networkVel_x)
+                            networkVel_y = CoordinateChannel2D()(networkVel_y)
                         networkVel_x = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=[4,4], strides=stride,
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),

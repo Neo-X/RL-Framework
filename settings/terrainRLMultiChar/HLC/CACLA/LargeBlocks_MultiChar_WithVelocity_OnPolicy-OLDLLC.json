@@ -388,10 +388,14 @@
 		"comment__": "Change where the network splits for a single network model",
 	"split_single_net_earlier": true,
 		"comment__": "Split the terrain input into two parts",
-	"split_terrain_input": false,
+	"split_terrain_input": true,
 		"comment__": "Data ordering format for convolutions",
-	"image_data_format": "channels_first"
+	"image_data_format": "channels_first",
+		"comment__": "Use CoordConv convolutional layers.",
+	"use_coordconv_layers": true
 },
+	"comment__": "Data ordering format for convolutions",
+"image_data_format": "channels_first",
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
 "pretrain_critic": 0,
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",

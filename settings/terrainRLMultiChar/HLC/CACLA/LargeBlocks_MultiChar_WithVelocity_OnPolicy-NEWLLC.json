@@ -386,11 +386,13 @@
 		"comment__": "Whether or not the network should include pooling layers between convolutions.",
 	"perform_convolution_pooling": false,
 		"comment__": "Change where the network splits for a single network model",
-	"split_single_net_earlier": true,
+	"split_single_net_earlier": false,
 		"comment__": "Split the terrain input into two parts",
-	"split_terrain_input": false,
+	"split_terrain_input": true,
 		"comment__": "Data ordering format for convolutions",
-	"image_data_format": "channels_first"
+	"image_data_format": "channels_first",
+		"comment__": "Use CoordConv convolutional layers.",
+	"use_coordconv_layers": true
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
 "pretrain_critic": 0,
