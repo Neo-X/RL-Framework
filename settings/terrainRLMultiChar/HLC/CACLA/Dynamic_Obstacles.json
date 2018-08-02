@@ -368,7 +368,7 @@
 	"comment__": "If already annealing on-policy then enabling this will anneal the std for the policy",
 "anneal_policy_std": false,
 	"comment__": "Size and shape of terrain",
-"terrain_shape": [32,32,2],
+"terrain_shape": [2,32,32]
 	"comment__": "Path to LLC to load",
 "llc_policy_model_path":  "./terrainRLImitateBiped3D/algorithm.A_CACLA.A_CACLA/Biped3d_Step_Walk_Waypoint_Flat_less_std/model.DeepNN.DeepNN/agent_Best.pkl",
 	"comment__": "higher level controller timestep",
