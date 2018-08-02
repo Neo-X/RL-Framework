@@ -285,7 +285,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
     settings["load_saved_model"] = True
     # settings["load_saved_model"] = "network_and_scales"
     model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
-    save_copy_in_theano = False
+    save_copy_in_theano = True
     if (save_copy_in_theano):
         import dill
         file_name="agent_Best.pkl"
