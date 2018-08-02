@@ -35,7 +35,7 @@ def kl(mean0, std0, mean1, std1, d):
     return T.log(std1 / std0).sum(axis=1) + ((T.square(std0) + T.square(mean0 - mean1)) / (2.0 * T.square(std1))).sum(axis=1) - 0.5 * d
 
 def kl_keras(mean0, std0, mean1, std1, d):
-        return K.log(std1 / std0).sum(axis=1) + ((K.square(std0) + K.square(mean0 - mean1)) / (2.0 * K.square(std1))).sum(axis=1) - 0.5 * d
+        return K.sum(K.log(std1 / std0), axis=1) + K.sum(((K.square(std0) + K.square(mean0 - mean1)) / (2.0 * K.square(std1))), axis=1) - 0.5 * d
     
 def kl_D(mean0, std0, mean1, std1, d):
     """

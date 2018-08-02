@@ -101,10 +101,10 @@ class TRPO_KERAS(KERASAlgorithm):
         ### How should this work if the target network is very odd, as in not a slightly outdated copy.
         self._log_prob_target = loglikelihood_keras(self._model.getActionSymbolicVariable(), self._q_valsActTarget_State, self._q_valsActTargetSTD, self._action_length)
         ## This does the sum already
-        self.__r = T.exp(self._log_prob - self._log_prob_target)
+        self.__r = K.exp(self._log_prob - self._log_prob_target)
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
         # self._actLoss_ = (self.__r) * self._Advantage
-        self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)(T.exp(self._log_prob - self._log_prob_target), self._Advantage)
+        self._actLoss_ = K.dot(K.exp(self._log_prob - self._log_prob_target), self._Advantage)
         ppo_epsilon = self.getSettings()['kl_divergence_threshold']
         # self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - (ppo_epsilon * self._Anneal), 1+ (ppo_epsilon * self._Anneal)), self._Advantage))
         # self._actLoss_2 = (K.clip(self.__r, 1.0 - (ppo_epsilon * self._Anneal), 1 + (ppo_epsilon * self._Anneal)), self._Advantage)
@@ -120,32 +120,33 @@ class TRPO_KERAS(KERASAlgorithm):
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
         # self._actLoss_drop = (T.mean(0.5 * self._actDiff_drop ** 2))
         self._policy_grad = K.gradients(self._actLoss ,  self._model._actor.trainable_weights)
-        self._kl_firstfixed = kl_keras(self._q_valsActTarget_State, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length).mean()
+        self._kl_firstfixed = K.mean(kl_keras(self._q_valsActTarget_State, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length))
         
         # N = self._model.getStateSymbolicVariable().shape[0]
         # N = 1
         params = self._model._actor.trainable_weights
-        surr = T.mean(self._actLoss)
+        surr = K.mean(self._actLoss)
         self.pg = flatgrad_keras(surr, params)
 
-        prob_mean_fixed = theano.gradient.disconnected_grad(self._q_valsActA)
-        prob_std_fixed = theano.gradient.disconnected_grad(self._q_valsActASTD)
-        kl_firstfixed = kl_keras(prob_mean_fixed, prob_std_fixed, self._q_valsActA, self._q_valsActASTD, self._action_length).mean()
-        grads = T.grad(kl_firstfixed, params)
-        self.flat_tangent = T.vector(name="flat_tan")
-        shapes = [var.get_value(borrow=True).shape for var in params]
+        prob_mean_fixed = K.stop_gradient(self._q_valsActA)
+        prob_std_fixed = K.stop_gradient(self._q_valsActASTD)
+        kl_firstfixed = K.mean(kl_keras(prob_mean_fixed, prob_std_fixed, self._q_valsActA, self._q_valsActASTD, self._action_length))
+        grads = K.gradients(kl_firstfixed, params)
+        # self.flat_tangent = T.vector(name="flat_tan")
+        self.flat_tangent = keras.layers.Input(shape=(1,), name="flat_tangent")
+        shapes = [K.get_value(var).shape for var in params]
         start = 0
         tangents = []
         for shape in shapes:
             size = np.prod(shape)
             tangents.append(K.reshape(self.flat_tangent[start:start+size], shape))
             start += size
-        self.gvp = T.add(*[T.sum(g*tangent) for (g, tangent) in zipsame(grads, tangents)]) #pylint: disable=E1111
+        self.gvp = K.add(*[K.sum(g*tangent) for (g, tangent) in zipsame(grads, tangents)]) #pylint: disable=E1111
         # Fisher-vector product
         self.fvp = flatgrad_keras(self.gvp, params)
         
-        self.ent = entropy_keras(self._q_valsActASTD).mean()
-        self.kl = kl_keras(self._q_valsActTarget_State, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length).mean()
+        self.ent = K.mean(entropy_keras(self._q_valsActASTD))
+        self.kl = K.mean(kl_keras(self._q_valsActTarget_State, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length))
         
         self.losses = [surr, self.kl, self.ent]
         self.loss_names = ["surr", "kl", "ent"]
