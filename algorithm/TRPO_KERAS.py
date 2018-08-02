@@ -162,16 +162,10 @@ class TRPO_KERAS(KERASAlgorithm):
         
         
         self.args_fvp = [self._model.getStateSymbolicVariable(), 
-                     # self._model.getActionSymbolicVariable()
-                     # self._Advantage,
-                     # self._q_valsActTarget_
                      ]
         
         self._givens_grad = [
             self._model.getStateSymbolicVariable()
-            # self._model.getResultStateSymbolicVariable(): self._model.getResultStates(),
-            # self._model.getRewardSymbolicVariable(): self._model.getRewards(),
-            # self._model.getActionSymbolicVariable(): self._actions_shared,
         ]
         
         ## Bellman error
