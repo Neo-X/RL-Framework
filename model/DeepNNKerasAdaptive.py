@@ -302,6 +302,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     networkAct = getKerasActivation(self._settings['policy_activation_type'])(networkAct)
                     if ('split_terrain_input' in self._networkSettings 
                         and self._networkSettings['split_terrain_input']):
+                        ### This might get wasted in the last few dense layers.
                         networkActVel_x = Dense(layer_sizes[i], 
                                        kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                        bias_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkActVel_x)

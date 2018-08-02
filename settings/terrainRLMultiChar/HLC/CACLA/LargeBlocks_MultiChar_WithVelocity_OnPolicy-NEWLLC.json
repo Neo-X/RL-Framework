@@ -392,7 +392,7 @@
 		"comment__": "Data ordering format for convolutions",
 	"image_data_format": "channels_first",
 		"comment__": "Use CoordConv convolutional layers.",
-	"use_coordconv_layers": true
+	"use_coordconv_layers": false
 },
 	"comment__": "Data ordering format for convolutions",
 "image_data_format": "channels_first",
@@ -401,7 +401,7 @@
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
 "ppo_et_factor": 1.25,
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
-"learning_backend": "tensorflow",
+"learning_backend": "theano",
 	"comment__": "Lets the network models handle the training and batch processing",
 "model_perform_batch_training": false
 }
