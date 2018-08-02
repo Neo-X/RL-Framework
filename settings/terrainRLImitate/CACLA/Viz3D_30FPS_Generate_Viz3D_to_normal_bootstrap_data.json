@@ -38,7 +38,7 @@
     "comment__": "Max length of the Experience memory",
 "expereince_length": 5000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
-"state_bounds": "ask_env",
+"state_bounds": [[0],[1]],
     "comment__": "Action scaling values to be used to scale values for the network",				     
 "action_bounds": [[-2.57, -3.14, -1.57, -2.57, -3.14, -1.57, -1.2,  0.0, -1.2,  0.0, -0.57],
 				  [ 2.57,  0.5,   1.57,  2.57,  0.5,   1.57,  3.0,  2.8,  3.0,  2.8,  0.57]],
