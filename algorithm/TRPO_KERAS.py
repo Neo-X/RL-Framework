@@ -383,7 +383,7 @@ class TRPO_KERAS(KERASAlgorithm):
             # print ("fvp_ : ", fvp_)
             return fvp_
         g = self.compute_policy_gradient(*args)
-        print ("g: ", g)
+        # print ("g: ", g)
         losses_before = self.compute_losses(*args)
         if np.allclose(g, 0):
             print ("got zero gradient. not updating")
