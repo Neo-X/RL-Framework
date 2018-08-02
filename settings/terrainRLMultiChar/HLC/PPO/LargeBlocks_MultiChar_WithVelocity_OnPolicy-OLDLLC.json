@@ -388,7 +388,7 @@
 		"comment__": "Change where the network splits for a single network model",
 	"split_single_net_earlier": true,
 		"comment__": "Split the terrain input into two parts",
-	"split_terrain_input": false,
+	"split_terrain_input": true,
 		"comment__": "Data ordering format for convolutions",
 	"image_data_format": "channels_first"
 },

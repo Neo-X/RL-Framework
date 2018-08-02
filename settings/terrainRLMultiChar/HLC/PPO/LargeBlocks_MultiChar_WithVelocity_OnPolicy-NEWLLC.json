@@ -388,7 +388,7 @@
 		"comment__": "Change where the network splits for a single network model",
 	"split_single_net_earlier": true,
 		"comment__": "Split the terrain input into two parts",
-	"split_terrain_input": false,
+	"split_terrain_input": true,
 		"comment__": "Data ordering format for convolutions",
 	"image_data_format": "channels_first"
 },
@@ -397,7 +397,7 @@
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
 "ppo_et_factor": 1.25,
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
-"learning_backend": "tensorflow",
+"learning_backend": "theano",
 	"comment__": "Lets the network models handle the training and batch processing",
 "model_perform_batch_training": false,
 	"comment__": "Anneal the learning rate",
