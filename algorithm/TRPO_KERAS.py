@@ -104,7 +104,8 @@ class TRPO_KERAS(KERASAlgorithm):
         self.__r = K.exp(self._log_prob - self._log_prob_target)
         # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
         # self._actLoss_ = (self.__r) * self._Advantage
-        self._actLoss_ = K.dot(K.exp(self._log_prob - self._log_prob_target), self._Advantage)
+        # self._actLoss_ = K.dot(K.exp(self._log_prob - self._log_prob_target), self._Advantage)
+        self._actLoss_ = (K.exp(self._log_prob - self._log_prob_target)* self._Advantage)
         ppo_epsilon = self.getSettings()['kl_divergence_threshold']
         # self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - (ppo_epsilon * self._Anneal), 1+ (ppo_epsilon * self._Anneal)), self._Advantage))
         # self._actLoss_2 = (K.clip(self.__r, 1.0 - (ppo_epsilon * self._Anneal), 1 + (ppo_epsilon * self._Anneal)), self._Advantage)
@@ -141,7 +142,8 @@ class TRPO_KERAS(KERASAlgorithm):
             size = np.prod(shape)
             tangents.append(K.reshape(self.flat_tangent[start:start+size], shape))
             start += size
-        self.gvp = K.add(*[K.sum(g*tangent) for (g, tangent) in zipsame(grads, tangents)]) #pylint: disable=E1111
+        ### I think I can get away with K.sum inplace of K.add
+        self.gvp = K.sum([K.sum(g*tangent) for (g, tangent) in zipsame(grads, tangents)]) #pylint: disable=E1111
         # Fisher-vector product
         self.fvp = flatgrad_keras(self.gvp, params)
         
@@ -234,16 +236,16 @@ class TRPO_KERAS(KERASAlgorithm):
                                           # self._Anneal,
                                           K.learning_phase()], [self._q_valsActASTD]) 
         
-        self._get_log_prob = theano.function([self._model.getStateSymbolicVariable(),
-                                              self._model.getActionSymbolicVariable()], self._log_prob)
+        self._get_log_prob = K.function([self._model.getStateSymbolicVariable(),
+                                              self._model.getActionSymbolicVariable()], [self._log_prob])
         
-        self._q_action_std = theano.function([self._model.getStateSymbolicVariable()], self._q_valsActASTD)
+        self._q_action_std = K.function([self._model.getStateSymbolicVariable()], [self._q_valsActASTD])
         # self._compute_fisher_vector_product = theano.function([flat_tangent] + args, fvp, **FNOPTS)
-        self.kl_divergence = theano.function([self._model.getStateSymbolicVariable()], self._kl_firstfixed)
+        self.kl_divergence = K.function([self._model.getStateSymbolicVariable()], [self._kl_firstfixed])
         
-        self.compute_policy_gradient = theano.function(self.args, self.pg)
-        self.compute_losses = theano.function(self.args, self.losses)
-        self.compute_fisher_vector_product = theano.function([self.flat_tangent] + self.args_fvp, self.fvp)
+        self.compute_policy_gradient = K.function(self.args, [self.pg])
+        self.compute_losses = K.function(self.args, self.losses)
+        self.compute_fisher_vector_product = K.function([self.flat_tangent] + self.args_fvp, [self.fvp])
         
     def updateTargetModel(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -380,12 +382,12 @@ class TRPO_KERAS(KERASAlgorithm):
             # print ("fvp p: ", p)
             # print ("states: ", p)
             # print ('cg_damping', self.getSettings()['cg_damping'] )
-            fvp_ = self.compute_fisher_vector_product(p, states)+np.float32(self.getSettings()['cg_damping'])*p #pylint: disable=E1101,W0640
+            fvp_ = self.compute_fisher_vector_product(p, states)[0]+np.float32(self.getSettings()['cg_damping'])*p #pylint: disable=E1101,W0640
             # print ("fvp_ : ", fvp_)
             return fvp_
-        g = self.compute_policy_gradient(*args)
+        g = self.compute_policy_gradient(args)[0]
         # print ("g: ", g)
-        losses_before = self.compute_losses(*args)
+        losses_before = self.compute_losses(args)
         if np.allclose(g, 0):
             print ("got zero gradient. not updating")
         else:
@@ -402,14 +404,14 @@ class TRPO_KERAS(KERASAlgorithm):
                 # self.set_params_flat(th)
                 params_tmp = setFromFlat(all_paramsActA, th)
                 self._model.getActorNetwork().set_weights(params_tmp)
-                return self.compute_losses(*args)[0] #pylint: disable=W0640
+                return self.compute_losses(args)[0] #pylint: disable=W0640
             success, theta = linesearch(loss, thprev, fullstep, neggdotstepdir/lm)
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("success", success)
             params_tmp = setFromFlat(all_paramsActA, theta)
             self._model.getActorNetwork().set_weights(params_tmp)
             # self.set_params_flat(theta)
-        losses_after = self.compute_losses(*args)
+        losses_after = self.compute_losses(args)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Policy log prob after: ", np.mean(self._get_log_prob(states, actions), axis=0))
 
@@ -449,10 +451,10 @@ class TRPO_KERAS(KERASAlgorithm):
         state = np.array(state, dtype=self._settings['float_type'])
         self._model.setStates(state)
         if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            action_std = self._q_action_std(state)
+            action_std = self._q_action_std([state])[0]
             # action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
         else:
-            action_std = self._q_action_std(state) * (action_bound_std(self._action_bounds))
+            action_std = self._q_action_std([state])[0] * (action_bound_std(self._action_bounds))
         return action_std
 
     def bellman_error(self, states, actions, rewards, result_states, falls):
