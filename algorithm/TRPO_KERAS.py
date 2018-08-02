@@ -134,7 +134,8 @@ class TRPO_KERAS(KERASAlgorithm):
         kl_firstfixed = K.mean(kl_keras(prob_mean_fixed, prob_std_fixed, self._q_valsActA, self._q_valsActASTD, self._action_length))
         grads = K.gradients(kl_firstfixed, params)
         # self.flat_tangent = T.vector(name="flat_tan")
-        self.flat_tangent = keras.layers.Input(shape=(1,), name="flat_tangent")
+        self.flat_tangent = K.variable(np.ones((2629)))
+        # self.flat_tangent = keras.layers.Input(shape=(2629,), name="flat_tangent")
         shapes = [K.get_value(var).shape for var in params]
         start = 0
         tangents = []
@@ -380,9 +381,9 @@ class TRPO_KERAS(KERASAlgorithm):
         thprev = get_params_flat(self._model.getActorNetwork().get_weights())
         def fisher_vector_product(p):
             # print ("fvp p: ", p)
-            # print ("states: ", p)
+            # print ("states: ", states)
             # print ('cg_damping', self.getSettings()['cg_damping'] )
-            fvp_ = self.compute_fisher_vector_product(p, states)[0]+np.float32(self.getSettings()['cg_damping'])*p #pylint: disable=E1101,W0640
+            fvp_ = self.compute_fisher_vector_product([p, states])[0]+np.float32(self.getSettings()['cg_damping'])*p #pylint: disable=E1101,W0640
             # print ("fvp_ : ", fvp_)
             return fvp_
         g = self.compute_policy_gradient(args)[0]
@@ -413,7 +414,7 @@ class TRPO_KERAS(KERASAlgorithm):
             # self.set_params_flat(theta)
         losses_after = self.compute_losses(args)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("Policy log prob after: ", np.mean(self._get_log_prob(states, actions), axis=0))
+            print("Policy log prob after: ", np.mean(self._get_log_prob([states, actions])[0], axis=0))
 
         out = OrderedDict()
         for (lname, lbefore, lafter) in zipsame(self.loss_names, losses_before, losses_after):
