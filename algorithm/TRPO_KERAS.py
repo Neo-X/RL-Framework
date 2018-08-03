@@ -134,7 +134,8 @@ class TRPO_KERAS(KERASAlgorithm):
         kl_firstfixed = K.mean(kl_keras(prob_mean_fixed, prob_std_fixed, self._q_valsActA, self._q_valsActASTD, self._action_length))
         grads = K.gradients(kl_firstfixed, params)
         # self.flat_tangent = T.vector(name="flat_tan")
-        self.flat_tangent = K.variable(np.ones((2629)))
+        num_poli_weights = sum([len(w) for w in self._model.getActorNetwork().get_weights()])
+        self.flat_tangent = K.variable(np.ones((num_poli_weights)))
         # self.flat_tangent = keras.layers.Input(shape=(2629,), name="flat_tangent")
         shapes = [K.get_value(var).shape for var in params]
         start = 0
