@@ -185,10 +185,12 @@ class LearningAgent(AgentInterface):
                                     tup = (state__[j][1], [action__[j]], next_state__[j][1], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
                             self.getFDExperience().insertTuple(tup)
                         num_samples_ = num_samples_ + 1
-
+            batch_size_ = self._settings["batch_size"]        
+            if (self._settings["batch_size"] == "all"):
+                batch_size_ = num_samples_
             ### If for some reason the data was all garbage, skip this training update.
             if (self._expBuff.samples() < value_function_batch_size 
-                or (self._expBuff.samples() < self._settings["batch_size"])):
+                or (self._expBuff.samples() < batch_size_)):
                 print("Data was mostly/all garbage or your batch size is larger than the data collected.")
                 return 0
             t1 = time.time()
@@ -238,7 +240,7 @@ class LearningAgent(AgentInterface):
                  and (self._settings["additional_on-poli_trianing_updates"] != False)):
                 additional_on_poli_trianing_updates = self._settings["additional_on-poli_trianing_updates"]
                 ### The data should be seen ~ 4 times
-                additional_on_poli_trianing_updates = int(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / self._settings["batch_size"]) * additional_on_poli_trianing_updates)
+                additional_on_poli_trianing_updates = int(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / batch_size_) * additional_on_poli_trianing_updates)
                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                     print ("additional_on_poli_trianing_updates: ", additional_on_poli_trianing_updates)
                 
@@ -249,7 +251,7 @@ class LearningAgent(AgentInterface):
             if ("model_perform_batch_training" in self._settings 
                 and (self._settings["model_perform_batch_training"] == True )):
                 ### How many more times should the value function see the data
-                batch_ratio = value_function_batch_size / self._settings["batch_size"]
+                batch_ratio = value_function_batch_size / batch_size_
                 ### Compensate for the ratio collected each run and the size of the replay buffer
                 min_samples = self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"]
                 data_ratio = min_samples / self.getExperience().samples()
@@ -299,7 +301,7 @@ class LearningAgent(AgentInterface):
                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(self._expBuff.samples(), self._settings["expereince_length"]))
                     loss_ = self._pol.trainActor(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__, 
                                                      advantage=advantage__, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
-                                                     p=p, updates=int(additional_on_poli_trianing_updates_), batch_size=self._settings["batch_size"])
+                                                     p=p, updates=int(additional_on_poli_trianing_updates_), batch_size=batch_size_)
                 dynamicsLoss = 0
                 
                 if ('state_normalization' in self._settings and 
@@ -428,13 +430,13 @@ class LearningAgent(AgentInterface):
                          ( self._settings['use_multiple_policy_updates'] == True) ):
                         for i in range(self._settings['critic_updates_per_actor_update']):
                         
-                            _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
+                            _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_exporation_action_batch(batch_size_)
                             
                             loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, 
                                                          falls=_falls, advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, 
                                                          forwardDynamicsModel=self._fd, p=p)
                     else:
-                        _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_exporation_action_batch(self._settings["batch_size"])
+                        _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_exporation_action_batch(batch_size_)
                         loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
                                                      advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
                                                      p=p)
