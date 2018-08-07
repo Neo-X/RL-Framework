@@ -20,7 +20,7 @@ class Sample(object):
     
     def __init__(self, val, data):
         self._val = val
-        self._data = data
+        self._data = copy.deepcopy(data)
         
     def __cmp__(self, other):
         return cmp(self._val, other._val)
@@ -161,6 +161,8 @@ class SequentialMCSampler(Sampler):
             print("Found bad Current State in search")
             return _bestSample
         """
+        predictions__ = []
+        ys__ = []
         for sample in samples:
             pa = sample
             # print ("sample: " + str(sample))
@@ -229,8 +231,11 @@ class SequentialMCSampler(Sampler):
                         # break
                     
                     predictions.append(prediction)
-                    y.append(self._exp.computeReward(current_state_[0], prediction))
+                    # print ("prediction: ", prediction)
+                    y.append(self._exp.computeReward(prediction[0], None))
                     current_state_ = prediction
+            predictions__.append(predictions)
+            ys__.append(y)
             # print (pa, y, id(y))
             if ( np.all(np.isfinite(y)) and (np.all(np.greater(y, -10000.0))) and (np.all(np.less(y, 10000.0))) ): # lots of nan values for some reason...
                 # print ("Good sample:")
@@ -324,18 +329,20 @@ class SequentialMCSampler(Sampler):
                         print("Reached bad state in search")
                         # break
                     predictions.append(prediction)
-                    y.append(self._exp.computeReward(current_state_[0], prediction))
+                    y.append(self._exp.computeReward(prediction[0], None))
                     current_state_ = prediction
                     
             # print (pa, y)
             if ( np.all(np.isfinite(y)) and (np.all(np.greater(y, -10000.0))) and (np.all(np.less(y, 10000.0))) ): # lots of nan values for some reason...
-                # print ("Good sample:")
+                # print ("Good sample:", sample)
                 self.pushSample(sample, self.discountedSum(y))
                 if self.discountedSum(y) > self.discountedSum(_bestSample[1]):
                     _bestSample[1] = y
                     _bestSample[0] = pa[:_action_dimension]
                     _bestSample[2] = init_states
                     _bestSample[3] = predictions
+                    
+                y = []
             else : # this is bad, usually means the simulation has exploded...
                 print ("Y: ", y, " Sample: ", sample)
                 print (" current_state_: ", current_state_copy)
@@ -408,8 +415,12 @@ class SequentialMCSampler(Sampler):
         diff = max-min
         if 0.0 == diff: ## To prevent division by 0
             print ("Diff contains zero: " + str(diff))
-            print ("Data, largets N: " + str(data[:,1]))
+            print ("Data, largest N: " + str(data[:,1]))
+            print ("Data, largest actions: " + str(data[:,0]))
+            # for s in self._samples:
+                # print ("self._samples[s]: ", s, s._val, s._data)
             ## JUst make everything uniform then...
+            
             weights = np.ones(len(data[:,1]))/float(len(data[:,1]))
         else:    
             data_ = (data[:,1]-min)/(diff)
