@@ -495,11 +495,17 @@ def trainModelParallel(inputData):
                     experiencefd.setStateBounds(state_bounds__)
                     experiencefd.setResultStateBounds(res_state_bounds__)
             else:
-                experiencefd = ExperienceMemory(settings["fd_num_terrain_features"], len(action_bounds[0]), settings['expereince_length'], 
-                                                continuous_actions=True, settings = settings)
-                state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
-                                     [1] * settings["fd_num_terrain_features"]])
-                experiencefd.setStateBounds(state_bounds__)
+                state_size__ = len(state_bounds[0])
+                if ("fd_num_terrain_features" in settings):
+                    state_size__ = settings["fd_num_terrain_features"]
+                    experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), settings['expereince_length'], 
+                                                    continuous_actions=True, settings = settings)
+                    state_bounds__ = np.array([[0] * state_size__, 
+                                         [1] * state_size__])
+                    experiencefd.setStateBounds(state_bounds__)
+                else:
+                    experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), settings['expereince_length'], 
+                                                    continuous_actions=True, settings = settings)
                 
             experiencefd.setActionBounds(action_bounds)
             experiencefd.setRewardBounds(reward_bounds)

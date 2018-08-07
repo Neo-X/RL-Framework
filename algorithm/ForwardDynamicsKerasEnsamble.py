@@ -38,6 +38,7 @@ class ForwardDynamicsKerasEnsamble(KERASAlgorithm):
         self._regularization_weight = 1e-6
         
         model_ = model
+        self._modelTarget = None
         inputs_ = [model_.getStateSymbolicVariable(), model_.getActionSymbolicVariable()] 
         model_._forward_dynamics_net = Model(inputs=inputs_, outputs=model_._actor)
         if (print_info):

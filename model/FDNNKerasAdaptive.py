@@ -37,3 +37,7 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
         self._forward_dynamics_net = self._actor
         self._reward_net = self._critic
 
+
+    def reset(self):
+        self._forward_dynamics_net.reset_states()
+        self._reward_net.reset_states()
