@@ -9,7 +9,7 @@ import json
 
 class TestMultiAgentNav(object):
 
-    # @pytest.mark.timeout(600)
+    @pytest.mark.timeout(600)
     def test_cacla_multiAgentNAv(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim

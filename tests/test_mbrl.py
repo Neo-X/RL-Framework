@@ -9,7 +9,7 @@ import json
 
 class TestMBRL(object):
 
-    # @pytest.mark.timeout(600)
+    @pytest.mark.timeout(600)
     def test_ppo_particleNav_2D(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
