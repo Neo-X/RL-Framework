@@ -97,13 +97,6 @@ def modelEvaluationParallel(settings_file_name):
     f.close()
     print ("State Length: ", len(model.getStateBounds()[0]) )
     
-    if (settings['train_forward_dynamics']):
-        file_name_dynamics=directory+"forward_dynamics_"+"_Best.pkl"
-        # file_name=directory+getAgentName()+".pkl"
-        f = open(file_name_dynamics, 'r')
-        forwardDynamicsModel = dill.load(f)
-        f.close()
-    
     if ( settings["use_transfer_task_network"] ):
         task_directory = getTaskDataDirectory(settings)
         file_name=directory+getAgentName()+"_Best.pkl"
@@ -336,6 +329,9 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
         else:
             forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
+        
+        forwardDynamicsModel.setActor(actor)
+        masterAgent.setForwardDynamics(forwardDynamicsModel)
 
     if ( settings['use_simulation_sampling'] ):
         sampler = createSampler(settings, exp)
@@ -358,16 +354,6 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
         print ("Transferring task portion of model.")
         model.setTaskNetworkParameters(taskModel)
 
-    # this is the process that selects which game to play
-    
-
-    if (settings['train_forward_dynamics']):
-        # actor.setForwardDynamicsModel(forwardDynamicsModel)
-        forwardDynamicsModel.setActor(actor)
-        masterAgent.setForwardDynamics(forwardDynamicsModel)
-        # forwardDynamicsModel.setEnvironment(exp)
-    # actor.setPolicy(model)
-    
     exp.setActor(actor)
     exp.getActor().init()   
     exp.init()

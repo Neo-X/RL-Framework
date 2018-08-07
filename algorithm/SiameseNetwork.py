@@ -266,14 +266,33 @@ class SiameseNetwork(KERASAlgorithm):
         diff = np.mean(np.abs(predicted_y - result_states))
         return diff
 
+    def saveTo(self, fileName):
+        # print(self, "saving model")
+        import h5py
+        hf = h5py.File(fileName+"_bounds.h5", "w")
+        hf.create_dataset('_state_bounds', data=self.getStateBounds())
+        hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
+        hf.create_dataset('_action_bounds', data=self.getActionBounds())
+        # hf.create_dataset('_result_state_bounds', data=self.getResultStateBounds())
+        hf.flush()
+        hf.close()
+        suffix = ".h5"
+        ### Save models
+        # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
+        self._model._actor.save(fileName+"_FD"+suffix, overwrite=True)
+        # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+        # print ("self._model._actor_train: ", self._model._actor_train)
+        
     def loadFrom(self, fileName):
         import h5py
         from keras.models import load_model
         suffix = ".h5"
         print ("Loading agent: ", fileName)
         # with K.get_session().graph.as_default() as g:
-        self._model._actor = load_model(fileName+"_actor"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
-        self._model._critic = load_model(fileName+"_critic"+suffix)
+        self._model._actor = load_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
+        self._forward_dynamics_net = self._model._actor
+        print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
+        # self._model._critic = load_model(fileName+"_critic"+suffix)
         if (self._modelTarget is not None):
             self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
             self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)

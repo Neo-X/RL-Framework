@@ -1,6 +1,7 @@
 
 from model.DeepNNKerasAdaptive import DeepNNKerasAdaptive
 import copy
+import keras
 
 class FDNNKerasAdaptive(DeepNNKerasAdaptive):
     
@@ -39,5 +40,6 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
 
 
     def reset(self):
-        self._forward_dynamics_net.reset_states()
-        self._reward_net.reset_states()
+        if (isinstance(self._forward_dynamics_net, keras.models.Model)):
+            self._forward_dynamics_net.reset_states()
+            self._reward_net.reset_states()
