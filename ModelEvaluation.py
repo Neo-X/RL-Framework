@@ -154,6 +154,7 @@ def modelEvaluationParallel(settings_file_name):
             
     ## This needs to be done after the simulation work processes are created
     exp_val = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'])
+    # exp_val = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'], settings, render=False)
     exp_val.setActor(actor)
     exp_val.getActor().init()
     exp_val.init()
@@ -273,7 +274,7 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
     # anchor_data_file = open(settings["anchor_file"])
     # _anchors = getAnchors(anchor_data_file)
     # anchor_data_file.close()
-    settings['shouldRender'] = True 
+    # settings['shouldRender'] = True 
     model_type= settings["model_type"]
     directory= getDataDirectory(settings)
     rounds = settings["rounds"]
