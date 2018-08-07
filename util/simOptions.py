@@ -158,7 +158,7 @@ def getOptions(_args=None):
     parser.add_option("--shouldRender", "--render",
           action="store", dest="shouldRender", default=None,
           type='choice',
-          choices=['true', 'false', None],
+          choices=['true', 'false', None, 'yes'],
           metavar="STRING", 
           help="TO specify if an openGL window should be created")
 
