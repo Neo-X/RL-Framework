@@ -80,7 +80,7 @@ class SimContainer(object):
             
             """
             state_ = self._exp.getState()
-            print ("state 0: ", state_[:,-20:])
+            # print ("state 0: ", state_[:,-20:])
             # action_ = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
             # self._exp.updateAction(action_)
             
