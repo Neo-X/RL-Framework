@@ -403,5 +403,5 @@
 	"comment__": "Lets the network models handle the training and batch processing",
 "model_perform_batch_training": false,
 	"comment__": "Using a single network for all functions",
-"use_single_network": true
+"use_single_network": false
 }

@@ -134,7 +134,12 @@ class TRPO_KERAS(KERASAlgorithm):
         # self.flat_tangent = T.vector(name="flat_tan")
         num_poli_weights = sum([np.prod(w.shape) for w in self._model.getActorNetwork().get_weights()])
         print ("Num network weights: ", num_poli_weights)
-        self.flat_tangent = K.variable(np.ones((num_poli_weights)))
+        if ( "learning_backend" in self.getSettings()
+             and (self.getSettings()["learning_backend"] == "theano")):
+            self.flat_tangent = T.vector(name="flat_tan")
+        else:
+            self.flat_tangent = K.variable(np.ones((num_poli_weights)))
+            
         # self.flat_tangent = keras.layers.Input(shape=(2629,), name="flat_tangent")
         shapes = [K.get_value(var).shape for var in params]
         start = 0
