@@ -1,5 +1,5 @@
-import pytest
 from numpy.testing import assert_allclose
+from nose.tools import timed
 import numpy as np
 
 import warnings
@@ -9,7 +9,7 @@ import json
 
 class TestDDPG(object):
 
-    @pytest.mark.timeout(600)
+    @timed(600)
     def test_ddpg_keras_particleNav_10D(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim
@@ -43,7 +43,7 @@ class TestDDPG(object):
         assert np.mean(simData['mean_reward'][-5:]) > -1.5
     """
     
-    @pytest.mark.timeout(600)
+    @timed(600)
     def test_ddpg_keras_gapGame_2D(self):
         """
         

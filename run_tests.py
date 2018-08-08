@@ -1,4 +1,3 @@
-import pytest
 from sendEmail import sendEmail
 import json
 import tarfile
@@ -7,16 +6,18 @@ from junit2htmlreport.parser import Junit as JunitParser
 import sys
 import time
 import datetime
+import nose
 
 def run_tests(metaSettings, test=False):
     if (test):
         print ("test run")
-        pytest.main(['tests/', '--junitxml=' + jUnitFileName, '--no-print-logs', '--show-progress'])
+        nose.run(argv=['--where=./tests/', '--tests=tests.test_model.TestModel', '--processes=2', '--with-xunitmp', '--xunitmp-file='+ jUnitFileName, '--process-restartworker', '--process-timeout=600'])
     else:
         print ("Starting full run: ")
-        pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', str(metaSettings['tuning_threads']), '--show-capture=no', '--show-progress', '--timeout_method=thread', '--max-worker-restart=0'])
+        nose.run(argv=['--where=./tests/', '--processes='+ str(metaSettings['tuning_threads']), '--with-xunitmp', '--xunitmp-file='+ jUnitFileName, '--process-restartworker', '--process-timeout=600'])
         # pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
-            
+    print ("Done tests")
+           
 if __name__ == '__main__':
     
     hyperSettingsFileName = sys.argv[1] 
@@ -29,7 +30,7 @@ if __name__ == '__main__':
     jUnitFileName = hyperSettings_['j_unit_filename']
     # Or
     t0 = time.time()
-    if ( len(sys.argv) == 2 and sys.argv[1] == "Test"):
+    if ( len(sys.argv) == 3 and sys.argv[2] == "Test"):
         run_tests(metaSettings=hyperSettings_, test=True)
     else:
         run_tests(metaSettings=hyperSettings_, test=False)

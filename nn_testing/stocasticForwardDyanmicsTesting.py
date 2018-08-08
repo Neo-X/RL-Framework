@@ -71,11 +71,11 @@ if __name__ == '__main__':
         state_ = np.array([states[arr[i]]])
         given_states.append(state_)
         # print "Action: " + str([actions[i]])
-        experience.insert(state_, state_, action_, np.array([0]))
+        experience.insert([state_], [state_], [action_], np.array([[0]]))
     
     errors=[]
     for i in range(1000):
-        _states, _actions, _result_states, _rewards, fals_, _G_ts, advantage = experience.get_batch(batch_size)
+        _states, _actions, _result_states, _rewards, falls_, _G_ts, exp_actions, advantage = experience.get_batch(batch_size)
         # print ("Actions: ", _actions)
         # print ("States: ", _states) 
         error = model.train(_states, _states, _result_states, _actions)

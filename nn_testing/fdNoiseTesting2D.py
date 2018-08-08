@@ -33,7 +33,7 @@ def f2Noise(x):
     if (x > -2.0) and (x < -1.0):
         # print "Adding noise"
         # r = random.choice([0,1])
-       n = np.random.normal(0, 1.2 * (np.abs(x)+1), 1)[0]
+       n = np.random.uniform(0, 1.2 * (np.abs(x)+1), 1)[0]
        out = out + n
     return out
 
@@ -77,10 +77,10 @@ if __name__ == '__main__':
     from util.SimulationUtil import createForwardDynamicsModel, createRLAgent, createEnvironment
     from util.ExperienceMemory import ExperienceMemory
     
-    state_bounds =  np.array([[-5.0],[5.0]])
+    state_bounds =  np.array([[-3.0],[3.0]])
     # action_bounds = np.array([[-6.0*f2_scale],[1.0*f2_scale]])
-    action_bounds = np.array([[-5.0],[5.0]])
-    reward_bounds = np.array([[-5.0],[5.0]])
+    action_bounds = np.array([[-3.0],[3.0]])
+    reward_bounds = np.array([[-3.0],[3.0]])
     experience_length = 5000
     batch_size=64
     # states = np.repeat([np.linspace(-5.0, 5.0, experience_length)],2, axis=0)

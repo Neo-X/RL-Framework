@@ -1,13 +1,11 @@
-import pytest
 from numpy.testing import assert_allclose
 import numpy as np
-
+import nose
 import warnings
 from model.ModelUtil import *
 
 class TestModel(object):
 
-    @pytest.mark.timeout(600)
     def test_action_normalization(self):
         d = 10
         a_ = np.random.uniform(size=d)
@@ -19,7 +17,6 @@ class TestModel(object):
         assert np.allclose(a_n, a_)
         # assert a_n == a_
 
-    @pytest.mark.timeout(600)
     def test_random_normal(self):
         d = 10
         samples_ = 50000
@@ -36,6 +33,5 @@ class TestModel(object):
             assert np.all(np.less_equal(np.abs(np.mean(rand_, axis=0) - means[0][i]), 0.015))
             assert np.all(np.less_equal(np.abs(np.std(rand_, axis=0) - stds[0][i]), 0.015))
             
-
 if __name__ == '__main__':
-    pytest.main([__file__])
+    nose.main([__file__])

@@ -360,7 +360,7 @@
 	"comment__": "Allows the learningAgent to evaluate using the MBRL method",
 "evalaute_with_MBRL": true,
 	"comment__": "Dropout for fd network",
-"fd_network_dropout": 0.2,
+"fd_network_dropout": 0.1,
 	"comment__": "number of fd models in the ensemble",
 "fd_ensemble_size": 1
 }
