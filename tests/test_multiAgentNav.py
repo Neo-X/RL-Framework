@@ -1,4 +1,4 @@
-import pytest
+from nose.tools import timed
 from numpy.testing import assert_allclose
 import numpy as np
 
@@ -9,7 +9,7 @@ import json
 
 class TestMultiAgentNav(object):
 
-    @pytest.mark.timeout(600)
+    @timed(600)
     def test_cacla_multiAgentNAv(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim

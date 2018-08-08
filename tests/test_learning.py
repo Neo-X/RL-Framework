@@ -1,4 +1,4 @@
-import pytest
+from nose.tools import timed
 from numpy.testing import assert_allclose
 import numpy as np
 
@@ -12,7 +12,7 @@ class TestLearning(object):
         Test some of the more basic learning features that can be used be all algorithms.
     """
 
-    @pytest.mark.timeout(600)
+    @timed(600)
     def test_pretrain_critic(self):
         filename = "tests/settings/particleSim/CACLA/On_Policy_Tensorflow.json"
         file = open(filename)

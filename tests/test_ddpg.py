@@ -27,7 +27,7 @@ class TestDDPG(object):
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
     """
     Unsupported old network models
-    @pytest.mark.timeout(600)
+    @timed(600)
     def test_ddpg_lasagne_particleNav_10D(self):
         ### Test that can still learn a good policy
         filename = "tests/settings/particleSim/DDPG/Normal_OUNoise.json"
@@ -62,4 +62,4 @@ class TestDDPG(object):
             
 
 if __name__ == '__main__':
-    pytest.main([__file__])
+    nose.main([__file__])

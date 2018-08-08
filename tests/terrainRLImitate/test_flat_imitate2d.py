@@ -1,4 +1,4 @@
-import pytest
+from nose.tools import timed
 from numpy.testing import assert_allclose
 import numpy as np
 
@@ -9,7 +9,7 @@ import json
 ### Disable this test for now, it is way to slow...
 class DontTestTerrainRLImitate(object):
 
-    @pytest.mark.timeout(600)
+    @timed(600)
     def test_ppo_keras_walk_flat_2D(self):
         """
         Test that PPO can still learn a good policy
