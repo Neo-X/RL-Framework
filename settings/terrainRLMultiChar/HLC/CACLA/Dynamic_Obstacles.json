@@ -369,6 +369,8 @@
 "anneal_policy_std": false,
 	"comment__": "Size and shape of terrain",
 "terrain_shape": [2,32,32],
+	"comment__": "Data ordering format for convolutions",
+"image_data_format": "channels_first",
 	"comment__": "Path to LLC to load",
 "llc_policy_model_path":  "./terrainRLImitateBiped3D/algorithm.A_CACLA.A_CACLA/Biped3d_Step_Walk_Waypoint_Flat_less_std/model.DeepNN.DeepNN/agent_Best.pkl",
 	"comment__": "higher level controller timestep",
