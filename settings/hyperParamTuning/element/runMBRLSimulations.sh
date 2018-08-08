@@ -39,6 +39,7 @@ declare -a metaExps=(
 #  				"settings/hyperParamTuning/element/use_stocastic_policy.json"
 #  				"settings/hyperParamTuning/element/use_target_net_for_critic.json"
 #				"settings/hyperParamTuning/element/value_function_batch_size.json"
+				"settings/hyperParamTuning/element/variance_scalling.json"
 )
 
 rounds=$2
