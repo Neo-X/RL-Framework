@@ -66,7 +66,7 @@ def getKerasActivation(type_name):
     import keras.layers
     
     if (type_name == 'leaky_rectify'):
-        return keras.layers.LeakyReLU(alpha=0.01)
+        return keras.layers.LeakyReLU(alpha=0.1)
     if (type_name == 'relu'):
         return Activation('relu')
     if (type_name == 'tanh'):

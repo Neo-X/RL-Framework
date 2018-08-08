@@ -334,6 +334,18 @@ class PPO_KERAS(KERASAlgorithm):
         
         print ("Done building PPO KERAS")
         
+        
+    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]],
+                    updates=1, batch_size=None):
+        
+        if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
+            # print("self.getSettings()[\"use_single_network\"]: ", self.getSettings()["use_single_network"])
+            return 0
+        
+        super(PPO_KERAS,self).trainCritic(self, states=states, actions=actions, rewards=rewards, 
+                                          result_states=result_states, falls=falls, G_t=G_t,
+                    updates=updates, batch_size=batch_size)
+        
     def trainActor(self, states, actions, rewards, result_states, falls, advantage, exp_actions=None, 
                    G_t=[[0]], forwardDynamicsModel=None, p=1.0, updates=1, batch_size=None):
         lossActor = 0

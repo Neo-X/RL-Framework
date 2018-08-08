@@ -114,8 +114,6 @@ class TRPO_KERAS(KERASAlgorithm):
         # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy )))
         self._actLoss = -1.0 * K.mean(self._actLoss_)
         self._actLoss_tmp = self._actLoss
-        if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
-            self._actLoss = self._actLoss + self._loss  
         
         # self._policy_grad = T.grad(self._actLoss ,  self._actionParams) 
         # self._actLoss_drop = (T.sum(0.5 * self._actDiff_drop ** 2)/float(self._batch_size)) # because the number of rows can shrink
