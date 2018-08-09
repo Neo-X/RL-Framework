@@ -122,17 +122,6 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         print ("self._stateInput ",  self._stateInput)
         inputAct = self._State
-        if ("train_gan" in self._settings
-            and (self._settings["train_gan"] == "yes")):
-            inputAct = keras.layers.concatenate(inputs=[self._State, self._Action], axis=-1)
-            ### dynamics network
-            if ("train_gan_with_gaussian_noise" in settings_ 
-                and (settings_["train_gan_with_gaussian_noise"] == True)
-                # and "train_gan" in settings_
-                # and (settings_["train_gan"] == True)
-                ):
-                ## Add noise input
-                inputAct = keras.layers.concatenate(inputs=[self._State, self._Action, self._Noise], axis=-1)
         
         ### It is complicated to serialize lambda functions, better to define a function
         def keras_slice(x, begin,end):
@@ -434,10 +423,6 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         print ("Critic Network layer sizes: ", layer_sizes)
         network = self._stateInput
-        if ("train_gan" in self._settings
-            and (self._settings["train_gan"] == "yes")):
-            inputDiscrominator = keras.layers.concatenate(inputs=[self._State, self._Action, self._ResultState], axis=-1)
-            network = inputDiscrominator
         """
         if ( self._dropout_p > 0.001 ):
             network = Dropout(rate=self._dropout_p)(network)
