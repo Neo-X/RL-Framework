@@ -143,11 +143,11 @@ if __name__ == '__main__':
         # print ("States: ", _states) 
         # (error, lossActor) = model.train(_states, _actions, _result_states, _rewards)
         ### Train Discriminator
-        for j in range(1):
+        for j in range(2):
             _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
             error = model.trainCritic(_states, _actions, _result_states, _rewards)
         ### train Generator
-        for j in range(2):
+        for j in range(1):
             _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
             lossActor = model.trainActor(_states, _actions, _result_states, _rewards)
         errors.append(error)
@@ -169,12 +169,13 @@ if __name__ == '__main__':
     gen_state = model.predict([states_[test_index]], [actions[test_index]])
     print("gen_state: ", repr(gen_state))
     _fig, (_bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-    for j in range(3):
+    for j in range(3): ### Try some samples from the true data
         test_index = int(states_.shape[0]/5) * j
         print ("test_index: ",  test_index)
         discriminator_value = model.q_value([states_[test_index]], [actions[test_index]], [next_states_[test_index]])
+        ### Plot true samples with discriminator values
         _bellman_error, = _bellman_error_ax.plot(range(len(gen_state[0])), next_states_[test_index], linewidth=3.0, label="True function: " + str(discriminator_value), linestyle='-', marker='o')
-        for i in range(5):
+        for i in range(5): ### Generate 
             gen_state = model.predict([states_[test_index]], [actions[test_index]])
             print("gen_state: ", repr(gen_state[0]))
             discriminator_value = model.q_value([states_[test_index]], [actions[test_index]], gen_state)

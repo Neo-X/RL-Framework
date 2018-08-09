@@ -252,6 +252,7 @@ class GANKeras(AlgorithmInterface):
     def trainCritic(self, states, actions, result_states, rewards):
         
         noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
+        # print ("noise: ", noise)
         # print ("Shapes: ", states.shape, actions.shape, rewards.shape, result_states.shape)
         # self._noise_shared.set_value(noise)
         self._updates += 1

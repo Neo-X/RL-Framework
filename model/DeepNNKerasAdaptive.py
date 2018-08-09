@@ -132,7 +132,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 # and (settings_["train_gan"] == True)
                 ):
                 ## Add noise input
-                inputDiscrominator = keras.layers.concatenate(inputs=[self._State, self._Action, self._Noise], axis=-1)
+                inputAct = keras.layers.concatenate(inputs=[self._State, self._Action, self._Noise], axis=-1)
         
         ### It is complicated to serialize lambda functions, better to define a function
         def keras_slice(x, begin,end):
