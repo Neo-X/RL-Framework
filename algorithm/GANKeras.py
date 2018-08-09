@@ -89,7 +89,7 @@ class GANKeras(AlgorithmInterface):
                                     amsgrad=False)
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
-        self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
+        self._model.getCriticNetwork().compile(loss=['binary_crossentropy'], optimizer=sgd)
         print("Discriminator Net summary: ",  self._model.getCriticNetwork().summary())
         
         """
@@ -138,7 +138,7 @@ class GANKeras(AlgorithmInterface):
                                     amsgrad=False)
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
-        self._combined.compile(loss=[neg_y], optimizer=sgd)
+        self._combined.compile(loss=['binary_crossentropy'], optimizer=sgd)
         print("FD Net summary: ",  self._combined.summary())
         
         self._generate = K.function([self._model.getStateSymbolicVariable(), 
@@ -262,8 +262,8 @@ class GANKeras(AlgorithmInterface):
         
         for i in range(generated_samples.shape[0]):
             next_state__ = scale_state(generated_samples[i], self._state_bounds)
-            print("[states[i]]: ", repr([states[i]]))
-            print("next_state__: ", repr(next_state__))
+            # print("[states[i]]: ", repr([states[i]]))
+            # print("next_state__: ", repr(next_state__))
             tup = ([states[i]], [actions[i]], [next_state__], [rewards[i]], [[0]], [[0]], [[0]], [[0]])
             self._experience.insertTuple(tup)
         tmp_result_states = copy.deepcopy(result_states)

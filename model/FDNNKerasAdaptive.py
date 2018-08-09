@@ -13,6 +13,8 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
         settings_['last_policy_layer_activation_type'] = settings_['last_fd_layer_activation_type']
         settings_['activation_type'] = settings_['reward_activation_type']
         settings_['policy_activation_type'] = settings_['fd_policy_activation_type']
+        if ("last_reward_activation_type" in settings_):
+            settings_["last_critic_layer_activation_type"] = settings_["last_reward_activation_type"]
         if ("fd_network_dropout" in settings_
             and (settings_["fd_network_dropout"] > 0.001)):
             settings_['dropout_p'] = settings_["fd_network_dropout"]

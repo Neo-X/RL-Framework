@@ -121,6 +121,18 @@ class DeepNNKerasAdaptive(ModelInterface):
         # input.trainable = True
         
         print ("self._stateInput ",  self._stateInput)
+        inputAct = self._State
+        if ("train_gan" in self._settings
+            and (self._settings["train_gan"] == "yes")):
+            inputAct = keras.layers.concatenate(inputs=[self._State, self._Action], axis=-1)
+            ### dynamics network
+            if ("train_gan_with_gaussian_noise" in settings_ 
+                and (settings_["train_gan_with_gaussian_noise"] == True)
+                # and "train_gan" in settings_
+                # and (settings_["train_gan"] == True)
+                ):
+                ## Add noise input
+                inputDiscrominator = keras.layers.concatenate(inputs=[self._State, self._Action, self._Noise], axis=-1)
         
         ### It is complicated to serialize lambda functions, better to define a function
         def keras_slice(x, begin,end):
@@ -129,21 +141,21 @@ class DeepNNKerasAdaptive(ModelInterface):
             and self._networkSettings['split_terrain_input']):
             mid = int((self._settings['num_terrain_features']/3) * 2)
             velFeatures_x = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
-                              arguments={'begin': 0, 'end': int(mid/2)})(self._stateInput)
+                              arguments={'begin': 0, 'end': int(mid/2)})(inputAct)
             velFeatures_y = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
-                              arguments={'begin': int(mid/2), 'end': mid})(self._stateInput)
+                              arguments={'begin': int(mid/2), 'end': mid})(inputAct)
             taskFeatures = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
-                              arguments={'begin': mid, 'end': self._settings['num_terrain_features']})(self._stateInput)
+                              arguments={'begin': mid, 'end': self._settings['num_terrain_features']})(inputAct)
         else:
             taskFeatures = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
-                              arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(self._stateInput)
-        # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(self._stateInput)
+                              arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(inputAct)
+        # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(inputAct)
         characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
                                    arguments={'begin': self._settings['num_terrain_features'], 
-                                              'end': self._state_length})(self._stateInput)
+                                              'end': self._state_length})(inputAct)
         """
-        taskFeatures = self._stateInput
-        characterFeatures = self._stateInput
+        taskFeatures = inputAct
+        characterFeatures = inputAct
         """
         perform_pooling=False
         if ( "perform_convolution_pooling" in self._networkSettings):
@@ -157,7 +169,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             ### Number of layers and sizes of layers        
             layer_sizes = self._settings['policy_network_layer_sizes']
             print ("Actor Network layer sizes: ", layer_sizes)
-            networkAct = self._stateInput
+            networkAct = inputAct
             
             if ( self._dropout_p > 0.001 
                  and ("use_dropout_in_actor" in self._settings 
@@ -618,7 +630,11 @@ class DeepNNKerasAdaptive(ModelInterface):
         network= Dense(1,
                        kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                        bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
-        self._critic = Activation('linear')(network)
+        
+        if ("last_critic_layer_activation_type" in self._settings):
+            self._critic = getKerasActivation(self._settings['last_critic_layer_activation_type'])(network)
+        else:
+            self._critic = Activation('linear')(network)
             
         """
         if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras"
