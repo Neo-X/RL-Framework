@@ -340,7 +340,7 @@ class GANKeras(AlgorithmInterface):
         if ( 'train_gan_mse' in self.getSettings() and 
              (self.getSettings()['train_gan_mse'] == True)):
             # self._trainGenerator_MSE()
-            self._model._forward_dynamics_net.fit([states, actions, noise], result_states,
+            self._model._forward_dynamics_net.fit([states, actions, noise * 0], result_states,
               epochs=1, batch_size=batch_size_,
               verbose=0,
               shuffle=True
