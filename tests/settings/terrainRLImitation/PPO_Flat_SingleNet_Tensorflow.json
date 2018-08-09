@@ -311,7 +311,7 @@
 	"comment__": "Use a different off-policy experience memory for the fd learning",
 "keep_seperate_fd_exp_buffer": false,
 	"comment__": "Train a GAN to do something....",
-"train_gan": true,
+"train_gan": false,
 	"comment__": "Train GAN with gaussian noise",
 "train_gan_with_gaussian_noise": true,
 	"comment__": "This overrides all of the envs to be a single one from the list of sim environments",

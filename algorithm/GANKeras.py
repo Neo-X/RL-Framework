@@ -219,11 +219,11 @@ class GANKeras(AlgorithmInterface):
     def getNetworkParameters(self):
         params = []
         params.append(copy.deepcopy(self._model.getCriticNetwork().get_weights()))
-        params.append(copy.deepcopy(self._model.getRewardNetwork().get_weights()))
+        # params.append(copy.deepcopy(self._model.getRewardNetwork().get_weights()))
         params.append(copy.deepcopy(self._model.getForwardDynamicsNetwork().get_weights()))
-        params.append(copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
-        params.append(copy.deepcopy(self._modelTarget.getRewardNetwork().get_weights()))
-        params.append(copy.deepcopy(self._modelTarget.getForwardDynamicsNetwork().get_weights()))
+        # params.append(copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
+        # params.append(copy.deepcopy(self._modelTarget.getRewardNetwork().get_weights()))
+        # params.append(copy.deepcopy(self._modelTarget.getForwardDynamicsNetwork().get_weights()))
         return params
         
     def setNetworkParameters(self, params):
@@ -232,13 +232,13 @@ class GANKeras(AlgorithmInterface):
         # print ("same nets:", len(params[0]), self._model.getCriticNetwork().get_weights())
         self._model.getCriticNetwork().set_weights(params[0])
         # print("setting actor net params")
-        self._model.getRewardNetwork().set_weights( params[1] )
+        # self._model.getRewardNetwork().set_weights( params[1] )
         self._model.getForwardDynamicsNetwork().set_weights( params[1] )
         # print("setting critic target net params")
-        self._modelTarget.getCriticNetwork().set_weights( params[2])
+        # self._modelTarget.getCriticNetwork().set_weights( params[2])
         # print("setting actor target net params")
-        self._modelTarget.getRewardNetwork().set_weights( params[3])
-        self._modelTarget.getForwardDynamicsNetwork().set_weights( params[3])
+        # self._modelTarget.getRewardNetwork().set_weights( params[3])
+        # self._modelTarget.getForwardDynamicsNetwork().set_weights( params[3])
         
     def setData(self, states, actions, result_states=None, rewards=None):
         # self._model.setStates(states)
@@ -352,7 +352,7 @@ class GANKeras(AlgorithmInterface):
               shuffle=True
               # callbacks=[early_stopping],
               )
-        loss = -score.history['loss'][0]
+        loss = score.history['loss'][0]
         error_MSE = self._bellman_error([states, actions, noise, result_states]) 
         return (np.mean(loss), error_MSE)
         

@@ -157,7 +157,7 @@
     "learning_rate": 0.0001,
     "environment_type": "Particle_Sim",
     "policy_loss_weight": 1.0,
-    "train_gan": true,
+    "train_gan": false,
     "load_saved_model": false,
     "state_bounds": [
         [

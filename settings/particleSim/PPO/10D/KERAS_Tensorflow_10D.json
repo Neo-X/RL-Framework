@@ -295,7 +295,7 @@
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
 "learning_backend": "tensorflow",
 	"comment__": "Train a GAN to do something....",
-"train_gan": true,
+"train_gan": false,
 	"comment__": "Train GAN with gaussian noise",
 "train_gan_with_gaussian_noise": true,
 	"comment__": "Prevents the critic from including MBAE actions in it's policy estimation.",

@@ -210,7 +210,7 @@
     "bootsrap_with_discrete_policy": true,
     "use_multiple_policy_updates": true,
     "saving_update_freq_num_rounds": 10,
-    "train_gan": true,
+    "train_gan": false,
     "use_guided_policy_search": false,
     "queue_size_limit": 100,
     "num_mbae_steps": 1,
