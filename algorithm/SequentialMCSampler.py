@@ -224,6 +224,9 @@ class SequentialMCSampler(Sampler):
                     if ("use_stochastic_forward_dynamics" in self.getSettings()
                         and (self.getSettings()["use_stochastic_forward_dynamics"])):
                         prediction = sampleStochasticModel( forwardDynamics, current_state_, [actions[a]])
+                    elif ("use_stochastic_gan" in self.getSettings()
+                        and (self.getSettings()["use_stochastic_gan"])):
+                        prediction = sampleStochasticGANModel( forwardDynamics, current_state_, [actions[a]])
                     else:
                         prediction = forwardDynamics.predict(state=current_state_, action=[actions[a]])
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
@@ -323,6 +326,10 @@ class SequentialMCSampler(Sampler):
                     if ("use_stochastic_forward_dynamics" in self.getSettings()
                         and (self.getSettings()["use_stochastic_forward_dynamics"])):
                         prediction = sampleStochasticModel( forwardDynamics, current_state_, [actions[a]])
+                    elif ("use_stochastic_gan" in self.getSettings()
+                        and (self.getSettings()["use_stochastic_gan"])):
+                        # print ("Sampling GAN")
+                        prediction = sampleStochasticGANModel( forwardDynamics, current_state_, [actions[a]])
                     else:
                         prediction = forwardDynamics.predict(state=current_state_, action=[actions[a]])
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...

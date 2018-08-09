@@ -150,7 +150,8 @@ class GANKeras(AlgorithmInterface):
         
         self._generate = K.function([self._model.getStateSymbolicVariable(), 
                                 self._model.getActionSymbolicVariable(),
-                                self._model._Noise],
+                                self._model._Noise
+                                , K.learning_phase()],
                                 [self.__generate])
         
         
@@ -256,15 +257,19 @@ class GANKeras(AlgorithmInterface):
         # self._noise_shared.set_value(noise)
             
         
-    def trainCritic(self, states, actions, result_states, rewards):
-        
+    def trainCritic(self, states, actions, result_states, rewards, updates=1, batch_size=None):
+        if (batch_size is None):
+            batch_size_=states.shape[0]
+        else:
+            batch_size_=batch_size
         noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
+        rewards = (rewards * 0) + 1.0
         # print ("noise: ", noise)
         # print ("Shapes: ", states.shape, actions.shape, rewards.shape, result_states.shape)
         # self._noise_shared.set_value(noise)
         self._updates += 1
         ## Compute actions for TargetNet
-        generated_samples = np.array(self._generate([states, actions, noise]))[0]
+        generated_samples = np.array(self._generate([states, actions, noise, 0]))[0]
         # print("generated_samples: ", repr(generated_samples))
         ### Put generated samples in memory
         
@@ -308,13 +313,13 @@ class GANKeras(AlgorithmInterface):
         self.setData(tmp_states, tmp_actions, tmp_result_states, tmp_rewards)
         
         score = self._model.getCriticNetwork().fit([tmp_states, tmp_actions, tmp_result_states], tmp_rewards,
-              epochs=1, batch_size=states.shape[0],
+              epochs=updates, batch_size=batch_size_,
               verbose=0,
               shuffle=True
               # callbacks=[early_stopping],
               )
         score = self._model.getCriticNetwork().fit([tmp_states, tmp_actions, generated_samples], np.fabs(np.random.normal(0,0.2, size=(states.shape[0],1))),
-              epochs=1, batch_size=states.shape[0],
+              epochs=updates, batch_size=batch_size_,
               verbose=0,
               shuffle=True
               # callbacks=[early_stopping],
@@ -323,9 +328,12 @@ class GANKeras(AlgorithmInterface):
         # print("Discriminator loss: ", loss)
         return loss
         
-    def trainActor(self, states, actions, result_states, rewards):
+    def trainActor(self, states, actions, result_states, rewards, updates=1, batch_size=None):
         # self.setData(states, actions, result_states, rewards)
-        
+        if (batch_size is None):
+            batch_size_=states.shape[0]
+        else:
+            batch_size_=batch_size
         noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
         # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
         ## Add MSE term
@@ -333,7 +341,7 @@ class GANKeras(AlgorithmInterface):
              (self.getSettings()['train_gan_mse'] == True)):
             # self._trainGenerator_MSE()
             self._model._forward_dynamics_net.fit([states, actions, noise], result_states,
-              epochs=1, batch_size=states.shape[0],
+              epochs=1, batch_size=batch_size_,
               verbose=0,
               shuffle=True
               # callbacks=[early_stopping],
@@ -347,7 +355,7 @@ class GANKeras(AlgorithmInterface):
         
         ### The rewards are not used in this update
         score = self._combined.fit([states, actions, noise], rewards,
-              epochs=1, batch_size=states.shape[0],
+              epochs=updates, batch_size=batch_size_,
               verbose=0,
               shuffle=True
               # callbacks=[early_stopping],
@@ -356,10 +364,14 @@ class GANKeras(AlgorithmInterface):
         error_MSE = self._bellman_error([states, actions, noise, result_states]) 
         return (np.mean(loss), error_MSE)
         
-    def train(self, states, actions, result_states, rewards):
-        loss = self.trainCritic(states, actions, result_states, rewards)
+    def train(self, states, actions, result_states, rewards, updates=1, batch_size=None):
+        if (batch_size is None):
+            batch_size_=states.shape[0]
+        else:
+            batch_size_=batch_size
+        loss = self.trainCritic(states, actions, result_states, rewards, updates=updates, batch_size=batch_size_)
         # loss = 0
-        lossActor = self.trainActor(states, actions, result_states, rewards)
+        lossActor = self.trainActor(states, actions, result_states, rewards, updates=updates, batch_size=batch_size_)
         if ( self.getSettings()['train_reward_predictor']):
             # print ("self._reward_bounds: ", self._reward_bounds)
             # print( "Rewards, predicted_reward, difference, model diff, model rewards: ", np.concatenate((rewards, self._predict_reward(), self._predict_reward() - rewards, self._reward_error(), self._reward_values()), axis=1))
@@ -388,7 +400,25 @@ class GANKeras(AlgorithmInterface):
         noise = np.random.normal(self._noise_mean,self._noise_std, size=(1,1))
         # print ("State bounds: ", self._state_bounds)
         # print ("gen output: ", self._generate()[0])
-        state_ = scale_state(self._generate([state, action, noise])[0], self._state_bounds)
+        state_ = scale_state(self._generate([state, action, noise, 0])[0], self._state_bounds)
+        # print( "self._state_bounds: ", self._state_bounds)
+        # print ("scaled output: ", state_)
+        return state_
+    
+    def predictWithDropout(self, state, action):
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        # print ("fd state: ", state)
+        action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        # self._model.setStates(state)
+        # self._model.setActions(action)
+        # self.setData(state,action)
+        # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(1,1)))
+        noise = np.random.normal(self._noise_mean,self._noise_std, size=(1,1))
+        # print ("State bounds: ", self._state_bounds)
+        # print ("gen output: ", self._generate()[0])
+        state_ = scale_state(self._generate([state, action, noise, 1])[0], self._state_bounds)
         # print( "self._state_bounds: ", self._state_bounds)
         # print ("scaled output: ", state_)
         return state_
@@ -403,7 +433,7 @@ class GANKeras(AlgorithmInterface):
         # print ("State bounds: ", self._state_bounds)
         # print ("fd output: ", self._forwardDynamics()[0])
         # state_ = scale_state(self._generate(), self._state_bounds)
-        state_ = self._generate([state, action, noise])
+        state_ = self._generate([state, action, noise, 0])
         return state_
     
     def q_value(self, state):
@@ -499,7 +529,7 @@ class GANKeras(AlgorithmInterface):
         return predicted_reward
     
     def bellman_error(self, states, actions, result_states, rewards):
-        # self.setData(states, actions, result_states, rewards)
+        noise = np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1))
         return self._bellman_error([states, actions, noise, result_states]) 
     
     def reward_error(self, states, actions, result_states, rewards):
