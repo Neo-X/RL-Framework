@@ -82,7 +82,7 @@ class GANKeras(AlgorithmInterface):
         self._model._critic = Model(input=[self._model.getStateSymbolicVariable(), 
                             self._model.getActionSymbolicVariable(),
                             self._model.getResultStateSymbolicVariable()], 
-                             output=self._model.getCriticNetwork())
+                             output=self._model._critic)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
                                     epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
@@ -92,6 +92,7 @@ class GANKeras(AlgorithmInterface):
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
         print("Discriminator Net summary: ",  self._model.getCriticNetwork().summary())
         
+        """
         self._model._reward_net = Model(input=[self._model.getStateSymbolicVariable(), 
                             self._model.getActionSymbolicVariable()],
                             output=self._model._reward_net)
@@ -103,7 +104,7 @@ class GANKeras(AlgorithmInterface):
         print("sgd, critic: ", sgd)
         self._model.getRewardNetwork().compile(loss='mse', optimizer=sgd)
         print("Reward Net summary: ",  self._model.getRewardNetwork().summary())
-        
+        """
         # For the combined model we will only train the generator
         self._model.getCriticNetwork().trainable = False
         
@@ -261,8 +262,9 @@ class GANKeras(AlgorithmInterface):
         
         for i in range(generated_samples.shape[0]):
             next_state__ = scale_state(generated_samples[i], self._state_bounds)
-            # print("next_state__: ", repr(next_state__))
-            tup = ([states[i]], [actions[i]], [next_state__], [rewards[i]], [[0]], [[0]], [[0]])
+            print("[states[i]]: ", repr([states[i]]))
+            print("next_state__: ", repr(next_state__))
+            tup = ([states[i]], [actions[i]], [next_state__], [rewards[i]], [[0]], [[0]], [[0]], [[0]])
             self._experience.insertTuple(tup)
         tmp_result_states = copy.deepcopy(result_states)
         tmp_rewards = states__ = copy.deepcopy(rewards)

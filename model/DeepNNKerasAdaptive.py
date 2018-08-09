@@ -99,7 +99,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
         # self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState", batch_shape=(32,self._state_length))
-        self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState")
+        self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
         # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._Reward = K.variable(value=np.random.rand(self._batch_size,1), name="Reward")
         # self._Reward = keras.layers.Input(shape=(1,), name="Reward", batch_shape=(32,1))
@@ -420,6 +420,10 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         print ("Critic Network layer sizes: ", layer_sizes)
         network = self._stateInput
+        if ("train_gan" in self._settings
+            and (self._settings["train_gan"] == "yes")):
+            inputDiscrominator = keras.layers.concatenate(inputs=[self._State, self._Action, self._ResultState], axis=-1)
+            network = inputDiscrominator
         """
         if ( self._dropout_p > 0.001 ):
             network = Dropout(rate=self._dropout_p)(network)

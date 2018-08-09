@@ -32,6 +32,22 @@ class TestModel(object):
             assert np.mean(rand_, axis=0).shape == means[0][i].shape
             assert np.all(np.less_equal(np.abs(np.mean(rand_, axis=0) - means[0][i]), 0.015))
             assert np.all(np.less_equal(np.abs(np.std(rand_, axis=0) - stds[0][i]), 0.015))
+    
+    def test_random_normal2(self):
+        d = 10
+        samples_ = 50000
+        means = np.random.rand(1,d,d)
+        stds = np.random.uniform(size=(1,d,d))+0.01
+        for i in range(means.shape[1]):
+            rand_ = []
+            for j in range(samples_):
+                rand_.append(randomExporationSTD([means[0][i]], [stds[0][i]])[0])
+                # print ("garbage output, ", i, " ", j)
+            rand_ = np.array(rand_)
+            assert rand_.shape == (samples_, d)
+            assert np.mean(rand_, axis=0).shape == means[0][i].shape
+            assert np.all(np.less_equal(np.abs(np.mean(rand_, axis=0) - means[0][i]), 0.015))
+            assert np.all(np.less_equal(np.abs(np.std(rand_, axis=0) - stds[0][i]), 0.015))
             
 if __name__ == '__main__':
     nose.main([__file__])

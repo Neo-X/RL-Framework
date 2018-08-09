@@ -34,6 +34,13 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
                 n_out = settings_["dense_state_size"]
             else:
                 n_out = settings_["num_terrain_features"]
+                
+        self._Noise = keras.layers.Input(shape=(1,), name="Noise")
+        
+        if ("train_gan" in settings_
+            and (settings_["train_gan"] == True)):
+            settings_["train_gan"] = "yes"
+        
         super(FDNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         self._forward_dynamics_net = self._actor
         self._reward_net = self._critic

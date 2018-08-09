@@ -50,7 +50,7 @@ class FDNetDenseKeras(ModelInterface):
         self._Action = keras.layers.Input(shape=(self._action_length,), name="Action")
         # self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         # self._Reward = K.variable(value=np.random.rand(self._batch_size,1), name="Reward")
-        self._Noise = keras.layers.Input(shape=(1,), name="Reward")
+        self._Noise = keras.layers.Input(shape=(1,), name="Noise")
         
         input = self._State
         self._stateInput = input

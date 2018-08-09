@@ -144,11 +144,11 @@ if __name__ == '__main__':
         # (error, lossActor) = model.train(_states, _actions, _result_states, _rewards)
         ### Train Discriminator
         for j in range(1):
-            _states, _actions, _result_states, _rewards, falls_, advantage, exp_actions__ = experience.get_batch(batch_size)
+            _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
             error = model.trainCritic(_states, _actions, _result_states, _rewards)
         ### train Generator
         for j in range(2):
-            _states, _actions, _result_states, _rewards, falls_, advantage, exp_actions__ = experience.get_batch(batch_size)
+            _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
             lossActor = model.trainActor(_states, _actions, _result_states, _rewards)
         errors.append(error)
         if (i % 100 == 0):
