@@ -309,7 +309,7 @@ class GANKeras(AlgorithmInterface):
         # print("Discriminator targets: ", tmp_rewards)
         
         ### Add noise to labels..
-        tmp_rewards = tmp_rewards + np.random.normal(0,0.2, size=(states.shape[0],1))
+        tmp_rewards = tmp_rewards - np.fabs(np.random.normal(0,0.1, size=(states.shape[0],1)))
         self.setData(tmp_states, tmp_actions, tmp_result_states, tmp_rewards)
         
         score = self._model.getCriticNetwork().fit([tmp_states, tmp_actions, tmp_result_states], tmp_rewards,
@@ -318,7 +318,7 @@ class GANKeras(AlgorithmInterface):
               shuffle=True
               # callbacks=[early_stopping],
               )
-        score = self._model.getCriticNetwork().fit([tmp_states, tmp_actions, generated_samples], np.fabs(np.random.normal(0,0.2, size=(states.shape[0],1))),
+        score = self._model.getCriticNetwork().fit([tmp_states, tmp_actions, generated_samples], np.fabs(np.random.normal(0,0.1, size=(states.shape[0],1))),
               epochs=updates, batch_size=batch_size_,
               verbose=0,
               shuffle=True

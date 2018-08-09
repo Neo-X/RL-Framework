@@ -351,6 +351,8 @@
 "reward_network_layer_sizes": [128, 64],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
+		"comment__": "type of activation to use for last layer",
+"last_reward_activation_type": "sigmoid",
 	"comment__": "type of activation to use for policy",
 "fd_policy_activation_type": "leaky_rectify",
 	"comment__": "last policy type of activation to use",
