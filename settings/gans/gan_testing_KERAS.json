@@ -285,7 +285,7 @@
 	"comment__": "Train GAN with gaussian noise",
 "train_gan_with_gaussian_noise": true,
 	"comment__": "Whether or not to train the gan with additional MSE loss",
-"train_gan_mse": false,
+"train_gan_mse": true,
 	"comment__": "Size of special result state",
 "size_of_result_state": 20,
 	"comment__": "specify the learning algorithm to use for the fd model",

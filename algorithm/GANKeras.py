@@ -111,10 +111,17 @@ class GANKeras(AlgorithmInterface):
         def neg_y(true_y, pred_y):
             return -pred_y
         
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), 
+                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
+                                    amsgrad=False)
+        
         self._model._forward_dynamics_net = Model(input=[self._model.getStateSymbolicVariable(), 
                         self._model.getActionSymbolicVariable(),
                         self._model._Noise], 
                         output=self._model._forward_dynamics_net)
+        self._model._forward_dynamics_net.compile(loss=['mse'], optimizer=sgd)
+        
         
         self.__generate = self._model.getForwardDynamicsNetwork()(
                                 [self._model.getStateSymbolicVariable(), 
@@ -285,19 +292,28 @@ class GANKeras(AlgorithmInterface):
         """
         
         ## replace half of the samples with generated ones...
+        """
         for i in range(int(states.shape[0]/2)):
             
             tmp_result_states[i] = generated_samples[i]
             tmp_rewards[i] = [0]
             tmp_states[i] = states__[i]
             tmp_actions[i] = actions__[i]
-
+        """
 
         # print("Discriminator targets: ", tmp_rewards)
-                    
+        
+        ### Add noise to labels..
+        tmp_rewards = tmp_rewards + np.random.normal(0,0.2, size=(states.shape[0],1))
         self.setData(tmp_states, tmp_actions, tmp_result_states, tmp_rewards)
         
         score = self._model.getCriticNetwork().fit([tmp_states, tmp_actions, tmp_result_states], tmp_rewards,
+              epochs=1, batch_size=states.shape[0],
+              verbose=0,
+              shuffle=True
+              # callbacks=[early_stopping],
+              )
+        score = self._model.getCriticNetwork().fit([tmp_states, tmp_actions, generated_samples], np.fabs(np.random.normal(0,0.2, size=(states.shape[0],1))),
               epochs=1, batch_size=states.shape[0],
               verbose=0,
               shuffle=True
@@ -314,10 +330,14 @@ class GANKeras(AlgorithmInterface):
         # self._noise_shared.set_value(np.random.normal(self._noise_mean,self._noise_std, size=(states.shape[0],1)))
         ## Add MSE term
         if ( 'train_gan_mse' in self.getSettings() and 
-             (self.getSettings()['train_gan_mse'] == False)):
-            pass
-        else:
-            self._trainGenerator_MSE()
+             (self.getSettings()['train_gan_mse'] == True)):
+            # self._trainGenerator_MSE()
+            self._model._forward_dynamics_net.fit([states, actions, noise], result_states,
+              epochs=1, batch_size=states.shape[0],
+              verbose=0,
+              shuffle=True
+              # callbacks=[early_stopping],
+              )
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
         # print("******** Not learning actor right now *****")
