@@ -279,7 +279,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                     # networkAct = Dense(layer_sizes[i], 
                     #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 elif ( layer_sizes[i] == "integrate_actor_part"):
-                    networkAct = Concatenate()([networkAct, self._actionInput])
+                    networkAct = Concatenate()([networkAct, self._Action])
+                elif ( layer_sizes[i] == "integrate_gan_noise"):
+                    networkAct = Concatenate()([networkAct, self._Noise])
                 elif ( layer_sizes[i] == "mark_middle"):
                     self._networkActMiddle = networkAct
                 elif ( layer_sizes[i] == "branch_char_state"):
@@ -533,6 +535,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                 #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
             elif ( layer_sizes[i] == "integrate_actor_part"):
                 network = Concatenate()([network, self._actionInput])
+            elif ( layer_sizes[i] == "integrate_gan_conditional"):
+                network = Concatenate()([network, self._ResultState])
             elif ( layer_sizes[i] == "mark_middle"):
                     self._networkMiddle = network
             elif ( layer_sizes[i] == "merge_features"):

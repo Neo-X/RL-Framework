@@ -79,10 +79,10 @@ class GANKeras(AlgorithmInterface):
                         self._model.getActionSymbolicVariable(),
                         self._model.getResultStateSymbolicVariable()],
                         [self._model.getCriticNetwork()])
-        self._model._critic = Model(input=[self._model.getStateSymbolicVariable(), 
+        self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable(), 
                             self._model.getActionSymbolicVariable(),
                             self._model.getResultStateSymbolicVariable()], 
-                             output=self._model._critic)
+                             outputs=[self._model._critic])
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
                                     epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
