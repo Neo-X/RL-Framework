@@ -60,7 +60,7 @@ borgy submit --restartable --req-cores=32 --req-ram-gbytes=32 -w /home/${USER} -
 ```
 or
 ```
-borgy submit --restartable --req-cores=16 --req-ram-gbytes=16 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390  -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3.6 trainModel.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow_NoPhase.json --plot=false --save_trainData=true --num_rounds=10 --metaConfig=settings/hyperParamTuning/elementAI.json --print_level=testing_sim | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-cores=16 --req-ram-gbytes=16 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3.6 trainModel.py --config=settings/terrainRLImitate3D/PPO/Humanoid1_Walk_Tensorflow.json --num_rounds=1000 --metaConfig=settings/hyperParamTuning/deepCrowds.json --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --plot=false -p 16 --rollouts=16'
 ```
 or for headless 2d biped terrain rl
 ```

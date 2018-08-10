@@ -49,6 +49,6 @@ class OpenAIGymActor(ActorInterface):
             return false when the agent has fallen (end of episode)
         """
         if ( exp._end_of_episode ):
-            return 0
-        else:
             return 1
+        else:
+            return 0

@@ -817,11 +817,15 @@ def createActor(env_type, settings, experience):
         from actor.ActorInterface import ActorInterface
         actor = ActorInterface(settings, experience)
     elif (env_type == 'open_AI_Gym'
-          or (env_type == 'terrainRLSim')
           or (env_type == 'RLSimulations')
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
+    elif (
+          (env_type == 'terrainRLSim')
+          ):
+        from actor.OpenAIGymActor2 import OpenAIGymActor2
+        actor = OpenAIGymActor2(settings, experience)
     elif env_type == 'GymMultiChar':
         from actor.GymMultiCharActor import GymMultiCharActor
         actor = GymMultiCharActor(settings, experience)

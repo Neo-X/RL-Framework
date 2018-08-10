@@ -138,6 +138,10 @@ class KERASAlgorithm(AlgorithmInterface):
         # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
         # target_ = rewards + ((self._discount_factor * y_) * falls)
         target_ = np.array(target_, dtype=self._settings['float_type'])
+        if ("use_fall_reward_shaping" in self._settings
+            and (self._settings["use_fall_reward_shaping"] == True)):
+            # print ("Shaping reward", np.concatenate((target_, falls, target_ * falls), axis=1))
+            target_ = target_ * falls
         # states = np.array(states, dtype=self._settings['float_type'])
         # print ("target type: ", target_.dtype)
         # print ("states type: ", states.dtype)

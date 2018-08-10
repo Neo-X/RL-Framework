@@ -456,6 +456,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (((exp.endOfEpoch() and settings['reset_on_fall'] and (not evaluation)) )  
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
                 ):
+            falls[-1] = [[0]]
             break
                 
         i_ += 1
@@ -572,7 +573,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         
     # print ("tmp_states: ", np.array(tmp_states).shape)
     # print ("advantage: ", np.array(advantage).shape)
-
+    # print ("tmp_falls: ", np.array(falls))
     tuples = (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions)
     """
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):

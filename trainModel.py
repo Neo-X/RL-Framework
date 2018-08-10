@@ -102,7 +102,7 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
                 sim_id = process
         else:
             print("Not Multi task simulation")
-            sim_id = 0
+            sim_id = None
             
         print("Setting sim_id to:" , sim_id)
         if (settings['on_policy']):
