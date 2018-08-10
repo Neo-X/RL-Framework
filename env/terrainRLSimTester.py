@@ -1,4 +1,4 @@
-import gym
+# import gym
 
 from simAdapter import terrainRLSim
 # from OpenGL import GL
@@ -7,7 +7,7 @@ import numpy as np
 # env = gym.make('CartPole-v0')
 # env = gym.make('BipedalWalker-v2')
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
-env = terrainRLSim.getEnv(env_name="PD_Biped2D_Gaps_Terrain-v0", render=True)
+env = terrainRLSim.getEnv(env_name="PD_Humanoid_3D_WALK_Imitate_30FPS_v0", render=False)
 # env.getEnv().setRender(True)
 # env.init()
 # env = gym.make('Hopper-v1')
@@ -23,16 +23,19 @@ if (not isinstance(env.observation_space, gym.spaces.Discrete)):
     print( "State Space high: ", repr(env.observation_space.high))
     print( "State Space low: ", repr(env.observation_space.low))
 """
+actionSpace = env.getActionSpace()
+env.setRandomSeed(1234)
+    
 rewards = []
 states = []
 time_limit=128
-for i_episode in range(20):
+for i_episode in range(50):
     observation = env.reset()
     for t in range(time_limit):
         env.render()
         # print(observation)
-        action = (env.action_space.high - env.action_space.low) * 0.5 + env.action_space.low 
-        observation, reward, done, info = env.step(action)
+        action = ((actionSpace.getMaximum() - actionSpace.getMinimum()) * np.random.uniform(size=actionSpace.getMinimum().shape[0])  ) + actionSpace.getMinimum()
+        observation, reward, done, info = env.step([action])
         # print("Reward: ", reward)
         rewards.append(reward)
         states.append(observation)
@@ -46,8 +49,8 @@ for i_episode in range(20):
 print("mean reward: ", np.mean(rewards))
 print("std reward: ", np.std(rewards))
 print("reward min: ", np.min(rewards), " max ", np.max(rewards))
-print("state mean - std: ", np.mean(states, axis=0) - np.std(states, axis=0))
-print("state mean + std: ", np.mean(states, axis=0) + np.std(states, axis=0))
+print("state mean - std: ", repr(np.mean(states, axis=0) - np.std(states, axis=0)))
+print("state mean + std: ", repr(np.mean(states, axis=0) + np.std(states, axis=0)))
 print("state std", repr(np.std(states, axis=0)))
 
 print("")
