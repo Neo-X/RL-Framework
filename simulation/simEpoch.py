@@ -398,10 +398,18 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             and (settings["replace_next_state_with_imitation_viz_state"] == True)):
             # print ("resultState_: ", resultState_)
             ### This only works properly in the dual state rep case.
-            ob = np.asarray(exp.getEnvironment().getImitationVisualState())
-            ob = np.reshape(np.array(ob), (-1, 
-                        (np.prod(ob.shape))))
-            resultState_[0][1] = ob
+            if ("use_dual_viz_state_representations" in settings
+                  and (settings["use_dual_viz_state_representations"] == True)):
+                ### Need agent data for simease net
+                # ob = np.asarray(exp.getEnvironment().getVisualState())
+                # ob = np.reshape(np.array(ob), (-1, 
+                #             (np.prod(ob.shape))))
+                state_[0][1] = resultState_[0][0] 
+            else:
+                ob = np.asarray(exp.getEnvironment().getImitationVisualState())
+                ob = np.reshape(np.array(ob), (-1, 
+                            (np.prod(ob.shape))))
+                resultState_[0][1] = ob
         
         ## For testing remove later
         if (settings["use_back_on_track_forcing"] and (not evaluation)):
