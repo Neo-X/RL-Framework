@@ -121,10 +121,19 @@ class TRPO_KERAS(KERASAlgorithm):
         self._policy_grad = K.gradients(self._actLoss ,  self._model._actor.trainable_weights)
         self._kl_firstfixed = K.mean(kl_keras(self._q_valsActTarget_State, self._q_valsActTargetSTD, self._q_valsActA, self._q_valsActASTD, self._action_length))
         
+        ## Bellman error
+        # self._bellman = self._target - self._q_funcTarget
+        
+        TRPO_KERAS.compile(self)
+        
+    def compile(self):
+        
         # N = self._model.getStateSymbolicVariable().shape[0]
         # N = 1
         params = self._model._actor.trainable_weights
+        print ("params: ", params)
         surr = K.mean(self._actLoss)
+        print ("surr: ", surr)
         self.pg = flatgrad_keras(surr, params)
 
         prob_mean_fixed = K.stop_gradient(self._q_valsActA)
@@ -173,13 +182,6 @@ class TRPO_KERAS(KERASAlgorithm):
             self._model.getStateSymbolicVariable()
         ]
         
-        ## Bellman error
-        # self._bellman = self._target - self._q_funcTarget
-        
-        TRPO_KERAS.compile(self)
-        
-    def compile(self):
-        
         #### Stuff for Debugging #####
         #### Stuff for Debugging #####
         sgd = getOptimizer(lr=np.float32(self.getSettings()['critic_learning_rate']), 
@@ -190,6 +192,13 @@ class TRPO_KERAS(KERASAlgorithm):
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
         # sgd = SGD(lr=0.0005, momentum=0.9)
         # self._get_advantage = theano.function([], [self._Advantage])
+        
+        sgd = getOptimizer(lr=np.float32(self.getSettings()['learning_rate']), 
+                                    settings=self.getSettings())
+        print ("Clipping: ", sgd.decay)
+        print("sgd, critic: ", sgd)
+        self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
+        
         if (self.getSettings()["regularization_weight"] > 0.0000001):
             self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
         else:
@@ -319,6 +328,7 @@ class TRPO_KERAS(KERASAlgorithm):
         ### Used to understand the shape of the parameters
         all_paramsActA = self._model.getActorNetwork().get_weights()
         self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
+        print("Policy log prob before: ", np.mean(self._get_log_prob([states, actions])[0], axis=0))
         # print ("Performing Critic trainning update")
         # if (( self._updates % self._weight_update_steps) == 0):
         #     self.updateTargetModel()
@@ -445,6 +455,23 @@ class TRPO_KERAS(KERASAlgorithm):
         lossActor = self.trainActor(states, actions, rewards, result_states, falls)
         return loss
     
+    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
+        ### Used to understand the shape of the parameters
+        
+        state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=self._settings['float_type'])
+        # if deterministic_:
+        action__ = self._model.getActorNetwork().predict([state], 
+                                 batch_size=1)[:,:self._action_length]
+        action_ = scale_action(action__, self._action_bounds)
+        """
+        all_paramsActA = self._model.getActorNetwork().get_weights()
+        self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
+        print("Policy log prob before: ", np.mean(self._get_log_prob([state, action__])[0], axis=0))
+        """
+        return action_
+    
     def predict_std(self, state, deterministic_=True, p=1.0):
         # print ("PPO std p:", p)
         state = norm_state(state, self._state_bounds)   
@@ -482,6 +509,28 @@ class TRPO_KERAS(KERASAlgorithm):
     
     def get_critic_loss(self, state, action, reward, nextState):
         return self._get_critic_loss([state, reward, nextState, 0])
+    
+    def loadFrom(self, fileName):
+        from keras.models import load_model
+        suffix = ".h5"
+        print ("Loading agent: ", fileName)
+        # with K.get_session().graph.as_default() as g:
+        actor_ = load_model(fileName+"_actor"+suffix)
+        self._model.getActorNetwork().set_weights( actor_.get_weights() )
+        self._model._critic = load_model(fileName+"_critic"+suffix)
+        if (self._modelTarget is not None):
+            # self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
+            self._modelTarget.getActorNetwork().set_weights(actor_.get_weights())
+            self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
+        # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
+        # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
+        # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
+        hf = h5py.File(fileName+"_bounds.h5",'r')
+        self.setStateBounds(np.array(hf.get('_state_bounds')))
+        self.setRewardBounds(np.array(hf.get('_reward_bounds')))
+        self.setActionBounds(np.array(hf.get('_action_bounds')))
+        # self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
+        hf.close()
         
 def linesearch(f, x, fullstep, expected_improve_rate, max_backtracks=10, accept_ratio=.1):
     """

@@ -170,24 +170,11 @@ class KERASAlgorithm(AlgorithmInterface):
         return loss
     
     def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
-        # states[0, ...] = state
-        # state = np.array(state, dtype=self._settings['float_type'])
-        # print ("value state: ", state)
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
-        # self._model.setStates(state)
-        # print("state: ", repr(state))
-        # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
         # if deterministic_:
         action_ = scale_action(self._model.getActorNetwork().predict([state], 
                                  batch_size=1)[:,:self._action_length], self._action_bounds)
-        # action_ = scale_action(self._model.getActorNetwork().predict([state, np.zeros((1,2)), np.zeros((1,1)), np.zeros((1,1))], batch_size=1)[:,:self._action_length], self._action_bounds)
-        # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
-        # else:
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
-        # action_ = q_valsActA[0]
         return action_
     
     def predictWithDropout(self, state, deterministic_=True):
