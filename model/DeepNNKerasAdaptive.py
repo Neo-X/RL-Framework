@@ -269,6 +269,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                     #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 elif ( layer_sizes[i] == "integrate_actor_part"):
                     networkAct = Concatenate()([networkAct, self._Action])
+                elif ( layer_sizes[i] == "integrate_ResultState_part"):
+                    networkAct = Concatenate()([networkAct, self._ResultState])
                 elif ( layer_sizes[i] == "integrate_gan_noise"):
                     networkAct = Concatenate()([networkAct, self._Noise])
                 elif ( layer_sizes[i] == "mark_middle"):
@@ -520,6 +522,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                 #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
             elif ( layer_sizes[i] == "integrate_actor_part"):
                 network = Concatenate()([network, self._actionInput])
+            elif ( layer_sizes[i] == "integrate_gan_conditional_cnn"):
+                # nextStateImg = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(self._ResultState)
+                nextStateImg = self._ResultState
+                network = Concatenate()([network, nextStateImg])
             elif ( layer_sizes[i] == "integrate_gan_conditional"):
                 network = Concatenate()([network, self._ResultState])
             elif ( layer_sizes[i] == "mark_middle"):
