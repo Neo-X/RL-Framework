@@ -384,11 +384,21 @@ class LearningAgent(AgentInterface):
                     if ("fd_updates_per_actor_update" in self._settings 
                         and (self._settings['fd_updates_per_actor_update'] > 1)):
                         for i in range(self._settings['fd_updates_per_actor_update']):
+                            
+                            if ("fd_algorithm" in self._settings
+                                and (self._settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")): 
+                                ### hack to train a batch from the policy state distribution
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getExperience().get_batch(value_function_batch_size)
+                                dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__*0)
+                                
                             if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                                 # print ("Using seperate (off-policy) exp mem for FD model")
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(value_function_batch_size)
                             else:
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getExperience().get_batch(value_function_batch_size)
+                            if ("fd_algorithm" in self._settings
+                                and (self._settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")):
+                                rewards__ = (rewards__ * 0) + 1
                             dynamicsLoss = self._fd.train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__)
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Forward Dynamics Loss: ", dynamicsLoss)
