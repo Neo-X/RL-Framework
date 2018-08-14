@@ -418,7 +418,8 @@ def trainModelParallel(inputData):
                     and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
                     state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
                                      [1] * settings["fd_num_terrain_features"]])
-            if ( settings['forward_dynamics_model_type'] == "SingleNet"):
+            if ( settings['forward_dynamics_model_type'] == "SingleNet"
+                 and (settings['use_single_network'] == True)):
                 print ("Creating forward dynamics network: Using single network model")
                 
                 forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds__, action_bounds, None, None, agentModel=model, print_info=True)

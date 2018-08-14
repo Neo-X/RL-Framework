@@ -929,7 +929,8 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                 forwardDynamicsModel.loadFrom(directory+"forward_dynamics"+"_Best")
             print ("FD state bounds: ", forwardDynamicsModel.getStateBounds())
         else:
-            if ( settings['forward_dynamics_model_type'] == "SingleNet"):
+            if ( settings['forward_dynamics_model_type'] == "SingleNet"
+                 and (settings['use_single_network'] == True)):
                 ## Hopefully this will allow for parameter sharing across both models...
                 fd_net = agentModel.getModel()
             else:
@@ -1020,8 +1021,12 @@ def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
     else:
         from model.ModelInterface import ModelInterface
         # modelClass = my_import(path_)
-        print("Loading FD model type:", settings["forward_dynamics_model_type"])
-        modelClass = locate(settings["forward_dynamics_model_type"])
+        fd_net_type = settings["forward_dynamics_model_type"]
+        if (fd_net_type == "SingleNet"):
+            ### Use adaptive instead
+            fd_net_type = "model.FDNNKerasAdaptive.FDNNKerasAdaptive"
+        print("Loading FD model type:", fd_net_type)
+        modelClass = locate(fd_net_type)
         if ( issubclass(modelClass, ModelInterface)): ## Double check this load will work
             model = modelClass(len(state_bounds[0]), len(action_bounds[0]), 
                                                         state_bounds, action_bounds, settings_=settings, reward_bound=settings["reward_bounds"])

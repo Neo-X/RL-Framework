@@ -70,7 +70,8 @@ class SimWorker(Process):
         forwardDynamicsModel = None
         if (self._settings['train_forward_dynamics']):
             actor = createActor(self._settings['environment_type'], self._settings, None)
-            if ( self._settings['forward_dynamics_model_type'] == "SingleNet"):
+            if ( self._settings['forward_dynamics_model_type'] == "SingleNet"
+                 and (self._settings['use_single_network'] == True)):
                 print ("Creating forward dynamics network: Using single network model")
                 forwardDynamicsModel = createForwardDynamicsModel(self._settings, state_bounds, action_bounds, None, None, agentModel=self._model.getPolicy())
                 # forwardDynamicsModel = model

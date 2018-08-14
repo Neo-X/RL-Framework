@@ -612,7 +612,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                 self._trans = getKerasActivation(self._settings['last_fd_layer_activation_type'])(self._trans)
                 
             if ("forward_dynamics_model_type" in self._settings 
-                and self._settings["forward_dynamics_model_type"] == "SingleNet"):
+                and (self._settings["forward_dynamics_model_type"] == "SingleNet")
+                and (self._settings['use_single_network'] == True)):
                 self._forward_dynamics_net = Dense(self._settings["fd_network_layer_sizes"][-1],
                                 kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                 bias_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._networkMiddle)
