@@ -91,14 +91,14 @@ class SiameseNetwork(KERASAlgorithm):
         self._train_combined_loss = False
 
         inputs_ = [self._model.getStateSymbolicVariable()] 
-        self._model._actor = Model(inputs=inputs_, outputs=self._model._actor)
+        self._model._forward_dynamics_net = Model(inputs=inputs_, outputs=self._model._forward_dynamics_net)
         if (print_info):
-            print("FD Net summary: ", self._model._actor.summary())
+            print("FD Net summary: ", self._model._forward_dynamics_net.summary())
         
         inputs_ = [self._model.getStateSymbolicVariable()] 
-        self._model._critic = Model(inputs=inputs_, outputs=self._model._critic)
+        self._model._reward_net = Model(inputs=inputs_, outputs=self._model._reward_net)
         if (print_info):
-            print("FD Reward Net summary: ", self._model._critic.summary())
+            print("FD Reward Net summary: ", self._model._reward_net.summary())
 
         self._modelTarget = None
         SiameseNetwork.compile(self)
@@ -109,19 +109,19 @@ class SiameseNetwork(KERASAlgorithm):
         # because we re-use the same instance `base_network`,
         # the weights of the network
         # will be shared across the two branches
-        processed_a = self._model._actor(self._model.getStateSymbolicVariable())
-        processed_b = self._model._actor(self._model.getResultStateSymbolicVariable())
+        processed_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
+        processed_b = self._model._forward_dynamics_net(self._model.getResultStateSymbolicVariable())
         
         distance = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
 
-        self._model._actor = Model(inputs=[self._model.getStateSymbolicVariable(),
+        self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable(),
                                self._model.getResultStateSymbolicVariable()], outputs=distance)
 
         # sgd = SGD(lr=0.0005, momentum=0.9)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
         print("sgd, actor: ", sgd)
         print ("Clipping: ", sgd.decay)
-        self._model._actor.compile(loss=contrastive_loss, optimizer=sgd)
+        self._model._forward_dynamics_net.compile(loss=contrastive_loss, optimizer=sgd)
 
         
         self._contrastive_loss = K.function([self._model.getStateSymbolicVariable(), 
@@ -132,11 +132,11 @@ class SiameseNetwork(KERASAlgorithm):
         
     def getNetworkParameters(self):
         params = []
-        params.append(copy.deepcopy(self._model.getActorNetwork().get_weights()))
+        params.append(copy.deepcopy(self._model._forward_dynamics_net.get_weights()))
         return params
     
     def setNetworkParameters(self, params):
-        self._model.getActorNetwork().set_weights(params[0])
+        self._model._forward_dynamics_net.set_weights(params[0])
         
     def setGradTarget(self, grad):
         self._fd_grad_target_shared.set_value(grad)
@@ -192,7 +192,7 @@ class SiameseNetwork(KERASAlgorithm):
         # print("Distance.shape, targets.shape: ", dist_.shape, te_y.shape)
         # print("Distance, targets: ", np.concatenate((dist_, te_y), axis=1))
         if ( dist > 0):
-            score = self._model.getActorNetwork().fit([te_pair1, te_pair2], te_y,
+            score = self._model._forward_dynamics_net.fit([te_pair1, te_pair2], te_y,
               epochs=updates, batch_size=batch_size_,
               verbose=0,
               shuffle=True
@@ -208,7 +208,7 @@ class SiameseNetwork(KERASAlgorithm):
         # print("state shape: ", np.array(state).shape)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
-        state_ = self._model.getActorNetwork().predict([state, state2])[0]
+        state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
         # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
         # print("state_ shape: ", np.array(state_).shape)
         return state_
@@ -256,7 +256,7 @@ class SiameseNetwork(KERASAlgorithm):
         states = np.concatenate((states, result_states), axis=0)
         te_pair1, te_pair2, te_y = create_pairs2(states)
         
-        predicted_y = self._model.getActorNetwork().predict([te_pair1, te_pair2])
+        predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
         te_acc = compute_accuracy(predicted_y, te_y)
         return te_acc
     
@@ -279,7 +279,7 @@ class SiameseNetwork(KERASAlgorithm):
         suffix = ".h5"
         ### Save models
         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
-        self._model._actor.save(fileName+"_FD"+suffix, overwrite=True)
+        self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
         # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
         
@@ -289,13 +289,13 @@ class SiameseNetwork(KERASAlgorithm):
         suffix = ".h5"
         print ("Loading agent: ", fileName)
         # with K.get_session().graph.as_default() as g:
-        self._model._actor = load_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
-        self._forward_dynamics_net = self._model._actor
+        self._model._forward_dynamics_net = load_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
+        self._forward_dynamics_net = self._model._forward_dynamics_net
         print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
-        # self._model._critic = load_model(fileName+"_critic"+suffix)
+        # self._model._reward_net = load_model(fileName+"_critic"+suffix)
         if (self._modelTarget is not None):
-            self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
-            self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
+            self._modelTarget._forward_dynamics_net = load_model(fileName+"_actor_T"+suffix)
+            self._modelTarget._reward_net = load_model(fileName+"_reward_net_T"+suffix)
         # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
         # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])

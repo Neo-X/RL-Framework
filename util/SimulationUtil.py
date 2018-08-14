@@ -38,7 +38,7 @@ def setupEnvironmentVariable(settings):
 def setupLearningBackend(settings):
     import keras
     # from util.MakeKerasPicklable import make_keras_picklable
-    import theano
+    # import theano
     if ("learning_backend" in settings and
         (settings["learning_backend"] == "tensorflow")):
         from keras.backend import tensorflow_backend
@@ -47,12 +47,13 @@ def setupLearningBackend(settings):
         config.gpu_options.allow_growth = True
         session = tf.Session(config=config)
         keras.backend.set_session(session)
+        
     # keras.backend.set_session(tf.Session())
     keras.backend.set_floatx(settings['float_type'])
     if ("image_data_format" in settings):
         keras.backend.set_image_data_format(settings['image_data_format'])
     print ("K.floatx()", keras.backend.floatx())
-    print ("theano.config.floatX", theano.config.floatX)
+    # print ("theano.config.floatX", theano.config.floatX)
     
 def loadNetwork(net_file_path):
     print("Loading model: ", net_file_path)

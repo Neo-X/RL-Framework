@@ -611,6 +611,18 @@ class DeepNNKerasAdaptive(ModelInterface):
                                 bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(self._networkMiddle)
                 self._trans = getKerasActivation(self._settings['last_fd_layer_activation_type'])(self._trans)
                 
+            if ("forward_dynamics_model_type" in self._settings 
+                and self._settings["forward_dynamics_model_type"] == "SingleNet"):
+                self._forward_dynamics_net = Dense(self._settings["fd_network_layer_sizes"][-1],
+                                kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
+                                bias_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._networkMiddle)
+                self._forward_dynamics_net = getKerasActivation(self._settings['last_fd_layer_activation_type'])(self._forward_dynamics_net)
+                
+                self._reward_net = Dense(self._settings["fd_network_layer_sizes"][-1],
+                                kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
+                                bias_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._networkMiddle)
+                self._reward_net = getKerasActivation(self._settings['last_fd_layer_activation_type'])(self._reward_net)
+                
             # self._actor = Model(input=self._stateInput, output=self._actor)
             # print("Actor summary: ", self._actor.summary())
             ### Render a nice graph of the network

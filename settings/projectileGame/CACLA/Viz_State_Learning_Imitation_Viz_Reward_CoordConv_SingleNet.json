@@ -125,7 +125,7 @@
     "comment__": "Add a large cost to actions that are suggested to be outside the action bounds.",
 "penalize_actions_outside_bounds": false,
     "comment__": "Network type to use for the forward dynamics model",
-"forward_dynamics_model_type": "model.FDNNKerasAdaptive.FDNNKerasAdaptive",
+"forward_dynamics_model_type": "SingleNet",
     "comment__": "Whether or not to save the Experience memory after bootstrapping",
 "save_experience_memory": false,
     "comment__": "Whether or not to train the policy and critic?",
@@ -270,7 +270,7 @@
 	"comment__": "Use the annealing schedule in on policy learning",
 "anneal_on_policy": true,
 	"comment__": "A list describing the size of the layers for the NN",
-"critic_network_layer_sizes": [[16,[2,2], [1,1]], [16,[2,2], [1,1]], "flatten_features", 64, 32],
+"critic_network_layer_sizes": [[16,[2,2], [1,1]], [16,[2,2], [1,1]], "flatten_features", 64, "mark_middle", 32],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [[16,[2,2], [1,1]], [16,[2,2], [1,1]], "flatten_features", 64, 32],
 	"comment__": "Activation function to use for the std part of the policy",
@@ -310,7 +310,7 @@
 	"comment__": "Performs MBAE random sampling at the level of episodes instead of transitions",
 "perform_mbae_episode_sampling": false,
 	"comment__": "Using a single network for all functions",
-"use_single_network": false,
+"use_single_network": true,
 	"comment__": "Anneal the std of the policy as well",
 "anneal_policy_std": false,
 	"comment__": "anneal the probability of performing explorative actions, set to >= 1.0 to perform only exploration actions",
@@ -363,5 +363,7 @@
     "comment__": "Number of terrain features for which convolutional filters should be used",
 "fd_num_terrain_features": 192,
 	"comment__": "replace the viz state in the next state with the state from the imitation agent",
-"replace_next_state_with_imitation_viz_state": false
+"replace_next_state_with_imitation_viz_state": true,
+	"comment__": "Using two different visual states",
+"use_dual_viz_state_representations": true
 }
