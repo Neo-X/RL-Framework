@@ -367,5 +367,7 @@
 	"comment__": "replace the viz state in the next state with the state from the imitation agent",
 "replace_next_state_with_imitation_viz_state": true,
 	"comment__": "Using two different visual states",
-"use_dual_viz_state_representations": true
+"use_dual_viz_state_representations": true,
+	"comment__": "Dont condition the GAN on the action, just the previous state",
+"condition_gan_on_action": false
 }
