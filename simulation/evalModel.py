@@ -41,7 +41,10 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         # print (states, actions, rewards, result_states, discounted_sum, value)
         # print ("Evaluated Actions: ", actions)
         # print ("Evaluated Rewards: ", rewards)
-        if model.getExperience().samples() >= settings['batch_size']:
+        batch_size_ = settings['batch_size']
+        if (settings["batch_size"] == "all"):
+                batch_size_ = len(states)
+        if model.getExperience().samples() >= batch_size_:
             _states, _actions, _result_states, _rewards, falls, _G_ts, exp_actions = model.getExperience().get_batch(settings['batch_size'])
             error = model.bellman_error(_states, _actions, _rewards, _result_states, falls)
         else :
