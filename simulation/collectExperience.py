@@ -162,8 +162,9 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                     state = state_
                 elif ("use_dual_viz_state_representations" in settings
                       and (settings["use_dual_viz_state_representations"] == True)):
-                    state = state[0][0]
-                    resultState = resultState[0][0]
+                    state = state[0]
+                    resultState = resultState[0]
+                
                 else:
                     state = state[0]
                     resultState = resultState[0]

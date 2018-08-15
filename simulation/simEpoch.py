@@ -376,10 +376,21 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             agent_not_fell = actor.hasNotFallen(exp)
             # print ("performed action: ", reward)
         # print ("Reward: ", reward_)
+        resultState_ = exp.getState()
         if ("use_learned_reward_function" in settings
             and (settings["use_learned_reward_function"] == True)):
-            reward_ = exp.computeImitationReward(model.getForwardDynamics().predict)
-            # print ("learned reward: ", reward_)
+            if ("fd_algorithm" in settings
+                and (settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")):
+                ### Use Discriminator 
+                # print ("state_[0]: ", np.array(state_).shape)
+                # print ("resultState_[0]: ", np.array(resultState_).shape)
+                reward_ = model.getForwardDynamics().predict([state_[0][1]], [resultState_[0][1]])[0][0]
+                print ("learned imitation reward: ", reward_)
+                reward_ = model.getForwardDynamics().predict([state_[0][0]], [resultState_[0][0]])[0][0]
+                print ("learned reward: ", reward_)
+                
+            else:
+                reward_ = exp.computeImitationReward(model.getForwardDynamics().predict)
             
         # print ("reward: ", reward_)
         baseline.append(model.q_value(state_))
@@ -394,7 +405,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (np.array([reward_]) ))))
                 reward_ = [[reward_]]
         
-        resultState_ = exp.getState()
         if ("replace_next_state_with_imitation_viz_state" in settings
             and (settings["replace_next_state_with_imitation_viz_state"] == True)):
             # print ("resultState_: ", resultState_)
@@ -510,6 +520,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     model.reset()
     if ('use_GAE' in settings and ( settings['use_GAE'] == True)):
         if (len(states[last_epoch_end:]) > 0):
+            # print ("Tranjectory state shape: ", np.array(states).shape)
             for a in range(len(states[0])):
                 # print ("Computing advantage for agent: ", a)
                 path = {}

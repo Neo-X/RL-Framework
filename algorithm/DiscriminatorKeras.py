@@ -241,14 +241,14 @@ class DiscriminatorKeras(AlgorithmInterface):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         next_state = np.array(norm_state(next_state, self._result_state_bounds), dtype=self.getSettings()['float_type'])
         # noise = np.random.normal(self._noise_mean,self._noise_std, size=(1,1))
-        prob = self._discriminate([state, next_state, 0])
+        prob = self._discriminate([state, next_state, 0])[0]
         return prob
     
     def predictWithDropout(self, state, action):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         next_state = np.array(norm_action(next_state, self._result_state_bounds), dtype=self.getSettings()['float_type'])
         # noise = np.random.normal(self._noise_mean,self._noise_std, size=(1,1))
-        state_ = scale_state(self._discriminate([state, next_state, 1])[0], self._state_bounds)
+        state_ = self._discriminate([state, next_state, 1])[0]
         return state_
     
     def predict_batch(self, states, actions):
