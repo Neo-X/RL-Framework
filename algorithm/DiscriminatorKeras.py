@@ -198,6 +198,11 @@ class DiscriminatorKeras(AlgorithmInterface):
         # generated_samples = np.array(self._generate([states, actions, noise, 0]))[0]
         # print("generated_samples: ", repr(generated_samples))
         ### Put generated samples in memory
+        ### Randomly flip one label
+        r = np.random.rand()
+        if r > 0.8:
+            indx = np.random.randint(low=0,high=states.shape[0])
+            rewards[indx] = int( np.random.rand() + 0.5)
         
         score = self._model.getCriticNetwork().fit([states, result_states], [rewards + np.random.normal(0,0.1, size=(states.shape[0],1))],
               epochs=updates, batch_size=batch_size_,
