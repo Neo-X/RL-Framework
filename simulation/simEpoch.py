@@ -418,9 +418,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 state_[0][1] = resultState_[0][0] 
             else:
                 ob = np.asarray(exp.getEnvironment().getImitationVisualState())
-                ob = np.reshape(np.array(ob), (-1, 
-                            (np.prod(ob.shape))))
+                ob = ob.flatten()
                 resultState_[0][1] = ob
+                # print("State232: ", np.array(state_[0][1]).shape)
+                # print("resultState_232: ", np.array(resultState_[0][1]).shape)
         
         ## For testing remove later
         if (settings["use_back_on_track_forcing"] and (not evaluation)):
