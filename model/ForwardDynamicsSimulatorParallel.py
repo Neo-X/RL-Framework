@@ -91,7 +91,7 @@ class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
     def __init__(self, state_length, action_length, state_bounds, action_bounds, actor, exp, settings):
 
         super(ForwardDynamicsSimulatorParallel,self).__init__(state_length, action_length, state_bounds, action_bounds, actor, exp, settings)
-        self._exp = exp # Only used to pull some data from
+        self._exp = exp ### Only used to pull some data from
         self._reward=0
         
         self._output_state_queue = Queue(1)

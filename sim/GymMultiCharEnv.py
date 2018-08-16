@@ -187,3 +187,21 @@ class GymMultiCharEnv(SimInterface):
         """
         print ( "Setting random seed: ", seed )
         self.getEnvironment().setRandomSeed(seed)
+        
+    def getStateFromSimState(self, simState):
+        """
+            Converts a detailed simulation state to a state better suited for learning
+        """
+        return self.getEnvironment().getStateFromSimState(simState)
+    
+    def getSimState(self):
+        """
+            Gets a more detailed state that can be used to re-initilize the state of the character back to this state later.
+        """
+        return self.getEnvironment().getSimState()
+    
+    def setSimState(self, state_):
+        """
+            Sets the state of the simulation to the given state
+        """
+        return self.getEnvironment().setSimState(state_)

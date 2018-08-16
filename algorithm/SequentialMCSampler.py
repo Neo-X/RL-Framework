@@ -72,7 +72,7 @@ class SequentialMCSampler(Sampler):
         if isinstance(forwardDynamics, ForwardDynamicsSimulator):
             # current_state_copy = characterSim.State(current_state.getID(), current_state.getParams())
             current_state_copy = current_state
-        # print ("Current State: " + str(current_state))
+        print ("Current State: " + str(current_state))
         _action_params = []
         samples = []
         if self.getSettings()["use_actor_policy_action_suggestion"]:
@@ -197,10 +197,12 @@ class SequentialMCSampler(Sampler):
                     current_state__ = self._exp.getStateFromSimState(current_state_)
                     init_states.append(current_state__)
                     (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=[actions[a]])
+                    reward__ = reward__[0][0]
                     # epochEnded = forwardDynamics.endOfEpoch()
                     # print ("Epoch Ended: ", epochEnded, " on action: ", a)
                     prediction_ = self._exp.getStateFromSimState(prediction)
                     # print("prediction_: ", prediction_)
+                    print ("(prediction, reward__): ", prediction, reward__)
                     if ( ( not np.all(np.isfinite(prediction_))) or (np.any(np.less(prediction_, -10000.0))) or (np.any(np.greater(prediction_, 10000.0))) ): # lots of nan values for some reason...
                         print("Reached bad state in search")
                         # break
@@ -301,6 +303,7 @@ class SequentialMCSampler(Sampler):
                     current_state__ = self._exp.getStateFromSimState(current_state_)
                     init_states.append(current_state__)
                     (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=[actions[a]])
+                    reward__ = reward__[0][0]
                     # epochEnded = forwardDynamics.endOfEpoch()
                     # print ("Epoch Ended: ", epochEnded, " on action: ", a)
                     if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...

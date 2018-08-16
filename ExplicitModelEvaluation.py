@@ -13,26 +13,23 @@ def modelSampling(settings):
         # Normalization constants for data
         
         from model.ModelUtil import getSettings
-        # settings = getSettings(settings_file_name)
+        from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+        if (settings is None):
+            settings = getSettings(settings_file_name)
         # settings['shouldRender'] = True
-        import os    
-        os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
-        if ("learning_backend" in settings):
-            # KERAS_BACKEND=tensorflow
-            os.environ['KERAS_BACKEND'] = settings['learning_backend']
-        import keras
-        import theano
-        keras.backend.set_floatx(settings['float_type'])
-        print ("K.floatx()", keras.backend.floatx())
-        print ("theano.config.floatX", theano.config.floatX)
-        
+        setupEnvironmentVariable(settings)
+        setupLearningBackend(settings)
         ## Theano needs to be imported after the flags are set.
         # from ModelEvaluation import *
         # from model.ModelUtil import *
-        from ModelEvaluation import SimWorker, evalModelParrallel, collectExperience, evalModel
+        from simulation.evalModel import evalModelParrallel, evalModel
         # from model.ModelUtil import validBounds
         from model.LearningAgent import LearningAgent, LearningWorker
         from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
+        from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, getAgentName
+        
+        
+        from util.ExperienceMemory import ExperienceMemory
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
         
         
@@ -73,7 +70,7 @@ def modelSampling(settings):
         # if (settings['use_actor_policy_action_suggestion']):
         # file_name=data_folder+getAgentName()+"_Best.pkl"
         # model = dill.load(open(file_name))
-        settings["load_saved_model"] = True
+        # settings["load_saved_model"] = True
         # settings["load_saved_model"] = "network_and_scales"
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         settings["load_saved_model"] = False
@@ -129,7 +126,7 @@ def modelSampling(settings):
     
         mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, agent, settings["discount_factor"], 
                                                 anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings, print_data=True, 
-                                                bootstrapping=True, visualizeEvaluation=None, p=10.0, sampling=True)
+                                                bootstrapping=False, visualizeEvaluation=None, p=10.0, sampling=True)
 
         print ("Average Reward: " + str(mean_reward))
         
