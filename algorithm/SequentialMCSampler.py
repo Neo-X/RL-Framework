@@ -73,7 +73,7 @@ class SequentialMCSampler(Sampler):
         if isinstance(forwardDynamics, ForwardDynamicsSimulator):
             # current_state_copy = characterSim.State(current_state.getID(), current_state.getParams())
             current_state_copy = current_state
-        print ("Current State: " + str(current_state))
+        # print ("Current State: " + str(current_state))
         _action_params = []
         samples = []
         if self.getSettings()["use_actor_policy_action_suggestion"]:
