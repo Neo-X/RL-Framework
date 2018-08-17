@@ -714,3 +714,95 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         
     tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
     return (tuples, discounted_sum, value, evalData)
+
+# @profile(precision=5)
+def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None, type=None, p=1):
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+        print ("Simulating epochs in Parallel:")
+    j=0
+    timeout_ = 60 * 10 ### 10 min timeout
+    discounted_values = []
+    bellman_errors = []
+    reward_over_epocs = []
+    values = []
+    evalDatas = []
+    epoch_=0
+    states = []
+    actions = []
+    result_states = []
+    rewards = []
+    falls = []
+    G_ts = []
+    advantage = [] 
+    exp_actions = []
+    discounted_sum = []
+    value = []
+    evalData = []
+    i = 0 
+    
+    if ("num_on_policy_rollouts" in settings):
+        min_samples = settings["num_on_policy_rollouts"] * settings["max_epoch_length"]
+    else:
+        min_samples = settings["epochs"] * settings["max_epoch_length"]
+    
+    if (   ("anneal_exploration" in settings) 
+         and (settings['anneal_exploration'] != False)
+         # and (r < (max(float(settings['anneal_exploration']), epsilon * p))) ) 
+        ):
+        p_ = max(float(settings['anneal_exploration']), settings['epsilon'] * p)
+        min_samples = min_samples * (1.0/p_)
+    
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+            print("Updated min sample from collection is: ", min_samples)
+    samples__ = 0
+    while ( (samples__ < (min_samples))
+            ):
+        
+        j = 0
+        # print("j: ", j)
+        # while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
+        while (j < abs(settings['num_available_threads'])):
+            episodeData = {}
+            episodeData['data'] = i
+            if ( (type is None) ):
+                episodeData['type'] = 'sim_on_policy'
+            else:
+                episodeData['type'] = 'bootstrapping'
+            # sw_message_queues[j].put(episodeData)
+            if (settings['on_policy']):
+                # print ("sw_message_queues[j].maxsize: ", sw_message_queues[j].qsize() )
+                sw_message_queues[j].put(episodeData, timeout=timeout_)
+            else:
+                sw_message_queues.put(episodeData, timeout=timeout_)
+            j += 1
+            
+        j = 0
+        # while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
+        while (j < abs(settings['num_available_threads'])):
+            (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get(timeout=timeout_)
+            discounted_sum.append(discounted_sum_)
+            value.append(value_)
+            evalData.append(evalData_)
+            j += 1
+            """
+            simEpoch(actor, exp, 
+                    model, discount_factor, anchors=anchs, action_space_continuous=action_space_continuous, 
+                    settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
+                    visualizeEvaluation=visualizeEvaluation)
+            """
+            epoch_ = epoch_ + 1
+            (states_, actions_, result_states_, rewards_, falls_, G_ts_, advantage_, exp_actions_) = tuples
+            samples__ = samples__ + len(states_)
+            states.append(states_)
+            actions.append(actions_)
+            result_states.append(result_states_)
+            rewards.append(rewards_)
+            falls.append(falls_)
+            G_ts.append(G_ts_)
+            advantage.append(advantage_)
+            exp_actions.append(exp_actions_)
+        i += j
+        # print("samples collected so far: ", len(states))
+        
+    tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
+    return (tuples, discounted_sum, value, evalData)
