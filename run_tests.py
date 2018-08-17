@@ -8,13 +8,32 @@ import sys
 import time
 import datetime
 
+### Need to go through them in order avoid issues with Tensorflow state staying around...
+tests_ =['test_cacla.py',
+         'test_ddpg.py',
+         'test_fd_models.py',
+         'test_learning.py',
+         'test_mbrl.py',
+         'test_meta_training.py',
+         'test_model.py',
+         'test_multiAgentNav.py',
+         'test_ppo.py',
+         'test_ppo_more.py',
+         'test_saveandload_fd.py',
+         'test_saveandload.py',
+         'test_simulation.py',
+         'test_viz_imitation.py',
+         ]
+
 def run_tests(metaSettings, test=False):
     if (test):
         print ("test run")
         pytest.main(['tests/test_model.py', '--junitxml=' + metaSettings['j_unit_filename'], '--workers=2', '--tests-per-worker=1'])
     else:
         print ("Starting full run: ")
-        pytest.main(['tests/', '--junitxml=' + metaSettings['j_unit_filename'], '--workers', str(metaSettings['tuning_threads']), '--tests-per-worker=1', '--show-capture=no', '--show-progress', '--timeout_method=thread'])
+        for tests in tests_:
+            print ("Running tests: ", tests)
+            pytest.main(['tests/' + tests, '--junitxml=' + tests + metaSettings['j_unit_filename'], '--workers', str(metaSettings['tuning_threads']), '--tests-per-worker=1', '--show-capture=no', '--timeout_method=thread'])
         # pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
             
 if __name__ == '__main__':
