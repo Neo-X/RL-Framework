@@ -168,3 +168,7 @@ class OpenAIGymEnv(SimInterface):
             Sets the state of the simulation to the given state
         """
         self.getEnvironment().setSimState(simState)
+
+    def getAnimationTime(self):
+        return 0
+    
