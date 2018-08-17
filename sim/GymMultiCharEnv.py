@@ -188,6 +188,12 @@ class GymMultiCharEnv(SimInterface):
         print ( "Setting random seed: ", seed )
         self.getEnvironment().setRandomSeed(seed)
         
+    def computeReward(self, state, next_state):
+        """
+            Computes a version of the true environment reward
+        """
+        return self.getEnvironment().computeReward(state, next_state)
+        
     def getStateFromSimState(self, simState):
         """
             Converts a detailed simulation state to a state better suited for learning
@@ -205,3 +211,8 @@ class GymMultiCharEnv(SimInterface):
             Sets the state of the simulation to the given state
         """
         return self.getEnvironment().setSimState(state_)
+    
+    def getAnimationTime(self):
+        """
+        """
+        return self.getEnvironment().getAnimationTime()

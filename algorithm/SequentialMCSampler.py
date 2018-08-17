@@ -63,6 +63,7 @@ class SequentialMCSampler(Sampler):
             with the same state.
         
         """
+        sim_time = self._exp.getAnimationTime()
         _action_dimension = len(self.getSettings()["action_bounds"][0])
         _action_bounds = np.array(self.getSettings()["action_bounds"])
         # import characterSim
@@ -202,7 +203,7 @@ class SequentialMCSampler(Sampler):
                     # print ("Epoch Ended: ", epochEnded, " on action: ", a)
                     prediction_ = self._exp.getStateFromSimState(prediction)
                     # print("prediction_: ", prediction_)
-                    print ("(prediction, reward__): ", prediction, reward__)
+                    # print ("(prediction, reward__): ", prediction, reward__)
                     if ( ( not np.all(np.isfinite(prediction_))) or (np.any(np.less(prediction_, -10000.0))) or (np.any(np.greater(prediction_, 10000.0))) ): # lots of nan values for some reason...
                         print("Reached bad state in search")
                         # break
@@ -237,7 +238,7 @@ class SequentialMCSampler(Sampler):
                     
                     predictions.append(prediction)
                     # print ("prediction: ", prediction)
-                    y.append(self._exp.computeReward(prediction[0], None))
+                    y.append(self._exp.computeReward(prediction[0], sim_time + (a * 0.033)))
                     current_state_ = prediction
             predictions__.append(predictions)
             ys__.append(y)
@@ -339,7 +340,7 @@ class SequentialMCSampler(Sampler):
                         print("Reached bad state in search")
                         # break
                     predictions.append(prediction)
-                    y.append(self._exp.computeReward(prediction[0], None))
+                    y.append(self._exp.computeReward(prediction[0], sim_time + (a * 0.033)))
                     current_state_ = prediction
                     
             # print (pa, y)
