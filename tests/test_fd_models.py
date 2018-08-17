@@ -1,7 +1,7 @@
 from nose.tools import timed
 from numpy.testing import assert_allclose
 import numpy as np
-
+import pytest
 import warnings
 from model.ModelUtil import *
 from trainModel import trainModelParallel

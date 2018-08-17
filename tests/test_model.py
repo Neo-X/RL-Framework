@@ -3,6 +3,7 @@ import numpy as np
 from nose.tools import timed
 import warnings
 from model.ModelUtil import *
+import pytest
 
 class TestModel(object):
 
