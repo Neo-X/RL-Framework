@@ -9,7 +9,7 @@ import json
 ### Disable this test for now, it is way to slow...
 class DontTestTerrainRLImitate(object):
 
-    @timed(600)
+    @pytest.mark.timeout(600)
     def test_ppo_keras_walk_flat_2D(self):
         """
         Test that PPO can still learn a good policy

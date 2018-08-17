@@ -10,7 +10,7 @@ import json
 class TestPPOMore(object):
 
     """
-    @timed(600)
+    @pytest.mark.timeout(600)
     def test_ppo_particleNav_2D(self):
         ### Test that PPO can still learn a good policy on 2d particle sim
         filename = "tests/settings/particleSim/PPO/PPO.json"
@@ -26,7 +26,7 @@ class TestPPOMore(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
     
-    @timed(600)   
+    @pytest.mark.timeout(600)   
     def test_ppo_keras_particleNav_2D(self):
         ### Test that PPO can still learn a good policy on 2d particle sim
         filename = "tests/settings/particleSim/PPO/PPO_KERAS.json"
@@ -43,7 +43,7 @@ class TestPPOMore(object):
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
     """ 
     
-    @timed(600)
+    @pytest.mark.timeout(600)
     def test_ppo_keras_gapGame_2D(self):
         """
             Test that PPO can still learn a good policy on 2d gapgame sim
@@ -61,7 +61,7 @@ class TestPPOMore(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > 0.65
     
-    @timed(600)   
+    @pytest.mark.timeout(600)   
     def test_ppo_keras_gapGame_2D(self):
         """
             Test that PPO can still learn a good policy on 2d gapgame sim

@@ -16,6 +16,11 @@ python3 -m pytest tests/ -n<number_of_processes_to_use>
 1. pip3 install --user nose_xunitmp
 1. pip3 install --user junit2html
 
+for pytest
+
+1. pip3 install --user pytest-parallel
+1. pip3 install --user pytest-timeout
+
 ### Email test results
 
 ```
