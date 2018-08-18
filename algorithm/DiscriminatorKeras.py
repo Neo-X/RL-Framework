@@ -212,8 +212,8 @@ class DiscriminatorKeras(AlgorithmInterface):
             indx = np.random.randint(low=0,high=states.shape[0])
             rewards[indx] = int( np.random.rand() + 0.5)
         """
-        rewards_ = np.clip(rewards + np.random.normal(0,0.1, size=(states.shape[0],1)), 0.1, 0.9)
-        print ("Descriminator targets: ", np.mean(rewards_))
+        rewards_ = np.clip(rewards + np.random.normal(0,0.1, size=(states.shape[0],1)), 0.01, 0.99)
+        # print ("Descriminator targets: ", np.mean(rewards_))
         score = self._model.getCriticNetwork().fit([states, result_states], [rewards_],
               epochs=updates, batch_size=batch_size_,
               verbose=0,
@@ -221,7 +221,7 @@ class DiscriminatorKeras(AlgorithmInterface):
               # callbacks=[early_stopping],
               )
         out = self._discriminate([states, result_states, 0])[0]
-        print ("Descriminator predictions: ", np.mean(out))
+        # print ("Descriminator predictions: ", np.mean(out))
         loss = score.history['loss'][0]
         # print("Discriminator loss: ", loss)
         return loss
