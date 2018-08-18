@@ -94,8 +94,13 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             print("Computed state min bound: ", state_avg - state_stddev)
             print("Computed state max bound: ", state_avg + state_stddev)
             print ("(state_avg - (state_stddev * ", scale_factor, ")): ", (state_avg - (state_stddev * scale_factor)))
-            state_bounds[0] = (state_avg - (state_stddev * scale_factor))
-            state_bounds[1] = (state_avg + (state_stddev * scale_factor))
+            if ("use_dual_state_representations" in settings
+                and (settings["use_dual_state_representations"] == True)):
+                state_bounds = [ (state_avg - (state_stddev * scale_factor))[0],
+                            (state_avg + (state_stddev * scale_factor))[0]]
+            else:
+                state_bounds = [ (state_avg - (state_stddev * scale_factor)),
+                                (state_avg + (state_stddev * scale_factor))]
         elif (settings['state_normalization'] == "given"):
             # pass # Use bound specified in file
             state_bounds = np.array(settings['state_bounds'], dtype=float)

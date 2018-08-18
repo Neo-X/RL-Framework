@@ -64,13 +64,20 @@ class DiscriminatorKeras(AlgorithmInterface):
         self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable(), 
                             self._model.getResultStateSymbolicVariable()], 
                              outputs=[self._model._critic])
+        """
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
                                     epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
-                                    amsgrad=False)
+                                    amsgrad=True)
+        """
+        
+        sgd = keras.optimizers.RMSprop(lr=np.float32(self.getSettings()['fd_learning_rate']) 
+                                    )
+        
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
         self._model.getCriticNetwork().compile(loss=['binary_crossentropy'], optimizer=sgd)
+        # self._model.getCriticNetwork().compile(loss=['mse'], optimizer=sgd)
         print("Discriminator Net summary: ",  self._model.getCriticNetwork().summary())
         
         """
@@ -205,12 +212,16 @@ class DiscriminatorKeras(AlgorithmInterface):
             indx = np.random.randint(low=0,high=states.shape[0])
             rewards[indx] = int( np.random.rand() + 0.5)
         """
-        score = self._model.getCriticNetwork().fit([states, result_states], [rewards + np.random.normal(0,0.1, size=(states.shape[0],1))],
+        rewards_ = np.clip(rewards + np.random.normal(0,0.1, size=(states.shape[0],1)), 0.1, 0.9)
+        print ("Descriminator targets: ", np.mean(rewards_))
+        score = self._model.getCriticNetwork().fit([states, result_states], [rewards_],
               epochs=updates, batch_size=batch_size_,
               verbose=0,
               shuffle=True
               # callbacks=[early_stopping],
               )
+        out = self._discriminate([states, result_states, 0])[0]
+        print ("Descriminator predictions: ", np.mean(out))
         loss = score.history['loss'][0]
         # print("Discriminator loss: ", loss)
         return loss
