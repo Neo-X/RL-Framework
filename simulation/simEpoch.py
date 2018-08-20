@@ -384,10 +384,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 ### Use Discriminator 
                 # print ("state_[0]: ", np.array(state_).shape)
                 # print ("resultState_[0]: ", np.array(resultState_).shape)
-                reward_ = model.getForwardDynamics().predict([state_[0][1]], [resultState_[0][1]])[0][0]
-                print ("learned imitation reward: ", reward_, " imitation state sum: ", np.sum(resultState_[0][1]))
+                # reward_ = model.getForwardDynamics().predict([state_[0][1]], [resultState_[0][1]])[0][0]
+                # print ("learned imitation reward: ", reward_, " imitation state sum: ", np.sum(resultState_[0][1]))
                 reward_ = model.getForwardDynamics().predict([state_[0][0]], [resultState_[0][0]])[0][0]
-                print ("learned reward: ", reward_)
+                # print ("learned reward: ", reward_)
                 
             else:
                 reward_ = exp.computeImitationReward(model.getForwardDynamics().predict)

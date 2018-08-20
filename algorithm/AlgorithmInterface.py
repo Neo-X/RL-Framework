@@ -510,7 +510,7 @@ class AlgorithmInterface(object):
         self._settings = copy.deepcopy(settings_)
     
     def setStateBounds(self, bounds):
-        print ("Setting state bounds: ", self, bounds)
+        # print ("Setting state bounds: ", self, bounds)
         self._state_bounds = bounds
         self.setResultStateBounds(bounds)
     def setActionBounds(self, bounds):
