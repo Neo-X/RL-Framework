@@ -17,6 +17,30 @@ from keras.models import Sequential, Model
 # theano.config.mode='FAST_COMPILE'
 from algorithm.KERASAlgorithm import KERASAlgorithm
 
+
+
+I'm a newbie in Keras and I'm trying to solve the task of sentence similairty using NN in Keras. I use word2vec as word embedding, and then a Siamese Network to prediction how similar two sentences are. The base network for the Siamese Network is a LSTM, and to merge the two base network I use a Lambda layer with cosine similairty metric. As dataset I'm using SICK dataset, that gives a score to each pair of sentences, from 1(different) to 5(very similar).
+
+I created the network and it runs, but I have a lot of doubts : first of all I'm not sure if the way I feed the LSTM with sentences is fine. I take word2vec embedding for each word and I create only one array per sentence, padding it with zeros to seq_len in order to obtain same lenght arrays. And then I reshape it in this way : data_A = embedding_A.reshape((len(embedding_A), seq_len, feature_dim))
+
+Besides I'm not sure if my Siamese Network is correct, beacuse a lot of predictionion for different pairs are equal and the loss doesn't change much (from 0.3300 to 0.2105 in 10 epochs, and it doesn't change much more in 100 epochs).
+
+Someone can help me find and understand my mistakes? Thanks so much (and sorry for my bad english)
+
+Interested part in my code
+
+def cosine_distance(y_true, y_pred):
+    #I'm not sure about this function too
+    y_true, y_pred = vecs
+    y_true = K.l2_normalize(y_true, axis=-1)
+    y_pred = K.l2_normalize(y_pred, axis=-1)
+    return K.mean(1 - K.sum((y_true * y_pred), axis=-1))
+
+def cosine_dist_output_shape(shapes):
+    shape1, shape2 = shapes
+    print((shape1[0], 1))
+    return (shape1[0], 1)
+
 def euclidean_distance(vects):
     x, y = vects
     return K.sqrt(K.sum(K.square(x - y), axis=1, keepdims=True))
