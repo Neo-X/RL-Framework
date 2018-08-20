@@ -76,15 +76,20 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         state_bounds = np.ones((2,states.shape[1]))
         
-        if (settings['state_normalization'] == "minmax"):
+        state_normalization = settings['state_normalization']
+        if ( "use_dual_state_representations" in settings
+             and (settings["use_dual_state_representations"] == True)):
+            state_normalization = "given"
+        
+        if (state_normalization == "minmax"):
             state_bounds[0] = np.min(states[:settings['bootstrap_samples']], axis=0)
             state_bounds[1] = np.max(states[:settings['bootstrap_samples']], axis=0)
             reward_bounds[0] = np.min(rewards_[:settings['bootstrap_samples']], axis=0)
             reward_bounds[1] = np.max(rewards_[:settings['bootstrap_samples']], axis=0)
             # action_bounds[0] = np.min(actions[:settings['bootstrap_samples']], axis=0)
             # action_bounds[1] = np.max(actions[:settings['bootstrap_samples']], axis=0)
-        elif (settings['state_normalization'] == "variance" or
-              settings['state_normalization'] == "adaptive"):
+        elif (state_normalization == "variance" or
+              state_normalization == "adaptive"):
             state_avg = np.mean(states[:settings['bootstrap_samples']], axis=0)
             state_stddev = np.std(states[:settings['bootstrap_samples']], axis=0)
             reward_avg = np.mean(rewards_[:settings['bootstrap_samples']], axis=0)
@@ -101,11 +106,11 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             else:
                 state_bounds = [ (state_avg - (state_stddev * scale_factor)),
                                 (state_avg + (state_stddev * scale_factor))]
-        elif (settings['state_normalization'] == "given"):
+        elif (state_normalization == "given"):
             # pass # Use bound specified in file
             state_bounds = np.array(settings['state_bounds'], dtype=float)
         else:
-            print ("State scaling strategy unknown: ", (settings['state_normalization']))
+            print ("State scaling strategy unknown: ", (state_normalization))
             assert False
             
         ## Cast data to the proper type
