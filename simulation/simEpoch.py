@@ -391,6 +391,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 
             else:
                 reward_ = exp.computeImitationReward(model.getForwardDynamics().predict)
+                
+        if ("use_learned_fast_function" in settings
+            and (settings["use_learned_fast_function"] == True)):
+            sim_time = exp.getAnimationTime()
+            reward_ = exp.computeReward(resultState_, sim_time)
+            # print("reward: ", reward_)
             
         # print ("reward: ", reward_)
         baseline.append(model.q_value(state_))
