@@ -189,7 +189,11 @@ class DeepNNKerasAdaptive(ModelInterface):
                         networkAct = keras.layers.AveragePooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=self._data_format_)(networkAct)
                     elif ( layer_sizes[i][0] == "dropout" ):
-                        networkAct = Dropout(rate=layer_sizes[i][1])(networkAct)                                                
+                        networkAct = Dropout(rate=layer_sizes[i][1])(networkAct)
+                    elif ( layer_sizes[i][0] == "integrate_actor_part"):
+                        # nextStateImg = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(self._ResultState)
+                        subnet = self.createSubNetwork(self._Action, layer_sizes[i][1])
+                        networkAct = Concatenate()([networkAct, subnet])                                                
                     elif ( len(layer_sizes[i][1])> 1):
                         if (i == 0):
                             if ('split_terrain_input' in self._networkSettings 
@@ -449,6 +453,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                     # nextStateImg = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(self._ResultState)
                     nextStateImg = self._ResultState
                     subnet = self.createSubNetwork(nextStateImg, layer_sizes[i][1])
+                    network = Concatenate()([network, subnet])
+                elif ( layer_sizes[i][0] == "integrate_actor_part"):
+                    # nextStateImg = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(self._ResultState)
+                    subnet = self.createSubNetwork(self._Action, layer_sizes[i][1])
                     network = Concatenate()([network, subnet])  
                 elif ( len(layer_sizes[i][1])> 1):
                     if (i == 0):
