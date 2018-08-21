@@ -61,6 +61,9 @@ class SequentialMCSampler(Sampler):
 
         _action_dimension = len(self.getSettings()["action_bounds"][0])
         _action_bounds = np.array(self.getSettings()["action_bounds"])
+        if ("resuse_mbrl_samples" in self.getSettings()
+            and "resuse_mbrl_samples" in self.getSettings()):
+            self._previous_data
         current_state_copy = current_state 
         if isinstance(forwardDynamics, ForwardDynamicsSimulator):
             # current_state_copy = characterSim.State(current_state.getID(), current_state.getParams())
@@ -71,44 +74,21 @@ class SequentialMCSampler(Sampler):
         if self.getSettings()["use_actor_policy_action_suggestion"]:
             variance____=self.getSettings()['variance_scalling']
             variance__=[variance____]
+            ### Start out at the same state for each trajectory
             current_state_copy2 = copy.deepcopy(current_state_copy)
             current_state_copy__ = self._exp.getStateFromSimState(current_state_copy)
             action = model.predict(current_state_copy__)
-            _bestSample[0] = action
             ## Get first action
             for i in range(look_ahead):
                 if isinstance(forwardDynamics, ForwardDynamicsSimulator):
-                    current_state_copy3 = copy.deepcopy(current_state_copy2)
-                    """
-                    if ( (not (np.all(np.isfinite(current_state_copy3)) and (np.all(np.greater(current_state_copy3, -10000.0))) and (np.all(np.less(current_state_copy3, 10000.0))))) or 
-                            self._exp.endOfEpoch()  
-                         ): # lots of nan values for some reason...
-                        print("Found bad sim state in search", current_state_copy3)
-                        print("endOfEpoch(): ", self._exp.endOfEpoch())
-                        break
-                    """
                     current_state_copy__ = self._exp.getStateFromSimState(current_state_copy)
-                    """
-                    if ( (not (np.all(np.isfinite(current_state_copy__)) and (np.all(np.greater(current_state_copy__, -10000.0))) and (np.all(np.less(current_state_copy__, 10000.0))))) or 
-                            self._exp.endOfEpoch()  
-                         ): # lots of nan values for some reason...
-                        print("Found bad state in search", current_state_copy__)
-                        print("endOfEpoch(): ", self._exp.endOfEpoch())
-                        break
-                    """
                     # print ("current_state_copy__: ", current_state_copy__)
                     pa = model.predict(np.array([current_state_copy__]))
-                    """
-                    if ( (not (np.all(np.isfinite(pa)) and (np.all(np.greater(pa, -10000.0))) and (np.all(np.less(pa, 10000.0)))))
-                         ): # lots of nan values for some reason...
-                        print("Found bad action in search: ", pa)
-                        break
-                    """
                     if self.getSettings()["use_actor_policy_action_variance_suggestion"]:
                         
                         lSquared =(4.1**2)
                         ## This uses the learned model so in the case the state given must be that used by the model
-                        current_state_copy3__ = self._exp.getStateFromSimState(current_state_copy3)
+                        current_state_copy3__ = self._exp.getStateFromSimState(current_state_copy2)
                         variance__ = getModelPredictionUncertanty(model, current_state_copy3__, 
                                                         length=4.1, num_samples=32, settings=self.getSettings())
                         
@@ -125,21 +105,18 @@ class SequentialMCSampler(Sampler):
                         variance__=[variance____]*(len(pa)*look_ahead)
                 else:
                     pa = model.predict(current_state_copy2)
+                    # print ("policy pa: ", pa)
                     variance__=[variance____]*pa.size*look_ahead
                 
                 action = pa
                 _action_params.extend(action)
-                # print ("Suggested Action: " + str(action) + " for state: " + str(current_state_copy) + " " + str(current_state_copy.getParams()) + " with variance: " + str(variance__))
+                ### progress forward in time
                 if isinstance(forwardDynamics, ForwardDynamicsSimulator):
-                    current_state_copy3 = forwardDynamics._predict(state__c=current_state_copy2, action=pa)
+                    current_state_copy2 = forwardDynamics._predict(state__c=current_state_copy2, action=pa)
                 else:
-                    current_state_copy3 = forwardDynamics.predict(current_state_copy2, action)
-                # samples = self.generateSamples(_action_bounds,  num_samples=5)
-                # samples = self.generateSamples(bounds,  num_samples=self._settings["num_uniform_action_samples"])
-            # num_samples_ = pow(self.getSettings()["num_uniform_action_samples"], _action_dimension)
+                    current_state_copy2 = forwardDynamics.predict(current_state_copy2, action)
             num_samples_ = self.getSettings()["num_uniform_action_samples"] * (_action_dimension)
             # print ("Number of initial random samples: ", num_samples_)
-            # variance__=[variance____]*(len(_action_params))
             _action_params = np.ravel(_action_params)
             # print ("_action_params: ", _action_params, " variance: ", variance__, " for pid: ", os.getpid())
             samples = self.generateSamplesFromNormal(mean=_action_params, num_samples=num_samples_, variance_=variance__)
@@ -148,12 +125,6 @@ class SequentialMCSampler(Sampler):
             # samples = self.generateSamples(_action_bounds,  num_samples=self.getSettings()["num_uniform_action_samples"], repeate=look_ahead)
             samples = self.generateSamplesUniform(_action_bounds,  num_samples=num_samples_, repeate=look_ahead)
             # print ("Samples: ", samples)
-        # print ("Current state sample: " + str(current_state_copy.getParams()))
-        """
-        if not ( np.all(np.isfinite(current_state_copy)) and (np.all(np.greater(current_state_copy, -10000.0))) and (np.all(np.less(current_state_copy, 10000.0))) ): # lots of nan values for some reason...
-            print("Found bad Current State in search")
-            return _bestSample
-        """
         return samples
     
     def trySample(self, sample, model, forwardDynamics, current_state, look_ahead):
@@ -302,6 +273,7 @@ class SequentialMCSampler(Sampler):
                 _bestSample[3] = predictions
         _bestSample[1] = self.discountedSum(_bestSample[1], discount_factor=mbrl_discount_factor)
         # print ("Best Sample: ", _bestSample[0], _bestSample[1])
+        self._previous_data = self._samples
         return _bestSample
     
     def discountedSum(self, rewards, discount_factor=0.7):

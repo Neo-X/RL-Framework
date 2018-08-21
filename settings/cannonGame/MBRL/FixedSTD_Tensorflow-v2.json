@@ -68,7 +68,7 @@
     "comment__": "Method to be used for the forward dynamics model is the model types uses a simulator",
 "sampling_method": "algorithm.SequentialMCSampler.SequentialMCSampler",
     "comment__": "Use the action suggested by the policy to start the sampling method.",
-"use_actor_policy_action_suggestion": false,
+"use_actor_policy_action_suggestion": true,
     "comment__": "If selecting from a uniform distribution the number of regularly distant samples to take / action dimension",
 "num_uniform_action_samples": 5,
     "comment__": "Number of steps ahead the actions should be sampled",
