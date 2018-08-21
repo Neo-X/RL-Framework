@@ -17,17 +17,6 @@ from keras.models import Sequential, Model
 # theano.config.mode='FAST_COMPILE'
 from algorithm.KERASAlgorithm import KERASAlgorithm
 
-def loss_std(action_true, action_pred):
-    action_true = action_true[:,:self._state_length]
-    action_pred_mean = action_pred[:,:self._state_length]
-    action_pred_std = action_pred[:,self._state_length:]
-    prob = loglikelihood_keras(action_true, action_pred_mean, action_pred_std, self._state_length)
-    # entropy = 0.5 * T.mean(T.log(2 * np.pi * action_pred_std + 1 ) )
-    # actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)) + (entropy * 1e-2))
-    actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)))
-    ### Average over batch
-    return actLoss
-
 class ForwardDynamicsKerasEnsamble(KERASAlgorithm):
     
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):

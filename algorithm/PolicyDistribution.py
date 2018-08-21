@@ -13,6 +13,8 @@ import keras.backend as K
 import keras
 from keras.models import Sequential, Model
 
+from model.LearningUtil import loglikelihood_keras, likelihood_keras, kl_keras, kl_D_keras, entropy_keras
+
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 # from DeepCACLA import DeepCACLA
@@ -24,13 +26,13 @@ class PolicyDistribution(KERASAlgorithm):
         super(PolicyDistribution,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
         
         ## primary network
-        ## primary network
         self._model = model
         self._model._actor = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._actor)
         print("Actor summary: ", self._model._actor.summary())
         self._model._critic = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._critic)
         print("Critic summary: ", self._model._critic.summary())
-        ## Target network
+        
+        ### Target network
         # self._modelTarget = copy.deepcopy(model)
         self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
         self._modelTarget._actor = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._actor)
@@ -39,21 +41,22 @@ class PolicyDistribution(KERASAlgorithm):
         print("Target Critic summary: ", self._modelTarget._critic.summary())
         # print ("Loss ", self._model.getActorNetwork().total_loss)
         
-        ## Target network
-        ## self._modelTarget = copy.deepcopy(model)
-        # self._modelTarget = model
-        
         self._q_valsActA = self._model.getActorNetwork()(self._model._stateInput)
         self._q_valsActTarget = self._modelTarget.getActorNetwork()(self._model._stateInput)
-        self._q_valsActASTD = ( K.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
-        self._q_valsActTargetSTD = (K.ones_like(self._q_valsActTarget)) * self.getSettings()['exploration_rate']
         
-        self._actor_buffer_states=[]
-        self._actor_buffer_result_states=[]
-        self._actor_buffer_actions=[]
-        self._actor_buffer_rewards=[]
-        self._actor_buffer_falls=[]
-        self._actor_buffer_diff=[]
+        self._q_valsActA = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
+        if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])): 
+            # self._q_valsActASTD = (self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) + 1e-2
+            self._q_valsActASTD = ((self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) * self.getSettings()['exploration_rate']) + 1e-2
+        else:
+            self._q_valsActASTD = ( K.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
+        
+        self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
+        if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])): 
+            # self._q_valsActTargetSTD = (self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) + 1e-2
+            self._q_valsActTargetSTD = ((self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) * self.getSettings()['exploration_rate']) + 1e-2 
+        else:
+            self._q_valsActTargetSTD = (K.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
         
         self.__value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
         self.__value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
@@ -65,6 +68,18 @@ class PolicyDistribution(KERASAlgorithm):
         
     def compile(self):
         # sgd = SGD(lr=0.001, momentum=0.9)
+        
+        def loss_std(action_true, action_pred):
+            action_true = action_true[:,:self._action_length]
+            action_pred_mean = action_pred[:,:self._action_length]
+            action_pred_std = action_pred[:,self._action_length:]
+            prob = loglikelihood_keras(action_true, action_pred_mean, action_pred_std, self._action_length)
+            # entropy = 0.5 * T.mean(T.log(2 * np.pi * action_pred_std + 1 ) )
+            # actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)) + (entropy * 1e-2))
+            actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)))
+            ### Average over batch
+            return actLoss
+        
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['critic_learning_rate']), beta_1=np.float32(0.9), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
@@ -73,8 +88,12 @@ class PolicyDistribution(KERASAlgorithm):
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), beta_1=np.float32(0.9), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
         print("sgd, actor: ", sgd)
         print ("Clipping: ", sgd.decay)
-        self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
-        
+        if ("use_stochastic_policy" in self.getSettings()
+            and (self.getSettings()['use_stochastic_policy'] == True)):
+            self._model.getActorNetwork().compile(loss=loss_std, optimizer=sgd)
+        else:
+            self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
+            
         self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
         
         gradients = K.gradients(K.mean(self.__value), [self._model._stateInput]) # gradient tensors
@@ -144,40 +163,6 @@ class PolicyDistribution(KERASAlgorithm):
         bellman_error = target_ - values
         return bellman_error
         # return self._bellman_errorTarget()
-        
-    def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
-        """
-            Performs a DYNA type update
-            Because I am using target networks a direct DYNA update does nothing. 
-            The gradients are not calculated for the target network.
-            L(\theta) = (r + V(s'|\theta')) - V(s|\theta))
-            Instead what is done is this
-            L(\theta) = V(s_1|\theta')) - V(s_2|\theta))
-            Where s1 comes from the simulation and s2 is a predicted and noisey value from an fd model
-            Parameters
-            ----------
-            predicted_states : predicted states, s_1
-            actions : list of actions
-            rewards : rewards for taking action a_i
-            result_states : simulated states, s_2
-            falls: list of flags for whether or not the character fell
-            Returns
-            -------
-            
-            loss: the loss for the DYNA type update
-
-        """
-    
-        y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=result_states.shape[0])
-        # v = self._model.getCriticNetwork().predict(predicted_states, batch_size=states.shape[0])
-        # target_ = rewards + ((self._discount_factor * y_) * falls)
-        score = self._model.getCriticNetwork().fit(predicted_states, y_,
-              nb_epoch=1, batch_size=predicted_states.shape[0],
-              verbose=0
-              # callbacks=[early_stopping],
-              )
-        loss = score.history['loss'][0]
-        # print(" Critic loss: ", loss)
         
     def get_actor_regularization(self):
         return self._get_actor_regularization([])
