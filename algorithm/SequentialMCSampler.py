@@ -76,13 +76,9 @@ class SequentialMCSampler(Sampler):
             variance__=[variance____]
             ### Start out at the same state for each trajectory
             current_state_copy2 = copy.deepcopy(current_state_copy)
-            current_state_copy__ = self._exp.getStateFromSimState(current_state_copy)
-            action = model.predict(current_state_copy__)
-            ## Get first action
             for i in range(look_ahead):
                 if isinstance(forwardDynamics, ForwardDynamicsSimulator):
                     current_state_copy__ = self._exp.getStateFromSimState(current_state_copy)
-                    # print ("current_state_copy__: ", current_state_copy__)
                     pa = model.predict(np.array([current_state_copy__]))
                     if self.getSettings()["use_actor_policy_action_variance_suggestion"]:
                         
