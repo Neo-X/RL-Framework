@@ -273,7 +273,7 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [[8,[8,8]], [4,[4,4]], "flatten_features", 128],
 	"comment__": "Activation function to use for the std part of the policy",
-"_last_std_policy_layer_activation_type": "softplus",
+"_last_std_policy_layer_activation_type": "sigmoid",
 	"comment__": "type of activation to use",
 "activation_type": "leaky_rectify",
 	"comment__": "type of activation to use for policy",
