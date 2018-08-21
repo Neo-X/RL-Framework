@@ -446,6 +446,15 @@ class SequentialMCSampler(Sampler):
         # self._samples = []
         # print ("Done computing pdf data: " + str(self._data))
         
+    def getSampleNeighbours(self, sample_):
+        
+        self._samples
+        neighbours = []
+        points = copy.deepcopy(self._samples)
+        points.sort(key = lambda p: np.sqrt(np.sum((p._data - sample_)**2 )))
+        
+        return points[1]._data
+            
     
     def drawSample(self):
         samp = np.random.choice(self._data[:,0], p=np.array(self._data[:,1], dtype='float64'))
@@ -453,6 +462,10 @@ class SequentialMCSampler(Sampler):
         # print ("Sample: " + str(samp))
         # print ("Sample type: " + str(samp[0].dtype))
         ### Should really make this dependant on the distance to its neighbours...
-        samples = self.generateSamplesFromNormal(samp, 1, variance_=self.getSettings()['variance_scalling'])
+        if ( self.getSettings()['variance_scalling'] == "adaptive" ):
+            neighbour = self.getSampleNeighbours(samp)
+            samples = self.generateSamplesFromNormal(samp, 1, variance_=np.fabs(samp - neighbour))
+        else:
+            samples = self.generateSamplesFromNormal(samp, 1, variance_=self.getSettings()['variance_scalling'])
         return samples[0]
     
