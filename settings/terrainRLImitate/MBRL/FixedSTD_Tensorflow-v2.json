@@ -376,5 +376,7 @@
 	"comment__": "Dropout for fd network",
 "fd_network_dropout": 0.0,
 	"comment__": "number of fd models in the ensemble",
-"fd_ensemble_size": 1
+"fd_ensemble_size": 1,
+	"comment__": "Discount factor for MBRL search",
+"mbrl_discount_factor": 0.95
 }

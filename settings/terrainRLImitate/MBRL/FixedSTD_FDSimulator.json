@@ -371,5 +371,4 @@
 "evalaute_with_MBRL": true,
 	"comment__": "Discount factor for MBRL search",
 "mbrl_discount_factor": 0.95
-
 }

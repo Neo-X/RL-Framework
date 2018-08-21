@@ -73,36 +73,37 @@ class SequentialMCSampler(Sampler):
         samples = []
         if self.getSettings()["use_actor_policy_action_suggestion"]:
             variance____=self.getSettings()['variance_scalling']
-            variance__=[variance____]
+            variance__=[]
             ### Start out at the same state for each trajectory
             current_state_copy2 = copy.deepcopy(current_state_copy)
             for i in range(look_ahead):
                 if isinstance(forwardDynamics, ForwardDynamicsSimulator):
                     current_state_copy__ = self._exp.getStateFromSimState(current_state_copy)
                     pa = model.predict(np.array([current_state_copy__]))
-                    if self.getSettings()["use_actor_policy_action_variance_suggestion"]:
-                        
-                        lSquared =(4.1**2)
-                        ## This uses the learned model so in the case the state given must be that used by the model
-                        current_state_copy3__ = self._exp.getStateFromSimState(current_state_copy2)
-                        variance__ = getModelPredictionUncertanty(model, current_state_copy3__, 
-                                                        length=4.1, num_samples=32, settings=self.getSettings())
-                        
-                        variance__ = list(variance__) * look_ahead # extends the list for the number of states to look ahead
-                        # print (var_)
-                        if not all(np.isfinite(variance__)): # lots of nan values for some reason...
-                            print ("Problem computing variance from model: ", )
-                            print ("State: ", current_state_copy3__, " action: ", pa)
-                            for fg in range(len(samp_)):
-                                print ("Sample ", fg, ": ", samp_[fg], " Predictions: ", predictions_[fg])
-                                
-                        print ("Predicted Variance: " + str(variance__))
-                    else:
-                        variance__=[variance____]*(len(pa)*look_ahead)
                 else:
                     pa = model.predict(current_state_copy2)
-                    # print ("policy pa: ", pa)
-                    variance__=[variance____]*pa.size*look_ahead
+                if (self.getSettings()["use_actor_policy_action_variance_suggestion"] == True):
+                    
+                    lSquared =(4.1**2)
+                    ## This uses the learned model so in the case the state given must be that used by the model
+                    current_state_copy3__ = self._exp.getStateFromSimState(current_state_copy2)
+                    variance__.extend(getModelPredictionUncertanty(model, current_state_copy3__, 
+                                                    length=4.1, num_samples=32, settings=self.getSettings())
+                                      )
+                    
+                    # variance__ = list(variance__) * look_ahead # extends the list for the number of states to look ahead
+                    # print (var_)
+                    if not all(np.isfinite(variance__)): # lots of nan values for some reason...
+                        print ("Problem computing variance from model: ", )
+                        print ("State: ", current_state_copy3__, " action: ", pa)
+                        for fg in range(len(samp_)):
+                            print ("Sample ", fg, ": ", samp_[fg], " Predictions: ", predictions_[fg])
+                            
+                    print ("Predicted Variance: " + str(variance__))
+                elif (self.getSettings()["use_actor_policy_action_variance_suggestion"] == "network"):
+                    variance__.extend(model.predict_std(current_state_copy2)[0])
+                else:
+                    variance__.extend([variance____]*_action_dimension)
                 
                 action = pa
                 _action_params.extend(action)
