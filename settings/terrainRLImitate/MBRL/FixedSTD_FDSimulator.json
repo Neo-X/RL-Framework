@@ -98,9 +98,9 @@
     "comment__": "Number of actions performed between training updates",
 "sim_action_per_training_update": 8,
     "comment__": "Number of rounds of adaptive sampling",
-"adaptive_samples": 100,
+"adaptive_samples": 50,
     "comment__": "Number of elite adaptive samples to keep between adaptive sampling rounds",
-"num_adaptive_samples_to_keep": 50,
+"num_adaptive_samples_to_keep": 20,
     "comment__": "Use the variance calculated from the policy network (calculated using dropout)",
 "use_actor_policy_action_variance_suggestion": false,
     "comment__": "Method used for action exploration",
@@ -368,5 +368,8 @@
 	"comment__": "Lets the network models handle the training and batch processing",
 "model_perform_batch_training": false,
 	"comment__": "Allows the learningAgent to evaluate using the MBRL method",
-"evalaute_with_MBRL": true
+"evalaute_with_MBRL": true,
+	"comment__": "Discount factor for MBRL search",
+"mbrl_discount_factor": 0.95
+
 }

@@ -43,6 +43,7 @@ class SequentialMCSampler(Sampler):
         self._look_ahead=look_ahead
         self._exp=exp
         self._bad_reward_value=0
+        self._previous_data=[]
         
     def setEnvironment(self, exp):
         self._exp = exp
@@ -56,19 +57,10 @@ class SequentialMCSampler(Sampler):
         self._bestSample = _bestSample
         return _bestSample
     
-    def _sampleModel(self, model, forwardDynamics, current_state, look_ahead):
-        """
-            The current state in this case is a special simulation state not the same as the
-            input states used for learning. This state can be used to create another simulation environment
-            with the same state.
-        
-        """
-        sim_time = self._exp.getAnimationTime()
+    def generateInitialSamples(self, model, forwardDynamics, current_state, look_ahead):
+
         _action_dimension = len(self.getSettings()["action_bounds"][0])
         _action_bounds = np.array(self.getSettings()["action_bounds"])
-        # import characterSim
-        _bestSample=[[0],[-10000000], [], []]
-        self._samples=[]
         current_state_copy = current_state 
         if isinstance(forwardDynamics, ForwardDynamicsSimulator):
             # current_state_copy = characterSim.State(current_state.getID(), current_state.getParams())
@@ -162,204 +154,153 @@ class SequentialMCSampler(Sampler):
             print("Found bad Current State in search")
             return _bestSample
         """
+        return samples
+    
+    def trySample(self, sample, model, forwardDynamics, current_state, look_ahead):
+        
+        mbrl_discount_factor = 0.7
+        if ( "mbrl_discount_factor" in self.getSettings()):
+            mbrl_discount_factor = self.getSettings()["mbrl_discount_factor"]
+        sim_time = self._exp.getAnimationTime()
+        _action_dimension = len(self.getSettings()["action_bounds"][0])
+        _action_bounds = np.array(self.getSettings()["action_bounds"])
+        # import characterSim
+        current_state_copy = current_state
+        
+        pa = sample
+        # print ("sample: " + str(sample))
+        actions_ = chunks(sample, _action_dimension)
+        actions=[]
+        for chunk in actions_:
+            # act__ = clampAction(chunk, _action_bounds)
+            act__ = chunk
+            actions.extend(act__)
+        # self.updateSampleWeights()
+        actions=list(chunks(actions, _action_dimension))
+        
+        y=[]
+        init_states=[]
+        predictions=[]
+        if isinstance(forwardDynamics, ForwardDynamicsSimulator):
+            current_state_ = copy.deepcopy(current_state_copy)
+            # actions = chunks(sample, _action_dimension)
+            forwardDynamics.setSimState(current_state_)
+            for a in range(len(actions)):
+                
+                if ( ((not np.all(np.isfinite(actions[a])) or (np.any(np.less(actions[a], -10000.0))) or (np.any(np.greater(actions[a], 10000.0)))) or
+                        forwardDynamics.endOfEpoch()  ) 
+                     ): # lots of nan values for some reason...
+                    print("Found bad action in search at: ", a)
+                    ## Append bad values for the rest of the actions
+                    self._bad_reward_value
+                    y.append(self._bad_reward_value)
+                    continue
+                    # break
+                
+                current_state__ = self._exp.getStateFromSimState(current_state_)
+                init_states.append(current_state__)
+                (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=[actions[a]])
+                reward__ = reward__[0][0]
+                # epochEnded = forwardDynamics.endOfEpoch()
+                # print ("Epoch Ended: ", epochEnded, " on action: ", a)
+                prediction_ = self._exp.getStateFromSimState(prediction)
+                # print("prediction_: ", prediction_)
+                # print ("(prediction, reward__): ", prediction, reward__)
+                if ( ( not np.all(np.isfinite(prediction_))) or (np.any(np.less(prediction_, -10000.0))) or (np.any(np.greater(prediction_, 10000.0))) ): # lots of nan values for some reason...
+                    print("Reached bad state in search")
+                    # break
+                
+                    
+                predictions.append(prediction_)
+                # print ("Current State: ", current_state_.getParams(), " Num: ", current_state_.getID())
+                # print ("Prediction: ", prediction.getParams(), " Num: ", prediction.getID())
+                # print ("Executed Action: ", actions[a])
+                ## This reward function is not going to work anymore
+                y.append(reward__)
+                current_state_ = copy.deepcopy(prediction)
+                # goalDistance(np.array(current_state_.getParams()), )
+                # print ("Y : " + str(y))
+                
+        else:
+            current_state_=current_state_copy
+            # actions = chunks(sample, _action_dimension)
+            for a in range(len(actions)):
+                init_states.append(current_state_)
+                if ("use_stochastic_forward_dynamics" in self.getSettings()
+                    and (self.getSettings()["use_stochastic_forward_dynamics"])):
+                    prediction = sampleStochasticModel( forwardDynamics, current_state_, [actions[a]])
+                elif ("use_stochastic_gan" in self.getSettings()
+                    and (self.getSettings()["use_stochastic_gan"])):
+                    prediction = sampleStochasticGANModel( forwardDynamics, current_state_, [actions[a]])
+                else:
+                    prediction = forwardDynamics.predict(state=current_state_, action=[actions[a]])
+                if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
+                    print("Reached bad state in search")
+                    # break
+                
+                predictions.append(prediction)
+                # print ("prediction: ", prediction)
+                y.append(self._exp.computeReward(prediction[0], sim_time + (a * 0.033)))
+                current_state_ = prediction
+        # predictions__.append(predictions)
+        # ys__.append(y)
+        # print (pa, y, id(y))
+        if ( np.all(np.isfinite(y)) and (np.all(np.greater(y, -10000.0))) and (np.all(np.less(y, 10000.0))) ): # lots of nan values for some reason...
+            # print ("Good sample:")
+            self.pushSample(sample, self.discountedSum(y, discount_factor=mbrl_discount_factor))
+        else : # this is bad, usually means the simulation has exploded...
+            print ("Y: ", y, " Sample: ", sample)
+            print (" current_state_: ", current_state_copy)
+            # self._fd.initEpoch(self._exp)
+            # return _bestSample
+            
+            
+        return (y, pa, init_states, predictions)
+        
+    def _sampleModel(self, model, forwardDynamics, current_state, look_ahead):
+        """
+            The current state in this case is a special simulation state not the same as the
+            input states used for learning. This state can be used to create another simulation environment
+            with the same state.
+        
+        """
+        
+        mbrl_discount_factor = 0.7
+        if ( "mbrl_discount_factor" in self.getSettings()):
+            mbrl_discount_factor = self.getSettings()["mbrl_discount_factor"]
+        sim_time = self._exp.getAnimationTime()
+        _action_dimension = len(self.getSettings()["action_bounds"][0])
+        _action_bounds = np.array(self.getSettings()["action_bounds"])
+        # import characterSim
+        _bestSample=[[0],[-10000000], [], []]
+        self._samples=[]
+        current_state_copy = current_state
+        
+        samples = self.generateInitialSamples(model, forwardDynamics, current_state, look_ahead)
+        
         predictions__ = []
         ys__ = []
         for sample in samples:
-            pa = sample
-            # print ("sample: " + str(sample))
-            actions_ = chunks(sample, _action_dimension)
-            actions=[]
-            for chunk in actions_:
-                # act__ = clampAction(chunk, _action_bounds)
-                act__ = chunk
-                actions.extend(act__)
-            # self.updateSampleWeights()
-            actions=list(chunks(actions, _action_dimension))
-            
-            y=[]
-            init_states=[]
-            predictions=[]
-            if isinstance(forwardDynamics, ForwardDynamicsSimulator):
-                current_state_ = copy.deepcopy(current_state_copy)
-                # actions = chunks(sample, _action_dimension)
-                forwardDynamics.setSimState(current_state_)
-                for a in range(len(actions)):
-                    
-                    if ( ((not np.all(np.isfinite(actions[a])) or (np.any(np.less(actions[a], -10000.0))) or (np.any(np.greater(actions[a], 10000.0)))) or
-                            forwardDynamics.endOfEpoch()  ) 
-                         ): # lots of nan values for some reason...
-                        print("Found bad action in search at: ", a)
-                        ## Append bad values for the rest of the actions
-                        self._bad_reward_value
-                        y.append(self._bad_reward_value)
-                        continue
-                        # break
-                    
-                    current_state__ = self._exp.getStateFromSimState(current_state_)
-                    init_states.append(current_state__)
-                    (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=[actions[a]])
-                    reward__ = reward__[0][0]
-                    # epochEnded = forwardDynamics.endOfEpoch()
-                    # print ("Epoch Ended: ", epochEnded, " on action: ", a)
-                    prediction_ = self._exp.getStateFromSimState(prediction)
-                    # print("prediction_: ", prediction_)
-                    # print ("(prediction, reward__): ", prediction, reward__)
-                    if ( ( not np.all(np.isfinite(prediction_))) or (np.any(np.less(prediction_, -10000.0))) or (np.any(np.greater(prediction_, 10000.0))) ): # lots of nan values for some reason...
-                        print("Reached bad state in search")
-                        # break
-                    
-                        
-                    predictions.append(prediction_)
-                    # print ("Current State: ", current_state_.getParams(), " Num: ", current_state_.getID())
-                    # print ("Prediction: ", prediction.getParams(), " Num: ", prediction.getID())
-                    # print ("Executed Action: ", actions[a])
-                    ## This reward function is not going to work anymore
-                    y.append(reward__)
-                    current_state_ = copy.deepcopy(prediction)
-                    # goalDistance(np.array(current_state_.getParams()), )
-                    # print ("Y : " + str(y))
-                    
-            else:
-                current_state_=current_state_copy
-                # actions = chunks(sample, _action_dimension)
-                for a in range(len(actions)):
-                    init_states.append(current_state_)
-                    if ("use_stochastic_forward_dynamics" in self.getSettings()
-                        and (self.getSettings()["use_stochastic_forward_dynamics"])):
-                        prediction = sampleStochasticModel( forwardDynamics, current_state_, [actions[a]])
-                    elif ("use_stochastic_gan" in self.getSettings()
-                        and (self.getSettings()["use_stochastic_gan"])):
-                        prediction = sampleStochasticGANModel( forwardDynamics, current_state_, [actions[a]])
-                    else:
-                        prediction = forwardDynamics.predict(state=current_state_, action=[actions[a]])
-                    if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
-                        print("Reached bad state in search")
-                        # break
-                    
-                    predictions.append(prediction)
-                    # print ("prediction: ", prediction)
-                    y.append(self._exp.computeReward(prediction[0], sim_time + (a * 0.033)))
-                    current_state_ = prediction
-            predictions__.append(predictions)
-            ys__.append(y)
-            # print (pa, y, id(y))
-            if ( np.all(np.isfinite(y)) and (np.all(np.greater(y, -10000.0))) and (np.all(np.less(y, 10000.0))) ): # lots of nan values for some reason...
-                # print ("Good sample:")
-                self.pushSample(sample, self.discountedSum(y))
-            else : # this is bad, usually means the simulation has exploded...
-                print ("Y: ", y, " Sample: ", sample)
-                print (" current_state_: ", current_state_copy)
-                # self._fd.initEpoch(self._exp)
-                # return _bestSample
-                
-                
-            if self.discountedSum(y) > self.discountedSum(_bestSample[1]):
+            (y, pa, init_states, predictions) = self.trySample(sample, model, forwardDynamics, current_state, look_ahead)
+            if self.discountedSum(y, discount_factor=mbrl_discount_factor) > self.discountedSum(_bestSample[1], discount_factor=mbrl_discount_factor):
                 _bestSample[1] = y
                 _bestSample[0] = pa[:_action_dimension]
                 _bestSample[2] = init_states
                 _bestSample[3] = predictions
-            del y
+                # print ("samples: ", self._samples)
         
-        self.updateSampleWeights()
-        # print ("Starting Importance Sampling: *******")
-        # print ("Current state sample: " + str(current_state_copy.getParams()))
         for i in range(self.getSettings()["adaptive_samples"]): # 100 samples from pdf
             # print ("Data probabilities: " + str(self._data[:,1]))
             # print ("Data rewards: " + str(self._data[:,0]))
-            sample = self.drawSample()
-            actions_ = chunks(sample, _action_dimension)
-            actions=[]
-            for chunk in actions_:
-                # act__ = clampAction(chunk, _action_bounds)
-                act__ = chunk
-                actions.extend(act__)
             self.updateSampleWeights()
-            actions=list(chunks(actions, _action_dimension))
-            # print ("Action samples: " + str(list(actions)))
-            """
-            for item in self._samples:
-                if all(item[1][0] == sample): # skip item already contained in samples
-                    print ("Found duplicate***")
-                    continue
-            """
-            pa = sample
-            # print ("sample: " + str(sample))
-            y=[]
-            init_states=[]
-            predictions=[]
-            if isinstance(forwardDynamics, ForwardDynamicsSimulator):
-                current_state_ = copy.deepcopy(current_state_copy)
-                # actions = chunks(sample, _action_dimension)
-                forwardDynamics.setSimState(current_state_)
-                for a in range(len(actions)):
-                    if ( ((not np.all(np.isfinite(actions[a])) or (np.any(np.less(actions[a], -10000.0))) or (np.any(np.greater(actions[a], 10000.0)))) or
-                            forwardDynamics.endOfEpoch()  )
-                         ): # lots of nan values for some reason...
-                        print("Found bad action in search at: ", a)
-                        ## Append bad values for the rest of the actions
-                        self._bad_reward_value
-                        y.append(self._bad_reward_value)
-                        continue
-                        # break
-                    current_state__ = self._exp.getStateFromSimState(current_state_)
-                    init_states.append(current_state__)
-                    (prediction, reward__) = forwardDynamics._predict(state__c=current_state_, action=[actions[a]])
-                    reward__ = reward__[0][0]
-                    # epochEnded = forwardDynamics.endOfEpoch()
-                    # print ("Epoch Ended: ", epochEnded, " on action: ", a)
-                    if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
-                        print("Reached bad state in search")
-                        # break
-                    
-                    prediction_ = self._exp.getStateFromSimState(prediction)
-                    predictions.append(prediction_)
-                    # print ("Current State: ", current_state_.getParams(), " Num: ", current_state_.getID())
-                    # print ("Prediction: ", prediction.getParams(), " Num: ", prediction.getID())
-                    # print ("Executed Action: ", actions[a])
-                    ## This reward function is not going to work anymore
-                    y.append(reward__)
-                    current_state_ = copy.deepcopy(prediction)
-                    # goalDistance(np.array(current_state_.getParams()), )
-                    # print ("Y : " + str(y))
-                    
-            else:
-                current_state_=current_state_copy
-                # actions = chunks(sample, _action_dimension)
-                for a in range(len(actions)):
-                    init_states.append(current_state_)
-                    if ("use_stochastic_forward_dynamics" in self.getSettings()
-                        and (self.getSettings()["use_stochastic_forward_dynamics"])):
-                        prediction = sampleStochasticModel( forwardDynamics, current_state_, [actions[a]])
-                    elif ("use_stochastic_gan" in self.getSettings()
-                        and (self.getSettings()["use_stochastic_gan"])):
-                        # print ("Sampling GAN")
-                        prediction = sampleStochasticGANModel( forwardDynamics, current_state_, [actions[a]])
-                    else:
-                        prediction = forwardDynamics.predict(state=current_state_, action=[actions[a]])
-                    if ( not (np.all(np.isfinite(prediction)) and (np.all(np.greater(prediction, -10000.0))) and (np.all(np.less(prediction, 10000.0)))) ): # lots of nan values for some reason...
-                        print("Reached bad state in search")
-                        # break
-                    predictions.append(prediction)
-                    y.append(self._exp.computeReward(prediction[0], sim_time + (a * 0.033)))
-                    current_state_ = prediction
-                    
-            # print (pa, y)
-            if ( np.all(np.isfinite(y)) and (np.all(np.greater(y, -10000.0))) and (np.all(np.less(y, 10000.0))) ): # lots of nan values for some reason...
-                # print ("Good sample:", sample)
-                self.pushSample(sample, self.discountedSum(y))
-                if self.discountedSum(y) > self.discountedSum(_bestSample[1]):
-                    _bestSample[1] = y
-                    _bestSample[0] = pa[:_action_dimension]
-                    _bestSample[2] = init_states
-                    _bestSample[3] = predictions
-                    
-                y = []
-            else : # this is bad, usually means the simulation has exploded...
-                print ("Y: ", y, " Sample: ", sample)
-                print (" current_state_: ", current_state_copy)
-                # self._fd.initEpoch(self._exp)
-                # return _bestSample
-        _bestSample[1] = self.discountedSum(_bestSample[1])
+            sample = self.drawSample()
+            (y, pa, init_states, predictions) = self.trySample(sample, model, forwardDynamics, current_state, look_ahead)
+            if self.discountedSum(y, discount_factor=mbrl_discount_factor) > self.discountedSum(_bestSample[1], discount_factor=mbrl_discount_factor):
+                _bestSample[1] = y
+                _bestSample[0] = pa[:_action_dimension]
+                _bestSample[2] = init_states
+                _bestSample[3] = predictions
+        _bestSample[1] = self.discountedSum(_bestSample[1], discount_factor=mbrl_discount_factor)
         # print ("Best Sample: ", _bestSample[0], _bestSample[1])
         return _bestSample
     
@@ -464,7 +405,7 @@ class SequentialMCSampler(Sampler):
         ### Should really make this dependant on the distance to its neighbours...
         if ( self.getSettings()['variance_scalling'] == "adaptive" ):
             neighbour = self.getSampleNeighbours(samp)
-            samples = self.generateSamplesFromNormal(samp, 1, variance_=np.fabs(samp - neighbour))
+            samples = self.generateSamplesFromNormal(samp, 1, variance_=(np.fabs(samp - neighbour)*0.5))
         else:
             samples = self.generateSamplesFromNormal(samp, 1, variance_=self.getSettings()['variance_scalling'])
         return samples[0]
