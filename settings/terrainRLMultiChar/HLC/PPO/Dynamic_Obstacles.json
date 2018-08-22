@@ -348,7 +348,7 @@
 	"comment__": "Train an extra value function just for MBAE",
 "train_extra_value_function": true,
 	"comment__": "The interpolation parameter used adjust the target network for DDPG",
-"target_net_interp_weight": 0.01,
+"target_net_interp_weight": 0.001,
 	"comment__": "Batch size for the value function network",
 "value_function_batch_size": 32,
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
