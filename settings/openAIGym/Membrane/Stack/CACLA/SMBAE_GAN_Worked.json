@@ -180,7 +180,7 @@
     "fd_learning_rate": 0.001,
     "max_epoch_length": 256,
     "num_terrain_features": 0,
-    "discount_factor": 0.975,
+    "discount_factor": 0.95,
     "disable_parameter_scaling": false,
     "model_type": "model.DeepNNAdaptive.DeepNNAdaptive",
     "sim_config_file": "MembraneStack-v0",

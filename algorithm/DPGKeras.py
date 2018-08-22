@@ -194,6 +194,57 @@ class DPGKeras(KERASAlgorithm):
             params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
             all_params.append(params)
         self._modelTarget.getActorNetwork().set_weights(all_params)
+        
+    def updateTargetModelCritic(self):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Updating target critic Model")
+        """
+            Target model updates
+        """
+        # return
+        ## I guess it is okay to lerp the entire network even though we only really want to 
+        ## lerp the value function part of the networks, the target policy is not used for anythings
+        all_paramsA = self._model.getCriticNetwork().get_weights()
+        all_paramsB = self._modelTarget.getCriticNetwork().get_weights()
+        if ('target_net_interp_weight' in self.getSettings()):
+            lerp_weight = self.getSettings()['target_net_interp_weight']
+        else:
+            lerp_weight = 0.001
+        # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
+        
+        all_params = []
+        for paramsA, paramsB in zip(all_paramsA, all_paramsB):
+            # print ("paramsA: " + str(paramsA))
+            # print ("paramsB: " + str(paramsB))
+            params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
+            all_params.append(params)
+        self._modelTarget.getCriticNetwork().set_weights(all_params)
+        
+    def updateTargetModelActor(self):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Updating target Actor Model")
+        """
+            Target model updates
+        """
+        # return
+        ## I guess it is okay to lerp the entire network even though we only really want to 
+        ## lerp the value function part of the networks, the target policy is not used for anythings
+        if ('target_net_interp_weight' in self.getSettings()):
+            lerp_weight = self.getSettings()['target_net_interp_weight']
+        else:
+            lerp_weight = 0.001
+        # vals = lasagne.layers.helper.get_all_param_values(self._l_outActA)
+        
+        all_paramsA_Act = self._model.getActorNetwork().get_weights()
+        all_paramsB_Act = self._modelTarget.getActorNetwork().get_weights()
+        
+        all_params = []
+        for paramsA, paramsB in zip(all_paramsA_Act, all_paramsB_Act):
+            # print ("paramsA: " + str(paramsA))
+            # print ("paramsB: " + str(paramsB))
+            params = (lerp_weight * paramsA) + ((1.0 - lerp_weight) * paramsB)
+            all_params.append(params)
+        self._modelTarget.getActorNetwork().set_weights(all_params)
     
     def updateTargetModelValue(self):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -264,7 +315,7 @@ class DPGKeras(KERASAlgorithm):
                         verbose=False,
                         shuffle=False)
         
-        self.updateTargetModel()
+        self.updateTargetModelCritic()
         loss = loss.history['loss'][0]
         return loss
         
@@ -299,7 +350,7 @@ class DPGKeras(KERASAlgorithm):
             # print("Mean Next State Grad grad: ", np.mean(next_state_grads, axis=0), " std ", np.std(next_state_grads, axis=0))
             # print("Mean ation grad: ", np.mean(action_grads, axis=0), " std ", np.std(action_grads, axis=0))
             print ("Actor Loss: ", q_fun)
-            
+        self.updateTargetModelActor()    
         return q_fun
         
     def train(self, states, actions, rewards, result_states):
