@@ -15,6 +15,7 @@ import time
 import copy
 import numpy as np
 from model.ModelUtil import *
+from util.utils import checkSetting, checkSettingExists
 # import memory_profiler
 # import resources
 
@@ -60,6 +61,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # epsilon = settings["epsilon"]
     # Actor should be FIRST here
     exp.getActor().initEpoch()
+    reset_prop = 1
+    if (checkSettingExists(settings, "reset_on_fall_probability")):
+        reset_prop = settings["reset_on_fall_probability"]
+        
+    reset_prop_tmp = np.random.rand(1)[0]
     """
     if validation:
         exp.generateValidation(anchors, epoch)
@@ -479,7 +485,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print ("****Reward was to bad: ", reward_)
         pa = None
         ### Don't reset during evaluation...
-        if (((exp.endOfEpoch() and settings['reset_on_fall'] and (not evaluation)) )  
+        if (((exp.endOfEpoch() and settings['reset_on_fall'] and (not evaluation))
+             and (reset_prop_tmp <= reset_prop) ) ### Allow option to collect some full trajectories  
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
                 ):
             falls[-1] = [[0]]
