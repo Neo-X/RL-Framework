@@ -313,6 +313,7 @@ class SiameseNetwork(KERASAlgorithm):
         self.setStateBounds(np.array(hf.get('_state_bounds')))
         self.setRewardBounds(np.array(hf.get('_reward_bounds')))
         self.setActionBounds(np.array(hf.get('_action_bounds')))
+        print("fd self.getStateBounds(): ", self.getStateBounds())
         # self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
         hf.close()
         

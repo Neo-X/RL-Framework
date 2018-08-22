@@ -96,6 +96,18 @@ class KERASAlgorithm(AlgorithmInterface):
         """
         self._modelTarget.getCriticNetwork().set_weights( copy.deepcopy(self._model.getCriticNetwork().get_weights()))
         self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
+
+    def printWeights(self):
+        
+        print ("Critic weights: ")
+        c_w = self._model.getCriticNetwork().get_weights()[0]
+        cT_w = self._modelTarget.getCriticNetwork().get_weights()[0]
+        print ("critic diff: ", c_w - cT_w)
+        
+        print ("Actor weights: ")
+        a_w = self._model.getActorNetwork().get_weights()[0]
+        aT_w = self._modelTarget.getActorNetwork().get_weights()[0]
+        print ("Actor diff: ", a_w - aT_w)
         
     def getNetworkParameters(self):
         params = []
@@ -125,29 +137,38 @@ class KERASAlgorithm(AlgorithmInterface):
         self._updates += 1
         if ('dont_use_td_learning' in self.getSettings() 
             and self.getSettings()['dont_use_td_learning'] == True):
-            y_ = self._value_Target([result_states,0])[0]
+            # y_ = self._value_Target([result_states,0])[0]
+            y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
             target_ = rewards + ((self._discount_factor * y_))
             target_2 = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
             target = (target_ + target_2) / 2.0
         else:
             # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-            y_ = self._value_Target([result_states,0])[0]
+            # y_ = self._value_Target([result_states,0])[0]
+            y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
             # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
             # target_ = rewards + ((self._discount_factor * y_) * falls)
-            target_ = rewards + ((self._discount_factor * y_))
+            target = rewards + ((self._discount_factor * y_))
         # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
         # target_ = rewards + ((self._discount_factor * y_) * falls)
-        target_ = np.array(target_, dtype=self._settings['float_type'])
+        target = np.array(target, dtype=self._settings['float_type'])
         if ("use_fall_reward_shaping" in self._settings
             and (self._settings["use_fall_reward_shaping"] == True)):
             # print ("Shaping reward", np.concatenate((target_, falls, target_ * falls), axis=1))
-            target_ = target_ * falls
+            target_ = target * falls
         # states = np.array(states, dtype=self._settings['float_type'])
         # print ("target type: ", target_.dtype)
         # print ("states type: ", states.dtype)
+        """
         v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
+        v_ = self._model.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
+        y_ = self._modelTarget.getCriticNetwork().predict(states, batch_size=states.shape[0])
+        y__ = self._value_Target([states,0])[0]
+        v__ = self._value([states,0])[0]
+        self.printWeights()
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
         c_error = np.mean(np.mean(np.square(v - target_), axis=1))
+        """
         # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
         # if (c_error < 10.0):
         score = self._model.getCriticNetwork().fit(states, target_,
@@ -258,6 +279,7 @@ class KERASAlgorithm(AlgorithmInterface):
         self.setStateBounds(np.array(hf.get('_state_bounds')))
         self.setRewardBounds(np.array(hf.get('_reward_bounds')))
         self.setActionBounds(np.array(hf.get('_action_bounds')))
+        print ("critic self.getStateBounds(): ", self.getStateBounds()) 
         # self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
         hf.close()
         

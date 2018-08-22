@@ -886,8 +886,8 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
         if (settings['load_saved_model'] == True 
             or ('load_saved_fd_model' in settings and 
-             (settings['load_saved_fd_model']))):
-            print ("Loading pre compiled fd network")
+             (settings['load_saved_fd_model'] == True))):
+            print ("**** Loading pre compiled fd network")
             if ("learning_backend" in settings and 
                 ((settings['learning_backend'] == "tensorflow")
                  or (settings['learning_backend'] == "theano")

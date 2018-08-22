@@ -433,6 +433,8 @@ def trainModelParallel(inputData):
             # forwardDynamicsModel.setEnvironment(exp)
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
+        print ("forwardDynamicsModel.getStateBounds(): ", forwardDynamicsModel.getStateBounds())
+        # sys.exit()
         (agent, learning_workers) = createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds, print_info=True)
         masterAgent = agent
         # print ("NameSpace: " + str(namespace))
