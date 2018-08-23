@@ -1,6 +1,6 @@
 import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 from tensorflow.python.client import device_lib
 
@@ -32,3 +32,4 @@ if __name__ == "__main__":
 
     print("y: ", y)
     print ("tf.get_default_graph(): ", tf.get_default_graph())
+    print (keras.backend.get_session().list_devices())
