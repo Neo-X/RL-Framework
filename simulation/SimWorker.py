@@ -125,7 +125,7 @@ class SimWorker(Process):
 
         ### Keep forward models on the CPU
         if ("GPU_BUS_Index" in self._settings 
-            or ("force_sim_net_to_cpu" in self._settings
+            and ("force_sim_net_to_cpu" in self._settings
                 and (self._settings["force_sim_net_to_cpu"] == True))):
             os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
             os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
