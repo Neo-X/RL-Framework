@@ -641,7 +641,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
         print ("Simulating epochs in Parallel:")
     j=0
-    timeout_ = 60 * 10 ### 10 min timeout
+    timeout_ = 60 * 5 ### 10 min timeout
     discounted_values = []
     bellman_errors = []
     reward_over_epocs = []
@@ -733,7 +733,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
         print ("Simulating epochs in Parallel:")
     j=0
-    timeout_ = 60 * 10 ### 10 min timeout
+    timeout_ = 60 * 5 ### 10 min timeout
     discounted_values = []
     bellman_errors = []
     reward_over_epocs = []
