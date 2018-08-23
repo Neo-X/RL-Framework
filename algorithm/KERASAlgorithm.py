@@ -155,7 +155,7 @@ class KERASAlgorithm(AlgorithmInterface):
         if ("use_fall_reward_shaping" in self._settings
             and (self._settings["use_fall_reward_shaping"] == True)):
             # print ("Shaping reward", np.concatenate((target_, falls, target_ * falls), axis=1))
-            target_ = target * falls
+            target = target * falls
         # states = np.array(states, dtype=self._settings['float_type'])
         # print ("target type: ", target_.dtype)
         # print ("states type: ", states.dtype)
@@ -171,7 +171,7 @@ class KERASAlgorithm(AlgorithmInterface):
         """
         # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
         # if (c_error < 10.0):
-        score = self._model.getCriticNetwork().fit(states, target_,
+        score = self._model.getCriticNetwork().fit(states, target,
               epochs=updates, batch_size=batch_size_,
               verbose=0,
               # shuffle=True

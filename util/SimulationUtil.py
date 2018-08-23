@@ -27,6 +27,18 @@ import gc
 # from guppy import hpy; h=hpy()
 # from memprof import memprof
 
+def getComputeDevice(settings):
+    if ("GPU_Index" in settings):
+        index = settings["GPU_Index"]
+    index = settings
+    if (index > (len(raw_devices)-1)):
+        print ("Not enough GPU devices returning default (0)")
+        return "0"
+    raw_devices.sort()
+    print ("sorted devices: ", raw_devices)
+    print ("selected device: ", raw_devices[index])
+    ### return BUS ID
+    return raw_devices[index][6:]
 
 def setupEnvironmentVariable(settings):
     import os    
@@ -34,6 +46,10 @@ def setupEnvironmentVariable(settings):
     if ("learning_backend" in settings):
         # KERAS_BACKEND=tensorflow
         os.environ['KERAS_BACKEND'] = settings['learning_backend']
+        
+    ### Setup GPU resources
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    os.environ["CUDA_VISIBLE_DEVICES"] = getComputeDevice(settings)
         
 def setupLearningBackend(settings):
     import keras
