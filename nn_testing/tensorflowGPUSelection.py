@@ -4,9 +4,24 @@ import re
 print ("args: ", sys.argv)
 raw_devices = files = [f for f in os.listdir("/dev") if re.match('nvidia[0-9]+', f)]
 print ("raw_devices: ", raw_devices)
+
+def getComputeDevice(index=1):
+    if (index > (len(raw_devices)-1)):
+        print ("Not enough GPU devices returning default (0)")
+        return "0"
+    raw_devices.sort()
+    print ("sorted devices: ", raw_devices)
+    print ("selected device: ", raw_devices[index])
+    ### return BUS ID
+    return raw_devices[index][6:]
+    
 if (len(sys.argv) == 2):
-    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1]
+    if (sys.argv[1] == "second"):
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        os.environ["CUDA_VISIBLE_DEVICES"] = getComputeDevice()
+    else:
+        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+        os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1]
 else:
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
