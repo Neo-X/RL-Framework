@@ -75,6 +75,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         settings['visualize_learning'] = False
         ### Reduce IO
         settings['saving_update_freq_num_rounds'] = settings_original['saving_update_freq_num_rounds'] * 10
+        settings["GPU_BUS_Index"] = i + 1 + settings['meta_thread_index'] ### The first one is reserved for rendering
         
         if ( 'expert_policy_files' in settings):
             for j in range(len(settings['expert_policy_files'])):

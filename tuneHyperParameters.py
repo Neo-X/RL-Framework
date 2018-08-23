@@ -153,6 +153,7 @@ def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, sa
     result_data['hyper_param_settings_files'] = []
     sim_data = []
     data_name = settings['data_folder']
+    meta_thread_index = 0
     for params in param_settings: ## Loop over each setting of parameters
         data_name_tmp = ""
         for par in range(len(params)): ## Assemble the vector of parameters and data folder name
@@ -161,6 +162,10 @@ def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, sa
             settings[param_of_interest] = params[par]
         
         settings['data_folder'] = data_name + data_name_tmp
+        settings['meta_thread_index'] = meta_thread_index
+        meta_thread_index = meta_thread_index + 1
+        if (meta_thread_index > int(hyper_settings['tuning_threads'])):
+            meta_thread_index = 0 
         directory= getBaseDataDirectory(settings)
         if not os.path.exists(directory):
             os.makedirs(directory)
