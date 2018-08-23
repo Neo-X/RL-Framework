@@ -1,6 +1,9 @@
 import os
 import sys
+import re
 print ("args: ", sys.argv)
+raw_devices = files = [f for f in os.listdir("/dev") if re.match('nvidia[0-9]+', f)]
+print ("raw_devices: ", raw_devices)
 if (len(sys.argv) == 2):
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1]
