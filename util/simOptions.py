@@ -17,6 +17,13 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Whether or not to train a forward dynamics model as well [true|false|None]")
     
+    parser.add_option("--model_perform_batch_training", "--perform_batch_training",
+              action="store", dest="model_perform_batch_training", default=None,
+              type='choice',
+              choices=['true', 'false', None],
+              metavar="STRING", 
+              help="Whether or not to perform training in epochs [true|false|None]")
+    
     parser.add_option("--visualize_expected_value",
               action="store", dest="visualize_expected_value", default=None,
               type='choice',
