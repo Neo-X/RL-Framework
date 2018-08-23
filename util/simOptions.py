@@ -82,6 +82,12 @@ def getOptions(_args=None):
               metavar="INTEGER", 
               help="Number of initial actions to sample before calculating input/output scaling and starting to train.")
     
+    parser.add_option("--expereince_length",
+              action="store", dest="expereince_length", default=None,
+              type=int,
+              metavar="INTEGER", 
+              help="Number of samples that will fit into the exp buffer (circular queue).")
+    
     parser.add_option("--eval_epochs",
               action="store", dest="eval_epochs", default=None,
               type=int,

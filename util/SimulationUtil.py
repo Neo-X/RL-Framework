@@ -51,7 +51,7 @@ def setupEnvironmentVariable(settings):
     ### Setup GPU resources
     if ("GPU_BUS_Index" in settings):
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"] = settings["GPU_BUS_Index"]
+        os.environ["CUDA_VISIBLE_DEVICES"] = getGPUBusIndex(index=int(settings["GPU_BUS_Index"]))
         
 def setupLearningBackend(settings):
     import keras
@@ -677,8 +677,10 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         # from sim.TerrainRLEnv import TerrainRLEnv
         from simAdapter import terrainRLSim
         from sim.GymMultiCharEnv import GymMultiCharEnv
-        
-        env = terrainRLSim.getEnv(env_name=config_file, render=render)
+        if ("GPU_BUS_Index" in settings):
+            env = terrainRLSim.getEnv(env_name=config_file, render=render, GPU_device=int(settings["GPU_BUS_Index"]))
+        else:
+            env = terrainRLSim.getEnv(env_name=config_file, render=render)
         print ("Using Environment Type: " + str(env_type) + ", " + str(config_file))
         # sim.setRender(render)
         # sim.init()
