@@ -163,7 +163,7 @@ def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, sa
         
         settings['data_folder'] = data_name + data_name_tmp
         settings['meta_thread_index'] = meta_thread_index * int(hyper_settings['tuning_threads']) 
-        # meta_thread_index = meta_thread_index + 1
+        meta_thread_index = meta_thread_index + 1
         # if (meta_thread_index > int(hyper_settings['tuning_threads'])):
         #     meta_thread_index = 0 
         directory= getBaseDataDirectory(settings)
