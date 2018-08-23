@@ -358,7 +358,7 @@
 	"comment__": "The name of the FD algorithm to load",
 "fd_algorithm": "algorithm.ForwardDynamicsKerasEnsamble.ForwardDynamicsKerasEnsamble",
 	"comment__": "A list describing the size of the layers for the NN",
-"fd_network_layer_sizes": [256, ["dropout", 0.1], 128, ["dropout", 0.1], ["integrate_actor_part", [32]], 64],
+"fd_network_layer_sizes": [256, ["dropout", 0.1], 128, ["dropout", 0.1], ["integrate_actor_part", [32]], 128],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [32, 32, "integrate_actor_part", 32],
 	"comment__": "type of activation to use",
