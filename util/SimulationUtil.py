@@ -28,9 +28,14 @@ import gc
 # from memprof import memprof
 
 def getComputeDevice(settings):
+    import re
+    print ("args: ", sys.argv)
+    raw_devices = files = [f for f in os.listdir("/dev") if re.match('nvidia[0-9]+', f)]
+    print ("raw_devices: ", raw_devices)
     if ("GPU_Index" in settings):
         index = settings["GPU_Index"]
-    index = settings
+    else:
+        index = 0
     if (index > (len(raw_devices)-1)):
         print ("Not enough GPU devices returning default (0)")
         return "0"
