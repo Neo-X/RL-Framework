@@ -41,6 +41,11 @@ class PolicyDistribution(KERASAlgorithm):
         print("Target Critic summary: ", self._modelTarget._critic.summary())
         # print ("Loss ", self._model.getActorNetwork().total_loss)
         
+        PolicyDistribution.compile(self)
+        
+    def compile(self):
+        # sgd = SGD(lr=0.001, momentum=0.9)
+        
         self._q_valsActA = self._model.getActorNetwork()(self._model._stateInput)
         self._q_valsActTarget = self._modelTarget.getActorNetwork()(self._model._stateInput)
         
@@ -63,11 +68,6 @@ class PolicyDistribution(KERASAlgorithm):
         
         _target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self.__value_Target)
         self._loss = K.mean(0.5 * (self.__value - _target) ** 2)
-        
-        PolicyDistribution.compile(self)
-        
-    def compile(self):
-        # sgd = SGD(lr=0.001, momentum=0.9)
         
         def loss_std(action_true, action_pred):
             action_true = action_true[:,:self._action_length]

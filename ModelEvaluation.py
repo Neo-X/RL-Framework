@@ -90,11 +90,11 @@ def modelEvaluationParallel(settings_file_name):
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
-    file_name=directory+getAgentName()+"_Best.pkl"
+    # file_name=directory+getAgentName()+"_Best.pkl"
     # file_name=directory+getAgentName()+".pkl"
-    f = open(file_name, 'r')
-    model = dill.load(f)
-    f.close()
+    # f = open(file_name, 'r')
+    # model = dill.load(f)
+    # f.close()
     print ("State Length: ", len(model.getStateBounds()[0]) )
     
     if ( settings["use_transfer_task_network"] ):
@@ -311,11 +311,7 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
     masterAgent = LearningAgent(settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
-    if (runLastModel == True):
-        file_name=directory+getAgentName()+".pkl"
-    else:
-        file_name=directory+getAgentName()+"_Best.pkl"
-    print("Loading model: ", file_name)
+    # print("Loading model: ", file_name)
     # f = open(file_name, 'rb')
     # model = dill.load(f)
     # f.close()

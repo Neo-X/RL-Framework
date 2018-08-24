@@ -38,12 +38,23 @@ class ForwardDynamicsKerasEnsamble(KERASAlgorithm):
         
         condition_reward_on_result_state = False
         self._train_combined_loss = False
-        self._forwards = [model_.getForwardDynamicsNetwork()([model_.getStateSymbolicVariable(), model_.getActionSymbolicVariable()])]
-        self._rewards = [model_.getRewardNetwork()([model_.getStateSymbolicVariable(), model_.getActionSymbolicVariable()])]
         
         self._models = [model_]
         
-        for i in range(self._fd_ensemble_size-1):
+        def loss_std(action_true, action_pred):
+            action_true = action_true[:,:self._state_length]
+            action_pred_mean = action_pred[:,:self._state_length]
+            action_pred_std = action_pred[:,self._state_length:]
+            prob = loglikelihood_keras(action_true, action_pred_mean, action_pred_std, self._state_length)
+            # entropy = 0.5 * T.mean(T.log(2 * np.pi * action_pred_std + 1 ) )
+            # actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)) + (entropy * 1e-2))
+            actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)))
+            ### Average over batch
+            return actLoss
+        
+        self._loss_std = loss_std
+        
+        for i in range(1, self._fd_ensemble_size):
             ### create new instance of model
             model_ = type(model)(state_length, action_length, state_bounds, 
                                  action_bounds, reward_bounds, settings_, print_info=print_info)
@@ -56,9 +67,22 @@ class ForwardDynamicsKerasEnsamble(KERASAlgorithm):
             if (print_info):
                 print("Reward Net summary: ", model_._reward_net.summary())
                 
-            self._forwards.append(model_.getForwardDynamicsNetwork()([model_.getStateSymbolicVariable(), model_.getActionSymbolicVariable()]))
-            self._rewards.append(model_.getRewardNetwork()([model_.getStateSymbolicVariable(), model_.getActionSymbolicVariable()]))
             self._models.append(model_)
+            
+        for i in range(self._fd_ensemble_size):            
+            sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
+            print ("Clipping: ", sgd.decay)
+            print("sgd, critic: ", sgd)
+            self._models[i].getRewardNetwork().compile(loss='mse', optimizer=sgd)
+            # sgd = SGD(lr=0.0005, momentum=0.9)
+            sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
+            print("sgd, actor: ", sgd)
+            print ("Clipping: ", sgd.decay)
+            if ("use_stochastic_forward_dynamics" in self.getSettings()
+                and (self.getSettings()['use_stochastic_forward_dynamics'] == True)):
+                self._models[i].getForwardDynamicsNetwork().compile(loss=loss_std, optimizer=sgd)
+            else:
+                self._models[i].getForwardDynamicsNetwork().compile(loss='mse', optimizer=sgd)
         
         ### data types for model
         self._fd_grad_target = T.matrix("FD_Grad")
@@ -73,38 +97,18 @@ class ForwardDynamicsKerasEnsamble(KERASAlgorithm):
         ForwardDynamicsKerasEnsamble.compile(self)
     
     def compile(self):
+
+        self._forwards = []
+        self._rewards = []        
         self.fds = []
         self.rewards = []
-        
-        def loss_std(action_true, action_pred):
-            action_true = action_true[:,:self._state_length]
-            action_pred_mean = action_pred[:,:self._state_length]
-            action_pred_std = action_pred[:,self._state_length:]
-            prob = loglikelihood_keras(action_true, action_pred_mean, action_pred_std, self._state_length)
-            # entropy = 0.5 * T.mean(T.log(2 * np.pi * action_pred_std + 1 ) )
-            # actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)) + (entropy * 1e-2))
-            actLoss = -1.0 * (K.mean(K.mean(prob, axis=-1)))
-            ### Average over batch
-            return actLoss
-        
-        self._loss_std = loss_std
+        for i in range(self._fd_ensemble_size):
+            self._forwards.append(self._models[i].getForwardDynamicsNetwork()([self._models[i].getStateSymbolicVariable(), self._models[i].getActionSymbolicVariable()]))
+            self._rewards.append(self._models[i].getRewardNetwork()([self._models[i].getStateSymbolicVariable(), self._models[i].getActionSymbolicVariable()]))
+            
 
         # sgd = SGD(lr=0.001, momentum=0.9)
         for i in range(self._fd_ensemble_size):
-            sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
-            print ("Clipping: ", sgd.decay)
-            print("sgd, critic: ", sgd)
-            self._models[i].getRewardNetwork().compile(loss='mse', optimizer=sgd)
-            # sgd = SGD(lr=0.0005, momentum=0.9)
-            sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
-            print("sgd, actor: ", sgd)
-            print ("Clipping: ", sgd.decay)
-            if ("use_stochastic_forward_dynamics" in self.getSettings()
-                and (self.getSettings()['use_stochastic_forward_dynamics'] == True)):
-                self._models[i].getForwardDynamicsNetwork().compile(loss=loss_std, optimizer=sgd)
-            else:
-                self._models[i].getForwardDynamicsNetwork().compile(loss='mse', optimizer=sgd)
-    
             
             self.fds.append(K.function([self._models[i].getStateSymbolicVariable(), self._models[i].getActionSymbolicVariable(), K.learning_phase()], [self._forwards[i]]))
             self.rewards.append(K.function([self._models[i].getStateSymbolicVariable(), self._models[i].getActionSymbolicVariable(), K.learning_phase()], [self._rewards[i]]))
@@ -214,7 +218,7 @@ class ForwardDynamicsKerasEnsamble(KERASAlgorithm):
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = scale_state(np.array(self.fds[member]([state, action,0]))[0,:,:self._state_length], self._state_bounds)
+        state_ = scale_state(np.array(self._models[member].getForwardDynamicsNetwork().predict([state, action]))[:,:self._state_length], self._state_bounds)
         # print("state:", state_)
         return state_
     
@@ -298,10 +302,13 @@ class ForwardDynamicsKerasEnsamble(KERASAlgorithm):
         import h5py
         suffix = ".h5"
         print ("Loading agent: ", fileName)
-        self._model._forward_dynamics_net = load_model(fileName+"_FD"+suffix, custom_objects={'loss_std': self._loss_std})
-        self._model._reward_net = load_model(fileName+"_reward"+suffix)
+        self._models[0]._forward_dynamics_net = load_model(fileName+"_FD"+suffix, custom_objects={'loss_std': self._loss_std})
+        self._models[0]._reward_net = load_model(fileName+"_reward"+suffix)
         hf = h5py.File(fileName+"_bounds.h5",'r')
         self.setStateBounds(np.array(hf.get('_state_bounds')))
         self.setRewardBounds(np.array(hf.get('_reward_bounds')))
         self.setActionBounds(np.array(hf.get('_action_bounds')))
         hf.close()
+        
+        self.compile()
+        
