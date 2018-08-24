@@ -172,7 +172,7 @@ class LearningAgent(AgentInterface):
                             and (self._settings["use_dual_state_representations"] == True)):
                             if ("use_viz_for_policy" in self._settings 
                                     and self._settings["use_viz_for_policy"] == True):
-                                tup = (state__[j][1], [action__[j]], next_state__[j][1], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
+                                tup = ([state__[j][1]], [action__[j]], [next_state__[j][1]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
                             elif ("use_dual_viz_state_representations" in self._settings
                                 and (self._settings["use_dual_viz_state_representations"] == True)):
                                 tup = ([state__[j][0]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])

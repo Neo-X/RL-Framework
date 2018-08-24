@@ -155,12 +155,12 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         for state, action, resultState, reward_, fall_, G_t, exp_action, adv in zip(states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_):
             # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
             # for j in range(len(state)):
-                    
+            # print("state shape: ", np.array(state).shape)
             if ("use_dual_state_representations" in settings
                 and (settings["use_dual_state_representations"] == True)):
                 if ("use_viz_for_policy" in settings 
                     and settings["use_viz_for_policy"] == True):
-                    state_ = state[1][0]
+                    state_ = state[1]
                     if ("replace_next_state_with_pose_state" in settings 
                         and (settings["replace_next_state_with_pose_state"] == True)):
                         ### grab pose data for training fd model
