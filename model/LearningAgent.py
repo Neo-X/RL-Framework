@@ -582,7 +582,7 @@ class LearningAgent(AgentInterface):
             # print ("State: ", state)
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
-                state = np.array(state[0][1])
+                state = [state[0][1]]
             elif ("use_dual_viz_state_representations" in self.getSettings()
                   and (self.getSettings()["use_dual_viz_state_representations"] == True)):
                 # print ("state: ", np.array(state).shape)
@@ -606,7 +606,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = np.array(state[0][1])
+                state = [state[0][1]]
             elif ("use_dual_viz_state_representations" in self.getSettings()
                   and (self.getSettings()["use_dual_viz_state_representations"] == True)):
                 state = [state[0][0]]
@@ -625,7 +625,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = np.array(state[0][1])
+                state = [state[0][1]]
             elif ("use_dual_viz_state_representations" in self.getSettings()
                   and (self.getSettings()["use_dual_viz_state_representations"] == True)):
                 state = [state[0][0]]
@@ -647,7 +647,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
                 # print ("State: ", np.array(state[0]).shape)
-                state = np.array(state[0][1])
+                state = [state[0][1]]
             elif ("use_dual_viz_state_representations" in self.getSettings()
                   and (self.getSettings()["use_dual_viz_state_representations"] == True)):
                 state = [state[0][0]]
@@ -667,7 +667,7 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = np.array(state[0][1])
+                state = [state[0][1]]
             elif ("use_dual_viz_state_representations" in self.getSettings()
                   and (self.getSettings()["use_dual_viz_state_representations"] == True)):
                 state = [state[0][0]]

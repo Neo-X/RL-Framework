@@ -194,6 +194,7 @@ class KERASAlgorithm(AlgorithmInterface):
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
         # if deterministic_:
+        # print ("state: ", np.array([state]).shape)
         action_ = scale_action(self._model.getActorNetwork().predict([state], 
                                  batch_size=1)[:,:self._action_length], self._action_bounds)
         return action_
