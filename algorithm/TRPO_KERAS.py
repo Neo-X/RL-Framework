@@ -67,12 +67,39 @@ class TRPO_KERAS(KERASAlgorithm):
         self._modelTarget._critic = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._critic)
         if (print_info):
             print("Target Critic summary: ", self._modelTarget._critic.summary())
+
+        #### Stuff for Debugging #####
+        sgd = getOptimizer(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+                                    settings=self.getSettings())
+        print ("Clipping: ", sgd.decay)
+        print("sgd, critic: ", sgd)
+        
+        self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
+        # sgd = SGD(lr=0.0005, momentum=0.9)
+        # self._get_advantage = theano.function([], [self._Advantage])
+        
+        sgd = getOptimizer(lr=np.float32(self.getSettings()['learning_rate']), 
+                                    settings=self.getSettings())
+        print ("Clipping: ", sgd.decay)
+        print("sgd, critic: ", sgd)
+        self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
+                
+        sgd = getOptimizer(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+                                    settings=self.getSettings())
+        # print ("Clipping: ", sgd.decay)
+        # print("sgd, critic: ", sgd)
+        self._modelTarget.getCriticNetwork().compile(loss='mse', optimizer=sgd)
             
         """
         self._target_shared = theano.shared(
             np.zeros((self._batch_size, 1), dtype='float64'),
             broadcastable=(False, True))
         """
+        
+        TRPO_KERAS.compile(self)
+        
+    def compile(self):
+
         self.__value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
         self.__value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
         
@@ -123,11 +150,7 @@ class TRPO_KERAS(KERASAlgorithm):
         
         ## Bellman error
         # self._bellman = self._target - self._q_funcTarget
-        
-        TRPO_KERAS.compile(self)
-        
-    def compile(self):
-        
+                
         # N = self._model.getStateSymbolicVariable().shape[0]
         # N = 1
         params = self._model._actor.trainable_weights
@@ -183,21 +206,6 @@ class TRPO_KERAS(KERASAlgorithm):
         ]
         
         #### Stuff for Debugging #####
-        #### Stuff for Debugging #####
-        sgd = getOptimizer(lr=np.float32(self.getSettings()['critic_learning_rate']), 
-                                    settings=self.getSettings())
-        print ("Clipping: ", sgd.decay)
-        print("sgd, critic: ", sgd)
-        
-        self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
-        # sgd = SGD(lr=0.0005, momentum=0.9)
-        # self._get_advantage = theano.function([], [self._Advantage])
-        
-        sgd = getOptimizer(lr=np.float32(self.getSettings()['learning_rate']), 
-                                    settings=self.getSettings())
-        print ("Clipping: ", sgd.decay)
-        print("sgd, critic: ", sgd)
-        self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
         
         if (self.getSettings()["regularization_weight"] > 0.0000001):
             self._actor_regularization = K.sum(self._model.getActorNetwork().losses)

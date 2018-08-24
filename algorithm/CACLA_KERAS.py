@@ -43,6 +43,30 @@ class CACLA_KERAS(KERASAlgorithm):
         ## self._modelTarget = copy.deepcopy(model)
         # self._modelTarget = model
         
+        # sgd = SGD(lr=0.001, momentum=0.9)
+        sgd = getOptimizer(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+                                    settings=self.getSettings())
+        print ("Clipping: ", sgd.decay)
+        print("sgd, critic: ", sgd)
+        self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
+        
+        sgd = getOptimizer(lr=np.float32(self.getSettings()['critic_learning_rate']), 
+                                    settings=self.getSettings())
+        # print ("Clipping: ", sgd.decay)
+        # print("sgd, critic: ", sgd)
+        self._modelTarget.getCriticNetwork().compile(loss='mse', optimizer=sgd)
+        
+        # sgd = SGD(lr=0.0005, momentum=0.9)
+        sgd = sgd = getOptimizer(lr=np.float32(self.getSettings()['learning_rate']), 
+                                    settings=self.getSettings())
+        print("sgd, actor: ", sgd)
+        print ("Clipping: ", sgd.decay)
+        self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
+        
+        CACLA_KERAS.compile(self)
+        
+    def compile(self):
+        
         self._q_valsActA = self._model.getActorNetwork()(self._model._stateInput)
         self._q_valsActTarget = self._modelTarget.getActorNetwork()(self._model._stateInput)
         self._q_valsActASTD = ( K.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
@@ -60,22 +84,6 @@ class CACLA_KERAS(KERASAlgorithm):
         
         _target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self.__value_Target)
         self._loss = K.mean(0.5 * (self.__value - _target) ** 2)
-        
-        CACLA_KERAS.compile(self)
-        
-    def compile(self):
-        # sgd = SGD(lr=0.001, momentum=0.9)
-        sgd = getOptimizer(lr=np.float32(self.getSettings()['critic_learning_rate']), 
-                                    settings=self.getSettings())
-        print ("Clipping: ", sgd.decay)
-        print("sgd, critic: ", sgd)
-        self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
-        # sgd = SGD(lr=0.0005, momentum=0.9)
-        sgd = sgd = getOptimizer(lr=np.float32(self.getSettings()['learning_rate']), 
-                                    settings=self.getSettings())
-        print("sgd, actor: ", sgd)
-        print ("Clipping: ", sgd.decay)
-        self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
         
         self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
         

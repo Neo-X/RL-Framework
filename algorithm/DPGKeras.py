@@ -50,6 +50,18 @@ class DPGKeras(KERASAlgorithm):
         self._discount_factor= self.getSettings()['discount_factor']
         self._rho = self.getSettings()['rho']
         self._rms_epsilon = self.getSettings()['rms_epsilon']
+
+        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
+        print ("Clipping: ", sgd.decay)
+        self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
+        
+        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
+        print ("Clipping: ", sgd.decay)
+        self._modelTarget.getCriticNetwork().compile(loss='mse', optimizer=sgd)        
+        
+        DPGKeras.compile(self)
+        
+    def compile(self):
         
         self._q_valsActA = self._model.getActorNetwork()([self._model.getStateSymbolicVariable()])[:,:self._action_length]
         self._q_valsActTarget_State = self._modelTarget.getActorNetwork()([self._model.getStateSymbolicVariable()])[:,:self._action_length]
@@ -69,10 +81,6 @@ class DPGKeras(KERASAlgorithm):
         self._q_loss = K.mean(K.mean(diff, axis=-1))
         # print ("Initial W " + str(self._w_o.get_value()) )
         
-        DPGKeras.compile(self)
-        
-    def compile(self):
-        
         """
             self._act_target = self._modelTarget().getActorNetwork()
             self._q_val_target = self._modelTarget().getCriticNetwork()
@@ -82,10 +90,6 @@ class DPGKeras(KERASAlgorithm):
             self._q_val = self._modelTarget().getCriticNetwork()(self._model().getActorNetwork()(self._states))
             self._y_target = rewards + ((self._discount_factor * q_vals_b ))
         """
-        
-        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
-        print ("Clipping: ", sgd.decay)
-        self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
         
         # self._actor_optimizer = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
         # updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=-T.mean(self._q_function), constraints=[])

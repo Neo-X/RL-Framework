@@ -102,6 +102,13 @@ class PPO_KERAS(KERASAlgorithm):
         if (print_info):
             print("Target Critic summary: ", self._modelTarget._critic.summary())
         
+        
+        PPO_KERAS.compile(self)
+        self.updateTargetModel()
+        
+    def compile(self):
+        # sgd = SGD(lr=0.001, momentum=0.9)
+        
         self.__value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
         self.__value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
         
@@ -146,11 +153,6 @@ class PPO_KERAS(KERASAlgorithm):
         
         # self._policy_grad = T.grad(self._actLoss ,  self._actionParams)
         
-        PPO_KERAS.compile(self)
-        self.updateTargetModel()
-        
-    def compile(self):
-        # sgd = SGD(lr=0.001, momentum=0.9)
         sgd = getOptimizer(lr=np.float32(self.getSettings()['critic_learning_rate']), 
                                     settings=self.getSettings())
         print ("Clipping: ", sgd.decay)

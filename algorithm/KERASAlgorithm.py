@@ -273,6 +273,8 @@ class KERASAlgorithm(AlgorithmInterface):
         if (self._modelTarget is not None):
             self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
             self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
+            
+        self.compile()
         # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
         # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
