@@ -270,7 +270,7 @@ def trainModelParallel(inputData):
         
         # print ( "theano.config.mode: ", theano.config.mode)
         from simulation.SimWorker import SimWorker
-        from simulation.simEpoch import simEpoch, simModelParrallel
+        from simulation.simEpoch import simEpoch, simModelParrallel, simModelMoreParrallel
         from simulation.evalModel import evalModelParrallel, evalModel
         from simulation.collectExperience import collectExperience
         from model.ModelUtil import validBounds, fixBounds, anneal_value
@@ -474,7 +474,7 @@ def trainModelParallel(inputData):
                            eval_episode_data_queue=None)
             
         else:
-            if (settings['on_policy']):
+            if (settings['on_policy'] == True):
                 
                 experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperience(actor, None, model, settings,
                            sim_work_queues=sim_work_queues, 
@@ -749,11 +749,18 @@ def trainModelParallel(inputData):
                 if (settings['on_policy']):
                     
                     # if ( settings['num_available_threads'] > 0 ):  
-                    out = simModelParrallel( sw_message_queues=sim_work_queues,
-                                               model=masterAgent, settings=settings, 
-                                               eval_episode_data_queue=eval_episode_data_queue, 
-                                               anchors=settings['num_on_policy_rollouts']
-                                               ,p=p)
+                    if (settings['on_policy'] == "fast"):
+                        out = simModelMoreParrallel( sw_message_queues=input_anchor_queue,
+                                                   model=masterAgent, settings=settings, 
+                                                   eval_episode_data_queue=eval_episode_data_queue, 
+                                                   anchors=settings['num_on_policy_rollouts']
+                                                   ,p=p)
+                    else:
+                        out = simModelParrallel( sw_message_queues=sim_work_queues,
+                                                   model=masterAgent, settings=settings, 
+                                                   eval_episode_data_queue=eval_episode_data_queue, 
+                                                   anchors=settings['num_on_policy_rollouts']
+                                                   ,p=p)
                     
                     if ("divide_by_zero" in settings
                         and (settings["divide_by_zero"] == True)):
@@ -870,7 +877,7 @@ def trainModelParallel(inputData):
                     print ("Master agent experience size: " + str(masterAgent.getExperience().samples()))
                 # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
                 
-                if (not settings['on_policy']):
+                if (settings['on_policy'] is False):
                     ## There could be stale policy parameters in here, use the last set put in the queue
                     data = None
                     while (not masterAgent_message_queue.empty()):

@@ -159,7 +159,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 and 
                 (
                     ( ### Explore if r < annealing value
-                        (settings['on_policy'] == True) 
+                        (settings['on_policy']) 
                         and 
                         (
                             ("anneal_exploration" in settings) 
@@ -169,18 +169,18 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     ) 
                         or ### Always explore 
                         ( 
-                            (settings['on_policy'] == True)
+                            (settings['on_policy'])
                             and ("anneal_exploration" in settings) 
                             and (settings['anneal_exploration'] == False)
                         )
                         or ### Always explore 
                         (
-                            (settings['on_policy'] == True)
+                            (settings['on_policy'])
                             and (not "anneal_exploration" in settings) 
                         )
                         or  
                         ( ### Explore sometimes
-                            (settings['on_policy'] == False)
+                            (settings['on_policy'])
                             and (r < (epsilon * p)) 
                         )
                     )
@@ -768,13 +768,53 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
             print("Updated min sample from collection is: ", min_samples)
     samples__ = 0
-    while ( (samples__ < (min_samples))
+    j=0
+    while (j < abs(settings['num_available_threads'])):
+        episodeData = {}
+        episodeData['data'] = i
+        if ( (type is None) ):
+            episodeData['type'] = 'sim_on_policy'
+        else:
+            episodeData['type'] = 'bootstrapping'
+        # sw_message_queues[j].put(episodeData)
+        if (settings['on_policy'] == True):
+            # print ("sw_message_queues[j].maxsize: ", sw_message_queues[j].qsize() )
+            sw_message_queues[j].put(episodeData, timeout=timeout_)
+        else:
+            sw_message_queues.put(episodeData, timeout=timeout_)
+        j += 1
+        
+        
+    while ( (samples__ < (min_samples) and  (j > 0))
             ):
         
-        j = 0
-        # print("j: ", j)
-        # while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
-        while (j < abs(settings['num_available_threads'])):
+        # while (j < abs(settings['num_available_threads'])):
+        (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get(timeout=timeout_)
+        discounted_sum.append(discounted_sum_)
+        value.append(value_)
+        evalData.append(evalData_)
+        j = j - 1
+        """
+        simEpoch(actor, exp, 
+                model, discount_factor, anchors=anchs, action_space_continuous=action_space_continuous, 
+                settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
+                visualizeEvaluation=visualizeEvaluation)
+        """
+        epoch_ = epoch_ + 1
+        (states_, actions_, result_states_, rewards_, falls_, G_ts_, advantage_, exp_actions_) = tuples
+        samples__ = samples__ + len(states_)
+        states.append(states_)
+        actions.append(actions_)
+        result_states.append(result_states_)
+        rewards.append(rewards_)
+        falls.append(falls_)
+        G_ts.append(G_ts_)
+        advantage.append(advantage_)
+        exp_actions.append(exp_actions_)
+        
+        
+        if (samples__ < (min_samples)):
+            ### If we still need more samples generate another trajectory
             episodeData = {}
             episodeData['data'] = i
             if ( (type is None) ):
@@ -782,39 +822,13 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
             else:
                 episodeData['type'] = 'bootstrapping'
             # sw_message_queues[j].put(episodeData)
-            if (settings['on_policy']):
+            if (settings['on_policy'] == True):
                 # print ("sw_message_queues[j].maxsize: ", sw_message_queues[j].qsize() )
                 sw_message_queues[j].put(episodeData, timeout=timeout_)
             else:
                 sw_message_queues.put(episodeData, timeout=timeout_)
             j += 1
             
-        j = 0
-        # while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
-        while (j < abs(settings['num_available_threads'])):
-            (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get(timeout=timeout_)
-            discounted_sum.append(discounted_sum_)
-            value.append(value_)
-            evalData.append(evalData_)
-            j += 1
-            """
-            simEpoch(actor, exp, 
-                    model, discount_factor, anchors=anchs, action_space_continuous=action_space_continuous, 
-                    settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
-                    visualizeEvaluation=visualizeEvaluation)
-            """
-            epoch_ = epoch_ + 1
-            (states_, actions_, result_states_, rewards_, falls_, G_ts_, advantage_, exp_actions_) = tuples
-            samples__ = samples__ + len(states_)
-            states.append(states_)
-            actions.append(actions_)
-            result_states.append(result_states_)
-            rewards.append(rewards_)
-            falls.append(falls_)
-            G_ts.append(G_ts_)
-            advantage.append(advantage_)
-            exp_actions.append(exp_actions_)
-        i += j
         # print("samples collected so far: ", len(states))
         
     tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
