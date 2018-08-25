@@ -385,7 +385,7 @@ class SimWorker(Process):
                 else:
                     pass
                 
-                ### Pull updated network parameters
+                ### Pull updated network parameters, if there are some
                 if self._message_queue.qsize() > 0:
                     data = None
                     # print ("Getting updated network parameters:")

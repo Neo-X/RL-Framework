@@ -739,7 +739,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         batch_size=settings["batch_size"]
         
     j=0
-    timeout_ = 60 * 5 ### 10 min timeout
+    timeout_ = 60 * 5 ### 5 min timeout
     discounted_values = []
     bellman_errors = []
     reward_over_epocs = []
@@ -769,8 +769,14 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         p_ = max(float(settings['anneal_exploration']), settings['epsilon'] * p)
         min_samples = min_samples * (1.0/p_)
     
+
+        anchors
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
             print("Updated min sample from collection is: ", min_samples)
+    
+    if( type == 'eval'): ### for number of eval epochs
+        min_samples = anchors * settings["max_epoch_length"]
+            
     samples__ = 0
     j=0
     while (j < abs(settings['num_available_threads'])):
@@ -789,7 +795,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         else:
             sw_message_queues.put(episodeData, timeout=timeout_)
         j += 1
-        print("j: ", j)
+        # print("j: ", j)
         
         
     while ( (samples__ < (min_samples) or  (j > 0))
@@ -834,7 +840,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
                 sw_message_queues.put(episodeData, timeout=timeout_)
             j = j + 1
             
-        print("j: ", j)
+        # print("j: ", j)
             
         if( type == 'eval'):
             
@@ -852,15 +858,29 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
             # print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With reward_sum: " + str(np.sum(rewards)) + " bellman error: " + str(error))
             # print ("Rewards over eval epoch: ", rewards_)
             # This works better because epochs can terminate early, which is bad.
-            print ("rewards: ", np.array(rewards_).shape)
+            # print ("rewards: ", np.array(rewards_).shape)
             reward_over_epocs.append(np.mean(np.array(rewards_)))
             bellman_errors.append(error)
         
             
         # print("samples collected so far: ", len(states))
-        
+    
+    assert (j == 0)
+    
+    
     tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
     if( type == 'eval'):
+        
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+            print ("Reward for best epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
+            print ("reward_over_epocs" + str(reward_over_epocs))
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
+            print ("Discounted sum: ", np.array(discounted_values))
+            print ("Initial values: ", np.array(values))
+            for i in range(len(discounted_values)):
+                print ("len(discounted_values[",i,"]): ", np.array(discounted_values[i]).shape, " len(values[",i,"]): ", 
+                       np.array(values[i]).shape)
+            
         mean_reward = np.mean(reward_over_epocs)
         std_reward = np.std(reward_over_epocs)
         mean_bellman_error = np.mean(bellman_errors)

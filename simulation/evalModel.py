@@ -189,7 +189,7 @@ def evalModelMoreParrallel(input_anchor_queue, eval_episode_data_queue, model, s
         batch_size=settings["batch_size"]
     j=0
     
-    return simModelMoreParrallel(input_anchor_queue, eval_episode_data_queue, model, settings, anchors=None,
+    return simModelMoreParrallel(input_anchor_queue, eval_episode_data_queue, model, settings, anchors=anchors,
                           type='eval')
     """
     discounted_values = []

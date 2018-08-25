@@ -19,7 +19,7 @@ from model.ModelUtil import *
 # import memory_profiler
 # import resources
 
-from simulation.simEpoch import simModelParrallel
+from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
 
         
 # @profile(precision=5)
@@ -235,11 +235,20 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
                                action_space_continuous=settings['action_space_continuous'], settings=settings, print_data=False,
                                 p=1.0, validation=settings['train_on_validation_set'], bootstrapping=True, epsilon=1.0)
         else:
-            out = simModelParrallel( sw_message_queues=sim_work_queues,
+            if (settings['on_policy'] == "fast"):
+                 
+                out = simModelMoreParrallel( sw_message_queues=sim_work_queues,
+                                     model=model, settings=settings, 
+                                     eval_episode_data_queue=eval_episode_data_queue, 
+                                     anchors=settings['epochs'],
+                                     type='bootstrapping')
+            else:
+                out = simModelParrallel( sw_message_queues=sim_work_queues,
                                  model=model, settings=settings, 
                                  eval_episode_data_queue=eval_episode_data_queue, 
                                  anchors=settings['epochs'],
-                                 type='bootstrapping')
+                                 type='bootstrapping')    
+            
         # if self._p <= 0.0:
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out
