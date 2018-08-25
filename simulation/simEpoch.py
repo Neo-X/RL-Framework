@@ -789,9 +789,10 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         else:
             sw_message_queues.put(episodeData, timeout=timeout_)
         j += 1
+        print("j: ", j)
         
         
-    while ( (samples__ < (min_samples) and  (j > 0))
+    while ( (samples__ < (min_samples) or  (j > 0))
             ):
         
         # while (j < abs(settings['num_available_threads'])):
@@ -832,6 +833,8 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
             else:
                 sw_message_queues.put(episodeData, timeout=timeout_)
             j = j + 1
+            
+        print("j: ", j)
             
         if( type == 'eval'):
             
