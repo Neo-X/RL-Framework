@@ -732,13 +732,18 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
 def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None, type=None, p=1):
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
         print ("Simulating epochs in Parallel:")
+        
+    if ( 'value_function_batch_size' in settings):
+        batch_size=settings["value_function_batch_size"]
+    else:
+        batch_size=settings["batch_size"]
+        
     j=0
     timeout_ = 60 * 5 ### 10 min timeout
     discounted_values = []
     bellman_errors = []
     reward_over_epocs = []
-    values = []
-    evalDatas = []
+    
     epoch_=0
     states = []
     actions = []
@@ -748,9 +753,8 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
     G_ts = []
     advantage = [] 
     exp_actions = []
-    discounted_sum = []
-    value = []
-    evalData = []
+    values = []
+    evalDatas = []
     i = 0 
     
     if ("num_on_policy_rollouts" in settings):
@@ -774,6 +778,8 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         episodeData['data'] = i
         if ( (type is None) ):
             episodeData['type'] = 'sim_on_policy'
+        elif( type == 'eval'):
+            episodeData['type'] = 'eval'
         else:
             episodeData['type'] = 'bootstrapping'
         # sw_message_queues[j].put(episodeData)
@@ -790,16 +796,12 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         
         # while (j < abs(settings['num_available_threads'])):
         (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get(timeout=timeout_)
-        discounted_sum.append(discounted_sum_)
-        value.append(value_)
-        evalData.append(evalData_)
+        
+        discounted_values.append(discounted_sum_)
+        values.append(value_)
+        evalDatas.append(evalData_)
         j = j - 1
-        """
-        simEpoch(actor, exp, 
-                model, discount_factor, anchors=anchs, action_space_continuous=action_space_continuous, 
-                settings=settings, print_data=print_data, p=0.0, validation=True, epoch=epoch_, evaluation=evaluation,
-                visualizeEvaluation=visualizeEvaluation)
-        """
+
         epoch_ = epoch_ + 1
         (states_, actions_, result_states_, rewards_, falls_, G_ts_, advantage_, exp_actions_) = tuples
         samples__ = samples__ + len(states_)
@@ -819,6 +821,8 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
             episodeData['data'] = i
             if ( (type is None) ):
                 episodeData['type'] = 'sim_on_policy'
+            elif( type == 'eval'):
+                episodeData['type'] = 'eval'
             else:
                 episodeData['type'] = 'bootstrapping'
             # sw_message_queues[j].put(episodeData)
@@ -827,9 +831,42 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
                 sw_message_queues[j].put(episodeData, timeout=timeout_)
             else:
                 sw_message_queues.put(episodeData, timeout=timeout_)
-            j += 1
+            j = j + 1
+            
+        if( type == 'eval'):
+            
+            if model.getExperience().samples() >= batch_size:
+                _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = model.getExperience().get_batch(batch_size)
+                error = model.bellman_error(_states, _actions, _rewards, _result_states, _falls)
+                # print("Episode bellman error: ", error)
+            else :
+                error = [[0]]
+                print ("Error: not enough samples in experience to check bellman error: ", model.getExperience().samples(), " needed " , batch_size)
+            # states, actions, result_states, rewards = experience.get_batch(64)
+            # error = model.bellman_error(states, actions, rewards, result_states)
+            # print (states, actions, rewards, result_states, discounted_sum, value)
+            error = np.mean(np.fabs(error))
+            # print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With reward_sum: " + str(np.sum(rewards)) + " bellman error: " + str(error))
+            # print ("Rewards over eval epoch: ", rewards_)
+            # This works better because epochs can terminate early, which is bad.
+            print ("rewards: ", np.array(rewards_).shape)
+            reward_over_epocs.append(np.mean(np.array(rewards_)))
+            bellman_errors.append(error)
+        
             
         # print("samples collected so far: ", len(states))
         
     tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
-    return (tuples, discounted_sum, value, evalData)
+    if( type == 'eval'):
+        mean_reward = np.mean(reward_over_epocs)
+        std_reward = np.std(reward_over_epocs)
+        mean_bellman_error = np.mean(bellman_errors)
+        std_bellman_error = np.std(bellman_errors)
+        mean_discount_error = np.mean(np.array(discounted_values) - np.array(values))
+        std_discount_error = np.std(np.array(discounted_values) - np.array(values))
+        mean_eval = np.mean(evalDatas)
+        std_eval = np.std(evalDatas)
+        return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
+            mean_eval, std_eval)
+    else:
+        return (tuples, discounted_values, values, evalDatas)

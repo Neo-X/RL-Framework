@@ -108,7 +108,7 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
         if (settings['on_policy']):
             message_queue = multiprocessing.Queue(1)
         else:
-            message_queue = multiprocessing.Queue(settings['epochs'])
+            message_queue = multiprocessing.Queue(settings['num_available_threads'])
         sim_work_queues.append(message_queue)
         w = SimWorker(input_anchor_queue, output_experience_queue, actor, exp_, agent, settings["discount_factor"], action_space_continuous=settings['action_space_continuous'], 
                 settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process + 1,
@@ -209,10 +209,10 @@ def trainModelParallel(inputData):
             output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
             eval_episode_data_queue = multiprocessing.Queue(settings['queue_size_limit'])
         else:
-            input_anchor_queue = multiprocessing.Queue(settings['epochs'])
-            input_anchor_queue_eval = multiprocessing.Queue(settings['epochs'])
-            output_experience_queue = multiprocessing.Queue(settings['queue_size_limit'])
-            eval_episode_data_queue = multiprocessing.Queue(settings['eval_epochs'])
+            input_anchor_queue = multiprocessing.Queue(settings['num_available_threads'])
+            input_anchor_queue_eval = multiprocessing.Queue(settings['num_available_threads'])
+            output_experience_queue = multiprocessing.Queue(settings['num_available_threads'])
+            eval_episode_data_queue = multiprocessing.Queue(settings['num_available_threads'])
             
         if (settings['on_policy']): ## So that off-policy agent does not learn
             output_experience_queue = None
@@ -271,7 +271,7 @@ def trainModelParallel(inputData):
         # print ( "theano.config.mode: ", theano.config.mode)
         from simulation.SimWorker import SimWorker
         from simulation.simEpoch import simEpoch, simModelParrallel, simModelMoreParrallel
-        from simulation.evalModel import evalModelParrallel, evalModel
+        from simulation.evalModel import evalModelParrallel, evalModel, evalModelMoreParrallel
         from simulation.collectExperience import collectExperience
         from model.ModelUtil import validBounds, fixBounds, anneal_value
         from model.LearningAgent import LearningAgent, LearningWorker
@@ -956,8 +956,11 @@ def trainModelParallel(inputData):
                 #     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp_val, masterAgent, discount_factor, 
                 #                                         anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings)
                 # else:
-                if (settings['on_policy']):
+                if (settings['on_policy'] == True ):
                     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=eval_sim_work_queues,
+                                                               model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
+                elif (settings['on_policy'] == "fast"):
+                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelMoreParrallel( input_anchor_queue=input_anchor_queue_eval,
                                                                model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                 else:
                     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue_eval,
