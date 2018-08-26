@@ -24,6 +24,13 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Whether or not to perform training in epochs [true|false|None]")
     
+    parser.add_option("--Use_Multi_GPU_Simulation", "--Multi_GPU",
+              action="store", dest="Use_Multi_GPU_Simulation", default=None,
+              type='choice',
+              choices=['true', 'false', None],
+              metavar="STRING", 
+              help="Whether or not to perform training in epochs [true|false|None]")
+    
     parser.add_option("--visualize_expected_value",
               action="store", dest="visualize_expected_value", default=None,
               type='choice',

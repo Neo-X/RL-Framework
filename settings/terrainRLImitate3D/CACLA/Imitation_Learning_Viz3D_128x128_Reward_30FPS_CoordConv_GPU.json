@@ -508,5 +508,7 @@
 	"comment__": "force the simulation threads to keep the network on the CPU",
 "force_sim_net_to_cpu": false,
 	"comment__": "GPU index to perform rendering on",
-"GPU_BUS_Index": 0
+"GPU_BUS_Index": 0,
+	"comment__": "Use Multi GPU simultion"
+"Use_Multi_GPU_Simulation": true
 }
