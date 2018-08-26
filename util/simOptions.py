@@ -31,6 +31,13 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Whether or not to perform training in epochs [true|false|None]")
     
+    parser.add_option("--on_policy",
+              action="store", dest="on_policy", default=None,
+              type='choice',
+              choices=['true', 'false', 'fast', None],
+              metavar="STRING", 
+              help="Whether or not to perform training in epochs [true|false|None]")
+    
     parser.add_option("--visualize_expected_value",
               action="store", dest="visualize_expected_value", default=None,
               type='choice',
