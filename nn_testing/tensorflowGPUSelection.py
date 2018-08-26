@@ -7,7 +7,7 @@ print ("raw_devices: ", raw_devices)
 
 def getComputeDevice(index=1):
     if (index > (len(raw_devices)-1)):
-        print ("Not enough GPU devices returning default (0)")
+        print ("\n Not enough GPU devices returning default (0) \n")
         return "0"
     raw_devices.sort()
     print ("sorted devices: ", raw_devices)
@@ -21,7 +21,8 @@ if (len(sys.argv) == 2):
         os.environ["CUDA_VISIBLE_DEVICES"] = getComputeDevice()
     else:
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"] = getComputeDevice(int(sys.argv[1]))
+        # os.environ["CUDA_VISIBLE_DEVICES"] = getComputeDevice(int(sys.argv[1]))
+        os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1]
 else:
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"

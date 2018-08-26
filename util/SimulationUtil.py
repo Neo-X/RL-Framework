@@ -51,7 +51,8 @@ def setupEnvironmentVariable(settings):
     ### Setup GPU resources
     if ("GPU_BUS_Index" in settings):
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"] = getGPUBusIndex(index=int(settings["GPU_BUS_Index"]))
+        os.environ["CUDA_VISIBLE_DEVICES"] = settings["GPU_BUS_Index"]
+        # os.environ["CUDA_VISIBLE_DEVICES"] = getGPUBusIndex(index=int(settings["GPU_BUS_Index"]))
         
 def setupLearningBackend(settings):
     import keras
