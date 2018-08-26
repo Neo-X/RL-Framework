@@ -21,7 +21,7 @@ if (len(sys.argv) == 2):
         os.environ["CUDA_VISIBLE_DEVICES"] = getComputeDevice()
     else:
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"] = sys.argv[1]
+        os.environ["CUDA_VISIBLE_DEVICES"] = getComputeDevice(int(sys.argv[1]))
 else:
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = "0"
