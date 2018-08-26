@@ -1170,7 +1170,7 @@ def trainModelParallel(inputData):
         # print ("Discounted reward difference STD: " +  str(np.std(np.fabs(discounted_values - values))))
         # reward_over_epoc = np.array(reward_over_epoc)
     print ("Terminating Workers")
-    if (settings['on_policy']):
+    if (settings['on_policy'] == True):
         for m_q in sim_work_queues:
             ## block on full queue
             m_q.put(None)

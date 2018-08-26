@@ -396,7 +396,14 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # print ("learned reward: ", reward_)
                 
             else:
-                reward_ = exp.computeImitationReward(model.getForwardDynamics().predict)
+                if ("learned_reward_smoother" in settings
+                    and (settings["learned_reward_smoother"] == "gaussian")):
+                    reward__ = exp.computeImitationReward(model.getForwardDynamics().predict)
+                    reward_ = np.exp((reward__*reward__)*-5.0)
+                    # print ("Original reward: ", reward__, " smoothed reward: ", reward_)
+                else:
+                
+                    reward_ = exp.computeImitationReward(model.getForwardDynamics().predict)
                 
         if ("use_learned_fast_function" in settings
             and (settings["use_learned_fast_function"] == True)):
