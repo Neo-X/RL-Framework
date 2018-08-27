@@ -394,7 +394,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # print ("learned imitation reward: ", reward_, " imitation state sum: ", np.sum(resultState_[0][1]))
                 reward_ = model.getForwardDynamics().predict([state_[0][0]], [resultState_[0][0]])[0][0]
                 # print ("learned reward: ", reward_)
-                
+
+            elif ("use_encoding_for_reward" in settings
+                  and (settings["use_encoding_for_reward"] == True)):
+                    reward__ = exp.computeImitationReward(model.getForwardDynamics().computeEncodingDiff)
+                    reward_ = np.exp((reward__*reward__)*-5.0)
             else:
                 if ("learned_reward_smoother" in settings
                     and (settings["learned_reward_smoother"] == "gaussian")):

@@ -356,9 +356,9 @@
 	"comment__": "Use a target network for the value function.",
 "use_target_net_for_critic": true,
 	"comment__": "The name of the FD algorithm to load",
-"fd_algorithm": "algorithm.ForwardDynamicsKerasEnsamble.ForwardDynamicsKerasEnsamble",
+"fd_algorithm": "algorithm.ForwardDynamicsEncodingKerasEnsamble.ForwardDynamicsEncodingKerasEnsamble",
 	"comment__": "A list describing the size of the layers for the NN",
-"fd_network_layer_sizes": [256, ["dropout", 0.1], 128, ["dropout", 0.1], ["integrate_actor_part", [32]], 128],
+"fd_network_layer_sizes": [256, 128, 64, "mark_middle", ["integrate_actor_part", [32]], 64, 128],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [32, 32, "integrate_actor_part", 32],
 	"comment__": "type of activation to use",
@@ -378,5 +378,9 @@
 	"comment__": "number of fd models in the ensemble",
 "fd_ensemble_size": 1,
 	"comment__": "Discount factor for MBRL search",
-"mbrl_discount_factor": 0.95
+"mbrl_discount_factor": 0.95,
+	"comment__": "Using encoding model difference as reward function",
+"use_encoding_for_reward": true,
+	"comment__": "Use a learned reward function for the sim rewards",
+"use_learned_reward_function": true
 }

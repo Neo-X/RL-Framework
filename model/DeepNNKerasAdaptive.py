@@ -279,6 +279,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     networkAct = Concatenate()([networkAct, self._Noise])
                 elif ( layer_sizes[i] == "mark_middle"):
                     self._networkActMiddle = networkAct
+                    self._EncodedStateAct = keras.layers.Input(shape=(64,), name="EncodedStateAct")
                 elif ( layer_sizes[i] == "branch_char_state"):
                     self._networkActMiddleChar = Dense(32, 
                                        kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
