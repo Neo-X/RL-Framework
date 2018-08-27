@@ -222,7 +222,7 @@ class DiscriminatorKeras(AlgorithmInterface):
               )
         out = self._discriminate([states, result_states, 0])[0]
         # print ("Descriminator predictions: ", np.mean(out))
-        loss = score.history['loss'][0]
+        loss = np.mean(score.history['loss'])
         # print("Discriminator loss: ", loss)
         return loss
         
