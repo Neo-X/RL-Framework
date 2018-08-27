@@ -8,7 +8,7 @@
 	"comment__": "Name of the parameters that we want to tune",
 "param_to_tune": ["look_ahead_planning_steps"],
 	"comment__": "Parameter bounds, for which values will be sampled",
-"param_bounds": [[2, 4]],
+"param_bounds": [[5, 10]],
 	"comment__": "parameter value type [int|float|bool]",
 "param_data_type": ["int"],
 	"comment__": "Number of samples to evaluation between the given bounds",
