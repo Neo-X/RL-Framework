@@ -5,7 +5,7 @@ import lasagne
 import sys
 sys.path.append('../')
 from model.ModelUtil import *
-from algorithm.AlgorithmInterface import AlgorithmInterface
+from algorithm.KERASAlgorithm import KERASAlgorithm
 
 from keras.optimizers import SGD
 # from keras.utils.np_utils import to_categoricalnetwork
@@ -18,7 +18,7 @@ from keras.models import Sequential, Model
 from collections import OrderedDict
 from util.ExperienceMemory import ExperienceMemory
 
-class DiscriminatorKeras(AlgorithmInterface):
+class DiscriminatorKeras(KERASAlgorithm):
     """
         0 is a generated sample
         1 is a true sample
@@ -33,7 +33,8 @@ class DiscriminatorKeras(AlgorithmInterface):
         self._noise_std = 1.0
 
         # self._modelTarget = copy.deepcopy(model)
-        self._modelTarget = type(self._model)(state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_, print_info=print_info)
+        # self._modelTarget = type(self._model)(state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_, print_info=print_info)
+        self._modelTarget = None
             
         # print ("Initial W " + str(self._w_o.get_value()) )
         
@@ -64,24 +65,23 @@ class DiscriminatorKeras(AlgorithmInterface):
         self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable(), 
                             self._model.getResultStateSymbolicVariable()], 
                              outputs=[self._model._critic])
-        """
+        
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
                                     epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
                                     amsgrad=True)
-        """
         
-        sgd = keras.optimizers.RMSprop(lr=np.float32(self.getSettings()['fd_learning_rate']) 
-                                    )
+        
+        # sgd = keras.optimizers.RMSprop(lr=np.float32(self.getSettings()['fd_learning_rate']) )
         
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
         self._model.getCriticNetwork().compile(loss=['binary_crossentropy'], optimizer=sgd)
         # self._model.getCriticNetwork().compile(loss=['mse'], optimizer=sgd)
         print("Discriminator Net summary: ",  self._model.getCriticNetwork().summary())
-        
         """
-        self._model._reward_net = Model(input=[self._model.getStateSymbolicVariable(), 
+        
+        self._model._actor = Model(input=[self._model.getStateSymbolicVariable(), 
                             self._model.getActionSymbolicVariable()],
                             output=self._model._reward_net)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), 
@@ -90,8 +90,8 @@ class DiscriminatorKeras(AlgorithmInterface):
                                     amsgrad=False)
         print ("Clipping: ", sgd.decay)
         print("sgd, critic: ", sgd)
-        self._model.getRewardNetwork().compile(loss='mse', optimizer=sgd)
-        print("Reward Net summary: ",  self._model.getRewardNetwork().summary())
+        self._model.getActorNetwork().compile(loss='mse', optimizer=sgd)
+        print("Reward Net summary: ",  self._model.getActorNetwork().summary())
         """
         
         self._bellman_error = self._discriminate
@@ -248,12 +248,6 @@ class DiscriminatorKeras(AlgorithmInterface):
                 print ("Loss Reward: ", lossReward)
         return (loss, lossActor)
     
-    def predict(self, state, deterministic_=True):
-        pass
-    
-    def predict_batch(self, states, deterministic_=True):
-        pass
-    
     def predict(self, state, next_state):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         next_state = np.array(norm_state(next_state, self._result_state_bounds), dtype=self.getSettings()['float_type'])
@@ -381,4 +375,49 @@ class DiscriminatorKeras(AlgorithmInterface):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         # self.setData(states, actions, result_states, rewards)
         return 0
+    
+    def saveTo(self, fileName):
+        import h5py
+        # print(self, "saving model")
+        hf = h5py.File(fileName+"_bounds.h5", "w")
+        hf.create_dataset('_state_bounds', data=self.getStateBounds())
+        hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
+        hf.create_dataset('_action_bounds', data=self.getActionBounds())
+        # hf.create_dataset('_result_state_bounds', data=self.getResultStateBounds())
+        hf.flush()
+        hf.close()
+        suffix = ".h5"
+        ### Save models
+        # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
+        # self._model._actor.save(fileName+"_actor"+suffix, overwrite=True)
+        self._model._critic.save(fileName+"_discriminator"+suffix, overwrite=True)
+        if (self._modelTarget is not None):
+            self._modelTarget._actor.save(fileName+"_actor_T"+suffix, overwrite=True)
+            self._modelTarget._critic.save(fileName+"_critic_T"+suffix, overwrite=True)
+        # print ("self._model._actor_train: ", self._model._actor_train)
+        
+    def loadFrom(self, fileName):
+        import h5py
+        from keras.models import load_model
+        suffix = ".h5"
+        print ("Loading agent: ", fileName)
+        # with K.get_session().graph.as_default() as g:
+        # self._model._actor = load_model(fileName+"_actor"+suffix)
+        self._model._critic = load_model(fileName+"__discriminator"+suffix)
+        if (self._modelTarget is not None):
+            self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
+            self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
+            
+        self.compile()
+        # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
+        # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
+        # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
+        hf = h5py.File(fileName+"_bounds.h5",'r')
+        self.setStateBounds(np.array(hf.get('_state_bounds')))
+        self.setRewardBounds(np.array(hf.get('_reward_bounds')))
+        self.setActionBounds(np.array(hf.get('_action_bounds')))
+        print ("critic self.getStateBounds(): ", self.getStateBounds()) 
+        # self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
+        hf.close()
+        
 
