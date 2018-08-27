@@ -916,6 +916,7 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                 from algorithm.AlgorithmInterface import AlgorithmInterface
                 state_bounds__ = state_bounds
                 if ("use_dual_state_representations" in settings
+                    and "fd_num_terrain_features" in settings
                         and (settings["use_dual_state_representations"] == True)):
                         state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
                                          [1] * settings["fd_num_terrain_features"]])
