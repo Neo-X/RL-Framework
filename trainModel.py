@@ -413,7 +413,10 @@ def trainModelParallel(inputData):
         forwardDynamicsModel = None
         if (settings['train_forward_dynamics']):
             state_bounds__ = state_bounds
-            if ("use_dual_state_representations" in settings
+            if ("use_dual_dense_state_representations" in settings
+                and (settings["use_dual_dense_state_representations"] == True)):
+                state_bounds__ = np.array(settings['state_bounds'])
+            elif ("use_dual_state_representations" in settings
                     and (settings["use_dual_state_representations"] == True)
                     and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
                     state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
@@ -509,7 +512,12 @@ def trainModelParallel(inputData):
                 else:
                     experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), settings['expereince_length'], 
                                                     continuous_actions=True, settings = settings)
-                
+            if ("use_dual_dense_state_representations" in settings
+                and (settings["use_dual_dense_state_representations"] == True)):
+                # state_bounds__ = np.array(settings['state_bounds'])
+                state_bounds__ = np.array([[0] * settings["dense_state_size"], 
+                                 [1] * settings["dense_state_size"]])
+                experiencefd.setStateBounds(state_bounds__)
             experiencefd.setActionBounds(action_bounds)
             experiencefd.setRewardBounds(reward_bounds)
             masterAgent.setFDExperience(copy.deepcopy(experiencefd))
@@ -568,11 +576,19 @@ def trainModelParallel(inputData):
         
         if (settings['train_forward_dynamics']):
             if ( not settings['load_saved_model'] ):
-                if ("use_dual_state_representations" in settings
+                if ("use_dual_dense_state_representations" in settings
+                and (settings["use_dual_dense_state_representations"] == True)):
+                    forwardDynamicsModel.setStateBounds(state_bounds)
+                    forwardDynamicsModel.setActionBounds(action_bounds)
+                    forwardDynamicsModel.setRewardBounds(reward_bounds)
+                elif ("use_dual_state_representations" in settings
                     and (settings["use_dual_state_representations"] == True)
                     and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
                     state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
                                      [1] * settings["fd_num_terrain_features"]])
+                    if ("use_dual_dense_state_representations" in settings
+                        and (settings["use_dual_dense_state_representations"] == True)):
+                        state_bounds = np.array(settings['state_bounds'])
                     forwardDynamicsModel.setStateBounds(state_bounds__)
                     forwardDynamicsModel.setActionBounds(action_bounds)
                     forwardDynamicsModel.setRewardBounds(reward_bounds)

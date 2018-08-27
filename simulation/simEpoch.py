@@ -434,7 +434,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # ob = np.asarray(exp.getEnvironment().getVisualState())
                 # ob = np.reshape(np.array(ob), (-1, 
                 #             (np.prod(ob.shape))))
-                state_[0][1] = resultState_[0][0] 
+                state_[0][1] = resultState_[0][0]
+            elif ("use_dual_dense_state_representations" in settings
+                and (settings["use_dual_dense_state_representations"] == True)):
+                pass 
             else:
                 ob = np.asarray(exp.getEnvironment().getImitationVisualState())
                 ob = ob.flatten()

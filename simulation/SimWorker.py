@@ -58,12 +58,15 @@ class SimWorker(Process):
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, createActor
         print ("Creating new FD model with different session")
         state_bounds = np.array(self._settings['state_bounds'])
-        if ("use_dual_state_representations" in self._settings
+        if ("use_dual_dense_state_representations" in self._settings
+            and (self._settings["use_dual_dense_state_representations"] == True)):
+            state_bounds = np.array(self._settings['state_bounds'])
+        elif ("use_dual_state_representations" in self._settings
             and (self._settings["use_dual_state_representations"] == True)
             and (not (self._settings["forward_dynamics_model_type"] == "SingleNet"))):
             state_bounds = np.array([[0] * self._settings["fd_num_terrain_features"], 
                                      [1] * self._settings["fd_num_terrain_features"]])
-            print("fd state bounds:", state_bounds)
+        print("fd state bounds:", state_bounds)
         action_bounds = np.array(self._settings['action_bounds']) 
         np.array(self._settings['reward_bounds'])
         
