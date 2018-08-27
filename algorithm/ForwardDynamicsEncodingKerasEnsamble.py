@@ -235,15 +235,15 @@ class ForwardDynamicsEncodingKerasEnsamble(KERASAlgorithm):
     def computeEncodingDiff(self, state, other_state, member=0):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         state2 = np.array(norm_state(other_state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        print (state)
-        print (state2)
+        # print (state)
+        # print (state2)
         # action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         state_ = np.array(self._models[member]._encoder.predict([state]))
-        state__ = np.array(self._models[member]._encoder.predict([other_state]))
+        state__ = np.array(self._models[member]._encoder.predict([state2]))
         
         diff = state_ - state__
         diff = np.mean(np.sqrt(np.sum(np.square(diff))))
-        print ("Encoding diff: ", diff)
+        # print ("Encoding diff: ", diff)
         return diff
     
     def predict(self, state, action, member=0):
