@@ -125,8 +125,7 @@ class SimWorker(Process):
         np.random.seed(self._process_random_seed)
         import os
         from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
-        timeout_ = 60 * 5 ## 5 min timeout
-    
+
         ### Keep forward models on the CPU
         """
         if ("GPU_BUS_Index" in self._settings 
@@ -171,7 +170,7 @@ class SimWorker(Process):
         
         ## This get is fine, it is the first one that I want to block on.
         print ("Waiting for initial policy update.", self._message_queue)
-        episodeData = self._message_queue.get(timeout=timeout_)
+        episodeData = self._message_queue.get()
         print ("Received initial policy update.")
         message = episodeData['type']
         if message == "Update_Policy":
@@ -207,7 +206,7 @@ class SimWorker(Process):
             bootstrapping = False
             # print ("Worker: getting data")
             if (self._settings['on_policy'] == True):
-                episodeData = self._message_queue.get(timeout=timeout_)
+                episodeData = self._message_queue.get()
                 if episodeData == None:
                     print ("Terminating worker: " , os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
                     break
@@ -309,7 +308,7 @@ class SimWorker(Process):
                     pass
             elif (self._settings['on_policy'] == "fast"):
                 ### This will process trajectories in parallel
-                episodeData = self._input_queue.get(timeout=timeout_)
+                episodeData = self._input_queue.get()
                 ## Check if any messages in the queue
                 # print ("Worker: got data", episodeData)
                 if episodeData == None:
@@ -428,7 +427,7 @@ class SimWorker(Process):
                                 print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
                                 print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
             else: ## off policy, all threads sharing the same queue
-                episodeData = self._input_queue.get(timeout=timeout_)
+                episodeData = self._input_queue.get()
                 ## Check if any messages in the queue
                 # print ("Worker: got data", episodeData)
                 if episodeData == None:
