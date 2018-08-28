@@ -96,9 +96,9 @@ class ForwardDynamicsEncodingKerasEnsamble(KERASAlgorithm):
         
         ### data types for model
         self._fd_grad_target = T.matrix("FD_Grad")
-        self._fd_grad_target.tag.test_value = np.zeros((self._batch_size,self._state_length), dtype=np.dtype(self.getSettings()['float_type']))
+        self._fd_grad_target.tag.test_value = np.zeros((32,self._state_length), dtype=np.dtype(self.getSettings()['float_type']))
         self._fd_grad_target_shared = theano.shared(
-            np.zeros((self._batch_size, self._state_length),
+            np.zeros((32, self._state_length),
                       dtype=self.getSettings()['float_type']))
         
         ##
