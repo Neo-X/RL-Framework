@@ -386,7 +386,7 @@ class DPGKeras(KERASAlgorithm):
         # action_std = self._model.getActorNetwork().predict(state, batch_size=1)[:,self._action_length:] * (action_bound_std(self._action_bounds))
         action_std = self._q_action_std([state])[0] * action_bound_std(self._action_bounds)
         # print ("Policy std: ", action_std)
-        return action_std
+        return action_std * p
     
     def q_value(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])

@@ -172,6 +172,7 @@ def trainModelParallel(inputData):
     trainData["mean_actor_regularization_cost"]=[]
     trainData["std_actor_regularization_cost"]=[]
     trainData["anneal_p"]=[]
+    timeout_ = 60 * 5
     try:
         setupEnvironmentVariable(settings)
             
@@ -469,7 +470,7 @@ def trainModelParallel(inputData):
         message['data'] = data
         for m_q in sim_work_queues:
             print("trainModel: Sending current network parameters: ", m_q)
-            m_q.put(message)
+            m_q.put(message, timeout=timeout_)
         
         if ( int(settings["num_available_threads"]) ==  -1):
            experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperience(actor, exp_val, model, settings,
@@ -814,12 +815,12 @@ def trainModelParallel(inputData):
                         message['data'] = data
                     for m_q in sim_work_queues:
                         ## block on full queue
-                        m_q.put(message)
+                        m_q.put(message, timeout=timeout_)
                     
                     if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
                         for m_q in eval_sim_work_queues:
                             ## block on full queue
-                            m_q.put(message)
+                            m_q.put(message, timeout=timeout_)
                     
                     # states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
@@ -827,7 +828,7 @@ def trainModelParallel(inputData):
                     episodeData = {}
                     episodeData['data'] = epoch
                     episodeData['type'] = 'sim'
-                    input_anchor_queue.put(episodeData)
+                    input_anchor_queue.put(episodeData, timeout=timeout_)
                 
                 # pr.enable()
                 # print ("Current Tuple: " + str(learningNamespace.experience.current()))
@@ -1189,11 +1190,11 @@ def trainModelParallel(inputData):
     if (settings['on_policy'] == True):
         for m_q in sim_work_queues:
             ## block on full queue
-            m_q.put(None)
+            m_q.put(None, timeout=timeout_)
         if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
             for m_q in eval_sim_work_queues:
                 ## block on full queue
-                m_q.put(None)
+                m_q.put(None, timeout=timeout_)
         for sw in sim_workers: # Should update these more often
             sw.join()
         if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
@@ -1201,10 +1202,10 @@ def trainModelParallel(inputData):
                 sw.join() 
     else:
         for sw in sim_workers: 
-            input_anchor_queue.put(None)
+            input_anchor_queue.put(None, timeout=timeout_)
         if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
             for sw in eval_sim_workers: 
-                input_anchor_queue_eval.put(None)
+                input_anchor_queue_eval.put(None, timeout=timeout_)
         print ("Joining Workers"        )
         for sw in sim_workers: # Should update these more often
             sw.join()
@@ -1219,8 +1220,8 @@ def trainModelParallel(inputData):
         print ("Terminating learners"        )
         if ( output_experience_queue != None):
             for lw in learning_workers: # Should update these more often
-                output_experience_queue.put(None)
-                output_experience_queue.put(None)
+                output_experience_queue.put(None, timeout=timeout_)
+                output_experience_queue.put(None, timeout=timeout_)
             output_experience_queue.close()
         print ("Joining learners"        )  
         """

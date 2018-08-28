@@ -525,7 +525,7 @@ class PPO_KERAS(KERASAlgorithm):
             # action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
         else:
             action_std = self.q_valsActASTD([state, 0])[0] * (action_bound_std(self._action_bounds))
-        return action_std
+        return action_std * p
     
     """
     def q_value(self, state):

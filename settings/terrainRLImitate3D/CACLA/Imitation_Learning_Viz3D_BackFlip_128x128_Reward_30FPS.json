@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.CACLA_KERAS.CACLA_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_3D_Viz3D_128x128_Imitate_30FPS_DualState_v0/Imitation_Learning_Viz3D_Reward_30FPS_CoordConv_adaptive",
+"data_folder": "PD_Humanoid_3D_BackFlip_Viz3D_128x128_Imitate_30FPS_DualState_v0/smooth_learning",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -14,9 +14,9 @@
     "comment__": "Learning rate for the actor/policy",
 "learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
-"sim_config_file": "PD_Humanoid_3D_Viz3D_128x128_Imitate_30FPS_DualState_v0",
+"sim_config_file": "PD_Humanoid_3D_BackFlip_Viz3D_128x128_Imitate_30FPS_DualState_v0",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.1,
+"exploration_rate": 0.2,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 250,
     "comment__": "Number of epochs to perform per round",
@@ -34,7 +34,7 @@
     "comment__": "Bounds used for scaling rewards for networks",
 "reward_bounds": [[0.0],[1.0]],
     "comment__": "Max length of the Experience memory",
-"expereince_length": 50000,
+"expereince_length": 25000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [[ 4.88499906e-01,  7.61015913e-04,  3.01301218e-02,
         -3.46773881e-02,  8.01017958e-01, -2.86482509e-01,
@@ -504,5 +504,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "fd_num_terrain_features": 49152,
 	"comment__": "replace the viz state in the next state with the state from the imitation agent",
-"replace_next_state_with_imitation_viz_state": true
+"replace_next_state_with_imitation_viz_state": true,
+	"comment__": "Type of smoothing funtion to filter the learned distance metric by",
+"learned_reward_smoother": "gaussian"
 }

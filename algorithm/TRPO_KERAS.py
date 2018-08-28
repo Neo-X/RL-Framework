@@ -490,7 +490,7 @@ class TRPO_KERAS(KERASAlgorithm):
             # action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
         else:
             action_std = self._q_action_std([state])[0] * (action_bound_std(self._action_bounds))
-        return action_std
+        return action_std * p
 
     def bellman_error(self, states, actions, rewards, result_states, falls):
         """
