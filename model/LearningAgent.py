@@ -386,7 +386,7 @@ class LearningAgent(AgentInterface):
                 if (self._settings['train_forward_dynamics']):
                     t0 = time.time()
                     if ("fd_updates_per_actor_update" in self._settings 
-                        and (self._settings['fd_updates_per_actor_update'] > 1)):
+                        and (self._settings['fd_updates_per_actor_update'] >= 1)):
                         for i in range(self._settings['fd_updates_per_actor_update']):
                             
                             if ("fd_algorithm" in self._settings
