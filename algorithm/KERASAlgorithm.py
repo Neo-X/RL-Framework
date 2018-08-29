@@ -245,7 +245,7 @@ class KERASAlgorithm(AlgorithmInterface):
         
     def saveTo(self, fileName):
         # print(self, "saving model")
-        import dill
+        import h5py
         hf = h5py.File(fileName+"_bounds.h5", "w")
         hf.create_dataset('_state_bounds', data=self.getStateBounds())
         hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
@@ -265,6 +265,7 @@ class KERASAlgorithm(AlgorithmInterface):
         
     def loadFrom(self, fileName):
         from keras.models import load_model
+        import h5py
         suffix = ".h5"
         print ("Loading agent: ", fileName)
         # with K.get_session().graph.as_default() as g:

@@ -72,7 +72,7 @@
     "comment__": "How often to update the training data and plots wrt # of rounds",
 "plotting_update_freq_num_rounds": 5,
     "comment__": "How often to save the training data and plotting data",
-"saving_update_freq_num_rounds": 10,
+"saving_update_freq_num_rounds": 5,
     "comment__": "Number of treads that can be run in parallel during training",
 "num_available_threads": 5,
     "comment__": "Length of the queues used to pass simulation data between the simulation workers and the learning agent(s).",

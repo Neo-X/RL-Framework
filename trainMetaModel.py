@@ -74,7 +74,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         # settings['shouldRender'] = False
         settings['visualize_learning'] = False
         ### Reduce IO
-        settings['saving_update_freq_num_rounds'] = settings_original['saving_update_freq_num_rounds'] * 10
+        settings['saving_update_freq_num_rounds'] = settings_original['saving_update_freq_num_rounds']
         if ("Use_Multi_GPU_Simulation" in settings_original
             and (settings_original["Use_Multi_GPU_Simulation"] == True)):
             settings["GPU_BUS_Index"] = str(i + settings['meta_thread_index']) ### The first one is reserved for rendering
