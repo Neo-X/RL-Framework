@@ -185,6 +185,9 @@ class SequentialMCSampler(Sampler):
                 # print ("Prediction: ", prediction.getParams(), " Num: ", prediction.getID())
                 # print ("Executed Action: ", actions[a])
                 ## This reward function is not going to work anymore
+                if ( "use_state_based_reward_function" in self.getSettings() 
+                     and (self.getSettings()["use_state_based_reward_function"] == True)):
+                    reward__ = self._exp.computeReward(prediction_[0], sim_time + (a * 0.033))
                 y.append(reward__)
                 current_state_ = copy.deepcopy(prediction)
                 # goalDistance(np.array(current_state_.getParams()), )
@@ -336,9 +339,10 @@ class SequentialMCSampler(Sampler):
         max = np.max(data[:,1], 0)
         diff = max-min
         if 0.0 == diff: ## To prevent division by 0
-            print ("Diff contains zero: " + str(diff))
-            print ("Data, largest N: " + str(data[:,1]))
-            print ("Data, largest actions: " + str(data[:,0]))
+            ### Often happens when rewards are all 0 (robot fell)
+            # print ("Diff contains zero: " + str(diff))
+            # print ("Data, largest N: " + str(data[:,1]))
+            # print ("Data, largest actions: " + str(data[:,0]))
             # for s in self._samples:
                 # print ("self._samples[s]: ", s, s._val, s._data)
             ## JUst make everything uniform then...

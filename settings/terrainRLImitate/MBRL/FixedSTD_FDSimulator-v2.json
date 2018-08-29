@@ -370,5 +370,7 @@
 	"comment__": "Allows the learningAgent to evaluate using the MBRL method",
 "evalaute_with_MBRL": true,
 	"comment__": "Discount factor for MBRL search",
-"mbrl_discount_factor": 0.95
+"mbrl_discount_factor": 0.95,
+	"comment__": "Use a different approximate reward function",
+"use_state_based_reward_function": false
 }
