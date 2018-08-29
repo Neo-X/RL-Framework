@@ -152,6 +152,7 @@ class ForwardDynamicsSimulatorParallel(ForwardDynamicsSimulator):
         self._sim.getEnvironment().setSimState(state___)
         # print ("State: " + str(state))
         return (state___, reward)
+        # return state___
         """
         ## Send in current state
         self._output_state_queue.put([state__c.getID(), state__c.getParams(), action])

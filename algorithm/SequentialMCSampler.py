@@ -79,7 +79,7 @@ class SequentialMCSampler(Sampler):
             for i in range(look_ahead):
                 if isinstance(forwardDynamics, ForwardDynamicsSimulator):
                     current_state_copy__ = self._exp.getStateFromSimState(current_state_copy)
-                    pa = model.predict(np.array([current_state_copy__]))
+                    pa = model.predict(np.array(current_state_copy__))
                 else:
                     pa = model.predict(current_state_copy2)
                 if (self.getSettings()["use_actor_policy_action_variance_suggestion"] == True):
@@ -109,7 +109,8 @@ class SequentialMCSampler(Sampler):
                 _action_params.extend(action)
                 ### progress forward in time
                 if isinstance(forwardDynamics, ForwardDynamicsSimulator):
-                    current_state_copy2 = forwardDynamics._predict(state__c=current_state_copy2, action=pa)
+                    # print ("current_state_copy2: ", current_state_copy2)
+                    (current_state_copy2, reward__) = forwardDynamics._predict(state__c=current_state_copy2, action=pa)
                 else:
                     current_state_copy2 = forwardDynamics.predict(current_state_copy2, action)
             num_samples_ = self.getSettings()["num_uniform_action_samples"] * (_action_dimension)
