@@ -55,68 +55,51 @@ def create_sequences(tr0, tr1):
     
     Assume tr0 != tr1
     '''
-    sequences = []
+    sequences0 = []
+    sequences1 = []
+    targets_ = []
     ### basic for now
-    pair = []
-    pair.append(tr0[1:])
-    pair.append(tr0[:-1])
-    pair.append(np.ones(len(pair[1])))
-    sequences.append(pair)
+    sequences0.append(tr0[1:])
+    sequences1.append(tr0[:-1])
+    targets_.append(np.ones(len(sequences1[-1])))
     
-    pair = []
-    pair.append(tr0[:-1])
-    pair.append(tr0[1:])
-    pair.append(np.ones(len(pair[1])))
-    sequences.append(pair)
+    sequences0.append(tr0[:-1])
+    sequences1.append(tr0[1:])
+    targets_.append(np.ones(len(sequences1[-1])))
 
-    pair = []    
-    pair.append(tr1[:-1])
-    pair.append(tr1[1:])
-    pair.append(np.ones(len(pair[1])))
-    sequences.append(pair)
+    sequences0.append(tr1[:-1])
+    sequences1.append(tr1[1:])
+    targets_.append(np.ones(len(sequences1[-1])))
 
-    pair = []
-    pair.append(tr1[1:])
-    pair.append(tr1[:-1])
-    pair.append(np.ones(len(pair[1])))
-    sequences.append(pair)
+    sequences0.append(tr1[1:])
+    sequences1.append(tr1[:-1])
+    targets_.append(np.ones(len(sequences1[-1])))
     
-    pair = []
-    pair.append(list(reversed(tr1[1:])))
-    pair.append(tr1[:-1])
-    pair.append(np.zeros(len(pair[1])))
+    sequences0.append(list(reversed(tr1[1:])))
+    sequences1.append(tr1[:-1])
+    targets_.append(np.zeros(len(sequences1[-1])))
 
-    pair = []
-    pair.append(list(reversed(tr0[1:])))
-    pair.append(tr0[1:])
-    pair.append(np.zeros(len(pair[1])))
-    sequences.append(pair)
+    sequences0.append(list(reversed(tr0[1:])))
+    sequences1.append(tr0[1:])
+    targets_.append(np.zeros(len(sequences1[-1])))
     
-    pair = []
-    pair.append(tr0[1:])
-    pair.append(tr1[:-1])
-    pair.append(np.zeros(len(pair[1])))
-    sequences.append(pair)
+    sequences0.append(tr0[1:])
+    sequences1.append(tr1[:-1])
+    targets_.append(np.zeros(len(sequences1[-1])))
     
-    pair = []
-    pair.append(tr0[1:])
-    pair.append(tr1[:-1])
-    pair.append(np.zeros(len(pair[1])))
-    sequences.append(pair)
+    sequences0.append(tr0[1:])
+    sequences1.append(tr1[:-1])
+    targets_.append(np.zeros(len(sequences1[-1])))
     
-    pair = []   
-    pair.append(tr0[1:])
-    pair.append(tr1[1:])
-    pair.append(np.zeros(len(pair[1])))
-    sequences.append(pair)
+    sequences0.append(tr0[1:])
+    sequences1.append(tr1[1:])
+    targets_.append(np.zeros(len(sequences1[-1])))
     
-    pair = []   
-    pair.append(tr0[:-1])
-    pair.append(tr1[:-1])
-    pair.append(np.zeros(len(pair[1])))
-    sequences.append(pair)
+    sequences0.append(tr0[:-1])
+    sequences1.append(tr1[:-1])
+    targets_.append(np.zeros(len(sequences1[-1])))
     
-    return sequences
+    return sequences0, sequences1, targets_
         
 def create_pairs2(x):
     '''Positive and negative pair creation.
@@ -258,21 +241,22 @@ class SiameseNetwork(KERASAlgorithm):
         if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
             ### result states can be from the imitation agent.
-            sequences_ = create_sequences(states, result_states)
-            for seq in sequences_:
-                te_pair1, te_pair2, te_y = seq
-                te_pair1 = np.array(te_pair1)
-                te_pair2 = np.array(te_pair2)
-                te_y = np.array(te_y)
+            sequences0, sequences1, targets_ = create_sequences(states, result_states)
+            # te_pair1, te_pair2, te_y = seq
+            loss_ = []
+            for (seq0, seq1, tar_) in zip(sequences0, sequences1, targets_):
+                te_pair1 = np.array(seq0)
+                te_pair2 = np.array(seq1)
+                te_y = np.array(tar_)
                 
                 score = self._model._forward_dynamics_net.fit([te_pair1, te_pair2], te_y,
                       epochs=1, batch_size=1,
                       verbose=0,
                       shuffle=True
                       )
-            loss = np.mean(score.history['loss'])
+                loss_.append(np.mean(score.history['loss']))
                 # print ("loss: ", loss)
-            return np.mean(loss)
+            return np.mean(loss_)
         else:
             te_pair1, te_pair2, te_y = create_pairs2(states_)
         self._updates += 1
