@@ -159,9 +159,9 @@ class SequentialMCSampler(Sampler):
                 if ( ((not np.all(np.isfinite(actions[a])) or (np.any(np.less(actions[a], -10000.0))) or (np.any(np.greater(actions[a], 10000.0)))) or
                         forwardDynamics.endOfEpoch()  ) 
                      ): # lots of nan values for some reason...
-                    print("Found bad action in search at: ", a)
+                    ### Most likely end of epoch...
+                    # print("Found bad action in search at: ", a, "actions[a]: ", actions[a])
                     ## Append bad values for the rest of the actions
-                    self._bad_reward_value
                     y.append(self._bad_reward_value)
                     continue
                     # break

@@ -218,36 +218,47 @@ class LearningAgent(AgentInterface):
                     and (self._settings["train_LSTM_FD"] == True))
                      )
                 ):
-                if ("use_dual_state_representations" in self.getSettings()
-                    and (self.getSettings()["use_dual_state_representations"] == True)):
-                    _states = [np.array(norm_action(np.array(tmp_states__[0][0]), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states]
-                    _result_states = [np.array(norm_action(np.array(tmp_result_states__[0][0]), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states]
-                    
-                    _states_fd = [np.array(norm_action(np.array(tmp_states__[0][1]), self._fd.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states]
-                    _result_states_fd = [np.array(norm_action(np.array(tmp_result_states__[0][1]), self._fd.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states]
-                else:
-                    _states = [np.array(norm_action(np.array(tmp_states__), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states]
-                    _result_states = [np.array(norm_action(np.array(tmp_result_states__), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states]
-                    _states_fd = _states
-                    _result_states_fd = _result_states
                 
-                _actions = [np.array(norm_action(np.array(tmp_actions__), self._pol.getActionBounds()), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions]
-                # reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
-                _rewards = [np.array(norm_state(tmp_rewards__ , self._pol.getRewardBounds() ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards]
-                # _rewards = np.reshape(_rewards, (len(tmp_states), 1))
-                _falls = [np.array(tmp_falls__, dtype='int8') for tmp_falls__ in tmp_falls]
-                _advantage = [np.array(tmp_advantage__, dtype=self._settings['float_type']) for tmp_advantage__ in tmp_advantage]
-                _G_t = [np.array(tmp_G_t__, dtype=self._settings['float_type']) for tmp_G_t__ in tmp_G_t]
-                _exp_action = [np.array(tmp_exp_action__, dtype=self._settings['float_type']) for tmp_exp_action__ in tmp_exp_action]
+                ### Need to normalize data
+                _states = []
+                _actions = []
+                _result_states = []
+                _rewards = []
+                _states_fd = []
+                _result_states_fd = []
+                
+                for i in range(len(tmp_states)):
+                    if ("use_dual_state_representations" in self.getSettings()
+                        and (self.getSettings()["use_dual_state_representations"] == True)):
+                        _states.append([np.array(norm_action(np.array(tmp_states__[0][0]), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
+                        _result_states.append([np.array(norm_action(np.array(tmp_result_states__[0][0]), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
+                        
+                        _states_fd.append([np.array(norm_action(np.array(tmp_states__[0][1]), self._fd.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
+                        _result_states_fd.append([np.array(norm_action(np.array(tmp_result_states__[0][1]), self._fd.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
+                    else:
+                        _states.append([np.array(norm_action(np.array(tmp_states__), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states])
+                        _result_states.append([np.array(norm_action(np.array(tmp_result_states__), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states])
+                        
+                        _states_fd = _states
+                        _result_states_fd = _result_states
+                    
+                    _actions.append([np.array(norm_action(np.array(tmp_actions__), self._pol.getActionBounds()), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions[i]])
+                    # reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
+                    _rewards.append([np.array(norm_state(tmp_rewards__ , self._pol.getRewardBounds() ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards[i]])
+                    # _rewards = np.reshape(_rewards, (len(tmp_states), 1))
+                    # _falls = [np.array(tmp_falls__, dtype='int8') for tmp_falls__ in tmp_falls]
+                    # _advantage = [np.array(tmp_advantage__, dtype=self._settings['float_type']) for tmp_advantage__ in tmp_advantage]
+                    # _G_t = [np.array(tmp_G_t__, dtype=self._settings['float_type']) for tmp_G_t__ in tmp_G_t]
+                    # _exp_action = [np.array(tmp_exp_action__, dtype=self._settings['float_type']) for tmp_exp_action__ in tmp_exp_action]
                 
                 if (("train_LSTM" in self._settings)
                     and (self._settings["train_LSTM"] == True)):
                     for e in range(len(_states)):
-                        loss = self._pol.trainCritic(states=_states[e], actions=_actions[e], rewards=_rewards[e], result_states=_result_states[e], falls=_falls[e], G_t=_G_t[e])
+                        loss = self._pol.trainCritic(states=_states[e], actions=_actions[e], rewards=_rewards[e], result_states=_result_states[e], falls=tmp_falls[e], G_t=tmp_G_t[e])
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Critic loss: ", loss)
-                        loss_ = self._pol.trainActor(states=_states[e], actions=_actions[e], rewards=_rewards[e], result_states=_result_states[e], falls=_falls[e], 
-                                                     advantage=_advantage[e], exp_actions=_exp_action[e], G_t=_G_t[e], forwardDynamicsModel=self._fd,
+                        loss_ = self._pol.trainActor(states=_states[e], actions=_actions[e], rewards=_rewards[e], result_states=_result_states[e], falls=tmp_falls[e], 
+                                                     advantage=tmp_advantage[e], exp_actions=tmp_exp_action[e], G_t=tmp_G_t[e], forwardDynamicsModel=self._fd,
                                                      p=p)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Policy Loss: ", loss_)

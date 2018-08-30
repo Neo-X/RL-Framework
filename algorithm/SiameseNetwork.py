@@ -58,53 +58,62 @@ def create_sequences(tr0, tr1):
     sequences = []
     ### basic for now
     pair = []
-    if (np.random.rand() > 0.5):
-        pair.append(tr0[1:])
-        pair.append(tr0[:-1])
-        pair.append(np.ones(len(tr0[:-1])))
-    else:
-        pair.append(tr0)
-        pair.append(tr0)
-        pair.append(np.ones(len(tr0[:-1])))
-    sequences.append(pair)
-    pair = []
-    
-    if (np.random.rand() > 0.5):
-        pair.append(tr1[1:])
-        pair.append(tr1[:-1])
-        pair.append(np.ones(len(tr0[:-1])))
-    else:
-        pair.append(tr1)
-        pair.append(tr1)
-        pair.append(np.ones(len(tr0[:-1])))
+    pair.append(tr0[1:])
+    pair.append(tr0[:-1])
+    pair.append(np.ones(len(pair[1])))
     sequences.append(pair)
     
     pair = []
-    if (np.random.rand() > 0.5):
-        pair.append(list(reversed(tr1[1:])))
-        pair.append(tr1[:-1])
-        pair.append(np.zeros(len(tr1[:-1])))
-    else:
-        pair.append(list(reversed(tr0)))
-        pair.append(tr0)
-        pair.append(np.zeros(len(tr0[:-1])))
+    pair.append(tr0[:-1])
+    pair.append(tr0[1:])
+    pair.append(np.ones(len(pair[1])))
+    sequences.append(pair)
+
+    pair = []    
+    pair.append(tr1[:-1])
+    pair.append(tr1[1:])
+    pair.append(np.ones(len(pair[1])))
+    sequences.append(pair)
+
+    pair = []
+    pair.append(tr1[1:])
+    pair.append(tr1[:-1])
+    pair.append(np.ones(len(pair[1])))
     sequences.append(pair)
     
     pair = []
-    if (np.random.rand() > 0.5):
-        pair.append(tr0[1:])
-        pair.append(tr1[:-1])
-        pair.append(np.zeros(len(tr0[:-1])))
-    else:
-        pair.append(tr0[1:])
-        pair.append(tr1[:-1])
-        pair.append(np.zeros(len(tr0[:-1])))
+    pair.append(list(reversed(tr1[1:])))
+    pair.append(tr1[:-1])
+    pair.append(np.zeros(len(pair[1])))
+
+    pair = []
+    pair.append(list(reversed(tr0[1:])))
+    pair.append(tr0[1:])
+    pair.append(np.zeros(len(pair[1])))
+    sequences.append(pair)
+    
+    pair = []
+    pair.append(tr0[1:])
+    pair.append(tr1[:-1])
+    pair.append(np.zeros(len(pair[1])))
+    sequences.append(pair)
+    
+    pair = []
+    pair.append(tr0[1:])
+    pair.append(tr1[:-1])
+    pair.append(np.zeros(len(pair[1])))
     sequences.append(pair)
     
     pair = []   
-    pair.append(tr0)
-    pair.append(tr1)
-    pair.append(np.zeros(len(tr0)))
+    pair.append(tr0[1:])
+    pair.append(tr1[1:])
+    pair.append(np.zeros(len(pair[1])))
+    sequences.append(pair)
+    
+    pair = []   
+    pair.append(tr0[:-1])
+    pair.append(tr1[:-1])
+    pair.append(np.zeros(len(pair[1])))
     sequences.append(pair)
     
     return sequences
@@ -243,11 +252,6 @@ class SiameseNetwork(KERASAlgorithm):
             states will come for the agent and
             results_states can come from the imitation agent
         """
-        if (batch_size is None):
-            batch_size_=states.shape[0]
-        else:
-            batch_size_=batch_size
-            
         if ("replace_next_state_with_imitation_viz_state" in self.getSettings()
             and (self.getSettings()["replace_next_state_with_imitation_viz_state"] == True)):
             states_ = np.concatenate((states, result_states), axis=0)
@@ -257,8 +261,12 @@ class SiameseNetwork(KERASAlgorithm):
             sequences_ = create_sequences(states, result_states)
             for seq in sequences_:
                 te_pair1, te_pair2, te_y = seq
-                score = self._model._forward_dynamics_net.fit([te_pair1, te_pair2], np.array(te_y),
-                      epochs=updates, batch_size=batch_size_,
+                te_pair1 = np.array(te_pair1)
+                te_pair2 = np.array(te_pair2)
+                te_y = np.array(te_y)
+                
+                score = self._model._forward_dynamics_net.fit([te_pair1, te_pair2], te_y,
+                      epochs=1, batch_size=1,
                       verbose=0,
                       shuffle=True
                       )
@@ -268,6 +276,10 @@ class SiameseNetwork(KERASAlgorithm):
         else:
             te_pair1, te_pair2, te_y = create_pairs2(states_)
         self._updates += 1
+        if (batch_size is None):
+            batch_size_=states.shape[0]
+        else:
+            batch_size_=batch_size
         loss = 0
         # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
         # dist = np.mean(dist_)
