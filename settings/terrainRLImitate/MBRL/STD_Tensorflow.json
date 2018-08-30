@@ -368,7 +368,7 @@
 	"comment__": "last policy type of activation to use",
 "last_fd_layer_activation_type": "linear",
 	"comment__": "The number of fd network to be done per actor update.",
-"fd_updates_per_actor_update": 4,
+"fd_updates_per_actor_update": 1,
 	"comment__": "Lets the network models handle the training and batch processing",
 "model_perform_batch_training": false,
 	"comment__": "Allows the learningAgent to evaluate using the MBRL method",
