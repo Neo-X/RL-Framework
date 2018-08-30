@@ -48,6 +48,67 @@ def compute_accuracy(predictions, labels):
     '''
     return labels[predictions.ravel() < 0.5].mean()
 
+def create_sequences(tr0, tr1):
+    '''Positive and negative sequence creation.
+    Alternates between positive and negative pairs.
+    produces N sequences from two
+    
+    Assume tr0 != tr1
+    '''
+    sequences = []
+    ### basic for now
+    pair = []
+    if (np.random.rand() > 0.5):
+        pair.append(tr0[1:])
+        pair.append(tr0[:-1])
+        pair.append(np.ones(len(tr0[:-1])))
+    else:
+        pair.append(tr0)
+        pair.append(tr0)
+        pair.append(np.ones(len(tr0[:-1])))
+    sequences.append(pair)
+    pair = []
+    
+    if (np.random.rand() > 0.5):
+        pair.append(tr1[1:])
+        pair.append(tr1[:-1])
+        pair.append(np.ones(len(tr0[:-1])))
+    else:
+        pair.append(tr1)
+        pair.append(tr1)
+        pair.append(np.ones(len(tr0[:-1])))
+    sequences.append(pair)
+    
+    pair = []
+    if (np.random.rand() > 0.5):
+        pair.append(list(reversed(tr1[1:])))
+        pair.append(tr1[:-1])
+        pair.append(np.zeros(len(tr1[:-1])))
+    else:
+        pair.append(list(reversed(tr0)))
+        pair.append(tr0)
+        pair.append(np.zeros(len(tr0[:-1])))
+    sequences.append(pair)
+    
+    pair = []
+    if (np.random.rand() > 0.5):
+        pair.append(tr0[1:])
+        pair.append(tr1[:-1])
+        pair.append(np.zeros(len(tr0[:-1])))
+    else:
+        pair.append(tr0[1:])
+        pair.append(tr1[:-1])
+        pair.append(np.zeros(len(tr0[:-1])))
+    sequences.append(pair)
+    
+    pair = []   
+    pair.append(tr0)
+    pair.append(tr1)
+    pair.append(np.zeros(len(tr0)))
+    sequences.append(pair)
+    
+    return sequences
+        
 def create_pairs2(x):
     '''Positive and negative pair creation.
     Alternates between positive and negative pairs.
@@ -182,32 +243,47 @@ class SiameseNetwork(KERASAlgorithm):
             states will come for the agent and
             results_states can come from the imitation agent
         """
-        if ("replace_next_state_with_imitation_viz_state" in self.getSettings()
-            and (self.getSettings()["replace_next_state_with_imitation_viz_state"] == True)):
-            states = np.concatenate((states, result_states), axis=0)
-        te_pair1, te_pair2, te_y = create_pairs2(states)
-        self._updates += 1
         if (batch_size is None):
             batch_size_=states.shape[0]
         else:
             batch_size_=batch_size
             
+        if ("replace_next_state_with_imitation_viz_state" in self.getSettings()
+            and (self.getSettings()["replace_next_state_with_imitation_viz_state"] == True)):
+            states_ = np.concatenate((states, result_states), axis=0)
+        if (("train_LSTM_FD" in self._settings)
+                    and (self._settings["train_LSTM_FD"] == True)):
+            ### result states can be from the imitation agent.
+            sequences_ = create_sequences(states, result_states)
+            for seq in sequences_:
+                te_pair1, te_pair2, te_y = seq
+                score = self._model._forward_dynamics_net.fit([te_pair1, te_pair2], np.array(te_y),
+                      epochs=updates, batch_size=batch_size_,
+                      verbose=0,
+                      shuffle=True
+                      )
+            loss = np.mean(score.history['loss'])
+                # print ("loss: ", loss)
+            return np.mean(loss)
+        else:
+            te_pair1, te_pair2, te_y = create_pairs2(states_)
+        self._updates += 1
         loss = 0
-        dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
-        dist = np.mean(dist_)
+        # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
+        # dist = np.mean(dist_)
         te_y = np.array(te_y)
         # print("Distance: ", dist)
         # print("targets: ", te_y)
         # print("pairs: ", te_pair1)
         # print("Distance.shape, targets.shape: ", dist_.shape, te_y.shape)
         # print("Distance, targets: ", np.concatenate((dist_, te_y), axis=1))
-        if ( dist > 0):
-            score = self._model._forward_dynamics_net.fit([te_pair1, te_pair2], te_y,
-              epochs=updates, batch_size=batch_size_,
-              verbose=0,
-              shuffle=True
-              )
-            loss = np.mean(score.history['loss'])
+        # if ( dist > 0):
+        score = self._model._forward_dynamics_net.fit([te_pair1, te_pair2], te_y,
+          epochs=updates, batch_size=batch_size_,
+          verbose=0,
+          shuffle=True
+          )
+        loss = np.mean(score.history['loss'])
             # print ("loss: ", loss)
         return loss
     

@@ -294,10 +294,10 @@ class SequentialMCSampler(Sampler):
         if ( not evaluation_ ):
             if isinstance(self._fd, ForwardDynamicsSimulator):
                 # print ( "SMC exp: ", self._exp)
-                self._fd.initEpoch(self._exp)
+                # self._fd.initEpoch(self._exp)
                 # state = self._exp.getState()
-                # state_ = self._exp.getSimState()
-                self._exp.setSimState(state)
+                state = self._exp.getSimState()
+                # self._exp.setSimState(state)
             # if ( self._exp.endOfEpoch() ):
             #     print ("Given back state where it is already endOfEpoch()")
             #     return self._pol.predict(state)
