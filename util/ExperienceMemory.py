@@ -28,9 +28,11 @@ class ExperienceMemory(object):
             self._settings = settings
         
         self._history_size=memory_length
+        self._trajectory_size=int(memory_length/100)
         self._state_length = state_length
         self._action_length = action_length
         self._continuous_actions = continuous_actions
+        
         if ( result_state_length == None ):
             self._result_state_length = state_length
         else:
@@ -74,6 +76,113 @@ class ExperienceMemory(object):
             self._discounted_sum_history = (np.zeros((self._history_size, 1), dtype='float64'))
             self._advantage_history = (np.zeros((self._history_size, 1), dtype='float64'))
             self._exp_action_history = (np.zeros((self._history_size, 1), dtype='int8'))
+            
+        self._trajectory_history = [None] * self._trajectory_size
+        self._samplesTrajectory = 0
+        self._insertsTrajectory = 0
+        self._trajectory_update_index = 0
+        
+    def insertsTrajectory(self):
+        return self._insertsTrajectory
+    def samplesTrajectory(self):
+        return self._samplesTrajectory
+    
+    def history_size_Trajectory(self):
+        return self._trajectory_size
+            
+    def _insertTrajectory(self, trajectory):
+        
+        if ( (self._trajectory_update_index % (self.history_size_Trajectory()-1) ) == 0):
+            self._trajectory_update_index=0
+            # print("Reset history index in exp buffer:")
+            
+        self._trajectory_history[self._trajectory_update_index] = trajectory
+        
+    def insertTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions):
+        
+        self._insertTrajectory([states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions])
+        
+        
+    def get_trajectory_batch(self, batch_size=32, excludeActionTypes=[]):
+        """
+        len(experience > batch_size
+        """
+        # assert batch_size <= self._history_size, "batch_size <= self._history_size: " + str(batch_size) +" <=  " + str(self._history_size)
+        assert batch_size <= self.samplesTrajectory(), "batch_size <= self.samples(): " + str(batch_size) +" <=  " + str(self.samplesTrajectory())
+        # indices = list(nprnd.randint(low=0, high=len(experience), size=batch_size))
+        max_size = min(self.history_size_Trajectory(), self.samplesTrajectory())
+        # print ("Indicies: " , indices)
+        # print("Exp buff state bounds: ", self.getStateBounds())
+
+        state = []
+        action = []
+        resultState = []
+        reward = []
+        fall = []
+        G_ts = []
+        exp_actions = []
+        advantage = []
+        indices = set([])
+        trys = 0
+        ### collect batch and try at most 3 times the batch size for valid tuples
+        while len(indices) <  batch_size and (trys < batch_size*3):
+        # for i in indices:
+            trys = trys + 1
+            i = (random.sample(set(range(0, max_size))-indices, 1))[0]
+            ## skip tuples that were not exploration actions
+            if ( self._exp_action_history[i] in excludeActionTypes):
+                continue
+            indices.add(i)
+            
+            state.append(norm_state(self._trajectory_history[i][0], self.getStateBounds()))
+            # print("Action pulled out: ", self._action_history[i])
+            action.append(norm_action(self._trajectory_history[i][1], self.getActionBounds())) # won't work for discrete actions...
+            resultState.append(norm_state(self._trajectory_history[i][2], self.getResultStateBounds()))
+            reward.append(norm_state(self._trajectory_history[i][3] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
+            fall.append(self._trajectory_history[i][5])
+            G_ts.append(self._trajectory_history[i][6])
+            advantage.append(self._trajectory_history[i][7])
+            exp_actions.append(self._trajectory_history[i][8])
+            
+        # print c
+        # print experience[indices]
+        if (self._settings['float_type'] == 'float32'):
+            state = np.array(state, dtype='float32')
+            if (self._continuous_actions):
+                action = np.array(action, dtype='float32')
+            else:
+                action = np.array(action, dtype='int8')
+            resultState = np.array(resultState, dtype='float32')
+            reward = np.array(reward, dtype='float32')
+            # fall = np.array(fall, dtype='int8')
+            G_ts = np.array(G_ts, dtype='float32')
+            advantage = np.array(advantage, dtype='float32')
+        else:
+            state = np.array(state, dtype='float64')
+            if (self._continuous_actions):
+                action = np.array(action, dtype='float64')
+            else:
+                action = np.array(action, dtype='int8')
+            resultState = np.array(resultState, dtype='float64')
+            reward = np.array(reward, dtype='float64')
+            G_ts = np.array(G_ts, dtype='float64')
+            advantage = np.array(advantage, dtype='float32')
+        
+        fall = np.array(fall, dtype='int8')
+        exp_actions = np.array(exp_actions, dtype='int8')
+        
+        # assert state.shape == (len(indices), self._state_length), "state.shape == (len(indices), self._state_length): " + str(state.shape) + " == " + str((len(indices), self._state_length))
+        # assert action.shape == (len(indices), self._action_length), "action.shape == (len(indices), self._action_length): " + str(action.shape) + " == " + str((len(indices), self._action_length))
+        # assert resultState.shape == (len(indices), self._result_state_length), "resultState.shape == (len(indices), self._result_state_length): " + str(resultState.shape) + " == " + str((len(indices), self._result_state_length))
+        # assert reward.shape == (len(indices), 1), "reward.shape == (len(indices), 1): " + str(reward.shape) + " == " + str((len(indices), 1))
+        # assert G_ts.shape == (len(indices), 1), "G_ts.shape == (len(indices), 1): " + str(G_ts.shape) + " == " + str((len(indices), 1))
+        # assert fall.shape == (len(indices), 1), "fall.shape == (len(indices), 1): " + str(fall.shape) + " == " + str((len(indices), 1))
+        # assert exp_actions.shape == (len(indices), 1), "exp_actions.shape == (len(indices), 1): " + str(exp_actions.shape) + " == " + str((len(indices), 1))
+        # assert advantage.shape == (len(indices), 1), "G_ts.shape == (len(indices), 1): " + str(advantage.shape) + " == " + str((len(indices), 1))
+        # assert len(np.unique(indices)[0]) == batch_size, "np.unique(indices).shape[0] == batch_size: " + str(np.unique(indices).shape[0]) + " == " + str(batch_size)
+        
+        return (state, action, resultState, reward, fall, G_ts, exp_actions, advantage)
+        
         
     def insertTuple(self, tuple):
         
@@ -345,6 +454,13 @@ class ExperienceMemory(object):
         hf.create_dataset('_reward_bounds', data=self._reward_bounds)
         hf.create_dataset('_action_bounds', data=self._action_bounds)
         hf.create_dataset('_result_state_bounds', data=self._result_state_bounds)
+        
+        
+        ### Save a variable length list of data
+        # data = np.array(self._trajectory_history, dtype=object)
+        grp = hf.create_group('trajectories')
+        for i,list in enumerate(self._trajectory_history):
+            grp.create_dataset(str(i),data=list)
         
         hf.flush()
         hf.close()

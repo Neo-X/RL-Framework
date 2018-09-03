@@ -266,6 +266,10 @@ class LearningAgent(AgentInterface):
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
                     for e in range(len(_states)):
+                        if ( 'keep_seperate_fd_exp_buffer' in self._settings 
+                             and (self._settings['keep_seperate_fd_exp_buffer'])):
+                            self.getFDExperience().insertTrajectory(tmp_states[e], tmp_actions[e], tmp_result_states[e], tmp_rewards[e], 
+                                                                    tmp_falls[e], tmp_G_t[e], tmp_advantage[e], tmp_exp_action[e])
                         dynamicsLoss = self._fd.train(states=_states_fd[e], actions=_actions[e], result_states=_result_states_fd[e], rewards=_rewards[e])
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print ("Forward Dynamics Loss: ", dynamicsLoss)
