@@ -242,7 +242,17 @@ class SiameseNetwork(KERASAlgorithm):
                     and (self._settings["train_LSTM_FD"] == True)):
             ### result states can be from the imitation agent.
             sequences0, sequences1, targets_ = create_sequences(states, result_states)
+            sequences0 = np.array(sequences0)
+            print ("sequences0 shape: ", sequences0.shape)
+            sequences1 = np.array(sequences1)
+            targets_ = np.array(targets_)
             # te_pair1, te_pair2, te_y = seq
+            score = self._model._forward_dynamics_net.fit([sequences0, sequences1], targets_,
+                      epochs=1, batch_size=sequences0.shape[0],
+                      verbose=0,
+                      shuffle=True
+                      )
+            """
             loss_ = []
             for (seq0, seq1, tar_) in zip(sequences0, sequences1, targets_):
                 te_pair1 = np.array(seq0)
@@ -256,6 +266,7 @@ class SiameseNetwork(KERASAlgorithm):
                       )
                 loss_.append(np.mean(score.history['loss']))
                 # print ("loss: ", loss)
+            """
             return np.mean(loss_)
         else:
             te_pair1, te_pair2, te_y = create_pairs2(states_)
@@ -290,7 +301,11 @@ class SiameseNetwork(KERASAlgorithm):
         # print("state shape: ", np.array(state).shape)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
-        state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
+        if (("train_LSTM_FD" in self._settings)
+                    and (self._settings["train_LSTM_FD"] == True)):
+            state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
+        else:
+            state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
         # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
         # print("state_ shape: ", np.array(state_).shape)
         return state_

@@ -459,8 +459,11 @@ class ExperienceMemory(object):
         ### Save a variable length list of data
         # data = np.array(self._trajectory_history, dtype=object)
         grp = hf.create_group('trajectories')
+        print ("Saving trajectory data")
         for i,list in enumerate(self._trajectory_history):
-            grp.create_dataset(str(i),data=list)
+            print (i,list)
+            if (list is not None):
+                grp.create_dataset(str(i),data=list)
         
         hf.flush()
         hf.close()

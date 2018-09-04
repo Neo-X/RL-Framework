@@ -95,15 +95,27 @@ class DeepNNKerasAdaptive(ModelInterface):
         ### data types for model
         # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name="State")
         # self._State = keras.layers.Input(shape=(self._state_length,), name="State", batch_shape=(32,self._state_length))
-        self._State = keras.layers.Input(shape=(self._state_length,), name="State")
+        if (("train_LSTM" in self._settings)
+                and (self._settings["train_LSTM"] == True)):
+            self._State = keras.layers.Input(shape=(31, self._state_length), name="State")
+        else:
+            self._State = keras.layers.Input(shape=(self._state_length,), name="State")
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
         # self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState", batch_shape=(32,self._state_length))
-        self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
+        if (("train_LSTM" in self._settings)
+                and (self._settings["train_LSTM"] == True)):
+            self._ResultState = keras.layers.Input(shape=(31, self._result_state_length), name="ResultState")
+        else:
+            self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
         # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._Reward = K.variable(value=np.random.rand(self._batch_size,1), name="Reward")
         # self._Reward = keras.layers.Input(shape=(1,), name="Reward", batch_shape=(32,1))
-        self._Reward = keras.layers.Input(shape=(1,), name="Reward")
+        if (("train_LSTM" in self._settings)
+                and (self._settings["train_LSTM"] == True)):
+            self._Reward = keras.layers.Input(shape=(31,1), name="Reward")
+        else:
+            self._Reward = keras.layers.Input(shape=(1,), name="Reward")
         # self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
         # self._Action = K.variable(value=np.random.rand(self._batch_size, self._action_length), name="Action")
         # self._Action = keras.layers.Input(shape=(self._action_length,), name="Action", batch_shape=(32,self._action_length))
@@ -436,11 +448,12 @@ class DeepNNKerasAdaptive(ModelInterface):
         """
         for i in range(len(layer_sizes)):
             second_last_layer = network
+            print ("Working on layer: ", layer_sizes[i])
             if type(layer_sizes[i]) is list:
                 
                 if (layer_sizes[i][0] == "LSTM"):
                         # print ("layer.output_shape: ", keras.backend.shape(network))
-                        network = Reshape((1, layer_sizes[i][1]))(network)
+                        network = Reshape((-1, layer_sizes[i][1]))(network)
                         network = LSTM(layer_sizes[i][2], stateful=False)(network)
                 elif (layer_sizes[i][0] == "max_pool"):
                         network = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
