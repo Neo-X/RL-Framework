@@ -134,6 +134,9 @@ class SimWorker(Process):
             os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
             os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
         """
+        ### Flag so simulation models can be a little different.
+        self._settings["simulation_model"] = True
+        
         
         setupLearningBackend(self._settings)
         

@@ -97,7 +97,11 @@ class DeepNNKerasAdaptive(ModelInterface):
         # self._State = keras.layers.Input(shape=(self._state_length,), name="State", batch_shape=(32,self._state_length))
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
-            self._State = keras.layers.Input(shape=(31, self._state_length), name="State")
+            if ("simulation_model" in self._settings and
+                (self._settings["simulation_model"] == True)):
+                self._State = keras.layers.Input(shape=(31, self._state_length), batch_shape=(1,1,self._state_length), name="State")
+            else:
+                self._State = keras.layers.Input(shape=(10, 31, self._state_length), batch_shape=(10,31,self._state_length), name="State")
         else:
             self._State = keras.layers.Input(shape=(self._state_length,), name="State")
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
@@ -105,7 +109,11 @@ class DeepNNKerasAdaptive(ModelInterface):
         # self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState", batch_shape=(32,self._state_length))
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
-            self._ResultState = keras.layers.Input(shape=(31, self._result_state_length), name="ResultState")
+            if ("simulation_model" in self._settings and
+                (self._settings["simulation_model"] == True)):
+                self._ResultState = keras.layers.Input(shape=(31, self._result_state_length), batch_shape=(1,1,self._state_length), name="ResultState")
+            else:
+                self._ResultState = keras.layers.Input(shape=(10, 31, self._result_state_length), batch_shape=(10,31,self._state_length), name="ResultState")
         else:
             self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
         # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
@@ -113,7 +121,11 @@ class DeepNNKerasAdaptive(ModelInterface):
         # self._Reward = keras.layers.Input(shape=(1,), name="Reward", batch_shape=(32,1))
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
+            # if ("simulation_model" in self._settings and
+            #     (self._settings["simulation_model"] == True)):
             self._Reward = keras.layers.Input(shape=(31,1), name="Reward")
+            # else:
+            # self._Reward = keras.layers.Input(shape=(10, 31,1), name="Reward")
         else:
             self._Reward = keras.layers.Input(shape=(1,), name="Reward")
         # self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
@@ -193,7 +205,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                             networkAct = keras.layers.Deconv2D(layer_sizes[i][1], kernel_size=[layer_sizes[i][2][0], 1])(networkAct)
                     elif (layer_sizes[i][0] == "LSTM"):
                         networkAct = Reshape((1, layer_sizes[i][1]))(networkAct)
-                        networkAct = LSTM(layer_sizes[i][2], stateful=False)(networkAct)
+                        networkAct = LSTM(layer_sizes[i][2], stateful=True)(networkAct)
                     elif (layer_sizes[i][0] == "max_pool"):
                         networkAct = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=self._data_format_)(networkAct)
@@ -454,7 +466,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if (layer_sizes[i][0] == "LSTM"):
                         # print ("layer.output_shape: ", keras.backend.shape(network))
                         network = Reshape((-1, layer_sizes[i][1]))(network)
-                        network = LSTM(layer_sizes[i][2], stateful=False)(network)
+                        network = LSTM(layer_sizes[i][2], stateful=True)(network)
                 elif (layer_sizes[i][0] == "max_pool"):
                         network = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=self._data_format_)(network)  
@@ -693,7 +705,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if (layer_sizes[i][0] == "LSTM"):
                         # print ("layer.output_shape: ", keras.backend.shape(network))
                         network = Reshape((1, layer_sizes[i][1]))(network)
-                        network = LSTM(layer_sizes[i][2], stateful=False)(network)
+                        network = LSTM(layer_sizes[i][2], stateful=True)(network)
                 elif (layer_sizes[i][0] == "max_pool"):
                         network = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=self._data_format_)(network)  

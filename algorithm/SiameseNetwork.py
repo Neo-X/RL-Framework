@@ -247,11 +247,14 @@ class SiameseNetwork(KERASAlgorithm):
             sequences1 = np.array(sequences1)
             targets_ = np.array(targets_)
             # te_pair1, te_pair2, te_y = seq
+            # score = self._model._forward_dynamics_net.train_on_batch([sequences0, sequences1], targets_)
+            
             score = self._model._forward_dynamics_net.fit([sequences0, sequences1], targets_,
                       epochs=1, batch_size=sequences0.shape[0],
                       verbose=0,
                       shuffle=True
                       )
+            
             """
             loss_ = []
             for (seq0, seq1, tar_) in zip(sequences0, sequences1, targets_):
