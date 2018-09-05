@@ -181,6 +181,8 @@ def trainMetaModel_(args):
         
         simSettings_['data_folder'] = simSettings_['data_folder'] + "/"
         
+        simSettings_['meta_thread_index'] = 0
+        
         root_data_dir = getRootDataDirectory(simSettings_)+"/"
         
         if ( len(args) == 6 ):
