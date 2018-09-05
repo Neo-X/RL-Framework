@@ -33,7 +33,8 @@ def run_tests(metaSettings, test=False):
         print ("Starting full run: ")
         for tests in tests_:
             print ("Running tests: ", tests)
-            pytest.main(['tests/' + tests, '--junitxml=' + tests + metaSettings['j_unit_filename'], '--workers', str(metaSettings['tuning_threads']), '--tests-per-worker=1', '--show-capture=no', '--timeout_method=thread'])
+            pytest.main(['tests/' + tests, '--junitxml=' + tests + metaSettings['j_unit_filename'], '--workers', str(metaSettings['tuning_threads']), 
+                         '--tests-per-worker=1', '--show-capture=no', '--timeout_method=thread', '--timeout=300'])
         # pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
             
 if __name__ == '__main__':
