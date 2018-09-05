@@ -464,6 +464,8 @@ class ExperienceMemory(object):
             print (i,list)
             if (list is not None):
                 grp.create_dataset(str(i),data=list)
+            else:
+                break
         
         hf.flush()
         hf.close()

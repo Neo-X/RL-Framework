@@ -92,6 +92,8 @@ class DeepNNKerasAdaptive(ModelInterface):
         self._networkSettings = {}
         if ("network_settings" in settings_):
             self._networkSettings = settings_["network_settings"]
+            
+        self._sequence_length=1
         ### data types for model
         # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name="State")
         # self._State = keras.layers.Input(shape=(self._state_length,), name="State", batch_shape=(32,self._state_length))
@@ -99,9 +101,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                 and (self._settings["train_LSTM"] == True)):
             if ("simulation_model" in self._settings and
                 (self._settings["simulation_model"] == True)):
-                self._State = keras.layers.Input(shape=(31, self._state_length), batch_shape=(1,1,self._state_length), name="State")
+                self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, self._state_length), name="State")
             else:
-                self._State = keras.layers.Input(shape=(10, 31, self._state_length), batch_shape=(10,31,self._state_length), name="State")
+                self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, self._sequence_length, self._state_length), name="State")
         else:
             self._State = keras.layers.Input(shape=(self._state_length,), name="State")
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
@@ -111,9 +113,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                 and (self._settings["train_LSTM"] == True)):
             if ("simulation_model" in self._settings and
                 (self._settings["simulation_model"] == True)):
-                self._ResultState = keras.layers.Input(shape=(31, self._result_state_length), batch_shape=(1,1,self._state_length), name="ResultState")
+                self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(1, 1, self._state_length), name="ResultState")
             else:
-                self._ResultState = keras.layers.Input(shape=(10, 31, self._result_state_length), batch_shape=(10,31,self._state_length), name="ResultState")
+                self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(1, self._sequence_length, self._state_length), name="ResultState")
         else:
             self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
         # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
@@ -123,9 +125,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                 and (self._settings["train_LSTM"] == True)):
             # if ("simulation_model" in self._settings and
             #     (self._settings["simulation_model"] == True)):
-            self._Reward = keras.layers.Input(shape=(31,1), name="Reward")
+            self._Reward = keras.layers.Input(shape=(self._sequence_length,1), name="Reward")
             # else:
-            # self._Reward = keras.layers.Input(shape=(10, 31,1), name="Reward")
+            # self._Reward = keras.layers.Input(shape=(10, self._sequence_length,1), name="Reward")
         else:
             self._Reward = keras.layers.Input(shape=(1,), name="Reward")
         # self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
@@ -166,6 +168,10 @@ class DeepNNKerasAdaptive(ModelInterface):
         characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
                                    arguments={'begin': self._settings['num_terrain_features'], 
                                               'end': self._state_length})(inputAct)
+        
+        if (("train_LSTM" in self._settings)
+                and (self._settings["train_LSTM"] == True)):
+            taskFeatures = self._State
         """
         taskFeatures = inputAct
         characterFeatures = inputAct
@@ -232,7 +238,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                     networkActVel_y = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_y)
                                     networkAct = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(taskFeatures)
                             else:    
-                                networkAct = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(taskFeatures)
+                                networkAct = Reshape(self._settings['terrain_shape'])(taskFeatures)
                         stride = (1,1)
                         if (len(layer_sizes[i]) > 2):
                             stride = layer_sizes[i][2]

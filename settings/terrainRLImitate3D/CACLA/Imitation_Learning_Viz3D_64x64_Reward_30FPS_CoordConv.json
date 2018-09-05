@@ -268,7 +268,7 @@
     "comment__": "draw/render the next state suggested by the forward dynamics model",
 "visualize_forward_dynamics": false,
     "comment__": "Learning rate for the forward dynamics model",
-"fd_learning_rate": 0.00001,
+"fd_learning_rate": 0.0001,
     "comment__": "Whether or not to train the policy. Used for debugging",
 "train_actor": true,
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
@@ -504,5 +504,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "fd_num_terrain_features": 12288,
 	"comment__": "replace the viz state in the next state with the state from the imitation agent",
-"replace_next_state_with_imitation_viz_state": true
+"replace_next_state_with_imitation_viz_state": true,
+	"comment__": "Type of smoothing funtion to filter the learned distance metric by",
+"learned_reward_smoother": "gaussian"
 }

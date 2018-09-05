@@ -248,12 +248,16 @@ class SiameseNetwork(KERASAlgorithm):
             targets_ = np.array(targets_)
             # te_pair1, te_pair2, te_y = seq
             # score = self._model._forward_dynamics_net.train_on_batch([sequences0, sequences1], targets_)
-            
-            score = self._model._forward_dynamics_net.fit([sequences0, sequences1], targets_,
-                      epochs=1, batch_size=sequences0.shape[0],
-                      verbose=0,
-                      shuffle=True
-                      )
+            loss_ = []
+            for k in range(sequences0.shape[1]):
+                score = self._model._forward_dynamics_net.fit([np.array([[sequences0[0][k]]]), np.array([[sequences1[0][k]]])], [np.array([[targets_[0][k]]])],
+                          epochs=1, 
+                          # batch_size=sequences0.shape[0],
+                          batch_size=1,
+                          verbose=0,
+                          shuffle=True
+                          )
+                loss_.append(np.mean(score.history['loss']))
             
             """
             loss_ = []
@@ -356,8 +360,16 @@ class SiameseNetwork(KERASAlgorithm):
         states = np.concatenate((states, result_states), axis=0)
         te_pair1, te_pair2, te_y = create_pairs2(states)
         
-        predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
-        te_acc = compute_accuracy(predicted_y, te_y)
+        if (("train_LSTM_FD" in self._settings)
+                    and (self._settings["train_LSTM_FD"] == True)):
+            predicted_y = self._model._forward_dynamics_net.predict([np.array([[te_pair1[0]]]), np.array([[te_pair2[0]]])])
+            te_acc = compute_accuracy(predicted_y, np.array([te_y[0]]) )
+        else:
+            # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
+            predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
+            te_acc = compute_accuracy(predicted_y, te_y)
+            
+        # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
         return te_acc
     
     def reward_error(self, states, actions, result_states, rewards):
