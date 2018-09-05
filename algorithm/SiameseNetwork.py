@@ -58,46 +58,47 @@ def create_sequences(tr0, tr1):
     sequences0 = []
     sequences1 = []
     targets_ = []
+    tar_shape = (len(tr0)-1, 1)
     ### basic for now
     sequences0.append(tr0[1:])
     sequences1.append(tr0[:-1])
-    targets_.append(np.ones(len(sequences1[-1])))
+    targets_.append(np.ones(tar_shape))
     
     sequences0.append(tr0[:-1])
     sequences1.append(tr0[1:])
-    targets_.append(np.ones(len(sequences1[-1])))
+    targets_.append(np.ones(tar_shape))
 
     sequences0.append(tr1[:-1])
     sequences1.append(tr1[1:])
-    targets_.append(np.ones(len(sequences1[-1])))
+    targets_.append(np.ones(tar_shape))
 
     sequences0.append(tr1[1:])
     sequences1.append(tr1[:-1])
-    targets_.append(np.ones(len(sequences1[-1])))
+    targets_.append(np.ones(tar_shape))
     
     sequences0.append(list(reversed(tr1[1:])))
     sequences1.append(tr1[:-1])
-    targets_.append(np.zeros(len(sequences1[-1])))
+    targets_.append(np.zeros(tar_shape))
 
     sequences0.append(list(reversed(tr0[1:])))
     sequences1.append(tr0[1:])
-    targets_.append(np.zeros(len(sequences1[-1])))
+    targets_.append(np.zeros(tar_shape))
     
     sequences0.append(tr0[1:])
     sequences1.append(tr1[:-1])
-    targets_.append(np.zeros(len(sequences1[-1])))
+    targets_.append(np.zeros(tar_shape))
     
     sequences0.append(tr0[1:])
     sequences1.append(tr1[:-1])
-    targets_.append(np.zeros(len(sequences1[-1])))
+    targets_.append(np.zeros(tar_shape))
     
     sequences0.append(tr0[1:])
     sequences1.append(tr1[1:])
-    targets_.append(np.zeros(len(sequences1[-1])))
+    targets_.append(np.zeros(tar_shape))
     
     sequences0.append(tr0[:-1])
     sequences1.append(tr1[:-1])
-    targets_.append(np.zeros(len(sequences1[-1])))
+    targets_.append(np.zeros(tar_shape))
     
     return sequences0, sequences1, targets_
         
@@ -246,14 +247,21 @@ class SiameseNetwork(KERASAlgorithm):
             print ("sequences0 shape: ", sequences0.shape)
             sequences1 = np.array(sequences1)
             targets_ = np.array(targets_)
+            print ("targets_ shape: ", targets_.shape)
             # te_pair1, te_pair2, te_y = seq
             # score = self._model._forward_dynamics_net.train_on_batch([sequences0, sequences1], targets_)
             loss_ = []
             for k in range(sequences0.shape[1]):
-                score = self._model._forward_dynamics_net.fit([np.array([[sequences0[0][k]]]), np.array([[sequences1[0][k]]])], [np.array([[targets_[0][k]]])],
+                ### shaping data
+                x0 = np.array(sequences0[:,[k]])
+                x1 = np.array(sequences1[:,[k]])
+                y0 = np.array(targets_[:,[k]])
+                print ("x0 shape: ", x0.shape)
+                print ("y0 shape: ", y0.shape)
+                score = self._model._forward_dynamics_net.fit([x0, x1], [y0],
                           epochs=1, 
                           # batch_size=sequences0.shape[0],
-                          batch_size=1,
+                          batch_size=sequences0.shape[0],
                           verbose=0,
                           shuffle=True
                           )
