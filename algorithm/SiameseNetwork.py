@@ -256,15 +256,14 @@ class SiameseNetwork(KERASAlgorithm):
                 ### shaping data
                 x0 = np.array(sequences0[:,[k]])
                 x1 = np.array(sequences1[:,[k]])
-                y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target
+                y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
                 # print ("x0 shape: ", x0.shape)
                 # print ("y0 shape: ", y0.shape)
                 score = self._model._forward_dynamics_net.fit([x0, x1], [y0],
                           epochs=1, 
                           # batch_size=sequences0.shape[0],
                           batch_size=sequences0.shape[0],
-                          verbose=0,
-                          shuffle=True
+                          verbose=0
                           )
                 loss_.append(np.mean(score.history['loss']))
             
