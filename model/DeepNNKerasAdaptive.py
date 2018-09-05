@@ -364,7 +364,11 @@ class DeepNNKerasAdaptive(ModelInterface):
                                    kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                    bias_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
-    
+            """
+            if (("train_LSTM" in self._settings)
+                and (self._settings["train_LSTM"] == True)):
+                networkAct = networkAct = Reshape((1, 64))(networkAct)
+            """
             self._actor = networkAct
                     
             if (self._settings['use_stochastic_policy']):
