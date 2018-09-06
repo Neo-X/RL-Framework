@@ -123,7 +123,7 @@ class KERASAlgorithm(AlgorithmInterface):
         self._modelTarget.getCriticNetwork().set_weights( params[2])
         self._modelTarget.getActorNetwork().set_weights( params[3])
         
-    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]],
+    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]], p=1.0,
                     updates=1, batch_size=None):
         
         self.reset()
@@ -169,6 +169,11 @@ class KERASAlgorithm(AlgorithmInterface):
         # print ("Critic Target: ", np.concatenate((v, target_, rewards, y_) ,axis=1) )
         c_error = np.mean(np.mean(np.square(v - target_), axis=1))
         """
+        if ('anneal_learning_rate' in self.getSettings()
+            and (self.getSettings()['anneal_learning_rate'] == True)):
+            K.set_value(self._model.getCriticNetwork().optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
+            lr = K.get_value(self._model.getCriticNetwork().optimizer.lr)
+            print ("New critic learning rate: ", lr)
         # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
         # if (c_error < 10.0):
         score = self._model.getCriticNetwork().fit(states, target,

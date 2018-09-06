@@ -297,7 +297,7 @@ class DPGKeras(KERASAlgorithm):
         
         # _targets = rewards + (self._discount_factor * self._q_valsTargetNextState )
         
-    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]]):
+    def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]], p=1.0):
         
         # self.setData(states, actions, rewards, result_states, falls)
         ## get actions for target policy
@@ -312,6 +312,12 @@ class DPGKeras(KERASAlgorithm):
         # self._tmp_target_shared.set_value(target_tmp_)
         
         # self._target = T.mul(T.add(self._model.getRewardSymbolicVariable(), T.mul(self._discount_factor, self._q_valsB )), self._Fallen)
+        
+        if ('anneal_learning_rate' in self.getSettings()
+            and (self.getSettings()['anneal_learning_rate'] == True)):
+            K.set_value(self._model.getCriticNetwork().optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
+            lr = K.get_value(self._model.getCriticNetwork().optimizer.lr)
+            print ("New critic learning rate: ", lr)
         
         loss = self._model.getCriticNetwork().fit([states, actions], target_tmp_,
                         batch_size=states.shape[0],
@@ -332,6 +338,9 @@ class DPGKeras(KERASAlgorithm):
         # print("Policy mean: ", np.mean(self._q_action(), axis=0))
         loss = 0
         # loss = self._trainActor()
+        if ('anneal_learning_rate' in self.getSettings()
+            and (self.getSettings()['anneal_learning_rate'] == True)):
+            K.set_value(self._combined.optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
         
         ### The rewards are not used in this update, just a placeholder
         score = self._combined.fit([states], rewards,
