@@ -185,6 +185,11 @@ def norm_action(action_, action_bounds_):
         
         norm_action = ( action - mean ) / var
     """
+    ### Lets not accidentally broadcast...
+    if (len(action_) != len(action_bounds_[0])):
+        print (np.array(action_).shape, " == " , np.array(action_bounds_[0]).shape)
+    assert (len(action_) == len(action_bounds_[0]) or
+            len(action_[0]) == len(action_bounds_[0]))
     
     avg = (action_bounds_[0] + action_bounds_[1])/2.0
     std = (action_bounds_[1] - action_bounds_[0])/2.0

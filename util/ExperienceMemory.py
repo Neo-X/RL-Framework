@@ -98,17 +98,21 @@ class ExperienceMemory(object):
             
         self._trajectory_history[self._trajectory_update_index] = trajectory
         
+        self._insertsTrajectory+=1
+        self._trajectory_update_index+=1
+        self._samplesTrajectory+=1
+        
     def insertTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions):
         
         self._insertTrajectory([states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions])
         
         
-    def get_trajectory_batch(self, batch_size=32, excludeActionTypes=[]):
+    def get_trajectory_batch(self, batch_size=4, excludeActionTypes=[]):
         """
         len(experience > batch_size
         """
         # assert batch_size <= self._history_size, "batch_size <= self._history_size: " + str(batch_size) +" <=  " + str(self._history_size)
-        assert batch_size <= self.samplesTrajectory(), "batch_size <= self.samples(): " + str(batch_size) +" <=  " + str(self.samplesTrajectory())
+        assert batch_size <= self.samplesTrajectory(), "batch_size <= self.samplesTrajectory(): " + str(batch_size) +" <=  " + str(self.samplesTrajectory())
         # indices = list(nprnd.randint(low=0, high=len(experience), size=batch_size))
         max_size = min(self.history_size_Trajectory(), self.samplesTrajectory())
         # print ("Indicies: " , indices)
@@ -133,16 +137,16 @@ class ExperienceMemory(object):
             if ( self._exp_action_history[i] in excludeActionTypes):
                 continue
             indices.add(i)
-            
+            # print ("states shape: ", np.array(self._trajectory_history[i][0]))
             state.append(norm_state(self._trajectory_history[i][0], self.getStateBounds()))
             # print("Action pulled out: ", self._action_history[i])
             action.append(norm_action(self._trajectory_history[i][1], self.getActionBounds())) # won't work for discrete actions...
             resultState.append(norm_state(self._trajectory_history[i][2], self.getResultStateBounds()))
             reward.append(norm_state(self._trajectory_history[i][3] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
-            fall.append(self._trajectory_history[i][5])
-            G_ts.append(self._trajectory_history[i][6])
-            advantage.append(self._trajectory_history[i][7])
-            exp_actions.append(self._trajectory_history[i][8])
+            fall.append(self._trajectory_history[i][4])
+            G_ts.append(self._trajectory_history[i][5])
+            advantage.append(self._trajectory_history[i][6])
+            exp_actions.append(self._trajectory_history[i][7])
             
         # print c
         # print experience[indices]
@@ -463,9 +467,16 @@ class ExperienceMemory(object):
         for i,list in enumerate(self._trajectory_history):
             print (i,list)
             if (list is not None):
-                grp.create_dataset(str(i),data=list)
+                grp_ = grp.create_group('traj'+str(i))
+                for it in range(len(list)):
+                    grp_.create_dataset(str(it),data=np.array(list[it]))
             else:
                 break
+            
+        hf.create_dataset('_trajectory_size', data=[self._trajectory_size])
+        hf.create_dataset('_trajectory_update_index', data=[self._trajectory_update_index])
+        hf.create_dataset('_insertsTrajectory', data=[self._insertsTrajectory])
+        hf.create_dataset('_samplesTrajectory', data=[self._samplesTrajectory])
         
         hf.flush()
         hf.close()
@@ -493,5 +504,22 @@ class ExperienceMemory(object):
         self._action_bounds = np.array(hf.get('_action_bounds'))
         self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
         
+        self._trajectory_size = int(hf.get('_trajectory_size')[()])
+        self._trajectory_update_index = int(hf.get('_trajectory_update_index')[()])
+        self._insertsTrajectory = int(hf.get('_insertsTrajectory')[()])
+        self._samplesTrajectory = int(hf.get('_samplesTrajectory')[()])
+        
+        
+        grp = hf.get('trajectories')
+        print ("Loading trajectory data")
+        for i in range(min(self.history_size_Trajectory(), self.samplesTrajectory())-1):
+            print (i)
+            traj = []
+            grp_ = grp.get('traj'+str(i))
+            for it in range(8):
+                traj.append(np.array(grp_.get(str(it))))
+        
+            self._trajectory_history[i] = traj
+            
         hf.close()
         

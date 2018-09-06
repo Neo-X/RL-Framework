@@ -119,6 +119,7 @@ def trainForwardDynamics(settings):
     state_bounds = experience._state_bounds
     print ("Samples in experience: ", experience.samples())
     
+    res_state_bounds__ = state_bounds
     if ("use_dual_state_representations" in settings
         and (settings["use_dual_state_representations"] == True)):
         res_state_bounds__ = np.array([[-1] * settings["dense_state_size"], 
@@ -221,11 +222,18 @@ def trainForwardDynamics(settings):
                 _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(samps)
                 dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards, updates=1, batch_size=settings["batch_size"])
             else:
-                _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
-                # print("result state shape: ", np.asarray(_result_states).shape)
-                dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
-                reg_loss = forwardDynamicsModel._get_fd_regularization([])
-                print("regularization_loss: ", reg_loss)
+                if (("train_LSTM_FD" in settings)
+                    and (settings["train_LSTM_FD"] == True)):
+                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_trajectory_batch(batch_size=1)
+                    dynamicsLoss = forwardDynamicsModel.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_)
+                    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                        print ("Forward Dynamics Loss: ", dynamicsLoss)
+                else:
+                    _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
+                    # print("result state shape: ", np.asarray(_result_states).shape)
+                    dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
+                    reg_loss = forwardDynamicsModel._get_fd_regularization([])
+                    print("regularization_loss: ", reg_loss)
                 if (False):
                     import matplotlib
                     # matplotlib.use('Agg')

@@ -230,21 +230,35 @@ class LearningAgent(AgentInterface):
                 for i in range(len(tmp_states)):
                     if ("use_dual_state_representations" in self.getSettings()
                         and (self.getSettings()["use_dual_state_representations"] == True)):
+                        """
                         _states.append([np.array(norm_action(np.array(tmp_states__[0][0]), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
                         _result_states.append([np.array(norm_action(np.array(tmp_result_states__[0][0]), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
                         
                         _states_fd.append([np.array(norm_action(np.array(tmp_states__[0][1]), self._fd.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
                         _result_states_fd.append([np.array(norm_action(np.array(tmp_result_states__[0][1]), self._fd.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
+                        """
+                        _states.append([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
+                        _result_states.append([np.array(np.array(tmp_result_states__[0]), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
+                        
+                        _states_fd.append([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
+                        _result_states_fd.append([np.array(np.array(tmp_result_states__[1]), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
                     else:
+                        """
                         _states.append([np.array(norm_action(np.array(tmp_states__), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states])
                         _result_states.append([np.array(norm_action(np.array(tmp_result_states__), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states])
+                        """
+                        _states.append([np.array(np.array(tmp_states__), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
+                        _result_states.append([np.array(np.array(tmp_result_states__), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
                         
                         _states_fd = _states
                         _result_states_fd = _result_states
                     
+                    """
                     _actions.append([np.array(norm_action(np.array(tmp_actions__), self._pol.getActionBounds()), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions[i]])
-                    # reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
                     _rewards.append([np.array(norm_state(tmp_rewards__ , self._pol.getRewardBounds() ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards[i]])
+                    """
+                    _actions.append([np.array(np.array(tmp_actions__), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions[i]])
+                    _rewards.append([np.array(tmp_rewards__ , dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards[i]])
                     # _rewards = np.reshape(_rewards, (len(tmp_states), 1))
                     # _falls = [np.array(tmp_falls__, dtype='int8') for tmp_falls__ in tmp_falls]
                     # _advantage = [np.array(tmp_advantage__, dtype=self._settings['float_type']) for tmp_advantage__ in tmp_advantage]
@@ -254,6 +268,10 @@ class LearningAgent(AgentInterface):
                 if (("train_LSTM" in self._settings)
                     and (self._settings["train_LSTM"] == True)):
                     for e in range(len(_states)):
+                        
+                        self.getExperience().insertTrajectory(_states[e], _actions[e], _result_states[e], _rewards[e], 
+                                                                    tmp_falls[e], tmp_G_t[e], tmp_advantage[e], tmp_exp_action[e])
+                        
                         loss = self._pol.trainCritic(states=_states[e], actions=_actions[e], rewards=_rewards[e], 
                                                      result_states=_result_states[e], falls=tmp_falls[e], G_t=tmp_G_t[e],
                                                      p=p)
@@ -267,12 +285,16 @@ class LearningAgent(AgentInterface):
                 
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
-                    for e in range(len(_states)):
+                    for e in range(len(_states_fd)):
                         if ( 'keep_seperate_fd_exp_buffer' in self._settings 
                              and (self._settings['keep_seperate_fd_exp_buffer'])):
-                            self.getFDExperience().insertTrajectory(tmp_states[e], tmp_actions[e], tmp_result_states[e], tmp_rewards[e], 
+                            self.getFDExperience().insertTrajectory(_states_fd[e], _actions[e][e], _result_states_fd[e], _rewards[e], 
                                                                     tmp_falls[e], tmp_G_t[e], tmp_advantage[e], tmp_exp_action[e])
-                        dynamicsLoss = self._fd.train(states=_states_fd[e], actions=_actions[e], result_states=_result_states_fd[e], rewards=_rewards[e])
+                            
+                        # dynamicsLoss = self._fd.train(states=_states_fd[e], actions=_actions[e], result_states=_result_states_fd[e], rewards=_rewards[e])
+                    for e in range(len(_states)):   
+                        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_trajectory_batch(batch_size=1)
+                        dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print ("Forward Dynamics Loss: ", dynamicsLoss)
                     

@@ -48,7 +48,7 @@ def compute_accuracy(predictions, labels):
     '''
     return labels[predictions.ravel() < 0.5].mean()
 
-def create_sequences(tr0, tr1):
+def create_sequences(traj0, traj1):
     '''Positive and negative sequence creation.
     Alternates between positive and negative pairs.
     produces N sequences from two
@@ -58,47 +58,48 @@ def create_sequences(tr0, tr1):
     sequences0 = []
     sequences1 = []
     targets_ = []
-    tar_shape = (len(tr0)-1, 1)
-    ### basic for now
-    sequences0.append(tr0[1:])
-    sequences1.append(tr0[:-1])
-    targets_.append(np.ones(tar_shape))
+    for tr0, tr1 in zip(traj0, traj1): ### for each trajectory pair
+        tar_shape = (len(tr0)-1, 1)
+        ### basic for now
+        sequences0.append(tr0[1:])
+        sequences1.append(tr0[:-1])
+        targets_.append(np.ones(tar_shape))
+        
+        sequences0.append(tr0[:-1])
+        sequences1.append(tr0[1:])
+        targets_.append(np.ones(tar_shape))
     
-    sequences0.append(tr0[:-1])
-    sequences1.append(tr0[1:])
-    targets_.append(np.ones(tar_shape))
-
-    sequences0.append(tr1[:-1])
-    sequences1.append(tr1[1:])
-    targets_.append(np.ones(tar_shape))
-
-    sequences0.append(tr1[1:])
-    sequences1.append(tr1[:-1])
-    targets_.append(np.ones(tar_shape))
+        sequences0.append(tr1[:-1])
+        sequences1.append(tr1[1:])
+        targets_.append(np.ones(tar_shape))
     
-    sequences0.append(list(reversed(tr1[1:])))
-    sequences1.append(tr1[:-1])
-    targets_.append(np.zeros(tar_shape))
-
-    sequences0.append(list(reversed(tr0[1:])))
-    sequences1.append(tr0[1:])
-    targets_.append(np.zeros(tar_shape))
+        sequences0.append(tr1[1:])
+        sequences1.append(tr1[:-1])
+        targets_.append(np.ones(tar_shape))
+        
+        sequences0.append(list(reversed(tr1[1:])))
+        sequences1.append(tr1[:-1])
+        targets_.append(np.zeros(tar_shape))
     
-    sequences0.append(tr0[1:])
-    sequences1.append(tr1[:-1])
-    targets_.append(np.zeros(tar_shape))
-    
-    sequences0.append(tr0[1:])
-    sequences1.append(tr1[:-1])
-    targets_.append(np.zeros(tar_shape))
-    
-    sequences0.append(tr0[1:])
-    sequences1.append(tr1[1:])
-    targets_.append(np.zeros(tar_shape))
-    
-    sequences0.append(tr0[:-1])
-    sequences1.append(tr1[:-1])
-    targets_.append(np.zeros(tar_shape))
+        sequences0.append(list(reversed(tr0[1:])))
+        sequences1.append(tr0[1:])
+        targets_.append(np.zeros(tar_shape))
+        
+        sequences0.append(tr0[1:])
+        sequences1.append(tr1[:-1])
+        targets_.append(np.zeros(tar_shape))
+        
+        sequences0.append(tr0[1:])
+        sequences1.append(tr1[:-1])
+        targets_.append(np.zeros(tar_shape))
+        
+        sequences0.append(tr0[1:])
+        sequences1.append(tr1[1:])
+        targets_.append(np.zeros(tar_shape))
+        
+        sequences0.append(tr0[:-1])
+        sequences1.append(tr1[:-1])
+        targets_.append(np.zeros(tar_shape))
     
     return sequences0, sequences1, targets_
         
