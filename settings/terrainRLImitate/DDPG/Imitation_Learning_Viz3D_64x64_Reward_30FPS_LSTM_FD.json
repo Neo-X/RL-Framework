@@ -397,5 +397,7 @@
 	"comment__": "Type of smoothing funtion to filter the learned distance metric by",
 "learned_reward_smoother": "gaussian",
 	"comment__": "Just train the fd model in an LSTM fashion",
-"train_LSTM_FD": true
+"train_LSTM_FD": true,
+	"comment__": "Use a stateful LSTM",
+"train_LSTM_stateful": true
 }

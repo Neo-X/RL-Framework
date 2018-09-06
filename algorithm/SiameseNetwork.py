@@ -55,50 +55,51 @@ def create_sequences(traj0, traj1):
     
     Assume tr0 != tr1
     '''
+    noise_scale = 0.02
     sequences0 = []
     sequences1 = []
     targets_ = []
     for tr0, tr1 in zip(traj0, traj1): ### for each trajectory pair
         tar_shape = (len(tr0)-1, 1)
         ### basic for now
-        sequences0.append(tr0[1:])
-        sequences1.append(tr0[:-1])
+        sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        sequences1.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.ones(tar_shape))
         
-        sequences0.append(tr0[:-1])
-        sequences1.append(tr0[1:])
-        targets_.append(np.ones(tar_shape))
-    
-        sequences0.append(tr1[:-1])
-        sequences1.append(tr1[1:])
+        sequences0.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        sequences1.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.ones(tar_shape))
     
-        sequences0.append(tr1[1:])
-        sequences1.append(tr1[:-1])
+        sequences0.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        targets_.append(np.ones(tar_shape))
+    
+        sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.ones(tar_shape))
         
-        sequences0.append(list(reversed(tr1[1:])))
-        sequences1.append(tr1[:-1])
+        sequences0.append(list(reversed(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))))
+        sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.zeros(tar_shape))
     
-        sequences0.append(list(reversed(tr0[1:])))
-        sequences1.append(tr0[1:])
+        sequences0.append(list(reversed(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))))
+        sequences1.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.zeros(tar_shape))
         
-        sequences0.append(tr0[1:])
-        sequences1.append(tr1[:-1])
+        sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.zeros(tar_shape))
         
-        sequences0.append(tr0[1:])
-        sequences1.append(tr1[:-1])
+        sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.zeros(tar_shape))
         
-        sequences0.append(tr0[1:])
-        sequences1.append(tr1[1:])
+        sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.zeros(tar_shape))
         
-        sequences0.append(tr0[:-1])
-        sequences1.append(tr1[:-1])
+        sequences0.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.zeros(tar_shape))
     
     return sequences0, sequences1, targets_
@@ -253,19 +254,32 @@ class SiameseNetwork(KERASAlgorithm):
             # te_pair1, te_pair2, te_y = seq
             # score = self._model._forward_dynamics_net.train_on_batch([sequences0, sequences1], targets_)
             loss_ = []
-            for k in range(sequences0.shape[1]):
-                ### shaping data
-                x0 = np.array(sequences0[:,[k]])
-                x1 = np.array(sequences1[:,[k]])
-                y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
-                # print ("x0 shape: ", x0.shape)
-                # print ("y0 shape: ", y0.shape)
-                score = self._model._forward_dynamics_net.fit([x0, x1], [y0],
-                          epochs=1, 
-                          # batch_size=sequences0.shape[0],
-                          batch_size=sequences0.shape[0],
-                          verbose=0
-                          )
+            if ("train_LSTM_stateful" in self._settings
+                and (self._settings["train_LSTM_stateful"])):
+                for k in range(sequences0.shape[1]):
+                    ### shaping data
+                    x0 = np.array(sequences0[:,[k]])
+                    x1 = np.array(sequences1[:,[k]])
+                    y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
+                    # print ("data: ", np.mean(x0), np.mean(x1), np.mean(y0))
+                    # print (x0) 
+                    # print ("x0 shape: ", x0.shape)
+                    # print ("y0 shape: ", y0.shape)
+                    score = self._model._forward_dynamics_net.fit([x0, x1], [y0],
+                              epochs=1, 
+                              # batch_size=sequences0.shape[0],
+                              batch_size=sequences0.shape[0],
+                              verbose=0
+                              )
+                    print ("lstm train loss: ", score.history['loss'])
+                    loss_.append(np.mean(score.history['loss']))
+            else:
+                score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets_[:,:,0]],
+                              epochs=1, 
+                              # batch_size=sequences0.shape[0],
+                              batch_size=sequences0.shape[0],
+                              verbose=0
+                              )
                 loss_.append(np.mean(score.history['loss']))
             
             """
@@ -365,16 +379,34 @@ class SiameseNetwork(KERASAlgorithm):
         return predicted_reward
 
     def bellman_error(self, states, actions, result_states, rewards):
-        
-        states = np.concatenate((states, result_states), axis=0)
-        te_pair1, te_pair2, te_y = create_pairs2(states)
-        
+        self.reset()
         if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
-            # predicted_y = self._model._forward_dynamics_net.predict([np.array([[te_pair1[0]]]), np.array([[te_pair2[0]]])])
-            # te_acc = compute_accuracy(predicted_y, np.array([te_y[0]]) )
-            te_acc = 0
+            sequences0, sequences1, targets_ = create_sequences(states, result_states)
+            sequences0 = np.array(sequences0)
+            sequences1 = np.array(sequences1)
+            targets_ = np.array(targets_)
+            errors=[]
+            if ("train_LSTM_stateful" in self._settings
+                and (self._settings["train_LSTM_stateful"])):
+                for k in range(sequences0.shape[1]):
+                    ### shaping data
+                    print (k)
+                    x0 = np.array(sequences0[:,[k]])
+                    x1 = np.array(sequences1[:,[k]])
+                    y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
+                    predicted_y = self._model._forward_dynamics_net.predict([x0, x1], batch_size=x0.shape[0])
+                    errors.append( compute_accuracy(predicted_y, y0) )
+            else:
+                predicted_y = self._model._forward_dynamics_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
+                errors.append( compute_accuracy(predicted_y, targets_) )
+            # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
+            # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
+            te_acc = np.mean(errors)
         else:
+            states = np.concatenate((states, result_states), axis=0)
+            te_pair1, te_pair2, te_y = create_pairs2(states)
+        
             # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
             predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
             te_acc = compute_accuracy(predicted_y, te_y)

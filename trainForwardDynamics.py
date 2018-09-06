@@ -224,7 +224,7 @@ def trainForwardDynamics(settings):
             else:
                 if (("train_LSTM_FD" in settings)
                     and (settings["train_LSTM_FD"] == True)):
-                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_trajectory_batch(batch_size=1)
+                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_trajectory_batch(batch_size=4)
                     dynamicsLoss = forwardDynamicsModel.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_)
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                         print ("Forward Dynamics Loss: ", dynamicsLoss)
@@ -252,7 +252,12 @@ def trainForwardDynamics(settings):
             # dynamicsLoss = forwardDynamicsModel._train()
         t1 = time.time()
         if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
-            dynamicsLoss_ = forwardDynamicsModel.bellman_error(_states, _actions, _result_states, _rewards)
+            if (("train_LSTM_FD" in settings)
+                and (settings["train_LSTM_FD"] == True)):
+                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_trajectory_batch(batch_size=4)
+                dynamicsLoss_ = forwardDynamicsModel.bellman_error(state_, action_, resultState_, reward_)
+            else:
+                dynamicsLoss_ = forwardDynamicsModel.bellman_error(_states, _actions, _result_states, _rewards)
             # dynamicsLoss_ = forwardDynamicsModel.bellman_error((_states), (_actions), (_result_states))
             if ( settings['use_stochastic_forward_dynamics'] ):
                 dynamicsLoss = np.mean(dynamicsLoss_)
@@ -297,9 +302,7 @@ def trainForwardDynamics(settings):
                 best_dynamicsLosses = mean_dynamicsLosses
                 print ("Saving BEST current forward dynamics model: " + str(best_dynamicsLosses))
                 file_name_dynamics=directory+"forward_dynamics_"+"_Best_pretrain.pkl"
-                f = open(file_name_dynamics, 'wb')
-                dill.dump(forwardDynamicsModel, f)
-                f.close()
+                forwardDynamicsModel.saveTo(file_name_dynamics)
             
             if settings['save_trainData']:
                 fp = open(directory+"FD_trainingData_" + str(settings['agent_name']) + ".json", 'w')

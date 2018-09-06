@@ -533,6 +533,8 @@ def trainModelParallel(inputData):
             state_bounds = fixBounds(np.array(state_bounds))
             bound_fixed = validBounds(state_bounds)
             print("State bounds fixed: ", bound_fixed)
+            model.setStateBounds(state_bounds)
+            experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
             # sys.exit()
         if (not validBounds(reward_bounds)):
             print("Reward bounds invalid: ", reward_bounds)
@@ -543,10 +545,6 @@ def trainModelParallel(inputData):
         print ("Action Mean: ", np.mean(experience._action_history))
         print ("Experience Samples: ", (experience.samples()))
         
-        if (settings["save_experience_memory"]):
-            print ("Saving initial experience memory")
-            file_name=directory+getAgentName()+"_expBufferInit.hdf5"
-            experience.saveToFile(file_name)
         """
         if action_space_continuous:
             model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
@@ -569,6 +567,10 @@ def trainModelParallel(inputData):
             masterAgent.setActionBounds(action_bounds)
             masterAgent.setRewardBounds(reward_bounds)
             
+        if (settings["save_experience_memory"]):
+            print ("Saving initial experience memory")
+            file_name=directory+getAgentName()+"_expBufferInit.hdf5"
+            experience.saveToFile(file_name)
         # mgr = multiprocessing.Manager()
         # learningNamespace = mgr.Namespace()
         

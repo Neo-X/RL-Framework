@@ -138,6 +138,7 @@ class ExperienceMemory(object):
                 continue
             indices.add(i)
             # print ("states shape: ", np.array(self._trajectory_history[i][0]))
+            # print ("states bounds shape: ", np.array(self.getStateBounds()))
             state.append(norm_state(self._trajectory_history[i][0], self.getStateBounds()))
             # print("Action pulled out: ", self._action_history[i])
             action.append(norm_action(self._trajectory_history[i][1], self.getActionBounds())) # won't work for discrete actions...
@@ -464,8 +465,9 @@ class ExperienceMemory(object):
         # data = np.array(self._trajectory_history, dtype=object)
         grp = hf.create_group('trajectories')
         print ("Saving trajectory data")
-        for i,list in enumerate(self._trajectory_history):
-            print (i,list)
+        for i in range(min(self.history_size_Trajectory(), self.samplesTrajectory())):
+            # print (i,list)
+            list = self._trajectory_history[i]
             if (list is not None):
                 grp_ = grp.create_group('traj'+str(i))
                 for it in range(len(list)):
@@ -512,8 +514,8 @@ class ExperienceMemory(object):
         
         grp = hf.get('trajectories')
         print ("Loading trajectory data")
-        for i in range(min(self.history_size_Trajectory(), self.samplesTrajectory())-1):
-            print (i)
+        for i in range(min(self.history_size_Trajectory(), self.samplesTrajectory())):
+            # print (i)
             traj = []
             grp_ = grp.get('traj'+str(i))
             for it in range(8):
