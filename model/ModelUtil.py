@@ -298,7 +298,7 @@ def randomUniformExporation(bounds):
         out.append(np.random.uniform(bounds[0][i],bounds[1][i],1)[0])
     return out
 
-def randomUniformExporation(explorationRate, actionV, bounds):
+def randomUniformExporation2(explorationRate, actionV, bounds):
     out = []
     for i in range(len(bounds[0])):
         r = np.random.uniform(-1.0,1,1)[0] * explorationRate

@@ -8,7 +8,7 @@
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
-"omega": 0.00,
+"omega": 0.50,
     "comment__": "Batch size used for learning",
 "batch_size": 64,
     "comment__": "Learning rate for the actor/policy",
@@ -342,7 +342,7 @@
 	"split_single_net_earlier": true
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
-"pretrain_critic": 10,
+"pretrain_critic": 0,
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
 "ppo_et_factor": 1.5,
 	"comment__": "Which backend to use for keras [theano|tensorflow]",

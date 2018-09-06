@@ -192,9 +192,17 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # return ra2
                     # randomAction = randomUniformExporation(action_bounds) # Completely random action
                     # action = randomAction
-                    action = np.random.choice(action_selection)
-                    action__ = actor.getActionParams(action)
-                    action = [action__]
+                    if ((settings['exploration_method'] == 'sampling') or
+                        (settings['exploration_method'] == 'gaussian_network')): 
+                        action = [randomUniformExporation(action_bounds)] # Completely random action
+                        print ("Completely random action:", action)
+                    else:
+                        action = np.random.choice(action_selection)
+                        action__ = actor.getActionParams(action)
+                        action = [action__]
+                        # print ("Completely random action2:")
+                    ### off policy
+                    exp_action = int(0)
                     # print ("Discrete action choice: ", action, " epsilon * p: ", omega * p)
                 else : 
                     ### add noise to current policy

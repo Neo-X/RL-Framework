@@ -172,8 +172,8 @@ class KERASAlgorithm(AlgorithmInterface):
         if ('anneal_learning_rate' in self.getSettings()
             and (self.getSettings()['anneal_learning_rate'] == True)):
             K.set_value(self._model.getCriticNetwork().optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
-            lr = K.get_value(self._model.getCriticNetwork().optimizer.lr)
-            print ("New critic learning rate: ", lr)
+            # lr = K.get_value(self._model.getCriticNetwork().optimizer.lr)
+            # print ("New critic learning rate: ", lr)
         # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
         # if (c_error < 10.0):
         score = self._model.getCriticNetwork().fit(states, target,
