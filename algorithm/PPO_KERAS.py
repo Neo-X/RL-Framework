@@ -345,7 +345,7 @@ class PPO_KERAS(KERASAlgorithm):
             return 0
         
         loss = super(PPO_KERAS,self).trainCritic(states, actions, rewards, 
-                                          result_states, falls, G_t, p=p,
+                                          result_states, falls, G_t, p,
                                           updates, batch_size)
         return loss
         
