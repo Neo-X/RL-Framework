@@ -387,7 +387,11 @@ class DeepNNKerasAdaptive(ModelInterface):
                     
                     input_ = keras.layers.Input(shape=(1, self._state_length), name="State_Conv")
                     subnet = self.createSubNetwork(input_, layer_sizes[i][2])
-                    network = keras.layers.TimeDistributed(Dense(8), input_shape=(None, 31, 4096))(input)
+                    subnet = Model(inputs=input_, outputs=subnet)
+                    print("Subnet summary")
+                    subnet.summary()
+                    # subnet = Dense(8)
+                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 31, 4096))(input)
                     # network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))
                 elif (layer_sizes[i][0] == "TimeDistributed"):
                     network = keras.layers.TimeDistributed(input_shape=(40, 31, 4096))(network)
