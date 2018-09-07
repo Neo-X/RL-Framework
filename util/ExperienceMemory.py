@@ -463,22 +463,24 @@ class ExperienceMemory(object):
         
         ### Save a variable length list of data
         # data = np.array(self._trajectory_history, dtype=object)
-        grp = hf.create_group('trajectories')
-        print ("Saving trajectory data")
-        for i in range(min(self.history_size_Trajectory(), self.samplesTrajectory())):
-            # print (i,list)
-            list = self._trajectory_history[i]
-            if (list is not None):
-                grp_ = grp.create_group('traj'+str(i))
-                for it in range(len(list)):
-                    grp_.create_dataset(str(it),data=np.array(list[it]))
-            else:
-                break
-            
-        hf.create_dataset('_trajectory_size', data=[self._trajectory_size])
-        hf.create_dataset('_trajectory_update_index', data=[self._trajectory_update_index])
-        hf.create_dataset('_insertsTrajectory', data=[self._insertsTrajectory])
-        hf.create_dataset('_samplesTrajectory', data=[self._samplesTrajectory])
+        if (("train_LSTM_FD" in self._settings)
+            and (self._settings["train_LSTM_FD"] == True)):
+            grp = hf.create_group('trajectories')
+            print ("Saving trajectory data")
+            for i in range(min(self.history_size_Trajectory(), self.samplesTrajectory())):
+                list = self._trajectory_history[i]
+                print (i,list)
+                if (list is not None):
+                    grp_ = grp.create_group('traj'+str(i))
+                    for it in range(len(list)):
+                        grp_.create_dataset(str(it),data=np.array(list[it]))
+                else:
+                    break
+                
+            hf.create_dataset('_trajectory_size', data=[self._trajectory_size])
+            hf.create_dataset('_trajectory_update_index', data=[self._trajectory_update_index])
+            hf.create_dataset('_insertsTrajectory', data=[self._insertsTrajectory])
+            hf.create_dataset('_samplesTrajectory', data=[self._samplesTrajectory])
         
         hf.flush()
         hf.close()
@@ -506,22 +508,24 @@ class ExperienceMemory(object):
         self._action_bounds = np.array(hf.get('_action_bounds'))
         self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
         
-        self._trajectory_size = int(hf.get('_trajectory_size')[()])
-        self._trajectory_update_index = int(hf.get('_trajectory_update_index')[()])
-        self._insertsTrajectory = int(hf.get('_insertsTrajectory')[()])
-        self._samplesTrajectory = int(hf.get('_samplesTrajectory')[()])
-        
-        
-        grp = hf.get('trajectories')
-        print ("Loading trajectory data")
-        for i in range(min(self.history_size_Trajectory(), self.samplesTrajectory())):
-            # print (i)
-            traj = []
-            grp_ = grp.get('traj'+str(i))
-            for it in range(8):
-                traj.append(np.array(grp_.get(str(it))))
-        
-            self._trajectory_history[i] = traj
+        if (("train_LSTM_FD" in self._settings)
+            and (self._settings["train_LSTM_FD"] == True)):
+            self._trajectory_size = int(hf.get('_trajectory_size')[()])
+            self._trajectory_update_index = int(hf.get('_trajectory_update_index')[()])
+            self._insertsTrajectory = int(hf.get('_insertsTrajectory')[()])
+            self._samplesTrajectory = int(hf.get('_samplesTrajectory')[()])
+            
+            
+            grp = hf.get('trajectories')
+            print ("Loading trajectory data")
+            for i in range(min(self.history_size_Trajectory(), self.samplesTrajectory())):
+                # print (i)
+                traj = []
+                grp_ = grp.get('traj'+str(i))
+                for it in range(8):
+                    traj.append(np.array(grp_.get(str(it))))
+            
+                self._trajectory_history[i] = traj
             
         hf.close()
         
