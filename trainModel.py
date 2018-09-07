@@ -876,7 +876,12 @@ def trainModelParallel(inputData):
                              and (settings['keep_seperate_fd_exp_buffer'])):
                             states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getFDExperience().get_batch(batch_size)
                         masterAgent.reset()
-                        dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
+                        if (("train_LSTM_FD" in settings)
+                            and (settings["train_LSTM_FD"] == True)):
+                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_trajectory_batch(batch_size=4)
+                            dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(state_, action_, resultState_, reward_)
+                        else:
+                            dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
                         dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
                         dynamicsLosses.append(dynamicsLoss)
                         if (settings['train_reward_predictor']):
