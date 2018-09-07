@@ -127,12 +127,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if (self._stateful_lstm):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(1, 1, self._state_length), name="ResultState")
                 else:
-                    self._ResultState = keras.layers.Input(shape=(31, self._result_state_length), name="ResultState")
+                    self._ResultState = keras.layers.Input(shape=(31, 1, self._result_state_length), name="ResultState")
             else:
                 if (self._stateful_lstm):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="ResultState")
                 else:
-                    self._ResultState = keras.layers.Input(shape=(31, self._result_state_length), name="ResultState")
+                    self._ResultState = keras.layers.Input(shape=(31, 1, self._result_state_length), name="ResultState")
         else:
             self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
         # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
@@ -374,22 +374,21 @@ class DeepNNKerasAdaptive(ModelInterface):
                 print ("layer_sizes[i]: ", layer_sizes[i])
                 if (layer_sizes[i][0] == "LSTM"):
                     # print ("layer.output_shape: ", keras.backend.shape(network))
-                    network = Reshape((-1, layer_sizes[i][1]))(network)
+                    # network = Reshape((-1, layer_sizes[i][1]))(network)
                     network = LSTM(layer_sizes[i][2], stateful=self._stateful_lstm)(network)
                 elif (layer_sizes[i][0] == "GRU"):
                     # print ("layer.output_shape: ", keras.backend.shape(network))
                     network = Reshape((1, layer_sizes[i][1]))(network)
                     network = GRU(layer_sizes[i][2], stateful=self._stateful_lstm)(network)
                 elif (layer_sizes[i][0] == "Reshape"):
-                    network = Reshape((1, layer_sizes[i][1]))(network)
+                    network = Reshape(layer_sizes[i][1])(network)
                 elif (layer_sizes[i][0] == "TimeDistributedConv"):
                     
-                    network = keras.layers.TimeDistributed(network = keras.layers.Conv2D(layer_sizes[i][1], kernel_size=layer_sizes[i][2], 
-                                                     strides=layer_sizes[i][3],
-                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
-                                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
-                                                     data_format=self._data_format_)(network))
-                    network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))
+                    network = keras.layers.TimeDistributed(Dense(8), input_shape=(40, 31, 1, 4096))(input)
+                    # network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))
+                elif (layer_sizes[i][0] == "TimeDistributed"):
+                    network = keras.layers.TimeDistributed(input_shape=(40, 31, 1, 4096))(network)
+                    
                 elif (layer_sizes[i][0] == "max_pool"):
                         network = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=self._data_format_)(network)  
