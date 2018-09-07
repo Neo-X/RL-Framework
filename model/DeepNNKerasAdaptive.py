@@ -109,12 +109,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if (self._stateful_lstm):
                     self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, self._state_length), name="State")
                 else:
-                    self._State = keras.layers.Input(shape=(31, 1, self._state_length), name="State")
+                    self._State = keras.layers.Input(shape=(31, self._state_length), name="State")
             else:
                 if (self._stateful_lstm):
                     self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="State")
                 else:
-                    self._State = keras.layers.Input(shape=(31, 1, self._state_length), name="State")
+                    self._State = keras.layers.Input(shape=(31, self._state_length), name="State")
         else:
             self._State = keras.layers.Input(shape=(self._state_length,), name="State")
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
@@ -127,12 +127,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if (self._stateful_lstm):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(1, 1, self._state_length), name="ResultState")
                 else:
-                    self._ResultState = keras.layers.Input(shape=(31, 1, self._result_state_length), name="ResultState")
+                    self._ResultState = keras.layers.Input(shape=(31, self._result_state_length), name="ResultState")
             else:
                 if (self._stateful_lstm):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="ResultState")
                 else:
-                    self._ResultState = keras.layers.Input(shape=(31, 1, self._result_state_length), name="ResultState")
+                    self._ResultState = keras.layers.Input(shape=(31, self._result_state_length), name="ResultState")
         else:
             self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
         # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
@@ -370,8 +370,9 @@ class DeepNNKerasAdaptive(ModelInterface):
         layer_sizes = layer_info
         for i in range(len(layer_sizes)):
             second_last_layer = network
+            print ("layer_sizes[",i,"]: ", layer_sizes[i])
+            print ("shape: ", repr(keras.backend.int_shape(network)))
             if type(layer_sizes[i]) is list:
-                print ("layer_sizes[i]: ", layer_sizes[i])
                 if (layer_sizes[i][0] == "LSTM"):
                     # print ("layer.output_shape: ", keras.backend.shape(network))
                     # network = Reshape((-1, layer_sizes[i][1]))(network)
@@ -384,10 +385,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = Reshape(layer_sizes[i][1])(network)
                 elif (layer_sizes[i][0] == "TimeDistributedConv"):
                     
-                    network = keras.layers.TimeDistributed(Dense(8), input_shape=(40, 31, 1, 4096))(input)
+                    input_ = keras.layers.Input(shape=(1, self._state_length), name="State_Conv")
+                    subnet = self.createSubNetwork(input_, layer_sizes[i][2])
+                    network = keras.layers.TimeDistributed(Dense(8), input_shape=(None, 31, 4096))(input)
                     # network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))
                 elif (layer_sizes[i][0] == "TimeDistributed"):
-                    network = keras.layers.TimeDistributed(input_shape=(40, 31, 1, 4096))(network)
+                    network = keras.layers.TimeDistributed(input_shape=(40, 31, 4096))(network)
                     
                 elif (layer_sizes[i][0] == "max_pool"):
                         network = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
