@@ -64,43 +64,45 @@ def create_sequences(traj0, traj1):
         ### basic for now
         sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-        targets_.append(np.ones(tar_shape))
+        targets_.append(np.clip(np.ones(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
         
         sequences0.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-        targets_.append(np.ones(tar_shape))
+        targets_.append(np.clip(np.ones(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
     
         sequences0.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-        targets_.append(np.ones(tar_shape))
+        targets_.append(np.clip(np.ones(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
     
         sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-        targets_.append(np.ones(tar_shape))
+        targets_.append(np.clip(np.ones(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
         
+        """
         sequences0.append(list(reversed(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))))
         sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-        targets_.append(np.zeros(tar_shape))
+        targets_.append(np.clip(np.zeros(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
     
         sequences0.append(list(reversed(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))))
         sequences1.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-        targets_.append(np.zeros(tar_shape))
+        targets_.append(np.clip(np.zeros(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
+        """
         
         sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-        targets_.append(np.zeros(tar_shape))
+        targets_.append(np.clip(np.zeros(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
         
         sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-        targets_.append(np.zeros(tar_shape))
+        targets_.append(np.clip(np.zeros(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
         
         sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-        targets_.append(np.zeros(tar_shape))
+        targets_.append(np.clip(np.zeros(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
         
         sequences0.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-        targets_.append(np.zeros(tar_shape))
+        targets_.append(np.clip(np.zeros(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
     
     return sequences0, sequences1, targets_
         
@@ -255,7 +257,8 @@ class SiameseNetwork(KERASAlgorithm):
             # score = self._model._forward_dynamics_net.train_on_batch([sequences0, sequences1], targets_)
             loss_ = []
             if ("train_LSTM_stateful" in self._settings
-                and (self._settings["train_LSTM_stateful"])):
+                and (self._settings["train_LSTM_stateful"] == True)
+                and False):
                 for k in range(sequences0.shape[1]):
                     ### shaping data
                     x0 = np.array(sequences0[:,[k]])
@@ -388,7 +391,8 @@ class SiameseNetwork(KERASAlgorithm):
             targets_ = np.array(targets_)
             errors=[]
             if ("train_LSTM_stateful" in self._settings
-                and (self._settings["train_LSTM_stateful"])):
+                and (self._settings["train_LSTM_stateful"] == True)
+                and False):
                 for k in range(sequences0.shape[1]):
                     ### shaping data
                     print (k)

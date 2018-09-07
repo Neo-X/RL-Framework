@@ -94,7 +94,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._networkSettings = settings_["network_settings"]
             
         self._sequence_length = 31
-        self._lstm_batch_size = 40
+        self._lstm_batch_size = 32
         self._stateful_lstm = False
         if ("train_LSTM_stateful" in self._settings
             and (self._settings["train_LSTM_stateful"])):

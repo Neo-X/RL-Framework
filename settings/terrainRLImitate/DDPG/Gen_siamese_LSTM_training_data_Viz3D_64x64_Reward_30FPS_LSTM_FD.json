@@ -348,7 +348,7 @@
 	"comment__": "type of activation to use for policy",
 "fd_policy_activation_type": "leaky_rectify",
 	"comment__": "last policy type of activation to use",
-"last_fd_layer_activation_type": "linear",
+"last_fd_layer_activation_type": "sigmoid",
 	"comment__": "The number of fd network to be done per actor update.",
 "fd_updates_per_actor_update": 1,
 	"comment__": "Lets the network models handle the training and batch processing",
@@ -376,5 +376,5 @@
 	"comment__": "Just train the fd model in an LSTM fashion",
 "train_LSTM_FD": true,
 	"comment__": "Use a stateful LSTM",
-"train_LSTM_stateful": false
+"train_LSTM_stateful": true
 }
