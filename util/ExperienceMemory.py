@@ -92,7 +92,7 @@ class ExperienceMemory(object):
             
     def _insertTrajectory(self, trajectory):
         
-        if ( (self._trajectory_update_index % (self.history_size_Trajectory()-1) ) == 0):
+        if ( (self._trajectory_update_index >= (self.history_size_Trajectory()) ) ):
             self._trajectory_update_index=0
             # print("Reset history index in exp buffer:")
             
@@ -137,6 +137,7 @@ class ExperienceMemory(object):
             if ( self._exp_action_history[i] in excludeActionTypes):
                 continue
             indices.add(i)
+            assert self._trajectory_history[i] != None, "self._trajectory_history["+str(i)+"] != None: " + str(self._trajectory_history[i]) + " state shape: " + str(np.asarray(state).shape)
             # print ("states shape: ", np.array(self._trajectory_history[i][0]))
             # print ("states bounds shape: ", np.array(self.getStateBounds()))
             state.append(norm_state(self._trajectory_history[i][0], self.getStateBounds()))
@@ -216,7 +217,7 @@ class ExperienceMemory(object):
             print ("Failed inserting bad tuple: ")
             return
         
-        if ( (self._history_update_index % (self._history_size-1) ) == 0):
+        if ( (self._history_update_index >= (self._history_size) )):
             self._history_update_index=0
             # print("Reset history index in exp buffer:")
         
