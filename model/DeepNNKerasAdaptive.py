@@ -396,6 +396,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                 elif (layer_sizes[i][0] == "TimeDistributed"):
                     network = keras.layers.TimeDistributed(input_shape=(40, 31, 4096))(network)
                     
+                elif (layer_sizes[i][0] == "integrate_actor_part"):
+                    subnet_ = self.createSubNetwork(self._actionInput, layer_sizes[i][1])
+                    network = Concatenate()([network, subnet_])
                 elif (layer_sizes[i][0] == "max_pool"):
                         network = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=self._data_format_)(network)  

@@ -195,7 +195,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     if ((settings['exploration_method'] == 'sampling') or
                         (settings['exploration_method'] == 'gaussian_network')): 
                         action = [randomUniformExporation(action_bounds)] # Completely random action
-                        print ("Completely random action:", action)
+                        # print ("Completely random action:", action)
                     else:
                         action = np.random.choice(action_selection)
                         action__ = actor.getActionParams(action)
