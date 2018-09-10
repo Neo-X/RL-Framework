@@ -357,5 +357,7 @@
 	"comment__": "number of fd models in the ensemble",
 "fd_ensemble_size": 1,
 	"comment__": "Discount factor for MBRL search",
-"mbrl_discount_factor": 0.95
+"mbrl_discount_factor": 0.95,
+	"comment__": "Timeout for the max time allowed to simulation a trajectory in seconds, eg 1800 = 30 minutes",
+"simulation_timeout":  1800
 }

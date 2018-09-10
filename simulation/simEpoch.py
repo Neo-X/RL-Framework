@@ -755,7 +755,9 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         batch_size=settings["batch_size"]
         
     j=0
-    timeout_ = 60 * 30 ### 5 min timeout
+    timeout_ = 60 * 10 ### 5 min timeout
+    if ("simulation_timeout" in settings):
+        timeout_ = settings["simulation_timeout"]
     discounted_values = []
     bellman_errors = []
     reward_over_epocs = []
