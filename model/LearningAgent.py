@@ -285,6 +285,7 @@ class LearningAgent(AgentInterface):
                 
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
+                    batch_size_lstm_fd = 4
                     for e in range(len(_states_fd)):
                         if ( 'keep_seperate_fd_exp_buffer' in self._settings 
                              and (self._settings['keep_seperate_fd_exp_buffer'])):
@@ -292,8 +293,8 @@ class LearningAgent(AgentInterface):
                                                                     tmp_falls[e], tmp_G_t[e], tmp_advantage[e], tmp_exp_action[e])
                             
                         # dynamicsLoss = self._fd.train(states=_states_fd[e], actions=_actions[e], result_states=_result_states_fd[e], rewards=_rewards[e])
-                    for e in range(len(_states)):   
-                        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_trajectory_batch(batch_size=4)
+                    for e in range(max(1, int(len(_states)/batch_size_lstm_fd))):   
+                        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_trajectory_batch(batch_size=batch_size_lstm_fd)
                         dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print ("Forward Dynamics Loss: ", dynamicsLoss)
