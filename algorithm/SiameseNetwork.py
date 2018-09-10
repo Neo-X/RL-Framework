@@ -62,6 +62,24 @@ def create_sequences(traj0, traj1):
     for tr0, tr1 in zip(traj0, traj1): ### for each trajectory pair
         tar_shape = (len(tr0)-1, 1)
         ### basic for now
+        
+        sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        sequences1.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        targets_.append(np.clip(np.ones(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
+        
+        sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        targets_.append(np.clip(np.ones(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
+        
+        sequences0.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        sequences1.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        targets_.append(np.clip(np.ones(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
+        
+        sequences0.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+        targets_.append(np.clip(np.ones(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
+        
+        """
         sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.clip(np.ones(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
@@ -77,8 +95,8 @@ def create_sequences(traj0, traj1):
         sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.clip(np.ones(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
-        
         """
+        
         sequences0.append(list(reversed(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))))
         sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.clip(np.zeros(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
@@ -86,8 +104,8 @@ def create_sequences(traj0, traj1):
         sequences0.append(list(reversed(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))))
         sequences1.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.clip(np.zeros(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
+        
         """
-        
         sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.clip(np.zeros(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
@@ -95,6 +113,7 @@ def create_sequences(traj0, traj1):
         sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets_.append(np.clip(np.zeros(tar_shape) + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
+        """
         
         sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
