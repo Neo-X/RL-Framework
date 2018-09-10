@@ -277,7 +277,8 @@ class SiameseNetwork(KERASAlgorithm):
             loss_ = []
             if ("train_LSTM_stateful" in self._settings
                 and (self._settings["train_LSTM_stateful"] == True)
-                and False):
+                # and False
+                ):
                 for k in range(sequences0.shape[1]):
                     ### shaping data
                     x0 = np.array(sequences0[:,[k]])
@@ -293,7 +294,7 @@ class SiameseNetwork(KERASAlgorithm):
                               batch_size=sequences0.shape[0],
                               verbose=0
                               )
-                    print ("lstm train loss: ", score.history['loss'])
+                    # print ("lstm train loss: ", score.history['loss'])
                     loss_.append(np.mean(score.history['loss']))
             else:
                 score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets_[:,:,0]],
@@ -411,10 +412,11 @@ class SiameseNetwork(KERASAlgorithm):
             errors=[]
             if ("train_LSTM_stateful" in self._settings
                 and (self._settings["train_LSTM_stateful"] == True)
-                and False):
+                # and False
+                ):
                 for k in range(sequences0.shape[1]):
                     ### shaping data
-                    print (k)
+                    # print (k)
                     x0 = np.array(sequences0[:,[k]])
                     x1 = np.array(sequences1[:,[k]])
                     y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
