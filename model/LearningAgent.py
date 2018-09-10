@@ -288,7 +288,7 @@ class LearningAgent(AgentInterface):
                     for e in range(len(_states_fd)):
                         if ( 'keep_seperate_fd_exp_buffer' in self._settings 
                              and (self._settings['keep_seperate_fd_exp_buffer'])):
-                            self.getFDExperience().insertTrajectory(_states_fd[e], _actions[e][e], _result_states_fd[e], _rewards[e], 
+                            self.getFDExperience().insertTrajectory(_states_fd[e], _actions[e], _result_states_fd[e], _rewards[e], 
                                                                     tmp_falls[e], tmp_G_t[e], tmp_advantage[e], tmp_exp_action[e])
                             
                         # dynamicsLoss = self._fd.train(states=_states_fd[e], actions=_actions[e], result_states=_result_states_fd[e], rewards=_rewards[e])
