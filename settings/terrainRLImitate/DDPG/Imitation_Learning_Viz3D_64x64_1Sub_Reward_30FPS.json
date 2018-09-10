@@ -363,7 +363,7 @@
 	"comment__": "specify the learning algorithm to use for the fd model",
 "fd_algorithm" : "algorithm.SiameseNetwork.SiameseNetwork",
 	"comment__": "A list describing the size of the layers for the NN",
-"fd_network_layer_sizes": [[16, [6, 6], [3, 3]], ["dropout", 0.2], [32, [4, 4], [2, 2]], ["dropout", 0.2], [32, [3, 3], [1, 1]], "flatten_features", "mark_middle", 256, ["dropout", 0.2], ["LSTM", 256, 128], 64],
+"fd_network_layer_sizes": [[16, [6, 6], [3, 3]], ["dropout", 0.2], [32, [4, 4], [2, 2]], ["dropout", 0.2], [32, [3, 3], [1, 1]], "flatten_features", "mark_middle", 256, ["dropout", 0.2], 64],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [16],
 		"comment__": "type of activation to use",
