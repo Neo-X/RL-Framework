@@ -683,6 +683,13 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         else:
             env = terrainRLSim.getEnv(env_name=config_file, render=render)
         print ("Using Environment Type: " + str(env_type) + ", " + str(config_file))
+        
+        ### Check action space size
+        actionSpace = env.getActionSpace()
+        
+        assert (len(actionSpace.getMaximum()) == len(settings["action_bounds"][0]), 
+                "Length of action vector is " + str (len(settings["action_bounds"][0])) + " is should be " + 
+                str(len(actionSpace.getMaximum())))
         # sim.setRender(render)
         # sim.init()
         conf = copy.deepcopy(settings)
