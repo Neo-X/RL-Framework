@@ -48,26 +48,25 @@ class SimWorker(Process):
     def createNewModel(self):
         from util.SimulationUtil import createRLAgent
         print ("Creating new model with different session")
-        model = createRLAgent(self._settings['agent_name'], np.array(self._settings['state_bounds']), np.array(self._settings['action_bounds']), 
-                              np.array(self._settings['reward_bounds']), self._settings)
+        model = createRLAgent(self._settings['agent_name'], self._settings['state_bounds'], self._settings['action_bounds'], 
+                              self._settings['reward_bounds'], self._settings)
         print ("done creating model")
         return model
     
     def createNewFDModel(self):
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, createActor
         print ("Creating new FD model with different session")
-        state_bounds = np.array(self._settings['state_bounds'])
+        state_bounds = self._settings['state_bounds']
         if ("use_dual_dense_state_representations" in self._settings
             and (self._settings["use_dual_dense_state_representations"] == True)):
-            state_bounds = np.array(self._settings['state_bounds'])
+            state_bounds = self._settings['state_bounds']
         elif ("use_dual_state_representations" in self._settings
             and (self._settings["use_dual_state_representations"] == True)
             and (not (self._settings["forward_dynamics_model_type"] == "SingleNet"))):
-            state_bounds = np.array([[0] * self._settings["fd_num_terrain_features"], 
-                                     [1] * self._settings["fd_num_terrain_features"]])
+            state_bounds = [[0] * self._settings["fd_num_terrain_features"], 
+                                     [1] * self._settings["fd_num_terrain_features"]]
         print("fd state bounds:", state_bounds)
-        action_bounds = np.array(self._settings['action_bounds']) 
-        np.array(self._settings['reward_bounds'])
+        action_bounds = self._settings['action_bounds']
         
         forwardDynamicsModel = None
         if (self._settings['train_forward_dynamics']):
@@ -125,13 +124,8 @@ class SimWorker(Process):
         from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
         ### Flag so simulation models can be a little different.
         self._settings["simulation_model"] = True
-        if "numpy" not in sys.modules:
-            print ('You have not imported the Numpy module')
-        else:
-            print ("Numpy is already loaded")
         ### Keep forward models on the CPU
         setupEnvironmentVariable(self._settings)
-        sys.exit()
         
         import numpy as np
         np.random.seed(self._process_random_seed)

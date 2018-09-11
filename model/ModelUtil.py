@@ -82,6 +82,8 @@ def compute_advantage(discounted_rewards, rewards, discount_factor):
 
 def compute_advantage_(vf, paths, gamma, lam):
     # Compute return, baseline, advantage
+    import numpy as np
+    import scipy
     for path in paths:
         path["return"] = discounted_rewards(path["reward"], gamma)
         # q_values
@@ -108,6 +110,7 @@ def compute_advantage_(vf, paths, gamma, lam):
     return paths[0]["advantage"]
 
 def btVectorToNumpy(vec):
+    import numpy as np
     return np.array([vec.x(), vec.y(), vec.z()])
 
 def thompsonExploration(model, exploration_rate, state_):
@@ -163,6 +166,7 @@ def scale_reward(reward, reward_bounds):
     return scale_action(reward, reward_bounds)
 
 def _scale_reward(diff, reward_bounds):
+    import numpy as np
     var = (np.array(reward_bounds[1]) - np.array(reward_bounds[0]))/2.0
     return diff/var
 
@@ -234,6 +238,7 @@ def getSettings(settingsFileName):
     return settings
 
 def randomExporation(explorationRate, actionV):
+    import numpy as np
     out = []
     for i in range(len(actionV)):
         out.append(actionV[i] + np.random.normal(0, explorationRate, 1)[0])
@@ -256,6 +261,7 @@ def randomExporation(actionV, std, bounds):
 """
 
 def randomExporationSTD(actionV, std, bounds=None):
+    import numpy as np
     """
         This version scales the exploration noise wrt the action bounds
     """
@@ -285,6 +291,7 @@ def randomExporationSTD(actionV, std, bounds=None):
     return out
 
 def OUNoise(theta, sigma, previousNoise):
+    import numpy as np
     """
         OrnsteinUhlenbeck process
     
@@ -296,12 +303,14 @@ def OUNoise(theta, sigma, previousNoise):
     return dx_t
 
 def randomUniformExporation(bounds):
+    import numpy as np
     out = []
     for i in range(len(bounds[0])):
         out.append(np.random.uniform(bounds[0][i],bounds[1][i],1)[0])
     return out
 
 def randomUniformExporation2(explorationRate, actionV, bounds):
+    import numpy as np
     out = []
     for i in range(len(bounds[0])):
         r = np.random.uniform(-1.0,1,1)[0] * explorationRate
@@ -340,6 +349,7 @@ def clampActionWarn(actionV, bounds):
     return (actionV_, out)
 
 def reward_smoother(diff_, settings, _weight):
+    import numpy as np
     if (settings['reward_smoother'] == 'abs'):
         return np.exp(np.abs(diff_)*_weight)
     elif (settings['reward_smoother'] == 'gaussian'):
@@ -354,6 +364,7 @@ def loglikelihood(a, mean0, std0, d):
     """
         d is the number of action dimensions
     """
+    import numpy as np
     
     # exp[ -(a - mu)^2/(2*sigma^2) ] / sqrt(2*pi*sigma^2)
     diff = np.square(a - mean0)
@@ -372,6 +383,7 @@ def loglikelihood(a, mean0, std0, d):
 
 
 def likelihood(a, mean0, std0, d):
+    import numpy as np
     return np.exp(loglikelihood(a, mean0, std0, d))
 
 
@@ -428,6 +440,8 @@ def getMBAEAction2(forwardDynamicsModel, model, action, state):
         the forwardDynamicsModel f and
         the value function (model) v
     """
+    import numpy as np
+    
     learning_rate=model.getSettings()['action_learning_rate']
     num_updates=model.getSettings()['num_mbae_steps']
     state_length = model.getStateSize()
@@ -481,6 +495,7 @@ def sampleActions(forwardDynamicsModel, model, state, action_lr, use_random_acti
         the forwardDynamicsModel f and
         the value function (model) v
     """
+    import numpy as np
     learning_rate=action_lr
     num_samples=model.getSettings()['num_mbae_steps']
     state_length = model.getStateSize()
@@ -659,6 +674,8 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         the forwardDynamicsModel f and
         the value function (model) v
     """
+    import numpy as np
+    
     action = model.predict(state)
     if ( use_random_action ):
         action_bounds = np.array(model.getSettings()["action_bounds"], dtype=model.getSettings()["float_type"])
@@ -833,6 +850,7 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         return (init_action, np.array([0]))
 
 def normalizeMBAEActionGrads(action_grads, learning_rate):
+    import numpy as np
     # action_grads = ( (action_grads/(np.sqrt((action_grads*action_grads).sum())))/(np.mean(np.abs(action_grads)))) * (learning_rate)
     # action_grads = ( (action_grads/(np.sqrt((action_grads*action_grads).sum())))/np.sqrt(np.mean(np.abs(action_grads)))) * (learning_rate)
     # action_grads = ( action_grads / np.mean(action_grads) ) * (learning_rate)
@@ -841,6 +859,7 @@ def normalizeMBAEActionGrads(action_grads, learning_rate):
     return action_grads
     
 def getModelPredictionUncertanty(model, state, length=4.1, num_samples=32):
+    import numpy as np
     """
         Computes the optimal action to be taken given
         the forwardDynamicsModel f and
@@ -866,6 +885,7 @@ def getFDModelPredictionUncertanty(model, state, action, length=4.1, num_samples
         the forwardDynamicsModel f and
         the value function (model) v
     """
+    import numpy as np
     lSquared =(length**2)
     modelPrecsionInv = ((lSquared * (1.0 - model.getSettings()['dropout_p'])) / 
                         (2*model.getSettings()['expereince_length']*
@@ -900,6 +920,7 @@ def getModelValueUncertanty(model, state, length=4.1, num_samples=32):
     return variance__
 
 def sampleStochasticModel(forwardDynamics, state, action):
+    import numpy as np
     prediction = forwardDynamics.predictWithDropout(state=state, action=action)
     std__ = forwardDynamics.predict_std(state=state, action=action)
     # print("std__: ", std__[0])
@@ -921,6 +942,7 @@ def validBounds(bounds):
         max is > min
         and max - min > epsilon
     """
+    import numpy as np
     valid = np.all(np.less(bounds[0], bounds[1]))
     if (not valid):
         less_ = np.less(bounds[0], bounds[1])
@@ -951,6 +973,7 @@ def fixBounds(bounds):
         Fixes bounds that are too close together
         pre-req all(bounds[1] is > bounds[0])
     """
+    import numpy as np
         
     # bounds not too close to each other
     epsilon = 0.1
@@ -976,6 +999,7 @@ def checkDataIsValid(data, verbose=False, scale=1.0):
             Checks to make sure the data going into the exp buffer is not garbage...
             Returns True if the data is valid
         """
+        import numpy as np
         data = np.array(data)
         if (not np.all(np.isfinite(data))):
             if ( verbose ):
@@ -1014,6 +1038,7 @@ def checkValidData(state, action, nextState, reward, advantage=None, verbose=Fal
         """
             Checks to make sure the data going into the exp buffer is not garbage...
         """
+        import numpy as np
         state = np.array(state)
         action = np.array(action)
         nextState = np.array(nextState)
@@ -1128,6 +1153,7 @@ def checkValidData(state, action, nextState, reward, advantage=None, verbose=Fal
 if __name__ == '__main__':
     import sys
     import matplotlib.pyplot as plt
+    
     # np.set_printoptions(threshold=np.nan)
     
     settingsFileName = sys.argv[1]

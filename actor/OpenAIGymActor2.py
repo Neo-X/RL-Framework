@@ -1,7 +1,6 @@
 import sys
 import math
 from actor.OpenAIGymActor import OpenAIGymActor
-import numpy as np
 from model.ModelUtil import reward_smoother
 
 class OpenAIGymActor2(OpenAIGymActor):

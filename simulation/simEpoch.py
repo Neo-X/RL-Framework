@@ -13,7 +13,6 @@ from multiprocessing import Process, Queue
 import threading
 import time
 import copy
-import numpy as np
 from model.ModelUtil import *
 from util.utils import checkSetting, checkSettingExists
 # import memory_profiler

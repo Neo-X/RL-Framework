@@ -55,11 +55,6 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
     
     from model.LearningAgent import LearningAgent, LearningWorker
     from simulation.SimWorker import SimWorker
-    if "numpy" in sys.modules:
-        print ("Numpy is already loaded.")
-    else:
-        print ('You have not imported the Numpy module')
-    sys.exit()
     from util.SimulationUtil import createActor, getAgentName, createSampler, createForwardDynamicsModel
     
     
@@ -78,7 +73,6 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
         actor = createActor(settings['environment_type'], settings, None)
         
         agent = LearningAgent(settings_=settings)
-        
         agent.setSettings(settings)
         agent.setPolicy(model)
         if (settings['train_forward_dynamics']):
@@ -117,7 +111,7 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
                 message_que=message_queue, worker_id=sim_id )
         # w.start()
         sim_workers.append(w)
-    
+
     return (sim_workers, sim_work_queues)
     
     
@@ -227,7 +221,7 @@ def trainModelParallel(inputData):
                                               output_experience_queue, eval_episode_data_queue, 
                                               None, None, exp_val, state_bounds, action_bounds, 
                                               reward_bounds)
-        
+
         eval_sim_workers = sim_workers
         eval_sim_work_queues = sim_work_queues
         if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
@@ -240,11 +234,6 @@ def trainModelParallel(inputData):
             input_anchor_queue_eval = input_anchor_queue
         
         
-        
-        import math
-        import numpy as np
-        import random
-        np.random.seed(int(settings['random_seed']))
         # paramSampler = exp_val.getActor().getParamSampler()
         best_eval=-100000000.0
         best_dynamicsLosses= best_eval*-1.0
@@ -273,6 +262,10 @@ def trainModelParallel(inputData):
                     sw.start()
             
         ## Theano needs to be imported after the flags are set.
+        import math
+        import numpy as np
+        import random
+        np.random.seed(int(settings['random_seed']))
         setupLearningBackend(settings)
         
         # print ( "theano.config.mode: ", theano.config.mode)
