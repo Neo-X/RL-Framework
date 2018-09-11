@@ -65,10 +65,10 @@ def setupLearningBackend(settings):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         ### Limit the thread pool size for each process
-        if ("simulation_model" in settings 
-            and (settings["simulation_model"] == True)):
-            config.intra_op_parallelism_threads = 1
-            config.inter_op_parallelism_threads = 1
+        # if ("simulation_model" in settings 
+        #     and (settings["simulation_model"] == True)):
+        config.intra_op_parallelism_threads = 1
+        config.inter_op_parallelism_threads = 1
         # config.session_inter_op_thread_pool = 1
         session = tf.Session(config=config)
         keras.backend.set_session(session)
