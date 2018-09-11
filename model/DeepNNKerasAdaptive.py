@@ -117,6 +117,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                     self._State = keras.layers.Input(shape=(31, self._state_length), name="State")
         else:
             self._State = keras.layers.Input(shape=(self._state_length,), name="State")
+            
+        
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
         # self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState", batch_shape=(32,self._state_length))

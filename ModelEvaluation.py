@@ -246,6 +246,8 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
     # settings['shouldRender'] = True
     setupEnvironmentVariable(settings)
     setupLearningBackend(settings)
+    ### Flag so simulation models can be a little different.
+    settings["simulation_model"] = True
     ## Theano needs to be imported after the flags are set.
     # from ModelEvaluation import *
     # from model.ModelUtil import *
