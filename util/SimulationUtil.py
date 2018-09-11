@@ -3,20 +3,13 @@ import sys
 sys.setrecursionlimit(50000)
 import os
 import json
-from numpy import dtype
 sys.path.append("../")
 sys.path.append("../env")
 sys.path.append("../characterSimAdapter/")
 sys.path.append("../simbiconAdapter/")
 sys.path.append("../simAdapter/")
 
-import math
-import numpy as np
-import random
-
 from pydoc import locate
-
-from util.ExperienceMemory import ExperienceMemory
 
 import dill
 import dill as pickle
@@ -312,7 +305,9 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
     return model
 
 def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds, settings, print_info=False):
-    
+    import math
+    import numpy as np
+    import random
     action_bounds = np.array(settings['action_bounds'])
     networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings, print_info=print_info)
     num_actions= len(discrete_actions) # number of rows
@@ -703,7 +698,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         ### Check action space size
         actionSpace = env.getActionSpace()
         
-        assert (len(actionSpace.getMaximum()) == len(settings["action_bounds"][0]), 
+        assert ((len(actionSpace.getMaximum()) == len(settings["action_bounds"][0])), 
                 "Length of action vector is " + str (len(settings["action_bounds"][0])) + " is should be " + 
                 str(len(actionSpace.getMaximum())))
         # sim.setRender(render)

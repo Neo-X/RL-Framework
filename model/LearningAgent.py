@@ -9,7 +9,6 @@ import time
 from model.AgentInterface import AgentInterface
 from model.ModelUtil import *
 import os
-import numpy
 import copy
 import time
 import datetime

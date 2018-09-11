@@ -11,7 +11,7 @@ sys.path.append("../characterSimAdapter/")
 # import dill
 # import dill as pickle
 # import dill as cPickle
-from util.utils import *
+# from util.utils import *
 import cProfile, pstats, io
 # import memory_profiler
 # import psutil
@@ -54,8 +54,14 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
     """
     
     from model.LearningAgent import LearningAgent, LearningWorker
+    if "numpy" in sys.modules:
+        print ("Numpy is already loaded.")
+    else:
+        print ('You have not imported the Numpy module')
+    sys.exit()
     from simulation.SimWorker import SimWorker
     from util.SimulationUtil import createActor, getAgentName, createSampler, createForwardDynamicsModel
+    
     
     sim_workers = []
     sim_work_queues = []
@@ -143,7 +149,6 @@ def trainModelParallel(inputData):
     setupEnvironmentVariable(settings)
     settingsFileName = inputData[0]
     settings['sample_single_trajectories'] = True
-    
     # settings['shouldRender'] = True
     # pr = cProfile.Profile()
     # pr.enable()
@@ -214,6 +219,8 @@ def trainModelParallel(inputData):
             output_experience_queue = None
             
         exp_val = None
+        
+        ### Keep forward models on the CPU
         
         ### These are the workers for training
         (sim_workers, sim_work_queues) = createSimWorkers(settings, input_anchor_queue, 
@@ -296,6 +303,7 @@ def trainModelParallel(inputData):
             os.makedirs(directory)
             
         ### Put git versions in settings file before save
+        from util.utils import get_git_revision_hash, get_git_revision_short_hash
         settings['git_revision_hash'] = get_git_revision_hash()
         settings['git_revision_short_hash'] = get_git_revision_short_hash()     
         ### copy settings file

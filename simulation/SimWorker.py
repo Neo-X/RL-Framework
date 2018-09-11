@@ -125,9 +125,13 @@ class SimWorker(Process):
         from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
         ### Flag so simulation models can be a little different.
         self._settings["simulation_model"] = True
-
+        if "numpy" not in sys.modules:
+            print ('You have not imported the Numpy module')
+        else:
+            print ("Numpy is already loaded")
         ### Keep forward models on the CPU
         setupEnvironmentVariable(self._settings)
+        sys.exit()
         
         import numpy as np
         np.random.seed(self._process_random_seed)

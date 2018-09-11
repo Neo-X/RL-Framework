@@ -4,10 +4,7 @@ import random
 import sys
 # sys.path.append("../characterSimAdapter/")
 # import characterSim
-import numpy as np
-import math
 import copy 
-import scipy
 
 anchors__name="anchors"
 # replace string print ([a-z|A-Z|0-9|\"| |:|(|)|\+|_|,|\.|-|\[|\]|\/]*)
