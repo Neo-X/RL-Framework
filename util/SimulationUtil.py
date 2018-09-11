@@ -69,7 +69,7 @@ def setupLearningBackend(settings):
             and (settings["simulation_model"] == True)):
             config.intra_op_parallelism_threads = 1
             config.inter_op_parallelism_threads = 1
-            config.session_inter_op_thread_pool = 1
+        # config.session_inter_op_thread_pool = 1
         session = tf.Session(config=config)
         keras.backend.set_session(session)
         
