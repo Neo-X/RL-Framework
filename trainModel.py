@@ -7,10 +7,6 @@ import os
 import json
 sys.path.append("../")
 sys.path.append("../characterSimAdapter/")
-import math
-import numpy as np
-
-import random
 # import cPickle
 # import dill
 # import dill as pickle
@@ -142,11 +138,16 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
 # def trainModelParallel(settingsFileName, settings):
 def trainModelParallel(inputData):
     # (sys.argv[1], settings)
-    settingsFileName = inputData[0]
     settings = inputData[1]
-    settings['sample_single_trajectories'] = True
-    np.random.seed(int(settings['random_seed']))
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+    setupEnvironmentVariable(settings)
+    settingsFileName = inputData[0]
+    settings['sample_single_trajectories'] = True
+    
+    import math
+    import numpy as np
+    import random
+    np.random.seed(int(settings['random_seed']))
         # settings['shouldRender'] = True
     # pr = cProfile.Profile()
     # pr.enable()
@@ -173,7 +174,6 @@ def trainModelParallel(inputData):
     trainData["std_actor_regularization_cost"]=[]
     trainData["anneal_p"]=[]
     try:
-        setupEnvironmentVariable(settings)
             
         rounds = settings["rounds"]
         epochs = settings["epochs"]

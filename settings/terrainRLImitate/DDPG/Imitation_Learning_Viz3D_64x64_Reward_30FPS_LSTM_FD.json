@@ -401,5 +401,5 @@
 	"comment__": "Use a stateful LSTM",
 "train_LSTM_stateful": true,
 	"comment__": "batch size for lstm fd models",
-"lstm_batch_size": 56
+"lstm_batch_size": 48
 }

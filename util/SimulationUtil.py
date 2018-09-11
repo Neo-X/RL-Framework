@@ -54,6 +54,14 @@ def setupEnvironmentVariable(settings):
         os.environ["CUDA_VISIBLE_DEVICES"] = settings["GPU_BUS_Index"]
         # os.environ["CUDA_VISIBLE_DEVICES"] = getGPUBusIndex(index=int(settings["GPU_BUS_Index"]))
         
+    ### Reduce the use of OpenMPI in numpy
+    if ("simulation_model" in settings 
+        and (settings["simulation_model"] == True)):
+        os.environ["PRETEND_CPUS"] = 1
+        os.environ["OMP_NUM_THREADS"] = 1
+        os.environ["OMP_THREAD_LIMIT"] = 1
+        os.environ["LD_PRELOAD"] = "/opt/borgy/libpretend/libpretend.so"
+        
 def setupLearningBackend(settings):
     import keras
     # from util.MakeKerasPicklable import make_keras_picklable
@@ -65,10 +73,10 @@ def setupLearningBackend(settings):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         ### Limit the thread pool size for each process
-        # if ("simulation_model" in settings 
-        #     and (settings["simulation_model"] == True)):
-        config.intra_op_parallelism_threads = 1
-        config.inter_op_parallelism_threads = 1
+        if ("simulation_model" in settings 
+            and (settings["simulation_model"] == True)):
+            config.intra_op_parallelism_threads = 1
+            config.inter_op_parallelism_threads = 1
         # config.session_inter_op_thread_pool = 1
         session = tf.Session(config=config)
         keras.backend.set_session(session)
