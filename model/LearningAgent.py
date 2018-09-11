@@ -87,6 +87,7 @@ class LearningAgent(AgentInterface):
         if self._useLock:
             self._accesLock.acquire()
         loss = 0
+        import numpy as np
         
         # print ("Bounds comparison: ", self._pol.getStateBounds(), " exp mem: ", 
         #        self._expBuff.getStateBounds())
