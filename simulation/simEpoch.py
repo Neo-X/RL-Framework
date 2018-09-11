@@ -25,6 +25,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
              p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None,
              sampling=False, epsilon=None,
              worker_id=None):
+    import numpy as np
     """
         
         evaluation: If True than the simulation is being evaluated and the episodes will not terminate early.
