@@ -356,15 +356,7 @@ class SiameseNetwork(KERASAlgorithm):
         state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
         if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
-            if (False): ## Hack to get ModelEvaluation to work
-                state = [state] * 32
-                state2 = [state2] * 32
-                print ("State Shape: ", np.array(state).shape)
-                print ("State2 Shape: ", np.array(state2).shape)
-                state_ = self._model._forward_dynamics_net.predict([np.array(state), np.array(state2)])[0]
-                print ("predicted State Shape: ", np.array(state_).shape)
-            else:
-                state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
+            state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
             state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
         # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
