@@ -54,12 +54,12 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
     """
     
     from model.LearningAgent import LearningAgent, LearningWorker
+    from simulation.SimWorker import SimWorker
     if "numpy" in sys.modules:
         print ("Numpy is already loaded.")
     else:
         print ('You have not imported the Numpy module')
     sys.exit()
-    from simulation.SimWorker import SimWorker
     from util.SimulationUtil import createActor, getAgentName, createSampler, createForwardDynamicsModel
     
     
