@@ -28,6 +28,7 @@ class OpenAIGymActor(ActorInterface):
     
     # @profile(precision=5)
     def actContinuous(self, exp, action_, bootstrapping=False):
+        import numpy as np
         # Actor should be FIRST here
         # print ("Action: " + str(action_))
         # dist = exp.getEnvironment().step(action_, bootstrapping=bootstrapping)
@@ -36,6 +37,7 @@ class OpenAIGymActor(ActorInterface):
         return reward
         
     def updateAction(self, sim, action_):
+        import numpy as np
         action_ = np.array(action_, dtype='float64')
         sim.getEnvironment().updateAction(action_)
     

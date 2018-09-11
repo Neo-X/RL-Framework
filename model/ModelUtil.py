@@ -50,6 +50,7 @@ def anneal_value(d, settings_):
         
     return p
 def discounted_rewards(rewards, discount_factor):
+    import scipy
     from scipy import signal, misc
     """
     computes discounted sums along 0th dimension of x.

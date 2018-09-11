@@ -423,11 +423,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         for i in range(len(G_t)):
             if isinstance(reward_, (list, tuple, np.ndarray)):
                 assert len(np.array(reward_).shape) == 2
-                G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (np.array(reward_) ))))
+                G_t[i] = G_t[i] + (((np.power(discount_factor,(len(G_t)-i)-1) * (np.array(reward_) ))))
                 # print( "reward: ", repr(np.array(reward_)) )
                 # print( "G_t: ", repr(np.array(G_t)) )
             else:
-                G_t[i] = G_t[i] + (((math.pow(discount_factor,(len(G_t)-i)-1) * (np.array([reward_]) ))))
+                G_t[i] = G_t[i] + (((np.power(discount_factor,(len(G_t)-i)-1) * (np.array([reward_]) ))))
                 reward_ = [[reward_]]
         
         if ("replace_next_state_with_imitation_viz_state" in settings
