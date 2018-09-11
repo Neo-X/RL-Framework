@@ -148,7 +148,7 @@
     "comment__": "Network type to use for the forward dynamics model",
 "forward_dynamics_model_type": "model.FDNNKerasAdaptive.FDNNKerasAdaptive",
     "comment__": "Whether or not to save the Experience memory after bootstrapping",
-"save_experience_memory": true,
+"save_experience_memory": false,
     "comment__": "Whether or not to train the policy and critic?",
 "train_rl_learning": true,
     "comment__": "Force the character to start each new action in a good state, close to a good solution",
