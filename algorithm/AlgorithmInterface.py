@@ -510,14 +510,18 @@ class AlgorithmInterface(object):
         self._settings = copy.deepcopy(settings_)
     
     def setStateBounds(self, bounds):
+        bounds = np.array(bounds)
         # print ("Setting state bounds: ", self, bounds)
         self._state_bounds = bounds
         self.setResultStateBounds(bounds)
     def setActionBounds(self, bounds):
+        bounds = np.array(bounds)
         self._action_bounds = bounds
     def setRewardBounds(self, bounds):
+        bounds = np.array(bounds)
         self._reward_bounds = bounds
     def setResultStateBounds(self, bounds):
+        bounds = np.array(bounds)
         self._result_state_bounds = bounds
         
     def getStateBounds(self):

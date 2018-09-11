@@ -144,11 +144,7 @@ def trainModelParallel(inputData):
     settingsFileName = inputData[0]
     settings['sample_single_trajectories'] = True
     
-    import math
-    import numpy as np
-    import random
-    np.random.seed(int(settings['random_seed']))
-        # settings['shouldRender'] = True
+    # settings['shouldRender'] = True
     # pr = cProfile.Profile()
     # pr.enable()
     trainData = {}
@@ -181,16 +177,16 @@ def trainModelParallel(inputData):
         # num_states=settings["num_states"]
         epsilon = settings["epsilon"]
         discount_factor=settings["discount_factor"]
-        reward_bounds=np.array(settings["reward_bounds"])
+        reward_bounds=settings["reward_bounds"]
         # reward_bounds = np.array([[-10.1],[0.0]])
         if ( 'value_function_batch_size' in settings):
             batch_size=settings["value_function_batch_size"]
         else:
             batch_size=settings["batch_size"]
         train_on_validation_set=settings["train_on_validation_set"]
-        state_bounds = np.array(settings['state_bounds'])
-        discrete_actions = np.array(settings['discrete_actions'])
-        num_actions= discrete_actions.shape[0] # number of rows
+        state_bounds = settings['state_bounds']
+        discrete_actions = settings['discrete_actions']
+        num_actions= len(discrete_actions) # number of rows
         print ("Sim config file name: " + str(settings["sim_config_file"]))
         # c = characterSim.Configuration(str(settings["sim_config_file"]))
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
@@ -200,7 +196,7 @@ def trainModelParallel(inputData):
         
         action_space_continuous=settings['action_space_continuous']
         if action_space_continuous:
-            action_bounds = np.array(settings["action_bounds"], dtype=float)
+            action_bounds = settings["action_bounds"]
             
             
         if (settings['num_available_threads'] == -1):
@@ -238,6 +234,10 @@ def trainModelParallel(inputData):
         
         
         
+        import math
+        import numpy as np
+        import random
+        np.random.seed(int(settings['random_seed']))
         # paramSampler = exp_val.getActor().getParamSampler()
         best_eval=-100000000.0
         best_dynamicsLosses= best_eval*-1.0

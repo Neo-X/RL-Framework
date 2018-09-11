@@ -9,13 +9,15 @@ sys.path.append("../env")
 sys.path.append("../characterSimAdapter/")
 sys.path.append("../simbiconAdapter/")
 sys.path.append("../simAdapter/")
+
 import math
 import numpy as np
+import random
+
 from pydoc import locate
 
 from util.ExperienceMemory import ExperienceMemory
 
-import random
 import dill
 import dill as pickle
 import dill as cPickle
@@ -57,9 +59,9 @@ def setupEnvironmentVariable(settings):
     ### Reduce the use of OpenMPI in numpy
     if ("simulation_model" in settings 
         and (settings["simulation_model"] == True)):
-        os.environ["PRETEND_CPUS"] = 1
-        os.environ["OMP_NUM_THREADS"] = 1
-        os.environ["OMP_THREAD_LIMIT"] = 1
+        os.environ["PRETEND_CPUS"] = "1"
+        os.environ["OMP_NUM_THREADS"] = "1"
+        os.environ["OMP_THREAD_LIMIT"] = "1"
         os.environ["LD_PRELOAD"] = "/opt/borgy/libpretend/libpretend.so"
         
 def setupLearningBackend(settings):
@@ -313,10 +315,10 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
     
     action_bounds = np.array(settings['action_bounds'])
     networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings, print_info=print_info)
-    num_actions= discrete_actions.shape[0] # number of rows
+    num_actions= len(discrete_actions) # number of rows
     if settings['action_space_continuous']:
             action_bounds = np.array(settings["action_bounds"], dtype=float)
-            num_actions = action_bounds.shape[1]
+            num_actions = len(action_bounds[0])
     
     directory= getDataDirectory(settings)
     if (settings['load_saved_model'] == True):

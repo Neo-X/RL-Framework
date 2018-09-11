@@ -794,6 +794,7 @@ class LearningAgent(AgentInterface):
         return self.getPolicy().getRewardBounds()
     
     def setStateBounds(self, bounds):
+        bounds = np.array(bounds)
         self.getPolicy().setStateBounds(bounds)
         if (self._settings['train_forward_dynamics']):
             if ("use_dual_state_representations" in self._settings
@@ -806,6 +807,7 @@ class LearningAgent(AgentInterface):
                      and (self.getFDExperience() is not None)):
                     self.getFDExperience().setStateBounds(bounds)
     def setActionBounds(self, bounds):
+        bounds = np.array(bounds)
         self.getPolicy().setActionBounds(bounds)
         if (self._settings['train_forward_dynamics']):
             self.getForwardDynamics().setActionBounds(bounds)
@@ -814,6 +816,7 @@ class LearningAgent(AgentInterface):
                  and (self.getFDExperience() is not None)):
                 self.getFDExperience().setActionBounds(bounds)
     def setRewardBounds(self, bounds):
+        bounds = np.array(bounds)
         self.getPolicy().setRewardBounds(bounds)
         if (self._settings['train_forward_dynamics']):
             self.getForwardDynamics().setRewardBounds(bounds)

@@ -12,7 +12,6 @@ from multiprocessing import Process, Queue
 import threading
 import time
 import copy
-import numpy as np
 from model.ModelUtil import *
 # import memory_profiler
 # import resources
@@ -122,11 +121,17 @@ class SimWorker(Process):
     def run(self):
         # from pympler import summary
         # from pympler import muppy
-        np.random.seed(self._process_random_seed)
         import os
         from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+        ### Flag so simulation models can be a little different.
+        self._settings["simulation_model"] = True
 
         ### Keep forward models on the CPU
+        setupEnvironmentVariable(self._settings)
+        
+        import numpy as np
+        np.random.seed(self._process_random_seed)
+        
         """
         if ("GPU_BUS_Index" in self._settings 
             and ("force_sim_net_to_cpu" in self._settings
@@ -134,8 +139,6 @@ class SimWorker(Process):
             os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
             os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
         """
-        ### Flag so simulation models can be a little different.
-        self._settings["simulation_model"] = True
         
         
         setupLearningBackend(self._settings)
