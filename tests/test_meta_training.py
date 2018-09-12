@@ -2,7 +2,7 @@ from nose.tools import timed
 from numpy.testing import assert_allclose
 import numpy as np
 import copy 
-import pytest
+# import pytest
 import warnings
 from trainModel import trainModelParallel
 import json
@@ -11,7 +11,7 @@ from trainMetaModel import trainMetaModel
 
 class TestMetaTraining(object):
     
-    @pytest.mark.timeout(600)
+    # @pytest.mark.timeout(600)
     def test_tuning_ppo_gapGame_2D(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
@@ -32,7 +32,7 @@ class TestMetaTraining(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None
     
-    @pytest.mark.timeout(600)   
+    # @pytest.mark.timeout(600)   
     def test_metaTraining_ppo_gapGame_2D(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
@@ -53,7 +53,7 @@ class TestMetaTraining(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None
         
-    @pytest.mark.timeout(600)
+    # @pytest.mark.timeout(600)
     def test_metaTraining_multiple_rounds_over_tuning_threads(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
@@ -79,7 +79,7 @@ class TestMetaTraining(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None    
     
-    @pytest.mark.timeout(600)    
+    # @pytest.mark.timeout(600)    
     def test_metaTraining_multiple_params_to_tune(self):
         """
         Test that PPO can still learn a good policy on 2d particle sim
@@ -105,7 +105,7 @@ class TestMetaTraining(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None    
     
-    @pytest.mark.timeout(600)   
+    # @pytest.mark.timeout(600)   
     def test_metaTraining_mbrl(self):
         """
         Test that MBRL can still learn a good policy on 2d particle sim
@@ -130,3 +130,6 @@ class TestMetaTraining(object):
         simData = tuneHyperParameters(simsettingsFileName=filename, simSettings=settings, hyperSettings=metaSettings)
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None  
+        
+# if __name__ == '__main__':
+#     pytest.main([__file__])
