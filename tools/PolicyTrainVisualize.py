@@ -1,12 +1,8 @@
 ## Don't use Xwindows backend for this
 import matplotlib
 matplotlib.use('Agg')
-
 import matplotlib.pyplot as plt
 # from matplotlib import mpl
-import numpy as np
-# import matplotlib.animation as animation
-import random
 import sys
 import json
 
@@ -46,6 +42,7 @@ class PolicyTrainVisualize(object):
             average reward
             discounted reward error
         """
+        import numpy as np
         
         if (self._settings != None):
             self._sim_iteration_scale = (self._settings['plotting_update_freq_num_rounds']*

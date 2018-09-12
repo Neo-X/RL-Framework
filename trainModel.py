@@ -260,8 +260,15 @@ def trainModelParallel(inputData):
                     print ("Sim worker")
                     print (sw)
                     sw.start()
-            
-        ## Theano needs to be imported after the flags are set.
+        """
+        if ("numpy" in sys.modules):
+            print ("Numpy is already loaded")
+        else:
+            print ("Numpy is not loaded")
+        sys.exit()
+        """
+        ## Theano and numpy needs to be imported after the flags are set.
+        import numpy as np
         import math
         import numpy as np
         import random

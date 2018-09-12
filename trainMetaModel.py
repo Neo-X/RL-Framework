@@ -141,7 +141,6 @@ def trainMetaModel_(args):
     from tools.PlotMetadataSimulation import plotMetaDataSimulation
     import os
     import sys
-    sys.argv
     args = sys.argv
     
     from util.simOptions import getOptions

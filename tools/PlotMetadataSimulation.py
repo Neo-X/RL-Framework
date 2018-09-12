@@ -3,9 +3,7 @@
 
 # import matplotlib.pyplot as plt
 # from matplotlib import mpl
-import numpy as np
 # import matplotlib.animation as animation
-import random
 import sys
 import json
 sys.path.append("../")

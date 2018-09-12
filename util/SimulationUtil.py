@@ -50,6 +50,7 @@ def setupEnvironmentVariable(settings):
         # os.environ["CUDA_VISIBLE_DEVICES"] = getGPUBusIndex(index=int(settings["GPU_BUS_Index"]))
         
     ### Reduce the use of OpenMPI in numpy
+    
     if ("simulation_model" in settings 
         and (settings["simulation_model"] == True)):
         os.environ["PRETEND_CPUS"] = "1"
