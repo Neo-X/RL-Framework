@@ -746,6 +746,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
 
 # @profile(precision=5)
 def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None, type=None, p=1):
+    import numpy as np
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
         print ("Simulating epochs in Parallel:")
         
