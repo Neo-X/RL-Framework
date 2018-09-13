@@ -494,6 +494,7 @@ class SiameseNetwork(KERASAlgorithm):
         ### Need to lead the model this way because the learning model's State expects batches...
         forward_dynamics_net = load_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
         self._model._forward_dynamics_net.set_weights(forward_dynamics_net.get_weights())
+        self._model._forward_dynamics_net.optimizer = forward_dynamics_net.optimizer
         self._forward_dynamics_net = self._model._forward_dynamics_net
         print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
         # self._model._reward_net = load_model(fileName+"_critic"+suffix)
