@@ -12,7 +12,7 @@ import os
 import copy
 import time
 import datetime
-# numpy.set_printoptions(threshold=numpy.nan)
+# np.set_printoptions(threshold=np.nan)
 
 class LearningAgent(AgentInterface):
     
@@ -435,7 +435,7 @@ class LearningAgent(AgentInterface):
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print("Critic loss: ", loss)
                             if not np.isfinite(loss) or (loss > 500) :
-                                numpy.set_printoptions(threshold=numpy.nan)
+                                np.set_printoptions(threshold=np.nan)
                                 print ("States: " + str(states__) + " ResultsStates: " + str(result_states__) + " Rewards: " + str(rewards__) + " Actions: " + str(actions__))
                                 print ("Training loss is Odd: ", loss)
                             
@@ -447,7 +447,7 @@ class LearningAgent(AgentInterface):
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print("Critic loss: ", loss)
                         if not np.isfinite(loss) or (loss > 500) :
-                            numpy.set_printoptions(threshold=numpy.nan)
+                            np.set_printoptions(threshold=np.nan)
                             print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                             print ("Training loss is Odd: ", loss)
                     
@@ -581,7 +581,7 @@ class LearningAgent(AgentInterface):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Critic loss: ", loss)
                     if not np.isfinite(loss) or (loss > 500) :
-                        numpy.set_printoptions(threshold=numpy.nan)
+                        np.set_printoptions(threshold=np.nan)
                         print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                         print ("Training loss is Odd: ", loss)
                         
@@ -631,7 +631,7 @@ class LearningAgent(AgentInterface):
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print ( "Dyna training loss: ", loss)
                         if not np.isfinite(loss) or (loss > 500) :
-                            numpy.set_printoptions(threshold=numpy.nan)
+                            np.set_printoptions(threshold=np.nan)
                             print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
                             print ("Training loss is Odd: ", loss)
                     
