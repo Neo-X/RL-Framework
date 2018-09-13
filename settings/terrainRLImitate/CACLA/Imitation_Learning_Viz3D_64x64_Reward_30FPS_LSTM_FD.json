@@ -131,7 +131,7 @@
     "comment__": "What method to use to select actions during bootstrapping",
 "bootsrap_with_discrete_policy": true,
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
-"max_epoch_length": 64,
+"max_epoch_length": 128,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
 "reward_lower_bound": -300.5,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",
@@ -244,7 +244,7 @@
 	"comment__": "Whether or not to collects tuples in batches, this can be good for multi-threading or computing furture discounted reward",
 "collect_tuples_in_batches":false,
 	"comment__": "Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occured",
-"reset_on_fall": false,
+"reset_on_fall": true,
 	"comment__": "Whether a model of the reward r <- R(s,a) should be trained",
 "train_reward_predictor": false,
 	"comment__": "How many gradient steps model based action exploration should take",
@@ -401,5 +401,5 @@
 	"comment__": "Use a stateful LSTM",
 "train_LSTM_stateful": true,
 	"comment__": "batch size for lstm fd models",
-"lstm_batch_size": 48
+"lstm_batch_size": [1, 12]
 }

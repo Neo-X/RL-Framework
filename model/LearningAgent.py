@@ -286,6 +286,8 @@ class LearningAgent(AgentInterface):
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
                     batch_size_lstm_fd = 4
+                    if ("lstm_batch_size" in self._settings):
+                        batch_size_lstm_fd = self._settings["lstm_batch_size"][0]
                     for e in range(len(_states_fd)):
                         if ( 'keep_seperate_fd_exp_buffer' in self._settings 
                              and (self._settings['keep_seperate_fd_exp_buffer'])):
