@@ -168,6 +168,7 @@ def trainModelParallel(inputData):
     trainData["mean_actor_regularization_cost"]=[]
     trainData["std_actor_regularization_cost"]=[]
     trainData["anneal_p"]=[]
+    trainData["round"]=0
     try:
             
         rounds = settings["rounds"]
@@ -235,8 +236,10 @@ def trainModelParallel(inputData):
         
         
         # paramSampler = exp_val.getActor().getParamSampler()
-        best_eval=-100000000.0
-        best_dynamicsLosses= best_eval*-1.0
+        best_eval =-100000000.0
+        mean_eval = best_eval * 10
+        best_dynamicsLosses = best_eval*-1.0
+        mean_dynamicsLosses = best_dynamicsLosses * 10 
             
         values = []
         discounted_values = []
@@ -270,8 +273,9 @@ def trainModelParallel(inputData):
         ## Theano and numpy needs to be imported after the flags are set.
         import numpy as np
         import math
-        import numpy as np
         import random
+        import time
+        import datetime
         np.random.seed(int(settings['random_seed']))
         setupLearningBackend(settings)
         
@@ -485,18 +489,23 @@ def trainModelParallel(inputData):
                            eval_episode_data_queue=None)
             
         else:
-            if (settings['on_policy'] == True):
-                
-                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperience(actor, None, model, settings,
-                           sim_work_queues=sim_work_queues, 
-                           eval_episode_data_queue=eval_episode_data_queue)
+            if (settings["load_saved_model"] == True):
+                # settings["bootstrap_samples"] = 0
+                # settings["bootsrap_with_discrete_policy"] = False
+                experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['expereince_length'], continuous_actions=True, settings = settings) 
             else:
-                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperience(actor, None, model, settings,
-                           sim_work_queues=input_anchor_queue, 
-                           eval_episode_data_queue=eval_episode_data_queue)
-        masterAgent.setExperience(experience)
+                if (settings['on_policy'] == True):
+                    
+                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperience(actor, None, model, settings,
+                               sim_work_queues=sim_work_queues, 
+                               eval_episode_data_queue=eval_episode_data_queue)
+                else:
+                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperience(actor, None, model, settings,
+                               sim_work_queues=input_anchor_queue, 
+                               eval_episode_data_queue=eval_episode_data_queue)
+            masterAgent.setExperience(experience)
         if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
-            masterAgent.setFDExperience(copy.deepcopy(experience))
+            masterAgent.setFDExperience(copy.deepcopy(masterAgent.getExperience()))
             if ("use_dual_state_representations" in settings
                 and (settings["use_dual_state_representations"] == True)
                 and (settings["forward_dynamics_model_type"] == "SingleNet")):
@@ -529,6 +538,32 @@ def trainModelParallel(inputData):
             experiencefd.setActionBounds(action_bounds)
             experiencefd.setRewardBounds(reward_bounds)
             masterAgent.setFDExperience(copy.deepcopy(experiencefd))
+            
+        if (settings["load_saved_model"] == True and
+            (settings["save_experience_memory"] == "continual")):
+            ### load exp mem
+            if (settings["save_experience_memory"] == "continual"):
+                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                    print ("Loading Experience memory")
+                file_name=directory+getAgentName()+"_expBufferInit.hdf5"
+                masterAgent.getExperience().loadFromFile(file_name)
+                if (settings['train_forward_dynamics']):
+                    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                        print ("Loading Experience FD memory")
+                    file_name=directory+getAgentName()+"_FD_expBufferInit.hdf5"
+                    masterAgent.getFDExperience().loadFromFile(file_name)
+            
+            ### load training data
+            fp = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", 'r')
+            # print ("Train data: ", trainData)
+            trainData = json.load(fp)
+            fp.close()
+            
+            if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                print ("Loading training data")
+                print ("Round: ", trainData["round"])
+                # sys.exit()
+            
                 
         
         if (not validBounds(action_bounds)):
@@ -542,16 +577,16 @@ def trainModelParallel(inputData):
             bound_fixed = validBounds(state_bounds)
             print("State bounds fixed: ", bound_fixed)
             model.setStateBounds(state_bounds)
-            experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
+            masterAgent.getExperience().setStateBounds(copy.deepcopy(model.getStateBounds()))
             # sys.exit()
         if (not validBounds(reward_bounds)):
             print("Reward bounds invalid: ", reward_bounds)
             sys.exit()
         
-        print ("Reward History: ", experience._reward_history)
-        print ("Action History: ", experience._action_history)
-        print ("Action Mean: ", np.mean(experience._action_history))
-        print ("Experience Samples: ", (experience.samples()))
+        print ("Reward History: ", masterAgent.getExperience()._reward_history)
+        print ("Action History: ", masterAgent.getExperience()._action_history)
+        print ("Action Mean: ", np.mean(masterAgent.getExperience()._action_history))
+        print ("masterAgent.getExperience() Samples: ", (masterAgent.getExperience().samples()))
         
         """
         if action_space_continuous:
@@ -560,25 +595,25 @@ def trainModelParallel(inputData):
             model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         """
         if ( settings['load_saved_model'] or (settings['load_saved_model'] == 'network_and_scales') ): ## Transfer learning
-            experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
-            experience.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
-            experience.setActionBounds(copy.deepcopy(model.getActionBounds()))
+            masterAgent.getExperience().setStateBounds(copy.deepcopy(model.getStateBounds()))
+            masterAgent.getExperience().setRewardBounds(copy.deepcopy(model.getRewardBounds()))
+            masterAgent.getExperience().setActionBounds(copy.deepcopy(model.getActionBounds()))
             model.setSettings(settings)
         else: ## Normal
             model.setStateBounds(state_bounds)
             model.setActionBounds(action_bounds)
             model.setRewardBounds(reward_bounds)
-            experience.setStateBounds(copy.deepcopy(model.getStateBounds()))
-            experience.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
-            experience.setActionBounds(copy.deepcopy(model.getActionBounds()))
+            masterAgent.getExperience().setStateBounds(copy.deepcopy(model.getStateBounds()))
+            masterAgent.getExperience().setRewardBounds(copy.deepcopy(model.getRewardBounds()))
+            masterAgent.getExperience().setActionBounds(copy.deepcopy(model.getActionBounds()))
             masterAgent.setStateBounds(state_bounds)
             masterAgent.setActionBounds(action_bounds)
             masterAgent.setRewardBounds(reward_bounds)
             
-        if (settings["save_experience_memory"]):
+        if (settings["save_experience_memory"] == True):
             print ("Saving initial experience memory")
             file_name=directory+getAgentName()+"_expBufferInit.hdf5"
-            experience.saveToFile(file_name)
+            masterAgent.getExperience().saveToFile(file_name)
         # mgr = multiprocessing.Manager()
         # learningNamespace = mgr.Namespace()
         
@@ -747,8 +782,8 @@ def trainModelParallel(inputData):
             print("State Bounds:", masterAgent.getStateBounds())
             print("Action Bounds:", masterAgent.getActionBounds())
             
-            print("Exp State Bounds: ", experience.getStateBounds())
-            print("Exp Action Bounds: ", experience.getActionBounds())
+            print("Exp State Bounds: ", masterAgent.getExperience().getStateBounds())
+            print("Exp Action Bounds: ", masterAgent.getExperience().getActionBounds())
             
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)):
             pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_)
@@ -757,15 +792,17 @@ def trainModelParallel(inputData):
         if (settings['on_policy']):
             sim_epochs_ = epochs
             # epochs = 1
-        for round_ in range(0,rounds):
+        # for round_ in range(0,rounds):
+        while (trainData["round"] <= rounds):
+            trainData["round"] = int(trainData["round"])
             # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
             # p = (settings['initial_temperature'] / (math.log(round_))) 
             # p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds))
             if ( 'annealing_schedule' in settings and (settings['annealing_schedule'] != False)):
-                p = anneal_value(float(round_/rounds), settings_=settings)
+                p = anneal_value(float(trainData["round"]/rounds), settings_=settings)
             else:
-                p = ((settings['initial_temperature']/math.log(round_+2))) 
-            # p = ((rounds - round_)/rounds) ** 2
+                p = ((settings['initial_temperature']/math.log(trainData["round"]+2))) 
+            # p = ((rounds - trainData["round"])/rounds) ** 2
             p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
             if ( settings['load_saved_model'] ):
                 p = settings['min_epsilon']
@@ -902,9 +939,9 @@ def trainModelParallel(inputData):
                             dynamicsRewardLosses.append(dynamicsRewardLoss)
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                         if (settings['train_forward_dynamics']):
-                            print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
+                            print ("Round: " + str(trainData["round"]) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
                         else:
-                            print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
+                            print ("Round: " + str(trainData["round"]) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
                     # discounted_values.append(discounted_sum)
                     
                 if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
@@ -982,7 +1019,7 @@ def trainModelParallel(inputData):
                         except: 
                             print ("SimWorker model parameter message queue full: ", m_q.qsize())
               
-            if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
+            if (trainData["round"] % settings['plotting_update_freq_num_rounds']) == 0:
                 # Running less often helps speed learning up.
                 # Sync up sim actors
                 
@@ -1008,7 +1045,7 @@ def trainModelParallel(inputData):
                                                     anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings)
                                                     """
                 print ("round_, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
-                print (round_, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
+                print (trainData["round"], mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
                 if mean_bellman_error > 10000:
                     print ("Error to big: ")
                 else:
@@ -1153,7 +1190,7 @@ def trainModelParallel(inputData):
                     exp_val.updateViz(actor, masterAgent, directory, p=p)
                 
                 
-            if (round_ % settings['saving_update_freq_num_rounds']) == 0:
+            if (trainData["round"] % settings['saving_update_freq_num_rounds']) == 0:
             
                 if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
                     print ("Saving current masterAgent")
@@ -1176,13 +1213,37 @@ def trainModelParallel(inputData):
                 # print ("Train data: ", trainData)
                 ## because json does not serialize np.float32 
                 for key in trainData:
-                    trainData[key] = [float(i) for i in trainData[key]]
+                    if (key == 'error'):
+                        continue
+                    # print ("trainData[",key,"]", trainData[key])
+                    elif (type(trainData[key]) is list):
+                        trainData[key] = [float(i) for i in trainData[key]]
+                    else:
+                        trainData[key] = float(trainData[key])
                 json.dump(trainData, fp)
                 fp.close()
                 # draw data
+                
+                t0 = time.time()
+                if (settings["save_experience_memory"] == "continual"):
+                    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                        print ("Saving Experience memory")
+                    file_name=directory+getAgentName()+"_expBufferInit.hdf5"
+                    masterAgent.getExperience().saveToFile(file_name)
+                    if (settings['train_forward_dynamics']):
+                        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                            print ("Saving Experience FD memory")
+                        file_name=directory+getAgentName()+"_FD_expBufferInit.hdf5"
+                        masterAgent.getFDExperience().saveToFile(file_name)
+                t1 = time.time()
+                sim_time_ = datetime.timedelta(seconds=(t1-t0))
+                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                    print ("exp saving time complete in " + str(sim_time_) + " seconds")
                         
             # mean_reward = std_reward = mean_bellman_error = std_bellman_error = mean_discount_error = std_discount_error = None
-            # if ( round_ % 10 ) == 0 :
+            # if ( trainData["round"] % 10 ) == 0 :
+            
+            trainData["round"] = trainData["round"] + 1
                 
             gc.collect()    
             # print (h.heap())
@@ -1294,7 +1355,11 @@ def trainModelParallel(inputData):
         if (key == 'error'):
             continue
         # print ("trainData[",key,"]", trainData[key])
-        trainData[key] = [float(i) for i in trainData[key]]
+        elif (type(trainData[key]) is list):
+            trainData[key] = [float(i) for i in trainData[key]]
+        else:
+            trainData[key] = float(trainData[key])
+            
     json.dump(trainData, f, sort_keys=True, indent=4)
     f.close()
     

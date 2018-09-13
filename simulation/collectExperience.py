@@ -66,11 +66,12 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
         
                                                                                                                    eval_episode_data_queue=eval_episode_data_queue)
-        
+        """
         for e in range(len(states)):
             experience.insertTrajectory(states[e], actions[e], resultStates[e], rewards_[e], 
                                         falls_[e], G_ts_[e], advantage_[e], exp_actions[e])
-            
+        """
+        
         data__ = (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_)
         # states = np.array(states)
         # states = np.append(states, state_bounds,0) # Adding that already specified bounds will ensure the final calculated is beyond these

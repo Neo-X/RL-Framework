@@ -905,6 +905,7 @@ def createSampler(settings, exp):
     return sampler
 
 def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel, reward_bounds=0, print_info=True):
+    import numpy as np
     directory= getDataDirectory(settings)
     if settings["forward_dynamics_predictor"] == "simulator":
         from model.ForwardDynamicsSimulator import ForwardDynamicsSimulator

@@ -139,7 +139,7 @@ def getOptions(_args=None):
               help="Controls the number of simulation rounds to perform before evaluating and re-plotting the policy performance")
     
     parser.add_option("--saving_update_freq_num_rounds",
-              action="store", dest="plotting_update_freq_num_rounds", default=None,
+              action="store", dest="saving_update_freq_num_rounds", default=None,
               type=int,
               metavar="INTEGER", 
               help="Controllers the number of simulation rounds to perform before saving the policy")
@@ -178,7 +178,7 @@ def getOptions(_args=None):
     parser.add_option("--save_experience_memory", "--save_experience", 
           action="store", dest="save_experience_memory", default=None,
           type='choice',
-          choices=['true', 'false', None],
+          choices=['true', 'false', 'continual', None],
           metavar="STRING", 
           help="Whether or not to save the experience memory after performing initial bootstrapping.")
     

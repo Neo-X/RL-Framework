@@ -461,16 +461,25 @@ class ExperienceMemory(object):
         hf.create_dataset('_action_bounds', data=self._action_bounds)
         hf.create_dataset('_result_state_bounds', data=self._result_state_bounds)
         
+        ### Adaptive scaling values
+        hf.create_dataset('_state_mean', data=self._state_mean)
+        hf.create_dataset('_state_var', data=self._state_var)
+        hf.create_dataset('_reward_mean', data=self._reward_mean)
+        hf.create_dataset('_reward_var', data=self._reward_var)
+        hf.create_dataset('_action_mean', data=self._action_mean)
+        hf.create_dataset('_action_var', data=self._action_var)
+        
         
         ### Save a variable length list of data
         # data = np.array(self._trajectory_history, dtype=object)
         if (("train_LSTM_FD" in self._settings)
             and (self._settings["train_LSTM_FD"] == True)):
             grp = hf.create_group('trajectories')
-            print ("Saving trajectory data")
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                print ("Saving trajectory data")
             for i in range(min(self.history_size_Trajectory(), self.samplesTrajectory())):
                 list = self._trajectory_history[i]
-                print (i,list)
+                # print (i,list)
                 if (list is not None):
                     grp_ = grp.create_group('traj'+str(i))
                     for it in range(len(list)):
@@ -509,6 +518,14 @@ class ExperienceMemory(object):
         self._action_bounds = np.array(hf.get('_action_bounds'))
         self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
         
+        ### Adaptive scaling values
+        self._state_mean = np.array(hf.get('_state_mean'))
+        self._state_var = np.array(hf.get('_state_var'))
+        self._reward_mean = np.array(hf.get('_reward_mean'))
+        self._reward_var = np.array(hf.get('_reward_var'))
+        self._action_mean = np.array(hf.get('_action_mean'))
+        self._action_var = np.array(hf.get('_action_var'))
+        
         if (("train_LSTM_FD" in self._settings)
             and (self._settings["train_LSTM_FD"] == True)):
             self._trajectory_size = int(hf.get('_trajectory_size')[()])
@@ -518,7 +535,8 @@ class ExperienceMemory(object):
             
             
             grp = hf.get('trajectories')
-            print ("Loading trajectory data")
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                print ("Loading trajectory data")
             for i in range(min(self.history_size_Trajectory(), self.samplesTrajectory())):
                 # print (i)
                 traj = []
