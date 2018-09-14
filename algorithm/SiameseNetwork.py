@@ -497,8 +497,14 @@ class SiameseNetwork(KERASAlgorithm):
         # with K.get_session().graph.as_default() as g:
         ### Need to lead the model this way because the learning model's State expects batches...
         forward_dynamics_net = load_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
-        self._model._forward_dynamics_net.set_weights(forward_dynamics_net.get_weights())
-        self._model._forward_dynamics_net.optimizer = forward_dynamics_net.optimizer
+        # if ("simulation_model" in self.getSettings() and
+        #     (self.getSettings()["simulation_model"] == True)):
+        if (True):
+            self._model._forward_dynamics_net.set_weights(forward_dynamics_net.get_weights())
+            self._model._forward_dynamics_net.optimizer = forward_dynamics_net.optimizer
+        else:
+            self._model._forward_dynamics_net = forward_dynamics_net
+            
         self._forward_dynamics_net = self._model._forward_dynamics_net
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
