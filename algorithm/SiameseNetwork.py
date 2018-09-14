@@ -203,12 +203,14 @@ class SiameseNetwork(KERASAlgorithm):
         inputs_ = [self._model.getStateSymbolicVariable()] 
         self._model._forward_dynamics_net = Model(inputs=inputs_, outputs=self._model._forward_dynamics_net)
         if (print_info):
-            print("FD Net summary: ", self._model._forward_dynamics_net.summary())
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print("FD Net summary: ", self._model._forward_dynamics_net.summary())
         
         inputs_ = [self._model.getStateSymbolicVariable()] 
         self._model._reward_net = Model(inputs=inputs_, outputs=self._model._reward_net)
         if (print_info):
-            print("FD Reward Net summary: ", self._model._reward_net.summary())
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print("FD Reward Net summary: ", self._model._reward_net.summary())
 
         self._modelTarget = None
         SiameseNetwork.compile(self)
@@ -229,8 +231,9 @@ class SiameseNetwork(KERASAlgorithm):
 
         # sgd = SGD(lr=0.0005, momentum=0.9)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
-        print("sgd, actor: ", sgd)
-        print ("Clipping: ", sgd.decay)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("sgd, actor: ", sgd)
+            print ("Clipping: ", sgd.decay)
         self._model._forward_dynamics_net.compile(loss=contrastive_loss, optimizer=sgd)
 
         
@@ -489,14 +492,16 @@ class SiameseNetwork(KERASAlgorithm):
         import h5py
         from keras.models import load_model
         suffix = ".h5"
-        print ("Loading agent: ", fileName)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Loading agent: ", fileName)
         # with K.get_session().graph.as_default() as g:
         ### Need to lead the model this way because the learning model's State expects batches...
         forward_dynamics_net = load_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
         self._model._forward_dynamics_net.set_weights(forward_dynamics_net.get_weights())
         self._model._forward_dynamics_net.optimizer = forward_dynamics_net.optimizer
         self._forward_dynamics_net = self._model._forward_dynamics_net
-        print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
         # self._model._reward_net = load_model(fileName+"_critic"+suffix)
         if (self._modelTarget is not None):
             self._modelTarget._forward_dynamics_net = load_model(fileName+"_actor_T"+suffix)
@@ -508,7 +513,8 @@ class SiameseNetwork(KERASAlgorithm):
         self.setStateBounds(np.array(hf.get('_state_bounds')))
         self.setRewardBounds(np.array(hf.get('_reward_bounds')))
         self.setActionBounds(np.array(hf.get('_action_bounds')))
-        print("fd self.getStateBounds(): ", self.getStateBounds())
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("fd self.getStateBounds(): ", self.getStateBounds())
         # self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
         hf.close()
         

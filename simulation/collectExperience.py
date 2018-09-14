@@ -61,8 +61,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
         experience.setSettings(settings)
         
-        
-        print ("Collecting bootstrap samples from simulation")
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+            print ("Collecting bootstrap samples from simulation")
         (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
         
                                                                                                                    eval_episode_data_queue=eval_episode_data_queue)
@@ -86,15 +86,15 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         advantage_ = np.array(list(itertools.chain(*advantage_)))
         G_ts_ = np.array(list(itertools.chain(*G_ts_)))
         exp_actions = np.array(list(itertools.chain(*exp_actions)))
-        
-        print (" Shape states: ", states.shape)
-        print (" Shape Actions: ", actions.shape)
-        print (" Shape result states: ", resultStates.shape)
-        print (" Shape rewards_: ", rewards_.shape)
-        print (" Shape falls: ", falls_.shape)
-        print (" Shape G_ts_: ", G_ts_.shape)
-        print (" Shape advantage: ", advantage_.shape)
-        print (" Shape exp_actions: ", exp_actions.shape)
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+            print (" Shape states: ", states.shape)
+            print (" Shape Actions: ", actions.shape)
+            print (" Shape result states: ", resultStates.shape)
+            print (" Shape rewards_: ", rewards_.shape)
+            print (" Shape falls: ", falls_.shape)
+            print (" Shape G_ts_: ", G_ts_.shape)
+            print (" Shape advantage: ", advantage_.shape)
+            print (" Shape exp_actions: ", exp_actions.shape)
         
         scale_factor = 1.0
         
@@ -120,9 +120,10 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             reward_stddev = np.std(rewards_[:settings['bootstrap_samples']], axis=0)
             action_avg = np.mean(actions[:settings['bootstrap_samples']], axis=0)
             action_stddev = np.std(actions[:settings['bootstrap_samples']], axis=0)
-            print("Computed state min bound: ", state_avg - state_stddev)
-            print("Computed state max bound: ", state_avg + state_stddev)
-            print ("(state_avg - (state_stddev * ", scale_factor, ")): ", (state_avg - (state_stddev * scale_factor)))
+            if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                print("Computed state min bound: ", state_avg - state_stddev)
+                print("Computed state max bound: ", state_avg + state_stddev)
+                print ("(state_avg - (state_stddev * ", scale_factor, ")): ", (state_avg - (state_stddev * scale_factor)))
             if ("use_dual_state_representations" in settings
                 and (settings["use_dual_state_representations"] == True)):
                 state_bounds = [ (state_avg - (state_stddev * scale_factor))[0],
@@ -141,20 +142,21 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         state_bounds = np.array(state_bounds, dtype=settings['float_type'])
         reward_bounds = np.array(reward_bounds, dtype=settings['float_type'])
         action_bounds = np.array(action_bounds, dtype=settings['float_type'])
-            
-        # print ("State Mean:" + str(state_avg))
-        # print ("State Variance: " + str(state_stddev))
-        # print ("Reward Mean:" + str(reward_avg))
-        # print ("Reward Variance: " + str(reward_stddev))
-        # print ("Action Mean:" + str(action_avg))
-        # print ("Action Variance: " + str(action_stddev))
-        print ("State Length:" + str(len(state_bounds[1])))
-        print ("Max State:" + str(state_bounds[1]))
-        print ("Min State:" + str(state_bounds[0]))
-        print ("Max Reward:" + str(reward_bounds[1]))
-        print ("Min Reward:" + str(reward_bounds[0]))
-        print ("Max Action:" + str(action_bounds[1]))
-        print ("Min Action:" + str(action_bounds[0]))
+
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):            
+            # print ("State Mean:" + str(state_avg))
+            # print ("State Variance: " + str(state_stddev))
+            # print ("Reward Mean:" + str(reward_avg))
+            # print ("Reward Variance: " + str(reward_stddev))
+            # print ("Action Mean:" + str(action_avg))
+            # print ("Action Variance: " + str(action_stddev))
+            print ("State Length:" + str(len(state_bounds[1])))
+            print ("Max State:" + str(state_bounds[1]))
+            print ("Min State:" + str(state_bounds[0]))
+            print ("Max Reward:" + str(reward_bounds[1]))
+            print ("Min Reward:" + str(reward_bounds[0]))
+            print ("Max Action:" + str(action_bounds[1]))
+            print ("Min Action:" + str(action_bounds[0]))
         
         experience.setStateBounds(state_bounds)
         experience.setRewardBounds(reward_bounds)
@@ -195,8 +197,9 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                 # print ("Tuple with reward: " + str(reward_) + " skipped")
         # sys.exit()
     else: ## Most likely performing continuation learning
-        print ("Skipping bootstrap samples from simulation")
-        print ("State length: ", len(model.getStateBounds()[0]))
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+            print ("Skipping bootstrap samples from simulation")
+            print ("State length: ", len(model.getStateBounds()[0]))
         if settings['action_space_continuous']:
             experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
         else:

@@ -65,7 +65,8 @@ class SimWorker(Process):
             and (not (self._settings["forward_dynamics_model_type"] == "SingleNet"))):
             state_bounds = [[0] * self._settings["fd_num_terrain_features"], 
                                      [1] * self._settings["fd_num_terrain_features"]]
-        print("fd state bounds:", state_bounds)
+        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            print("fd state bounds:", state_bounds)
         action_bounds = self._settings['action_bounds']
         
         forwardDynamicsModel = None
@@ -178,9 +179,9 @@ class SimWorker(Process):
         print ("Received initial policy update.")
         message = episodeData['type']
         if message == "Update_Policy":
-            print ("First Message: ", message)
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                print ("First Message: ", message)
             data = episodeData['data']
-            print ("got data: ")
             """
             poli_params = []
             for i in range(len(data[5])):
@@ -190,19 +191,21 @@ class SimWorker(Process):
                     net_params.append(np.array(data[5][i][j], dtype='float32'))
                 poli_params.append(net_params)
                 """
-            print("Setting net params")
+            # print("Setting net params")
             self._model.getPolicy().setNetworkParameters(data[5])
-            print ("First Message: ", "Updated policy parameters")
+            # print ("First Message: ", "Updated policy parameters")
             if (self._settings['train_forward_dynamics']):
                 self._model.getForwardDynamics().setNetworkParameters(data[6])
             self._p = data[1]
             self._model.setStateBounds(data[2])
             self._model.setActionBounds(data[3])
             self._model.setRewardBounds(data[4])
-            print ("Sim worker:", os.getpid(), " State Bounds: ", self._model.getStateBounds())
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                print ("Sim worker:", os.getpid(), " State Bounds: ", self._model.getStateBounds())
             print ("Initial policy ready:")
             # print ("sim worker p: " + str(self._p))
-        print ('Worker: started')
+        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            print ('Worker: started')
         # do some initialization here
         while True:
             eval=False

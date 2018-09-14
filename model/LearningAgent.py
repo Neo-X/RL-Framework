@@ -89,6 +89,8 @@ class LearningAgent(AgentInterface):
         loss = 0
         import numpy as np
         
+        print ("****** state bounds mean ***: ", np.mean(self.getFDExperience().getStateBounds()))
+        print ("****** fd exp mem insters ***: ", self.getFDExperience().inserts())
         # print ("Bounds comparison: ", self._pol.getStateBounds(), " exp mem: ", 
         #        self._expBuff.getStateBounds())
         # print ("Bounds comparison: ", self._pol.getActionBounds(), " exp mem: ", 

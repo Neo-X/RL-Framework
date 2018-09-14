@@ -215,6 +215,29 @@ def trainModelParallel(inputData):
             
         exp_val = None
         
+        ### Try and load previous data
+        if (settings["load_saved_model"] == True and
+            (settings["save_experience_memory"] == "continual")):
+            
+            ### load training data
+            from util.SimulationUtil import getDataDirectory
+            directory= getDataDirectory(settings)
+            file_name_ = directory+"trainingData_" + str(settings['agent_name']) + ".json"
+            if os.path.exists(file_name_):
+                fp = open(file_name_, 'r')
+                # print ("Train data: ", trainData)
+                trainData = json.load(fp)
+                fp.close()
+                
+                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                    print ("Loading training data")
+                    print ("Round: ", trainData["round"])
+                    # sys.exit()
+            else:
+                ### Actually this is the first run..
+                settings["load_saved_model"] = False
+                
+        
         ### Keep forward models on the CPU
         
         ### These are the workers for training
@@ -542,30 +565,18 @@ def trainModelParallel(inputData):
         if (settings["load_saved_model"] == True and
             (settings["save_experience_memory"] == "continual")):
             ### load exp mem
-            if (settings["save_experience_memory"] == "continual"):
-                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                    print ("Loading Experience memory")
-                file_name=directory+getAgentName()+"_expBufferInit.hdf5"
-                masterAgent.getExperience().loadFromFile(file_name)
-                if (settings['train_forward_dynamics']):
-                    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                        print ("Loading Experience FD memory")
-                    file_name=directory+getAgentName()+"_FD_expBufferInit.hdf5"
-                    masterAgent.getFDExperience().loadFromFile(file_name)
-            
-            ### load training data
-            fp = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", 'r')
-            # print ("Train data: ", trainData)
-            trainData = json.load(fp)
-            fp.close()
-            
             if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                print ("Loading training data")
-                print ("Round: ", trainData["round"])
-                # sys.exit()
+                print ("Loading Experience memory")
+            file_name=directory+getAgentName()+"_expBufferInit.hdf5"
+            masterAgent.getExperience().loadFromFile(file_name)
+            if (settings['train_forward_dynamics']):
+                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                    print ("Loading Experience FD memory")
+                file_name=directory+getAgentName()+"_FD_expBufferInit.hdf5"
+                masterAgent.getFDExperience().loadFromFile(file_name)
+                # print ("****** state bounds mean: ", np.mean(masterAgent.getFDExperience().getStateBounds()))
+                print ("****** fd exp mem insters ***: ", masterAgent.getFDExperience().inserts())
             
-                
-        
         if (not validBounds(action_bounds)):
             # Check that the action bounds are spcified correctly
             print("Action bounds invalid: ", action_bounds)
@@ -620,7 +631,7 @@ def trainModelParallel(inputData):
         masterAgent_message_queue = multiprocessing.Queue(settings['epochs'])
         
         if (settings['train_forward_dynamics']):
-            if ( not settings['load_saved_model'] ):
+            if ( settings['load_saved_model'] == False ):
                 if ("use_dual_dense_state_representations" in settings
                 and (settings["use_dual_dense_state_representations"] == True)):
                     forwardDynamicsModel.setStateBounds(state_bounds)

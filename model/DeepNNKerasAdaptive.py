@@ -167,7 +167,8 @@ class DeepNNKerasAdaptive(ModelInterface):
         self._actionInput = self._Action
         # input.trainable = True
         
-        print ("self._stateInput ",  self._stateInput)
+        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            print ("self._stateInput ",  self._stateInput)
         inputAct = self._State
         
         ### It is complicated to serialize lambda functions, better to define a function
@@ -208,7 +209,8 @@ class DeepNNKerasAdaptive(ModelInterface):
         else:
             ### Number of layers and sizes of layers        
             layer_sizes = self._settings['policy_network_layer_sizes']
-            print ("Actor Network layer sizes: ", layer_sizes)
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                print ("Actor Network layer sizes: ", layer_sizes)
             networkAct = inputAct
             
             if ( self._dropout_p > 0.001 
@@ -265,8 +267,8 @@ class DeepNNKerasAdaptive(ModelInterface):
             # print("Actor summary: ", self._actor.summary())
             
         layer_sizes = self._settings['critic_network_layer_sizes']
-        
-        print ("Critic Network layer sizes: ", layer_sizes)
+        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            print ("Critic Network layer sizes: ", layer_sizes)
         network = self._stateInput
         """
         if ( self._dropout_p > 0.001 ):
@@ -277,7 +279,8 @@ class DeepNNKerasAdaptive(ModelInterface):
             
         if ( "use_single_network" in self._settings and 
              (self._settings['use_single_network'] == True)):
-            print ("Using a single network model")
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                print ("Using a single network model")
             if ("split_single_net_earlier" in self._networkSettings and 
                     self._networkSettings["split_single_net_earlier"] == True):
                 self._second_last_layer_ = Dense(layer_sizes[len(layer_sizes)-1],
@@ -374,8 +377,9 @@ class DeepNNKerasAdaptive(ModelInterface):
         layer_sizes = layer_info
         for i in range(len(layer_sizes)):
             self._second_last_layer = network
-            print ("layer_sizes[",i,"]: ", layer_sizes[i])
-            print ("shape: ", repr(keras.backend.int_shape(network)))
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                print ("layer_sizes[",i,"]: ", layer_sizes[i])
+                print ("shape: ", repr(keras.backend.int_shape(network)))
             if type(layer_sizes[i]) is list:
                 if (layer_sizes[i][0] == "LSTM"):
                     # print ("layer.output_shape: ", keras.backend.shape(network))
@@ -392,8 +396,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                     input_ = keras.layers.Input(shape=(1, self._state_length), name="State_Conv")
                     subnet = self.createSubNetwork(input_, layer_sizes[i][2])
                     subnet = Model(inputs=input_, outputs=subnet)
-                    print("Subnet summary")
-                    subnet.summary()
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print("Subnet summary")
+                        subnet.summary()
                     # subnet = Dense(8)
                     network = keras.layers.TimeDistributed(subnet, input_shape=(None, 31, 4096))(input)
                     # network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))
@@ -542,7 +547,8 @@ class DeepNNKerasAdaptive(ModelInterface):
     def compile(self):
         self._actor = Model(inputs=[self.getStateSymbolicVariable()], 
                             outputs=self._actor)
-        print("Net summary: ", self._actor.summary())
+        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+            print("Net summary: ", self._actor.summary())
         sgd = keras.optimizers.Adam(lr=np.float32(0.0001), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(0.000001), decay=np.float32(0.0))
         self._actor.compile(loss='mse', optimizer=sgd)
         

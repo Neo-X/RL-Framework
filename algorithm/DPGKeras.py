@@ -34,17 +34,21 @@ class DPGKeras(KERASAlgorithm):
         super(DPGKeras,self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
 
         self._model._actor = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=self._model._actor)
-        print("Actor summary: ", self._model._actor.summary())
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("Actor summary: ", self._model._actor.summary())
         self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable(),
                                               self._model.getActionSymbolicVariable()], outputs=self._model._critic)
-        print("Critic summary: ", self._model._critic.summary())
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("Critic summary: ", self._model._critic.summary())
         
         self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
         self._modelTarget._actor = Model(inputs=[self._modelTarget.getStateSymbolicVariable()], outputs=self._modelTarget._actor)
-        print("Target Actor summary: ", self._modelTarget._actor.summary())
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("Target Actor summary: ", self._modelTarget._actor.summary())
         self._modelTarget._critic = Model(inputs=[self._modelTarget.getStateSymbolicVariable(),
                                                   self._modelTarget.getActionSymbolicVariable()], outputs=self._modelTarget._critic)
-        print("Target Critic summary: ", self._modelTarget._critic.summary())
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("Target Critic summary: ", self._modelTarget._critic.summary())
         
         
         self._discount_factor= self.getSettings()['discount_factor']
@@ -52,11 +56,13 @@ class DPGKeras(KERASAlgorithm):
         self._rms_epsilon = self.getSettings()['rms_epsilon']
 
         sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
-        print ("Clipping: ", sgd.decay)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Clipping: ", sgd.decay)
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
         
         sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
-        print ("Clipping: ", sgd.decay)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Clipping: ", sgd.decay)
         self._modelTarget.getCriticNetwork().compile(loss='mse', optimizer=sgd)        
         
         DPGKeras.compile(self)
@@ -125,10 +131,12 @@ class DPGKeras(KERASAlgorithm):
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
                                     epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
                                     amsgrad=False)
-        print ("Clipping: ", sgd.decay)
-        print("sgd, critic: ", sgd)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Clipping: ", sgd.decay)
+            print("sgd, critic: ", sgd)
         self._combined.compile(loss=[neg_y], optimizer=sgd)
-        print("combined qFun Net summary: ",  self._combined.summary())
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("combined qFun Net summary: ",  self._combined.summary())
         
         if (self.getSettings()["regularization_weight"] > 0.0000001):
             self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
