@@ -527,12 +527,15 @@ def trainModelParallel(inputData):
                                sim_work_queues=input_anchor_queue, 
                                eval_episode_data_queue=eval_episode_data_queue)
             masterAgent.setExperience(experience)
+        fd_epxerience_length = settings['expereince_length']
+        if ("fd_expereince_length" in settings):
+            fd_epxerience_length = settings["fd_expereince_length"]
         if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
             masterAgent.setFDExperience(copy.deepcopy(masterAgent.getExperience()))
             if ("use_dual_state_representations" in settings
                 and (settings["use_dual_state_representations"] == True)
                 and (settings["forward_dynamics_model_type"] == "SingleNet")):
-                    experiencefd = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], 
+                    experiencefd = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), fd_epxerience_length, 
                                                     continuous_actions=True, settings = settings, result_state_length=settings["dense_state_size"])
                     res_state_bounds__ = np.array([[0] * settings["dense_state_size"], 
                                          [1] * settings["dense_state_size"]])
@@ -544,13 +547,13 @@ def trainModelParallel(inputData):
                 state_size__ = len(state_bounds[0])
                 if ("fd_num_terrain_features" in settings):
                     state_size__ = settings["fd_num_terrain_features"]
-                    experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), settings['expereince_length'], 
+                    experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 
                                                     continuous_actions=True, settings = settings)
                     state_bounds__ = np.array([[0] * state_size__, 
                                          [1] * state_size__])
                     experiencefd.setStateBounds(state_bounds__)
                 else:
-                    experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), settings['expereince_length'], 
+                    experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 
                                                     continuous_actions=True, settings = settings)
             if ("use_dual_dense_state_representations" in settings
                 and (settings["use_dual_dense_state_representations"] == True)):

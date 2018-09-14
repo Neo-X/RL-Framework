@@ -7,6 +7,7 @@ def getOptions(_args=None):
     parser.add_option("--load_saved_model", "--continue_training",
               action="store", dest="load_saved_model", default=None,
               # type=int,
+              choices=['true', 'false', 'best', 'last', None],
               metavar="STRING", 
               help="Should the system load a pretrained model [true|false|network_and_scales]")
     

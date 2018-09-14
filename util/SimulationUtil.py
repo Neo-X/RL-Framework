@@ -317,7 +317,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
             num_actions = len(action_bounds[0])
     
     directory= getDataDirectory(settings)
-    if (settings['load_saved_model'] == True):
+    if (settings['load_saved_model']):
         if ("learning_backend" in settings and 
             ((settings['learning_backend'] == "tensorflow")
              or (settings['learning_backend'] == "theano")
@@ -334,7 +334,10 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                 model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
                 model.setSettings(settings)
-                model.loadFrom(directory+getAgentName()+"_Best")
+                if (settings['load_saved_model'] == 'last'):
+                    model.loadFrom(directory+getAgentName())
+                else:
+                    model.loadFrom(directory+getAgentName()+"_Best")
                 print("Loaded algorithm: ", model)
                 # return model
             else:
@@ -343,12 +346,18 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
             # sys.exit(2)
         else:
             print ("Loading pre compiled network")
-            file_name=directory+getAgentName()+"_Best.pkl"
+            if (settings['load_saved_model'] == 'last'):
+                file_name=directory+getAgentName()+".pkl"
+            else:
+                file_name=directory+getAgentName()+"_Best.pkl"
             f = open(file_name, 'rb')
             model = dill.load(f)
             f.close()
             model.setSettings(settings)
-            model.loadFrom(directory+getAgentName()+"_Best")
+            if (settings['load_saved_model'] == 'last'):
+                model.loadFrom(directory+getAgentName())
+            else:
+                model.loadFrom(directory+getAgentName()+"_Best")
     elif ( "Deep_NN2" == algorihtm_type):
         from model.RLDeepNet import RLDeepNet
         model = RLDeepNet(n_in=len(state_bounds[0]), n_out=num_actions, state_bounds=state_bounds, 
@@ -925,7 +934,7 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
         forwardDynamicsModel = dill.load(open(file_name_dynamics))
     elif settings["forward_dynamics_predictor"] == "network":
         print ("Using forward dynamics method: " + str(settings["forward_dynamics_predictor"]))
-        if (settings['load_saved_model'] == True 
+        if (settings['load_saved_model'] 
             or ('load_saved_fd_model' in settings and 
              (settings['load_saved_fd_model'] == True))):
             print ("**** Loading pre compiled fd network")
@@ -954,7 +963,10 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                                            action_length=len(action_bounds[0]), state_bounds=state_bounds, 
                                   action_bounds=action_bounds, reward_bounds=reward_bounds, settings_=settings)
                     forwardDynamicsModel.setSettings(settings)
-                    forwardDynamicsModel.loadFrom(directory+"forward_dynamics"+"_Best")
+                    if (settings['load_saved_model'] == 'last'):
+                        forwardDynamicsModel.loadFrom(directory+"forward_dynamics")
+                    else:
+                        forwardDynamicsModel.loadFrom(directory+"forward_dynamics"+"_Best")
                     print("Loaded algorithm: ", forwardDynamicsModel)
                     # return model
                 else:
@@ -963,12 +975,18 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                 # sys.exit(2)
             else:
                 print ("Loading pre compiled network")
-                file_name=directory+getAgentName()+"_Best.pkl"
+                if (settings['load_saved_model'] == 'last'):
+                    file_name=directory+getAgentName()+".pkl"
+                else:
+                    file_name=directory+getAgentName()+"_Best.pkl"
                 f = open(file_name, 'rb')
                 forwardDynamicsModel = dill.load(f)
                 f.close()
                 forwardDynamicsModel.setSettings(settings)
-                forwardDynamicsModel.loadFrom(directory+"forward_dynamics"+"_Best")
+                if (settings['load_saved_model'] == 'last'):
+                    forwardDynamicsModel.loadFrom(directory+"forward_dynamics")
+                else:
+                    forwardDynamicsModel.loadFrom(directory+"forward_dynamics"+"_Best")
             print ("FD state bounds: ", forwardDynamicsModel.getStateBounds())
         else:
             if ( settings['forward_dynamics_model_type'] == "SingleNet"
