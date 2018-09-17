@@ -110,7 +110,7 @@ class ExperienceMemory(object):
         
     def get_multitask_trajectory_batch(self, batch_size=4, excludeActionTypes=[]):
         
-        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_trajectory_batch(batch_size=batch_size)
+        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_ = self.getFDExperience().get_trajectory_batch(batch_size=batch_size)
         
         ### Find length of shortest trajectory...
         shortest_traj = 10000000
@@ -126,8 +126,10 @@ class ExperienceMemory(object):
             reward_[t] = reward_[t][:shortest_traj]
             fall_[t] = fall_[t][:shortest_traj]
             G_ts_[t] = G_ts_[t][:shortest_traj]
-            exp_actions[t] = exp_actions[t][:shortest_traj]
+            exp_actions_[t] = exp_actions_[t][:shortest_traj]
             advantage_[t] = advantage_[t][:shortest_traj]
+            
+        return (state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_)
         
     def get_trajectory_batch(self, batch_size=4, excludeActionTypes=[]):
         """
