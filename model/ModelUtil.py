@@ -29,6 +29,7 @@ def chunks(l, n):
         
         
 def anneal_value(d, settings_):
+    import math
     """
         d is a value between 0 and 1.0 that is an indicator to 
         how close something is to the end or from the begining
