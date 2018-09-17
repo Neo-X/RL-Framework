@@ -65,8 +65,8 @@ class SimWorker(Process):
             and (not (self._settings["forward_dynamics_model_type"] == "SingleNet"))):
             state_bounds = [[0] * self._settings["fd_num_terrain_features"], 
                                      [1] * self._settings["fd_num_terrain_features"]]
-        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-            print("fd state bounds:", state_bounds)
+        # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+        #     print("fd state bounds:", state_bounds)
         action_bounds = self._settings['action_bounds']
         
         forwardDynamicsModel = None
