@@ -371,13 +371,21 @@ class ExperienceMemory(object):
         indices = set([])
         trys = 0
         ### collect batch and try at most 3 times the batch size for valid tuples
-        while len(indices) <  batch_size and (trys < batch_size*3):
+        while len(indices) <  batch_size and (trys < batch_size*5):
         # for i in indices:
             trys = trys + 1
             i = (random.sample(set(range(0, max_size))-indices, 1))[0]
             ## skip tuples that were not exploration actions
             if ( self._exp_action_history[i] in excludeActionTypes):
                 continue
+            ### Or if multitasking and only want to train policy on single task
+            # print ("self._fall_history[i]: ", self._fall_history[i])
+            if ( (type(self._settings["sim_config_file"]) is list)):
+                 
+                if ("worker_to_task_mapping" in self._settings
+                     and (self._settings["worker_to_task_mapping"][self._fall_history[i][0]] is not 0)):
+                    # print ("skipping non desired task tuple")
+                    continue
             indices.add(i)
             
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
