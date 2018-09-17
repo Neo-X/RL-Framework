@@ -110,7 +110,7 @@ class ExperienceMemory(object):
         
     def get_multitask_trajectory_batch(self, batch_size=4, excludeActionTypes=[]):
         
-        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_ = self.getFDExperience().get_trajectory_batch(batch_size=batch_size)
+        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_ = self.get_trajectory_batch(batch_size=4, cast=False)
         
         ### Find length of shortest trajectory...
         shortest_traj = 10000000
@@ -129,9 +129,22 @@ class ExperienceMemory(object):
             exp_actions_[t] = exp_actions_[t][:shortest_traj]
             advantage_[t] = advantage_[t][:shortest_traj]
             
+        state_ = np.array(state_, dtype=self._settings['float_type'])
+        if (self._continuous_actions):
+            action_ = np.array(action_, dtype=self._settings['float_type'])
+        else:
+            action_ = np.array(action_, dtype='int8')
+        resultState_ = np.array(resultState_, dtype=self._settings['float_type'])
+        reward_ = np.array(reward_, dtype=self._settings['float_type'])
+        G_ts_ = np.array(G_ts_, dtype=self._settings['float_type'])
+        advantage_ = np.array(advantage_, dtype=self._settings['float_type'])
+        
+        fall_ = np.array(fall_, dtype='int8')
+        exp_actions_ = np.array(exp_actions_, dtype='int8')
+            
         return (state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_)
         
-    def get_trajectory_batch(self, batch_size=4, excludeActionTypes=[]):
+    def get_trajectory_batch(self, batch_size=4, excludeActionTypes=[], cast=True):
         """
         len(experience > batch_size
         """
@@ -176,30 +189,20 @@ class ExperienceMemory(object):
             
         # print c
         # print experience[indices]
-        if (self._settings['float_type'] == 'float32'):
-            state = np.array(state, dtype='float32')
+        ### All sequences must be the same length for this to work
+        if (cast):
+            state = np.array(state, dtype=self._settings['float_type'])
             if (self._continuous_actions):
-                action = np.array(action, dtype='float32')
+                action = np.array(action, dtype=self._settings['float_type'])
             else:
                 action = np.array(action, dtype='int8')
-            resultState = np.array(resultState, dtype='float32')
-            reward = np.array(reward, dtype='float32')
-            # fall = np.array(fall, dtype='int8')
-            G_ts = np.array(G_ts, dtype='float32')
-            advantage = np.array(advantage, dtype='float32')
-        else:
-            state = np.array(state, dtype='float64')
-            if (self._continuous_actions):
-                action = np.array(action, dtype='float64')
-            else:
-                action = np.array(action, dtype='int8')
-            resultState = np.array(resultState, dtype='float64')
-            reward = np.array(reward, dtype='float64')
-            G_ts = np.array(G_ts, dtype='float64')
-            advantage = np.array(advantage, dtype='float32')
-        
-        fall = np.array(fall, dtype='int8')
-        exp_actions = np.array(exp_actions, dtype='int8')
+            resultState = np.array(resultState, dtype=self._settings['float_type'])
+            reward = np.array(reward, dtype=self._settings['float_type'])
+            G_ts = np.array(G_ts, dtype=self._settings['float_type'])
+            advantage = np.array(advantage, dtype=self._settings['float_type'])
+            
+            fall = np.array(fall, dtype='int8')
+            exp_actions = np.array(exp_actions, dtype='int8')
         
         # assert state.shape == (len(indices), self._state_length), "state.shape == (len(indices), self._state_length): " + str(state.shape) + " == " + str((len(indices), self._state_length))
         # assert action.shape == (len(indices), self._action_length), "action.shape == (len(indices), self._action_length): " + str(action.shape) + " == " + str((len(indices), self._action_length))
