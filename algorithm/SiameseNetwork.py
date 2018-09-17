@@ -147,6 +147,36 @@ def create_sequences(traj0, traj1):
         """
     
     return sequences0, sequences1, targets_
+
+def create_multitask_sequences(traj0, task_ids):
+    '''Positive and negative sequence creation.
+    Alternates between positive and negative pairs.
+    produces N sequences from two
+    
+    class ids are stored in task_ids
+    '''
+    noise_scale = 0.02
+    sequences0 = []
+    sequences1 = []
+    targets_ = []
+    for tr0, task_tr0 in zip(traj0, task_ids): ### for each trajectory pair
+        tar_shape = (len(tr0), 1)
+        
+        for tr1, task_tr1 in zip(traj0, task_ids): ### for each trajectory pair
+        
+            ### Noisy versions of the same trajectories
+            sequences0.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr1.shape))
+            if (task_tr0[0] == task_tr1[0]): ### same task
+                targets = np.ones(tar_shape)
+            else:
+                targets = np.zeros(tar_shape)
+                
+            targets_.append(np.clip(targets + np.random.normal(loc=0, scale=noise_scale, size=tar_shape), 0.01, 0.98))
+        
+        
+    
+    return sequences0, sequences1, targets_
         
 def create_pairs2(x):
     '''Positive and negative pair creation.
@@ -280,7 +310,7 @@ class SiameseNetwork(KERASAlgorithm):
         # self.setData(states, actions)
         return self._get_grad_reward([states, actions, 0])[0]
                 
-    def train(self, states, actions, result_states, rewards, updates=1, batch_size=None):
+    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None):
         """
             states will come for the agent and
             results_states can come from the imitation agent
@@ -292,7 +322,10 @@ class SiameseNetwork(KERASAlgorithm):
         if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
             ### result states can be from the imitation agent.
-            sequences0, sequences1, targets_ = create_sequences(states, result_states)
+            if (falls is None):
+                sequences0, sequences1, targets_ = create_sequences(states, result_states)
+            else:
+                sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls)
             sequences0 = np.array(sequences0)
             # print ("sequences0 shape: ", sequences0.shape)
             sequences1 = np.array(sequences1)
