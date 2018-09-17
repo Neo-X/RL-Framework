@@ -89,8 +89,8 @@ class LearningAgent(AgentInterface):
         loss = 0
         import numpy as np
         
-        print ("****** state bounds mean ***: ", np.mean(self.getFDExperience().getStateBounds()))
-        print ("****** fd exp mem insters ***: ", self.getFDExperience().inserts())
+        # print ("****** state bounds mean ***: ", np.mean(self.getFDExperience().getStateBounds()))
+        # print ("****** fd exp mem insters ***: ", self.getFDExperience().inserts())
         # print ("Bounds comparison: ", self._pol.getStateBounds(), " exp mem: ", 
         #        self._expBuff.getStateBounds())
         # print ("Bounds comparison: ", self._pol.getActionBounds(), " exp mem: ", 
@@ -305,6 +305,16 @@ class LearningAgent(AgentInterface):
                         dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print ("Forward Dynamics Loss: ", dynamicsLoss)
+                            
+                    ### Updates over Multi-task data
+                    if (type(self._settings["sim_config_file"]) == list):
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print ("Additional Multi-task training: ")
+                        for e in range(updates___):   
+                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm_fd)
+                            dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_, falls=fall_)
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print ("Forward Dynamics Loss: ", dynamicsLoss)
                     
                 # pass
                 # print("Not Falls: ", _falls)
