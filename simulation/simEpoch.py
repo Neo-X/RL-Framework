@@ -409,7 +409,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     reward_ = np.exp((reward__*reward__)*-5.0)
             else:
                     reward__ = exp.computeImitationReward(model.getForwardDynamics().predict)
-                    reward_ = np.exp((reward__*reward__)*-5.0)
+                    if ( "last_fd_layer_activation_type" in settings
+                         and (settings["last_fd_layer_activation_type"] == "sigmoid")):
+                        reward_ = -1.0 * reward__
+                    else:
+                        reward_ = np.exp((reward__*reward__)*-5.0)
                 
         if ("use_learned_fast_function" in settings
             and (settings["use_learned_fast_function"] == True)):
