@@ -216,7 +216,8 @@ def trainModelParallel(inputData):
         exp_val = None
         
         ### Try and load previous data
-        if (settings["load_saved_model"] == True and
+        if ( ((settings["load_saved_model"] == True)
+              or (settings["load_saved_model"] == 'last')) and
             (settings["save_experience_memory"] == "continual")):
             
             ### load training data
