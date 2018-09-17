@@ -733,7 +733,7 @@ def trainModelParallel(inputData):
             k = title.rfind(".") + 1
             if (k > len(title)): ## name does not contain a .
                 k = 0 
-            title = settings['sim_config_file']
+            title = str(settings['sim_config_file'])
             if (settings['environment_type'] == "open_AI_Gym"):
                 settings['environment_type'] = settings['sim_config_file']
             rlv = RLVisualize(title=title + " agent on " + str(settings['environment_type']), settings=settings)
