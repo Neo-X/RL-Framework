@@ -13,8 +13,8 @@
 "param_data_type": ["set"],
 	"comment__": "Number of samples to evaluation between the given bounds",
 "num_param_samples": [[
-						[ ["TimeDistributedConv", [31,1,64,64], [["Reshape", [1, 64, 64]], [16, [6, 6], [3, 3]], ["dropout", 0.2], [32, [4, 4], [2, 2]], ["dropout", 0.2], [32, [3, 3], [1, 1]], "flatten_features", "mark_middle", 256]], ["LSTM", 256, 64], 64], 
-						[ ["TimeDistributedConv", [31,1,64,64], [["Reshape", [1, 64, 64]], [16, [6, 6], [3, 3]], ["dropout", 0.2], [32, [4, 4], [2, 2]], ["dropout", 0.2], [32, [3, 3], [1, 1]], "flatten_features", "mark_middle", 256]], ["GRU", 256, 64], 64]
+						[ ["TimeDistributedConv", [31,1,128,128], [["Reshape", [1, 128, 128]], [16, [10, 10], [5, 5]], ["dropout", 0.2], [32, [5, 5], [2, 2]], ["dropout", 0.2], [32, [3, 3], [1, 1]], "flatten_features", "mark_middle", 256]], ["LSTM", 256, 64], 64], 
+						[ ["TimeDistributedConv", [31,1,128,128], [["Reshape", [1, 128, 128]], [16, [10, 10], [5, 5]], ["dropout", 0.2], [32, [5, 5], [2, 2]], ["dropout", 0.2], [32, [3, 3], [1, 1]], "flatten_features", "mark_middle", 256]], ["GRU", 256, 64], 64]
 						]],
 	"comment__": "The fully qualified name of the mail server to use",
 "mail_server_name": "smtp.gmail.com:587",
