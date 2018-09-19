@@ -819,7 +819,7 @@ def trainModelParallel(inputData):
                 p = ((settings['initial_temperature']/math.log(trainData["round"]+2))) 
             # p = ((rounds - trainData["round"])/rounds) ** 2
             p = max(settings['min_epsilon'], min(settings['epsilon'], p)) # Keeps it between 1.0 and 0.2
-            if ( settings['load_saved_model'] ):
+            if ( settings['load_saved_model'] == True):
                 p = settings['min_epsilon']
                 
             # pr = cProfile.Profile()
