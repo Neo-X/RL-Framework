@@ -393,7 +393,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = LSTM(layer_sizes[i][2], stateful=self._stateful_lstm)(network)
                 elif (layer_sizes[i][0] == "GRU"):
                     # print ("layer.output_shape: ", keras.backend.shape(network))
-                    network = Reshape((1, layer_sizes[i][1]))(network)
+                    # network = Reshape((1, layer_sizes[i][1]))(network)
                     network = GRU(layer_sizes[i][2], stateful=self._stateful_lstm)(network)
                 elif (layer_sizes[i][0] == "Reshape"):
                     network = Reshape(layer_sizes[i][1])(network)
