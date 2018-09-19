@@ -1097,7 +1097,7 @@ def trainModelParallel(inputData):
                             trainData["std_forward_dynamics_reward_loss"].append(std_dynamicsRewardLosses)
                     ### Lets always save a figure for the learning...
                     if ( settings['save_trainData'] and (not settings['visualize_learning'])):
-                        rlv_ = RLVisualize(title=settings['sim_config_file'] + " agent on " + str(settings['environment_type']), settings=settings)
+                        rlv_ = RLVisualize(title=str(settings['sim_config_file']) + " agent on " + str(settings['environment_type']), settings=settings)
                         rlv_.init()
                         rlv_.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
                         rlv_.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
@@ -1117,7 +1117,7 @@ def trainModelParallel(inputData):
                     
                     if (settings['train_forward_dynamics'] and settings['save_trainData']
                         and (not settings['visualize_learning'])):
-                        nlv_ = NNVisualize(title=str("Dynamics Model") + " with " + settings['sim_config_file'], settings=settings)
+                        nlv_ = NNVisualize(title=str("Dynamics Model") + " with " + str(settings['sim_config_file']), settings=settings)
                         nlv_.init()
                         nlv_.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
                         nlv_.redraw()
@@ -1125,7 +1125,7 @@ def trainModelParallel(inputData):
                         nlv_.finish()
                         del nlv_
                         if (settings['train_reward_predictor']):
-                            rewardlv_ = NNVisualize(title=str("Reward Model") + " with " + settings['sim_config_file'], settings=settings)
+                            rewardlv_ = NNVisualize(title=str("Reward Model") + " with " + str(settings['sim_config_file']), settings=settings)
                             rewardlv_.init()
                             rewardlv_.updateLoss(np.array(trainData["mean_forward_dynamics_reward_loss"]), np.array(trainData["std_forward_dynamics_reward_loss"]))
                             rewardlv_.redraw()
