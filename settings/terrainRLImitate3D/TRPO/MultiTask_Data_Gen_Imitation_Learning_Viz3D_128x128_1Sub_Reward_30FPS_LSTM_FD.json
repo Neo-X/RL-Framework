@@ -2,7 +2,7 @@
 	"comment__": "Type of model/network to use for the actor and critic",
 "model_type": "model.DeepNNKerasAdaptive.DeepNNKerasAdaptive",
     "comment__": "Learning algorithm to use",
-"agent_name": "algorithm.CACLA_KERAS.CACLA_KERAS",
+"agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
 "data_folder": "PD_Humanoid_3D_Viz3D_128x128_1Sub_Imitate_30FPS_DualState_v0/LSTM_FD_T128_0",
 	"comment": "initial probability of selecting a random action",
