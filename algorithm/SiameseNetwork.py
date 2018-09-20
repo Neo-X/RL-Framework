@@ -380,6 +380,7 @@ class SiameseNetwork(KERASAlgorithm):
                     # print ("lstm train loss: ", score.history['loss'])
                     loss_.append(np.mean(score.history['loss']))
             else:
+                print ("targets_[:,:,0]: ", targets_[:,:,0])
                 score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets_[:,:,0]],
                               epochs=1, 
                               # batch_size=sequences0.shape[0],
