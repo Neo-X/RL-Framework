@@ -340,7 +340,7 @@ class SiameseNetwork(KERASAlgorithm):
             and (self.getSettings()["replace_next_state_with_imitation_viz_state"] == True)):
             states_ = np.concatenate((states, result_states), axis=0)
         if (("train_LSTM_FD" in self._settings)
-                    and (self._settings["train_LSTM_FD"] == True)):
+            and (self._settings["train_LSTM_FD"] == True)):
             ### result states can be from the imitation agent.
             if (falls is None):
                 sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
