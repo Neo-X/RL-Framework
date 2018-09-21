@@ -45,8 +45,13 @@ def setupEnvironmentVariable(settings):
         
     ### Setup GPU resources
     if ("GPU_BUS_Index" in settings):
-        os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-        os.environ["CUDA_VISIBLE_DEVICES"] = settings["GPU_BUS_Index"]
+        if ("force_sim_net_to_cpu" in self._settings
+                and (self._settings["force_sim_net_to_cpu"] == True)):
+            os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+            os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+        else:
+            os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+            os.environ["CUDA_VISIBLE_DEVICES"] = settings["GPU_BUS_Index"]
         # os.environ["CUDA_VISIBLE_DEVICES"] = getGPUBusIndex(index=int(settings["GPU_BUS_Index"]))
         
     ### Reduce the use of OpenMPI in numpy

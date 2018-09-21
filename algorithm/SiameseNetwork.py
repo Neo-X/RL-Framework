@@ -154,6 +154,8 @@ def create_sequences(traj0, traj1, settings):
         sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets = np.zeros(tar_shape) + compare_adjustment
         targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
+        
+        # print ("Created trajectories: ", len(targets_))
     
     return sequences0, sequences1, targets_
 
