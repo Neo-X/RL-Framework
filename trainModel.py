@@ -1083,7 +1083,7 @@ def trainModelParallel(inputData):
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     # trainData["mean_bellman_error"].append(np.mean(np.fabs(mean_bellman_error)))
                     trainData["mean_bellman_error"].append(np.mean([np.mean(np.fabs(er_)) for er_ in bellman_errors]))
-                    trainData["std_bellman_error"].append(np.std(bellman_errors))
+                    trainData["std_bellman_error"].append(np.mean([np.std(er_) for er_ in bellman_errors]))
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     bellman_errors=[]
                     trainData["mean_discount_error"].append(mean_discount_error)
@@ -1147,8 +1147,8 @@ def trainModelParallel(inputData):
                             rewardlv.setInteractive()
                     if (settings['debug_critic']):
                         
-                        mean_criticLosses = np.mean(criticLosses)
-                        std_criticLosses = np.std(criticLosses)
+                        mean_criticLosses = np.mean([np.mean(cl) for cl in criticLosses])
+                        std_criticLosses = np.mean([np.std(acl) for acl in criticLosses])
                         trainData["mean_critic_loss"].append(mean_criticLosses)
                         trainData["std_critic_loss"].append(std_criticLosses)
                         criticLosses = []
@@ -1173,8 +1173,8 @@ def trainModelParallel(inputData):
                         
                     if (settings['debug_actor']):
                         
-                        mean_actorLosses = np.mean(actorLosses)
-                        std_actorLosses = np.std(actorLosses)
+                        mean_actorLosses = np.mean([np.mean(acL) for acL in actorLosses])
+                        std_actorLosses = np.mean([np.std(acl) for acl in actorLosses])
                         trainData["mean_actor_loss"].append(mean_actorLosses)
                         trainData["std_actor_loss"].append(std_actorLosses)
                         actorLosses = []
