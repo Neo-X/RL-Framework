@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.DPGKeras.DPGKeras",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_3D_Viz3D_128x128_1Sub_Imitate_30FPS_DualState_v0/MultiTask_TheWorks_LSTM_FD_T128_0",
+"data_folder": "PD_Humanoid_3D_Viz3D_128x128_1Sub_Imitate_30FPS_DualState_v0/MultiTask_Encode_TheWorks_LSTM_FD_T128_0",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -536,7 +536,5 @@
 	"comment__": "A mapping from working_id to task id",
 "worker_to_task_mapping": [0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 	"comment__": "A small offset for comparing states that we now are imperfect comparisons",
-"imperfect_compare_offset": 0.2,
-	"comment__": "Return LSTM hidden state and cell state",
-"return_lstm_state": true
+"imperfect_compare_offset": 0.1
 }
