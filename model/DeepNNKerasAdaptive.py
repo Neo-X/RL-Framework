@@ -119,6 +119,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     self._State = keras.layers.Input(shape=(None, self._state_length), name="State")
         else:
             self._State = keras.layers.Input(shape=(self._state_length,), name="State")
+            self._State_backup = self._State
             
         
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
@@ -268,7 +269,43 @@ class DeepNNKerasAdaptive(ModelInterface):
             # self._actor = Model(input=input_, output=self._actor)
             # self._actor = Model(input=[self._stateInput, self._actionInput], output=self._actor)
             # print("Actor summary: ", self._actor.summary())
+        """
+        if (("train_LSTM_Reward" in self._settings)
+                and (self._settings["train_LSTM_Reward"] == True)):
+            if ("simulation_model" in self._settings and
+                (self._settings["simulation_model"] == True)):
+                if (self._stateful_lstm):
+                    self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, self._state_length), name="State")
+                else:
+                    self._State = keras.layers.Input(shape=(None, self._state_length), name="State")
+            else:
+                if (self._stateful_lstm):
+                    self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="State")
+                else:
+                    self._State = keras.layers.Input(shape=(None, self._state_length), name="State")
+        else:
+            self._State = keras.layers.Input(shape=(self._state_length,), name="State")
             
+        
+        # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
+        # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
+        # self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState", batch_shape=(32,self._state_length))
+        if (("train_LSTM_Reward" in self._settings)
+                and (self._settings["train_LSTM_Reward"] == True)):
+            if ("simulation_model" in self._settings and
+                (self._settings["simulation_model"] == True)):
+                if (self._stateful_lstm):
+                    self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(1, 1, self._state_length), name="ResultState")
+                else:
+                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState")
+            else:
+                if (self._stateful_lstm):
+                    self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="ResultState")
+                else:
+                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState")
+        else:
+            self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
+        """
         layer_sizes = self._settings['critic_network_layer_sizes']
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
             print ("Critic Network layer sizes: ", layer_sizes)
@@ -399,14 +436,21 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = Reshape(layer_sizes[i][1])(network)
                 elif (layer_sizes[i][0] == "TimeDistributedConv"):
                     
+                    # input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name="State_Conv")
                     input_ = keras.layers.Input(shape=(1, self._state_length), name="State_Conv")
-                    subnet = self.createSubNetwork(input_, layer_sizes[i][2])
-                    subnet = Model(inputs=input_, outputs=subnet)
+                    print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
+                    if ("fd" == layer_sizes[i][2]):
+                        subnet = self._actor
+                        # subnet = Model(inputs=self._State_backup, outputs=subnet)
+                    else:
+                        subnet = self.createSubNetwork(input_, layer_sizes[i][2])
+                        subnet = Model(inputs=input_, outputs=subnet)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Subnet summary")
-                        subnet.summary()
+                        # subnet.summary()
                     # subnet = Dense(8)
-                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 31, 4096))(input)
+                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 31, 16384))(input)
+                    
                     # network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))
                 elif (layer_sizes[i][0] == "TimeDistributed"):
                     network = keras.layers.TimeDistributed(input_shape=(40, 31, 4096))(network)
