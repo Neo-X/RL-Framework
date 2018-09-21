@@ -8,6 +8,7 @@ theano.config.floatX='float32'
 import numpy as np
 import sys
 import json
+from dill.settings import settings
 sys.path.append('../')
 import dill
 import datetime
@@ -113,7 +114,12 @@ def trainForwardDynamics(settings):
     else:
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
     experience.setSettings(settings)
-    file_name=directory+getAgentName()+"_expBufferInit.hdf5"
+    if ("keep_seperate_fd_exp_buffer" in settings
+        and (settings["keep_seperate_fd_exp_buffer"] == True)):
+        file_name=directory+getAgentName()+"_FD_expBufferInit.hdf5"
+    else:
+        file_name=directory+getAgentName()+"_expBufferInit.hdf5"
+        
     # experience.saveToFile(file_name)
     experience.loadFromFile(file_name)
     state_bounds = experience._state_bounds
@@ -122,9 +128,11 @@ def trainForwardDynamics(settings):
     res_state_bounds__ = state_bounds
     if ("use_dual_state_representations" in settings
         and (settings["use_dual_state_representations"] == True)):
+        """
         res_state_bounds__ = np.array([[-1] * settings["dense_state_size"], 
                              [1] * settings["dense_state_size"]])
         experience.setResultStateBounds(res_state_bounds__)
+        """
         _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(min(experience.samples(), settings["expereince_length"]))
         
         ### Usually the state and next state are the same size, not in this case...
@@ -224,10 +232,17 @@ def trainForwardDynamics(settings):
             else:
                 if (("train_LSTM_FD" in settings)
                     and (settings["train_LSTM_FD"] == True)):
-                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_trajectory_batch(batch_size=4)
+                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=4)
                     dynamicsLoss = forwardDynamicsModel.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_)
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                         print ("Forward Dynamics Loss: ", dynamicsLoss)
+                    if (type(settings["sim_config_file"]) == list):
+                        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                                print ("Additional Multi-task training: ")
+                        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=(4**2))
+                        dynamicsLoss = forwardDynamicsModel.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_, falls=fall_)
+                        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                            print ("Forward Dynamics Loss: ", dynamicsLoss)
                 else:
                     _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
                     # print("result state shape: ", np.asarray(_result_states).shape)
@@ -254,7 +269,7 @@ def trainForwardDynamics(settings):
         if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
             if (("train_LSTM_FD" in settings)
                 and (settings["train_LSTM_FD"] == True)):
-                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_trajectory_batch(batch_size=4)
+                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=4)
                 dynamicsLoss_ = forwardDynamicsModel.bellman_error(state_, action_, resultState_, reward_)
             else:
                 dynamicsLoss_ = forwardDynamicsModel.bellman_error(_states, _actions, _result_states, _rewards)

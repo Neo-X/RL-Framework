@@ -353,9 +353,9 @@ class SiameseNetwork(KERASAlgorithm):
             else:
                 sequences0, sequences1, targets_ = create_multitask_sequences(result_states, falls, self._settings)
                 ### clip batch to proper batch size
-                sequences0 = sequences0[:self._settings["lstm_batch_size"][1]]
-                sequences1 = sequences1[:self._settings["lstm_batch_size"][1]]
-                targets_ = targets_[:self._settings["lstm_batch_size"][1]] 
+                # sequences0 = sequences0[:self._settings["lstm_batch_size"][1]]
+                # sequences1 = sequences1[:self._settings["lstm_batch_size"][1]]
+                # targets_ = targets_[:self._settings["lstm_batch_size"][1]] 
             sequences0 = np.array(sequences0)
             # print ("sequences0 shape: ", sequences0.shape)
             sequences1 = np.array(sequences1)
