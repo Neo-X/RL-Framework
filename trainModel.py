@@ -946,7 +946,10 @@ def trainModelParallel(inputData):
                             dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(state_, action_, resultState_, reward_)
                         else:
                             dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
-                        dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
+                        if (type(dynamicsLoss) == 'list'):
+                            dynamicsLoss = np.mean([np.mean(np.fabs(dfl)) for dfl in dynamicsLoss])
+                        else:
+                            dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
                         dynamicsLosses.append(dynamicsLoss)
                         if (settings['train_reward_predictor']):
                             masterAgent.reset()
