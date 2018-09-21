@@ -444,12 +444,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                         # subnet = Model(inputs=self._State_backup, outputs=subnet)
                     else:
                         subnet = self.createSubNetwork(input_, layer_sizes[i][2])
-                        subnet = Model(inputs=input_, outputs=subnet)
+                        # subnet = Model(inputs=input_, outputs=subnet)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Subnet summary")
                         # subnet.summary()
                     # subnet = Dense(8)
-                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 31, 16384))(input)
+                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 31, 16384))(subnet)
                     
                     # network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))
                 elif (layer_sizes[i][0] == "TimeDistributed"):
