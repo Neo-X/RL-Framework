@@ -942,7 +942,7 @@ def trainModelParallel(inputData):
                             batch_size_lstm_fd = 4
                             if ("lstm_batch_size" in settings):
                                 batch_size_lstm_fd = settings["lstm_batch_size"][0]
-                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_trajectory_batch(batch_size=batch_size_lstm_fd)
+                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm_fd)
                             dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(state_, action_, resultState_, reward_)
                         else:
                             dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
