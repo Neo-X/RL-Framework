@@ -31,6 +31,10 @@ def euclidean_distance(vects):
     x, y = vects
     return K.sqrt(K.sum(K.square(x - y), axis=1, keepdims=True))
 
+def euclidean_distance_np(vects):
+    x, y = vects
+    return np.sqrt(np.sum(np.square(x - y), axis=1, keepdims=True))
+
 def eucl_dist_output_shape(shapes):
     shape1, shape2 = shapes
     return (shape1[0], 1)
@@ -269,7 +273,9 @@ class SiameseNetwork(KERASAlgorithm):
         # the weights of the network
         # will be shared across the two branches
         processed_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
+        self._model.processed_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a)
         processed_b = self._model._forward_dynamics_net(self._model.getResultStateSymbolicVariable())
+        self._model.processed_b = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_b)
         
         distance = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
 
@@ -380,8 +386,9 @@ class SiameseNetwork(KERASAlgorithm):
                     # print ("lstm train loss: ", score.history['loss'])
                     loss_.append(np.mean(score.history['loss']))
             else:
-                print ("targets_[:,:,0]: ", targets_[:,:,0])
-                score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets_[:,:,0]],
+                # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
+                targets__ = np.mean(targets_, axis=1)
+                score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets__],
                               epochs=1, 
                               # batch_size=sequences0.shape[0],
                               batch_size=sequences0.shape[0],
@@ -440,7 +447,11 @@ class SiameseNetwork(KERASAlgorithm):
         state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
         if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
-            state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
+            h_a = self._model.processed_a.predict([np.array([state])])
+            h_b = self._model.processed_b.predict([np.array([state2])])
+            state_ = euclidean_distance_np((h_a, h_b))[0]
+            print ("siamese dist: ", state_)
+            # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
             state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
         # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
@@ -508,6 +519,8 @@ class SiameseNetwork(KERASAlgorithm):
                     errors.append( compute_accuracy(predicted_y, y0) )
             else:
                 predicted_y = self._model._forward_dynamics_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
+                # print ("fd error, predicted_y: ", predicted_y)
+                targets__ = np.mean(targets_, axis=1)
                 errors.append( compute_accuracy(predicted_y, targets_) )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )

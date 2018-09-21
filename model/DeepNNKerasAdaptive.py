@@ -111,12 +111,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if (self._stateful_lstm):
                     self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, self._state_length), name="State")
                 else:
-                    self._State = keras.layers.Input(shape=(31, self._state_length), name="State")
+                    self._State = keras.layers.Input(shape=(None, self._state_length), name="State")
             else:
                 if (self._stateful_lstm):
                     self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="State")
                 else:
-                    self._State = keras.layers.Input(shape=(31, self._state_length), name="State")
+                    self._State = keras.layers.Input(shape=(None, self._state_length), name="State")
         else:
             self._State = keras.layers.Input(shape=(self._state_length,), name="State")
             
@@ -131,12 +131,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if (self._stateful_lstm):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(1, 1, self._state_length), name="ResultState")
                 else:
-                    self._ResultState = keras.layers.Input(shape=(31, self._result_state_length), name="ResultState")
+                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState")
             else:
                 if (self._stateful_lstm):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="ResultState")
                 else:
-                    self._ResultState = keras.layers.Input(shape=(31, self._result_state_length), name="ResultState")
+                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState")
         else:
             self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
         # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
