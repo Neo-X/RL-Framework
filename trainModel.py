@@ -900,6 +900,7 @@ def trainModelParallel(inputData):
                     masterAgent.reset()
                     error = masterAgent.bellman_error(states, actions, rewards, result_states, falls)
                     # print ("Error: ", error)
+                    # bellman_errors.append(np.mean(np.fabs(error)))
                     bellman_errors.append(error)
                     if (settings['debug_critic']):
                         masterAgent.reset()
@@ -1081,7 +1082,7 @@ def trainModelParallel(inputData):
                     # trainData["mean_bellman_error"].append(mean_bellman_error)
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     # trainData["mean_bellman_error"].append(np.mean(np.fabs(mean_bellman_error)))
-                    trainData["mean_bellman_error"].append(np.mean(np.fabs(bellman_errors)))
+                    trainData["mean_bellman_error"].append(np.mean([np.mean(np.fabs(er_)) for er_ in bellman_errors]))
                     trainData["std_bellman_error"].append(np.std(bellman_errors))
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     bellman_errors=[]

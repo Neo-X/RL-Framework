@@ -450,7 +450,7 @@ class SiameseNetwork(KERASAlgorithm):
             h_a = self._model.processed_a.predict([np.array([state])])
             h_b = self._model.processed_b.predict([np.array([state2])])
             state_ = euclidean_distance_np((h_a, h_b))[0]
-            print ("siamese dist: ", state_)
+            # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
             state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
