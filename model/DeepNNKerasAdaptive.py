@@ -111,12 +111,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if (self._stateful_lstm):
                     self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, self._state_length), name="State")
                 else:
-                    self._State = keras.layers.Input(shape=(None, self._state_length), name="State")
+                    self._State = keras.layers.Input(shape=(1, self._state_length), name="State")
             else:
                 if (self._stateful_lstm):
                     self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="State")
                 else:
-                    self._State = keras.layers.Input(shape=(None, self._state_length), name="State")
+                    self._State = keras.layers.Input(shape=(1, self._state_length), name="State")
         else:
             self._State = keras.layers.Input(shape=(self._state_length,), name="State")
             self._State_backup = self._State
@@ -444,12 +444,13 @@ class DeepNNKerasAdaptive(ModelInterface):
                         # subnet = Model(inputs=self._State_backup, outputs=subnet)
                     else:
                         subnet = self.createSubNetwork(input_, layer_sizes[i][2])
-                        # subnet = Model(inputs=input_, outputs=subnet)
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print("Subnet summary")
-                        # subnet.summary()
+                        subnet = Model(inputs=input_, outputs=subnet)
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                            print("Subnet summary")
+                            subnet.summary()
                     # subnet = Dense(8)
-                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 31, 16384))(subnet)
+                    ### Create a model (set of layers to distribute) pass in the original input to that model
+                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, 16384))(input)
                     
                     # network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))
                 elif (layer_sizes[i][0] == "TimeDistributed"):
