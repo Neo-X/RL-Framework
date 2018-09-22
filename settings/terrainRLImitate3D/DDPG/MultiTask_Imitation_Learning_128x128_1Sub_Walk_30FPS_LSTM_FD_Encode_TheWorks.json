@@ -536,5 +536,7 @@
 	"comment__": "A small offset for comparing states that we now are imperfect comparisons",
 "imperfect_compare_offset": 0.1,
 	"comment__": "Force the simulation workers to use the CPU only for network models",
-"force_sim_net_to_cpu": false
+"force_sim_net_to_cpu": false,
+	"comment__": "Episode simulation time out",
+"simulation_timeout": 1800
 }
