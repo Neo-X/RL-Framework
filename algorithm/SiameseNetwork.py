@@ -259,7 +259,7 @@ class SiameseNetwork(KERASAlgorithm):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Net summary: ", self._model._forward_dynamics_net.summary())
         
-        inputs_ = [self._model.getStateSymbolicVariable()] 
+        inputs_ = [self._model.getResultStateSymbolicVariable()] 
         self._model._reward_net = Model(inputs=inputs_, outputs=self._model._reward_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -278,19 +278,31 @@ class SiameseNetwork(KERASAlgorithm):
         print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getResultStateSymbolicVariable())))
         processed_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
         self._model.processed_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a)
-        processed_b = self._model._forward_dynamics_net(self._model.getResultStateSymbolicVariable())
-        self._model.processed_b = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_b)
+        processed_b = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
+        self._model.processed_b = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_b)
         
-        processed_a_r = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
-        self._model.processed_a_r = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_r)
-        processed_b_r = self._model._forward_dynamics_net(self._model.getResultStateSymbolicVariable())
+        processed_a_r = self._model._reward_net(self._model.getResultStateSymbolicVariable())
+        self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
+        processed_b_r = self._model._reward_net(self._model.getResultStateSymbolicVariable())
         self._model.processed_b_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_b_r)
         
         distance_fd = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
         distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
 
-        self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable(),
-                               self._model.getResultStateSymbolicVariable()], outputs=distance_fd)
+        self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
+                                                          ,keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:]
+                                                                              , name="State_2")
+                                                          ]
+                                                  , outputs=distance_fd
+                                                  )
+        
+        self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable()
+                                                          ,keras.layers.Input(shape=keras.backend.int_shape(self._model.getResultStateSymbolicVariable())[1:]
+                                                                              , name="ResultState_2"
+                                                                              )
+                                                          ]
+                                                          , outputs=distance_r
+                                                          )
 
         # sgd = SGD(lr=0.0005, momentum=0.9)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0))
@@ -306,11 +318,11 @@ class SiameseNetwork(KERASAlgorithm):
         self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
         
         self._contrastive_loss = K.function([self._model.getStateSymbolicVariable(), 
-                                             self._model.getResultStateSymbolicVariable(),
+                                             self._model.getStateSymbolicVariable(),
                                              K.learning_phase()], 
                                             [distance_fd])
         
-        self._contrastive_loss_r = K.function([self._model.getStateSymbolicVariable(), 
+        self._contrastive_loss_r = K.function([self._model.getResultStateSymbolicVariable(), 
                                              self._model.getResultStateSymbolicVariable(),
                                              K.learning_phase()], 
                                             [distance_r])

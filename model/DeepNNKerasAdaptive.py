@@ -121,11 +121,18 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._State = keras.layers.Input(shape=(self._state_length,), name="State")
             self._State_backup = self._State
             
-        
+
+        ### Apparently after the first layer the patch axis is left out for most of the Keras stuff...
+        # input = Input(shape=(self._state_length,))
+        self._stateInput = self._State
+        # input2 = Input(shape=(self._action_length,))
+        self._Action = keras.layers.Input(shape=(self._action_length,), name="Action") 
+        self._actionInput = self._Action
+        # input.trainable = True        
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
         # self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState", batch_shape=(32,self._state_length))
-        if (("train_LSTM" in self._settings)
+        if (("train_LSTM_Reward" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
             if ("simulation_model" in self._settings and
                 (self._settings["simulation_model"] == True)):
@@ -138,35 +145,22 @@ class DeepNNKerasAdaptive(ModelInterface):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="ResultState")
                 else:
                     self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState")
+            self._stateInput = self._ResultState 
         else:
             self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
-        # self._ResultState.tag.test_value = np.random.rand(self._batch_size,self._state_length)
-        # self._Reward = K.variable(value=np.random.rand(self._batch_size,1), name="Reward")
-        # self._Reward = keras.layers.Input(shape=(1,), name="Reward", batch_shape=(32,1))
+            if (("train_LSTM" in self._settings)
+                and (self._settings["train_LSTM"] == True)):
+                ### Training an fd lstm but not a reward one.
+                self._stateInput = self._ResultState
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
-            # if ("simulation_model" in self._settings and
-            #     (self._settings["simulation_model"] == True)):
             self._Reward = keras.layers.Input(shape=(self._sequence_length,1), name="Reward")
-            # else:
-            # self._Reward = keras.layers.Input(shape=(10, self._sequence_length,1), name="Reward")
         else:
             self._Reward = keras.layers.Input(shape=(1,), name="Reward")
-        # self._Reward.tag.test_value = np.random.rand(self._batch_size,1)
-        # self._Action = K.variable(value=np.random.rand(self._batch_size, self._action_length), name="Action")
-        # self._Action = keras.layers.Input(shape=(self._action_length,), name="Action", batch_shape=(32,self._action_length))
-        self._Action = keras.layers.Input(shape=(self._action_length,), name="Action")
-        # self._Action.tag.test_value = np.random.rand(self._batch_size, self._action_length)
         
         self._data_format_ = keras.backend.image_data_format()
         if ("image_data_format" in self._networkSettings ):
             self._data_format_ = self._networkSettings["image_data_format"]
-        ### Apparently after the first layer the patch axis is left out for most of the Keras stuff...
-        # input = Input(shape=(self._state_length,))
-        self._stateInput = self._State
-        # input2 = Input(shape=(self._action_length,)) 
-        self._actionInput = self._Action
-        # input.trainable = True
         
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
             print ("self._stateInput ",  self._stateInput)
@@ -187,7 +181,6 @@ class DeepNNKerasAdaptive(ModelInterface):
         else:
             self._taskFeatures = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
                               arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(inputAct)
-        # taskFeatures = Lambda(lambda x: x[:,0:self._settings['num_terrain_features']])(inputAct)
         self._characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
                                    arguments={'begin': self._settings['num_terrain_features'], 
                                               'end': self._state_length})(inputAct)
@@ -195,10 +188,6 @@ class DeepNNKerasAdaptive(ModelInterface):
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
             self._taskFeatures = self._State
-        """
-        self._taskFeatures = inputAct
-        characterFeatures = inputAct
-        """
         
         if (self._settings['num_terrain_features'] > 0):
             inputAct = self._taskFeatures
@@ -270,42 +259,12 @@ class DeepNNKerasAdaptive(ModelInterface):
             # self._actor = Model(input=[self._stateInput, self._actionInput], output=self._actor)
             # print("Actor summary: ", self._actor.summary())
         
-        if (("train_LSTM_Reward" in self._settings)
-                and (self._settings["train_LSTM_Reward"] == True)):
-            if ("simulation_model" in self._settings and
-                (self._settings["simulation_model"] == True)):
-                if (self._stateful_lstm):
-                    self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, self._state_length), name="State")
-                else:
-                    self._State = keras.layers.Input(shape=(None, self._state_length), name="State")
-            else:
-                if (self._stateful_lstm):
-                    self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="State")
-                else:
-                    self._State = keras.layers.Input(shape=(None, self._state_length), name="State")
-        else:
-            self._State = keras.layers.Input(shape=(self._state_length,), name="State")
+        if (("train_LSTM" in self._settings)
+            and (self._settings["train_LSTM"] == True)):
+            if not (("train_LSTM_Reward" in self._settings)
+                and (self._settings["train_LSTM"] == True)):
+                self._taskFeatures = self._ResultState
             
-        
-        # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
-        # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
-        # self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState", batch_shape=(32,self._state_length))
-        if (("train_LSTM_Reward" in self._settings)
-                and (self._settings["train_LSTM_Reward"] == True)):
-            if ("simulation_model" in self._settings and
-                (self._settings["simulation_model"] == True)):
-                if (self._stateful_lstm):
-                    self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(1, 1, self._state_length), name="ResultState")
-                else:
-                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState")
-            else:
-                if (self._stateful_lstm):
-                    self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="ResultState")
-                else:
-                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState")
-        else:
-            self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
-        
         layer_sizes = self._settings['critic_network_layer_sizes']
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
             print ("Critic Network layer sizes: ", layer_sizes)
@@ -645,9 +604,9 @@ class DeepNNKerasAdaptive(ModelInterface):
     
     ######### Symbolic Variables ######
     def getStateSymbolicVariable(self):
-        return self._stateInput
+        return self._State
     def getActionSymbolicVariable(self):
-        return self._actionInput
+        return self._Action
     def getResultStateSymbolicVariable(self):
         return self._ResultState
     def getRewardSymbolicVariable(self):
