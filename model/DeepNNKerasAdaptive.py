@@ -132,8 +132,8 @@ class DeepNNKerasAdaptive(ModelInterface):
         # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
         # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
         # self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState", batch_shape=(32,self._state_length))
-        if (("train_LSTM_Reward" in self._settings)
-                and (self._settings["train_LSTM"] == True)):
+        if (("train_LSTM_Critic" in self._settings)
+                and (self._settings["train_LSTM_Critic"] == True)):
             if ("simulation_model" in self._settings and
                 (self._settings["simulation_model"] == True)):
                 if (self._stateful_lstm):
@@ -259,11 +259,12 @@ class DeepNNKerasAdaptive(ModelInterface):
             # self._actor = Model(input=[self._stateInput, self._actionInput], output=self._actor)
             # print("Actor summary: ", self._actor.summary())
         
-        if (("train_LSTM" in self._settings)
-            and (self._settings["train_LSTM"] == True)):
-            if not (("train_LSTM_Reward" in self._settings)
-                and (self._settings["train_LSTM"] == True)):
-                self._taskFeatures = self._ResultState
+        if ((("train_LSTM" in self._settings)
+             and (self._settings["train_LSTM"] == True))
+            or
+            (("train_LSTM_Critic" in self._settings)
+                and (self._settings["train_LSTM_Critic"] == True))):
+            self._taskFeatures = self._ResultState
             
         layer_sizes = self._settings['critic_network_layer_sizes']
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):

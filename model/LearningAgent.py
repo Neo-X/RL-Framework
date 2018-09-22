@@ -307,7 +307,9 @@ class LearningAgent(AgentInterface):
                             print ("Forward Dynamics Loss: ", dynamicsLoss)
                             
                     ### Updates over Multi-task data
-                    if (type(self._settings["sim_config_file"]) == list):
+                    if (type(self._settings["sim_config_file"]) == list
+                        # and False
+                        ):
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Additional Multi-task training: ")
                         for e in range(updates___):   

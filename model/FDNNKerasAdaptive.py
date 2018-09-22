@@ -47,6 +47,10 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
             and (settings_["train_LSTM_FD"] == True)):
             settings_["train_LSTM"] = True
         
+        if ("train_LSTM_Reward" in settings_
+            and (settings_["train_LSTM_Reward"] == True)):
+            settings_["train_LSTM_Critic"] = True
+                
         print ("FD net n_out: ", n_out)
         super(FDNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         self._forward_dynamics_net = self._actor

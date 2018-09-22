@@ -274,32 +274,33 @@ class SiameseNetwork(KERASAlgorithm):
         # because we re-use the same instance `base_network`,
         # the weights of the network
         # will be shared across the two branches
+        state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
+        result_state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getResultStateSymbolicVariable())[1:]
+                                                                              , name="ResultState_2"
+                                                                              )
         print ("*** self._model.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getStateSymbolicVariable())))
         print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getResultStateSymbolicVariable())))
         processed_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
         self._model.processed_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a)
-        processed_b = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
-        self._model.processed_b = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_b)
+        processed_b = self._model._forward_dynamics_net(state_copy)
+        self._model.processed_b = Model(inputs=[state_copy], outputs=processed_b)
         
         processed_a_r = self._model._reward_net(self._model.getResultStateSymbolicVariable())
         self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
-        processed_b_r = self._model._reward_net(self._model.getResultStateSymbolicVariable())
-        self._model.processed_b_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_b_r)
+        processed_b_r = self._model._reward_net(result_state_copy)
+        self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
         
         distance_fd = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
         distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
 
         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
-                                                          ,keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:]
-                                                                              , name="State_2")
+                                                          ,state_copy 
                                                           ]
                                                   , outputs=distance_fd
                                                   )
         
         self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable()
-                                                          ,keras.layers.Input(shape=keras.backend.int_shape(self._model.getResultStateSymbolicVariable())[1:]
-                                                                              , name="ResultState_2"
-                                                                              )
+                                                          ,result_state_copy
                                                           ]
                                                           , outputs=distance_r
                                                           )
@@ -318,12 +319,12 @@ class SiameseNetwork(KERASAlgorithm):
         self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
         
         self._contrastive_loss = K.function([self._model.getStateSymbolicVariable(), 
-                                             self._model.getStateSymbolicVariable(),
+                                             state_copy,
                                              K.learning_phase()], 
                                             [distance_fd])
         
         self._contrastive_loss_r = K.function([self._model.getResultStateSymbolicVariable(), 
-                                             self._model.getResultStateSymbolicVariable(),
+                                             result_state_copy,
                                              K.learning_phase()], 
                                             [distance_r])
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
@@ -553,7 +554,9 @@ class SiameseNetwork(KERASAlgorithm):
                 predicted_y = self._model._forward_dynamics_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
                 # print ("fd error, predicted_y: ", predicted_y)
                 targets__ = np.mean(targets_, axis=1)
-                errors.append( compute_accuracy(predicted_y, targets_) )
+                # print ("fd error, targets_ : ", targets_)
+                # print ("fd error, targets__: ", targets__)
+                errors.append( compute_accuracy(predicted_y, targets__) )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
             te_acc = np.mean(errors)
