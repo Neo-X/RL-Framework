@@ -521,14 +521,23 @@ class SiameseNetwork(KERASAlgorithm):
         state_ = self._forwardDynamics_std() * (action_bound_std(self._state_bounds))
         return state_
     
-    def predict_reward(self, state, action):
+    def predict_reward(self, state, state2):
         """
             Predict reward which is inverse of distance metric
         """
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        predicted_reward = self.reward([state, action, 0])[0]
-        reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
+        if (("train_LSTM_Reward" in self._settings)
+            and (self._settings["train_LSTM_Reward"] == True)):
+            h_a = self._model.processed_a_r.predict([np.array([state])])
+            h_b = self._model.processed_b_r.predict([np.array([state2])])
+            reward_ = euclidean_distance_np((h_a, h_b))[0]
+            # print ("siamese dist: ", state_)
+            # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
+        else:
+            predicted_reward = self._model._reward_net.predict([state, state2])[0]
+            reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            
         return reward_
     
     def predict_batch(self, states, actions):

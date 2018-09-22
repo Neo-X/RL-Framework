@@ -408,7 +408,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     else:
                         network = getKerasActivation(self._settings['activation_type'])(network)
                 elif (layer_sizes[i][0] == "TimeDistributedConv"):
-                    
+                    ### https://machinelearningmastery.com/timedistributed-layer-for-long-short-term-memory-networks-in-python/
                     # input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name="State_Conv")
                     input_ = keras.layers.Input(shape=(1, self._state_length), name="State_Conv")
                     print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))

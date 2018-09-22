@@ -404,16 +404,20 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # print ("learned reward: ", reward_)
 
             elif ("use_encoding_for_reward" in settings
-                  and (settings["use_encoding_for_reward"] == True)):
-                    reward__ = exp.computeImitationReward(model.getForwardDynamics().computeEncodingDiff)
-                    reward_ = np.exp((reward__*reward__)*-5.0)
+                and (settings["use_encoding_for_reward"] == True)):
+                reward__ = exp.computeImitationReward(model.getForwardDynamics().computeEncodingDiff)
+                reward_ = np.exp((reward__*reward__)*-5.0)
             else:
+                if (("train_LSTM_Reward" in settings)
+                    and (settings["train_LSTM_Reward"] == True)):    
+                    reward__ = exp.computeImitationReward(model.getForwardDynamics().predict_reward)
+                else:
                     reward__ = exp.computeImitationReward(model.getForwardDynamics().predict)
-                    if ( "last_fd_layer_activation_type" in settings
-                         and (settings["last_fd_layer_activation_type"] == "sigmoid")):
-                        reward_ = -1.0 * reward__
-                    else:
-                        reward_ = np.exp((reward__*reward__)*-5.0)
+                if ( "last_fd_layer_activation_type" in settings
+                     and (settings["last_fd_layer_activation_type"] == "sigmoid")):
+                    reward_ = -1.0 * reward__
+                else:
+                    reward_ = np.exp((reward__*reward__)*-5.0)
                 
         if ("use_learned_fast_function" in settings
             and (settings["use_learned_fast_function"] == True)):
