@@ -953,7 +953,15 @@ def trainModelParallel(inputData):
                         dynamicsLosses.append(dynamicsLoss)
                         if (settings['train_reward_predictor']):
                             masterAgent.reset()
-                            dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
+                            if (("train_LSTM_Reward" in settings)
+                                and (settings["train_LSTM_Reward"] == True)):
+                                batch_size_lstm_fd = 4
+                                if ("lstm_batch_size" in settings):
+                                    batch_size_lstm_fd = settings["lstm_batch_size"][0]
+                                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm_fd)
+                                dynamicsLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
+                            else:
+                                dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
                             dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss))
                             dynamicsRewardLosses.append(dynamicsRewardLoss)
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
