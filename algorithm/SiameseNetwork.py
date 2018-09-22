@@ -201,10 +201,14 @@ def create_multitask_sequences(traj0, task_ids, settings):
     
     return sequences0, sequences1, targets_
         
-def create_pairs2(x):
+def create_pairs2(x, settings):
     '''Positive and negative pair creation.
     Alternates between positive and negative pairs.
     '''
+    target_noise_scale = 0.05
+    compare_adjustment = 0.0
+    if ("imperfect_compare_offset" in settings):
+        compare_adjustment = settings["imperfect_compare_offset"]
     noise_scale = 0.02
     pair1 = []
     pair2 = []
@@ -238,7 +242,8 @@ def create_pairs2(x):
         else:
             pair1 += x2
             pair2 += x1
-        labels += [[1], [0]]
+        labels += [np.clip(1 + np.random.normal(loc=0, scale=target_noise_scale, size=1), 0.01, 0.98),
+                    np.clip(0 + np.random.normal(loc=0, scale=target_noise_scale, size=1), 0.01, 0.98)]
     return np.array(pair1), np.array(pair2), np.array(labels)
 
 class SiameseNetwork(KERASAlgorithm):
@@ -452,7 +457,7 @@ class SiameseNetwork(KERASAlgorithm):
             
             return np.mean(loss_)
         else:
-            te_pair1, te_pair2, te_y = create_pairs2(states_)
+            te_pair1, te_pair2, te_y = create_pairs2(states_, self._settings)
         self._updates += 1
         if (batch_size is None):
             batch_size_=states.shape[0]
@@ -568,7 +573,7 @@ class SiameseNetwork(KERASAlgorithm):
             te_acc = np.mean(errors)
         else:
             states = np.concatenate((states, result_states), axis=0)
-            te_pair1, te_pair2, te_y = create_pairs2(states)
+            te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
         
             # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
             predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
@@ -579,9 +584,46 @@ class SiameseNetwork(KERASAlgorithm):
     
     def reward_error(self, states, actions, result_states, rewards):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
-        predicted_y = self.predict_reward(states, actions)
-        diff = np.mean(np.abs(predicted_y - result_states))
-        return diff
+        self.reset()
+        if (("train_LSTM_Reward" in self._settings)
+                    and (self._settings["train_LSTM_Reward"] == True)):
+            sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
+            sequences0 = np.array(sequences0)
+            sequences1 = np.array(sequences1)
+            targets_ = np.array(targets_)
+            errors=[]
+            if ("train_LSTM_stateful" in self._settings
+                and (self._settings["train_LSTM_stateful"] == True)
+                # and False
+                ):
+                for k in range(sequences0.shape[1]):
+                    ### shaping data
+                    # print (k)
+                    x0 = np.array(sequences0[:,[k]])
+                    x1 = np.array(sequences1[:,[k]])
+                    y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
+                    predicted_y = self._model._reward_net.predict([x0, x1], batch_size=x0.shape[0])
+                    errors.append( compute_accuracy(predicted_y, y0) )
+            else:
+                predicted_y = self._model._reward_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
+                # print ("fd error, predicted_y: ", predicted_y)
+                targets__ = np.mean(targets_, axis=1)
+                # print ("fd error, targets_ : ", targets_)
+                # print ("fd error, targets__: ", targets__)
+                errors.append( compute_accuracy(predicted_y, targets__) )
+            # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
+            # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
+            te_acc = np.mean(errors)
+        else:
+            states = np.concatenate((states, result_states), axis=0)
+            te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
+        
+            # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
+            predicted_y = self._model._reward_net.predict([te_pair1, te_pair2])
+            te_acc = compute_accuracy(predicted_y, te_y)
+            
+        # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
+        return te_acc
 
     def saveTo(self, fileName):
         # print(self, "saving model")

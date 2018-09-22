@@ -293,7 +293,12 @@ def trainForwardDynamics(settings):
             else:
                 dynamicsLoss = np.mean(np.fabs(dynamicsLoss_))
             if (settings['train_reward_predictor']):
-                dynamicsRewardLoss_ = forwardDynamicsModel.reward_error(_states, _actions, _result_states, _rewards)
+                if (("train_LSTM_Reward" in settings)
+                    and (settings["train_LSTM_Reward"] == True)):
+                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=4)
+                    dynamicsRewardLoss_ = forwardDynamicsModel.reward_error(state_, action_, resultState_, reward_)
+                else:
+                    dynamicsRewardLoss_ = forwardDynamicsModel.reward_error(_states, _actions, _result_states, _rewards)
                 dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss_))
                 # dynamicsRewardLosses.append(dynamicsRewardLoss)
                 dynamicsRewardLosses = dynamicsRewardLoss

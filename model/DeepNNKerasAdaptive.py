@@ -265,7 +265,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             (("train_LSTM_Critic" in self._settings)
                 and (self._settings["train_LSTM_Critic"] == True))):
             self._taskFeatures = self._ResultState
-        self._taskFeatures = self._ResultState
+        # self._taskFeatures = self._ResultState
             
         layer_sizes = self._settings['critic_network_layer_sizes']
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -355,14 +355,18 @@ class DeepNNKerasAdaptive(ModelInterface):
             ### Render a nice graph of the network
             # from keras.utils import plot_model
             # plot_model(self._actor, to_file='model.png')
-        network= Dense(1,
-                       kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
-                       bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
-        
-        if ("last_critic_layer_activation_type" in self._settings):
-            self._critic = getKerasActivation(self._settings['last_critic_layer_activation_type'])(network)
+        if ( not ("critic_network_leave_off_end" in self._settings
+            and (self._settings["critic_network_leave_off_end"] == True))):
+            network= Dense(1,
+                           kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                           bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
+            
+            if ("last_critic_layer_activation_type" in self._settings):
+                self._critic = getKerasActivation(self._settings['last_critic_layer_activation_type'])(network)
+            else:
+                self._critic = Activation('linear')(network)
         else:
-            self._critic = Activation('linear')(network)
+            self._critic = network
             
         """
         if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras"
@@ -395,6 +399,14 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = GRU(layer_sizes[i][2], stateful=self._stateful_lstm)(network)
                 elif (layer_sizes[i][0] == "Reshape"):
                     network = Reshape(layer_sizes[i][1])(network)
+                elif (layer_sizes[i][0] == "Dense"):
+                    network = Dense(layer_sizes[i][1],
+                                kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
+                    if (len(layer_sizes[i]) > 2):
+                        network = getKerasActivation(layer_sizes[i][2])(network)
+                    else:
+                        network = getKerasActivation(self._settings['activation_type'])(network)
                 elif (layer_sizes[i][0] == "TimeDistributedConv"):
                     
                     # input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name="State_Conv")

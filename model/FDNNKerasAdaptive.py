@@ -29,6 +29,10 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
             settings_["num_terrain_features"] = settings_["fd_num_terrain_features"]
         if ("fd_network_leave_off_end" in settings_):
             settings_["network_leave_off_end"] = settings_["fd_network_leave_off_end"]
+            
+        if ("reward_network_leave_off_end" in settings_
+            and (settings_["reward_network_leave_off_end"] == True)):
+            settings_["critic_network_leave_off_end"] = settings_["reward_network_leave_off_end"]
         if ("use_dual_state_representations" in settings_
             and (settings_["use_dual_state_representations"] == True)):
             if ("replace_next_state_with_pose_state" in settings_ 
