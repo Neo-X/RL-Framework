@@ -230,8 +230,12 @@ def trainForwardDynamics(settings):
                 _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(samps)
                 dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards, updates=1, batch_size=settings["batch_size"])
             else:
-                if (("train_LSTM_FD" in settings)
-                    and (settings["train_LSTM_FD"] == True)):
+                if ((("train_LSTM_FD" in settings)
+                    and (settings["train_LSTM_FD"] == True))
+                    or
+                    (("train_LSTM_Reward" in settings)
+                    and (settings["train_LSTM_Reward"] == True))
+                    ):
                     state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=4)
                     dynamicsLoss = forwardDynamicsModel.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_)
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
@@ -243,12 +247,22 @@ def trainForwardDynamics(settings):
                         dynamicsLoss = forwardDynamicsModel.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_, falls=fall_)
                         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                             print ("Forward Dynamics Loss: ", dynamicsLoss)
+                    
+                    if (("train_LSTM_FD" in settings)
+                        and (settings["train_LSTM_FD"] == False)):   
+                        for k in range(10):  
+                            _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
+                            # print("result state shape: ", np.asarray(_result_states).shape)
+                            fdloss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards, lstm=False)
+                            if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                                print ("FD Loss: ", fdloss)
+                    
                 else:
                     _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
                     # print("result state shape: ", np.asarray(_result_states).shape)
                     dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
-                    reg_loss = forwardDynamicsModel._get_fd_regularization([])
-                    print("regularization_loss: ", reg_loss)
+                    # reg_loss = forwardDynamicsModel._get_fd_regularization([])
+                    # print("regularization_loss: ", reg_loss)
                 if (False):
                     import matplotlib
                     # matplotlib.use('Agg')

@@ -366,7 +366,7 @@ class SiameseNetwork(KERASAlgorithm):
         # self.setData(states, actions)
         return self._get_grad_reward([states, actions, 0])[0]
                 
-    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1):
+    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True):
         """
             states will come for the agent and
             results_states can come from the imitation agent
@@ -378,17 +378,18 @@ class SiameseNetwork(KERASAlgorithm):
         if ("replace_next_state_with_imitation_viz_state" in self.getSettings()
             and (self.getSettings()["replace_next_state_with_imitation_viz_state"] == True)):
             states_ = np.concatenate((states, result_states), axis=0)
-        if (("train_LSTM_FD" in self._settings)
-            and (self._settings["train_LSTM_FD"] == True)):
+        if (((("train_LSTM_FD" in self._settings)
+                and (self._settings["train_LSTM_FD"] == True))
+            or
+            (("train_LSTM_Reward" in self._settings)
+                and (self._settings["train_LSTM_Reward"] == True))
+            ) 
+            and lstm):
             ### result states can be from the imitation agent.
             if (falls is None):
                 sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
             else:
                 sequences0, sequences1, targets_ = create_multitask_sequences(result_states, falls, self._settings)
-                ### clip batch to proper batch size
-                # sequences0 = sequences0[:self._settings["lstm_batch_size"][1]]
-                # sequences1 = sequences1[:self._settings["lstm_batch_size"][1]]
-                # targets_ = targets_[:self._settings["lstm_batch_size"][1]] 
             sequences0 = np.array(sequences0)
             # print ("sequences0 shape: ", sequences0.shape)
             sequences1 = np.array(sequences1)
@@ -410,40 +411,45 @@ class SiameseNetwork(KERASAlgorithm):
                     # print (x0) 
                     # print ("x0 shape: ", x0.shape)
                     # print ("y0 shape: ", y0.shape)
-                    score = self._model._forward_dynamics_net.fit([x0, x1], [y0],
-                              epochs=1, 
-                              # batch_size=sequences0.shape[0],
-                              batch_size=sequences0.shape[0],
-                              verbose=0
-                              )
-                    # print ("lstm train loss: ", score.history['loss'])
-                    loss_.append(np.mean(score.history['loss']))
+                    if (("train_LSTM_FD" in self._settings)
+                        and (self._settings["train_LSTM_FD"] == True)):
+                        score = self._model._forward_dynamics_net.fit([x0, x1], [y0],
+                                  epochs=1, 
+                                  batch_size=sequences0.shape[0],
+                                  verbose=0
+                                  )
+                        # print ("lstm train loss: ", score.history['loss'])
+                        loss_.append(np.mean(score.history['loss']))
+                    if (("train_LSTM_Reward" in self._settings)
+                        and (self._settings["train_LSTM_Reward"] == True)):  
+                        score = self._model._reward_net.fit([x0, x1], [y0],
+                                  epochs=1, 
+                                  batch_size=sequences0.shape[0],
+                                  verbose=0
+                                  )
+                        # print ("lstm train loss: ", score.history['loss'])
+                        loss_.append(np.mean(score.history['loss']))
             else:
                 # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
                 targets__ = np.mean(targets_, axis=1)
-                score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets__],
-                              epochs=1, 
-                              # batch_size=sequences0.shape[0],
-                              batch_size=sequences0.shape[0],
-                              verbose=0
-                              )
-                loss_.append(np.mean(score.history['loss']))
+                if (("train_LSTM_FD" in self._settings)
+                    and (self._settings["train_LSTM_FD"] == True)):
+                    score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets__],
+                                  epochs=1, 
+                                  batch_size=sequences0.shape[0],
+                                  verbose=0
+                                  )
+                    loss_.append(np.mean(score.history['loss']))
+                    
+                if (("train_LSTM_Reward" in self._settings)
+                    and (self._settings["train_LSTM_Reward"] == True)):
+                    score = self._model._reward_net.fit([sequences0, sequences1], [targets__],
+                                  epochs=1, 
+                                  batch_size=sequences0.shape[0],
+                                  verbose=0
+                                  )
+                    loss_.append(np.mean(score.history['loss']))
             
-            """
-            loss_ = []
-            for (seq0, seq1, tar_) in zip(sequences0, sequences1, targets_):
-                te_pair1 = np.array(seq0)
-                te_pair2 = np.array(seq1)
-                te_y = np.array(tar_)
-                
-                score = self._model._forward_dynamics_net.fit([te_pair1, te_pair2], te_y,
-                      epochs=1, batch_size=1,
-                      verbose=0,
-                      shuffle=True
-                      )
-                loss_.append(np.mean(score.history['loss']))
-                # print ("loss: ", loss)
-            """
             return np.mean(loss_)
         else:
             te_pair1, te_pair2, te_y = create_pairs2(states_)

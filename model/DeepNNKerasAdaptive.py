@@ -265,6 +265,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             (("train_LSTM_Critic" in self._settings)
                 and (self._settings["train_LSTM_Critic"] == True))):
             self._taskFeatures = self._ResultState
+        self._taskFeatures = self._ResultState
             
         layer_sizes = self._settings['critic_network_layer_sizes']
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
