@@ -63,7 +63,7 @@ def getOptions(_args=None):
     parser.add_option("--simulation_timeout",
               action="store", dest="simulation_timeout", default=None,
               type=int,
-              metavar="INTEGER", help="The number of processes the SteerStats script can use")
+              metavar="INTEGER", help="The number of seconds queues will wait for simulations")
     
         
     parser.add_option("--meta_sim_samples", "--mp",
