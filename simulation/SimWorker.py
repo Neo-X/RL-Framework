@@ -133,6 +133,10 @@ class SimWorker(Process):
         
         setupLearningBackend(self._settings)
         
+        timeout_ = 60 * 10 ### 5 min timeout
+        if ("simulation_timeout" in self._settings):
+            timeout_ = self._settings["simulation_timeout"]
+        
         ## This is not needed if there is one thread only...
         if (int(self._settings["num_available_threads"]) > 0): 
             from util.SimulationUtil import createEnvironment
@@ -166,7 +170,7 @@ class SimWorker(Process):
         
         ## This get is fine, it is the first one that I want to block on.
         print ("Waiting for initial policy update.", self._message_queue)
-        episodeData = self._message_queue.get()
+        episodeData = self._message_queue.get(timeout=timeout_)
         print ("Received initial policy update.")
         message = episodeData['type']
         if message == "Update_Policy":
@@ -204,7 +208,7 @@ class SimWorker(Process):
             bootstrapping = False
             # print ("Worker: getting data")
             if (self._settings['on_policy'] == True):
-                episodeData = self._message_queue.get()
+                episodeData = self._message_queue.get(timeout=timeout_)
                 if episodeData == None:
                     print ("Terminating worker: " , os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
                     break
@@ -295,18 +299,18 @@ class SimWorker(Process):
                 self._iteration += 1
                 # if self._p <= 0.0:
                 
-                #    self._output_queue.put(out)
+                #    self._output_queue.put(out, timeout=timeout_)
                 (tuples, discounted_sum, q_value, evalData) = out
                 # (states, actions, result_states, rewards, falls) = tuples
                 ## Hack for now just update after ever episode
                 # print ("Worker: send sim results: ")
                 if (eval or sim_on_poli or bootstrapping):
-                    self._eval_episode_data_queue.put(out)
+                    self._eval_episode_data_queue.put(out, timeout=timeout_)
                 else:
                     pass
             elif (self._settings['on_policy'] == "fast"):
                 ### This will process trajectories in parallel
-                episodeData = self._input_queue.get()
+                episodeData = self._input_queue.get(timeout=timeout_)
                 ## Check if any messages in the queue
                 # print ("Worker: got data", episodeData)
                 if episodeData == None:
@@ -375,14 +379,14 @@ class SimWorker(Process):
                 self._iteration += 1
                 # if self._p <= 0.0:
                 
-                #    self._output_queue.put(out)
+                #    self._output_queue.put(out, timeout=timeout_)
                 (tuples, discounted_sum, q_value, evalData) = out
                 # (states, actions, result_states, rewards, falls) = tuples
                 ## Hack for now just update after ever episode
                 # print ("Worker: send sim results: ")
                 if (eval or sim_on_poli or bootstrapping):
                     # print ("Putting episode data in queue")
-                    self._eval_episode_data_queue.put(out)
+                    self._eval_episode_data_queue.put(out, timeout=timeout_)
                 else:
                     pass
                 
@@ -425,7 +429,7 @@ class SimWorker(Process):
                                 print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
                                 print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
             else: ## off policy, all threads sharing the same queue
-                episodeData = self._input_queue.get()
+                episodeData = self._input_queue.get(timeout=timeout_)
                 ## Check if any messages in the queue
                 # print ("Worker: got data", episodeData)
                 if episodeData == None:
@@ -486,14 +490,14 @@ class SimWorker(Process):
                 self._iteration += 1
                 # if self._p <= 0.0:
                 
-                #    self._output_queue.put(out)
+                #    self._output_queue.put(out, timeout=timeout_)
                 (tuples, discounted_sum, q_value, evalData) = out
                 # (states, actions, result_states, rewards, falls) = tuples
                 ## Hack for now just update after ever episode
                 # print ("Worker: send sim results: ")
                 if (eval or sim_on_poli or bootstrapping):
                     # print ("Putting episode data in queue")
-                    self._eval_episode_data_queue.put(out)
+                    self._eval_episode_data_queue.put(out, timeout=timeout_)
                 else:
                     pass
                 

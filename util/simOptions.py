@@ -59,7 +59,13 @@ def getOptions(_args=None):
               action="store", dest="num_available_threads", default=None,
               type=int,
               metavar="INTEGER", help="The number of processes the SteerStats script can use")
+
+    parser.add_option("--simulation_timeout",
+              action="store", dest="simulation_timeout", default=None,
+              type=int,
+              metavar="INTEGER", help="The number of processes the SteerStats script can use")
     
+        
     parser.add_option("--meta_sim_samples", "--mp",
               action="store", dest="meta_sim_samples", default=None,
               type=int,

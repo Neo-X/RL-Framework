@@ -502,7 +502,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1], actions[-1], result_states___[-1], rewards[-1],  falls[-1], exp_actions[-1]):
                 # print(" putting state__", np.array(state__).shape, " value: ", state__, " With reward: ", rew__)
                 # print(fall__ , exp__, rew__)
-                _output_queue.put(([state__], [act__], [res__], [rew__],  [fall__], [[0]], [exp__]))
+                _output_queue.put(([state__], [act__], [res__], [rew__],  [fall__], [[0]], [exp__]), timeout=timeout_)
         
         state_num += 1
         # else:
@@ -666,6 +666,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         print ("Simulating epochs in Parallel:")
     j=0
     timeout_ = 60 * 10 ### 10 min timeout
+    if ("simulation_timeout" in settings):
+        timeout_ = settings["simulation_timeout"]
     discounted_values = []
     bellman_errors = []
     reward_over_epocs = []
@@ -713,7 +715,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
                 episodeData['type'] = 'sim_on_policy'
             else:
                 episodeData['type'] = 'bootstrapping'
-            # sw_message_queues[j].put(episodeData)
+            # sw_message_queues[j].put(episodeData, timeout=timeout_)
             if (settings['on_policy']):
                 # print ("sw_message_queues[j].maxsize: ", sw_message_queues[j].qsize() )
                 sw_message_queues[j].put(episodeData, timeout=timeout_)
@@ -815,7 +817,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
             episodeData['type'] = 'eval'
         else:
             episodeData['type'] = 'bootstrapping'
-        # sw_message_queues[j].put(episodeData)
+        # sw_message_queues[j].put(episodeData, timeout=timeout_)
         if (settings['on_policy'] == True):
             # print ("sw_message_queues[j].maxsize: ", sw_message_queues[j].qsize() )
             sw_message_queues[j].put(episodeData, timeout=timeout_)
@@ -859,7 +861,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
                 episodeData['type'] = 'eval'
             else:
                 episodeData['type'] = 'bootstrapping'
-            # sw_message_queues[j].put(episodeData)
+            # sw_message_queues[j].put(episodeData, timeout=timeout_)
             if (settings['on_policy'] == True):
                 # print ("sw_message_queues[j].maxsize: ", sw_message_queues[j].qsize() )
                 sw_message_queues[j].put(episodeData, timeout=timeout_)
