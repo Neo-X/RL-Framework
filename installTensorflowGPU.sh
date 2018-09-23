@@ -11,5 +11,6 @@ virtualenv --system-site-packages -p python3 ~/tensorflow
 source ~/tensorflow/bin/activate
 ## install tensorflow GPU for Nvidia cuda 8.0 support
 pip3 install --upgrade tensorflow-gpu==1.4
+pip3 install --upgrade nvidia-ml-py3
 ## leave virtual env
 deactivate
