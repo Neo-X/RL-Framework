@@ -962,7 +962,12 @@ def trainModelParallel(inputData):
                                 dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
                             else:
                                 dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
-                            dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss))
+                            
+                            if (type(dynamicsRewardLoss) == 'list'):
+                                dynamicsRewardLoss = np.mean([np.mean(np.fabs(drl)) for drl in dynamicsRewardLoss])
+                            else:
+                                dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss))
+
                             dynamicsRewardLosses.append(dynamicsRewardLoss)
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                         if (settings['train_forward_dynamics']):
