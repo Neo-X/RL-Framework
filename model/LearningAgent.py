@@ -507,8 +507,12 @@ class LearningAgent(AgentInterface):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
                         print ("Critic training complete in " + str(sim_time_) + " seconds")
                 if (self._settings['train_forward_dynamics']
-                    and not (("train_LSTM_FD" in self._settings)
-                    and (self._settings["train_LSTM_FD"] == True))):
+                    and not ((("train_LSTM_FD" in self._settings)
+                    and (self._settings["train_LSTM_FD"] == True))
+                             or 
+                             (("train_LSTM_Reward" in self._settings)
+                    and (self._settings["train_LSTM_Reward"] == True))
+                             )):
                     t0 = time.time()
                     if ("fd_updates_per_actor_update" in self._settings 
                         and (self._settings['fd_updates_per_actor_update'] >= 1)):
