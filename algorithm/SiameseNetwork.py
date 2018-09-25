@@ -131,7 +131,8 @@ def create_sequences(traj0, traj1, settings):
         targets = np.zeros(tar_shape)
         targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
         
-        
+
+        """        
         ### Versions of two different trajectories
         sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
@@ -154,12 +155,12 @@ def create_sequences(traj0, traj1, settings):
         sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
         targets = np.zeros(tar_shape) + compare_adjustment
         targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
-        
+        """
         # print ("Created trajectories: ", len(targets_))
     
     return sequences0, sequences1, targets_
 
-def create_multitask_sequences(traj0, task_ids, settings):
+def create_multitask_sequences(traj0, traj1, task_ids, settings):
     '''Positive and negative sequence creation.
     Alternates between positive and negative pairs.
     produces N sequences from two
@@ -184,6 +185,9 @@ def create_multitask_sequences(traj0, task_ids, settings):
             ### Noisy versions of the same trajectories
             sequences0.append(traj0[i] + np.random.normal(loc=0, scale=noise_scale, size=traj0[i].shape))
             sequences1.append(traj0[j] + np.random.normal(loc=0, scale=noise_scale, size=traj0[j].shape))
+            
+            sequences0.append(traj1[i] + np.random.normal(loc=0, scale=noise_scale, size=traj0[i].shape))
+            sequences1.append(traj1[j] + np.random.normal(loc=0, scale=noise_scale, size=traj0[j].shape))
             # print ("task_tr0[0][0] == task_tr1[0][0]", task_tr0[0][0], " == ", task_tr1[0][0])
             # print ("settings['worker_to_task_mapping'][task_tr0[0]] == settings['worker_to_task_mapping'][task_tr1[0]]", 
             #        settings["worker_to_task_mapping"][task_tr0[0][0]]," == ", settings["worker_to_task_mapping"][task_tr1[0][0]])
@@ -195,6 +199,7 @@ def create_multitask_sequences(traj0, task_ids, settings):
             else:
                 targets = np.zeros(tar_shape)
             # print ("targets", targets)
+            targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
         
         
@@ -398,7 +403,7 @@ class SiameseNetwork(KERASAlgorithm):
             if (falls is None):
                 sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
             else:
-                sequences0, sequences1, targets_ = create_multitask_sequences(result_states, falls, self._settings)
+                sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
             sequences0 = np.array(sequences0)
             # print ("sequences0 shape: ", sequences0.shape)
             sequences1 = np.array(sequences1)
