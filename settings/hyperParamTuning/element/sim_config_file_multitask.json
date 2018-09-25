@@ -33,6 +33,7 @@
 							"PD_Humanoid_3D_Viz3D_128x128_1Sub_Imitate_30FPS_DualState_v0"
 							
 							]
+							]
 					],
 	"comment__": "The fully qualified name of the mail server to use",
 "mail_server_name": "smtp.gmail.com:587",
