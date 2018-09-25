@@ -250,7 +250,7 @@ def trainForwardDynamics(settings):
                     
                     if (("train_LSTM_FD" in settings)
                         and (settings["train_LSTM_FD"] == False)):   
-                        for k in range(10):  
+                        for k in range(0):  
                             _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
                             # print("result state shape: ", np.asarray(_result_states).shape)
                             fdloss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards, lstm=False)
@@ -283,7 +283,7 @@ def trainForwardDynamics(settings):
         if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
             if (("train_LSTM_FD" in settings)
                 and (settings["train_LSTM_FD"] == True)):
-                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=4)
+                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=32)
                 dynamicsLoss_ = forwardDynamicsModel.bellman_error(state_, action_, resultState_, reward_)
             else:
                 dynamicsLoss_ = forwardDynamicsModel.bellman_error(_states, _actions, _result_states, _rewards)
@@ -295,29 +295,29 @@ def trainForwardDynamics(settings):
             if (settings['train_reward_predictor']):
                 if (("train_LSTM_Reward" in settings)
                     and (settings["train_LSTM_Reward"] == True)):
-                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=4)
+                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=32)
                     dynamicsRewardLoss_ = forwardDynamicsModel.reward_error(state_, action_, resultState_, reward_)
                 else:
                     dynamicsRewardLoss_ = forwardDynamicsModel.reward_error(_states, _actions, _result_states, _rewards)
                 dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss_))
                 # dynamicsRewardLosses.append(dynamicsRewardLoss)
                 dynamicsRewardLosses = dynamicsRewardLoss
-            if ( ((round_ % settings['plotting_update_freq_num_rounds']) == 0)):
-                # dynamicsLosses.append(dynamicsLoss)
-                mean_dynamicsLosses = dynamicsLoss
-                std_dynamicsLosses = np.std((dynamicsLoss_))
-                trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
-                trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
-                print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " ForwardPredictionLoss: " + str(dynamicsLoss) + " in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
-                # print ("State Bounds: ", forwardDynamicsModel.getStateBounds(), " exp: ", experience.getStateBounds())
-                # print ("Action Bounds: ", forwardDynamicsModel.getActionBounds(), " exp: ", experience.getActionBounds())
-                # print (str(datetime.timedelta(seconds=(t1-t0))))
-                if (settings['visualize_learning']):
-                    nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
-                    nlv.redraw()
-                    nlv.setInteractiveOff()
-                    nlv.saveVisual(directory+"trainingGraphNN")
-                    nlv.setInteractive()
+                
+            # dynamicsLosses.append(dynamicsLoss)
+            mean_dynamicsLosses = dynamicsLoss
+            std_dynamicsLosses = np.std((dynamicsLoss_))
+            trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
+            trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
+            print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " ForwardPredictionLoss: " + str(dynamicsLoss) + " in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
+            # print ("State Bounds: ", forwardDynamicsModel.getStateBounds(), " exp: ", experience.getStateBounds())
+            # print ("Action Bounds: ", forwardDynamicsModel.getActionBounds(), " exp: ", experience.getActionBounds())
+            # print (str(datetime.timedelta(seconds=(t1-t0))))
+            if (settings['visualize_learning']):
+                nlv.updateLoss(np.array(trainData["mean_forward_dynamics_loss"]), np.array(trainData["std_forward_dynamics_loss"]))
+                nlv.redraw()
+                nlv.setInteractiveOff()
+                nlv.saveVisual(directory+"trainingGraphNN")
+                nlv.setInteractive()
             if (settings['train_reward_predictor']):
                 mean_dynamicsRewardLosses = np.mean(dynamicsRewardLoss)
                 std_dynamicsRewardLosses = np.std(dynamicsRewardLoss_)
