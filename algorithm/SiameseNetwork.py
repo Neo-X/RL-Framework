@@ -491,6 +491,18 @@ class SiameseNetwork(KERASAlgorithm):
             # print ("loss: ", loss)
         return loss
     
+    def predict_encoding(self, state):
+        """
+            Compute distance between two states
+        """
+        # state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        if (("train_LSTM_FD" in self._settings)
+                    and (self._settings["train_LSTM_FD"] == True)):
+            h_a = self._model.processed_a.predict([np.array([state])])
+        else:
+            h_a = self._model._forward_dynamics_net.predict([state])[0]
+        return h_a
+    
     def predict(self, state, state2):
         """
             Compute distance between two states
@@ -544,6 +556,20 @@ class SiameseNetwork(KERASAlgorithm):
             reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
             
         return reward_
+    
+    def predict_reward_encoding(self, state):
+        """
+            Predict reward which is inverse of distance metric
+        """
+        # state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        if (("train_LSTM_Reward" in self._settings)
+            and (self._settings["train_LSTM_Reward"] == True)):
+            h_a = self._model.processed_a_r.predict([np.array([state])])
+        else:
+            h_a = self._model._reward_net.predict([state])[0]
+            # reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            
+        return h_a
     
     def predict_batch(self, states, actions):
         ## These input should already be normalized.

@@ -970,6 +970,7 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                                            action_length=len(action_bounds[0]), state_bounds=state_bounds, 
                                   action_bounds=action_bounds, reward_bounds=reward_bounds, settings_=settings)
                     forwardDynamicsModel.setSettings(settings)
+                    print ("Loading pre trained FD model:")
                     if (settings['load_saved_model'] == 'last'):
                         forwardDynamicsModel.loadFrom(directory+"forward_dynamics")
                     else:
