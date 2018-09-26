@@ -507,11 +507,14 @@ class ExperienceMemory(object):
         
         ### Save a variable length list of data
         # data = np.array(self._trajectory_history, dtype=object)
-        if ((("train_LSTM_FD" in self._settings)
+        if (((("train_LSTM_FD" in self._settings)
             and (self._settings["train_LSTM_FD"] == True))
             or
             (("train_LSTM_Reward" in self._settings)
             and (self._settings["train_LSTM_Reward"] == True))
+            )
+            and 
+            self._settings["save_experience_memory"] != "continual"
             ):
             grp = hf.create_group('trajectories')
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -565,11 +568,14 @@ class ExperienceMemory(object):
         self._action_mean = np.array(hf.get('_action_mean'))
         self._action_var = np.array(hf.get('_action_var'))
         
-        if ((("train_LSTM_FD" in self._settings)
+        if (((("train_LSTM_FD" in self._settings)
                 and (self._settings["train_LSTM_FD"] == True))
             or
             (("train_LSTM_Reward" in self._settings)
                 and (self._settings["train_LSTM_Reward"] == True))
+            )
+            and
+            self._settings["save_experience_memory"] != "continual"
             ):
             self._trajectory_size = int(hf.get('_trajectory_size')[()])
             self._trajectory_update_index = int(hf.get('_trajectory_update_index')[()])
