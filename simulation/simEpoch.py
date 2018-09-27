@@ -470,9 +470,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if ( not bootstrapping ):
                 value__ = model.q_value(state_)
             print ("Value: ", value__, " Action " + str(action) + " Reward: " + str(reward_) )
-            if ( settings['train_reward_predictor'] and (settings['train_forward_dynamics'])):
-                predicted_reward = model.getForwardDynamics().predict_reward(state_, action)
-                print ("Predicted reward: ", predicted_reward) 
+            # if ( settings['train_reward_predictor'] and (settings['train_forward_dynamics'])):
+                # predicted_reward = model.getForwardDynamics().predict_reward(state_, action)
+                # print ("Predicted reward: ", predicted_reward) 
             print ("Agent has fallen: ", not agent_not_fell )
             # print ("Python Reward: " + str(reward(state_, resultState)))
                 

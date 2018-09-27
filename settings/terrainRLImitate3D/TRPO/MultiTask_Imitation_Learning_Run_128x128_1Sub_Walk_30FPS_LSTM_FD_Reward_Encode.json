@@ -31,7 +31,7 @@
 					"PD_Humanoid_3D_Viz3D_Run_128x128_1Sub_Imitate_30FPS_DualState_v0",
 					"PD_Humanoid_3D_Viz3D_Run_128x128_1Sub_Imitate_30FPS_DualState_v0",
 					"PD_Humanoid_3D_Viz3D_Run_128x128_1Sub_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_3D_Viz3D_128x128_1Sub_Imitate_30FPS_DualState_v0"
+					"PD_Humanoid_3D_Viz3D_Run_128x128_1Sub_Imitate_30FPS_DualState_v0",
 					
 					],
     "comment__": "Exploration distance use when randomly generating new actions",
