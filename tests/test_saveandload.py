@@ -10,7 +10,7 @@ import json
 
 class TestSaveAndLoad(object):
 
-    @pytest.mark.timeout(600)
+    # @pytest.mark.timeout(600)
     def test_ppo_keras_gapGame_2D_save_and_load_singleNet(self):
         """
             Test that PPO can still learn a good policy on 2d gapgame sim
@@ -41,7 +41,7 @@ class TestSaveAndLoad(object):
         assert np.allclose(simData['masterAgent'].getActionBounds(), evalData['masterAgent'].getActionBounds())
         assert np.allclose(simData['masterAgent'].getStateBounds(), evalData['masterAgent'].getStateBounds())
     
-    @pytest.mark.timeout(600)   
+    # @pytest.mark.timeout(600)   
     def test_cacla_tensorflow_gapGame_2D_save_and_load_singleNet(self):
         """
             Test that PPO can still learn a good policy on 2d gapgame sim
@@ -72,7 +72,7 @@ class TestSaveAndLoad(object):
         assert np.allclose(simData['masterAgent'].getActionBounds(), evalData['masterAgent'].getActionBounds())
         assert np.allclose(simData['masterAgent'].getStateBounds(), evalData['masterAgent'].getStateBounds())
     
-    @pytest.mark.timeout(600)    
+    # @pytest.mark.timeout(600)    
     def test_cacla_keras_gapGame_2D_save_and_load_singleNet(self):
         """
             Test that PPO can still learn a good policy on 2d gapgame sim

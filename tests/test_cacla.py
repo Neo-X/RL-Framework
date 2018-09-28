@@ -10,7 +10,7 @@ import json
 
 class TestCACLA(object):
 
-    @pytest.mark.timeout(600)
+    # @pytest.mark.timeout(600)
     def test_cacla_keras_particleNav_10D(self):
         """
         Test that CACLA can still learn a good policy on 2d particle sim
@@ -22,12 +22,12 @@ class TestCACLA(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
-        # settings['rounds'] = 10
+        settings['rounds'] = 10
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -1.5
         
-    @pytest.mark.timeout(600)
+    # @pytest.mark.timeout(600)
     def test_cacla_keras_gapGame_2D(self):
         """
         
@@ -39,14 +39,14 @@ class TestCACLA(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
-        # settings['rounds'] = 10
+        settings['rounds'] = 10
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > 0.65
     
     """   
     ### No longer suported
-    @pytest.mark.timeout(600)         
+    # @pytest.mark.timeout(600)         
     def test_cacla_keras_off_policy_gapGame_2D(self):
         filename = "tests/settings/gapGame2D/CACLA/CACLA_KERAS_DeepCNNKeras.json"
         file = open(filename)

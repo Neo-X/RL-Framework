@@ -8,7 +8,7 @@ import sys
 import time
 import datetime
 
-### Need to go through them in order avoid issues with Tensorflow state staying around...
+### Need to go through them in order to avoid issues with Tensorflow state staying around...
 tests_ =['test_cacla.py',
          'test_ddpg.py',
          'test_fd_models.py',
@@ -33,8 +33,12 @@ def run_tests(metaSettings, test=False):
         print ("Starting full run: ")
         for tests in tests_:
             print ("Running tests: ", tests)
-            pytest.main(['tests/' + tests, '--junitxml=' + tests + metaSettings['j_unit_filename'], '--workers', str(metaSettings['tuning_threads']), 
-                         '--tests-per-worker=1', '--show-capture=no', '--timeout_method=thread', '--timeout=300'])
+            # command_ = ['tests/' + tests, '--junitxml=' + tests + metaSettings['j_unit_filename'], '--workers', str(metaSettings['tuning_threads']), 
+            #              '--tests-per-worker=1', '--show-capture=no', '--timeout_method=thread', '--timeout=30']
+            command_ = ['tests/' + tests, '--junitxml=' + tests + metaSettings['j_unit_filename'], '--workers', str(metaSettings['tuning_threads']), 
+                          '--tests-per-worker=1', '--show-capture=no']
+            print ("Command: ", command_)
+            pytest.main(command_)
         # pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
             
 if __name__ == '__main__':

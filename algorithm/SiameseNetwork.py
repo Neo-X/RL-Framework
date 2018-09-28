@@ -683,7 +683,7 @@ class SiameseNetwork(KERASAlgorithm):
         ### Save models
         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
-        # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+        self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
         
     def loadFrom(self, fileName):
@@ -695,18 +695,22 @@ class SiameseNetwork(KERASAlgorithm):
         # with K.get_session().graph.as_default() as g:
         ### Need to lead the model this way because the learning model's State expects batches...
         forward_dynamics_net = load_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
+        reward_net = load_model(fileName+"_reward"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
         # if ("simulation_model" in self.getSettings() and
         #     (self.getSettings()["simulation_model"] == True)):
-        if (True):
+        if (True): ### Because the simulation and learning use different model types (statefull vs stateless lstms...)
             self._model._forward_dynamics_net.set_weights(forward_dynamics_net.get_weights())
             self._model._forward_dynamics_net.optimizer = forward_dynamics_net.optimizer
+            self._model._reward_net.set_weights(reward_net.get_weights())
+            self._model._reward_net.optimizer = reward_net.optimizer
         else:
             self._model._forward_dynamics_net = forward_dynamics_net
+            self._model._reward_net = reward_net
             
         self._forward_dynamics_net = self._model._forward_dynamics_net
+        self._reward_net = self._model._reward_net
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
-        # self._model._reward_net = load_model(fileName+"_critic"+suffix)
         if (self._modelTarget is not None):
             self._modelTarget._forward_dynamics_net = load_model(fileName+"_actor_T"+suffix)
             self._modelTarget._reward_net = load_model(fileName+"_reward_net_T"+suffix)

@@ -12,7 +12,7 @@ class TestParallelLearning(object):
         Test some of the more basic learning features that can be used be all algorithms.
     """
 
-    @pytest.mark.timeout(600)   
+    # @pytest.mark.timeout(600)   
     def test_ppo_keras_fast_parallel_gapGame_2D(self):
         """
             Test that PPO can still learn a good policy on 2d gapgame sim
