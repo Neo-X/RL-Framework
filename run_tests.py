@@ -35,7 +35,7 @@ def run_tests(metaSettings, test=False):
             print ("Running tests: ", tests)
             # command_ = ['tests/' + tests, '--junitxml=' + tests + metaSettings['j_unit_filename'], '--workers', str(metaSettings['tuning_threads']), 
             #              '--tests-per-worker=1', '--show-capture=no', '--timeout_method=thread', '--timeout=30']
-            command_ = ['tests/' + tests, '--junitxml=' + tests + metaSettings['j_unit_filename'], '--workers', str(metaSettings['tuning_threads']), 
+            command_ = ['tests/' + tests, '--junitxml=' + tests + metaSettings['j_unit_filename'], '--workers='+ str(metaSettings['tuning_threads']), 
                           '--tests-per-worker=1', '--show-capture=no']
             print ("Command: ", command_)
             pytest.main(command_)
