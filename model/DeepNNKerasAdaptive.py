@@ -258,13 +258,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             # self._actor = Model(input=input_, output=self._actor)
             # self._actor = Model(input=[self._stateInput, self._actionInput], output=self._actor)
             # print("Actor summary: ", self._actor.summary())
-        
-        if ((("train_LSTM" in self._settings)
-             and (self._settings["train_LSTM"] == True))
-            or
-            (("train_LSTM_Critic" in self._settings)
-                and (self._settings["train_LSTM_Critic"] == True))):
-            self._taskFeatures = self._ResultState
+        self._taskFeatures = self._ResultState
         # self._taskFeatures = self._ResultState
             
         layer_sizes = self._settings['critic_network_layer_sizes']
