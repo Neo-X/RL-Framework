@@ -417,6 +417,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                      and (settings["last_fd_layer_activation_type"] == "sigmoid")):
                     reward_ = -1.0 * reward__
                 else:
+                    # print ("Normalizing reward")
                     reward_ = np.exp((reward__*reward__)*-5.0)
                 
         if ("use_learned_fast_function" in settings
