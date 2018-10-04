@@ -317,7 +317,8 @@ class LearningAgent(AgentInterface):
                         
                         for e in range(updates___):   
                             state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm_fd, 
-                                                                                                                                                                  randomLength=use_random_sequence_length_for_lstm)
+                                                                                                                                                                  randomLength=use_random_sequence_length_for_lstm,
+                                                                                                                                                                  randomStart=use_random_sequence_length_for_lstm)
                             dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_)
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Forward Dynamics Loss: ", dynamicsLoss)
@@ -330,7 +331,8 @@ class LearningAgent(AgentInterface):
                                     print ("Additional Multi-task training: ")
                             for e in range(updates___):   
                                 state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=(batch_size_lstm_fd), 
-                                                                                                                                                                  randomLength=use_random_sequence_length_for_lstm)
+                                                                                                                                                                  randomLength=use_random_sequence_length_for_lstm,
+                                                                                                                                                                  randomStart=use_random_sequence_length_for_lstm)
                                 dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_, falls=fall_)
                                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                     print ("Forward Dynamics Loss: ", dynamicsLoss)
@@ -340,7 +342,8 @@ class LearningAgent(AgentInterface):
                         
                         for e in range(updates___):   
                             state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm_fd, 
-                                                                                                                                                                  randomLength=use_random_sequence_length_for_lstm)
+                                                                                                                                                                  randomLength=use_random_sequence_length_for_lstm,
+                                                                                                                                                                  randomStart=use_random_sequence_length_for_lstm)
                             dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_)
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Forward Dynamics Loss: ", dynamicsLoss)
@@ -353,7 +356,8 @@ class LearningAgent(AgentInterface):
                                     print ("Additional Multi-task training: ")
                             for e in range(updates___):   
                                 state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=(batch_size_lstm_fd), 
-                                                                                                                                                                  randomLength=use_random_sequence_length_for_lstm)
+                                                                                                                                                                  randomLength=use_random_sequence_length_for_lstm,
+                                                                                                                                                                  randomStart=use_random_sequence_length_for_lstm)
                                 dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_, falls=fall_)
                                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                     print ("Forward Dynamics Loss: ", dynamicsLoss)

@@ -108,11 +108,12 @@ class ExperienceMemory(object):
         
         self._insertTrajectory([states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions])
         
-    def get_multitask_trajectory_batch(self, batch_size=4, excludeActionTypes=[], randomLength=False, randomStart=True):
+    def get_multitask_trajectory_batch(self, batch_size=4, excludeActionTypes=[], randomLength=False, randomStart=False):
         
         state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_ = self.get_trajectory_batch(batch_size=batch_size, cast=False)
         
         ### Find length of shortest trajectory...
+        min_seq_length = 3
         shortest_traj = 10000000
         traj_start = 0
         for t in range(len(state_)):
@@ -121,11 +122,11 @@ class ExperienceMemory(object):
                 
         if ( randomLength == True ):
             # print ("Randomly cliping sequence length: ", shortest_traj)
-            shortest_traj = (random.sample(set(range(2, shortest_traj)), 1))[0]
+            shortest_traj = (random.sample(set(range(min_seq_length, shortest_traj)), 1))[0]
             # print ("To", shortest_traj)
         
         if ( randomStart == True ):
-            traj_start = (random.sample(set(range(0, shortest_traj)), 1))[0]    
+            traj_start = (random.sample(set(range(0, shortest_traj-min_seq_length+1)), 1))[0]    
                 
         ### Make all trajectories as long as the shortest one...
         for t in range(len(state_)):
