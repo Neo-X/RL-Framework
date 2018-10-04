@@ -415,5 +415,7 @@
 	"comment__": "Leave off the final layer of the reward network that would result in a state sized output",
 "reward_network_leave_off_end": true,
 	"comment__": "Episode simulation time out",
-"simulation_timeout": 1800
+"simulation_timeout": 1800,
+	"comment__": "Include some randomly sized sequences when training lstms",
+"use_random_sequence_length_for_lstm": true
 }
