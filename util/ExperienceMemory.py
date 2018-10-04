@@ -113,26 +113,30 @@ class ExperienceMemory(object):
         state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_ = self.get_trajectory_batch(batch_size=batch_size, cast=False)
         
         ### Find length of shortest trajectory...
-        min_seq_length = 3
+        min_seq_length = 1
         shortest_traj = 10000000
         traj_start = 0
         for t in range(len(state_)):
             if len(state_[t]) < shortest_traj:
                 shortest_traj = len(state_[t])
                 
-        if ( randomLength == True ):
-            # print ("Randomly cliping sequence length: ", shortest_traj)
-            shortest_traj = (random.sample(set(range(min_seq_length, shortest_traj)), 1))[0]
+        if ( randomLength == True 
+            and (min_seq_length < shortest_traj)):  ### shortest_traj Must be at least 2 for this to return 1
+            shortest_traj = random.sample(set(range(min_seq_length, shortest_traj)), 1)[0]
             # print ("To", shortest_traj)
         
-        if ( randomStart == True ):
-            traj_start = (random.sample(set(range(0, shortest_traj-min_seq_length+1)), 1))[0]    
-                
+        if ( randomStart == True 
+             and (shortest_traj > min_seq_length)):
+            traj_start = random.sample(set(range(0, shortest_traj-(min_seq_length))), 1)[0]    
+        
+        print ("shortest_traj: ", shortest_traj, " traj_start: ", traj_start)    
         ### Make all trajectories as long as the shortest one...
         for t in range(len(state_)):
             state_[t] = state_[t][traj_start:shortest_traj]
             action_[t] = action_[t][traj_start:shortest_traj]
+            # print ("resultState_[t]: ", np.array(resultState_[t]).shape)
             resultState_[t] = resultState_[t][traj_start:shortest_traj]
+            # print ("resultState_[t] after: ", np.array(resultState_[t]).shape)
             reward_[t] = reward_[t][traj_start:shortest_traj]
             fall_[t] = fall_[t][traj_start:shortest_traj]
             G_ts_[t] = G_ts_[t][traj_start:shortest_traj]
