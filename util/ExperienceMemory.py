@@ -129,7 +129,7 @@ class ExperienceMemory(object):
              and (shortest_traj > min_seq_length)):
             traj_start = random.sample(set(range(0, shortest_traj-(min_seq_length))), 1)[0]    
         
-        print ("shortest_traj: ", shortest_traj, " traj_start: ", traj_start)    
+        # print ("shortest_traj: ", shortest_traj, " traj_start: ", traj_start)    
         ### Make all trajectories as long as the shortest one...
         for t in range(len(state_)):
             state_[t] = state_[t][traj_start:shortest_traj]

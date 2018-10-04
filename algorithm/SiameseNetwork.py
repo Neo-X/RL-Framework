@@ -173,7 +173,7 @@ def create_sequences(traj0, traj1, settings):
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
-            print ("sequences0: ", np.array(sequences0).shape)
+            # print ("sequences0: ", np.array(sequences0).shape)
             
         else:
             ### basic for now
