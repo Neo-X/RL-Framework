@@ -108,26 +108,35 @@ class ExperienceMemory(object):
         
         self._insertTrajectory([states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions])
         
-    def get_multitask_trajectory_batch(self, batch_size=4, excludeActionTypes=[]):
+    def get_multitask_trajectory_batch(self, batch_size=4, excludeActionTypes=[], randomLength=False, randomStart=True):
         
         state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_ = self.get_trajectory_batch(batch_size=batch_size, cast=False)
         
         ### Find length of shortest trajectory...
         shortest_traj = 10000000
+        traj_start = 0
         for t in range(len(state_)):
             if len(state_[t]) < shortest_traj:
                 shortest_traj = len(state_[t])
                 
+        if ( randomLength == True ):
+            # print ("Randomly cliping sequence length: ", shortest_traj)
+            shortest_traj = (random.sample(set(range(2, shortest_traj)), 1))[0]
+            # print ("To", shortest_traj)
+        
+        if ( randomStart == True ):
+            traj_start = (random.sample(set(range(0, shortest_traj)), 1))[0]    
+                
         ### Make all trajectories as long as the shortest one...
         for t in range(len(state_)):
-            state_[t] = state_[t][:shortest_traj]
-            action_[t] = action_[t][:shortest_traj]
-            resultState_[t] = resultState_[t][:shortest_traj]
-            reward_[t] = reward_[t][:shortest_traj]
-            fall_[t] = fall_[t][:shortest_traj]
-            G_ts_[t] = G_ts_[t][:shortest_traj]
-            exp_actions_[t] = exp_actions_[t][:shortest_traj]
-            advantage_[t] = advantage_[t][:shortest_traj]
+            state_[t] = state_[t][traj_start:shortest_traj]
+            action_[t] = action_[t][traj_start:shortest_traj]
+            resultState_[t] = resultState_[t][traj_start:shortest_traj]
+            reward_[t] = reward_[t][traj_start:shortest_traj]
+            fall_[t] = fall_[t][traj_start:shortest_traj]
+            G_ts_[t] = G_ts_[t][traj_start:shortest_traj]
+            exp_actions_[t] = exp_actions_[t][traj_start:shortest_traj]
+            advantage_[t] = advantage_[t][traj_start:shortest_traj]
             
         state_ = np.array(state_, dtype=self._settings['float_type'])
         if (self._continuous_actions):
