@@ -32,7 +32,7 @@ def emailSimData(settings, metaSettings, sim_time_=0, simData={}):
     out_file.close()
     
     ### Create a tar file of all the sim data
-    tarFileName = (root_data_dir + settings['data_folder'] + '.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
+    tarFileName = (root_data_dir + settings['data_folder'] + 'meta_data.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
     dataTar = tarfile.open(tarFileName, mode='w:gz')
     for simsettings_tmp in simData['settings_files']:
         print ("root_data dir for result: ", getDataDirectory(simsettings_tmp))
@@ -63,7 +63,7 @@ def emailSimData(settings, metaSettings, sim_time_=0, simData={}):
     
     
     ## Send an email so I know this has completed
-    simData["settings_files"] = None ## Remove extra info
+    # simData["settings_files"] = None ## Remove extra info
     simData['sim_time'] = sim_time_
     contents_ = json.dumps(metaSettings, indent=4, sort_keys=True) + "\n" + json.dumps(simData, indent=4, sort_keys=True)
     sendEmail(subject="Simulation Running: " + str(simData['sim_time']), contents=contents_, hyperSettings=metaSettings, 
@@ -172,7 +172,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     if (("email_log_data_periodically" in settings_original)
         and (settings_original["email_log_data_periodically"] == True)):
         loggingWorkerQueue = multiprocessing.Queue(1)
-        loggingWorker = LoggingWorker(settings, 
+        loggingWorker = LoggingWorker(settings_original, 
                                       emailSimData,
                                        loggingWorkerQueue,
                                        simData=result_data)
@@ -230,13 +230,14 @@ def trainMetaModel_(args):
         simSettings_ = json.load(file)
         file.close()
         
-        simSettings_['configFile'] = options['configFile'] 
+        # simSettings_['configFile'] = options['configFile']
+        simSettings_['data_folder'] = simSettings_['data_folder'] + "/"
         
         for option in options:
             if ( not (options[option] is None) ):
                 print ("Updating option: ", option, " = ", options[option])
                 simSettings_[option] = options[option]
-                if ( options[option] == 'true'):
+                if ( options[option] == 'true'): 
                     simSettings_[option] = True
                 elif ( options[option] == 'false'):
                     simSettings_[option] = False
@@ -250,7 +251,6 @@ def trainMetaModel_(args):
             hyperSettings_ = json.load(file)
             file.close()
         
-        simSettings_['data_folder'] = simSettings_['data_folder'] + "/"
         
         simSettings_['meta_thread_index'] = 0
         
@@ -260,7 +260,7 @@ def trainMetaModel_(args):
         else:
             result = trainMetaModel(args[1], samples=int(simSettings_['meta_sim_samples']), settings=copy.deepcopy(simSettings_), numThreads=int(simSettings_['meta_sim_threads']), hyperSettings=hyperSettings_)
         
-        emailSimData(simSettings_, hyperSettings_, sim_time_=result['sim_time '], simData=result)
+        emailSimData(simSettings_, hyperSettings_, sim_time_=result['sim_time'], simData=result)
 
 if (__name__ == "__main__"):
         
