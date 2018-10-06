@@ -62,7 +62,7 @@ class LoggingWorker(Process):
                  settings, loggingWorkerQueue):
         super(LoggingWorker, self).__init__()
         self._settings= settings
-        metaSettings = None
+        self._metaSettings = None
         if ( 'metaConfigFile' in settings and (settings['metaConfigFile'] is not None)):
             ### Import meta settings
             file = open(settings['metaConfigFile'])
@@ -82,7 +82,7 @@ class LoggingWorker(Process):
         while (running):
             time.sleep(1)
             # try:
-            if ( steps__ > timeout_ ):
+            if ( steps__ > timeout_ and (self._metaSettings is not None)):
                 print("Sending log email after ", timeout_, " seconds")
                 collectEmailData(self._settings, self._metaSettings, sim_time_=timesteps)
                 steps__ = 0
