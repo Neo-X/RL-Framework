@@ -224,6 +224,8 @@ if (__name__ == "__main__"):
         simSettings_ = json.load(file)
         file.close()
         
+        simSettings_['configFile'] = options['configFile']
+        
         for option in options:
             if ( not (options[option] is None) ):
                 print ("Updating option: ", option, " = ", options[option])
@@ -292,7 +294,7 @@ if (__name__ == "__main__"):
         else:
             testing_ = False 
         sendEmail(subject="Simulation complete: " + result['sim_time'], 
-                  contents=contents_, hyperSettings=hyperSettings_, simSettings=sys.argv[1], 
+                  contents=contents_, hyperSettings=hyperSettings_, simSettings=options['configFile'], 
                   dataFile=tarFileName, testing=testing_, 
                   pictureFile=pictureFileName)
         

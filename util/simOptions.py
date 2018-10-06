@@ -18,6 +18,13 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Whether or not to train a forward dynamics model as well [true|false|None]")
     
+    parser.add_option("--email_log_data_periodically",
+              action="store", dest="email_log_data_periodically", default=None,
+              type='choice',
+              choices=['true', 'false', None],
+              metavar="STRING", 
+              help="Whether or not to periodically email the simulation learning data so far [true|false|None]")
+    
     parser.add_option("--model_perform_batch_training", "--perform_batch_training",
               action="store", dest="model_perform_batch_training", default=None,
               type='choice',

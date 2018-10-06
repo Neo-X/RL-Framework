@@ -30,6 +30,45 @@ _output_experience_queue = None
 _eval_episode_data_queue = None
 _sim_work_queues = []
 
+def collectEmailData(settings, metaSettings, sim_time_=0, simData={}):
+    from sendEmail import sendEmail
+    import json
+    import tarfile
+    from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
+    from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory, getAgentName
+    import os
+    
+    ### Create a tar file of all the sim data
+    root_data_dir = getDataDirectory(settings)+"/"
+    tarFileName = (root_data_dir + '_sim_data.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
+    dataTar = tarfile.open(tarFileName, mode='w:gz')
+    addDataToTarBall(dataTar, settings)
+        
+    print("root_data_dir: ", root_data_dir)
+    pictureFileName=None
+    try:
+        ## Add pictures to tar file
+        _data_dir = getDataDirectory(settings)
+        addPicturesToTarBall(dataTar, settings, data_folder=_data_dir)
+        pictureFileName=  root_data_dir + getAgentName() + ".png"
+    except Exception as e:
+        # dataTar.close()
+        print("Error plotting data there my not be a DISPLAY available.")
+        print("Error: ", e)
+    dataTar.close()
+    
+    
+    ## Send an email so I know this training has completed
+    contents_ = json.dumps(metaSettings, indent=4, sort_keys=True)
+    sub = "Simulation complete: " + str(sim_time_)
+    simData = {}
+    if ('error' in simData):
+        contents_ = contents_ + "\n" + simData['error']
+        sub = "ERROR*****     " + "Simulation terminated: " + str(sim_time_)
+     
+    sendEmail(subject=sub, contents=contents_, hyperSettings=metaSettings, simSettings=settings['configFile'], dataFile=tarFileName,
+              pictureFile=pictureFileName) 
+
 def createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds, print_info=False):
     """
         Create the Learning Agent to be used
@@ -807,9 +846,13 @@ def trainModelParallel(inputData):
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)):
             pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_)
         
-        loggingWorkerQueue = multiprocessing.Queue(1)
-        loggingWorker = LoggingWorker(settings, loggingWorkerQueue)
-        loggingWorker.start()
+        if (("email_log_data_periodically" in settings)
+            and (settings["email_log_data_periodically"] == True)):
+            loggingWorkerQueue = multiprocessing.Queue(1)
+            loggingWorker = LoggingWorker(settings, 
+                                          collectEmailData,
+                                           loggingWorkerQueue)
+            loggingWorker.start()
         print ("Starting first round")
         if (settings['on_policy']):
             sim_epochs_ = epochs
@@ -1437,8 +1480,10 @@ def trainModelParallel(inputData):
         sess.close()
         del sess
     
-    loggingWorkerQueue.put(False)
-    loggingWorker.join()
+    if (("email_log_data_periodically" in settings)
+            and (settings["email_log_data_periodically"] == True)):
+        loggingWorkerQueue.put(False)
+        loggingWorker.join()
     # print ("sys.modules: ", json.dumps(str(sys.modules), indent=2))
     ### This will find ALL your memory deallocation issues in C++...
     ### And errors in terinating processes properly...
