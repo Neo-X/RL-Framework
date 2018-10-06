@@ -336,7 +336,7 @@ class TRPO_KERAS(KERASAlgorithm):
         ### Used to understand the shape of the parameters
         all_paramsActA = self._model.getActorNetwork().get_weights()
         self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
-        print("Policy log prob before: ", np.mean(self._get_log_prob([states, actions])[0], axis=0))
+        # print("Policy log prob before: ", np.mean(self._get_log_prob([states, actions])[0], axis=0))
         # print ("Performing Critic trainning update")
         # if (( self._updates % self._weight_update_steps) == 0):
         #     self.updateTargetModel()
@@ -553,9 +553,11 @@ def linesearch(f, x, fullstep, expected_improve_rate, max_backtracks=10, accept_
         actual_improve = fval - newfval
         expected_improve = expected_improve_rate*stepfrac
         ratio = actual_improve/expected_improve
-        print ("a/e/r", actual_improve, expected_improve, ratio)
+        # if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+        #     print ("a/e/r", actual_improve, expected_improve, ratio)
         if ratio > accept_ratio and actual_improve > 0:
-            print ("fval after", newfval)
+            # if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            #     print ("fval after", newfval)
             return True, xnew
     return False, x
 

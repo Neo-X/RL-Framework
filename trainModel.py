@@ -318,6 +318,7 @@ def trainModelParallel(inputData):
         from util.SimulationUtil import createRLAgent
         from util.SimulationUtil import createActor, getAgentName
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
+        from simulation.LoggingWorker import LoggingWorker
         
         
         from util.ExperienceMemory import ExperienceMemory
@@ -806,6 +807,9 @@ def trainModelParallel(inputData):
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)):
             pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_)
         
+        loggingWorkerQueue = multiprocessing.Queue(1)
+        loggingWorker = LoggingWorker(settings, loggingWorkerQueue)
+        loggingWorker.start()
         print ("Starting first round")
         if (settings['on_policy']):
             sim_epochs_ = epochs
@@ -1432,6 +1436,9 @@ def trainModelParallel(inputData):
         keras.backend.clear_session()
         sess.close()
         del sess
+    
+    loggingWorkerQueue.put(False)
+    loggingWorker.join()
     # print ("sys.modules: ", json.dumps(str(sys.modules), indent=2))
     ### This will find ALL your memory deallocation issues in C++...
     ### And errors in terinating processes properly...
@@ -1498,8 +1505,6 @@ def signal_handler(signal, frame):
         sys.exit(0)
 # signal.signal(signal.SIGINT, signal_handler)
 
-def collectEmailData():
-    pass
 
 if (__name__ == "__main__"):
     
@@ -1557,43 +1562,7 @@ if (__name__ == "__main__"):
     
     ### If a metaConfig is supplied email out the results
     if ( (metaSettings is not None) ):
-        from sendEmail import sendEmail
-        import json
-        import tarfile
-        from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
-        from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory, getAgentName
-        import os
-        
-        ### Create a tar file of all the sim data
-        root_data_dir = getDataDirectory(settings)+"/"
-        tarFileName = (root_data_dir + '_sim_data.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
-        dataTar = tarfile.open(tarFileName, mode='w:gz')
-        addDataToTarBall(dataTar, settings)
-            
-        print("root_data_dir: ", root_data_dir)
-        pictureFileName=None
-        try:
-            ## Add pictures to tar file
-            _data_dir = getDataDirectory(settings)
-            addPicturesToTarBall(dataTar, settings, data_folder=_data_dir)
-            pictureFileName=  root_data_dir + getAgentName() + ".png"
-        except Exception as e:
-            # dataTar.close()
-            print("Error plotting data there my not be a DISPLAY available.")
-            print("Error: ", e)
-        dataTar.close()
-        
-        
-        ## Send an email so I know this training has completed
-        contents_ = json.dumps(metaSettings, indent=4, sort_keys=True)
-        sub = "Simulation complete: " + str(sim_time_)
-        if ('error' in simData):
-            contents_ = contents_ + "\n" + simData['error']
-            sub = "ERROR*****     " + "Simulation terminated: " + str(sim_time_)
-         
-        sendEmail(subject=sub, contents=contents_, hyperSettings=metaSettings, simSettings=options['configFile'], dataFile=tarFileName,
-                  pictureFile=pictureFileName) 
-
+        collectEmailData(settings, metaSettings, sim_time_, simData)
 
     print("All Done.")
     sys.exit(0)
