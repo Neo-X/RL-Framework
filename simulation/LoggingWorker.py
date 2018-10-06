@@ -40,8 +40,8 @@ class LoggingWorker(Process):
     # @profile(precision=5)
     def run(self):
         
-        # timeout_ = 60 * 60 * 12 ### time between data emails (12 hours).
-        timeout_ = 60  ### time between data emails.
+        timeout_ = 60 * 60 * 8 ### time between data emails (12 hours).
+        # timeout_ = 60  ### time between data emails.
         if ( "email_logging_time" in self._settings ):
             timeout_ = self._settings["email_logging_time"]
         steps__ = 0
