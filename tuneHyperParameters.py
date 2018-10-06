@@ -7,8 +7,10 @@ import copy
 from pathos.threading import ThreadPool
 import time
 import datetime
+import multiprocessing
 
 from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory
+from simulation.LoggingWorker import LoggingWorker
 """
 def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
 """
@@ -43,6 +45,65 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         
         trainMetaModel(simsettingsFileName, samples=num_sim_samples, settings=copy.deepcopy(settings), numThreads=num_sim_samples)
 """
+
+def emailSimData(settings, metaSettings, sim_time_=0, simData={}):
+    import os
+    import tarfile
+    from sendEmail import sendEmail
+    from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
+    from tools.PlotMetadataSimulation import plotMetaDataSimulation
+    
+    root_data_dir = getRootDataDirectory(settings)+"/"
+        
+    ### Create a tar file of all the sim data
+    print ("hyperSettings_['param_to_tune']", metaSettings['param_to_tune'])
+    print ("hyperSettings_['param_to_tune']", makeNiceName(metaSettings['param_to_tune']))
+    tarFileName = (root_data_dir + settings['data_folder'] + "/_" + makeNiceName(metaSettings['param_to_tune']) +'.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
+    # tarFileName = (settings['agent_name']+settings['data_folder']+metaSettings['param_to_tune']+'.tar.gz')
+    dataTar = tarfile.open(tarFileName, mode='w:gz')
+    if "meta_sim_result" in simData: 
+        for meta_result in simData['meta_sim_result']:
+            print (meta_result)
+            for simsettings_tmp in meta_result['settings_files']:
+                addDataToTarBall(dataTar, simsettings_tmp)
+    polt_settings_files = []    
+    for hyperSetFile in simData['hyper_param_settings_files']:
+        print("adding ", hyperSetFile, " to tar file")
+        addDataToTarBall(dataTar, settings, fileName=hyperSetFile)
+        polt_settings_files.append(hyperSetFile)
+    
+    figure_file_name = root_data_dir + settings['data_folder'] + "/_" + makeNiceName(metaSettings['param_to_tune']) + '_'
+    
+    print("root_data_dir: ", root_data_dir)
+    from tools.PlotMetadataSimulation import plotMetaDataSimulation
+    pictureFileName=None
+    try:
+        plotMetaDataSimulation(root_data_dir, settings, polt_settings_files, folder=figure_file_name)
+        ## Add pictures to tar file
+        addPicturesToTarBall(dataTar, settings)
+        pictureFileName=[figure_file_name + "Training_curves.png", 
+                         figure_file_name + "Training_curves_discounted_error.png"]
+    except Exception as e:
+        dataTar.close()
+        print("Error plotting data there my not be a DISPLAY available.")
+        print("Error: ", e)
+    dataTar.close()
+    
+    ## Send an email so I know this has completed
+    ## This prints too much data
+    # result["meta_sim_result"] = None
+    contents_ = json.dumps(metaSettings, indent=4, sort_keys=True) + "\n" + json.dumps(simData, indent=4, sort_keys=True)
+    if ( ('testing' in metaSettings and (metaSettings['testing']))):
+        print("Not simulating, this is a testing run:")
+        testing_ = True
+    else:
+        testing_ = False 
+    sendEmail(subject="Simulation complete: " + str(sim_time_), 
+              contents=contents_, hyperSettings=metaSettings, simSettings=options['configFile'], 
+              dataFile=tarFileName, testing=testing_, 
+              pictureFile=pictureFileName)
+    
+
 
 def compute_next_val(range_,i,samples, curve_scheme='linear'):
     """
@@ -136,7 +197,7 @@ def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, sa
     
     result_data = {}
     
-    settings = simSettings
+    settings = copy.deepcopy(simSettings)
     hyper_settings = hyperSettings
     num_sim_samples = hyper_settings['meta_sim_samples']
     
@@ -164,6 +225,7 @@ def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, sa
             settings[param_of_interest] = params[par]
         
         settings['data_folder'] = data_name + data_name_tmp
+        settings["email_log_data_periodically"] = False ### Don't let sub simulations send emails.
         settings['meta_thread_index'] = meta_thread_index * int(hyper_settings['tuning_threads']) 
         meta_thread_index = meta_thread_index + 1
         # if (meta_thread_index > int(hyper_settings['tuning_threads'])):
@@ -184,6 +246,14 @@ def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, sa
         out_file.close()
         sim_data.append((simsettingsFileName, num_sim_samples, copy.deepcopy(settings), hyper_settings['meta_sim_threads'], copy.deepcopy(hyper_settings)))
     
+    if (("email_log_data_periodically" in simSettings)
+        and (simSettings["email_log_data_periodically"] == True)):
+        loggingWorkerQueue = multiprocessing.Queue(1)
+        loggingWorker = LoggingWorker(copy.deepcopy(simSettings), 
+                                      emailSimData,
+                                       loggingWorkerQueue,
+                                       simData=result_data)
+        loggingWorker.start()
     # p = ProcessingPool(2)
     p = ThreadPool(hyper_settings['tuning_threads'], maxtasksperchild=1)
     t0 = time.time()
@@ -196,6 +266,12 @@ def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, sa
     result_data['Number_of_simulations_sampled'] = len(param_settings)
     result_data['Number_of_threads_used'] = hyper_settings['tuning_threads'] 
     print (result)
+    
+    if (("email_log_data_periodically" in simSettings)
+            and (simSettings["email_log_data_periodically"] == True)):
+        loggingWorkerQueue.put(False)
+        loggingWorker.join()
+        
     return result_data
     
 
@@ -205,9 +281,6 @@ if (__name__ == "__main__"):
         Example:
         python tuneHyperParameters.py settings/navGame/PPO_5D.json settings/navGame/PPO_5D_hyper.json 
     """
-    import tarfile
-    from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
-    from sendEmail import sendEmail
     from util.simOptions import getOptions
     
     options = getOptions(sys.argv)
@@ -249,52 +322,4 @@ if (__name__ == "__main__"):
         
         result = tuneHyperParameters(simsettingsFileName=simSettings_['configFile'], simSettings=simSettings_, hyperSettings=hyperSettings_)
         
-        root_data_dir = getRootDataDirectory(simSettings_)+"/"
-        
-        ### Create a tar file of all the sim data
-        print ("hyperSettings_['param_to_tune']", hyperSettings_['param_to_tune'])
-        print ("hyperSettings_['param_to_tune']", makeNiceName(hyperSettings_['param_to_tune']))
-        tarFileName = (root_data_dir + simSettings_['data_folder'] + "/_" + makeNiceName(hyperSettings_['param_to_tune']) +'.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
-        # tarFileName = (simSettings_['agent_name']+simSettings_['data_folder']+hyperSettings_['param_to_tune']+'.tar.gz')
-        dataTar = tarfile.open(tarFileName, mode='w:gz')
-        for meta_result in result['meta_sim_result']:
-            print (meta_result)
-            for simsettings_tmp in meta_result['settings_files']:
-                addDataToTarBall(dataTar, simsettings_tmp)
-        polt_settings_files = []    
-        for hyperSetFile in result['hyper_param_settings_files']:
-            print("adding ", hyperSetFile, " to tar file")
-            addDataToTarBall(dataTar, simsettings_tmp, fileName=hyperSetFile)
-            polt_settings_files.append(hyperSetFile)
-        
-        figure_file_name = root_data_dir + simSettings_['data_folder'] + "/_" + makeNiceName(hyperSettings_['param_to_tune']) + '_'
-        
-        print("root_data_dir: ", root_data_dir)
-        from tools.PlotMetadataSimulation import plotMetaDataSimulation
-        pictureFileName=None
-        try:
-            plotMetaDataSimulation(root_data_dir, simSettings_, polt_settings_files, folder=figure_file_name)
-            ## Add pictures to tar file
-            addPicturesToTarBall(dataTar, simSettings_)
-            pictureFileName=[figure_file_name + "Training_curves.png", 
-                             figure_file_name + "Training_curves_discounted_error.png"]
-        except Exception as e:
-            dataTar.close()
-            print("Error plotting data there my not be a DISPLAY available.")
-            print("Error: ", e)
-        dataTar.close()
-        
-        ## Send an email so I know this has completed
-        ## This prints too much data
-        result["meta_sim_result"] = None
-        contents_ = json.dumps(hyperSettings_, indent=4, sort_keys=True) + "\n" + json.dumps(result, indent=4, sort_keys=True)
-        if ( ('testing' in hyperSettings_ and (hyperSettings_['testing']))):
-            print("Not simulating, this is a testing run:")
-            testing_ = True
-        else:
-            testing_ = False 
-        sendEmail(subject="Simulation complete: " + result['sim_time'], 
-                  contents=contents_, hyperSettings=hyperSettings_, simSettings=options['configFile'], 
-                  dataFile=tarFileName, testing=testing_, 
-                  pictureFile=pictureFileName)
-        
+        emailSimData(simSettings_, hyperSettings_, sim_time_=result['sim_time'], simData=result)

@@ -192,8 +192,8 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     result_data['Number_of_simulations_sampled'] = samples
     result_data['Number_of_threads_used'] = numThreads
     
-    if (("email_log_data_periodically" in settings)
-            and (settings["email_log_data_periodically"] == True)):
+    if (("email_log_data_periodically" in settings_original)
+            and (settings_original["email_log_data_periodically"] == True)):
         loggingWorkerQueue.put(False)
         loggingWorker.join()
         

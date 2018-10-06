@@ -48,6 +48,14 @@ class LoggingWorker(Process):
         timesteps = 0
         running = True
         while (running):
+            try:
+                ### Check if done first
+                data_ = self._loggingWorkerQueue.get(timeout=1) ### 1 second timeout
+                running = running and data_
+                if (not running):
+                    break
+            except Exception as inst:
+                pass
             time.sleep(1)
             # try:
             if ( steps__ >= timeout_ and (self._metaSettings is not None)):
@@ -55,16 +63,8 @@ class LoggingWorker(Process):
                 self._emailFunction(self._settings, self._metaSettings, sim_time_=timesteps, simData=self._simData)
                 steps__ = 0
                 
-            steps__ = steps__ + 1
-            timesteps = timesteps + 1
-            try:
-                # print ("Getting email queue data")
-                data_ = self._loggingWorkerQueue.get(False)
-                # print ("email worker data: ", data_)
-                running = running and data_
-            except Exception as inst:
-                # print ("SimWorker model parameter message queue empty.")
-                pass
+            steps__ = steps__ + 2
+            timesteps = timesteps + 2
             # except:
             #     print ("Failed emailing log data.")
 
