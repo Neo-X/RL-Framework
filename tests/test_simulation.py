@@ -21,7 +21,7 @@ class TestSimulation(object):
         file.close()
         settings_['visualize_learning'] = False
         settings_['shouldRender'] = False
-        settings['print_level'] = 'hyper_train'
+        settings_['print_level'] = 'hyper_train'
         agent = DoNothingActor(settings_=settings_, experience=None)
         env = DummyEnv(exp=None, settings=settings_)
         modelDummy = ModelDummy(model=None, n_in=11, n_out=7, 
@@ -53,7 +53,7 @@ class TestSimulation(object):
         file.close()
         settings_['visualize_learning'] = False
         settings_['shouldRender'] = False
-        settings['print_level'] = 'hyper_train'
+        settings_['print_level'] = 'hyper_train'
         agent = DoNothingActor(settings_=settings_, experience=None)
         env = DummyEnv(exp=None, settings=settings_)
         modelDummy = ModelDummy(model=None, n_in=11, n_out=7, 
@@ -80,7 +80,7 @@ class TestSimulation(object):
         file.close()
         settings_['visualize_learning'] = False
         settings_['shouldRender'] = False
-        settings['print_level'] = 'hyper_train'
+        settings_['print_level'] = 'hyper_train'
         agent = DoNothingActor(settings_=settings_, experience=None)
         env = DummyEnv(exp=None, settings=settings_)
         modelDummy = ModelDummy(model=None, n_in=11, n_out=7, 
