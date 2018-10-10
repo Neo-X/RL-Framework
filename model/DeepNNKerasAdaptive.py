@@ -190,9 +190,6 @@ class DeepNNKerasAdaptive(ModelInterface):
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
             self._taskFeatures = self._State
-        if (("train_LSTM_Reward" in self._settings)
-                and (self._settings["train_LSTM_Reward"] == True)):
-            self._taskFeatures = self._ResultState
         
         if (self._settings['num_terrain_features'] > 0):
             inputAct = self._taskFeatures
@@ -265,6 +262,10 @@ class DeepNNKerasAdaptive(ModelInterface):
             # print("Actor summary: ", self._actor.summary())
         # self._taskFeatures = self._ResultState
         # self._taskFeatures = self._ResultState
+        
+        if (("train_LSTM_Reward" in self._settings)
+                and (self._settings["train_LSTM_Reward"] == True)):
+            self._taskFeatures = self._ResultState
             
         layer_sizes = self._settings['critic_network_layer_sizes']
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
