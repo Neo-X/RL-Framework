@@ -413,12 +413,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     reward__ = exp.computeImitationReward(model.getForwardDynamics().predict_reward)
                 else:
                     reward__ = exp.computeImitationReward(model.getForwardDynamics().predict)
-                if ( "last_fd_layer_activation_type" in settings
-                     and (settings["last_fd_layer_activation_type"] == "sigmoid")):
-                    reward_ = -1.0 * reward__
-                else:
-                    # print ("Normalizing reward")
-                    reward_ = np.exp((reward__*reward__)*-5.0)
+                
+                reward_ = np.exp((reward__*reward__)*-5.0)
                     
                 if ("use_sparse_sequence_based_reward" in settings
                     and (settings["use_sparse_sequence_based_reward"] == True)):

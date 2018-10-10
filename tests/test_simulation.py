@@ -10,6 +10,7 @@ import json
 from actor.DoNothingActor import DoNothingActor
 from sim.DummyEnv import DummyEnv
 from algorithm.ModelDummy import ModelDummy
+from trainModel import trainModelParallel
 
 class TestSimulation(object):
     
@@ -25,8 +26,8 @@ class TestSimulation(object):
         agent = DoNothingActor(settings_=settings_, experience=None)
         env = DummyEnv(exp=None, settings=settings_)
         modelDummy = ModelDummy(model=None, n_in=11, n_out=7, 
-                                state_bounds=None, action_bounds=None, 
-                                reward_bound=None, settings_=settings_)
+                                state_bounds=settings_['state_bounds'], action_bounds=settings_['action_bounds'], 
+                                reward_bound=settings_['reward_bounds'], settings_=settings_)
         env.setMaxT(settings_['max_epoch_length'])
         out = simEpoch(actor=agent, exp=env, model=modelDummy, discount_factor=0.9, settings=settings_, anchors=None, action_space_continuous=True, 
                        print_data=False, p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None,
@@ -45,6 +46,7 @@ class TestSimulation(object):
         assert ( len(tmp_advantage) == settings_['max_epoch_length'])
         assert ( len(tmp_exp_actions) == settings_['max_epoch_length'])
         
+    
     # @pytest.mark.timeout(600)    
     def test_collect_tuples_discount_sum(self):
         filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD.json"
@@ -57,8 +59,8 @@ class TestSimulation(object):
         agent = DoNothingActor(settings_=settings_, experience=None)
         env = DummyEnv(exp=None, settings=settings_)
         modelDummy = ModelDummy(model=None, n_in=11, n_out=7, 
-                                state_bounds=None, action_bounds=None, 
-                                reward_bound=None, settings_=settings_)
+                                state_bounds=settings_['state_bounds'], action_bounds=settings_['action_bounds'], 
+                                reward_bound=settings_['reward_bounds'], settings_=settings_)
         env.setMaxT(settings_['max_epoch_length'])
         out = simEpoch(actor=agent, exp=env, model=modelDummy, discount_factor=0.9, settings=settings_, anchors=None, action_space_continuous=True, 
                        print_data=False, p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None,
@@ -72,6 +74,7 @@ class TestSimulation(object):
         assert ( len(tmp_baselines_) == settings_['max_epoch_length'])
         assert ( len(evalData) == 1)   
     
+    
     # @pytest.mark.timeout(600)   
     def test_collect_tuples_fidd_length_episodes(self):
         filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD.json"
@@ -84,8 +87,8 @@ class TestSimulation(object):
         agent = DoNothingActor(settings_=settings_, experience=None)
         env = DummyEnv(exp=None, settings=settings_)
         modelDummy = ModelDummy(model=None, n_in=11, n_out=7, 
-                                state_bounds=None, action_bounds=None, 
-                                reward_bound=None, settings_=settings_)
+                                state_bounds=settings_['state_bounds'], action_bounds=settings_['action_bounds'], 
+                                reward_bound=settings_['reward_bounds'], settings_=settings_)
         
         for i in range(1, settings_['max_epoch_length']):
             env.setMaxT(i)
@@ -108,7 +111,7 @@ class TestSimulation(object):
     
     # @pytest.mark.timeout(600)       
     def test_get_state_size_from_env(self):
-        filename = "tests/settings/gapGame2D/PPO/FixedSTD_Tensorflow-v2.json"
+        filename = "tests/settings/gapGame2D/PPO/FixedSTD-v2.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
