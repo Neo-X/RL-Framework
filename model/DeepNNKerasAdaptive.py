@@ -181,13 +181,18 @@ class DeepNNKerasAdaptive(ModelInterface):
         else:
             self._taskFeatures = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
                               arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(inputAct)
+                              
         self._characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
                                    arguments={'begin': self._settings['num_terrain_features'], 
                                               'end': self._state_length})(inputAct)
+        print ("self._taskFeatures shape: ", repr(keras.backend.int_shape(self._taskFeatures)))
         
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
             self._taskFeatures = self._State
+        if (("train_LSTM_Reward" in self._settings)
+                and (self._settings["train_LSTM_Reward"] == True)):
+            self._taskFeatures = self._ResultState
         
         if (self._settings['num_terrain_features'] > 0):
             inputAct = self._taskFeatures
@@ -258,7 +263,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             # self._actor = Model(input=input_, output=self._actor)
             # self._actor = Model(input=[self._stateInput, self._actionInput], output=self._actor)
             # print("Actor summary: ", self._actor.summary())
-        self._taskFeatures = self._ResultState
+        # self._taskFeatures = self._ResultState
         # self._taskFeatures = self._ResultState
             
         layer_sizes = self._settings['critic_network_layer_sizes']
@@ -436,6 +441,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = Dropout(rate=layer_sizes[i][1])(network)    
                 elif ( len(layer_sizes[i][1])> 1 ):
                     if (i == 0):
+                        print ("create self._taskFeatures shape: ", repr(keras.backend.int_shape(self._taskFeatures)))
                         if ('split_terrain_input' in self._networkSettings 
                         and self._networkSettings['split_terrain_input']):
                             if ("image_data_format" in self._networkSettings 
@@ -448,7 +454,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                 networkVel_y = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_y)
                                 network = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(self._taskFeatures)
                         else:    
-                            network = Reshape(self._settings['terrain_shape'])(network)
+                            network = Reshape(self._settings['terrain_shape'])(self._taskFeatures)
                     stride = (1,1)
                     if (len(layer_sizes[i]) > 2):
                         stride = layer_sizes[i][2]
