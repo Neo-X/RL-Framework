@@ -419,6 +419,16 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 else:
                     # print ("Normalizing reward")
                     reward_ = np.exp((reward__*reward__)*-5.0)
+                    
+                if ("use_sparse_sequence_based_reward" in settings
+                    and (settings["use_sparse_sequence_based_reward"] == True)):
+                    ### Only give reward at end of trajectory
+                    if ((exp.endOfEpoch() and settings['reset_on_fall'] and (not evaluation))
+                        or ((i_ + 1) >= settings['max_epoch_length'])): ### End of trajectory
+                        # print ("End of trajectory")
+                        pass
+                    else:
+                        reward_ = reward_ * 0
                 
         if ("use_learned_fast_function" in settings
             and (settings["use_learned_fast_function"] == True)):
