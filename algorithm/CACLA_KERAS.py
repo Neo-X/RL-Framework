@@ -85,7 +85,7 @@ class CACLA_KERAS(KERASAlgorithm):
         _target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self.__value_Target)
         self._loss = K.mean(0.5 * (self.__value - _target) ** 2)
         
-        self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
+        self._q_action_std = K.function([self._model._stateInput,  K.learning_phase()], [self._q_valsActASTD])
         
         gradients = K.gradients(K.mean(self.__value), [self._model._stateInput]) # gradient tensors
         self._get_gradients = K.function(inputs=[self._model._stateInput,  K.learning_phase()], outputs=gradients)
@@ -197,7 +197,7 @@ class CACLA_KERAS(KERASAlgorithm):
         state = np.array(state, dtype=self._settings['float_type'])
         
         # action_std = self._model.getActorNetwork().predict(state, batch_size=1)[:,self._action_length:] * (action_bound_std(self._action_bounds))
-        action_std = (self._q_action_std([state])[0] * action_bound_std(self._action_bounds))
+        action_std = (self._q_action_std([state, 0])[0] * action_bound_std(self._action_bounds))
         # print ("Policy std: ", action_std)
         return action_std * p
     
