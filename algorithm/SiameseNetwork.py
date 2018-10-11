@@ -173,6 +173,19 @@ def create_sequences(traj0, traj1, settings):
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
+            if ("include_agent_imitator_pairs" in settings
+                and (settings["include_agent_imitator_pairs"] == True)):
+                ### Versions of two different trajectories
+                sequences0.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+                sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+                targets = np.zeros(tar_shape) + compare_adjustment
+                targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
+                
+                sequences0.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+                sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+                targets = np.zeros(tar_shape) + compare_adjustment
+                targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
+                
             # print ("sequences0: ", np.array(sequences0).shape)
             
         else:
@@ -237,8 +250,8 @@ def create_sequences(traj0, traj1, settings):
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
     
-            if ("include_agent_initator_pairs" in settings
-                and (settings["include_agent_initator_pairs"] == True)):
+            if ("include_agent_imitator_pairs" in settings
+                and (settings["include_agent_imitator_pairs"] == True)):
                 ### Versions of two different trajectories
                 sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
                 sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
