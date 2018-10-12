@@ -1,0 +1,28 @@
+Bootstrap: shub
+From: singularityhub/ucr-singularity/cuda-9.0-base:latest
+
+%runscript
+    exec echo "The runscript is the containers default runtime command!"
+
+%files
+   /home/gberseth/playground/TerrainRL                    /opt/ # copied to this folder in container
+   /home/gberseth/playground/RLSimulationEnvironments     /opt/ # copied to this folder in container
+   /home/gberseth/playground/RL-Framework                 /opt/ # copied to this folder in container
+
+%environment
+    VARIABLE=MEATBALLVALUE
+    export VARIABLE
+
+%labels
+   AUTHOR gberseth@gmail.com
+
+%post
+    apt-get update && apt-get -y install python3 git wget
+    apt-get -y install freeglut3-dev build-essential libx11-dev libxmu-dev libxi-dev libgl1-mesa-glx libglu1-mesa libglu1-mesa-dev libglew1.6-dev mesa-utils
+    apt-get install -y libprotobuf-dev libleveldb-dev libsnappy-dev libopencv-dev libhdf5-serial-dev protobuf-compiler
+	### more dependancies of caffe
+	apt-get install -y libgflags-dev libgoogle-glog-dev liblmdb-dev
+	### more dependancies of caffe
+	apt-get install -y libatlas-base-dev
+    mkdir /data
+    echo "The post section is where you can install, and configure your container."
