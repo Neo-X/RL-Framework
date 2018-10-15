@@ -18,11 +18,18 @@ From: singularityhub/ucr-singularity/cuda-9.0-base:latest
 
 %post
     apt-get update && apt-get -y install python3 git wget
-    apt-get -y install freeglut3-dev build-essential libx11-dev libxmu-dev libxi-dev libgl1-mesa-glx libglu1-mesa libglu1-mesa-dev libglew1.6-dev mesa-utils
-    apt-get install -y libprotobuf-dev libleveldb-dev libsnappy-dev libopencv-dev libhdf5-serial-dev protobuf-compiler
+    
+    # apt-get -y install freeglut3-dev build-essential libx11-dev libxmu-dev libxi-dev libgl1-mesa-glx libglu1-mesa libglu1-mesa-dev libglew1.6-dev mesa-utils
+    # apt-get install -y libprotobuf-dev libleveldb-dev libsnappy-dev libopencv-dev libhdf5-serial-dev protobuf-compiler
 	### more dependancies of caffe
-	apt-get install -y libgflags-dev libgoogle-glog-dev liblmdb-dev
+	# apt-get install -y libgflags-dev libgoogle-glog-dev liblmdb-dev
 	### more dependancies of caffe
 	apt-get install -y libatlas-base-dev
+	apt-get install -y premake4
     mkdir /data
+    
+    ### Fro creating python wrapper code
+    apt-get install -y swig3.0 premake4
+	### For openGL ES support
+	apt-get install libglfw3-dev libgles2-mesa-dev
     echo "The post section is where you can install, and configure your container."
