@@ -396,8 +396,14 @@ class ExperienceMemory(object):
             # print ("self._fall_history[i]: ", self._fall_history[i])
             if ( (type(self._settings["sim_config_file"]) is list)):
                  
-                if ("worker_to_task_mapping" in self._settings
-                     and (self._settings["worker_to_task_mapping"][self._fall_history[i][0]] is not 0)):
+                if (
+                    (not ("multitask_learning" in self._settings
+                          and (self._settings["multitask_learning"] == True))
+                     )
+                    and
+                    ("worker_to_task_mapping" in self._settings
+                     and (self._settings["worker_to_task_mapping"][self._fall_history[i][0]] is not 0))
+                    ): ### Only use training data for the task of interest
                     # print ("skipping non desired task tuple")
                     continue
             indices.add(i)
