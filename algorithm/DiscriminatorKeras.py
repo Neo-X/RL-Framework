@@ -231,7 +231,8 @@ class DiscriminatorKeras(KERASAlgorithm):
         
         return 0
         
-    def train(self, states, actions, result_states, rewards, updates=1, batch_size=None):
+    def train(self, states, actions, result_states, rewards, updates=1, batch_size=None,
+              lstm=False):
         if (batch_size is None):
             batch_size_=states.shape[0]
         else:

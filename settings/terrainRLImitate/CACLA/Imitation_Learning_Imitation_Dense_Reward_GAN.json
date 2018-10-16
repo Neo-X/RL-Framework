@@ -323,7 +323,7 @@
 		"comment__": "Change where the network splits for a single network model",
 	"split_single_net_earlier": false,
 		"comment__": "Use CoordConv convolutional layers.",
-	"use_coordconv_layers": true
+	"use_coordconv_layers": false
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
 "pretrain_critic": 0,

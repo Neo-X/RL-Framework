@@ -399,6 +399,11 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = GRU(layer_sizes[i][2], stateful=self._stateful_lstm)(network)
                 elif (layer_sizes[i][0] == "Reshape"):
                     network = Reshape(layer_sizes[i][1])(network)
+                elif (layer_sizes[i][0] == "integrate_gan_conditional_cnn"):
+                    subnet = self.createSubNetwork(self._ResultState, layer_sizes[i][1])
+                    # nextStateImg = self._ResultState
+                    network = Concatenate()([network, subnet] )
+                    
                 elif (layer_sizes[i][0] == "Dense"):
                     network = Dense(layer_sizes[i][1],
                                 kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
