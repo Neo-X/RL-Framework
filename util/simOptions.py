@@ -72,7 +72,17 @@ def getOptions(_args=None):
               type=int,
               metavar="INTEGER", help="The number of seconds queues will wait for simulations")
     
-        
+    parser.add_option("--additional_on-poli_trianing_updates",
+              action="store", dest="additional_on-poli_trianing_updates", default=None,
+              type=int,
+              metavar="INTEGER", help="Additional on-policy training updates")
+    
+    parser.add_option("--fd_updates_per_actor_update",
+              action="store", dest="fd_updates_per_actor_update", default=None,
+              type=int,
+              metavar="INTEGER", help="The number of fd network to be done per actor update.")
+    
+    
     parser.add_option("--meta_sim_samples", "--mp",
               action="store", dest="meta_sim_samples", default=None,
               type=int,

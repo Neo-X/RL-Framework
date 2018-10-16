@@ -213,6 +213,12 @@ class DiscriminatorKeras(KERASAlgorithm):
             rewards[indx] = int( np.random.rand() + 0.5)
         """
         rewards_ = np.clip(rewards + np.random.normal(0,0.1, size=(states.shape[0],1)), 0.01, 0.99)
+        if ( "add_label_noise" in self._settings):
+            if (np.random.rand() < self._settings["add_label_noise"]):
+                print ("rewards_[0]: ", rewards_[0])
+                rewards_ = 1.0 - rewards_ ### Invert labels
+                print ("Inverting label values this time")
+                print ("rewards_[0]: ", rewards_[0])
         # print ("Descriminator targets: ", np.mean(rewards_))
         score = self._model.getCriticNetwork().fit([states, result_states], [rewards_],
               epochs=updates, batch_size=batch_size_,

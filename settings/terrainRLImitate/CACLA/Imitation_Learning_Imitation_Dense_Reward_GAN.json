@@ -144,7 +144,7 @@
     "comment__": "critic regularization weight",
 "critic_regularization_weight": 0.00001,
     "comment__": "Critic learning rate",
-"critic_learning_rate": 0.001,
+"critic_learning_rate": 0.0005,
     "comment__": "During evaluation plot of value function",
 "visualize_expected_value": true,
     "comment__": "exponential decay value for use in reward function",
@@ -370,5 +370,7 @@
 	"comment__": "Replace the results state for the data with the dense pose",
 "replace_next_state_with_pose_state": true,
 	"comment__": "Dense state size",
-"dense_state_size": 49
+"dense_state_size": 49,
+	"comment__": "Add label noise to Discriminator/Simease network training",
+"add_label_noise": 0.1
 }
