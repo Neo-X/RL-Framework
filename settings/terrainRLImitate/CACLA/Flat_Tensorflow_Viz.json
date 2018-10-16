@@ -332,7 +332,7 @@
 	"comment__": "Use an L2 loss over for the value function over the G_t from rollouts (no TD loss)",
 "dont_use_td_learning": true,
 	"comment__": "Anneal the learning rate",
-"anneal_learning_rate": true,
+"anneal_learning_rate": false,
 	"comment__": "Data ordering format for convolutions",
 "image_data_format": "channels_first",
 	"comment__": "Size and shape of terrain",
