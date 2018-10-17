@@ -46,6 +46,13 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Whether or not to perform training in epochs [true|false|None]")
     
+    parser.add_option("--reset_on_fall",
+              action="store", dest="reset_on_fall", default=None,
+              type='choice',
+              choices=['true', 'false', None],
+              metavar="STRING", 
+              help="Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occurred")
+    
     parser.add_option("--visualize_expected_value",
               action="store", dest="visualize_expected_value", default=None,
               type='choice',

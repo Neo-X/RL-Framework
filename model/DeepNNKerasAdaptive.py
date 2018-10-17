@@ -145,13 +145,19 @@ class DeepNNKerasAdaptive(ModelInterface):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, self._result_state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="ResultState")
                 else:
                     self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState")
-            self._stateInput = self._ResultState 
+            # self._stateInput = self._ResultState 
         else:
             self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
-            if (("train_LSTM" in self._settings)
-                and (self._settings["train_LSTM"] == True)):
-                ### Training an fd lstm but not a reward one.
+            if (
+                (("train_LSTM" in self._settings)
+                and (self._settings["train_LSTM"] == True))
+                and
+                ( not (("train_LSTM_Critic" in self._settings)
+                and (self._settings["train_LSTM_Critic"] == True)))
+                ):
+                print("Training a policy lstm but not a critic one.")
                 self._stateInput = self._ResultState
+                
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
             self._Reward = keras.layers.Input(shape=(self._sequence_length,1), name="Reward")
@@ -396,7 +402,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                 elif (layer_sizes[i][0] == "GRU"):
                     # print ("layer.output_shape: ", keras.backend.shape(network))
                     # network = Reshape((1, layer_sizes[i][1]))(network)
-                    network = GRU(layer_sizes[i][2], stateful=self._stateful_lstm)(network)
+                    rnn_dropout=0.0
+                    if (len(layer_sizes[i]) == 4):
+                        rnn_dropout = float (layer_sizes[i][3])
+                        print("Recurrent Dropout: ", rnn_dropout)
+                    network = GRU(layer_sizes[i][2], stateful=self._stateful_lstm, 
+                                  recurrent_dropout=rnn_dropout)(network)
                 elif (layer_sizes[i][0] == "Reshape"):
                     network = Reshape(layer_sizes[i][1])(network)
                 elif (layer_sizes[i][0] == "integrate_gan_conditional_cnn"):
@@ -415,12 +426,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                 elif (layer_sizes[i][0] == "TimeDistributedConv"):
                     ### https://machinelearningmastery.com/timedistributed-layer-for-long-short-term-memory-networks-in-python/
                     # input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name="State_Conv")
-                    input_ = keras.layers.Input(shape=(1, self._state_length), name="State_Conv")
-                    print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
                     if ("fd" == layer_sizes[i][2]):
                         subnet = self._actor
                         subnet = Model(inputs=self._State_backup, outputs=subnet)
                     else:
+                        input_ = keras.layers.Input(shape=(1, self._state_length), name="State_Conv")
+                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
                         subnet = self.createSubNetwork(input_, layer_sizes[i][2])
                         subnet = Model(inputs=input_, outputs=subnet)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -428,11 +439,25 @@ class DeepNNKerasAdaptive(ModelInterface):
                             subnet.summary()
                     # subnet = Dense(8)
                     ### Create a model (set of layers to distribute) pass in the original input to that model
-                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, 16384))(input)
+                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
                     
                     # network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))
                 elif (layer_sizes[i][0] == "TimeDistributed"):
-                    network = keras.layers.TimeDistributed(input_shape=(40, 31, 4096))(network)
+                    
+                    if ("fd" == layer_sizes[i][2]):
+                        subnet = self._actor
+                        subnet = Model(inputs=self._State_backup, outputs=subnet)
+                    else:
+                        input_ = keras.layers.Input(shape=(self._state_length,), name="State_subnet")
+                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
+                        subnet = self.createSubNetwork(input_, layer_sizes[i][2])
+                        subnet = Model(inputs=input_, outputs=subnet)
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                            print("Subnet summary")
+                            subnet.summary()
+                    # subnet = Dense(8)
+                    ### Create a model (set of layers to distribute) pass in the original input to that model
+                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
                     
                 elif (layer_sizes[i][0] == "integrate_actor_part"):
                     subnet_ = self.createSubNetwork(self._actionInput, layer_sizes[i][1])

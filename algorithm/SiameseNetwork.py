@@ -590,8 +590,8 @@ class SiameseNetwork(KERASAlgorithm):
             # te_pair1, te_pair2, te_y = seq
             # score = self._model._forward_dynamics_net.train_on_batch([sequences0, sequences1], targets_)
             loss_ = []
-            if ("train_LSTM_stateful" in self._settings
-                and (self._settings["train_LSTM_stateful"] == True)
+            if ("train_LSTM_FD_stateful" in self._settings
+                and (self._settings["train_LSTM_FD_stateful"] == True)
                 # and False
                 ):
                 for k in range(sequences0.shape[1]):
@@ -771,8 +771,8 @@ class SiameseNetwork(KERASAlgorithm):
             sequences1 = np.array(sequences1)
             targets_ = np.array(targets_)
             errors=[]
-            if ("train_LSTM_stateful" in self._settings
-                and (self._settings["train_LSTM_stateful"] == True)
+            if ("train_LSTM_FD_stateful" in self._settings
+                and (self._settings["train_LSTM_FD_stateful"] == True)
                 # and False
                 ):
                 for k in range(sequences0.shape[1]):
@@ -814,8 +814,8 @@ class SiameseNetwork(KERASAlgorithm):
             sequences1 = np.array(sequences1)
             targets_ = np.array(targets_)
             errors=[]
-            if ("train_LSTM_stateful" in self._settings
-                and (self._settings["train_LSTM_stateful"] == True)
+            if ("train_LSTM_FD_stateful" in self._settings
+                and (self._settings["train_LSTM_FD_stateful"] == True)
                 # and False
                 ):
                 for k in range(sequences0.shape[1]):

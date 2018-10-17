@@ -176,6 +176,39 @@ class KERASAlgorithm(AlgorithmInterface):
             # print ("New critic learning rate: ", lr)
         # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
         # if (c_error < 10.0):
+        if (("train_LSTM_Critic" in self._settings)
+                and (self._settings["train_LSTM_Critic"] == True)):
+            targets_ = target
+            self.reset()
+            if ("train_LSTM_stateful" in self._settings
+                and (self._settings["train_LSTM_stateful"] == True)
+                # and False
+                ):
+                for k in range(states.shape[1]):
+                    ### shaping data
+                    x0 = np.array(states[:,[k]])
+                    y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
+                    # print ("data: ", np.mean(x0), np.mean(x1), np.mean(y0))
+                    # print (x0) 
+                    # print ("x0 shape: ", x0.shape)
+                    # print ("y0 shape: ", y0.shape)
+                    score = self._model.getCriticNetwork().fit([x0], [y0],
+                              epochs=1, 
+                              batch_size=sequences0.shape[0],
+                              verbose=0
+                              )
+                    # print ("lstm train loss: ", score.history['loss'])
+                    loss_.append(np.mean(score.history['loss']))
+            else:
+                # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
+                score = self._model.getCriticNetwork().fit([states], [targets__],
+                              epochs=1, 
+                              batch_size=sequences0.shape[0],
+                              verbose=0
+                              )
+                loss_.append(np.mean(score.history['loss']))
+            
+            return np.mean(loss_)
         score = self._model.getCriticNetwork().fit(states, target,
               epochs=updates, batch_size=batch_size_,
               verbose=0,

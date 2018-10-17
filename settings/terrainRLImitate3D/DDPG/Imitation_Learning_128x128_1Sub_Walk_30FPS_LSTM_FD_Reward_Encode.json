@@ -509,7 +509,7 @@
 	"comment__": "Just train the fd model in an LSTM fashion",
 "train_LSTM_FD": false,
 	"comment__": "Use a stateful LSTM",
-"train_LSTM_stateful": false,
+"train_LSTM_FD_stateful": false,
 	"comment__": "batch size for lstm fd models",
 "lstm_batch_size": [8, 14],
 	"comment__": "experience size for fd network",

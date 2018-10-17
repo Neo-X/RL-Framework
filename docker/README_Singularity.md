@@ -28,3 +28,8 @@ Now lets do somethings with it.
 sudo singularity shell --writable ubuntu.img
 ```
 
+Having issues installing some of the libraries in Ubuntu. 
+In particular ```apt-get install freeglut3-dev libgles2-mesa-dev libglew1.6-dev``` is causing issues where old libraries are not getting overwitten.
+I needed to specifically run the above command to install the libraries needed even though the proper versions of the dependancies were not updated.
+ 
+
