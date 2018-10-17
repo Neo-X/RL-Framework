@@ -206,18 +206,17 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("Discrete action choice: ", action, " epsilon * p: ", omega * p)
                 else : 
                     ### add noise to current policy
-                    # return ra1
+                    pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                     if ( ((settings['exploration_method'] == 'OrnsteinUhlenbeck') 
                           # or (bootstrapping)
                           ) 
                          and (not sampling)):
                         # print ("Random Guassian sample, state bounds", model.getStateBounds())
-                        pa = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # print ("Exploration Action: ", pa)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
                             noise = OUNoise(theta=0.15, sigma=settings["exploration_rate"] * p, previousNoise=noise)
-                            action = pa + (noise * action_bound_std(action_bounds)) 
+                            action = pa_ + (noise * action_bound_std(action_bounds)) 
                         else:
                             noise = OUNoise(theta=0.15, sigma=settings["exploration_rate"], previousNoise=noise)
                             action = pa + (noise * action_bound_std(action_bounds))
@@ -225,7 +224,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                           (settings['use_stochastic_policy'] == True))
                           or (settings['exploration_method'] == 'gaussian_random')
                            ):
-                        pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
                             std_ = model.predict_std(state_, p=p)

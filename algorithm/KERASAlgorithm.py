@@ -231,6 +231,9 @@ class KERASAlgorithm(AlgorithmInterface):
     def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
+        if (("train_LSTM" in self._settings)
+            and (self._settings["train_LSTM"] == True)):
+            state = np.array([state], dtype=self._settings['float_type'])
         # if deterministic_:
         # print ("state: ", np.array([state]).shape)
         action_ = scale_action(self._model.getActorNetwork().predict([state], 
@@ -252,11 +255,25 @@ class KERASAlgorithm(AlgorithmInterface):
         # action_ = q_valsActA[0]
         return action_
     
+    def predict_std(self, state, deterministic_=True, p=1.0):
+        state = norm_state(state, self._state_bounds)   
+        state = np.array(state, dtype=self._settings['float_type'])
+        if (("train_LSTM" in self._settings)
+            and (self._settings["train_LSTM"] == True)):
+            state = np.array([state], dtype=self._settings['float_type'])
+        # action_std = self._model.getActorNetwork().predict(state, batch_size=1)[:,self._action_length:] * (action_bound_std(self._action_bounds))
+        action_std = (self._q_action_std([state, 0])[0] * action_bound_std(self._action_bounds))
+        # print ("Policy std: ", action_std)
+        return action_std * p
+    
     def q_value(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
+        if (("train_LSTM_Critic" in self._settings)
+            and (self._settings["train_LSTM_Critic"] == True)):
+            state = np.array([state], dtype=self._settings['float_type'])
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
         # print ("State shape: ", state.shape)
         value = scale_reward(self._model.getCriticNetwork().predict(state), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))

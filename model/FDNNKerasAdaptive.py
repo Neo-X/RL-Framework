@@ -47,17 +47,14 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
             and (settings_["train_gan"] == True)):
             settings_["train_gan"] = "yes"
             
-        if ("train_LSTM_FD" in settings_
-            and (settings_["train_LSTM_FD"] == True)):
-            settings_["train_LSTM"] = True
+        if ("train_LSTM_FD" in settings_ ):
+            settings_["train_LSTM"] = settings_["train_LSTM_FD"]
         
-        if ("train_LSTM_Reward" in settings_
-            and (settings_["train_LSTM_Reward"] == True)):
-            settings_["train_LSTM_Critic"] = True
+        if ("train_LSTM_Reward" in settings_):
+            settings_["train_LSTM_Critic"] = settings_["train_LSTM_Reward"]
             
-        if ("train_LSTM_FD_stateful" in settings_
-            and (settings_["train_LSTM_FD_stateful"] == True)):
-            settings_["train_LSTM_stateful"] = True
+        if ("train_LSTM_FD_stateful" in settings_ ):
+            settings_["train_LSTM_stateful"] = settings_["train_LSTM_FD_stateful"]
                 
         print ("FD net n_out: ", n_out)
         super(FDNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)

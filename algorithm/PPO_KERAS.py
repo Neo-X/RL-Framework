@@ -330,7 +330,7 @@ class PPO_KERAS(KERASAlgorithm):
         
         self._policy_mean = K.function([self._model.getStateSymbolicVariable(), 
                                           K.learning_phase()], [self._q_valsActA])
-        self.q_valsActASTD = K.function([self._model.getStateSymbolicVariable(), 
+        self._q_action_std = K.function([self._model.getStateSymbolicVariable(), 
                                           # self._Anneal,
                                           K.learning_phase()], [self._q_valsActASTD]) 
         
@@ -435,7 +435,7 @@ class PPO_KERAS(KERASAlgorithm):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy probability ratio: ", np.mean(r_))
                 print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
-                print ("Policy std: ", np.mean(self.q_valsActASTD([states, 0])[0], axis=0))
+                print ("Policy std: ", np.mean(self._q_action_std([states, 0])[0], axis=0))
                 # print ("Network Params mean: ", np.mean(np.array(list(flatten(self.getNetworkParameters()[1])))))
                 # print ("States shape: ", np.array(states).shape)
                         ### For now don't include dropout in policy updates
@@ -507,25 +507,13 @@ class PPO_KERAS(KERASAlgorithm):
                     r_ = np.mean(self._r([states, actions, 0])[0])
                     print ("Policy probability ratio: ", np.mean(r_))
                     print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
-                    print ("Policy std: ", np.mean(self.q_valsActASTD([states, 0])[0], axis=0))
+                    print ("Policy std: ", np.mean(self._q_action_std([states, 0])[0], axis=0))
                     # print ("Network Params mean: ", np.mean(np.array(self.getNetworkParameters()[1])))
         else:
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy Gradient too large: ", r_)
             
         return lossActor
-    
-    def predict_std(self, state, deterministic_=True, p=1.0):
-        # print ("PPO std p:", p)
-        state = norm_state(state, self._state_bounds)   
-        state = np.array(state, dtype=self._settings['float_type'])
-        self._model.setStates(state)
-        if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-            action_std = self.q_valsActASTD([state, 0])[0]
-            # action_std = self._q_action_std()[0] * (action_bound_std(self._action_bounds))
-        else:
-            action_std = self.q_valsActASTD([state, 0])[0] * (action_bound_std(self._action_bounds))
-        return action_std * p
     
     """
     def q_value(self, state):

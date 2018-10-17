@@ -192,15 +192,6 @@ class CACLA_KERAS(KERASAlgorithm):
         return lossActor
     
     
-    def predict_std(self, state, deterministic_=True, p=1.0):
-        state = norm_state(state, self._state_bounds)   
-        state = np.array(state, dtype=self._settings['float_type'])
-        
-        # action_std = self._model.getActorNetwork().predict(state, batch_size=1)[:,self._action_length:] * (action_bound_std(self._action_bounds))
-        action_std = (self._q_action_std([state, 0])[0] * action_bound_std(self._action_bounds))
-        # print ("Policy std: ", action_std)
-        return action_std * p
-    
     def bellman_error(self, states, actions, rewards, result_states, falls):
         """
             Computes the one step temporal difference.
