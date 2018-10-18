@@ -456,7 +456,9 @@ class LearningAgent(AgentInterface):
                         
                                 
             for ii__ in range(additional_on_poli_trianing_updates):
-                if (self._settings['train_critic']):
+                if (self._settings['train_critic']
+                    and (not (("train_LSTM_Critic" in self._settings)
+                    and (self._settings["train_LSTM_Critic"] == True)))):
                     t0 = time.time()
                     if (self._settings['critic_updates_per_actor_update'] > 1):
                         
@@ -592,7 +594,9 @@ class LearningAgent(AgentInterface):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
                         print ("FD training complete in " + str(sim_time_) + " seconds")
 
-                if (self._settings['train_actor']):
+                if (self._settings['train_actor']
+                    and (not (("train_LSTM" in self._settings)
+                    and (self._settings["train_LSTM"] == True)))):
                     t1 = time.time()
                     if ( 'use_multiple_policy_updates' in self._settings and 
                          ( self._settings['use_multiple_policy_updates'] == True) ):

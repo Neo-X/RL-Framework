@@ -494,12 +494,11 @@ class PPO_KERAS(KERASAlgorithm):
                         
                         # action_old = self._modelTarget.getActorNetwork().predict(states)
                         action_old = np.zeros((actions.shape))
-                        print ("y_ : ", action_old)
                         for k in range(states.shape[1]):
                             x0 = np.array(states[:,[k]])
                             action_old__ = self._action_Target([x0, 0])
                             # action_old__ = self._modelTarget.getActorNetwork().predict([x0])
-                            print ("values: ", action_old__)
+                            # print ("values: ", action_old__)
                             for j in range(states.shape[0]): 
                                 action_old[j][k] = action_old__[0][j] ### Reducing dimensionality of targets
                                     # print ("appending state: ", j, " values: ", y_[0])
@@ -586,14 +585,39 @@ class PPO_KERAS(KERASAlgorithm):
         """
             Computes the one step temporal difference.
         """
-        y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-        # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-        # target_ = rewards + ((self._discount_factor * y_) * falls)
-        target_ = rewards + ((self._discount_factor * y_))
-        # values =  self._model.getValueFunction().predict(states, batch_size=states.shape[0])
-        values = self._value([states,0])[0]
-        bellman_error = target_ - values
-        return bellman_error
+        if (("train_LSTM_Critic" in self._settings)
+            and (self._settings["train_LSTM_Critic"] == True)):
+            self.reset()
+            loss_ = []
+            if ("train_LSTM_stateful" in self._settings
+                and (self._settings["train_LSTM_stateful"] == True)
+                ):
+                y_ = np.zeros((rewards.shape))
+                v_ = np.zeros((rewards.shape))
+                for k in range(result_states.shape[1]):
+                    x0 = np.array(states[:,[k]])
+                    x1 = np.array(result_states[:,[k]])
+                    v__ = self._value([x0,0])[0]
+                    y__ = self._value_Target([x1, 0])[0]
+                    # print ("y__: ", y__)
+                    for j in range(result_states.shape[0]): 
+                        v_[j][k] = v__[j] ### Reducing dimensionality of targets
+                        y_[j][k] = y__[j] ### Reducing dimensionality of targets
+                
+                targets_ = rewards + ((self._discount_factor * y_))
+                # bellman_error = np.mean(targets_ - v_)
+                bellman_error = np.mean(np.fabs(targets_ - v_), axis=0)
+                print ("bellman_error: ", bellman_error)
+                return bellman_error
+        else:
+            y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
+            # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
+            # target_ = rewards + ((self._discount_factor * y_) * falls)
+            target_ = rewards + ((self._discount_factor * y_))
+            # values =  self._model.getValueFunction().predict(states, batch_size=states.shape[0])
+            values = self._value([states,0])[0]
+            bellman_error = target_ - values
+            return bellman_error
         # return self._bellman_errorTarget()
         
     def get_actor_regularization(self):
