@@ -80,11 +80,11 @@ class PPO_KERAS(KERASAlgorithm):
         if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
             self._model._actor_train = Model(inputs=input_, outputs=[self._model._actor, self._model._critic])
         else:
-            self._model._actor_train = Model(inputs=input_, outputs=self._model._actor)
-        self._model._actor = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._actor)
+            self._model._actor_train = Model(inputs=input_, outputs=[self._model._actor])
+        self._model._actor = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=[self._model._actor])
         if (print_info):
             print("Actor summary: ", self._model._actor_train.summary())
-        self._model._critic = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._critic)
+        self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=[self._model._critic])
         if (print_info):
             print("Critic summary: ", self._model._critic.summary())
         ## Target network
@@ -95,10 +95,10 @@ class PPO_KERAS(KERASAlgorithm):
                  self._Advantage,
                  self._Anneal
                   ]
-        self._modelTarget._actor = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._actor)
+        self._modelTarget._actor = Model(inputs=[self._modelTarget.getStateSymbolicVariable()], outputs=[self._modelTarget._actor])
         if (print_info):
             print("Target Actor summary: ", self._modelTarget._actor.summary())
-        self._modelTarget._critic = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._critic)
+        self._modelTarget._critic = Model(inputs=[self._modelTarget.getStateSymbolicVariable()], outputs=[self._modelTarget._critic])
         if (print_info):
             print("Target Critic summary: ", self._modelTarget._critic.summary())
         

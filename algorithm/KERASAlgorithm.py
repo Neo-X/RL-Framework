@@ -143,31 +143,32 @@ class KERASAlgorithm(AlgorithmInterface):
                 and (self._settings["train_LSTM_stateful"] == True)
                 # and False
                 ):
-                y_ = []
-                for j in range(states.shape[0]):
-                    y__ = []
-                    self.reset()
-                    for k in range(states.shape[1]):
+                y_ = [[] * result_states.shape[0]]
+                print ("y_ : ", y_)
+                for k in range(result_states.shape[1]):
+                    # self.reset()
+                    x0 = np.array(result_states[:,[k]])
+                    # y___ = self.q_values(x0, wrap=False)
+                    y___ = self._value_Target([x0])
+                    print ("values: ", y___)
+                    # y__.append(self._modelTarget.getCriticNetwork().predict([x0], batch_size=4))
+                    for j in range(result_states.shape[0]):
                         # y__.append(self._modelTarget.getCriticNetwork().predict([result_states[j][k]]))
-                        state___ = np.reshape(np.array(result_states[j][k], dtype=self._settings['float_type']), 
-                                                                                          newshape=(1,1,self._state_length))
-                        print ("predicting state___:", state___)
-                        y__.append(self._modelTarget.getCriticNetwork().predict(np.reshape(np.array(result_states[j][k], dtype=self._settings['float_type']), 
-                                                                                          newshape=(1,1,self._state_length)
-                                                                                          )))
-                        np.resh
-                    y_.append(y__)
+                        y_[j].append(y___[0][j]) ### Reducing dimensionality of targets
+                    # y_.append(y__)
                 # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
                 # target_ = rewards + ((self._discount_factor * y_) * falls)
                 target = rewards + ((self._discount_factor * np.array(y_)))
                 targets_ = target
+                print ("targets shape: ", np.array(targets_).shape)
+                self.reset()
                 for k in range(states.shape[1]):
                     ### shaping data
                     x0 = np.array(states[:,[k]])
                     y0 = np.array(targets_[:,k]) 
                     score = self._model.getCriticNetwork().fit([x0], [y0],
                               epochs=1, 
-                              batch_size=sequences0.shape[0],
+                              batch_size=states.shape[0],
                               verbose=0
                               )
                     # print ("lstm train loss: ", score.history['loss'])
@@ -297,10 +298,11 @@ class KERASAlgorithm(AlgorithmInterface):
         return value
         # return self._q_val()[0]
             
-    def q_values(self, states):
+    def q_values(self, states, wrap=True):
         states = np.array(states, dtype=self._settings['float_type'])
         if (("train_LSTM_Critic" in self._settings)
-            and (self._settings["train_LSTM_Critic"] == True)):
+            and (self._settings["train_LSTM_Critic"] == True)
+            and (wrap == True) ):
             states = np.array([states], dtype=self._settings['float_type'])
         # print("states: ", repr(states))
         values = self._model.getCriticNetwork().predict(states)
