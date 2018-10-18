@@ -879,8 +879,14 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         if( type == 'eval'):
             
             if model.getExperience().samples() >= batch_size:
-                _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = model.getExperience().get_batch(batch_size)
-                error = model.bellman_error(_states, _actions, _rewards, _result_states, _falls)
+                if (("train_LSTM_Critic" in settings)
+                and (settings["train_LSTM_Critic"] == True)):
+                    # _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = model.getExperience().get_batch(batch_size)
+                    states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = model.getExperience().get_trajectory_batch(batch_size=4 )
+                    error = model.bellman_error(states_, actions_, rewards_, result_states_, falls_)
+                else:
+                    _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = model.getExperience().get_batch(batch_size)
+                    error = model.bellman_error(_states, _actions, _rewards, _result_states, _falls)
                 # print("Episode bellman error: ", error)
             else :
                 error = [[0]]
