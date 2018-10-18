@@ -139,22 +139,29 @@ class KERASAlgorithm(AlgorithmInterface):
         if (("train_LSTM_Critic" in self._settings)
             and (self._settings["train_LSTM_Critic"] == True)):
             self.reset()
+            loss_ = []
             if ("train_LSTM_stateful" in self._settings
                 and (self._settings["train_LSTM_stateful"] == True)
                 # and False
                 ):
-                y_ = [[]] * result_states.shape[0]
+                y_ = copy.deepcopy([[]] * result_states.shape[0])
                 print ("y_ : ", y_)
                 for k in range(result_states.shape[1]):
                     # self.reset()
                     x0 = np.array(result_states[:,[k]])
                     # y___ = self.q_values(x0, wrap=False)
-                    y___ = self._value_Target([x0])
-                    print ("values: ", y___)
+                    y__ = self._value_Target([x0])
+                    # print ("values: ", y__)
                     # y__.append(self._modelTarget.getCriticNetwork().predict([x0], batch_size=4))
-                    for j in range(result_states.shape[0]):
+                    for j in range(result_states.shape[0]): 
                         # y__.append(self._modelTarget.getCriticNetwork().predict([result_states[j][k]]))
-                        y_[j].append(y___[0][j]) ### Reducing dimensionality of targets
+                        state___ = y__[0][j]
+                        if ( k == 0): ## Need to do some deep copying...
+                            y___ = [state___]
+                            y_[j] = copy.deepcopy(y___)
+                        else:
+                            y_[j].append(state___) ### Reducing dimensionality of targets
+                            # print ("appending state: ", j, " values: ", y_[0])
                     # y_.append(y__)
                 # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
                 # target_ = rewards + ((self._discount_factor * y_) * falls)
