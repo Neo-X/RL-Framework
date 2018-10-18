@@ -277,14 +277,17 @@ class LearningAgent(AgentInterface):
                         self.getExperience().insertTrajectory(_states[e], _actions[e], _result_states[e], _rewards[e], 
                                                                     tmp_falls[e], tmp_G_t[e], tmp_advantage[e], tmp_exp_action[e])
                         
-                        loss = self._pol.trainCritic(states=_states[e], actions=_actions[e], rewards=_rewards[e], 
-                                                     result_states=_result_states[e], falls=tmp_falls[e], G_t=tmp_G_t[e],
+                    for e in range(4):   
+                        
+                        states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = self.getExperience().get_trajectory_batch(batch_size=4 )
+                        loss = self._pol.trainCritic(states=states_, actions=actions_, rewards=rewards_, 
+                                                     result_states=result_states_, falls=falls_, G_t=G_ts_,
                                                      p=p)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Critic loss: ", loss)
-                        loss_ = self._pol.trainActor(states=_states[e], actions=_actions[e], rewards=_rewards[e], result_states=_result_states[e], falls=tmp_falls[e], 
-                                                     advantage=tmp_advantage[e], exp_actions=tmp_exp_action[e], G_t=tmp_G_t[e], forwardDynamicsModel=self._fd,
-                                                     p=p)
+                        loss_ = self._pol.trainActor(states=states_, actions=actions_, rewards=rewards_, result_states=result_states_, 
+                                                     falls=falls_, advantage=advantages_, exp_actions=exp_actions_, 
+                                                     G_t=G_ts_, forwardDynamicsModel=self._fd, p=p)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Policy Loss: ", loss_)
                 

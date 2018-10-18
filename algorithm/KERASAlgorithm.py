@@ -3,6 +3,7 @@ import h5py
 # import lasagne
 import sys
 import copy
+from dask.array.tests.test_numpy_compat import dtype
 sys.path.append('../')
 from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward, norm_reward
 from algorithm.AlgorithmInterface import AlgorithmInterface
@@ -135,6 +136,52 @@ class KERASAlgorithm(AlgorithmInterface):
         if (( self._updates % self._weight_update_steps) == 0):
             self.updateTargetModel()
         self._updates += 1
+        if (("train_LSTM_Critic" in self._settings)
+            and (self._settings["train_LSTM_Critic"] == True)):
+            self.reset()
+            if ("train_LSTM_stateful" in self._settings
+                and (self._settings["train_LSTM_stateful"] == True)
+                # and False
+                ):
+                y_ = []
+                for j in range(states.shape[0]):
+                    y__ = []
+                    self.reset()
+                    for k in range(states.shape[1]):
+                        # y__.append(self._modelTarget.getCriticNetwork().predict([result_states[j][k]]))
+                        state___ = np.reshape(np.array(result_states[j][k], dtype=self._settings['float_type']), 
+                                                                                          newshape=(1,1,self._state_length))
+                        print ("predicting state___:", state___)
+                        y__.append(self._modelTarget.getCriticNetwork().predict(np.reshape(np.array(result_states[j][k], dtype=self._settings['float_type']), 
+                                                                                          newshape=(1,1,self._state_length)
+                                                                                          )))
+                        np.resh
+                    y_.append(y__)
+                # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
+                # target_ = rewards + ((self._discount_factor * y_) * falls)
+                target = rewards + ((self._discount_factor * np.array(y_)))
+                targets_ = target
+                for k in range(states.shape[1]):
+                    ### shaping data
+                    x0 = np.array(states[:,[k]])
+                    y0 = np.array(targets_[:,k]) 
+                    score = self._model.getCriticNetwork().fit([x0], [y0],
+                              epochs=1, 
+                              batch_size=sequences0.shape[0],
+                              verbose=0
+                              )
+                    # print ("lstm train loss: ", score.history['loss'])
+                    loss_.append(np.mean(score.history['loss']))
+            else:
+                # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
+                score = self._model.getCriticNetwork().fit([states], [targets__],
+                              epochs=1, 
+                              batch_size=sequences0.shape[0],
+                              verbose=0
+                              )
+                loss_.append(np.mean(score.history['loss']))
+            
+            return np.mean(loss_)
         if ('dont_use_td_learning' in self.getSettings() 
             and self.getSettings()['dont_use_td_learning'] == True):
             # y_ = self._value_Target([result_states,0])[0]
@@ -176,39 +223,6 @@ class KERASAlgorithm(AlgorithmInterface):
             # print ("New critic learning rate: ", lr)
         # print ("critic error: ", np.mean(np.mean(np.square(v - target_), axis=1)))
         # if (c_error < 10.0):
-        if (("train_LSTM_Critic" in self._settings)
-                and (self._settings["train_LSTM_Critic"] == True)):
-            targets_ = target
-            self.reset()
-            if ("train_LSTM_stateful" in self._settings
-                and (self._settings["train_LSTM_stateful"] == True)
-                # and False
-                ):
-                for k in range(states.shape[1]):
-                    ### shaping data
-                    x0 = np.array(states[:,[k]])
-                    y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
-                    # print ("data: ", np.mean(x0), np.mean(x1), np.mean(y0))
-                    # print (x0) 
-                    # print ("x0 shape: ", x0.shape)
-                    # print ("y0 shape: ", y0.shape)
-                    score = self._model.getCriticNetwork().fit([x0], [y0],
-                              epochs=1, 
-                              batch_size=sequences0.shape[0],
-                              verbose=0
-                              )
-                    # print ("lstm train loss: ", score.history['loss'])
-                    loss_.append(np.mean(score.history['loss']))
-            else:
-                # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
-                score = self._model.getCriticNetwork().fit([states], [targets__],
-                              epochs=1, 
-                              batch_size=sequences0.shape[0],
-                              verbose=0
-                              )
-                loss_.append(np.mean(score.history['loss']))
-            
-            return np.mean(loss_)
         score = self._model.getCriticNetwork().fit(states, target,
               epochs=updates, batch_size=batch_size_,
               verbose=0,
@@ -234,6 +248,7 @@ class KERASAlgorithm(AlgorithmInterface):
         if (("train_LSTM" in self._settings)
             and (self._settings["train_LSTM"] == True)):
             state = np.array([state], dtype=self._settings['float_type'])
+            # print ("state shape: ", state.shape)
         # if deterministic_:
         # print ("state: ", np.array([state]).shape)
         action_ = scale_action(self._model.getActorNetwork().predict([state], 
@@ -284,6 +299,9 @@ class KERASAlgorithm(AlgorithmInterface):
             
     def q_values(self, states):
         states = np.array(states, dtype=self._settings['float_type'])
+        if (("train_LSTM_Critic" in self._settings)
+            and (self._settings["train_LSTM_Critic"] == True)):
+            states = np.array([states], dtype=self._settings['float_type'])
         # print("states: ", repr(states))
         values = self._model.getCriticNetwork().predict(states)
         # values = self._value([states,0])[0]
