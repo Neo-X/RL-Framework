@@ -82,6 +82,7 @@ class LearningAgent(AgentInterface):
     def getFDExperience(self):
         return self._expBuff_FD  
     
+    # @profile(precision=5)
     def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
               _exp_actions=None, _G_t=None, p=1.0):
         if self._useLock:
@@ -269,17 +270,19 @@ class LearningAgent(AgentInterface):
                     # _advantage = [np.array(tmp_advantage__, dtype=self._settings['float_type']) for tmp_advantage__ in tmp_advantage]
                     # _G_t = [np.array(tmp_G_t__, dtype=self._settings['float_type']) for tmp_G_t__ in tmp_G_t]
                     # _exp_action = [np.array(tmp_exp_action__, dtype=self._settings['float_type']) for tmp_exp_action__ in tmp_exp_action]
-                
                 if (("train_LSTM" in self._settings)
                     and (self._settings["train_LSTM"] == True)):
                     for e in range(len(_states)):
                         
                         self.getExperience().insertTrajectory(_states[e], _actions[e], _result_states[e], _rewards[e], 
                                                                     tmp_falls[e], tmp_G_t[e], tmp_advantage[e], tmp_exp_action[e])
-                        
-                    for e in range(4):   
-                        
-                        states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = self.getExperience().get_trajectory_batch(batch_size=4 )
+                    batch_size_lstm = 4
+                    if ("lstm_batch_size" in self._settings):
+                        batch_size_lstm = self._settings["lstm_batch_size"][1]
+                    updates___ = max(1, int((len(_states)/batch_size_lstm) * self._settings["additional_on-poli_trianing_updates"]))
+                    print ("Performing lstm policy training")
+                    for e in range(updates___):   
+                        states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = self.getExperience().get_trajectory_batch(batch_size=batch_size_lstm)
                         loss = self._pol.trainCritic(states=states_, actions=actions_, rewards=rewards_, 
                                                      result_states=result_states_, falls=falls_, G_t=G_ts_,
                                                      p=p)
@@ -290,6 +293,7 @@ class LearningAgent(AgentInterface):
                                                      G_t=G_ts_, forwardDynamicsModel=self._fd, p=p)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Policy Loss: ", loss_)
+                    print ("Done lstm policy training")
                 
                 if ((("train_LSTM_FD" in self._settings)
                      and (self._settings["train_LSTM_FD"] == True))
@@ -297,7 +301,6 @@ class LearningAgent(AgentInterface):
                     (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True))
                     ):
-                    batch_size_lstm_fd = 4
                     use_random_sequence_length_for_lstm = False
                     if ("use_random_sequence_length_for_lstm" in self._settings
                         and (self._settings["use_random_sequence_length_for_lstm"] == True)):
@@ -315,9 +318,11 @@ class LearningAgent(AgentInterface):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("num trajectories: ", len(_states), " num updates: ", updates___)
                 
+                    batch_size_lstm_fd = 4
+                    if ("lstm_batch_size" in self._settings):
+                        batch_size_lstm_fd = self._settings["lstm_batch_size"][0]
                     if (("train_LSTM_FD" in self._settings)
                         and (self._settings["train_LSTM_FD"] == True)):
-                        
                         for e in range(updates___):   
                             state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm_fd, 
                                                                                                                                                                   randomLength=use_random_sequence_length_for_lstm,

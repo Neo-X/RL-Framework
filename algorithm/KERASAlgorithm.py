@@ -160,7 +160,7 @@ class KERASAlgorithm(AlgorithmInterface):
                 # target_ = rewards + ((self._discount_factor * y_) * falls)
                 target = rewards + ((self._discount_factor * np.array(y_)))
                 targets_ = target
-                print ("targets shape: ", np.array(targets_).shape)
+                # print ("targets shape: ", np.array(targets_).shape)
                 self.reset()
                 for k in range(states.shape[1]):
                     ### shaping data

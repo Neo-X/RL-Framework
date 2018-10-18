@@ -134,8 +134,17 @@ def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, setti
             # print ("Evaluated Actions: ", actions)
             # print ("Evaluated Rewards: ", rewards)
             if model.getExperience().samples() >= batch_size:
-                _states, _actions, _result_states, _rewards, falls, _G_ts, exp_actions, advantage = model.getExperience().get_batch(batch_size)
-                error = model.bellman_error(_states, _actions, _rewards, _result_states, falls)
+                if (("train_LSTM_Critic" in settings)
+                and (settings["train_LSTM_Critic"] == True)):
+                    # _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = model.getExperience().get_batch(batch_size)
+                    batch_size_lstm = 4
+                    if ("lstm_batch_size" in settings):
+                        batch_size_lstm = settings["lstm_batch_size"][1]
+                    states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = model.getExperience().get_trajectory_batch(batch_size=batch_size_lstm)
+                    error = model.bellman_error(states_, actions_, rewards_, result_states_, falls_)
+                else:
+                    _states, _actions, _result_states, _rewards, falls, _G_ts, exp_actions, advantage = model.getExperience().get_batch(batch_size)
+                    error = model.bellman_error(_states, _actions, _rewards, _result_states, falls)
                 # print("Episode bellman error: ", error)
             else :
                 error = [[0]]
