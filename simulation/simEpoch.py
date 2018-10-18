@@ -574,13 +574,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # print ("rewards shape: ", repr(np.array(rewards[last_epoch_end:])))
                 path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
                 path["terminated"] = False
-                # print("rewards: ", rewards[last_epoch_end:])
-                ## Extend so that we can preserve the paths/trajectory structure.
+                ## Append so that we can preserve the paths/trajectory structure.
                 if (len(rewards[last_epoch_end:]) > 0):
                     adv__ = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
-                    # print ("adv__ shape: ", np.array(adv__).shape)
-                    # adv__ = np.reshape(adv__, (-1, len(adv__)))
-                    # print ("adv__ shape: ", np.array(adv__).shape)
                     advantage.append(np.array(adv__))
     else:
         ### This does not seem to work anymore
