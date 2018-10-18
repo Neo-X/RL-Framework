@@ -143,7 +143,7 @@ class KERASAlgorithm(AlgorithmInterface):
                 and (self._settings["train_LSTM_stateful"] == True)
                 # and False
                 ):
-                y_ = [[] * result_states.shape[0]]
+                y_ = [[]] * result_states.shape[0]
                 print ("y_ : ", y_)
                 for k in range(result_states.shape[1]):
                     # self.reset()
