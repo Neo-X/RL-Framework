@@ -607,7 +607,7 @@ class PPO_KERAS(KERASAlgorithm):
                 targets_ = rewards + ((self._discount_factor * y_))
                 # bellman_error = np.mean(targets_ - v_)
                 bellman_error = np.mean(np.fabs(targets_ - v_), axis=0)
-                print ("bellman_error: ", bellman_error)
+                # print ("bellman_error: ", bellman_error)
                 return bellman_error
         else:
             y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
