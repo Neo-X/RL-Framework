@@ -885,7 +885,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
                     batch_size_lstm = 4
                     if ("lstm_batch_size" in settings):
                         batch_size_lstm = settings["lstm_batch_size"][1]
-                    states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = model.getExperience().get_trajectory_batch(batch_size=batch_size_lstm)
+                    states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = model.getExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm)
                     error = model.bellman_error(states_, actions_, rewards_, result_states_, falls_)
                 else:
                     _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = model.getExperience().get_batch(batch_size)
