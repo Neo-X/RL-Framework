@@ -559,28 +559,6 @@ class PPO_KERAS(KERASAlgorithm):
             
         return lossActor
     
-    """
-    def q_value(self, state):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
-        # states[0, ...] = state
-        state = norm_state(state, self._state_bounds)
-        state = np.array(state, dtype=self._settings['float_type'])
-        self._model.setStates(state)
-        self._modelTarget.setStates(state)
-        # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
-        value = scale_reward(self._model.getCriticNetwork().predict(state, batch_size=1), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-        print ("value: ", repr(np.array(value)))
-        return value
-        # return self._q_val()[0]
-    
-    def q_values(self, state):
-        state = np.array(state, dtype=self._settings['float_type'])
-        self._model.setStates(state)
-        self._modelTarget.setStates(state)
-        values = self._model.getCriticNetwork().predict(state, batch_size=state.shape[0])
-        print ("values: ", repr(np.array(values)))
-        return values    
-    """
     def bellman_error(self, states, actions, rewards, result_states, falls):
         """
             Computes the one step temporal difference.

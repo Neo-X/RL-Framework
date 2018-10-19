@@ -93,7 +93,8 @@ def compute_advantage_(vf, paths, gamma, lam):
         # print("States: ", path['states'])
         # print("reward shape: ", path['reward'].shape)
         # print("reward: ", path['reward'])
-        b = path["baseline"] = vf.q_values(path['states'])
+        ### state is in environment space not normalized space
+        b = path["baseline"] = vf.q_values2(path['states'])
         # print("Baseline: ", b.shape)
         b1 = np.append(b, 0 if path["terminated"] else b[-1])
         b1 = np.reshape(b1, (-1,1))

@@ -842,6 +842,25 @@ class LearningAgent(AgentInterface):
             self._accesLock.release()
         return q
     
+    def q_values2(self, state):
+        if self._useLock:
+            self._accesLock.acquire()
+        if ("use_dual_state_representations" in self.getSettings()
+            and (self.getSettings()["use_dual_state_representations"] == True)):
+            if ("use_viz_for_policy" in self.getSettings() 
+                and self.getSettings()["use_viz_for_policy"] == True):
+            # print ("State: ", state)
+                state = [state[0][1]]
+            elif ("use_dual_viz_state_representations" in self.getSettings()
+                  and (self.getSettings()["use_dual_viz_state_representations"] == True)):
+                state = [state[0][0]]
+            else:
+                state = [state[0][0]]
+        q = self._pol.q_values(state)
+        if self._useLock:
+            self._accesLock.release()
+        return q
+    
     def bellman_error(self, state, action, reward, result_state, fall):
         if self._useLock:
             self._accesLock.acquire()

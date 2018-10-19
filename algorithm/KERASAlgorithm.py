@@ -297,6 +297,27 @@ class KERASAlgorithm(AlgorithmInterface):
         # print ("value: ", repr(np.array(value)))
         return value
         # return self._q_val()[0]
+        
+    def q_values2(self, states, wrap=True):
+        states = norm_state(states, self._state_bounds)
+        states = np.array(states, dtype=self._settings['float_type'])
+        if (("train_LSTM_Critic" in self._settings)
+            and (self._settings["train_LSTM_Critic"] == True)
+            and (wrap == True) ):
+            ### This is a trajectory
+            # states = np.array([states], dtype=self._settings['float_type'])
+            values = []
+            self._model.reset()
+            for s in states:
+                s_ = np.array([np.array([s])])
+                # print ("s shape: ", s_.shape)
+                values.append(self._model.getCriticNetwork().predict([s_]))
+            return values
+        # print("states: ", repr(states))
+        values = self._model.getCriticNetwork().predict(states)
+        # values = self._value([states,0])[0]
+        # print ("values: ", repr(np.array(values)))
+        return values
             
     def q_values(self, states, wrap=True):
         states = np.array(states, dtype=self._settings['float_type'])
