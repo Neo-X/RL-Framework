@@ -328,7 +328,7 @@ class PPO_KERAS(KERASAlgorithm):
         else:
             self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
             
-        self._action_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self._q_valsActTarget_State])        
+        self._action_Target = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self._q_valsActTarget_State])        
         self._policy_mean = K.function([self._model.getStateSymbolicVariable(), 
                                           K.learning_phase()], [self._q_valsActA])
         self._q_action_std = K.function([self._model.getStateSymbolicVariable(), 
