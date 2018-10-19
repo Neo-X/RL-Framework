@@ -22,7 +22,7 @@ pip3.6 install $user numpy
 pip3.6 install $user theano==1.0.1
 # pip install matplotlib
 pip3.6 install $user matplotlib
-pip3.6 pip install $user --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
+pip3.6 install $user --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
 ### One of these should work... Curse you Lasagne...
 cp ../patches/pool.py ~/.local/lib/python3.6/site-packages/lasagne/layers/
 pip3.6 install $user dill
@@ -31,6 +31,8 @@ pip3.6 install $user pyOpenGL
 # pip3 install $user keras==2.1.5
 ### I have a custom version of keras now...
 pip3.6 install $user git+https://github.com/Neo-X/keras.git
+pip3.6 install $user dask toolz
+pip3.6 install $user pytest
 pip3.6 install $user tensorflow
 ## Does not work in Python3
 # pip3 install pyODE

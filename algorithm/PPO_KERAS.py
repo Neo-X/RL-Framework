@@ -123,7 +123,7 @@ class PPO_KERAS(KERASAlgorithm):
         else:
             self._q_valsActASTD = ( K.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         
-        self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model.getResultStateSymbolicVariable())[:,:self._action_length]
+        self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
         if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])): 
             # self._q_valsActTargetSTD = (self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) + 1e-2
             self._q_valsActTargetSTD = ((self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) * self.getSettings()['exploration_rate']) + 1e-2 
@@ -519,6 +519,7 @@ class PPO_KERAS(KERASAlgorithm):
                               )
                 else:
                     ### Anneal learning rate
+                    action_old = self._modelTarget.getActorNetwork().predict(states)
                     self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], actions,
                           epochs=updates, batch_size=batch_size_,
                           verbose=0,

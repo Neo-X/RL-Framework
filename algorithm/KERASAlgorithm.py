@@ -144,17 +144,13 @@ class KERASAlgorithm(AlgorithmInterface):
                 and (self._settings["train_LSTM_stateful"] == True)
                 # and False
                 ):
-                y_ = copy.deepcopy([[]] * result_states.shape[0])
+                y_ = np.zeros((rewards.shape))
                 for k in range(result_states.shape[1]):
                     x0 = np.array(result_states[:,[k]])
                     y__ = self._value_Target([x0])
                     for j in range(result_states.shape[0]): 
                         state___ = y__[0][j]
-                        if ( k == 0): ## Need to do some deep copying...
-                            y___ = [state___]
-                            y_[j] = copy.deepcopy(y___)
-                        else:
-                            y_[j].append(state___) ### Reducing dimensionality of targets
+                        y_[j][k] = state___ ### Reducing dimensionality of targets
                     # y_.append(y__)
                 # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
                 # target_ = rewards + ((self._discount_factor * y_) * falls)
@@ -299,6 +295,7 @@ class KERASAlgorithm(AlgorithmInterface):
         # return self._q_val()[0]
         
     def q_values2(self, states, wrap=True):
+        ### These versions are normalized
         states = norm_state(states, self._state_bounds)
         states = np.array(states, dtype=self._settings['float_type'])
         if (("train_LSTM_Critic" in self._settings)
@@ -307,7 +304,7 @@ class KERASAlgorithm(AlgorithmInterface):
             ### This is a trajectory
             # states = np.array([states], dtype=self._settings['float_type'])
             values = []
-            self._model.reset()
+            self.reset()
             for s in states:
                 s_ = np.array([np.array([s])])
                 # print ("s shape: ", s_.shape)
