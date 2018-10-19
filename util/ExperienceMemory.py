@@ -197,7 +197,7 @@ class ExperienceMemory(object):
             resultState.append(norm_state(self._trajectory_history[i][2], self.getResultStateBounds()))
             reward.append(norm_state(self._trajectory_history[i][3] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
             fall.append(self._trajectory_history[i][4])
-            G_ts.append(self._trajectory_history[i][5])
+            G_ts.append(norm_state(self._trajectory_history[i][5], self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
             advantage.append(self._trajectory_history[i][6])
             exp_actions.append(self._trajectory_history[i][7])
             
@@ -425,7 +425,7 @@ class ExperienceMemory(object):
                 resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
                 reward.append(norm_state(self._reward_history[i] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
             fall.append(self._fall_history[i])
-            G_ts.append(self._discounted_sum_history[i])
+            G_ts.append(norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
             advantage.append(self._advantage_history[i])
             exp_actions.append(self._exp_action_history[i])
             

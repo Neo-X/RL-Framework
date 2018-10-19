@@ -253,8 +253,10 @@ class LearningAgent(AgentInterface):
                         _states.append([np.array(norm_action(np.array(tmp_states__), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states])
                         _result_states.append([np.array(norm_action(np.array(tmp_result_states__), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states])
                         """
-                        _states.append([np.array(np.array(tmp_states__), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
-                        _result_states.append([np.array(np.array(tmp_result_states__), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
+                        # _states.append([np.array(np.array(tmp_states__), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
+                        # _result_states.append([np.array(np.array(tmp_result_states__), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
+                        _states = tmp_states
+                        _result_states = tmp_result_states
                         
                         _states_fd = _states
                         _result_states_fd = _result_states
@@ -263,8 +265,8 @@ class LearningAgent(AgentInterface):
                     _actions.append([np.array(norm_action(np.array(tmp_actions__), self._pol.getActionBounds()), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions[i]])
                     _rewards.append([np.array(norm_state(tmp_rewards__ , self._pol.getRewardBounds() ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards[i]])
                     """
-                    _actions.append([np.array(np.array(tmp_actions__), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions[i]])
-                    _rewards.append([np.array(tmp_rewards__ , dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards[i]])
+                    # _actions.append([np.array(np.array(tmp_actions__), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions[i]])
+                    # _rewards.append([np.array(tmp_rewards__ , dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards[i]])
                     # _rewards = np.reshape(_rewards, (len(tmp_states), 1))
                     # _falls = [np.array(tmp_falls__, dtype='int8') for tmp_falls__ in tmp_falls]
                     # _advantage = [np.array(tmp_advantage__, dtype=self._settings['float_type']) for tmp_advantage__ in tmp_advantage]
@@ -274,7 +276,7 @@ class LearningAgent(AgentInterface):
                     and (self._settings["train_LSTM"] == True)):
                     for e in range(len(_states)):
                         
-                        self.getExperience().insertTrajectory(_states[e], _actions[e], _result_states[e], _rewards[e], 
+                        self.getExperience().insertTrajectory(_states[e], tmp_actions[e], _result_states[e], tmp_rewards[e], 
                                                                     tmp_falls[e], tmp_G_t[e], tmp_advantage[e], tmp_exp_action[e])
                     batch_size_lstm = 4
                     if ("lstm_batch_size" in self._settings):

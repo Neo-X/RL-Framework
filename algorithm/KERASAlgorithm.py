@@ -144,17 +144,21 @@ class KERASAlgorithm(AlgorithmInterface):
                 and (self._settings["train_LSTM_stateful"] == True)
                 # and False
                 ):
-                y_ = np.zeros((rewards.shape))
-                for k in range(result_states.shape[1]):
-                    x0 = np.array(result_states[:,[k]])
-                    y__ = self._value_Target([x0])
-                    for j in range(result_states.shape[0]): 
-                        state___ = y__[0][j]
-                        y_[j][k] = state___ ### Reducing dimensionality of targets
+                if ('dont_use_td_learning' in self.getSettings() 
+                    and self.getSettings()['dont_use_td_learning'] == True):
+                    target = G_t
+                else:
+                    y_ = np.zeros((rewards.shape))
+                    for k in range(result_states.shape[1]):
+                        x0 = np.array(result_states[:,[k]])
+                        y__ = self._value_Target([x0, 0])
+                        for j in range(result_states.shape[0]): 
+                            state___ = y__[0][j]
+                            y_[j][k] = state___ ### Reducing dimensionality of targets
+                    target = rewards + ((self._discount_factor * np.array(y_)))
                     # y_.append(y__)
                 # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
                 # target_ = rewards + ((self._discount_factor * y_) * falls)
-                target = rewards + ((self._discount_factor * np.array(y_)))
                 targets_ = target
                 # print ("targets shape: ", np.array(targets_).shape)
                 self.reset()
