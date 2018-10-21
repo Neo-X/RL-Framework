@@ -146,7 +146,15 @@ class KERASAlgorithm(AlgorithmInterface):
                 ):
                 if ('dont_use_td_learning' in self.getSettings() 
                     and self.getSettings()['dont_use_td_learning'] == True):
-                    target = G_t
+                    y_ = np.zeros((rewards.shape))
+                    for k in range(result_states.shape[1]):
+                        x0 = np.array(result_states[:,[k]])
+                        y__ = self._value_Target([x0, 0])
+                        for j in range(result_states.shape[0]): 
+                            state___ = y__[0][j]
+                            y_[j][k] = state___ ### Reducing dimensionality of targets
+                    target = rewards + ((self._discount_factor * np.array(y_)))
+                    target = ( target + G_t ) / 2.0
                 else:
                     y_ = np.zeros((rewards.shape))
                     for k in range(result_states.shape[1]):
@@ -188,7 +196,7 @@ class KERASAlgorithm(AlgorithmInterface):
             # y_ = self._value_Target([result_states,0])[0]
             y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
             target_ = rewards + ((self._discount_factor * y_))
-            target_2 = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
+            target_2 = G_t 
             target = (target_ + target_2) / 2.0
         else:
             # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
