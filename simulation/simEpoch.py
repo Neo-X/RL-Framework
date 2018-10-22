@@ -531,10 +531,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     """
     evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
     evalData = [np.mean(evalDatas)]
-    G_ts.extend(copy.deepcopy(G_t))
+    # G_ts.extend(copy.deepcopy(G_t))
+    G_ts.extend(copy.deepcopy(discounted_rewards(np.array(rewards), discount_factor)))
     baselines_.extend(copy.deepcopy(baseline))
     # print ("baseline: ", repr(np.array(baseline)))
-    # print ("G_t: ", repr(np.array(G_t)))
+    # print ("G_t, rewards: ", repr(np.concatenate((discounted_rewards(np.array(rewards), discount_factor), rewards), axis=1)) )
     # print ("states: ", repr(np.array(states)))
     # baselines_ = np.transpose(model.q_values(states ))[0]
     discounted_sum = G_ts
@@ -563,15 +564,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     model.reset()
     if ('use_GAE' in settings and ( settings['use_GAE'] == True)):
         if (len(states[last_epoch_end:]) > 0):
-            # print ("Tranjectory state shape: ", np.array(states).shape)
             for a in range(len(states[0])):
-                # print ("Computing advantage for agent: ", a)
                 path = {}
                 ### timestep, agent, state
-                # print ("States shape: ", np.array(states[last_epoch_end:]).shape)
                 path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
-                # print ("rewards shape: ", np.array(rewards[last_epoch_end:]).shape)
-                # print ("rewards shape: ", repr(np.array(rewards[last_epoch_end:])))
                 path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
                 path["terminated"] = False
                 ## Append so that we can preserve the paths/trajectory structure.

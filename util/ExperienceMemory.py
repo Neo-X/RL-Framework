@@ -346,7 +346,11 @@ class ExperienceMemory(object):
         # print("Running reward std: ", np.sqrt(self._reward_var))
         low = self._reward_mean[0] - (np.sqrt(self._reward_var[0])*scale_factor)
         high = self._reward_mean[0] + (np.sqrt(self._reward_var[0])*scale_factor)
-        self.setRewardBounds(np.array([low,high]))
+        if ("update_adaptive_reward_normalization" in self.getSettings()
+            and (self.getSettings()["update_adaptive_reward_normalization"] == False)):
+            pass
+        else:
+            self.setRewardBounds(np.array([low,high]))
         # print("New scaling parameters: ", self.getStateBounds())
         """
         low = self._action_mean[0] - np.sqrt(self._action_var[0])
@@ -426,6 +430,9 @@ class ExperienceMemory(object):
                 reward.append(norm_state(self._reward_history[i] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
             fall.append(self._fall_history[i])
             G_ts.append(norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
+            # print ("G_ts Before: ", self._discounted_sum_history[i], " reward bounds: ", self.getRewardBounds(), " normalized: ", norm_state(self._discounted_sum_history[i], self.getRewardBounds()))
+            # print ("after: ", norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * (1.0-self._settings['discount_factor']) )
+            # print ("G_ts before, after: ", np.concatenate((self._discounted_sum_history[i], norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * (1.0-self._settings['discount_factor'])), axis=1))
             advantage.append(self._advantage_history[i])
             exp_actions.append(self._exp_action_history[i])
             

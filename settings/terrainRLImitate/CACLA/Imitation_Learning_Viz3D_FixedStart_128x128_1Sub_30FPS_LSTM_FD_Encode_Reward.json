@@ -419,5 +419,7 @@
 	"comment__": "Include some randomly sized sequences when training lstms",
 "use_random_sequence_length_for_lstm": true,
 	"comment__": "Use a sparse sequence based reward",
-"use_sparse_sequence_based_reward": false
+"use_sparse_sequence_based_reward": false,
+	"comment__": "Update reward normalization while training",
+"update_adaptive_reward_normalization": false
 }
