@@ -38,3 +38,33 @@ I needed to specifically run the above command to install the libraries needed e
 export RLSIMENV_PATH=/opt/RLSimulationEnvironments
 export TERRAINRL_PATH=/opt/TerrainRL
 
+## Example commands
+
+- Convert "sandbox" into fixed image
+```
+singularity build new-squashfs deepcrowds
+```
+
+- Run interactive shell in writable container
+```
+sudo singularity shell --writable ubuntu_learning
+sudo singularity shell --writable deepcrowds
+```
+- Bind a directory outside the container to one inside
+```
+singularity exec --bind ~/playground/RL-Framework/terrainRLSim/:/opt/RL-Framework/terrainRLSim deepcrowds ls /opt/RL-Framework/terrainRLSim
+```
+- Set environment variable
+```
+SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL  singularity exec --cleanenv --bind ~/playground/RL-Framework/terrainRLSim/:/opt/RL-Framework/terrainRLSim deepcrowds ls /opt/RL-Framework/terrainRLSim
+```
+
+- Start a training simulation for training a multichar model
+```
+SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments singularity exec --cleanenv --home ~/playground/RL-Framework/:/opt/RL-Framework deepcrowds python3.6 trainModel.py --config=settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles_NEWLLC.json -p 8 --bootstrap_samples=100 --rollouts=8 --max_epoch_length=32 --on_policy=fast --save_experience_memory=continual --num_rounds=10000 --print_level=train --continue_training=false --saving_update_freq_num_rounds=1 --epochs=4 --eval_epochs=8 --plot=true --meta_sim_samples=2 --meta_sim_threads=2 --plotting_update_freq_num_rounds=1 --metaConfig=settings/hyperParamTuning/agility.json
+```
+```
+SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments singularity exec --cleanenv --home ~/playground/RL-Framework/:/opt/RL-Framework deepcrowds ptyhon3.6 trainModel.py --config=settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles_NEWLLC.json -p 8 --bootstrap_samples=100 --rollouts=8 --max_epoch_length=32 --on_policy=fast --save_experience_memory=continual --num_rounds=10000 --print_level=train --continue_training=false --saving_update_freq_num_rounds=1 --epochs=4 --eval_epochs=8 --plot=true --meta_sim_samples=2 --meta_sim_threads=2 --plotting_update_freq_num_rounds=1 --additional_on-poli_trianing_updates=1 --metaConfig=settings/hyperParamTuning/agility.json
+```
+
+

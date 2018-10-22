@@ -47,6 +47,8 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False,
     if ( 'to_email_address' in hyperSettings):
         # toEmail = ", ".join(hyperSettings['to_email_address'])
         toEmail = hyperSettings['to_email_address']
+        if (type(hyperSettings['to_email_address']) is list):
+            toEmail = ", ".join(hyperSettings['to_email_address'])
     msg['To'] = toEmail
     print("To email: ", msg['To'])
     
