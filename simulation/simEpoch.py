@@ -46,7 +46,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     if action_space_continuous:
         action_bounds = np.array(model.getActionBounds(), dtype=float)
         omega = settings["omega"]
-        noise = action_bounds[0] * 0.0
+        noise_ = action_bounds[0] * 0.0
         
     if ( (bootstrapping == True) and 
          (settings["exploration_method"] == "sampling") ):
@@ -215,11 +215,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         # print ("Exploration Action: ", pa)
                         # action = randomExporation(settings["exploration_rate"], pa)
                         if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
-                            noise = OUNoise(theta=0.15, sigma=settings["exploration_rate"] * p, previousNoise=noise)
-                            action = pa_ + (noise * action_bound_std(action_bounds)) 
+                            noise_ = OUNoise(theta=0.15, sigma=settings["exploration_rate"] * p, previousNoise=noise_)
+                            action = pa_ + (noise_ * action_bound_std(action_bounds)) 
                         else:
-                            noise = OUNoise(theta=0.15, sigma=settings["exploration_rate"], previousNoise=noise)
-                            action = pa + (noise * action_bound_std(action_bounds))
+                            noise_ = OUNoise(theta=0.15, sigma=settings["exploration_rate"], previousNoise=noise_)
+                            action = pa_ + (noise_ * action_bound_std(action_bounds))
                     elif ( (settings['exploration_method'] == 'gaussian_network' or 
                           (settings['use_stochastic_policy'] == True))
                           or (settings['exploration_method'] == 'gaussian_random')
@@ -432,16 +432,18 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             
         # print ("reward: ", reward_)
         baseline.append(model.q_value(state_))
+        
         G_t.append(np.array([[0]])) # *(1.0-discount_factor)))
         for i in range(len(G_t)):
             if isinstance(reward_, (list, tuple, np.ndarray)):
                 assert len(np.array(reward_).shape) == 2
-                G_t[i] = G_t[i] + (((np.power(discount_factor,(len(G_t)-i)-1) * (np.array(reward_) ))))
+                # G_t[i] = G_t[i] + (((np.power(discount_factor,(len(G_t)-i)-1) * (np.array(reward_) ))))
                 # print( "reward: ", repr(np.array(reward_)) )
                 # print( "G_t: ", repr(np.array(G_t)) )
             else:
-                G_t[i] = G_t[i] + (((np.power(discount_factor,(len(G_t)-i)-1) * (np.array([reward_]) ))))
+                # G_t[i] = G_t[i] + (((np.power(discount_factor,(len(G_t)-i)-1) * (np.array([reward_]) ))))
                 reward_ = [[reward_]]
+        
         
         if ("replace_next_state_with_imitation_viz_state" in settings
             and (settings["replace_next_state_with_imitation_viz_state"] == True)):
