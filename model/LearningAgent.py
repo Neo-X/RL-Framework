@@ -281,13 +281,15 @@ class LearningAgent(AgentInterface):
                         batch_size_lstm = self._settings["lstm_batch_size"][1]
                     updates___ = max(1, int((len(_states)/batch_size_lstm) * self._settings["additional_on-poli_trianing_updates"]))
                     print ("Performing lstm policy training")
-                    for e in range(updates___):   
+                    for e in range(updates___):  
+                        for cu in range(self._settings["critic_updates_per_actor_update"]): 
+                            states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = self.getExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm)
+                            loss = self._pol.trainCritic(states=states_, actions=actions_, rewards=rewards_, 
+                                                         result_states=result_states_, falls=falls_, G_t=G_ts_,
+                                                         p=p)
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print("Critic loss: ", loss)
                         states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = self.getExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm)
-                        loss = self._pol.trainCritic(states=states_, actions=actions_, rewards=rewards_, 
-                                                     result_states=result_states_, falls=falls_, G_t=G_ts_,
-                                                     p=p)
-                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                            print("Critic loss: ", loss)
                         loss_ = self._pol.trainActor(states=states_, actions=actions_, rewards=rewards_, result_states=result_states_, 
                                                      falls=falls_, advantage=advantages_, exp_actions=exp_actions_, 
                                                      G_t=G_ts_, forwardDynamicsModel=self._fd, p=p)
