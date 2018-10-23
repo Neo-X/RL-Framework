@@ -288,11 +288,12 @@ class LearningAgent(AgentInterface):
                                                      p=p)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Critic loss: ", loss)
-                        loss_ = self._pol.trainActor(states=states_, actions=actions_, rewards=rewards_, result_states=result_states_, 
-                                                     falls=falls_, advantage=advantages_, exp_actions=exp_actions_, 
-                                                     G_t=G_ts_, forwardDynamicsModel=self._fd, p=p)
-                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                            print("Policy Loss: ", loss_)
+                        if (self._settings["train_actor"] == True):
+                            loss_ = self._pol.trainActor(states=states_, actions=actions_, rewards=rewards_, result_states=result_states_, 
+                                                         falls=falls_, advantage=advantages_, exp_actions=exp_actions_, 
+                                                         G_t=G_ts_, forwardDynamicsModel=self._fd, p=p)
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print("Policy Loss: ", loss_)
                     print ("Done lstm policy training")
                 
                 if ((("train_LSTM_FD" in self._settings)

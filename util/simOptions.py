@@ -18,6 +18,13 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Whether or not to train a forward dynamics model as well [true|false|None]")
     
+    parser.add_option("--train_actor",
+              action="store", dest="train_actor", default=None,
+              type='choice',
+              choices=['true', 'false', None],
+              metavar="STRING", 
+              help="Whether or not to train the policy. Used for debugging")
+    
     parser.add_option("--email_log_data_periodically",
               action="store", dest="email_log_data_periodically", default=None,
               type='choice',
