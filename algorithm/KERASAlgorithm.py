@@ -189,6 +189,12 @@ class KERASAlgorithm(AlgorithmInterface):
                               verbose=0
                               )
                 loss_.append(np.mean(score.history['loss']))
+                
+            
+            if ( (not np.isfinite(loss_))):
+                print("Something bad happened going back to old value function parameters.")
+                self._model.getCriticNetwork().set_weights( copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
+                # self._model.getActorNetwork().set_weights( copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
             
             return np.mean(loss_)
         if ('dont_use_td_learning' in self.getSettings() 
