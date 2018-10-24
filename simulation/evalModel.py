@@ -21,7 +21,7 @@ from simulation.simEpoch import simEpoch, simModelParrallel, simModelMoreParrall
 # @profile(precision=5)
 def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, 
               settings=None, print_data=False, p=0.0, evaluation=False, visualizeEvaluation=None,
-              bootstrapping=False, sampling=False):
+              bootstrapping=False, sampling=False, movieWriter=None):
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
         print ("Evaluating model:")
     j=0
@@ -35,7 +35,8 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         (tuples, discounted_sum, value, evalData) = simEpoch(actor, exp, 
                 model, discount_factor, anchors=i, action_space_continuous=action_space_continuous, 
                 settings=settings, print_data=print_data, p=p, validation=True, epoch=epoch_, evaluation=evaluation,
-                visualizeEvaluation=visualizeEvaluation, bootstrapping=bootstrapping, sampling=sampling, epsilon=settings['epsilon'])
+                visualizeEvaluation=visualizeEvaluation, bootstrapping=bootstrapping, sampling=sampling, epsilon=settings['epsilon'],
+                movieWriter=movieWriter)
         epoch_ = epoch_ + 1
         (states, actions, result_states, rewards, falls, G_t, advantage, exp_actions) = tuples
         # print (states, actions, rewards, result_states, discounted_sum, value)

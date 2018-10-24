@@ -1,6 +1,7 @@
 
 
 from trainModel import trainModelParallel
+from ModelEvaluation import modelEvaluation
 import sys
 import json
 import copy
@@ -184,6 +185,9 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         print("Not simulating, this is a testing run:")
     else:
         result = p.map(trainModelParallel, sim_data)
+        if ("save_video_to_file" in settings):
+            p.map(modelEvaluation, sim_data)
+            
     t1 = time.time()
     print ("Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")
     # print (result)

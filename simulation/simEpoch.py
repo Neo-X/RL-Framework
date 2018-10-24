@@ -24,7 +24,7 @@ from util.utils import checkSetting, checkSettingExists
 def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_continuous=False, settings=None, print_data=False, 
              p=0.0, validation=False, epoch=0, evaluation=False, _output_queue=None, bootstrapping=False, visualizeEvaluation=None,
              sampling=False, epsilon=None,
-             worker_id=None):
+             worker_id=None, movieWriter=None):
     import numpy as np
     """
         
@@ -389,6 +389,14 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print ("performed action: ", reward)
         # print ("Reward: ", reward_)
         resultState_ = exp.getState()
+        if (movieWriter is not None):
+            vizData = exp.getEnvironment().getFullViewData()
+            # movie_writer.append_data(np.transpose(vizData))
+            image_ = np.zeros((vizData.shape))
+            for row in range(len(vizData)):
+                image_[row] = vizData[len(vizData)-row - 1]
+            print ("Writing image to video") 
+            movieWriter.append_data(image_)
         if ("use_learned_reward_function" in settings
             and (settings["use_learned_reward_function"] == True)):
             if ("fd_algorithm" in settings

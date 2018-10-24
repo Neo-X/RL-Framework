@@ -188,6 +188,12 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Path to the file the contains the settings for the simulation")
     
+    parser.add_option("--save_video_to_file",
+              action="store", dest="save_video_to_file", default=None,
+              # type=int,
+              metavar="STRING", 
+              help="Path to the file that a video will be create after the end of the training")
+    
     parser.add_option("--frameSize", 
           action="store", dest="frameSize", default=None,
           metavar="IntegerxInteger", help="The pixel width and height, example 640x480")
