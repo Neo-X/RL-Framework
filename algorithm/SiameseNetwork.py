@@ -688,8 +688,11 @@ class SiameseNetwork(KERASAlgorithm):
         # print("state shape: ", np.array(state).shape)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
-        if (("train_LSTM_FD" in self._settings)
-                    and (self._settings["train_LSTM_FD"] == True)):
+        if ((("train_LSTM_FD" in self._settings)
+                    and (self._settings["train_LSTM_FD"] == True))
+                    # or
+                    # settings["use_learned_reward_function"] == "dual"
+                    ):
             h_a = self._model.processed_a.predict([np.array([state])])
             h_b = self._model.processed_b.predict([np.array([state2])])
             state_ = euclidean_distance_np((h_a, h_b))[0]

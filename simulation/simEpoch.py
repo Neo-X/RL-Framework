@@ -398,7 +398,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             print ("Writing image to video") 
             movieWriter.append_data(image_)
         if ("use_learned_reward_function" in settings
-            and (settings["use_learned_reward_function"] == True)):
+            and (settings["use_learned_reward_function"])):
             if ("fd_algorithm" in settings
                 and (settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")):
                 ### Use Discriminator 
@@ -414,13 +414,23 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 reward__ = exp.computeImitationReward(model.getForwardDynamics().computeEncodingDiff)
                 reward_ = np.exp((reward__*reward__)*-5.0)
             else:
-                if (("train_LSTM_Reward" in settings)
+                if ( (("train_LSTM_Reward" in settings)
+                        and (settings["train_LSTM_Reward"] == True))
+                    and 
+                        (settings["use_learned_reward_function"] == "dual")
+                    ):    
+                    reward__0 = exp.computeImitationReward(model.getForwardDynamics().predict)
+                    reward__1 = exp.computeImitationReward(model.getForwardDynamics().predict_reward)
+                    reward__ = ((reward__0 * 0.5) + (reward__1 * 0.5))
+                    # print ("reward__: ", reward__, " reward__0: ", reward__0, " reward__1: ", reward__1)
+                elif (("train_LSTM_Reward" in settings)
                     and (settings["train_LSTM_Reward"] == True)):    
                     reward__ = exp.computeImitationReward(model.getForwardDynamics().predict_reward)
                 else:
                     reward__ = exp.computeImitationReward(model.getForwardDynamics().predict)
+                    # print ("reward__: ", reward__)
                 
-                reward_ = np.exp((reward__*reward__)*-5.0)
+                reward_ = np.exp((reward__*reward__)*-10.0)
                     
                 if ("use_sparse_sequence_based_reward" in settings
                     and (settings["use_sparse_sequence_based_reward"] == True)):
