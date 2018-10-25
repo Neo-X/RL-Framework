@@ -638,7 +638,7 @@ class PPO_KERAS(KERASAlgorithm):
         actor = load_model(fileName+"_actor"+suffix)
         critic = load_model(fileName+"_critic"+suffix)
         self._model._actor.set_weights(actor.get_weights())
-        self._model._actor.optimizer = actor.optimizer
+        # self._model._actor.optimizer = actor.optimizer
         self._model._critic.set_weights(critic.get_weights())
         self._model._critic.optimizer = critic.optimizer
         print ("self._Advantage: ", self._Advantage)
@@ -658,7 +658,7 @@ class PPO_KERAS(KERASAlgorithm):
             critic = load_model(fileName+"_critic_T"+suffix)
             
             self._modelTarget._actor.set_weights(actor.get_weights())
-            self._modelTarget._actor.optimizer = actor.optimizer
+            # self._modelTarget._actor.optimizer = actor.optimizer
             self._modelTarget._critic.set_weights(critic.get_weights())
             self._modelTarget._critic.optimizer = critic.optimizer
         # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
