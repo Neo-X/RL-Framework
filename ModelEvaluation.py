@@ -236,8 +236,10 @@ def modelEvaluationParallel(settings_file_name):
     for sw in sim_workers: # Should update these more offten
         sw.join()
         
+def _modelEvaluation(inputData):
+    modelEvaluation(settings_file_name=inputData[0], settings=inputData[1])
 
-def modelEvaluation(settings_file_name, runLastModel=False, settings=None, render=True):
+def modelEvaluation(settings_file_name, settings=None, runLastModel=False, render=True):
     
     from model.ModelUtil import getSettings
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
@@ -369,7 +371,7 @@ def modelEvaluation(settings_file_name, runLastModel=False, settings=None, rende
     
     movieWriter = None
     if ("save_video_to_file" in settings):
-        movieWriter = imageio.get_writer(settings["save_video_to_file"], mode='I',  fps=30)
+        movieWriter = imageio.get_writer(directory + settings["save_video_to_file"], mode='I',  fps=30)
     
     
     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, masterAgent, discount_factor, anchors=settings['eval_epochs'], 

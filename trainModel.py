@@ -36,38 +36,45 @@ def collectEmailData(settings, metaSettings, sim_time_=0, simData={}):
     import tarfile
     from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
     from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory, getAgentName
+    from ModelEvaluation import modelEvaluation
     import os
     
-    ### Create a tar file of all the sim data
-    root_data_dir = getDataDirectory(settings)+"/"
-    tarFileName = (root_data_dir + '_sim_data.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
-    dataTar = tarfile.open(tarFileName, mode='w:gz')
-    addDataToTarBall(dataTar, settings)
+    if (("email_log_data_periodically" in settings)
+        and (settings["email_log_data_periodically"] == True)):
+        ### Create a tar file of all the sim data
+        root_data_dir = getDataDirectory(settings)+"/"
+        tarFileName = (root_data_dir + '_sim_data.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
+        dataTar = tarfile.open(tarFileName, mode='w:gz')
+        addDataToTarBall(dataTar, settings)
+            
+        print("root_data_dir: ", root_data_dir)
+        pictureFileName=None
+        try:
+            ## Add pictures to tar file
+            _data_dir = getDataDirectory(settings)
+            addPicturesToTarBall(dataTar, settings, data_folder=_data_dir)
+            pictureFileName=  root_data_dir + getAgentName() + ".png"
+        except Exception as e:
+            # dataTar.close()
+            print("Error plotting data there my not be a DISPLAY available.")
+            print("Error: ", e)
+        dataTar.close()
         
-    print("root_data_dir: ", root_data_dir)
-    pictureFileName=None
-    try:
-        ## Add pictures to tar file
-        _data_dir = getDataDirectory(settings)
-        addPicturesToTarBall(dataTar, settings, data_folder=_data_dir)
-        pictureFileName=  root_data_dir + getAgentName() + ".png"
-    except Exception as e:
-        # dataTar.close()
-        print("Error plotting data there my not be a DISPLAY available.")
-        print("Error: ", e)
-    dataTar.close()
+        
+        ## Send an email so I know this training has completed
+        contents_ = json.dumps(metaSettings, indent=4, sort_keys=True)
+        sub = "Simulation complete: " + str(sim_time_)
+        simData = {}
+        if ('error' in simData):
+            contents_ = contents_ + "\n" + simData['error']
+            sub = "ERROR*****     " + "Simulation terminated: " + str(sim_time_)
+         
+        sendEmail(subject=sub, contents=contents_, hyperSettings=metaSettings, simSettings=settings['configFile'], dataFile=tarFileName,
+                  pictureFile=pictureFileName) 
     
-    
-    ## Send an email so I know this training has completed
-    contents_ = json.dumps(metaSettings, indent=4, sort_keys=True)
-    sub = "Simulation complete: " + str(sim_time_)
-    simData = {}
-    if ('error' in simData):
-        contents_ = contents_ + "\n" + simData['error']
-        sub = "ERROR*****     " + "Simulation terminated: " + str(sim_time_)
-     
-    sendEmail(subject=sub, contents=contents_, hyperSettings=metaSettings, simSettings=settings['configFile'], dataFile=tarFileName,
-              pictureFile=pictureFileName) 
+    if ("save_video_to_file" in settings):
+        ### Render a video of the policies current performance
+        modelEvaluation("", settings=settings)
 
 def createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds, print_info=False):
     """
@@ -1498,6 +1505,13 @@ def trainModelParallel(inputData):
     ### This will find ALL your memory deallocation issues in C++...
     ### And errors in terinating processes properly...
     gc.collect()
+    
+    """
+    if ("save_video_to_file" in settings):
+        from ModelEvaluation import modelEvaluation
+        ### Render a video of the policies current performance
+        modelEvaluation("", settings)
+    """
     ### Return the collected training data
     if ("return_model" in settings 
         and (settings['return_model'] == True)):
@@ -1617,6 +1631,7 @@ if (__name__ == "__main__"):
     
     ### If a metaConfig is supplied email out the results
     if ( (metaSettings is not None) ):
+        settings["email_log_data_periodically"] = True
         collectEmailData(settings, metaSettings, sim_time_, simData)
 
     print("All Done.")
