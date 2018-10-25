@@ -404,12 +404,22 @@ class KERASAlgorithm(AlgorithmInterface):
         import h5py
         suffix = ".h5"
         print ("Loading agent: ", fileName)
-        # with K.get_session().graph.as_default() as g:
-        self._model._actor = load_model(fileName+"_actor"+suffix)
-        self._model._critic = load_model(fileName+"_critic"+suffix)
+        ### Because the simulation and learning use different model types (statefull vs stateless lstms...)
+        actor = load_model(fileName+"_actor"+suffix)
+        critic = load_model(fileName+"_critic"+suffix)
+        self._model._actor.set_weights(actor.get_weights())
+        self._model._actor.optimizer = actor.optimizer
+        self._model._critic.set_weights(critic.get_weights())
+        self._model._critic.optimizer = critic.optimizer
         if (self._modelTarget is not None):
-            self._modelTarget._actor = load_model(fileName+"_actor_T"+suffix)
-            self._modelTarget._critic = load_model(fileName+"_critic_T"+suffix)
+            
+            actor = load_model(fileName+"_actor_T"+suffix)
+            critic = load_model(fileName+"_critic_T"+suffix)
+            
+            self._modelTarget._actor.set_weights(actor.get_weights())
+            self._modelTarget._actor.optimizer = actor.optimizer
+            self._modelTarget._critic.set_weights(critic.get_weights())
+            self._modelTarget._critic.optimizer = critic.optimizer
             
         self.compile()
         # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
