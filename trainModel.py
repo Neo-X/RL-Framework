@@ -30,7 +30,7 @@ _output_experience_queue = None
 _eval_episode_data_queue = None
 _sim_work_queues = []
 
-def collectEmailData(settings, metaSettings, sim_time_=0, simData={}):
+def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     from sendEmail import sendEmail
     import json
     import tarfile
@@ -74,7 +74,8 @@ def collectEmailData(settings, metaSettings, sim_time_=0, simData={}):
     
     if ("save_video_to_file" in settings):
         ### Render a video of the policies current performance
-        modelEvaluation("", settings=settings)
+        print ("exp for video: ", exp)
+        modelEvaluation("", settings=settings, exp=exp)
 
 def createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds, print_info=False):
     """
@@ -186,6 +187,7 @@ def trainModelParallel(inputData):
     # (sys.argv[1], settings)
     settings = inputData[1]
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+    from simulation.LoggingWorker import LoggingWorker
     setupEnvironmentVariable(settings)
     settingsFileName = inputData[0]
     settings['sample_single_trajectories'] = True
@@ -289,6 +291,15 @@ def trainModelParallel(inputData):
                 
         
         ### Keep forward models on the CPU
+        if ( (("email_log_data_periodically" in settings)
+            and (settings["email_log_data_periodically"] == True))
+            or 
+             ("save_video_to_file" in settings)):
+            loggingWorkerQueue = multiprocessing.Queue(1)
+            loggingWorker = LoggingWorker(settings, 
+                                          collectEmailData,
+                                           loggingWorkerQueue)
+            loggingWorker.start()
         
         ### These are the workers for training
         (sim_workers, sim_work_queues) = createSimWorkers(settings, input_anchor_queue, 
@@ -364,8 +375,6 @@ def trainModelParallel(inputData):
         from util.SimulationUtil import createRLAgent
         from util.SimulationUtil import createActor, getAgentName
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
-        from simulation.LoggingWorker import LoggingWorker
-        
         
         from util.ExperienceMemory import ExperienceMemory
         
@@ -853,13 +862,6 @@ def trainModelParallel(inputData):
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)):
             pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_)
         
-        if (("email_log_data_periodically" in settings)
-            and (settings["email_log_data_periodically"] == True)):
-            loggingWorkerQueue = multiprocessing.Queue(1)
-            loggingWorker = LoggingWorker(settings, 
-                                          collectEmailData,
-                                           loggingWorkerQueue)
-            loggingWorker.start()
         print ("Starting first round")
         if (settings['on_policy']):
             sim_epochs_ = epochs

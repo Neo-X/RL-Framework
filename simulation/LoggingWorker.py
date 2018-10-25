@@ -40,12 +40,18 @@ class LoggingWorker(Process):
     # @profile(precision=5)
     def run(self):
         
-        timeout_ = 60 * 60 * 8 ### time between data emails (12 hours).
+        timeout_ = 60 * 60 * 8 ### time between data emails (8 hours).
         # timeout_ = 60  ### time between data emails.
         if ( "email_logging_time" in self._settings ):
             timeout_ = self._settings["email_logging_time"]
         steps__ = 0
         timesteps = 0
+        exp = None
+        if ("save_video_to_file" in self._settings):
+            from util.SimulationUtil import createEnvironment
+            ### need to create a keep around a pointer to a simulation because glut is a pain in the but...
+            exp = createEnvironment(self._settings["sim_config_file"], self._settings['environment_type'], self._settings, render=True, index=0)
+            # pass
         running = True
         while (running):
             try:
@@ -60,7 +66,13 @@ class LoggingWorker(Process):
             # try:
             if ( steps__ >= timeout_ and (self._metaSettings is not None)):
                 print("Sending log email after ", timeout_, " seconds")
-                self._emailFunction(self._settings, self._metaSettings, sim_time_=timesteps, simData=self._simData)
+                
+                if ("save_video_to_file" in self._settings):
+                    print("Saving video email finction calling: ", exp)
+                    self._emailFunction(self._settings, self._metaSettings, sim_time_=timesteps, simData=self._simData, exp=exp)
+                else:
+                    self._emailFunction(self._settings, self._metaSettings, sim_time_=timesteps, simData=self._simData)
+                    
                 steps__ = 0
                 
             steps__ = steps__ + 2

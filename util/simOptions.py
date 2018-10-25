@@ -86,6 +86,11 @@ def getOptions(_args=None):
               type=int,
               metavar="INTEGER", help="The number of seconds queues will wait for simulations")
     
+    parser.add_option("--email_logging_time",
+              action="store", dest="email_logging_time", default=None,
+              type=int,
+              metavar="INTEGER", help="The number of seconds between policy progress emails are sent")
+    
     parser.add_option("--additional_on-poli_trianing_updates",
               action="store", dest="additional_on-poli_trianing_updates", default=None,
               type=int,

@@ -23,6 +23,7 @@ pip3 install --user tensorflow
 ## Does not work in Python3
 # pip3 install pyODE
 pip3 install --user h5py
+pip3 install --user imageio
 
 apt-get -y install python3-tk
 

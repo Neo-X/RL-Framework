@@ -37,6 +37,7 @@ pip3.6 install $user tensorflow
 ## Does not work in Python3
 # pip3 install pyODE
 pip3.6 install $user h5py
+pip3.6 install imageio
 
 sudo apt-get -y install python3-tk
 

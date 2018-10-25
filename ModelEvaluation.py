@@ -239,7 +239,7 @@ def modelEvaluationParallel(settings_file_name):
 def _modelEvaluation(inputData):
     modelEvaluation(settings_file_name=inputData[0], settings=inputData[1])
 
-def modelEvaluation(settings_file_name, settings=None, runLastModel=False, render=True):
+def modelEvaluation(settings_file_name, settings=None, runLastModel=False, render=True, exp=None):
     
     from model.ModelUtil import getSettings
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
@@ -296,7 +296,8 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
         sim_index = settings['override_sim_env_id']
     # exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
-    exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=render, index=sim_index)
+    if (exp is None):
+        exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=render, index=sim_index)
     if (state_bounds == "ask_env"): # This is okay if there is one thread only...
         print ("Getting state bounds from environment")
         s_min = exp.getEnvironment().observation_space.getMinimum()
@@ -422,6 +423,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     evalData['mean_eval'] = mean_eval
     evalData['std_eval'] = std_eval
     evalData['masterAgent'] = masterAgent
+    exp.finish()
     
     return evalData
     
