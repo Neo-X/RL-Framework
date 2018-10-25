@@ -660,7 +660,7 @@ class PPO_KERAS(KERASAlgorithm):
             self._modelTarget._actor.set_weights(actor.get_weights())
             # self._modelTarget._actor.optimizer = actor.optimizer
             self._modelTarget._critic.set_weights(critic.get_weights())
-            self._modelTarget._critic.optimizer = critic.optimizer
+            # self._modelTarget._critic.optimizer = critic.optimizer
         # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
         # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
