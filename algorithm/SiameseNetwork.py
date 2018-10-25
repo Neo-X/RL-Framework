@@ -582,10 +582,10 @@ class SiameseNetwork(KERASAlgorithm):
             
             if ( "add_label_noise" in self._settings):
                 if (np.random.rand() < self._settings["add_label_noise"]):
-                    print ("targets_[0]: ", targets_[0])
+                    # print ("targets_[0]: ", targets_[0])
                     targets_ = 1.0 - targets_ ### Invert labels
-                    print ("Inverting label values this time")
-                    print ("targets_[0]: ", targets_[0])
+                    # print ("Inverting label values this time")
+                    # print ("targets_[0]: ", targets_[0])
             # print ("targets_ shape: ", targets_.shape)
             # te_pair1, te_pair2, te_y = seq
             # score = self._model._forward_dynamics_net.train_on_batch([sequences0, sequences1], targets_)

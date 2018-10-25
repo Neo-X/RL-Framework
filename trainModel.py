@@ -1499,8 +1499,10 @@ def trainModelParallel(inputData):
         sess.close()
         del sess
     
-    if (("email_log_data_periodically" in settings)
-            and (settings["email_log_data_periodically"] == True)):
+    if ((("email_log_data_periodically" in settings)
+            and (settings["email_log_data_periodically"] == True))
+        or 
+         ("save_video_to_file" in settings)):
         loggingWorkerQueue.put(False)
         loggingWorker.join()
     # print ("sys.modules: ", json.dumps(str(sys.modules), indent=2))
