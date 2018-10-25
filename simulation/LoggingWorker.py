@@ -49,7 +49,7 @@ class LoggingWorker(Process):
         exp = None
         if ("save_video_to_file" in self._settings):
             from util.SimulationUtil import createEnvironment
-            ### need to create a keep around a pointer to a simulation because glut is a pain in the but...
+            ### need to create and keep around and reuse a pointer to a simulation because glut is a pain in the butt...
             exp = createEnvironment(self._settings["sim_config_file"], self._settings['environment_type'], self._settings, render=True, index=0)
             # pass
         running = True
@@ -71,7 +71,8 @@ class LoggingWorker(Process):
                  ):
                 print("Sending log email after ", timeout_, " seconds")
                 
-                if ("save_video_to_file" in self._settings):
+                if ("save_video_to_file" in self._settings
+                    and (exp is not None)):
                     print("Saving video email function calling: ", exp)
                     self._emailFunction(self._settings, self._metaSettings, sim_time_=timesteps, simData=self._simData, exp=exp)
                 else:

@@ -16,7 +16,7 @@ import datetime
 from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory, getAgentName
 from simulation.LoggingWorker import LoggingWorker
 
-def emailSimData(settings, metaSettings, sim_time_=0, simData={}):
+def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     import os
     import tarfile
     from sendEmail import sendEmail

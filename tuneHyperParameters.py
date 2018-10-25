@@ -46,7 +46,7 @@ def tuneHyperParameters(simsettingsFileName, Hypersettings=None):
         trainMetaModel(simsettingsFileName, samples=num_sim_samples, settings=copy.deepcopy(settings), numThreads=num_sim_samples)
 """
 
-def emailSimData(settings, metaSettings, sim_time_=0, simData={}):
+def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     import os
     import tarfile
     from sendEmail import sendEmail
