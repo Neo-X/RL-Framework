@@ -491,15 +491,16 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if print_data:
             # print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward_))
             # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) + " Discounted Sum: " + str(discounted_sum) )
-            value__ = 0
-            if ( not bootstrapping ):
-                value__ = model.q_value(state_)
-            print ("Value: ", value__, " Action " + str(action) + " Reward: " + str(reward_) )
-            # if ( settings['train_reward_predictor'] and (settings['train_forward_dynamics'])):
-                # predicted_reward = model.getForwardDynamics().predict_reward(state_, action)
-                # print ("Predicted reward: ", predicted_reward) 
-            print ("Agent has fallen: ", not agent_not_fell )
-            # print ("Python Reward: " + str(reward(state_, resultState)))
+            if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                value__ = 0
+                if ( not bootstrapping ):
+                    value__ = model.q_value(state_)
+                print ("Value: ", value__, " Action " + str(action) + " Reward: " + str(reward_) )
+                # if ( settings['train_reward_predictor'] and (settings['train_forward_dynamics'])):
+                    # predicted_reward = model.getForwardDynamics().predict_reward(state_, action)
+                    # print ("Predicted reward: ", predicted_reward) 
+                print ("Agent has fallen: ", not agent_not_fell )
+                # print ("Python Reward: " + str(reward(state_, resultState)))
                 
             
         ### I can't just unpack the vector of states here in a multi char sim because the 
