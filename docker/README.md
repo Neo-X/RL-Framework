@@ -101,6 +101,10 @@ Tuning simulation with GPU
 ```
  borgy submit --restartable --req-gpus=1 --req-cores=32 --req-ram-gbytes=32 -w /home/${USER} -v /usr/lib/nvidia-390:/usr/lib/nvidia-390 --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c 'source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3.6 tuneHyperParameters.py --config=settings/projectileGame/PPO/Viz_Imitation.json --metaConfig=settings/hyperParamTuning/element/use_single_network.json -p 4 --rollouts=4 --bootstrap_samples=100 --save_trainData=true --plot=false --save_trainData=true --meta_sim_samples=4 --meta_sim_threads=4 --tuning_threads=1 --num_rounds=10 | tee -a $BORGY_JOB_ID.out; deactivate'
 ```
+or periodically send email updates with videos
+```
+borgy submit --restartable --req-gpus=4 --req-cores=64 --req-ram-gbytes=256 -w /home/${USER} -v /usr/lib/nvidia-390:/usr/lib/nvidia-390 -v /mnt/home/$USER:/home/$USER --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3.6 -O tuneHyperParameters.py --config=settings/terrainRLImitate/CACLA/Imitation_Learning_Viz3D_128x128_1Sub_30FPS_LSTM_FD_Dual_Encode_Reward.json --num_rounds=250 --metaConfig=settings/hyperParamTuning/element/use_learned_reward_function.json --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --plot=false --Multi_GPU=true --on_policy=fast --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 16 --rollouts=16 --simulation_timeout=1200 --email_log_data_periodically=true --visualize_expected_value=false --save_video_to_file=eval_movie.mp4 | tee -a $BORGY_JOB_ID.out'
+```
 
 Run tests
 ```
