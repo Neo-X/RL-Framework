@@ -258,6 +258,10 @@ class KERASAlgorithm(AlgorithmInterface):
               # callbacks=[early_stopping],
               )
         loss = score.history['loss'][0]
+        if ( (not np.any(np.isfinite(loss)))):
+            print("Something bad happened going back to old value function parameters.")
+            self._model.getCriticNetwork().set_weights( copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
+            # self._model.getActorNetwork().set_weights( copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
         #else:
         #    print ("Critic error to high:", c_error)
         #    loss = 0
