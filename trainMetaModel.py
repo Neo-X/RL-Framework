@@ -186,7 +186,9 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     else:
         result = p.map(trainModelParallel, sim_data)
         if ("save_video_to_file" in settings):
-            p.map(_modelEvaluation, sim_data)
+            print ("Creating videos of final policies results")
+            # p.map(_modelEvaluation, sim_data)
+            # loggingWorkerQueue.put("perform_logging")
             
     t1 = time.time()
     print ("Meta model training complete in " + str(datetime.timedelta(seconds=(t1-t0))) + " seconds")

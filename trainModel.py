@@ -1503,6 +1503,7 @@ def trainModelParallel(inputData):
             and (settings["email_log_data_periodically"] == True))
         or 
          ("save_video_to_file" in settings)):
+        loggingWorkerQueue.put("perform_logging")
         loggingWorkerQueue.put(False)
         loggingWorker.join()
     # print ("sys.modules: ", json.dumps(str(sys.modules), indent=2))

@@ -53,6 +53,7 @@ class LoggingWorker(Process):
             exp = createEnvironment(self._settings["sim_config_file"], self._settings['environment_type'], self._settings, render=True, index=0)
             # pass
         running = True
+        data = None
         while (running):
             try:
                 ### Check if done first
@@ -64,11 +65,14 @@ class LoggingWorker(Process):
                 pass
             time.sleep(1)
             # try:
-            if ( steps__ >= timeout_ and (self._metaSettings is not None)):
+            if ( ( steps__ >= timeout_ )
+                 and 
+                   (self._metaSettings is not None)
+                 ):
                 print("Sending log email after ", timeout_, " seconds")
                 
                 if ("save_video_to_file" in self._settings):
-                    print("Saving video email finction calling: ", exp)
+                    print("Saving video email function calling: ", exp)
                     self._emailFunction(self._settings, self._metaSettings, sim_time_=timesteps, simData=self._simData, exp=exp)
                 else:
                     self._emailFunction(self._settings, self._metaSettings, sim_time_=timesteps, simData=self._simData)
@@ -80,5 +84,8 @@ class LoggingWorker(Process):
             # except:
             #     print ("Failed emailing log data.")
 
+        if ("save_video_to_file" in self._settings):
+            print("Saving video email function calling: ", exp)
+            self._emailFunction(self._settings, self._metaSettings, sim_time_=timesteps, simData=self._simData, exp=exp)
         print ("Terminating logging emailing process.")
         

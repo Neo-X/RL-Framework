@@ -119,31 +119,16 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     i_ = 0
     while (i_ < settings['max_epoch_length']):
         
-        # if (exp.endOfEpoch() or (reward_ < settings['reward_lower_bound'])):
-        # state = exp.getState()
         state_ = exp.getState()
         states.append(state_)
         states__.extend(state_)
-        # print ("env state: ", state_.shape)
-        # print ("env state: ", state_)
-    
+
         if (not (visualizeEvaluation == None)):
             viz_q_values_.append(model.q_value(state_)[0][0])
             if (len(viz_q_values_)>30):
                  viz_q_values_.pop(0)
-            # print ("viz_q_values_: ", viz_q_values_ )
-            # print ("np.zeros(len(viz_q_values_)): ", np.zeros(len(viz_q_values_)))
             visualizeEvaluation.updateLoss(viz_q_values_, np.zeros(len(viz_q_values_)))
             visualizeEvaluation.redraw()
-            # visualizeEvaluation.setInteractiveOff()
-            # visualizeEvaluation.saveVisual(directory+"criticLossGraph")
-            # visualizeEvaluation.setInteractive()
-        # print ("Initial State: " + str(state_))
-        # print ("State: " + str(state.getParams()))
-        # val_act = exp.getActor().getModel().maxExpectedActionForState(state)
-        # action_ = model.predict(state_)
-            # print ("Get best action: ")
-        # pa = model.predict(state_)
         action=None
         if action_space_continuous:
             """
@@ -392,10 +377,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (movieWriter is not None):
             vizData = exp.getEnvironment().getFullViewData()
             # movie_writer.append_data(np.transpose(vizData))
+            print ("sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
             image_ = np.zeros((vizData.shape))
             for row in range(len(vizData)):
                 image_[row] = vizData[len(vizData)-row - 1]
-            print ("Writing image to video") 
+            # print ("Writing image to video") 
             movieWriter.append_data(image_)
         if ("use_learned_reward_function" in settings
             and (settings["use_learned_reward_function"])):
