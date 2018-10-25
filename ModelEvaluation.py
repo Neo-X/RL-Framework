@@ -424,6 +424,8 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     evalData['std_eval'] = std_eval
     evalData['masterAgent'] = masterAgent
     exp.finish()
+    if ("save_video_to_file" in settings):
+        movieWriter.close()
     
     return evalData
     
