@@ -551,5 +551,11 @@
 	"comment__": "Include some randomly sized sequences when training lstms",
 "use_random_sequence_length_for_lstm": true,
 	"comment__": "Perform multitask training for policy",
-"multitask_learning": true
+"multitask_learning": true,
+	"comment__": "Use a sparse sequence based reward",
+"use_sparse_sequence_based_reward": false,
+	"comment__": "Add label noise to Discriminator/Simease network training",
+"add_label_noise": 0.1,
+	"comment__": "Update reward normalization while training",
+"update_adaptive_reward_normalization": false
 }
