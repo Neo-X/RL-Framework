@@ -417,9 +417,9 @@ class KERASAlgorithm(AlgorithmInterface):
             critic = load_model(fileName+"_critic_T"+suffix)
             
             self._modelTarget._actor.set_weights(actor.get_weights())
-            self._modelTarget._actor.optimizer = actor.optimizer
+            # self._modelTarget._actor.optimizer = actor.optimizer
             self._modelTarget._critic.set_weights(critic.get_weights())
-            self._modelTarget._critic.optimizer = critic.optimizer
+            # self._modelTarget._critic.optimizer = critic.optimizer
             
         self.compile()
         # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})

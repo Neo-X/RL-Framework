@@ -115,7 +115,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         and (not bootstrapping)):
         d = 3 / 0
     
-    # while not exp.endOfEpoch():
     i_ = 0
     while (i_ < settings['max_epoch_length']):
         
@@ -180,12 +179,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     if ((settings['exploration_method'] == 'sampling') or
                         (settings['exploration_method'] == 'gaussian_network')): 
                         action = [randomUniformExporation(action_bounds)] # Completely random action
-                        # print ("Completely random action:", action)
                     else:
                         action = np.random.choice(action_selection)
                         action__ = actor.getActionParams(action)
                         action = [action__]
-                        # print ("Completely random action2:")
                     ### off policy
                     exp_action = int(0)
                     # print ("Discrete action choice: ", action, " epsilon * p: ", omega * p)
@@ -463,12 +460,15 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             elif ("use_dual_dense_state_representations" in settings
                 and (settings["use_dual_dense_state_representations"] == True)):
                 pass 
+            elif ("use_multi-model_state" in settings and
+                  (settings["use_multi-model_state"] == True)):
+                ob = np.asarray(exp.getEnvironment().getMultiModalState())
+                ob = ob.flatten()
+                resultState_[0][1] = ob
             else:
                 ob = np.asarray(exp.getEnvironment().getImitationVisualState())
                 ob = ob.flatten()
                 resultState_[0][1] = ob
-                # print("State232: ", np.array(state_[0][1]).shape)
-                # print("resultState_232: ", np.array(resultState_[0][1]).shape)
         
         ## For testing remove later
         if (settings["use_back_on_track_forcing"] and (not evaluation)):
@@ -518,7 +518,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         
         state_num += 1
         # else:
-            # print ("****Reward was to bad: ", reward_)
+        # print ("****Reward was: ", reward_)
         pa = None
         ### Don't reset during evaluation...
         if (((exp.endOfEpoch() and settings['reset_on_fall'] and (not evaluation))
