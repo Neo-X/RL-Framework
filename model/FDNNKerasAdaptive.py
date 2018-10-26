@@ -35,8 +35,13 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
             settings_["critic_network_leave_off_end"] = settings_["reward_network_leave_off_end"]
         if ("use_dual_state_representations" in settings_
             and (settings_["use_dual_state_representations"] == True)):
-            if ("replace_next_state_with_pose_state" in settings_ 
-                and (settings_["replace_next_state_with_pose_state"] == True)):
+            if (
+                ("replace_next_state_with_pose_state" in settings_ 
+                 and (settings_["replace_next_state_with_pose_state"] == True))
+                or
+                ("use_multimodal_state" in settings_ 
+                 and (settings_["use_multimodal_state"] == True))
+                ):
                 n_out = settings_["dense_state_size"]
             else:
                 n_out = settings_["num_terrain_features"]
@@ -57,6 +62,7 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
             settings_["train_LSTM_stateful"] = settings_["train_LSTM_FD_stateful"]
                 
         print ("FD net n_out: ", n_out)
+        print ("FD net n_in: ", n_in)
         super(FDNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         self._forward_dynamics_net = self._actor
         self._reward_net = self._critic

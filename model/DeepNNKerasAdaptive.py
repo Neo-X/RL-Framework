@@ -129,9 +129,6 @@ class DeepNNKerasAdaptive(ModelInterface):
         self._Action = keras.layers.Input(shape=(self._action_length,), name="Action") 
         self._actionInput = self._Action
         # input.trainable = True        
-        # self._State.tag.test_value = np.random.rand(self._batch_size,self._state_length)
-        # self._ResultState = K.variable(value=np.random.rand(self._batch_size,self._state_length), name="ResultState")
-        # self._ResultState = keras.layers.Input(shape=(self._state_length,), name="ResultState", batch_shape=(32,self._state_length))
         if (("train_LSTM_Critic" in self._settings)
                 and (self._settings["train_LSTM_Critic"] == True)):
             if ("simulation_model" in self._settings and
@@ -282,6 +279,9 @@ class DeepNNKerasAdaptive(ModelInterface):
             print ("Critic Network layer sizes: ", layer_sizes)
         if (self._settings['num_terrain_features'] > 0):
             network = self._taskFeatures
+        elif ("use_multimodal_state" in self._settings
+              and (self._settings["use_multimodal_state"] == True)):
+            network = self._taskFeatures
         else:
             network = self._stateInput
         """
@@ -397,7 +397,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._second_last_layer = network
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                 print ("layer_sizes[",i,"]: ", layer_sizes[i])
-                print ("shape: ", repr(keras.backend.int_shape(network)))
+                print ("shape[", i, "]: ", repr(keras.backend.int_shape(network)))
             if type(layer_sizes[i]) is list:
                 if (layer_sizes[i][0] == "LSTM"):
                     # print ("layer.output_shape: ", keras.backend.shape(network))
@@ -443,6 +443,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                             subnet.summary()
                     # subnet = Dense(8)
                     ### Create a model (set of layers to distribute) pass in the original input to that model
+                    print ("*** subnet input ", input, " shape: ", repr(keras.backend.int_shape(input)))
                     network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
                     
                     # network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))

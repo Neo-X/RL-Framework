@@ -460,8 +460,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             elif ("use_dual_dense_state_representations" in settings
                 and (settings["use_dual_dense_state_representations"] == True)):
                 pass 
-            elif ("use_multi-model_state" in settings and
-                  (settings["use_multi-model_state"] == True)):
+            elif ("use_multimodal_state" in settings and
+                  (settings["use_multimodal_state"] == True)):
                 ob = np.asarray(exp.getEnvironment().getMultiModalState())
                 ob = ob.flatten()
                 resultState_[0][1] = ob
