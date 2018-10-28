@@ -517,10 +517,12 @@ class SiameseNetwork(KERASAlgorithm):
     def getNetworkParameters(self):
         params = []
         params.append(copy.deepcopy(self._model._forward_dynamics_net.get_weights()))
+        params.append(copy.deepcopy(self._model._reward_net.get_weights()))
         return params
     
     def setNetworkParameters(self, params):
         self._model._forward_dynamics_net.set_weights(params[0])
+        self._model._reward_net.set_weights(params[1])
         
     def setGradTarget(self, grad):
         self._fd_grad_target_shared.set_value(grad)
