@@ -39,8 +39,8 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
                 ("replace_next_state_with_pose_state" in settings_ 
                  and (settings_["replace_next_state_with_pose_state"] == True))
                 or
-                ("use_multimodal_state" in settings_ 
-                 and (settings_["use_multimodal_state"] == True))
+                ("fd_use_multimodal_state" in settings_ 
+                 and (settings_["fd_use_multimodal_state"] == True))
                 ):
                 n_out = settings_["dense_state_size"]
             else:
@@ -60,6 +60,8 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
             
         if ("train_LSTM_FD_stateful" in settings_ ):
             settings_["train_LSTM_stateful"] = settings_["train_LSTM_FD_stateful"]
+        if ("fd_use_multimodal_state" in settings_ ):
+            settings_["use_multimodal_state"] = settings_["fd_use_multimodal_state"]
                 
         print ("FD net n_out: ", n_out)
         print ("FD net n_in: ", n_in)

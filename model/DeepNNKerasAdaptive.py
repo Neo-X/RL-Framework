@@ -277,11 +277,13 @@ class DeepNNKerasAdaptive(ModelInterface):
         layer_sizes = self._settings['critic_network_layer_sizes']
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
             print ("Critic Network layer sizes: ", layer_sizes)
-        if (self._settings['num_terrain_features'] > 0):
+        if ((self._settings['num_terrain_features'] > 0)):
             network = self._taskFeatures
+            """
         elif ("use_multimodal_state" in self._settings
               and (self._settings["use_multimodal_state"] == True)):
             network = self._taskFeatures
+        """
         else:
             network = self._stateInput
         """
@@ -397,7 +399,8 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._second_last_layer = network
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                 print ("layer_sizes[",i,"]: ", layer_sizes[i])
-                print ("shape[", i, "]: ", repr(keras.backend.int_shape(network)))
+                # print ("shape[", i, "]: ", repr(keras.backend.int_shape(network)))
+                print ("tensor ", network, "shape[", i, "]: ", repr(keras.backend.int_shape(input)))
             if type(layer_sizes[i]) is list:
                 if (layer_sizes[i][0] == "LSTM"):
                     # print ("layer.output_shape: ", keras.backend.shape(network))
@@ -433,6 +436,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                     if ("fd" == layer_sizes[i][2]):
                         subnet = self._actor
                         subnet = Model(inputs=self._State_backup, outputs=subnet)
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                            print("Subnet summary")
+                            subnet.summary()
                     else:
                         input_ = keras.layers.Input(shape=(1, self._state_length), name="State_Conv")
                         print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
@@ -441,7 +447,6 @@ class DeepNNKerasAdaptive(ModelInterface):
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Subnet summary")
                             subnet.summary()
-                    # subnet = Dense(8)
                     ### Create a model (set of layers to distribute) pass in the original input to that model
                     print ("*** subnet input ", input, " shape: ", repr(keras.backend.int_shape(input)))
                     network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)

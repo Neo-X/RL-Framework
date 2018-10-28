@@ -424,7 +424,13 @@ def create_pairs2(x, settings):
     return np.array(pair1), np.array(pair2), np.array(labels)
 
 class MultiModalSiameseNetwork(KERASAlgorithm):
-    
+    """
+         This method uses two different types of data and learns a distance function between them.
+         In this case the first type of data is pixles and the second is dense pose data.
+         
+         Notes:
+         Maybe I can just let the first model ignore the pose features, i.e. not merge them...
+    """
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
 
         super(MultiModalSiameseNetwork,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
@@ -452,8 +458,13 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                 print("FD Conv Net summary: ", self._model._forward_dynamics_net.summary())
                 print("FD Net summary: ", self._modelTarget._forward_dynamics_net.summary())
         
-        inputs_aa = [self._model.getResultStateSymbolicVariable()]
-        inputs_bb = [self._modelTarget.getResultStateSymbolicVariable()] 
+        if ("train_LSTM_Reward" in self.getSettings()
+            and (self.getSettings()["train_LSTM_Reward"] == True)):
+            inputs_aa = [self._model.getResultStateSymbolicVariable()]
+            inputs_bb = [self._modelTarget.getResultStateSymbolicVariable()]
+        else:
+            inputs_aa = [self._model.getStateSymbolicVariable()]
+            inputs_bb = [self._modelTarget.getStateSymbolicVariable()]
         self._model._reward_net = Model(inputs=inputs_aa, outputs=self._model._reward_net)
         self._modelTarget._reward_net = Model(inputs=inputs_bb, outputs=self._modelTarget._reward_net)
         if (print_info):

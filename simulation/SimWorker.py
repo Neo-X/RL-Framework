@@ -63,8 +63,8 @@ class SimWorker(Process):
         elif (("use_dual_state_representations" in self._settings
               and (self._settings["use_dual_state_representations"] == True))
             and (not (self._settings["forward_dynamics_model_type"] == "SingleNet"))
-            and ("use_multimodal_state" in self._settings
-                 and (self._settings["use_multimodal_state"] == True))
+            and ("fd_use_multimodal_state" in self._settings
+                 and (self._settings["fd_use_multimodal_state"] == True))
             ):
             print ("Creating multi modal state size****")
             state_bounds = [[0] * (self._settings["fd_num_terrain_features"] + self._settings["dense_state_size"]), 
