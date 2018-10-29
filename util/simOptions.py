@@ -101,6 +101,10 @@ def getOptions(_args=None):
               type=int,
               metavar="INTEGER", help="The number of fd network to be done per actor update.")
     
+    parser.add_option("--pretrain_critic",
+              action="store", dest="pretrain_critic", default=None,
+              type=int,
+              metavar="INTEGER", help="Run some initial training steps to pretrain the critic before starting policy training.")
     
     parser.add_option("--meta_sim_samples", "--mp",
               action="store", dest="meta_sim_samples", default=None,
