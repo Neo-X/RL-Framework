@@ -484,6 +484,7 @@ class ExperienceMemory(object):
     def setRewardBounds(self, _reward_bounds):
         self._reward_bounds = _reward_bounds
     def setActionBounds(self, _action_bounds):
+        assert len(_action_bounds[0]) == self._action_length
         self._action_bounds = _action_bounds
     def setResultStateBounds(self, _result_state_bounds):
         assert len(_result_state_bounds[0]) == self._result_state_length

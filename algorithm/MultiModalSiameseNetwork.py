@@ -380,8 +380,19 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
         
 def create_pairs2(x, settings):
     '''Positive and negative pair creation.
-    Alternates between positive and negative pairs.
+    Alternates between positive and negative pairs.\
+    
+    :Input x
+        Should be a array of [[image:pose], ... , [image:pose]]
+        
+    :Return (images, poses, labels)
+         
     '''
+    # imgs = x[:, :settings["fd_num_terrain_features"]]
+    poses = x[:, settings["fd_num_terrain_features"]:]
+    # print ("imgs shape: ", np.array(imgs).shape)
+    # print ("poses shape: ", np.array(poses).shape)
+    
     target_noise_scale = 0.05
     compare_adjustment = 0.0
     if ("imperfect_compare_offset" in settings):
@@ -397,30 +408,22 @@ def create_pairs2(x, settings):
         i = indices[i]
         noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
         x1 = [x[i] + noise]
-        noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
-        x2 = [x[i] + noise]
-        if (np.random.rand() > 0.5):
-            pair1 += x1
-            pair2 += x2
-        else:
-            pair1 += x2
-            pair2 += x1
+
+        pair1 += x1
+        pair2 += [poses[i]]
         ### Different pair
         z=i
         while (z == i): ## get result that is not the same
             z = np.random.randint(low=0, high=n)
         noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
         x1 = [x[i] + noise]
-        noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
-        x2 = [x[z] + noise]
-        if (np.random.rand() > 0.5):
-            pair1 += x1
-            pair2 += x2
-        else:
-            pair1 += x2
-            pair2 += x1
+
+        pair1 += x1
+        pair2 += [poses[z]]
+
         labels += [np.clip(1 + np.random.normal(loc=0, scale=target_noise_scale, size=1), 0.01, 0.98),
                     np.clip(0 + np.random.normal(loc=0, scale=target_noise_scale, size=1), 0.01, 0.98)]
+    # print (np.array(pair1).shape, np.array(pair2).shape, np.array(labels).shape)
     return np.array(pair1), np.array(pair2), np.array(labels)
 
 class MultiModalSiameseNetwork(KERASAlgorithm):
