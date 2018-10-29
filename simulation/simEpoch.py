@@ -462,7 +462,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 pass 
             elif ("fd_use_multimodal_state" in settings and
                   (settings["fd_use_multimodal_state"] == True)):
-                ob = np.asarray(exp.getEnvironment().getMultiModalState())
+                ob = np.asarray(exp.getEnvironment().getMultiModalImitationState())
                 ob = ob.flatten()
                 resultState_[0][1] = ob
             else:
