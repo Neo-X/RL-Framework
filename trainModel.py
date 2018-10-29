@@ -511,11 +511,20 @@ def trainModelParallel(inputData):
             if ("use_dual_dense_state_representations" in settings
                 and (settings["use_dual_dense_state_representations"] == True)):
                 state_bounds__ = np.array(settings['state_bounds'])
+            elif (("use_dual_state_representations" in settings
+              and (settings["use_dual_state_representations"] == True))
+                and (not (settings["forward_dynamics_model_type"] == "SingleNet"))
+                and ("fd_use_multimodal_state" in settings
+                     and (settings["fd_use_multimodal_state"] == True))
+                ):
+                print ("Creating multi modal state size****")
+                state_bounds__ = [[0] * (settings["fd_num_terrain_features"] + settings["dense_state_size"]), 
+                                 [1] * (settings["fd_num_terrain_features"] + settings["dense_state_size"])]
             elif ("use_dual_state_representations" in settings
                     and (settings["use_dual_state_representations"] == True)
                     and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
                     state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
-                                     [1] * settings["fd_num_terrain_features"]])
+                                               [1] * settings["fd_num_terrain_features"]])
             if ( settings['forward_dynamics_model_type'] == "SingleNet"
                  and (settings['use_single_network'] == True)):
                 print ("Creating forward dynamics network: Using single network model")
@@ -605,7 +614,18 @@ def trainModelParallel(inputData):
                     experiencefd.setResultStateBounds(res_state_bounds__)
             else:
                 state_size__ = len(state_bounds[0])
-                if ("fd_num_terrain_features" in settings):
+                if ("fd_num_terrain_features" in settings 
+                    and
+                    ("fd_use_multimodal_state" in settings
+                     and (settings["fd_use_multimodal_state"] == True))):
+                    state_size__ = settings["fd_num_terrain_features"] + settings["dense_state_size"]
+                    experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 
+                                                    continuous_actions=True, settings = settings)
+                    state_bounds__ = np.array([[0] * (state_size__), 
+                                         [1] * (state_size__)])
+                    experiencefd.setStateBounds(state_bounds__)
+                    # sys.exit()
+                elif ("fd_num_terrain_features" in settings):
                     state_size__ = settings["fd_num_terrain_features"]
                     experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 
                                                     continuous_actions=True, settings = settings)
@@ -625,6 +645,9 @@ def trainModelParallel(inputData):
             experiencefd.setRewardBounds(reward_bounds)
             masterAgent.setFDExperience(copy.deepcopy(experiencefd))
             
+        print ("masterAgent.getFDExperience().getStateBounds() shape : ", masterAgent.getFDExperience().getStateBounds().shape)
+        # sys.exit()
+        
         if (settings["load_saved_model"] == True and
             (settings["save_experience_memory"] == "continual")):
             ### load exp mem
@@ -698,6 +721,18 @@ def trainModelParallel(inputData):
                 if ("use_dual_dense_state_representations" in settings
                 and (settings["use_dual_dense_state_representations"] == True)):
                     forwardDynamicsModel.setStateBounds(state_bounds)
+                    forwardDynamicsModel.setActionBounds(action_bounds)
+                    forwardDynamicsModel.setRewardBounds(reward_bounds)
+                elif (("use_dual_state_representations" in settings
+                  and (settings["use_dual_state_representations"] == True))
+                    and (not (settings["forward_dynamics_model_type"] == "SingleNet"))
+                    and ("fd_use_multimodal_state" in settings
+                         and (settings["fd_use_multimodal_state"] == True))
+                    ):
+                    print ("Creating multi modal state size****")
+                    state_bounds__ = [[0] * (settings["fd_num_terrain_features"] + settings["dense_state_size"]), 
+                                 [1] * (settings["fd_num_terrain_features"] + settings["dense_state_size"])]
+                    forwardDynamicsModel.setStateBounds(state_bounds__)
                     forwardDynamicsModel.setActionBounds(action_bounds)
                     forwardDynamicsModel.setRewardBounds(reward_bounds)
                 elif ("use_dual_state_representations" in settings
@@ -911,7 +946,7 @@ def trainModelParallel(inputData):
                         p_tmp_ = p 
                     else:
                         p_tmp_ = 1.0
-                        
+                    
                     for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
                                            _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_)
