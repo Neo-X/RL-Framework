@@ -413,7 +413,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     reward__ = exp.computeImitationReward(model.getForwardDynamics().predict)
                     # print ("reward__: ", reward__)
                 
-                reward_ = np.exp((reward__*reward__)*-10.0)
+                reward_ = np.exp((reward__*reward__)*-5.0)
                     
                 if ("use_sparse_sequence_based_reward" in settings
                     and (settings["use_sparse_sequence_based_reward"] == True)):
