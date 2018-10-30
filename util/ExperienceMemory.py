@@ -125,7 +125,7 @@ class ExperienceMemory(object):
             inds = range(0, shortest_traj)
             # traj_start = random.sample(set(inds), 1)[0]
             ### Make earlier start time more probable
-            traj_start = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
+            # traj_start = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
             # print ("From traj_start: ", traj_start)
                 
         if ( randomLength == True 
