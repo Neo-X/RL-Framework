@@ -708,13 +708,14 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         # print("state shape: ", np.array(state).shape)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         # state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
-        state2 = state[:,self._settings["fd_num_terrain_features"]:]
         # state = state[:,:self._settings["fd_num_terrain_features"]]
         if ((("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True))
                     # or
                     # settings["use_learned_reward_function"] == "dual"
                     ):
+            
+            state2 = state[:,:, self._settings["fd_num_terrain_features"]:]
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
             h_a = self._model.processed_a.predict([np.array([state])])
             h_b = self._model.processed_b.predict([np.array([state2])])
@@ -724,7 +725,8 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         else:
             # print ("self._settings[fd_num_terrain_features]: ", self._settings["fd_num_terrain_features"])
             # print ("State shape: ", state.shape, " state2 shape: ", state2.shape)
-            
+            # state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
+            state2 = state[:,self._settings["fd_num_terrain_features"]:]
             state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
         # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
         # print("state_ shape: ", np.array(state_).shape)
@@ -754,8 +756,7 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         if (("train_LSTM_Reward" in self._settings)
             and (self._settings["train_LSTM_Reward"] == True)):
             print ("state shape: ", state.shape)
-            state = state[:self._settings["fd_num_terrain_features"]]
-            state2 = state[self._settings["fd_num_terrain_features"]:]
+            state2 = state[:, self._settings["fd_num_terrain_features"]:]
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
             h_a = self._model.processed_a_r.predict([np.array([state])])
             h_b = self._model.processed_b_r.predict([np.array([state2])])
@@ -763,8 +764,10 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
+            state2 = state[:,self._settings["fd_num_terrain_features"]:]
             predicted_reward = self._model._reward_net.predict([state, state2])[0]
-            reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            # reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            reward_ = predicted_reward
             
         return reward_
     

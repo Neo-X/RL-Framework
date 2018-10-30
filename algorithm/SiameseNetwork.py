@@ -759,7 +759,8 @@ class SiameseNetwork(KERASAlgorithm):
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
             predicted_reward = self._model._reward_net.predict([state, state2])[0]
-            reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            # reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
+            reward_ = predicted_reward
             
         return reward_
     
