@@ -13,6 +13,7 @@ import keras.backend as K
 import keras
 from keras.models import Sequential, Model
 from util.SimulationUtil import createForwardDynamicsNetwork
+from algorithm.SiameseNetwork import compute_accuracy
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -47,11 +48,6 @@ def contrastive_loss(y_true, y_pred):
     margin = 1
     ####           Make these smaller               While making these bigger
     return K.mean((y_true * K.square(y_pred)) + ((1 - y_true) * K.square(K.maximum(margin - y_pred, 0))))
-
-def compute_accuracy(predictions, labels):
-    '''Compute classification accuracy with a fixed threshold on distances.
-    '''
-    return labels[predictions.ravel() < 0.5].mean()
 
 def create_sequences(traj0, traj1, settings):
     '''Positive and negative sequence creation.
@@ -836,7 +832,10 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         
             # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
             predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
+            # print ("predicted_y: ", predicted_y)
+            # print ("te_y: ", te_y)
             te_acc = compute_accuracy(predicted_y, te_y)
+            # print ("te_acc: ", te_acc)
             
         # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
         return te_acc

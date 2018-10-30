@@ -109,7 +109,7 @@
     "comment__": "Amount of dropout to use in the networks (if using a dropout network)",
 "dropout_p": 0.0,
     "comment__": "Regularization weight for the policy network",
-"regularization_weight": 0.000001,
+"regularization_weight": 0.00001,
     "comment__": "Some parameter for rmsprop stocastic gradient optimization method.",
 "rho": 0.95,
     "comment__": "Some parameter for rmsprop stocastic gradient optimization method.",
@@ -157,7 +157,7 @@
     "comment__": "draw/render the next state suggested by the forward dynamics model",
 "visualize_forward_dynamics": false,
     "comment__": "Learning rate for the forward dynamics model",
-"fd_learning_rate": 0.00001,
+"fd_learning_rate": 0.0001,
     "comment__": "Whether or not to train the policy. Used for debugging",
 "train_actor": true,
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
@@ -363,7 +363,7 @@
 	"comment__": "specify the learning algorithm to use for the fd model",
 "fd_algorithm" : "algorithm.MultiModalSiameseNetwork.MultiModalSiameseNetwork",
 	"comment__": "A list describing the size of the layers for the NN",
-"fd_network_layer_sizes": [ ["Reshape", [1, 64, 64]], [16, [10, 10], [5, 5]], ["dropout", 0.2], [32, [5, 5], [2, 2]], ["dropout", 0.2], [32, [3, 3], [1, 1]], "flatten_features", "mark_middle", 256, ["Dense", 128, "linear"]],
+"fd_network_layer_sizes": [ ["Reshape", [1, 64, 64]], [16, [10, 10], [5, 5]], ["dropout", 0.2], [32, [5, 5], [2, 2]], ["dropout", 0.2], [32, [3, 3], [1, 1]], "flatten_features", "mark_middle", 256, ["Dense", 64, "sigmoid"]],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [128],
 		"comment__": "type of activation to use",
@@ -427,5 +427,5 @@
 	"comment__": "Use a multi-modal state for the agent and imitation character.",
 "fd_use_multimodal_state": true,
 	"comment__": "A list describing the size of the layers for the ssecond FD NN",
-"fd2_network_layer_sizes": [ 256, ["dropout", 0.2], 128]
+"fd2_network_layer_sizes": [ 256, ["dropout", 0.1], 128, ["dropout", 0.1], ["Dense", 64, "sigmoid"]]
 }

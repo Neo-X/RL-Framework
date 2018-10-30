@@ -173,6 +173,8 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
     masterAgent.getPolicy().setSettings(settings__)
     # masterAgent.getForwardDynamics().setSettings(settings)
     for i in range(int(settings__["pretrain_critic"])):
+        if (settings__["print_levels"][settings__["print_level"]] >= settings__["print_levels"]['train']):
+            print ("pretraining round: ", i)
         masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
                                        _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
                                        _G_t=G_ts_, p=1.0)

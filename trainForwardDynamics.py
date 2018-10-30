@@ -152,7 +152,7 @@ def trainForwardDynamics(settings):
         # print ("result state_bounds: ", res_state_bounds__)
         experience.setResultStateBounds(res_state_bounds__)
         
-        print("res_state_bounds__: ", res_state_bounds__)
+        print("res_state_bounds__: ", np.array(res_state_bounds__).shape)
         
     
     if ( settings['forward_dynamics_model_type'] == "SingleNet"):
@@ -189,7 +189,7 @@ def trainForwardDynamics(settings):
     forwardDynamicsModel.setResultStateBounds(res_state_bounds__)
     
     print ("FD state bounds2: ", forwardDynamicsModel.getStateBounds())
-    
+    print ("FD state bounds2 shape: ", np.array(forwardDynamicsModel.getStateBounds()).shape)
     # experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), experience_length, continuous_actions=True)
     """
     for i in range(experience_length):
@@ -264,8 +264,9 @@ def trainForwardDynamics(settings):
                     
                 else:
                     _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
-                    # print("result state shape: ", np.asarray(_result_states).shape)
+                    print("result state shape: ", np.asarray(_result_states).shape)
                     dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
+                    print ("dynamicsLoss: ", dynamicsLoss)
                     # reg_loss = forwardDynamicsModel._get_fd_regularization([])
                     # print("regularization_loss: ", reg_loss)
                 if (False):
@@ -291,7 +292,9 @@ def trainForwardDynamics(settings):
                 state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=lstm_batch_size)
                 dynamicsLoss_ = forwardDynamicsModel.bellman_error(state_, action_, resultState_, reward_)
             else:
+                # print ("_states shape: ", _states.shape)
                 dynamicsLoss_ = forwardDynamicsModel.bellman_error(_states, _actions, _result_states, _rewards)
+                # print ("dynamicsLoss_: ", dynamicsLoss_)
             # dynamicsLoss_ = forwardDynamicsModel.bellman_error((_states), (_actions), (_result_states))
             if ( settings['use_stochastic_forward_dynamics'] ):
                 dynamicsLoss = np.mean(dynamicsLoss_)
