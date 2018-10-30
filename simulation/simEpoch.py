@@ -85,8 +85,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         q_values_ = []
     viz_q_values_ = []
     
-    pose_diff = self.getImitationState() - self._sim.getState()
-    print ("pose_diff: ", pose_diff)
+    ### Test to make sure the agent initial pose and imitation pose are the same.
+    # pose_diff = exp.getEnvironment().getImitationState() - exp.getEnvironment()._sim.getState()
+    # print ("pose_diff: ", pose_diff)
             
     # q_value = model.q_value(state_)
     # print ("Updated parameters: " + str(model.getNetworkParameters()[1]))

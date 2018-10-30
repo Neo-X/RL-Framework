@@ -406,7 +406,7 @@ def create_pairs2(x, settings):
         x1 = [x[i] + noise]
 
         pair1 += x1
-        pair2 += [poses[i]]
+        pair2 += [poses[i] + np.random.normal(loc=0, scale=noise_scale/2.0, size=poses[i].shape)]
         ### Different pair
         z=i
         while (z == i): ## get result that is not the same
@@ -415,7 +415,7 @@ def create_pairs2(x, settings):
         x1 = [x[i] + noise]
 
         pair1 += x1
-        pair2 += [poses[z]]
+        pair2 += [poses[z] + np.random.normal(loc=0, scale=noise_scale/2.0, size=poses[z].shape)]
 
         labels += [np.clip(1 + np.random.normal(loc=0, scale=target_noise_scale, size=1), 0.01, 0.98),
                     np.clip(0 + np.random.normal(loc=0, scale=target_noise_scale, size=1), 0.01, 0.98)]
