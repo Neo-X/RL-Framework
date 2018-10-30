@@ -120,14 +120,22 @@ class ExperienceMemory(object):
             if len(state_[t]) < shortest_traj:
                 shortest_traj = len(state_[t])
                 
-        if ( randomLength == True 
-            and (min_seq_length < shortest_traj)):  ### shortest_traj Must be at least 2 for this to return 1
-            shortest_traj = random.sample(set(range(min_seq_length, shortest_traj)), 1)[0]
-            # print ("To", shortest_traj)
-        
         if ( randomStart == True 
              and (shortest_traj > min_seq_length)):
-            traj_start = random.sample(set(range(0, shortest_traj-(min_seq_length))), 1)[0]    
+            inds = range(0, shortest_traj)
+            # traj_start = random.sample(set(inds), 1)[0]
+            ### Make earlier start time more probable
+            traj_start = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
+            # print ("From traj_start: ", traj_start)
+                
+        if ( randomLength == True 
+            and (min_seq_length < shortest_traj)):  ### shortest_traj Must be at least 2 for this to return 1
+            inds = range(traj_start + min_seq_length, shortest_traj)
+            # shortest_traj = random.sample(set(inds), 1)[0]
+            ### Make shorter sequence more probable
+            shortest_traj = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
+            # print ("To shortest_traj:", shortest_traj)
+        
         
         # print ("shortest_traj: ", shortest_traj, " traj_start: ", traj_start)    
         ### Make all trajectories as long as the shortest one...

@@ -67,42 +67,49 @@ def create_sequences(traj0, traj1, settings):
     sequences1 = []
     targets_ = []
     for tr0, tr1 in zip(traj0, traj1): ### for each trajectory pair
+        ### transform data into poses
+        # print ("tr0 shape: ", tr0.shape)
+        # print ("tr1 shape: ", tr1.shape)
+        trajPoses0 = tr0[:, settings["fd_num_terrain_features"]:]
+        trajPoses1 = tr1[:, settings["fd_num_terrain_features"]:]
         tar_shape = (len(tr0)-1, 1)
         if (len(tr0) == 1):
             tar_shape = (len(tr0), 1)
+            ### Same data with a little noise
             sequences0.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences1.append(trajPoses0 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0.shape))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             sequences0.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            targets = np.ones(tar_shape)
-            targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
-            
-            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            targets = np.ones(tar_shape)
-            targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
-            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences1.append(trajPoses0 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0.shape))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
+            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr1.shape))
+            sequences1.append(trajPoses1 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1.shape))
+            targets = np.ones(tar_shape)
+            targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
+            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr1.shape))
+            sequences1.append(trajPoses1 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1.shape))
+            targets = np.ones(tar_shape)
+            targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
+            
+            ### Probably different (if not from beginning of epoch) data with a little noise
             sequences0.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences1.append(trajPoses1 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1.shape))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             sequences0.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences1.append(trajPoses1 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1.shape))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
-            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr1.shape))
+            sequences1.append(trajPoses0 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0.shape))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
-            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr1.shape))
+            sequences1.append(trajPoses0 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0.shape))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
@@ -111,20 +118,20 @@ def create_sequences(traj0, traj1, settings):
             tar_shape = (len(tr0), 1)
             ### Same clips
             sequences0.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences1.append(trajPoses0 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0.shape))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             sequences0.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences1.append(trajPoses0 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0.shape))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
-            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr1.shape))
+            sequences1.append(trajPoses1 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1.shape))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
-            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr1.shape))
+            sequences1.append(trajPoses1 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1.shape))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
@@ -142,44 +149,45 @@ def create_sequences(traj0, traj1, settings):
             
             ### clips with repeted frames
             sequences0.append([tr0[0]] + tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append([tr0[0]] + tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences1.append([trajPoses0[0]] + trajPoses0[1:] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0.shape))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
-            sequences0.append([tr1[0]] + tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-            sequences1.append([tr1[0]] + tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences0.append([tr1[0]] + tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr1.shape))
+            sequences1.append([trajPoses1[0]] + trajPoses1[1:] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1.shape))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
             ### reversed versions of the same trajectories
-            sequences0.append(list(reversed(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))))
-            sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences0.append(list(reversed(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))))
+            sequences1.append(trajPoses0 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0.shape))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
-            sequences0.append(list(reversed(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))))
-            sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences0.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences1.append(list(reversed(trajPoses0 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0.shape))))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
-            sequences0.append(list(reversed(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))))
-            sequences1.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences0.append(list(reversed(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr1.shape))))
+            sequences1.append(trajPoses1 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1.shape))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
-            sequences0.append(list(reversed(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))))
-            sequences1.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+            sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr1.shape))
+            sequences1.append(list(reversed(trajPoses1 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1.shape))))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
+            
             
             if ("include_agent_imitator_pairs" in settings
                 and (settings["include_agent_imitator_pairs"] == True)):
                 ### Versions of two different trajectories
                 sequences0.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-                sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+                sequences1.append(trajPoses1 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1.shape))
                 targets = np.zeros(tar_shape) + compare_adjustment
                 targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
                 
-                sequences0.append(tr0 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
-                sequences1.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr0.shape))
+                sequences0.append(tr1 + np.random.normal(loc=0, scale=noise_scale, size=tr1.shape))
+                sequences1.append(trajPoses0 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0.shape))
                 targets = np.zeros(tar_shape) + compare_adjustment
                 targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
                 
@@ -190,90 +198,90 @@ def create_sequences(traj0, traj1, settings):
             
             ### Noisy versions of the same trajectories
             sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+            sequences1.append(trajPoses0[1:] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0[1:].shape))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
-            sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+            sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences1.append(trajPoses1[1:] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
             sequences0.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+            sequences1.append(trajPoses0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0[1:].shape))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
-            sequences0.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+            sequences0.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences1.append(trajPoses1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
             ### Out of sync versions of the same trajectories
             sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append(np.concatenate(([tr0[2]], tr0[2:]), axis=0) + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+            sequences1.append(np.concatenate(([trajPoses0[2]], trajPoses0[2:]), axis=0) + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0[1:].shape))
             targets = np.ones(tar_shape) - compare_adjustment
             targets[0] = 0
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
             sequences0.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append(np.concatenate((tr0[:-2], [tr0[-2]]), axis=0) + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+            sequences1.append(np.concatenate((trajPoses0[:-2], [trajPoses0[-2]]), axis=0) + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0[1:].shape))
             targets = np.ones(tar_shape) - compare_adjustment
             targets[-1] = 0
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
             ### Out of sync versions of the same trajectories
-            sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append(np.concatenate(([tr1[2]], tr1[2:]), axis=0) + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences1.append(np.concatenate(([trajPoses1[2]], trajPoses1[2:]), axis=0) + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
             targets = np.ones(tar_shape) - compare_adjustment
             targets[0] = 0
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
-            sequences0.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append(np.concatenate((tr1[:-2], [tr1[-2]]), axis=0) + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences0.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences1.append(np.concatenate((trajPoses1[:-2], [trajPoses1[-2]]), axis=0) + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
             targets = np.ones(tar_shape) - compare_adjustment
             targets[-1] = 0
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
             ### reversed versions of the same trajectories
-            sequences0.append(list(reversed(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))))
-            sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+            sequences0.append(list(reversed(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))))
+            sequences1.append(trajPoses1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
 
-            sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append(list(reversed(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))))
+            sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences1.append(list(reversed(trajPoses1[1:] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
         
             sequences0.append(list(reversed(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))))
-            sequences1.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+            sequences1.append(trajPoses0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0[1:].shape))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
             sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append(list(reversed(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))))
+            sequences1.append(list(reversed(trajPoses0[1:] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0[1:].shape))))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
             ### Frozen frame versions of sequences
-            sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append([tr1[np.random.choice(range(len(tr1)))] * len(tr1[1:])] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences1.append([trajPoses1[np.random.choice(range(len(tr1)))] * len(tr1[1:])] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
             targets = np.zeros(tar_shape) + compare_adjustment
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
-            sequences0.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append([tr1[np.random.choice(range(len(tr1)))] * len(tr1[1:])] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences0.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences1.append([trajPoses1[np.random.choice(range(len(tr1)))] * len(tr1[1:])] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
             targets = np.zeros(tar_shape) + compare_adjustment
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
             sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append([tr0[np.random.choice(range(len(tr1)))] * len(tr1[1:])] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences1.append([trajPoses0[np.random.choice(range(len(trajPoses0)))] * len(trajPoses0[1:])] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0[1:].shape))
             targets = np.zeros(tar_shape) + compare_adjustment
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
             sequences0.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append([tr0[np.random.choice(range(len(tr1)))] * len(tr1[1:])] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences1.append([trajPoses0[np.random.choice(range(len(trajPoses0)))] * len(tr1[1:])] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0[1:].shape))
             targets = np.zeros(tar_shape) + compare_adjustment
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
@@ -281,21 +289,21 @@ def create_sequences(traj0, traj1, settings):
             indicies = range(len(tr1))
             # print ("indicies: ", indicies)
             # print ("choice: ", np.random.choice(indicies, len(tr1[1:])))
-            sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append(np.array(tr1)[np.random.choice(indicies, len(tr1[1:]))] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences0.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences1.append(np.array(trajPoses1)[np.random.choice(indicies, len(trajPoses1[1:]))] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-            sequences1.append(np.array(tr0)[np.random.choice(indicies, len(tr0[1:]))] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences1.append(np.array(trajPoses0)[np.random.choice(indicies, len(trajPoses0[1:]))] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0[1:].shape))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
             sequences0.append(np.array(tr1)[np.random.choice(indicies, len(tr1[1:]))] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
-            sequences1.append(np.array(tr1)[np.random.choice(indicies, len(tr1[1:]))] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences1.append(np.array(trajPoses1)[np.random.choice(indicies, len(trajPoses1[1:]))] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
-            sequences0.append(np.array(tr0)[np.random.choice(indicies, len(tr0[1:]))] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
-            sequences1.append(np.array(tr0)[np.random.choice(indicies, len(tr0[1:]))] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
+            sequences0.append(np.array(tr0)[np.random.choice(indicies, len(tr0[1:]))] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+            sequences1.append(np.array(trajPoses0)[np.random.choice(indicies, len(trajPoses0[1:]))] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0[1:].shape))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             
@@ -303,24 +311,24 @@ def create_sequences(traj0, traj1, settings):
                 and (settings["include_agent_imitator_pairs"] == True)):
                 ### Versions of two different trajectories
                 sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-                sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+                sequences1.append(trajPoses1[1:] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
                 targets = np.zeros(tar_shape) + compare_adjustment
                 targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
                 
                 sequences0.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-                sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+                sequences1.append(trajPoses1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
                 targets = np.zeros(tar_shape) + compare_adjustment
                 targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
                 
                 
                 ### More Out of sync versions of two different trajectories
                 sequences0.append(tr0[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-                sequences1.append(tr1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+                sequences1.append(trajPoses1[:-1] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
                 targets = np.zeros(tar_shape) + compare_adjustment
                 targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
                 
                 sequences0.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
-                sequences1.append(tr1[1:] + np.random.normal(loc=0, scale=noise_scale, size=tr0[1:].shape))
+                sequences1.append(trajPoses1[1:] + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1[1:].shape))
                 targets = np.zeros(tar_shape) + compare_adjustment
                 targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
 
@@ -335,6 +343,8 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
     
     class ids are stored in task_ids
     '''
+    ### Transform data into poses
+    traj1 = traj1[:,:, settings["fd_num_terrain_features"]:]
     noise_scale = 0.03
     target_noise_scale = 0.1
     compare_adjustment = 0.0
@@ -354,8 +364,8 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
             sequences0.append(traj0[i] + np.random.normal(loc=0, scale=noise_scale, size=traj0[i].shape))
             sequences1.append(traj0[j] + np.random.normal(loc=0, scale=noise_scale, size=traj0[j].shape))
             
-            sequences0.append(traj1[i] + np.random.normal(loc=0, scale=noise_scale, size=traj0[i].shape))
-            sequences1.append(traj1[j] + np.random.normal(loc=0, scale=noise_scale, size=traj0[j].shape))
+            sequences0.append(traj1[i] + np.random.normal(loc=0, scale=noise_scale, size=traj1[i].shape))
+            sequences1.append(traj1[j] + np.random.normal(loc=0, scale=noise_scale, size=traj1[j].shape))
             # print ("task_tr0[0][0] == task_tr1[0][0]", task_tr0[0][0], " == ", task_tr1[0][0])
             # print ("settings['worker_to_task_mapping'][task_tr0[0]] == settings['worker_to_task_mapping'][task_tr1[0]]", 
             #        settings["worker_to_task_mapping"][task_tr0[0][0]]," == ", settings["worker_to_task_mapping"][task_tr1[0][0]])
@@ -755,7 +765,7 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         # state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
         if (("train_LSTM_Reward" in self._settings)
             and (self._settings["train_LSTM_Reward"] == True)):
-            print ("state shape: ", state.shape)
+            # print ("state shape: ", state.shape)
             state2 = state[:, self._settings["fd_num_terrain_features"]:]
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
             h_a = self._model.processed_a_r.predict([np.array([state])])

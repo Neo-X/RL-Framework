@@ -376,7 +376,7 @@ class SequentialMCSampler(Sampler):
         # samp = np.random.choice(self._data[:,0])
         # print ("Sample: " + str(samp))
         # print ("Sample type: " + str(samp[0].dtype))
-        ### Should really make this dependant on the distance to its neighbours...
+        ### Should really make this dependent on the distance to its neighbours...
         if ( self.getSettings()['variance_scalling'] == "adaptive" ):
             neighbour = self.getSampleNeighbours(samp)
             samples = self.generateSamplesFromNormal(samp, 1, variance_=(np.fabs(samp - neighbour)*0.5))
