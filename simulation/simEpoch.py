@@ -84,6 +84,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     else:
         q_values_ = []
     viz_q_values_ = []
+    
+    pose_diff = self.getImitationState() - self._sim.getState()
+    print ("pose_diff: ", pose_diff)
+            
     # q_value = model.q_value(state_)
     # print ("Updated parameters: " + str(model.getNetworkParameters()[1]))
     # print ("q_values_: " + str(q_value) + " Action: " + str(action_))

@@ -279,11 +279,13 @@ class DeepNNKerasAdaptive(ModelInterface):
             print ("Critic Network layer sizes: ", layer_sizes)
         if ((self._settings['num_terrain_features'] > 0)):
             network = self._taskFeatures
-            """
-        elif ("use_multimodal_state" in self._settings
-              and (self._settings["use_multimodal_state"] == True)):
+            
+        elif (("use_multimodal_state" in self._settings
+              and (self._settings["use_multimodal_state"] == True))
+        and (("train_LSTM_Reward" in self._settings)
+                and (self._settings["train_LSTM_Reward"] == True))):
             network = self._taskFeatures
-        """
+        
         else:
             network = self._stateInput
         """
@@ -435,6 +437,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     # input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name="State_Conv")
                     if ("fd" == layer_sizes[i][2]):
                         subnet = self._actor
+                        print ("self._State_backup: ", self._State_backup)
                         subnet = Model(inputs=self._State_backup, outputs=subnet)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Subnet summary")
@@ -449,6 +452,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                             subnet.summary()
                     ### Create a model (set of layers to distribute) pass in the original input to that model
                     print ("*** subnet input ", input, " shape: ", repr(keras.backend.int_shape(input)))
+                    print ("self._state_length: ", self._state_length)
                     network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
                     
                     # network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))
