@@ -321,7 +321,10 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     # f = open(file_name, 'rb')
     # model = dill.load(f)
     # f.close()
-    settings["load_saved_model"] = True
+    if (runLastModel is True):
+        settings["load_saved_model"] = "last"
+    else:
+        settings["load_saved_model"] = True
     # settings["load_saved_model"] = "network_and_scales"
     model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
     print ("State Length: ", len(model.getStateBounds()[0]) )
@@ -463,5 +466,5 @@ if __name__ == "__main__":
     if (settings['shouldRender'] == 'yes'):
         modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render='yes')
     else:
-        modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render=True)
+        modelEvaluation(sys.argv[1], runLastModel=True, settings=settings, render=True)
     

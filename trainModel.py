@@ -1674,6 +1674,7 @@ if (__name__ == "__main__"):
     ### If a metaConfig is supplied email out the results
     if ( (metaSettings is not None) ):
         settings["email_log_data_periodically"] = True
+        settings.pop('save_video_to_file', None)
         collectEmailData(settings, metaSettings, sim_time_, simData)
 
     print("All Done.")

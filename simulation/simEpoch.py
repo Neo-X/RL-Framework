@@ -414,6 +414,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("reward__: ", reward__)
                 
                 reward_ = np.exp((reward__*reward__)*-5.0)
+                # print ("Reward: ", reward_)
+                # reward_ = reward__
                     
                 if ("use_sparse_sequence_based_reward" in settings
                     and (settings["use_sparse_sequence_based_reward"] == True)):
@@ -462,6 +464,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 pass 
             elif ("fd_use_multimodal_state" in settings and
                   (settings["fd_use_multimodal_state"] == True)):
+                # print ("Replacing result state data with imitation data")
                 ob = np.asarray(exp.getEnvironment().getMultiModalImitationState())
                 ob = ob.flatten()
                 resultState_[0][1] = ob

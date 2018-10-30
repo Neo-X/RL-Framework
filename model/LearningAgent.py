@@ -109,7 +109,8 @@ class LearningAgent(AgentInterface):
         # print ("_falls: ", np.array(_falls).shape)
         # print ("_exp_actions: ", np.array(_exp_actions).shape)
         
-        print ("self.getFDExperience().getStateBounds() shape : ", self.getFDExperience().getStateBounds().shape)
+        # print ("self.getFDExperience().getStateBounds() shape : ", self.getFDExperience().getStateBounds())
+        # print ("self._fd() bound diff : ", np.array(self.getFDExperience().getStateBounds()) - np.array(self._fd.getStateBounds()))
         # sys.exit()
         
         

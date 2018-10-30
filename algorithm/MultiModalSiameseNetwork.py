@@ -898,6 +898,8 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
         self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+        self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
+        self._modelTarget._reward_net.save(fileName+"_reward_T"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
         
     def loadFrom(self, fileName):
@@ -926,8 +928,8 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
         if (self._modelTarget is not None):
-            self._modelTarget._forward_dynamics_net = load_model(fileName+"_actor_T"+suffix)
-            self._modelTarget._reward_net = load_model(fileName+"_reward_net_T"+suffix)
+            self._modelTarget._forward_dynamics_net = load_model(fileName+"_FD_T"+suffix)
+            self._modelTarget._reward_net = load_model(fileName+"_reward_T"+suffix)
         # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
         # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
