@@ -64,8 +64,8 @@ def compute_accuracy(predictions, labels):
     
     pos_error = np.fabs(pred[labels.ravel() > 0.5]) ### Distance these are from 0.0
     neg_error = np.fabs(1.0 - pred[labels.ravel() <= 0.5]) ### Distance these are from 1.0
-    print ("positive pair mean: ", np.mean(pred[labels.ravel() > 0.5]))
-    print ("negative pair mean: ", np.mean(pred[labels.ravel() <= 0.5]))
+    # print ("positive pair mean: ", np.mean(pred[labels.ravel() > 0.5]))
+    # print ("negative pair mean: ", np.mean(pred[labels.ravel() <= 0.5]))
     
     # print ("values_: ", values_)
     if (values_ == []): ### No values were close...
