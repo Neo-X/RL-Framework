@@ -198,6 +198,13 @@ class PolicyTrainVisualize(object):
                 
                 if ('colour' in self._otherDatas[j][i]):
                     colour_ = self._otherDatas[j][i]['colour']
+                    
+                for m in means_:
+                    self._reward, = self._reward_ax.plot(range(len(m)), m, 
+                                                     linewidth=2.0, 
+                                                     alpha=0.5,
+                                                     c=colour_,
+                                                     linestyle='--')
                 self._reward, = self._reward_ax.plot(x_range_, mean, 
                                                      linewidth=3.0, 
                                                      c=colour_,
@@ -209,10 +216,15 @@ class PolicyTrainVisualize(object):
                                                                               facecolor=self._reward.get_color(),
                                                                               alpha=0.25)
                 
+                for v in mean_values_:
+                    self._value, = self._value_ax.plot(x_range_, v, 
+                                                     linewidth=2.0, 
+                                                     c=colour_,
+                                                     alpha=0.5,
+                                                     linestyle='--')
                 self._value, = self._value_ax.plot(x_range_, mean_value, 
                                                      linewidth=3.0, 
                                                      c=colour_,
-                                                     alpha=0.75,
                                                      label=(self._otherDatas[j][i]['name'] + " samples: " + str(len(means_)))[64:])
                 print("Line colour: ", self._reward.get_color())
                 self._discounted_error_std = self._value_ax.fill_between(x_range_, 
