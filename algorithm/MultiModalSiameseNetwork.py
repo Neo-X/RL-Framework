@@ -379,7 +379,6 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
     class ids are stored in task_ids
     '''
     ### Transform data into poses
-    traj1 = traj1[:,:, settings["fd_num_terrain_features"]:]
     noise_scale = 0.03
     target_noise_scale = 0.1
     compare_adjustment = 0.0
@@ -394,20 +393,21 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
         
         for j in range(len(traj0)):
         # for tr1, task_tr1 in zip(traj0, task_ids): ### for each trajectory pair
-        
+            trajPoses0 = traj0[i][:, settings["fd_num_terrain_features"]:]
+            trajPoses1 = traj1[j][:, settings["fd_num_terrain_features"]:]
             ### Noisy versions of the same trajectories
             sequences0.append(traj0[i] + np.random.normal(loc=0, scale=noise_scale, size=traj0[i].shape))
-            sequences1.append(traj0[j] + np.random.normal(loc=0, scale=noise_scale, size=traj0[j].shape))
+            sequences1.append(trajPoses0 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses0.shape))
             
             sequences0.append(traj1[i] + np.random.normal(loc=0, scale=noise_scale, size=traj1[i].shape))
-            sequences1.append(traj1[j] + np.random.normal(loc=0, scale=noise_scale, size=traj1[j].shape))
+            sequences1.append(trajPoses1 + np.random.normal(loc=0, scale=noise_scale, size=trajPoses1.shape))
             # print ("task_tr0[0][0] == task_tr1[0][0]", task_tr0[0][0], " == ", task_tr1[0][0])
             # print ("settings['worker_to_task_mapping'][task_tr0[0]] == settings['worker_to_task_mapping'][task_tr1[0]]", 
             #        settings["worker_to_task_mapping"][task_tr0[0][0]]," == ", settings["worker_to_task_mapping"][task_tr1[0][0]])
             if (settings["worker_to_task_mapping"][task_ids[i][0][0]] == settings["worker_to_task_mapping"][task_ids[j][0][0]]): ### same task
                 if ( i == j ): ### same trajectory
                     targets = np.ones(tar_shape)
-                else:
+                else: ### Same class
                     targets = np.ones(tar_shape) - compare_adjustment
             else:
                 targets = np.zeros(tar_shape)
@@ -650,8 +650,12 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                 sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
             else:
                 sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
+            """
+            for jk in range(len(sequences0)):
+                print ("sequences0 " , jk, ": len = ", len(sequences0[jk]))
+            """
+            # print ("sequences0 shape: ", np.array(sequences0).shape)
             sequences0 = np.array(sequences0)
-            # print ("sequences0 shape: ", sequences0.shape)
             sequences1 = np.array(sequences1)
             targets_ = np.array(targets_)
             

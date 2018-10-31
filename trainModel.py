@@ -713,6 +713,12 @@ def trainModelParallel(inputData):
             print ("Saving initial experience memory")
             file_name=directory+getAgentName()+"_expBufferInit.hdf5"
             masterAgent.getExperience().saveToFile(file_name)
+            if (settings['train_forward_dynamics'] and
+                settings['keep_seperate_fd_exp_buffer']):
+                if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                    print ("Saving Experience FD memory")
+                file_name=directory+getAgentName()+"_FD_expBufferInit.hdf5"
+                masterAgent.getFDExperience().saveToFile(file_name)
         # mgr = multiprocessing.Manager()
         # learningNamespace = mgr.Namespace()
         
@@ -1363,7 +1369,8 @@ def trainModelParallel(inputData):
                 # draw data
                 
                 t0 = time.time()
-                if (settings["save_experience_memory"] == "continual"):
+                if (settings["save_experience_memory"] == "continual"
+                    or(settings["save_experience_memory"] == "all")):
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                         print ("Saving Experience memory")
                     file_name=directory+getAgentName()+"_expBufferInit.hdf5"

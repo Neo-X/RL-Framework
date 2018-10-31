@@ -231,7 +231,7 @@ def getOptions(_args=None):
     parser.add_option("--save_experience_memory", "--save_experience", 
           action="store", dest="save_experience_memory", default=None,
           type='choice',
-          choices=['true', 'false', 'continual', None],
+          choices=['true', 'false', 'continual', 'all', None],
           metavar="STRING", 
           help="Whether or not to save the experience memory after performing initial bootstrapping.")
     

@@ -368,9 +368,11 @@ def trainForwardDynamics(settings):
             if mean_dynamicsLosses < best_dynamicsLosses:
                 best_dynamicsLosses = mean_dynamicsLosses
                 print ("Saving BEST current forward dynamics model: " + str(best_dynamicsLosses))
-                file_name_dynamics=directory+"forward_dynamics_"+"_Best_pretrain.pkl"
+                file_name_dynamics=directory+"forward_dynamics_Best_pretrain"
                 forwardDynamicsModel.saveTo(file_name_dynamics)
-            
+            print ("Saving current forward dynamics model: " + str(mean_dynamicsLosses))
+            file_name_dynamics=directory+"forward_dynamics_pretrain"
+            forwardDynamicsModel.saveTo(file_name_dynamics)
             if settings['save_trainData']:
                 fp = open(directory+"FD_trainingData_" + str(settings['agent_name']) + ".json", 'w')
                 # print ("Train data: ", trainData)
