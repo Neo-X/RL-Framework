@@ -647,7 +647,7 @@ def trainModelParallel(inputData):
             experiencefd.setRewardBounds(reward_bounds)
             masterAgent.setFDExperience(copy.deepcopy(experiencefd))
             
-        print ("masterAgent.getFDExperience().getStateBounds() shape : ", masterAgent.getFDExperience().getStateBounds().shape)
+        # print ("masterAgent.getFDExperience().getStateBounds() shape : ", masterAgent.getFDExperience().getStateBounds().shape)
         # sys.exit()
         
         if (settings["load_saved_model"] == True and

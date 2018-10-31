@@ -127,7 +127,7 @@ class ExperienceMemory(object):
                 and (self._settings["shorter_smaller_rnn_batches"] == True)):
                 pass
                 ### Make earlier start time more probable
-                # traj_start = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
+                traj_start = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
             else:
                 traj_start = random.sample(set(inds), 1)[0]
             # print ("From traj_start: ", traj_start)
