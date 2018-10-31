@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.CACLA_KERAS.CACLA_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_3D_Viz3D_FixedStart_Walk_64x64_1Sub_MutliModal_Imitate_30FPS_DualState_v0/LSTM_FD_Reward_Encode_T128_9",
+"data_folder": "PD_Humanoid_3D_Viz3D_FixedStart_ALL_64x64_1Sub_MutliModal_Imitate_30FPS_DualState_v0/LSTM_FD_Reward_Encode_T128_9",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -20,17 +20,18 @@
 					"PD_Humanoid_3D_Viz3D_FixedStart_BackFlip_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
 					"PD_Humanoid_3D_Viz3D_FixedStart_FrontFlip_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
 					"PD_Humanoid_3D_Viz3D_FixedStart_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_3D_Viz3D_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_3D_Viz3D_FixedStart_Run_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_3D_Viz3D_FixedStart_BackFlip_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_3D_Viz3D_FixedStart_FrontFlip_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
 					"PD_Humanoid_3D_Viz3D_FixedStart_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_3D_Viz3D_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_3D_Viz3D_FixedStart_Run_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_3D_Viz3D_FixedStart_BackFlip_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_3D_Viz3D_FixedStart_FrontFlip_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
 					"PD_Humanoid_3D_Viz3D_FixedStart_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_3D_Viz3D_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_3D_Viz3D_FixedStart_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_3D_Viz3D_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_3D_Viz3D_FixedStart_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_3D_Viz3D_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_3D_Viz3D_FixedStart_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_3D_Viz3D_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0"
+					"PD_Humanoid_3D_Viz3D_FixedStart_Run_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_3D_Viz3D_FixedStart_BackFlip_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_3D_Viz3D_FixedStart_FrontFlip_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0"
+					
 					],
     "comment__": "Exploration distance use when randomly generating new actions",
 "exploration_rate": 0.2,
@@ -556,9 +557,7 @@
 	"comment__": "A list describing the size of the layers for the ssecond FD NN",
 "fd2_network_layer_sizes": [ ["Dense", 512, "leaky_rectify"], ["dropout", 0.2], ["Dense", 256, "leaky_rectify"], ["dropout", 0.2], ["Dense", 64, "leaky_rectify"]],
 	"comment__": "A mapping from working_id to task id",
-"worker_to_task_mapping": [0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+"worker_to_task_mapping": [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3],
 	"comment__": "Make earlier and shorter lstm training batches more probable.",
-"shorter_smaller_rnn_batches": true,
-"comment__": "Perform multitask training for policy",
-"multitask_learning": false	
+"shorter_smaller_rnn_batches": true	
 }
