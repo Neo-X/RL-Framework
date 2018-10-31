@@ -559,6 +559,6 @@
 "worker_to_task_mapping": [0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 	"comment__": "Make earlier and shorter lstm training batches more probable.",
 "shorter_smaller_rnn_batches": true,
-"comment__": "Perform multitask training for policy",
+	"comment__": "Perform multitask training for policy",
 "multitask_learning": false	
 }
