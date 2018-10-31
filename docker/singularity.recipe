@@ -7,7 +7,6 @@ From: singularityhub/ucr-singularity/cuda-9.0-base:latest
 %files
    /home/gberseth/playground/TerrainRL                    /opt/ # copied to this folder in container
    /home/gberseth/playground/RLSimulationEnvironments     /opt/ # copied to this folder in container
-   /home/gberseth/playground/RL-Framework                 /opt/ # copied to this folder in container
 
 %environment
     VARIABLE=MEATBALLVALUE

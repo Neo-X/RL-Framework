@@ -133,7 +133,7 @@ class ExperienceMemory(object):
             # print ("From traj_start: ", traj_start)
                 
         if ( randomLength == True 
-            and (min_seq_length < shortest_traj)):  ### shortest_traj Must be at least 2 for this to return 1
+            and (shortest_traj > traj_start + min_seq_length)):  ### shortest_traj Must be at least 2 for this to return 1
             inds = range(traj_start + min_seq_length, shortest_traj)
             if ("shorter_smaller_rnn_batches" in self._settings
                 and (self._settings["shorter_smaller_rnn_batches"] == True)):
