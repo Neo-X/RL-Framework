@@ -199,36 +199,19 @@ class KERASAlgorithm(AlgorithmInterface):
             return np.mean(loss_)
         if ('dont_use_td_learning' in self.getSettings() 
             and self.getSettings()['dont_use_td_learning'] == True):
-            # y_ = self._value_Target([result_states,0])[0]
             y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
             target_ = rewards + ((self._discount_factor * y_))
-            # target_2 = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
             target_2 = G_t 
-            # print ("targets, V, G", np.concatenate((target_, target_2, target_ - target_2), axis=1))
-            # print ("Shaping reward", np.concatenate((target_, falls, target_ * falls), axis=1))
             target = (target_ + target_2) / 2.0
         if ('dont_use_td_learning' in self.getSettings() 
             and self.getSettings()['dont_use_td_learning'] == "only_G"):
-            # y_ = self._value_Target([result_states,0])[0]
-            # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-            # target_ = rewards + ((self._discount_factor * y_))
-            # target_2 = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
-            # target_2 = G_t 
-            # print ("targets, V, G", np.concatenate((target_, target_2, target_ - target_2), axis=1))
-            # print ("Shaping reward", np.concatenate((target_, falls, target_ * falls), axis=1))
             target = G_t
         else:
-            # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-            # y_ = self._value_Target([result_states,0])[0]
             y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-            # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-            # target_ = rewards + ((self._discount_factor * y_) * falls)
             target = rewards + ((self._discount_factor * y_))
-        # y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-        # target_ = rewards + ((self._discount_factor * y_) * falls)
         target = np.array(target, dtype=self._settings['float_type'])
         if ("use_fall_reward_shaping" in self._settings
-            and (self._settings["use_fall_reward_shaping"] == True)):
+            and (self._settings["use_fall_reward_shaping"] == True)): ### This does not play nice with multi-tasking...
             # print ("Shaping reward", np.concatenate((target_, falls, target_ * falls), axis=1))
             target = target * falls
         # states = np.array(states, dtype=self._settings['float_type'])
@@ -262,11 +245,6 @@ class KERASAlgorithm(AlgorithmInterface):
             print("Something bad happened going back to old value function parameters.")
             self._model.getCriticNetwork().set_weights( copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
             # self._model.getActorNetwork().set_weights( copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
-        #else:
-        #    print ("Critic error to high:", c_error)
-        #    loss = 0
-        # print(" Critic loss: ", loss)
-        
         return loss
     
     def train(self, states, actions, rewards, result_states, falls):

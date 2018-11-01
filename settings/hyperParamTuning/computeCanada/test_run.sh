@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --account=rrg-vandepan
 #SBATCH --mem=16384M
-#SBATCH --time=12:00:00
+#SBATCH --time=24:00:00
 #SBATCH --job-name=test
 #SBATCH --output=%x-%j.out
 #SBATCH --cpus-per-task=8

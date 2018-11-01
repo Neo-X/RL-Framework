@@ -431,13 +431,19 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         pass
                     else:
                         reward_ = reward_ * 0
-                
+                        
         if ("use_learned_fast_function" in settings
             and (settings["use_learned_fast_function"] == True)):
             sim_time = exp.getAnimationTime()
             reward_ = exp.computeReward(resultState_, sim_time)
             # print("reward: ", reward_)
             
+        if ((exp.endOfEpoch() and settings['reset_on_fall'])
+            and 
+            ("use_fall_reward_shaping2" in settings
+             and (settings["use_fall_reward_shaping2"] == True))
+            ):
+            reward_ = -1.0 * 1/(1-settings["discount_factor"])
         # print ("reward: ", reward_)
         baseline.append(model.q_value(state_))
         
@@ -501,27 +507,17 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         ### Order needs to be preserved for computing the advantage.
         actions.append(action)
         rewards.append(reward_)
-        # print("Shape of result states: ", np.array(result_states___).shape, " result_state shape, ", np.array(resultState_).shape)
-        # print("result states: ", result_states___)
         result_states___.append(resultState_)
         if (worker_id is not None):
-            # print("Pushing working id as fall value: ", [worker_id])
+            # Pushing working id as fall value
             falls.append([[worker_id]] * len(state_))
         else:
             # print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])
             falls.append([[agent_not_fell]] * len(state_))
         exp_act = [[exp_action]]  * len(state_)
-        # print ("exp_act: " , exp_act)
         exp_actions.append(exp_act)
-        # print ("falls: ", falls)
-        # values.append(value)
         if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
-            # _output_queue.put((norm_state(state_, model.getStateBounds()), [norm_action(action, model.getActionBounds())], [reward_], norm_state(state_, model.getStateBounds()))) # TODO: Should these be scaled?
-            # print("Putting tuple in queue")
-            # print("States: ", np.array(states[-1]))
             for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1], actions[-1], result_states___[-1], rewards[-1],  falls[-1], exp_actions[-1]):
-                # print(" putting state__", np.array(state__).shape, " value: ", state__, " With reward: ", rew__)
-                # print(fall__ , exp__, rew__)
                 _output_queue.put(([state__], [act__], [res__], [rew__],  [fall__], [[0]], [exp__]), timeout=timeout_)
         
         state_num += 1
