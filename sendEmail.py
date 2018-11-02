@@ -33,8 +33,9 @@ def sendEmail(subject, contents, hyperSettings, simSettings=None, testing=False,
     
     print("Hostname: ", hostname)
     
-    username = getpass.getuser()
-    print ("username: ", username)
+    ### Doesn't work on some computers
+    # username = getpass.getuser()
+    # print ("username: ", username)
     
     fromEmail = hyperSettings['from_email_address']
     print("From email: ", fromEmail)
