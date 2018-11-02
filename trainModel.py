@@ -450,7 +450,9 @@ def trainModelParallel(inputData):
         ### Using a wrapper for the type of actor now
         actor = createActor(settings['environment_type'], settings, None)
         exp_val = None
-        if (not validBounds(action_bounds)):
+        if ((action_bounds != "ask_env")
+            and
+            not validBounds(action_bounds)):
             # Check that the action bounds are spcified correctly
             print("Action bounds invalid: ", action_bounds)
             sys.exit()
@@ -480,7 +482,8 @@ def trainModelParallel(inputData):
         ## This needs to be done after the simulation worker processes are created
         # exp_val = createEnvironment(str(settings["sim_config_file"]), settings['environment_type'], settings, render=settings['shouldRender'], )
         if (int(settings["num_available_threads"]) == -1
-            or (state_bounds == "ask_env")): # This is okay if there is one thread only...
+            or (state_bounds == "ask_env")
+            or (action_bounds == "ask_env")): # This is okay if there is one thread only...
             exp_val = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=settings['shouldRender'], index=0)
             exp_val.setActor(actor)
             exp_val.getActor().init()
@@ -495,7 +498,22 @@ def trainModelParallel(inputData):
                 if (int(settings["num_available_threads"]) != -1):
                     print ("Removing extra environment.")
                     exp_val.finish()
-                    
+            if ((action_bounds == "ask_env")):
+                print ("Getting action bounds from environment")
+                a_min = exp_val.getEnvironment()._action_space.getMinimum()
+                a_max = exp_val.getEnvironment()._action_space.getMaximum()
+                print (exp_val.getEnvironment()._action_space.getMinimum())
+                settings['action_bounds'] = [a_min,a_max]
+                action_bounds = settings['state_bounds']
+                if (int(settings["num_available_threads"]) != -1):
+                    print ("Removing extra environment.")
+                    exp_val.finish()
+            
+            if ((action_bounds == "ask_env")
+                or (state_bounds == "ask_env")):
+                if (int(settings["num_available_threads"]) != -1):
+                    print ("Removing extra environment.")
+                    exp_val.finish()
                 
         
         ### This is for a single-threaded Synchronous sim only.

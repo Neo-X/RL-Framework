@@ -162,6 +162,13 @@ class SimWorker(Process):
                 s_max = self._exp.getEnvironment().observation_space.getMaximum()
                 print (self._exp.getEnvironment().observation_space.getMinimum())
                 self._settings['state_bounds'] = [s_min,s_max]
+                
+            if (self._settings['action_bounds'] == "ask_env"):
+                print ("Getting action bounds from environment")
+                a_min = self._exp.getEnvironment()._action_space.getMinimum()
+                a_max = self._exp.getEnvironment()._action_space.getMaximum()
+                print (self._exp.getEnvironment()._action_space.getMinimum())
+                self._settings['action_bounds'] = [a_min,a_max]
                 # print ("*************new state bounds: ", np.array(self._settings['state_bounds']).shape)
             np.random.seed(self._process_random_seed)
             ## The sampler might need this new model if threads > 1
