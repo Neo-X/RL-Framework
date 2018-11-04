@@ -86,7 +86,7 @@ borgy submit --restartable --req-gpus=1 --req-cores=8 --req-ram-gbytes=8 -w /hom
 
 Run a META simulation  
 ```
-borgy submit --restartable --req-cores=24 --req-ram-gbytes=24 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 trainMetaModel.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow_NoPhase.json --metaConfig=settings/hyperParamTuning/elementAI.json --meta_sim_samples=3 --meta_sim_threads=3 | tee -a $BORGY_JOB_ID.out'
+borgy submit --restartable --req-gpus=0 --req-cores=16 --req-ram-gbytes=32 -w /home/${USER} -v /mnt/home/$USER:/home/$USER --image=images.borgy.elementai.lan/glen:latest -e HOME=/home/$USER -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3.6 -O trainMetaModel.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow_NoPhase_Torque.json --num_rounds=1000 --metaConfig=settings/hyperParamTuning/element/use_fall_reward_shaping2.json --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --plot=false --Multi_GPU=true --on_policy=fast --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 8 --rollouts=16 --simulation_timeout=1200 --email_log_data_periodically=true --visualize_expected_value=false --max_epoch_length=256 | tee -a $BORGY_JOB_ID.out'
 ```
 
 Run a Tuning simulation  
