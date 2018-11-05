@@ -32,6 +32,13 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Whether or not to periodically email the simulation learning data so far [true|false|None]")
     
+    parser.add_option("--test_movie_rendering",
+              action="store", dest="test_movie_rendering", default=None,
+              type='choice',
+              choices=['true', 'false', None],
+              metavar="STRING", 
+              help="Test movie rendering [true|false|None]")
+    
     parser.add_option("--model_perform_batch_training", "--perform_batch_training",
               action="store", dest="model_perform_batch_training", default=None,
               type='choice',
