@@ -302,6 +302,9 @@ def trainModelParallel(inputData):
                                           collectEmailData,
                                            loggingWorkerQueue)
             loggingWorker.start()
+            if ("test_movie_rendering" in self._settings
+                and (self._settings["test_movie_rendering"] == True)):
+                sys.exit()
         
         ### These are the workers for training
         (sim_workers, sim_work_queues) = createSimWorkers(settings, input_anchor_queue, 

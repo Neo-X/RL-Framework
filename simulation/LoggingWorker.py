@@ -56,6 +56,9 @@ class LoggingWorker(Process):
             vizData = exp.getEnvironment().getFullViewData()
             # movie_writer.append_data(np.transpose(vizData))
             print ("**********************************************sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
+            if ("test_movie_rendering" in self._settings
+                and (self._settings["test_movie_rendering"] == True)):
+                return
             # pass
         running = True
         data = None
