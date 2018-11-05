@@ -439,17 +439,18 @@ class DeepNNKerasAdaptive(ModelInterface):
                         subnet = self._actor
                         print ("self._State_backup: ", self._State_backup)
                         subnet = Model(inputs=self._State_backup, outputs=subnet)
-                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                            print("Subnet summary")
-                            subnet.summary()
+                        #if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print("Subnet summary")
+                        subnet.summary()
                     else:
                         input_ = keras.layers.Input(shape=(1, self._state_length), name="State_Conv")
                         print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
                         subnet = self.createSubNetwork(input_, layer_sizes[i][2])
                         subnet = Model(inputs=input_, outputs=subnet)
-                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                            print("Subnet summary")
-                            subnet.summary()
+                        # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print("Subnet summary")
+                        subnet.summary()
+                        
                     ### Create a model (set of layers to distribute) pass in the original input to that model
                     print ("*** subnet input ", input, " shape: ", repr(keras.backend.int_shape(input)))
                     print ("self._state_length: ", self._state_length)

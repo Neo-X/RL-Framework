@@ -39,7 +39,7 @@ class LoggingWorker(Process):
         
     # @profile(precision=5)
     def run(self):
-        
+        from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
         timeout_ = 60 * 60 * 8 ### time between data emails (8 hours).
         # timeout_ = 60  ### time between data emails.
         if ( "email_logging_time" in self._settings ):
@@ -47,10 +47,15 @@ class LoggingWorker(Process):
         steps__ = 0
         timesteps = 0
         exp = None
+        setupEnvironmentVariable(self._settings)
+        import numpy as np
         if ("save_video_to_file" in self._settings):
             from util.SimulationUtil import createEnvironment
             ### need to create and keep around and reuse a pointer to a simulation because glut is a pain in the butt...
             exp = createEnvironment(self._settings["sim_config_file"], self._settings['environment_type'], self._settings, render=True, index=0)
+            vizData = exp.getEnvironment().getFullViewData()
+            # movie_writer.append_data(np.transpose(vizData))
+            print ("**********************************************sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
             # pass
         running = True
         data = None

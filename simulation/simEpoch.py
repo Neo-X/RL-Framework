@@ -379,7 +379,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (movieWriter is not None):
             vizData = exp.getEnvironment().getFullViewData()
             # movie_writer.append_data(np.transpose(vizData))
-            print ("sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
+            # print ("sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
             image_ = np.zeros((vizData.shape))
             for row in range(len(vizData)):
                 image_[row] = vizData[len(vizData)-row - 1]
