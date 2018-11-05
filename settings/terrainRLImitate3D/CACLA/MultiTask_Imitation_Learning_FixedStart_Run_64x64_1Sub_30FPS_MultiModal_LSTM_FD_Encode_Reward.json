@@ -562,5 +562,5 @@
 	"comment__": "Perform multitask training for policy",
 "multitask_learning": true,
 	"comment__": "Test movie rendering",
-"test_movie_rendering": true
+"test_movie_rendering": false
 }
