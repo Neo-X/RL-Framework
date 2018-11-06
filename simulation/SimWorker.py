@@ -258,6 +258,10 @@ class SimWorker(Process):
                 elif ( episodeData['type'] == 'sim_on_policy'):
                     sim_on_poli = True
                     episodeData = episodeData['data']
+                elif ( episodeData['type'] == 'keep_alive'):
+                    print ("Keep Sim worker:", os.getpid(), " alive.")
+                    self._eval_episode_data_queue.put("returning_keep_alive", timeout=timeout_)
+                    
                 elif ( episodeData['type'] == 'bootstrapping'):
                     bootstrapping = True
                 else:

@@ -721,6 +721,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             episodeData['data'] = i
             if ( (type is None) ):
                 episodeData['type'] = 'sim_on_policy'
+            elif ( type == "keep_alive"):
+                episodeData['type'] = "keep_alive"
             else:
                 episodeData['type'] = 'bootstrapping'
             # sw_message_queues[j].put(episodeData, timeout=timeout_)
@@ -733,7 +735,12 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             
         j = 0
         # while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
+        datas__ = []
         while (j < abs(settings['num_available_threads'])):
+            if ( type == "keep_alive"):
+                dat =  eval_episode_data_queue.get(timeout=timeout_)
+                datas__.append(dat)
+                continue
             (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get(timeout=timeout_)
             discounted_sum.append(discounted_sum_)
             value.append(value_)
@@ -758,7 +765,9 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             exp_actions.append(exp_actions_)
         i += j
         # print("samples collected so far: ", len(states))
-        
+    
+    if ( type == "keep_alive"):
+        return datas__
     tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
     return (tuples, discounted_sum, value, evalData)
 

@@ -162,7 +162,9 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
     return (sim_workers, sim_work_queues)
     
     
-def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_):
+def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
+                   sim_work_queues, eval_episode_data_queue):
+    from simulation.simEpoch import simModelParrallel
     settings__ = copy.deepcopy(masterAgent.getSettings())
     settings__2 = copy.deepcopy(masterAgent.getSettings())
     settings__["train_actor"] = False
@@ -178,6 +180,13 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
         masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
                                        _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
                                        _G_t=G_ts_, p=1.0)
+        ### Send keep alive to sim processes
+        out = simModelParrallel( sw_message_queues=sim_work_queues,
+                                                   model=masterAgent, settings=settings__, 
+                                                   eval_episode_data_queue=eval_episode_data_queue, 
+                                                   anchors=settings__['num_on_policy_rollouts'],
+                                                   type='keep_alive',
+                                                   p=1)
     ### back to normal settings
     masterAgent.setSettings(settings__2)
     masterAgent.getPolicy().setSettings(settings__2)
@@ -924,7 +933,9 @@ def trainModelParallel(inputData):
             print("Exp Action Bounds: ", masterAgent.getExperience().getActionBounds())
             
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)):
-            pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_)
+            pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
+                           falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
+                           eval_episode_data_queue)
         
         print ("Starting first round")
         if (settings['on_policy']):
