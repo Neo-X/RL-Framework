@@ -722,7 +722,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             if ( (type is None) ):
                 episodeData['type'] = 'sim_on_policy'
             elif ( type == "keep_alive"):
-                episodeData['type'] = "keep_alive"
+                episodeData['type'] = 'keep_alive'
             else:
                 episodeData['type'] = 'bootstrapping'
             # sw_message_queues[j].put(episodeData, timeout=timeout_)

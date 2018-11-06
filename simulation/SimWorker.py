@@ -259,9 +259,10 @@ class SimWorker(Process):
                     sim_on_poli = True
                     episodeData = episodeData['data']
                 elif ( episodeData['type'] == 'keep_alive'):
-                    print ("Keep Sim worker:", os.getpid(), " alive.")
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print ("Keep Sim worker:", os.getpid(), " alive.")
                     self._eval_episode_data_queue.put("returning_keep_alive", timeout=timeout_)
-                    
+                    continue
                 elif ( episodeData['type'] == 'bootstrapping'):
                     bootstrapping = True
                 else:
@@ -344,6 +345,11 @@ class SimWorker(Process):
                     sim_on_poli = True
                 elif ( episodeData['type'] == 'bootstrapping'):
                     bootstrapping = True
+                elif ( episodeData['type'] == 'keep_alive'):
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print ("Keep Sim worker:", os.getpid(), " alive.")
+                    self._eval_episode_data_queue.put("returning_keep_alive", timeout=timeout_)
+                    continue
                 else:
                     episodeData = episodeData['data']
                 # print("self._p: ", self._p)
