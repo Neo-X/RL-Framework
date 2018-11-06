@@ -737,6 +737,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         # while (j < abs(settings['num_available_threads'])) and ( (i + j) < anchors):
         datas__ = []
         while (j < abs(settings['num_available_threads'])):
+            j += 1
             if ( type == "keep_alive"):
                 dat =  eval_episode_data_queue.get(timeout=timeout_)
                 datas__.append(dat)
@@ -745,7 +746,6 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             discounted_sum.append(discounted_sum_)
             value.append(value_)
             evalData.append(evalData_)
-            j += 1
             """
             simEpoch(actor, exp, 
                     model, discount_factor, anchors=anchs, action_space_continuous=action_space_continuous, 
@@ -764,6 +764,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             advantage.append(advantage_)
             exp_actions.append(exp_actions_)
         i += j
+        if ( type == "keep_alive"):
+            break
         # print("samples collected so far: ", len(states))
     
     if ( type == "keep_alive"):
