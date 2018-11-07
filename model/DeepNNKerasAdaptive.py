@@ -569,8 +569,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Concatenate()([network, nextStateImg])
             elif ( layer_sizes[i] == "integrate_gan_conditional"):
                 network = Concatenate()([network, self._ResultState])
+            elif ( layer_sizes[i] == "integrate_gan_noise"):
+                network = Concatenate()([network, self._Noise])
             elif ( layer_sizes[i] == "mark_middle"):
-                    self._networkMiddle = network
+                self._networkMiddle = network
             elif ( layer_sizes[i] == "merge_features"):
                 # network = Flatten()(network)
                 if ('split_terrain_input' in self._networkSettings 

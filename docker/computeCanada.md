@@ -1,5 +1,15 @@
 
 
+## Monitorying jobs
+
+### monitor by user:
+squeue -u <username>
+squeue -u <username> -t RUNNING
+squeue -u <username> -t PENDING
+
+### monitor specific job by <job_id>
+scontrol show job -dd <job_id>
+
 ## Using singularity on Compute Canada
 
 ```

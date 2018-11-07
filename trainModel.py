@@ -1115,9 +1115,9 @@ def trainModelParallel(inputData):
                             dynamicsRewardLosses.append(dynamicsRewardLoss)
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                         if (settings['train_forward_dynamics']):
-                            print ("Round: " + str(trainData["round"]) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
+                            print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
                         else:
-                            print ("Round: " + str(trainData["round"]) + " Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
+                            print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error))
                     # discounted_values.append(discounted_sum)
                     
                 if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):

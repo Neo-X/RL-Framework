@@ -21,9 +21,9 @@ from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl, en
 
 class MBPG(AlgorithmInterface):
     
-    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_):
+    def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
 
-        super(MBPG,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
+        super(MBPG,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         # scale = (bounds[1][i]-bounds[0][i])/2.0
         # create a small convolutional neural network
         
@@ -68,7 +68,8 @@ class MBPG(AlgorithmInterface):
         # primary network
         self._model = model
         # Target network
-        self._modelTarget = copy.deepcopy(model)
+        # self._modelTarget = copy.deepcopy(model)
+        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         
         self._q_valsA = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=True)
         self._q_valsA_drop = lasagne.layers.get_output(self._model.getCriticNetwork(), self._model.getStateSymbolicVariable(), deterministic=False)
