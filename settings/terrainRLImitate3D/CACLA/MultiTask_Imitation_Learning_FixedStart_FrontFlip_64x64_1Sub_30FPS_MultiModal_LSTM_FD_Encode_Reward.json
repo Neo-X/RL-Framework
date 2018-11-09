@@ -470,7 +470,7 @@
 	"use_coordconv_layers": true
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
-"pretrain_critic": 100,
+"pretrain_critic": 0,
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
 "ppo_et_factor": 1.1,
 	"comment__": "higher level controller timestep",
