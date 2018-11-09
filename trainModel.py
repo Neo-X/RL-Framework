@@ -171,6 +171,8 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
     settings__["clear_exp_mem_on_poli"] = True
     ### Protects for the case when they are singular and don't want to skip training the critic and train the policy
     settings__["ppo_use_seperate_nets"] = True
+    if (settings__["on_policy"] == "fast"):
+        settings__["on_policy"] = True
     masterAgent.setSettings(settings__)
     masterAgent.getPolicy().setSettings(settings__)
     # masterAgent.getForwardDynamics().setSettings(settings)
