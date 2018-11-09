@@ -834,6 +834,8 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
             episodeData['type'] = 'sim_on_policy'
         elif( type == 'eval'):
             episodeData['type'] = 'eval'
+        elif ( type == "keep_alive"):
+            episodeData['type'] = 'keep_alive'
         else:
             episodeData['type'] = 'bootstrapping'
         # sw_message_queues[j].put(episodeData, timeout=timeout_)
@@ -850,12 +852,16 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
             ):
         
         # while (j < abs(settings['num_available_threads'])):
+        j = j - 1
+        if ( type == "keep_alive"):
+            dat =  eval_episode_data_queue.get(timeout=timeout_)
+            datas__.append(dat)
+            continue
         (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get(timeout=timeout_)
         
         discounted_values.append(discounted_sum_)
         values.append(value_)
         evalDatas.append(evalData_)
-        j = j - 1
 
         epoch_ = epoch_ + 1
         (states_, actions_, result_states_, rewards_, falls_, G_ts_, advantage_, exp_actions_) = tuples
@@ -878,6 +884,8 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
                 episodeData['type'] = 'sim_on_policy'
             elif( type == 'eval'):
                 episodeData['type'] = 'eval'
+            elif ( type == "keep_alive"):
+                episodeData['type'] = 'keep_alive'
             else:
                 episodeData['type'] = 'bootstrapping'
             # sw_message_queues[j].put(episodeData, timeout=timeout_)
