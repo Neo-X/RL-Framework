@@ -176,7 +176,37 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
     # masterAgent.getForwardDynamics().setSettings(settings)
     for i in range(int(settings__["pretrain_critic"])):
         if (settings__["print_levels"][settings__["print_level"]] >= settings__["print_levels"]['train']):
-            print ("pretraining round: ", i)
+            print ("pretraining critic round: ", i)
+        masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
+                                       _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
+                                       _G_t=G_ts_, p=1.0)
+        ### Send keep alive to sim processes
+        out = simModelParrallel( sw_message_queues=sim_work_queues,
+                                                   model=masterAgent, settings=settings__, 
+                                                   eval_episode_data_queue=eval_episode_data_queue, 
+                                                   anchors=settings__['num_on_policy_rollouts'],
+                                                   type='keep_alive',
+                                                   p=1)
+    ### back to normal settings
+    masterAgent.setSettings(settings__2)
+    masterAgent.getPolicy().setSettings(settings__2)
+    
+def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
+                   sim_work_queues, eval_episode_data_queue):
+    from simulation.simEpoch import simModelParrallel
+    settings__ = copy.deepcopy(masterAgent.getSettings())
+    settings__2 = copy.deepcopy(masterAgent.getSettings())
+    settings__["train_actor"] = False
+    settings__["train_critic"] = False
+    settings__["clear_exp_mem_on_poli"] = True
+    ### Protects for the case when they are singular and don't want to skip training the critic and train the policy
+    settings__["ppo_use_seperate_nets"] = True
+    masterAgent.setSettings(settings__)
+    masterAgent.getPolicy().setSettings(settings__)
+    # masterAgent.getForwardDynamics().setSettings(settings)
+    for i in range(int(settings__["pretrain_fd"])):
+        if (settings__["print_levels"][settings__["print_level"]] >= settings__["print_levels"]['train']):
+            print ("pretraining fd round: ", i)
         masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
                                        _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
                                        _G_t=G_ts_, p=1.0)
@@ -934,6 +964,11 @@ def trainModelParallel(inputData):
             
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)):
             pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
+                           falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
+                           eval_episode_data_queue)
+            
+        if ("pretrain_fd" in settings and (settings["pretrain_fd"] > 0)):
+            pretrainFD(masterAgent, states, actions, resultStates, rewards_, 
                            falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
                            eval_episode_data_queue)
         

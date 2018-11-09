@@ -5,6 +5,8 @@
 
 ### Get active jobs
 activeJobs="$(borgy ps --state alive | cut -d' ' -f1 | tail -n +2)"
+echo "Active jobs"
+echo $activeJobs
 
 ### For each active job print just the resource link
 for jobb in $activeJobs;

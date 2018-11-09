@@ -113,6 +113,11 @@ def getOptions(_args=None):
               type=int,
               metavar="INTEGER", help="Run some initial training steps to pretrain the critic before starting policy training.")
     
+    parser.add_option("--pretrain_fd",
+              action="store", dest="pretrain_fd", default=None,
+              type=int,
+              metavar="INTEGER", help="Run some initial training steps to pretrain the fd before starting policy training.")
+    
     parser.add_option("--meta_sim_samples", "--mp",
               action="store", dest="meta_sim_samples", default=None,
               type=int,
