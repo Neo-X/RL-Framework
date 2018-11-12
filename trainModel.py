@@ -316,8 +316,9 @@ def trainModelParallel(inputData):
             
             ### load training data
             from util.SimulationUtil import getDataDirectory
-            directory= getDataDirectory(settings)
+            directory = getDataDirectory(settings)
             file_name_ = directory+"trainingData_" + str(settings['agent_name']) + ".json"
+            print ("loading previous settings file: ", file_name_)
             if os.path.exists(file_name_):
                 fp = open(file_name_, 'r')
                 # print ("Train data: ", trainData)
@@ -974,7 +975,7 @@ def trainModelParallel(inputData):
                            falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
                            eval_episode_data_queue)
         
-        print ("Starting first round")
+        print ("Starting first round: ", trainData["round"])
         if (settings['on_policy']):
             sim_epochs_ = epochs
             # epochs = 1
