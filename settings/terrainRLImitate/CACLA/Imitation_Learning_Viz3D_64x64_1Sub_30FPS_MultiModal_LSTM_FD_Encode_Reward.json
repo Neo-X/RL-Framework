@@ -427,5 +427,9 @@
 	"comment__": "Use a multi-modal state for the agent and imitation character.",
 "fd_use_multimodal_state": true,
 	"comment__": "A list describing the size of the layers for the ssecond FD NN",
-"fd2_network_layer_sizes": [ ["Dense", 256, "leaky_rectify"], ["dropout", 0.2], ["Dense", 128, "leaky_rectify"], ["dropout", 0.2], ["Dense", 64, "sigmoid"]]
+"fd2_network_layer_sizes": [ ["Dense", 256, "leaky_rectify"], ["dropout", 0.2], ["Dense", 128, "leaky_rectify"], ["dropout", 0.2], ["Dense", 64, "sigmoid"]],
+	"comment__": "Make earlier and shorter lstm training batches more probable.",
+"shorter_smaller_rnn_batches": true,
+	"comment__": "When the agent falls give it a bad reward 1/(1-discount_fator)",
+"use_fall_reward_shaping2": true
 }
