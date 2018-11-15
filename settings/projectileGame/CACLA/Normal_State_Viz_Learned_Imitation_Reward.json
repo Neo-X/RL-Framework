@@ -342,7 +342,7 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [[8,[4,4], [2,2]], [16,[3,3], [1,1]], [16,[2,2], [1,1]], "flatten_features", 128, 64],
 	"comment__": "A list describing the size of the layers for the NN",
-"reward_network_layer_sizes": [256, 256, 128],
+"reward_network_layer_sizes": [128],
 		"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
 	"comment__": "type of activation to use for policy",
@@ -366,5 +366,8 @@
     "comment__": "Number of terrain features for which convolutional filters should be used",
 "fd_num_terrain_features": 768,
 	"comment__": "replace the viz state in the next state with the state from the imitation agent",
-"replace_next_state_with_imitation_viz_state": true
+"replace_next_state_with_imitation_viz_state": true,
+	"comment__": "Force the fd model to use the actor state for the critic",
+"force_use_actor_state_for_critic": true
+	 
 }

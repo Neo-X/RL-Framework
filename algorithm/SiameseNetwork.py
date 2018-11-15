@@ -461,7 +461,11 @@ class SiameseNetwork(KERASAlgorithm):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Net summary: ", self._model._forward_dynamics_net.summary())
         
-        inputs_ = [self._model.getResultStateSymbolicVariable()] 
+        if ("force_use_actor_state_for_critic" in self._settings
+            and (self._settings["force_use_actor_state_for_critic"] == True)):
+            inputs_ = [self._model.getStateSymbolicVariable()]
+        else:  
+            inputs_ = [self._model.getResultStateSymbolicVariable()] 
         self._model._reward_net = Model(inputs=inputs_, outputs=self._model._reward_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
