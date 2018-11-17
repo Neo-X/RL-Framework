@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.CACLA_KERAS.CACLA_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_2D_Viz3D_64x64_1Sub_Imitate_30FPS_MultiModal_DualState_v0/LSTM_FD_Reward_Encode_T128_15",
+"data_folder": "PD_Humanoid_2D_Viz3D_64x64_1Sub_Imitate_30FPS_MultiModal_DualState_v0/LSTM_FD_Reward_Encode_T128",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -433,5 +433,7 @@
 	"comment__": "When the agent falls give it a bad reward 1/(1-discount_fator)",
 "use_fall_reward_shaping2": true,
 	"comment__": "Run some initial training steps to pretrain the fd before starting policy training",
-"pretrain_fd": 100
+"pretrain_fd": 100,
+	"comment__": "Folder instance name. This is some suffix to help prevent folder name clashes when running new simulations",
+"folder_instance_name": "_16"	 
 }

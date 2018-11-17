@@ -18,6 +18,12 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Whether or not to train a forward dynamics model as well [true|false|None]")
     
+    parser.add_option("--folder_instance_name",
+              action="store", dest="folder_instance_name",
+              default=None,
+              metavar="STRING", 
+              help="Folder instance name. This is some suffix to help prevent folder name clashes when running new simulations")
+    
     parser.add_option("--train_actor",
               action="store", dest="train_actor", default=None,
               type='choice',
