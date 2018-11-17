@@ -517,8 +517,8 @@ class LearningAgent(AgentInterface):
                                 print("Critic loss: ", loss)
                             if not np.isfinite(loss) or (loss > 500) :
                                 np.set_printoptions(threshold=np.nan)
-                                print ("States: " + str(states__) + " ResultsStates: " + str(result_states__) + " Rewards: " + str(rewards__) + " Actions: " + str(actions__))
-                                print ("Training loss is Odd: ", loss)
+                                print ("Critic training loss is Odd: ", loss)
+                                print ("States: " + str(np.mean(states__)) + " ResultsStates: " + str(np.mean(result_states__)) + " Rewards: " + str(np.mean(rewards__)) + " Actions: " + str(np.mean(actions__)))
                             
                     else:
                         _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_batch(value_function_batch_size)
@@ -529,8 +529,8 @@ class LearningAgent(AgentInterface):
                                 print("Critic loss: ", loss)
                         if not np.isfinite(loss) or (loss > 500) :
                             np.set_printoptions(threshold=np.nan)
-                            print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
-                            print ("Training loss is Odd: ", loss)
+                            print ("Critic training loss is Odd: ", loss)
+                            print ("States: " + str(np.mean(_states)) + " ResultsStates: " + str(np.mean(_result_states)) + " Rewards: " + str(np.mean(_rewards)) + " Actions: " + str(np.mean(_actions)))
                     
                     t1 = time.time()
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
@@ -674,8 +674,8 @@ class LearningAgent(AgentInterface):
                         print("Critic loss: ", loss)
                     if not np.isfinite(loss) or (loss > 500) :
                         np.set_printoptions(threshold=np.nan)
-                        print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
-                        print ("Training loss is Odd: ", loss)
+                        print ("Critic training loss is Odd: ", loss)
+                        print ("States: " + str(np.mean(_states)) + " ResultsStates: " + str(np.mean(_result_states)) + " Rewards: " + str(np.mean(_rewards)) + " Actions: " + str(np.mean(_actions)))
                         
                 t1 = time.time()
                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
@@ -724,8 +724,8 @@ class LearningAgent(AgentInterface):
                             print ( "Dyna training loss: ", loss)
                         if not np.isfinite(loss) or (loss > 500) :
                             np.set_printoptions(threshold=np.nan)
-                            print ("States: " + str(_states) + " ResultsStates: " + str(_result_states) + " Rewards: " + str(_rewards) + " Actions: " + str(_actions))
-                            print ("Training loss is Odd: ", loss)
+                            print ("Critic training loss is Odd: ", loss)
+                            print ("States: " + str(np.mean(_states)) + " ResultsStates: " + str(np.mean(_result_states)) + " Rewards: " + str(np.mean(_rewards)) + " Actions: " + str(np.mean(_actions)))
                     
                     t1 = time.time()
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
