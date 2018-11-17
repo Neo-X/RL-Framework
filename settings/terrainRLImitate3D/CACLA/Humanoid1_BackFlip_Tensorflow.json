@@ -16,8 +16,6 @@
     "comment__": "Config file for the simulator",
 "sim_config_file": "PD_Humanoid1_3D_BackFlip_NoPhase_v0",
     "comment__": "A different config file for the forward dynamics simulator",
-"forwardDynamics_config_file": "PD_Humanoid1_3D_BackFlip_NoPhase_v0",
-    "comment__": "Exploration distance use when randomly generating new actions",
 "exploration_rate": 0.2,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 1000,
