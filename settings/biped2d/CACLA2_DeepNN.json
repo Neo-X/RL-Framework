@@ -82,7 +82,7 @@
 "fd_learning_rate": 0.01,
 "train_actor": true,
 "debug_critic": true,
-"critic_regularization_weight": 0.000001,
+"critic_regularization_weight": 0.00001,
 "critic_learning_rate": 0.001,
 "visualize_expected_value": true,
 "target_velocity_decay":-0.75,

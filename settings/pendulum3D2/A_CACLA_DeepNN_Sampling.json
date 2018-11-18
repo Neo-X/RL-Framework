@@ -147,7 +147,7 @@
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
 "debug_critic": true,
     "comment__": "critic regularization weight",
-"critic_regularization_weight": 0.000001,
+"critic_regularization_weight": 0.00001,
     "comment__": "Critic learning rate",
 "critic_learning_rate": 0.01,
     "comment__": "During evaluation plot of value function",
