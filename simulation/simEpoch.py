@@ -444,7 +444,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
              and (settings["use_fall_reward_shaping2"] == True))
             ):
             reward_ = -1.0 * 1/(1-settings["discount_factor"])
-        # print ("reward: ", reward_)
+        print ("reward: ", reward_)
         baseline.append(model.q_value(state_))
         
         G_t.append(np.array([[0]])) # *(1.0-discount_factor)))
