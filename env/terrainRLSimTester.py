@@ -7,7 +7,7 @@ import numpy as np
 # env = gym.make('CartPole-v0')
 # env = gym.make('BipedalWalker-v2')
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
-env = terrainRLSim.getEnv(env_name="PD_Humanoid_3D_WALK_Imitate_30FPS_v0", render=False)
+env = terrainRLSim.getEnv(env_name="PD_Biped3D_MutliChar_DynamicObstacles-v0", render=False)
 # env.getEnv().setRender(True)
 # env.init()
 # env = gym.make('Hopper-v1')

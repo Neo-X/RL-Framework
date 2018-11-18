@@ -7,6 +7,12 @@ squeue -u <username>
 squeue -u <username> -t RUNNING
 squeue -u <username> -t PENDING
 
+### Caceling jobs
+
+scancel <jobid>
+scancel -u $USER
+scancel -t PENDING -u $USER
+
 ### monitor specific job by <job_id>
 scontrol show job -dd <job_id>
 
@@ -29,4 +35,9 @@ SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/R
 - Run tuning training simulation
 ```
 SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments sbatch --time=50:00:00 --mem=65536M --cpus-per-task=32 ./settings/hyperParamTuning/computeCanada/test_run.sh "singularity exec --cleanenv --home /home/gberseth/playground/RL-Framework/:/opt/RL-Framework /scratch/gberseth/playground/singularity/ubuntu_learning.img python3.6 tuneHyperParameters.py --config=settings/terrainRLImitate3D/DDPG/Humanoid1_Run_Tensorflow.json -p 8 --bootstrap_samples=10000 --on_policy=fast --save_experience_memory=continual --num_rounds=500 --print_level=train --continue_training=last --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=2 --meta_sim_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig=settings/hyperParamTuning/element/action_bounds_humanoid3D.json --additional_on-poli_trianing_updates=1 --email_log_data_periodically=true --shouldRender=false --tuning_threads=2"
+```
+
+- Running an meta simulation for a multichar sim on deepcrowds image
+```
+SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments sbatch --time=50:00:00 --mem=131072M --cpus-per-task=24 ./settings/hyperParamTuning/computeCanada/test_run.sh "singularity exec --cleanenv --home /home/gberseth/playground/RL-Framework/:/opt/RL-Framework /scratch/gberseth/playground/singularity/deepcrowds.img python3.6 trainMetaModel.py --config=settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles_NEWLLC.json -p 8 --bootstrap_samples=10000 --on_policy=true --save_experience_memory=continual --num_rounds=1000 --print_level=train --continue_training=false --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=3 --meta_sim_threads=3 --plotting_update_freq_num_rounds=5 --metaConfig=settings/hyperParamTuning/deepCrowds.json --additional_on-poli_trianing_updates=1 --email_log_data_periodically=true --shouldRender=false --tuning_threads=2 --folder_instance_name=_2 --simulation_timeout=1200"
 ```
