@@ -34,9 +34,14 @@ for i_episode in range(50):
     for t in range(time_limit):
         env.render()
         # print(observation)
-        action = ((actionSpace.getMaximum() - actionSpace.getMinimum()) * np.random.uniform(size=actionSpace.getMinimum().shape[0])  ) + actionSpace.getMinimum()
-        observation, reward, done, info = env.step([action])
-        # print("Reward: ", reward)
+        # action = ((actionSpace.getMaximum() - actionSpace.getMinimum()) * np.random.uniform(size=actionSpace.getMinimum().shape[0])  ) + actionSpace.getMinimum()
+        actions = []
+        for i in range(11):
+            action = ((actionSpace.getMaximum() - actionSpace.getMinimum()) * np.random.uniform(size=actionSpace.getMinimum().shape[0])  ) + actionSpace.getMinimum()
+            actions.append(action)            
+        # print("Actions: ", actions)
+        observation, reward, done, info = env.step(actions)
+        print("Reward: ", reward)
         rewards.append(reward)
         states.append(observation)
         if (t >= (time_limit-1)) or done:

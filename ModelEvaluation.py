@@ -453,7 +453,7 @@ if __name__ == "__main__":
     
     for option in options:
         if ( not (options[option] is None) ):
-            print ("Updateing option: ", option, " = ", options[option])
+            print ("Updating option: ", option, " = ", options[option])
             settings[option] = options[option]
             if ( options[option] == 'true'):
                 settings[option] = True
@@ -466,5 +466,5 @@ if __name__ == "__main__":
     if (settings['shouldRender'] == 'yes'):
         modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render='yes')
     else:
-        modelEvaluation(sys.argv[1], runLastModel=True, settings=settings, render=True)
+        modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render=True)
     
