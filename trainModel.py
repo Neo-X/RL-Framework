@@ -1103,14 +1103,16 @@ def trainModelParallel(inputData):
                         actorRegularizationCosts.append(regularizationCost__)
                     
                     if not all(np.isfinite(error)):
-                        print ("States: " + str(states) + " ResultsStates: " + str(result_states) + " Rewards: " + str(rewards) + " Actions: " + str(actions) + " Falls: ", str(falls))
                         print ("Bellman Error is Nan: " + str(error) + str(np.isfinite(error)))
+                        # if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                        print ("States: " + str(states) + " ResultsStates: " + str(result_states) + " Rewards: " + str(rewards) + " Actions: " + str(actions) + " Falls: ", str(falls))
                         sys.exit()
                     
                     error = np.mean(np.fabs(error))
                     if error > 10000:
                         print ("Error to big: ")
-                        print (states, actions, rewards, result_states)
+                        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+                            print (states, actions, rewards, result_states)
                         
                     if (settings['train_forward_dynamics']):
                         if ( 'keep_seperate_fd_exp_buffer' in settings 
