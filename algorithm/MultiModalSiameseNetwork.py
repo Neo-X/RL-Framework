@@ -412,6 +412,8 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
             else:
                 targets = np.zeros(tar_shape)
             # print ("targets", targets)
+            # print ("task_ids[i][0][0]: ", task_ids[i][0][0], " task_ids[j][0][0]: ", task_ids[j][0][0])
+            # print ("multitask targets", np.mean(targets))
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
         

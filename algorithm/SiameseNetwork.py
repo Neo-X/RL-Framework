@@ -367,6 +367,7 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
     sequences0 = []
     sequences1 = []
     targets_ = []
+    # print ("Generating Multi-task target labels: ", len(traj0))
     for i in range(len(traj0)):
     # for tr0, task_tr0 in zip(traj0, task_ids): ### for each trajectory pair
         tar_shape = (len(traj0[i]), 1)
@@ -390,7 +391,8 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
                     targets = np.ones(tar_shape) - compare_adjustment
             else:
                 targets = np.zeros(tar_shape)
-            # print ("targets", targets)
+            # print ("task_ids[i][0][0]: ", task_ids[i][0][0], " task_ids[j][0][0]: ", task_ids[j][0][0])
+            # print ("multitask targets", np.mean(targets))
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
         
@@ -598,6 +600,7 @@ class SiameseNetwork(KERASAlgorithm):
             ) 
             and lstm):
             ### result states can be from the imitation agent.
+            # print ("falls: ", falls)
             if (falls is None):
                 sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
             else:

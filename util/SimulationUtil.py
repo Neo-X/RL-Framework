@@ -102,10 +102,19 @@ def getDataDirectory(settings):
     return getBaseDataDirectory(settings)+settings["model_type"]+"/"
 
 def getBaseDataDirectory(settings):
+    """
     if ("folder_instance_name" in settings):
-        return getRootDataDirectory(settings)+"/"+settings["data_folder"]+settings["folder_instance_name"]+"/"
+        print ("")
+        print ("****** data folder name: ", settings["data_folder"])
+        print ("")
+        if (settings["data_folder"][-1] == '/'):
+            
+            return getRootDataDirectory(settings)+"/"+settings["data_folder"][:-1]+settings["folder_instance_name"]+"/"
+        else:
+            return getRootDataDirectory(settings)+"/"+settings["data_folder"]+settings["folder_instance_name"]+"/"
     else:
-        return getRootDataDirectory(settings)+"/"+settings["data_folder"]+"/"
+    """
+    return getRootDataDirectory(settings)+"/"+settings["data_folder"]+"/"
 
 def getRootDataDirectory(settings):
     return settings["environment_type"]+"/"+settings["agent_name"]

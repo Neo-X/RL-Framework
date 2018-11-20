@@ -344,7 +344,7 @@ class LearningAgent(AgentInterface):
                             # and False
                             ):
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                    print ("Additional Multi-task training: ")
+                                    print ("Additional Multi-task training fd: ")
                             for e in range(updates___):   
                                 state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=(batch_size_lstm_fd), 
                                                                                                                                                                   randomLength=use_random_sequence_length_for_lstm,
@@ -369,7 +369,7 @@ class LearningAgent(AgentInterface):
                             # and False
                             ):
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                    print ("Additional Multi-task training: ")
+                                print ("Additional Multi-task reward training : ")
                             for e in range(updates___):   
                                 state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=(batch_size_lstm_fd), 
                                                                                                                                                                   randomLength=use_random_sequence_length_for_lstm,
