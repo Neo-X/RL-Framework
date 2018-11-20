@@ -125,19 +125,17 @@ class ExperienceMemory(object):
             inds = range(0, shortest_traj)
             if ("shorter_smaller_rnn_batches" in self._settings
                 and (self._settings["shorter_smaller_rnn_batches"] == True)):
-                pass
                 ### Make earlier start time more probable
                 traj_start = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
+                # print ("From traj_start: ", traj_start)
             else:
                 traj_start = random.sample(set(inds), 1)[0]
-            # print ("From traj_start: ", traj_start)
                 
         if ( randomLength == True 
             and (shortest_traj > traj_start + min_seq_length)):  ### shortest_traj Must be at least 2 for this to return 1
             inds = range(traj_start + min_seq_length, shortest_traj)
             if ("shorter_smaller_rnn_batches" in self._settings
                 and (self._settings["shorter_smaller_rnn_batches"] == True)):
-                pass
                 ### Make shorter sequence more probable
                 shortest_traj = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
                 # print ("To shortest_traj:", shortest_traj)
