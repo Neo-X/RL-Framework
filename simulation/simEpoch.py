@@ -418,7 +418,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     reward__ = exp.computeImitationReward(model.getForwardDynamics().predict)
                     # print ("reward__: ", reward__)
                 
-                reward_ = np.exp((reward__*reward__)*-5.0)
+                if ("learned_reward_smoother" in settings
+                    and (settings["learned_reward_smoother"] == False)):
+                    reward_ = reward__
+                else:
+                    reward_ = np.exp((reward__*reward__)*-5.0)
                 # print ("Reward: ", reward_)
                 # reward_ = reward__
                     
