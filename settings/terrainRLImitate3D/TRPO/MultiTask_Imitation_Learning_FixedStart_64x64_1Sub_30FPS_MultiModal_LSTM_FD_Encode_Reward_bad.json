@@ -562,5 +562,5 @@
 	"comment__": "When the agent falls give it a bad reward 1/(1-discount_fator)",
 "use_fall_reward_shaping2": false,
 	"comment__": "Run some initial training steps to pretrain the fd before starting policy training",
-"pretrain_fd": 20
+"pretrain_fd": 0
 }
