@@ -13,10 +13,10 @@ tests_ =[
         # 'test_cacla.py',
         # ,'test_ddpg.py'
         # ,'test_fd_models.py'
-        # ,'test_learning.py'
+        'test_learning.py'
         # ,'test_mbrl.py'
         # ,'test_meta_training.py'
-        'test_model.py'
+        ,'test_model.py'
         # ,'test_multiAgentNav.py'
         # ,'test_ppo.py'
         # ,'test_ppo_more.py'
