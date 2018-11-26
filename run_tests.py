@@ -10,10 +10,10 @@ import datetime
 
 ### Need to go through them in order to avoid issues with Tensorflow state staying around...
 tests_ =[
-        # 'test_cacla.py',
+        'test_cacla.py'
         # ,'test_ddpg.py'
         # ,'test_fd_models.py'
-        'test_learning.py'
+        ,'test_learning.py'
         # ,'test_mbrl.py'
         # ,'test_meta_training.py'
         ,'test_model.py'

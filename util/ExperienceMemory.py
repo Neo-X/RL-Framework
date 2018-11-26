@@ -209,7 +209,8 @@ class ExperienceMemory(object):
             # print("Action pulled out: ", self._action_history[i])
             action.append(norm_action(self._trajectory_history[i][1], self.getActionBounds())) # won't work for discrete actions...
             resultState.append(norm_state(self._trajectory_history[i][2], self.getResultStateBounds()))
-            reward.append(norm_state(self._trajectory_history[i][3] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
+            # reward.append(norm_state(self._trajectory_history[i][3] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
+            reward.append(self._trajectory_history[i][3] / action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor']))) # scale rewards
             fall.append(self._trajectory_history[i][4])
             G_ts.append(norm_state(self._trajectory_history[i][5], self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
             advantage.append(self._trajectory_history[i][6])
@@ -434,14 +435,16 @@ class ExperienceMemory(object):
                 # action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
                 resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
                 # resultState.append(self._nextState_history[i])
-                reward.append(norm_state(self._reward_history[i] , self.getRewardBounds()) * ((1.0-self._settings['discount_factor']))) # scale rewards
+                reward.append(self._reward_history[i] / action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor']))) # scale rewards
             else:
                                 
                 state.append(norm_state(self._state_history[i], self.getStateBounds()))
                 # print("Action pulled out: ", self._action_history[i])
                 action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
                 resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
-                reward.append(norm_state(self._reward_history[i] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
+                # reward.append(norm_state(self._reward_history[i] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
+                reward.append(self._reward_history[i] / action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor']))) # scale rewards
+                # action_bound_std(self.getRewardBounds())
             fall.append(self._fall_history[i])
             G_ts.append(norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
             # print ("G_ts Before: ", self._discounted_sum_history[i], " reward bounds: ", self.getRewardBounds(), " normalized: ", norm_state(self._discounted_sum_history[i], self.getRewardBounds()))

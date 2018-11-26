@@ -36,7 +36,7 @@
     "comment__": "Bounds used for scaling rewards for networks",
 "reward_bounds": [[0.0],[1.0]],
     "comment__": "Max length of the Experience memory",
-"expereince_length": 10000,
+"expereince_length": 100000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [[ 
 				0.06586086, -0.33134258, -0.22473772, -0.08842427, -0.24940665,
@@ -127,7 +127,7 @@
     "comment__": "load a pretrained model for the controller",
 "load_saved_model": false,
 	"comment__": "Number of updates the critic should perform per actor update",
-"critic_updates_per_actor_update": 64,
+"critic_updates_per_actor_update": 128,
     "comment__": "weather or not to clamp actions to stay inside the action boundaries",
 "clamp_actions_to_stay_inside_bounds": false,
     "comment__": "Number of initial actions to sample before calculating input/output scaling and starting to train.",
