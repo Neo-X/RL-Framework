@@ -15,7 +15,7 @@
 "learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
 "sim_config_file": [
-					"PD_Humanoid_3D_Viz3D_FixedStart_BackFlip_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_3D_Viz3D_BackFlip_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
 					"PD_Humanoid_3D_Viz3D_FixedStart_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
 					"PD_Humanoid_3D_Viz3D_FixedStart_Run_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
 					"PD_Humanoid_3D_Viz3D_FixedStart_FrontFlip_64x64_1Sub_MultiModal_Imitate_30FPS_DualState_v0",
