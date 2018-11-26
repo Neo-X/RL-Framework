@@ -2,7 +2,7 @@
 import numpy as np
 import random
 import h5py
-from model.ModelUtil import validBounds, fixBounds, anneal_value, norm_state, norm_action, norm_reward, checkValidData
+from model.ModelUtil import validBounds, fixBounds, anneal_value, norm_state, norm_action, norm_reward, checkValidData, action_bound_std
 import copy
 import sys
 

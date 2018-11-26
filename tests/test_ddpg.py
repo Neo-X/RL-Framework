@@ -12,7 +12,7 @@ class TestDDPG(object):
     # @pytest.mark.timeout(600)
     def test_ddpg_keras_particleNav_10D(self):
         """
-        Test that CACLA can still learn a good policy on 2d particle sim
+        Test that DDPG can still learn a good policy on 2d particle sim
         """
         filename = "tests/settings/particleSim/DDPG/Off_Policy.json"
         file = open(filename)
