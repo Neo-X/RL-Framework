@@ -24,6 +24,7 @@ class ForwardDynamicsKeras(KERASAlgorithm):
 
         super(ForwardDynamicsKeras,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
         self._model = model
+        self._modelTarget = None
         self._learning_rate = self.getSettings()["fd_learning_rate"]
         self._regularization_weight = 1e-6
         
@@ -139,7 +140,7 @@ class ForwardDynamicsKeras(KERASAlgorithm):
         # self.setData(states, actions)
         return self._get_grad_reward([states, actions, 0])[0]
                 
-    def train(self, states, actions, result_states, rewards, updates=1, batch_size=None):
+    def train(self, states, actions, result_states, rewards, updates=1, batch_size=None, lstm=False):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         # self.setData(states, actions, result_states, rewards)
         # print ("Performing Critic trainning update")
