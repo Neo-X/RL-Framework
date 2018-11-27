@@ -426,6 +426,8 @@ class PPO_KERAS(KERASAlgorithm):
             advantage = np.array((advantage - mean) / std, dtype=self._settings['float_type'])
         else:
             # print("Scale advantage")
+            # advantage = np.array((advantage / action_bound_std(self.getRewardBounds()) ) * (1.0-self.getSettings()['discount_factor']),
+            #                       dtype=self._settings['float_type'])
             advantage = np.array((advantage / action_bound_std(self.getRewardBounds()) ) * (1.0-self.getSettings()['discount_factor']),
                                   dtype=self._settings['float_type'])
             # print ("advantage mean, std ", np.mean(advantage), np.std(advantage) )

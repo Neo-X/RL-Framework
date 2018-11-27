@@ -312,12 +312,14 @@ class GANKeras(AlgorithmInterface):
         tmp_rewards = tmp_rewards - np.fabs(np.random.normal(0,0.1, size=(states.shape[0],1)))
         self.setData(tmp_states, tmp_actions, tmp_result_states, tmp_rewards)
         
+        ### True samples
         score = self._model.getCriticNetwork().fit([tmp_states, tmp_actions, tmp_result_states], tmp_rewards,
               epochs=updates, batch_size=batch_size_,
               verbose=0,
               shuffle=True
               # callbacks=[early_stopping],
               )
+        ### Generated samples
         score = self._model.getCriticNetwork().fit([tmp_states, tmp_actions, generated_samples], np.fabs(np.random.normal(0,0.1, size=(states.shape[0],1))),
               epochs=updates, batch_size=batch_size_,
               verbose=0,
@@ -366,8 +368,9 @@ class GANKeras(AlgorithmInterface):
         
     def train(self, states, actions, result_states, rewards, updates=1, batch_size=None,
               lstm=False):
+        # print ("states: ", states)
         if (batch_size is None):
-            batch_size_=states.shape[0]
+            batch_size_ = states.shape[0]
         else:
             batch_size_=batch_size
         loss = self.trainCritic(states, actions, result_states, rewards, updates=updates, batch_size=batch_size_)
@@ -434,7 +437,7 @@ class GANKeras(AlgorithmInterface):
         # print ("State bounds: ", self._state_bounds)
         # print ("fd output: ", self._forwardDynamics()[0])
         # state_ = scale_state(self._generate(), self._state_bounds)
-        state_ = self._generate([state, action, noise, 0])
+        state_ = self._generate([states, actions, noise, 0])
         return state_
     
     def q_value(self, state):
