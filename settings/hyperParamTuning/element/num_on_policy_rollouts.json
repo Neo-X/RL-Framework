@@ -8,7 +8,7 @@
 	"comment__": "Name of the parameters that we want to tune",
 "param_to_tune": ["num_on_policy_rollouts"],
 	"comment__": "Parameter bounds, for which values will be sampled",
-"param_bounds": [[16, 32]],
+"param_bounds": [[32, 64]],
 	"comment__": "parameter value type [int|float|bool]",
 "param_data_type": ["int"],
 	"comment__": "Number of samples to evaluation between the given bounds",
