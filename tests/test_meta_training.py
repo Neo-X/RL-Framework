@@ -110,7 +110,7 @@ class TestMetaTraining(object):
         """
         Test that MBRL can still learn a good policy on 2d particle sim
         """
-        filename = "tests/settings/navGame/MBRL/FixedSTD_Tensorflow_5D.json"
+        filename = "tests/settings/navGame/MBRL/FixedSTD_Dropout_Tensorflow_5D.json"
         file = open(filename)
         settings = json.load(file)
         file.close()

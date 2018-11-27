@@ -14,14 +14,14 @@ class TestMultiAgentNav(object):
         """
         Test that CACLA can still learn a good policy on 2d particle sim
         """
-        filename = "tests/settings/navGameMultiAgent/CACLA/On_Policy.json"
+        filename = "tests/settings/navGameMultiAgent/CACLA/On_Policy-v2.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
-        # settings['rounds'] = 2
+        settings['rounds'] = 2
         # settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5

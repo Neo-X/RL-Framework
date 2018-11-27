@@ -338,7 +338,7 @@
 	"comment__": "Use a target network for the value function.",
 "use_target_net_for_critic": true,
 	"comment__": "The name of the FD algorithm to load",
-"fd_algorithm": "algorithm.ForwardDynamicsKeras.ForwardDynamicsKeras",
+"fd_algorithm": "algorithm.ForwardDynamicsKerasEnsamble.ForwardDynamicsKerasEnsamble",
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [64, "integrate_actor_part", 32],
 	"comment__": "A list describing the size of the layers for the NN",
