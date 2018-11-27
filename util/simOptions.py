@@ -109,6 +109,11 @@ def getOptions(_args=None):
               type=int,
               metavar="INTEGER", help="Additional on-policy training updates")
     
+    parser.add_option("--batch_size",
+              action="store", dest="batch_size", default=None,
+              type=int,
+              metavar="INTEGER", help="Batch size used for policy learning")
+    
     parser.add_option("--fd_updates_per_actor_update",
               action="store", dest="fd_updates_per_actor_update", default=None,
               type=int,

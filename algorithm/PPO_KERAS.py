@@ -537,7 +537,7 @@ class PPO_KERAS(KERASAlgorithm):
             # (lossActor, r_) = self.trainPolicy(states, actions, advantage, 1.0)
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 # r_ = np.mean(self._r([states, actions, 0])[0])
-                r_ = 0
+                # r_ = 0
                 print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
             
             if ( (not np.isfinite(lossActor)) or (not np.isfinite(np.mean(r_)))):

@@ -374,7 +374,11 @@ class ExperienceMemory(object):
         """
         
     def get_exporation_action_batch(self, batch_size=32):
-        return self.get_batch(batch_size=batch_size, excludeActionTypes=[0])
+        if ("Use_fast_batch_computation" in self.getSettings()
+            and (self.getSettings()["Use_fast_batch_computation"] == True)):
+            return self.get_batch_fast(batch_size=batch_size, excludeActionTypes=[0])
+        else:
+            return self.get_batch(batch_size=batch_size, excludeActionTypes=[0])
     
     def getNonMBAEBatch(self, batch_size=32):
         """
@@ -426,6 +430,115 @@ class ExperienceMemory(object):
                     # print ("skipping non desired task tuple")
                     continue
             indices.add(i)
+            
+            if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
+                # state.append(self._state_history[i])
+                state.append(norm_state(self._state_history[i], self.getStateBounds()))
+                # print("Action pulled out: ", self._action_history[i])
+                action.append(self._action_history[i]) # won't work for discrete actions...
+                # action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
+                resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
+                # resultState.append(self._nextState_history[i])
+                reward.append(self._reward_history[i] / action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor']))) # scale rewards
+            else:
+                                
+                state.append(norm_state(self._state_history[i], self.getStateBounds()))
+                # print("Action pulled out: ", self._action_history[i])
+                action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
+                resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
+                # reward.append(norm_state(self._reward_history[i] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
+                reward.append(self._reward_history[i] / action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor']))) # scale rewards
+                # action_bound_std(self.getRewardBounds())
+            fall.append(self._fall_history[i])
+            G_ts.append(norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
+            # print ("G_ts Before: ", self._discounted_sum_history[i], " reward bounds: ", self.getRewardBounds(), " normalized: ", norm_state(self._discounted_sum_history[i], self.getRewardBounds()))
+            # print ("after: ", norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * (1.0-self._settings['discount_factor']) )
+            # print ("G_ts before, after: ", np.concatenate((self._discounted_sum_history[i], norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * (1.0-self._settings['discount_factor'])), axis=1))
+            advantage.append(self._advantage_history[i])
+            exp_actions.append(self._exp_action_history[i])
+            
+        # print c
+        # print experience[indices]
+        if (self._settings['float_type'] == 'float32'):
+            state = np.array(state, dtype='float32')
+            if (self._continuous_actions):
+                action = np.array(action, dtype='float32')
+            else:
+                action = np.array(action, dtype='int8')
+            resultState = np.array(resultState, dtype='float32')
+            reward = np.array(reward, dtype='float32')
+            # fall = np.array(fall, dtype='int8')
+            G_ts = np.array(G_ts, dtype='float32')
+            advantage = np.array(advantage, dtype='float32')
+        else:
+            state = np.array(state, dtype='float64')
+            if (self._continuous_actions):
+                action = np.array(action, dtype='float64')
+            else:
+                action = np.array(action, dtype='int8')
+            resultState = np.array(resultState, dtype='float64')
+            reward = np.array(reward, dtype='float64')
+            G_ts = np.array(G_ts, dtype='float64')
+            advantage = np.array(advantage, dtype='float32')
+        
+        fall = np.array(fall, dtype='int8')
+        exp_actions = np.array(exp_actions, dtype='int8')
+        
+        assert state.shape == (len(indices), self._state_length), "state.shape == (len(indices), self._state_length): " + str(state.shape) + " == " + str((len(indices), self._state_length))
+        assert action.shape == (len(indices), self._action_length), "action.shape == (len(indices), self._action_length): " + str(action.shape) + " == " + str((len(indices), self._action_length))
+        assert resultState.shape == (len(indices), self._result_state_length), "resultState.shape == (len(indices), self._result_state_length): " + str(resultState.shape) + " == " + str((len(indices), self._result_state_length))
+        assert reward.shape == (len(indices), 1), "reward.shape == (len(indices), 1): " + str(reward.shape) + " == " + str((len(indices), 1))
+        assert G_ts.shape == (len(indices), 1), "G_ts.shape == (len(indices), 1): " + str(G_ts.shape) + " == " + str((len(indices), 1))
+        assert fall.shape == (len(indices), 1), "fall.shape == (len(indices), 1): " + str(fall.shape) + " == " + str((len(indices), 1))
+        assert exp_actions.shape == (len(indices), 1), "exp_actions.shape == (len(indices), 1): " + str(exp_actions.shape) + " == " + str((len(indices), 1))
+        assert advantage.shape == (len(indices), 1), "G_ts.shape == (len(indices), 1): " + str(advantage.shape) + " == " + str((len(indices), 1))
+        # assert len(np.unique(indices)[0]) == batch_size, "np.unique(indices).shape[0] == batch_size: " + str(np.unique(indices).shape[0]) + " == " + str(batch_size)
+        
+        return (state, action, resultState, reward, fall, G_ts, exp_actions, advantage)
+    
+    def get_batch_fast(self, batch_size=32, excludeActionTypes=[]):
+        """
+        len(experience > batch_size
+        """
+        # assert batch_size <= self._history_size, "batch_size <= self._history_size: " + str(batch_size) +" <=  " + str(self._history_size)
+        assert batch_size <= self.samples(), "batch_size <= self.samples(): " + str(batch_size) +" <=  " + str(self.samples())
+        # indices = list(nprnd.randint(low=0, high=len(experience), size=batch_size))
+        max_size = min(self._history_size, self.samples())
+        # print ("Indicies: " , indices)
+        # print("Exp buff state bounds: ", self.getStateBounds())
+
+        state = []
+        action = []
+        resultState = []
+        reward = []
+        fall = []
+        G_ts = []
+        exp_actions = []
+        advantage = []
+        indices = set([])
+        trys = 0
+        ### collect batch and try at most 3 times the batch size for valid tuples
+        # while len(indices) <  batch_size and (trys < batch_size*5):
+        indices = (random.sample(range(0, max_size), batch_size))
+        for i in indices:
+            ## skip tuples that were not exploration actions
+            if ( self._exp_action_history[i] in excludeActionTypes):
+                continue
+            ### Or if multitasking and only want to train policy on single task
+            # print ("self._fall_history[i]: ", self._fall_history[i])
+            if ( (type(self._settings["sim_config_file"]) is list)):
+                 
+                if (
+                    (not ("multitask_learning" in self._settings
+                          and (self._settings["multitask_learning"] == True))
+                     )
+                    and
+                    ("worker_to_task_mapping" in self._settings
+                     and (self._settings["worker_to_task_mapping"][self._fall_history[i][0]] is not 0))
+                    ): ### Only use training data for the task of interest
+                    # print ("skipping non desired task tuple")
+                    continue
+            # indices.add(i)
             
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
                 # state.append(self._state_history[i])
