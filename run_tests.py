@@ -12,7 +12,7 @@ import datetime
 tests_ =[
         'test_cacla.py'
         ,'test_ddpg.py'
-        # ,'test_fd_models.py'
+        ,'test_fd_models.py'
         ,'test_learning.py'
         # ,'test_mbrl.py'
         # ,'test_meta_training.py'

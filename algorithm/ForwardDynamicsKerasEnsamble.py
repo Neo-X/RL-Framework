@@ -165,7 +165,7 @@ class ForwardDynamicsKerasEnsamble(KERASAlgorithm):
         # self.setData(states, actions)
         return self._get_grad_reward([states, actions, 0])[0]
                 
-    def train(self, states, actions, result_states, rewards, updates=1, batch_size=None):
+    def train(self, states, actions, result_states, rewards, updates=1, batch_size=None, lstm=False):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         # self.setData(states, actions, result_states, rewards)
         # print ("Performing Critic trainning update")

@@ -130,7 +130,7 @@
     "comment__": "Network type to use for the forward dynamics model",
 "forward_dynamics_model_type": "model.FDNNKerasAdaptive.FDNNKerasAdaptive",
     "comment__": "Whether or not to save the Experience memory after bootstrapping",
-"save_experience_memory": true,
+"save_experience_memory": false,
     "comment__": "Whether or not to train the policy and critic?",
 "train_rl_learning": true,
     "comment__": "Force the character to start each new action in a good state, close to a good solution",
@@ -154,7 +154,7 @@
     "comment__": "Target velocity for controller",
 "target_velocity":1.0,
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
-"num_terrain_features": 64,
+"num_terrain_features": 0,
     "comment__": "Initial tempurature for annealing of e-greedy exploration",
 "initial_temperature": 1.0,
     "comment__": "epsilon lower limit",
@@ -326,7 +326,7 @@
 	"split_single_net_earlier": true
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
-"pretrain_critic": 10,
+"pretrain_critic": 0,
 	"comment__": "Policy distribution change factor, if beyond this updates are not performed",
 "ppo_et_factor": 1.5,
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
@@ -356,7 +356,7 @@
 	"comment__": "Allows the learningAgent to evaluate using the MBRL method",
 "evalaute_with_MBRL": true,
 	"comment__": "Dropout for fd network",
-"fd_network_dropout": 0.1,
+"fd_network_dropout": 0.0,
 	"comment__": "number of fd models in the ensemble",
-"fd_ensemble_size": 1
+"fd_ensemble_size": 5
 }

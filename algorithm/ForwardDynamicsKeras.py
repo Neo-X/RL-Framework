@@ -190,7 +190,10 @@ class ForwardDynamicsKeras(KERASAlgorithm):
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = scale_state(self.fd([state, action,0])[0], self._state_bounds)
+        pred = self.fd([state, action,0])[0]
+        pred = pred[:,:self._action_length] ### Cut off std
+        # print ("pred: ", pred[:,:self._action_length])
+        state_ = scale_state(pred, self._state_bounds)
         return state_
     
     def predictWithDropout(self, state, action):
@@ -198,7 +201,9 @@ class ForwardDynamicsKeras(KERASAlgorithm):
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = scale_state(self.fd([state, action,1])[0], self._state_bounds)
+        pred = self.fd([state, action,1])[0]
+        pred = pred[:,:self._action_length] ### Cut off std
+        state_ = scale_state(pred, self._state_bounds)
         return state_
     
     def predict_std(self, state, action, p=1.0):
