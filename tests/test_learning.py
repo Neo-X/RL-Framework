@@ -38,6 +38,7 @@ class TestLearning(object):
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
         settings['rounds'] = 2
+        settings['pretrain_critic'] = 0
         settings['pretrain_fd'] = 2
         settings['train_reward_predictor'] = False
         simData = trainModelParallel((filename, settings))
@@ -54,6 +55,7 @@ class TestLearning(object):
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
         settings['rounds'] = 2
+        settings['pretrain_critic'] = 0
         settings['pretrain_fd'] = 2
         settings['train_reward_predictor'] = True
         simData = trainModelParallel((filename, settings))

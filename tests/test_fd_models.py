@@ -26,7 +26,6 @@ class TestFDModel(object):
         simData = trainModelParallel((filename, settings))
         ### Now train fd model
         settings['rounds'] = 200
-        settings['rounds'] = 5
         learnData = trainForwardDynamics(settings)
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(learnData['mean_forward_dynamics_loss'][-5:]) < 0.01
@@ -50,7 +49,6 @@ class TestFDModel(object):
         simData = trainModelParallel((filename, settings))
         ### Now train fd model
         settings['rounds'] = 200
-        settings['rounds'] = 5
         learnData = trainForwardDynamics(settings)
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(learnData['mean_forward_dynamics_loss'][-5:]) < 0.01
@@ -73,7 +71,6 @@ class TestFDModel(object):
         simData = trainModelParallel((filename, settings))
         ### Now train fd model
         settings['rounds'] = 200
-        settings['rounds'] = 5
         learnData = trainForwardDynamics(settings)
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(learnData['mean_forward_dynamics_loss'][-5:]) < 0.01
