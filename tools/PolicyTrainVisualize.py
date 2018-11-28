@@ -87,7 +87,7 @@ class PolicyTrainVisualize(object):
                 self._reward, = self._reward_ax.plot(x_range_, mean, 
                                                      linewidth=3.0, 
                                                      c=colour_,
-                                                     label=self._trainingDatas[i]['name'])
+                                                     label=(self._trainingDatas[i]['name'])[64:])
                 print("Line colour: ", self._reward.get_color())
                 self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
                                                                               np.array(mean) - std, 
@@ -101,7 +101,7 @@ class PolicyTrainVisualize(object):
                                                      linewidth=3.0, 
                                                      c=colour_,
                                                      alpha=0.75,
-                                                     label=self._trainingDatas[i]['name'])
+                                                     label=(self._trainingDatas[i]['name'])[64:])
                 print("Line colour: ", self._reward.get_color())
                 self._discounted_error_std = self._value_ax.fill_between(x_range_, 
                                                                               np.array(mean_value) - std_value, 

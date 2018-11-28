@@ -18,12 +18,12 @@ tests_ =[
         ,'test_meta_training.py'
         ,'test_model.py'
         ,'test_multiAgentNav.py'
-        # ,'test_ppo.py'
-        # ,'test_ppo_more.py'
-        # ,'test_saveandload_fd.py'
+        ,'test_ppo.py'
+        ,'test_ppo_more.py'
+        ,'test_saveandload_fd.py'
         ,'test_saveandload.py'
         ,'test_simulation.py'
-        # ,'test_viz_imitation.py',
+        ,'test_viz_imitation.py',
          ]
 
 def run_tests(metaSettings, test=False):

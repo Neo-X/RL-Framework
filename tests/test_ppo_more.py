@@ -62,7 +62,7 @@ class TestPPOMore(object):
         assert np.mean(simData['mean_reward'][-5:]) > 0.65
     
     # @pytest.mark.timeout(600)   
-    def test_ppo_keras_gapGame_2D(self):
+    def test_ppo_keras_tensorflow_gapGame_2D(self):
         """
             Test that PPO can still learn a good policy on 2d gapgame sim
         """
