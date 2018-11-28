@@ -17,7 +17,7 @@ tests_ =[
         ,'test_mbrl.py'
         ,'test_meta_training.py'
         ,'test_model.py'
-        # ,'test_multiAgentNav.py'
+        ,'test_multiAgentNav.py'
         # ,'test_ppo.py'
         # ,'test_ppo_more.py'
         # ,'test_saveandload_fd.py'

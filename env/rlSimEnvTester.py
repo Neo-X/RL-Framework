@@ -9,7 +9,8 @@ if __name__ == '__main__':
     # env = getEnv(env_name="ParticleGame_2D-v0", render=False)
     # env = getEnv(env_name="CannonGameViz2-v0", render=True)
     # env = getEnv(env_name="ProjectileGameViz-DualState-v0", render=False)
-    env = getEnv(env_name="ProjectileGameViz-DualState-v0", render=False)
+    # env = getEnv(env_name="ProjectileGameViz-DualState-v0", render=False)
+    env = getEnv(env_name="NavGameMultiAgent_10D-v0", render=False)
 
     actionSpace = env.getActionSpace()
     env.setRandomSeed(1234)
@@ -36,30 +37,31 @@ if __name__ == '__main__':
                 observation, reward,  done, info = env.step([0,0])
             print ("Reward: ", reward, "Action: ", actions, " observation: ", observation)
             print ("Done: ", done)
-            vizData = env.getVisualState()
             # print("visual Data: " +  str(vizData))
-            vizImitateData = env.getImitationVisualState()
-            for vd in range(len(vizData)):
-                # print("viewData: ", viewData)
-                viewData = vizData[vd]
-                viewImitateData = vizImitateData[vd]
-                ## Get and vis terrain data
-                if (True):
-                    import matplotlib.pyplot as plt
-                    # img_ = np.reshape(viewData, (150,158,3))
-                    img_ = viewData
-                    print("img_ shape", img_.shape, " sum: ", np.sum(viewData))
-                    plt.figure(1)
-                    plt.imshow(img_, origin='lower')
-                    plt.title("visual Data: " +  str(vd))
-
-                    if (True):                    
-                        img_ = viewImitateData
-                        plt.figure(2)
+            if (False):
+                vizData = env.getVisualState()
+                vizImitateData = env.getImitationVisualState()
+                for vd in range(len(vizData)):
+                    # print("viewData: ", viewData)
+                    viewData = vizData[vd]
+                    viewImitateData = vizImitateData[vd]
+                    ## Get and vis terrain data
+                    if (True):
+                        import matplotlib.pyplot as plt
+                        # img_ = np.reshape(viewData, (150,158,3))
+                        img_ = viewData
+                        print("img_ shape", img_.shape, " sum: ", np.sum(viewData))
+                        plt.figure(1)
                         plt.imshow(img_, origin='lower')
                         plt.title("visual Data: " +  str(vd))
-                    plt.show()
-            img = env.getEnv().getVisualState()
+    
+                        if (True):                    
+                            img_ = viewImitateData
+                            plt.figure(2)
+                            plt.imshow(img_, origin='lower')
+                            plt.title("visual Data: " +  str(vd))
+                        plt.show()
+                img = env.getEnv().getVisualState()
             if ( done ):
                 break
             
