@@ -22,7 +22,7 @@ class TestCACLA(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
-        settings['rounds'] = 1
+        # settings['rounds'] = 1
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -1.5
