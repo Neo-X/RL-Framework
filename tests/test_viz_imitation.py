@@ -84,6 +84,25 @@ class TestVizImitation(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert not (simData is None)
+        
+        # @pytest.mark.timeout(600)
+    def test_viz_state_withCamVel_normal_reward(self):
+        """
+        Test that CACLA can still learn a good policy on 2d particle sim
+        """
+        filename = "settings/projectileGame/CACLA/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
+        file = open(filename)
+        settings = json.load(file)
+        file.close()
+        settings['visualize_learning'] = False
+        # settings['shouldRender'] = False
+        settings['print_level'] = 'testing_sim'
+        settings['rounds'] = 10
+        settings['num_threads'] = 2
+        settings['rollouts'] = 4
+        simData = trainModelParallel((filename, settings))
+        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
+        assert not (simData is None)
 
 if __name__ == '__main__':
     pytest.main([__file__])
