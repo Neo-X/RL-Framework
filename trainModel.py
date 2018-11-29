@@ -540,9 +540,11 @@ def trainModelParallel(inputData):
                 print (exp_val.getEnvironment().observation_space.getMinimum())
                 settings['state_bounds'] = [s_min,s_max]
                 state_bounds = settings['state_bounds']
+                """
                 if (int(settings["num_available_threads"]) != -1):
                     print ("Removing extra environment.")
                     exp_val.finish()
+                """
             if ((action_bounds == "ask_env")):
                 print ("Getting action bounds from environment")
                 a_min = exp_val.getEnvironment()._action_space.getMinimum()
@@ -550,6 +552,7 @@ def trainModelParallel(inputData):
                 print (exp_val.getEnvironment()._action_space.getMinimum())
                 settings['action_bounds'] = [a_min,a_max]
                 action_bounds = settings['state_bounds']
+            """
                 if (int(settings["num_available_threads"]) != -1):
                     print ("Removing extra environment.")
                     exp_val.finish()
@@ -559,7 +562,7 @@ def trainModelParallel(inputData):
                 if (int(settings["num_available_threads"]) != -1):
                     print ("Removing extra environment.")
                     exp_val.finish()
-                
+            """ 
         
         ### This is for a single-threaded Synchronous sim only.
         if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
@@ -588,8 +591,15 @@ def trainModelParallel(inputData):
             elif ("use_dual_state_representations" in settings
                     and (settings["use_dual_state_representations"] == True)
                     and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
-                    state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
-                                               [1] * settings["fd_num_terrain_features"]])
+                if (exp_val == None):
+                    exp_val = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=settings['shouldRender'], index=0)
+                    exp_val.setActor(actor)
+                    exp_val.getActor().init()
+                    exp_val.init()
+                state____ = exp_val.getState()
+                print ("state____: ", state____[0][1].size)
+                state_bounds__ = np.array([[0] * state____[0][1].size, 
+                                           [1] * state____[0][1].size])
             if ( settings['forward_dynamics_model_type'] == "SingleNet"
                  and (settings['use_single_network'] == True)):
                 print ("Creating forward dynamics network: Using single network model")
@@ -692,10 +702,10 @@ def trainModelParallel(inputData):
                     # sys.exit()
                 elif ("fd_num_terrain_features" in settings):
                     state_size__ = settings["fd_num_terrain_features"]
-                    experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 
+                    experiencefd = ExperienceMemory(state____[0][1].size, len(action_bounds[0]), fd_epxerience_length, 
                                                     continuous_actions=True, settings = settings)
-                    state_bounds__ = np.array([[0] * state_size__, 
-                                         [1] * state_size__])
+                    state_bounds__ = np.array([[0] * state____[0][1].size, 
+                                         [1] * state____[0][1].size])
                     experiencefd.setStateBounds(state_bounds__)
                 else:
                     experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 

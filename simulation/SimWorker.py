@@ -53,7 +53,7 @@ class SimWorker(Process):
         print ("done creating model")
         return model
     
-    def createNewFDModel(self):
+    def createNewFDModel(self, env):
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, createActor
         print ("Creating new FD model with different session")
         state_bounds = self._settings['state_bounds']
@@ -72,8 +72,10 @@ class SimWorker(Process):
         elif ("use_dual_state_representations" in self._settings
             and (self._settings["use_dual_state_representations"] == True)
             and (not (self._settings["forward_dynamics_model_type"] == "SingleNet"))):
-            state_bounds = [[0] * self._settings["fd_num_terrain_features"], 
-                                     [1] * self._settings["fd_num_terrain_features"]]
+            state____ = env.getState()
+            state____[0][1].size
+            state_bounds = [[0] * state____[0][1].size, 
+                                     [1] * state____[0][1].size]
         # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
         #     print("fd state bounds:", state_bounds)
         action_bounds = self._settings['action_bounds']
@@ -175,7 +177,7 @@ class SimWorker(Process):
             self._model.setEnvironment(self._exp)
             print("Creating new policy in process:")
             self._model.setPolicy(self.createNewModel())
-            self._model.setForwardDynamics(self.createNewFDModel())
+            self._model.setForwardDynamics(self.createNewFDModel(self._exp))
             if ( self._settings['use_simulation_sampling'] ):
                 self._model.setSampler(self.createSampler(self._model.getPolicy(),
                                                           self._model.getForwardDynamics(), 

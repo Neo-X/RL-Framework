@@ -47,7 +47,12 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
                 ):
                 n_out = settings_["dense_state_size"]
             else:
-                n_out = settings_["num_terrain_features"]
+                if ("append_camera_velocity_state" in settings_
+                    and (settings_["append_camera_velocity_state"] == True)):
+                    n_out = settings_["num_terrain_features"] + 2
+                    n_in = n_out
+                else:
+                    n_out = settings_["num_terrain_features"]
                 
         self._Noise = keras.layers.Input(shape=(1,), name="Noise")
         
