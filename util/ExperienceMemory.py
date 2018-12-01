@@ -450,7 +450,7 @@ class ExperienceMemory(object):
                 reward.append(self._reward_history[i] / action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor']))) # scale rewards
                 # action_bound_std(self.getRewardBounds())
             fall.append(self._fall_history[i])
-            G_ts.append(norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
+            G_ts.append(self._discounted_sum_history[i]/ action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
             # print ("G_ts Before: ", self._discounted_sum_history[i], " reward bounds: ", self.getRewardBounds(), " normalized: ", norm_state(self._discounted_sum_history[i], self.getRewardBounds()))
             # print ("after: ", norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * (1.0-self._settings['discount_factor']) )
             # print ("G_ts before, after: ", np.concatenate((self._discounted_sum_history[i], norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * (1.0-self._settings['discount_factor'])), axis=1))
@@ -559,7 +559,7 @@ class ExperienceMemory(object):
                 reward.append(self._reward_history[i] / action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor']))) # scale rewards
                 # action_bound_std(self.getRewardBounds())
             fall.append(self._fall_history[i])
-            G_ts.append(norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
+            G_ts.append(self._discounted_sum_history[i]/ action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
             # print ("G_ts Before: ", self._discounted_sum_history[i], " reward bounds: ", self.getRewardBounds(), " normalized: ", norm_state(self._discounted_sum_history[i], self.getRewardBounds()))
             # print ("after: ", norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * (1.0-self._settings['discount_factor']) )
             # print ("G_ts before, after: ", np.concatenate((self._discounted_sum_history[i], norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * (1.0-self._settings['discount_factor'])), axis=1))
