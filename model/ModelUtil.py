@@ -190,6 +190,8 @@ def norm_action(action_, action_bounds_):
         
         norm_action = ( action - mean ) / var
     """
+    # print ("action_bounds_: ", repr(action_bounds_))
+    # print ("action_: ", action_)
     ### Lets not accidentally broadcast...
     # if (len(action_) != len(action_bounds_[0])):
     #     print (np.array(action_).shape, " == " , np.array(action_bounds_[0]).shape)
