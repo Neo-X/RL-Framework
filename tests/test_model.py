@@ -4,6 +4,7 @@ from nose.tools import timed
 import warnings
 from model.ModelUtil import *
 import pytest
+import sys
 
 class TestModel(object):
 

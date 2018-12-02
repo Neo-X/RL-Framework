@@ -5,6 +5,7 @@ import pytest
 import warnings
 from trainModel import trainModelParallel
 import json
+import sys
 
 
 class TestLearning(object):
@@ -18,6 +19,8 @@ class TestLearning(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
@@ -34,6 +37,8 @@ class TestLearning(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
@@ -51,6 +56,8 @@ class TestLearning(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'

@@ -2,6 +2,7 @@ from nose.tools import timed
 from numpy.testing import assert_allclose
 import numpy as np
 import pytest
+import sys
 
 import warnings
 from trainModel import trainModelParallel
@@ -22,6 +23,8 @@ class TestCACLA(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         # settings['rounds'] = 1
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
@@ -32,13 +35,15 @@ class TestCACLA(object):
         """
         
         """
-        filename = "tests/settings/gapGame2D/CACLA/Net_FixedSTD.json"
+        filename = "tests/settings/gapGame2D/CACLA/Net_FixedSTD_Tensorflow.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         # settings['rounds'] = 1
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5

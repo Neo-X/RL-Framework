@@ -412,7 +412,8 @@ class DPGKeras(KERASAlgorithm):
         state = np.array(state, dtype=self._settings['float_type'])
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
         poli_mean = self._model.getActorNetwork().predict(state, batch_size=1)
-        value = scale_reward(self._model.getCriticNetwork().predict([state, poli_mean] , batch_size=1), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        value = (self._model.getCriticNetwork().predict([state, poli_mean] , batch_size=1)* action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        
         # value = scale_reward(self._q_func(state), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         return value
         # return self._q_val()[0]

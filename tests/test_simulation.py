@@ -11,6 +11,7 @@ from actor.DoNothingActor import DoNothingActor
 from sim.DummyEnv import DummyEnv
 from algorithm.ModelDummy import ModelDummy
 from trainModel import trainModelParallel
+import sys
 
 class TestSimulation(object):
     
@@ -20,6 +21,8 @@ class TestSimulation(object):
         file = open(filename)
         settings_ = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings_['visualize_learning'] = False
         settings_['shouldRender'] = False
         settings_['print_level'] = 'hyper_train'
@@ -53,6 +56,8 @@ class TestSimulation(object):
         file = open(filename)
         settings_ = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings_['visualize_learning'] = False
         settings_['shouldRender'] = False
         settings_['print_level'] = 'hyper_train'
@@ -81,6 +86,8 @@ class TestSimulation(object):
         file = open(filename)
         settings_ = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings_['visualize_learning'] = False
         settings_['shouldRender'] = False
         settings_['print_level'] = 'hyper_train'
@@ -115,6 +122,8 @@ class TestSimulation(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings['state_bounds'] = "ask_env"
         settings['visualize_learning'] = False
         settings['shouldRender'] = False

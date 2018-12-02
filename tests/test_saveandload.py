@@ -6,6 +6,7 @@ import warnings
 from trainModel import trainModelParallel
 from ModelEvaluation import modelEvaluation
 import json
+import sys
 
 
 class TestSaveAndLoad(object):
@@ -20,6 +21,8 @@ class TestSaveAndLoad(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
@@ -51,6 +54,8 @@ class TestSaveAndLoad(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
@@ -82,6 +87,8 @@ class TestSaveAndLoad(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'

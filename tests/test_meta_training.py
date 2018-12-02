@@ -8,6 +8,7 @@ from trainModel import trainModelParallel
 import json
 from tuneHyperParameters import tuneHyperParameters
 from trainMetaModel import trainMetaModel
+import sys
 
 class TestMetaTraining(object):
     
@@ -20,6 +21,8 @@ class TestMetaTraining(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         metaSettings = "settings/hyperParamTuning/elementAI.json"
         file = open(metaSettings)
         metaSettings = json.load(file)
@@ -41,6 +44,8 @@ class TestMetaTraining(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         metaSettings = "settings/hyperParamTuning/elementAI.json"
         file = open(metaSettings)
         metaSettings = json.load(file)
@@ -62,6 +67,8 @@ class TestMetaTraining(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         metaSettings = "settings/hyperParamTuning/element/state_normalization.json"
         file = open(metaSettings)
         metaSettings = json.load(file)
@@ -88,6 +95,8 @@ class TestMetaTraining(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         metaSettings = "settings/hyperParamTuning/element/dropout_p_and_use_dropout_in_actor.json"
         file = open(metaSettings)
         metaSettings = json.load(file)
@@ -114,6 +123,8 @@ class TestMetaTraining(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         metaSettings = "settings/hyperParamTuning/element/fd_network_layer_sizes.json"
         file = open(metaSettings)
         metaSettings = json.load(file)

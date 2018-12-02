@@ -6,6 +6,8 @@ import warnings
 from model.ModelUtil import *
 from trainModel import trainModelParallel
 from trainForwardDynamics import trainForwardDynamics
+import sys
+
 ### These don't work anymore...
 class TestFDModel(object):
 
@@ -21,6 +23,8 @@ class TestFDModel(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings['rounds'] = 5
         ### This is to generate the data from the simulation to train on
         simData = trainModelParallel((filename, settings))
@@ -41,6 +45,8 @@ class TestFDModel(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
@@ -63,6 +69,8 @@ class TestFDModel(object):
         file = open(filename)
         settings = json.load(file)
         file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'

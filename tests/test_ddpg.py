@@ -5,6 +5,7 @@ import pytest
 import warnings
 from trainModel import trainModelParallel
 import json
+import sys
 
 
 class TestDDPG(object):
@@ -21,6 +22,8 @@ class TestDDPG(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         # settings['rounds'] = 1
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
@@ -55,6 +58,8 @@ class TestDDPG(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         # settings['rounds'] = 1
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
