@@ -1,7 +1,7 @@
 #!/bin/bash
 ## This script is designed to make it easier to start a number of simulation
 ## example:
-## ./settings/hyperParamTuning/element/runSimulations.sh settings/terrainRLImitate3D/CACLA/Humanoid1_Run_Tensorflow.json 250
+## ./settings/hyperParamTuning/element/runSimulations.sh settings/terrainRLImitate3D/CACLA/Humanoid1_Run_Tensorflow.json 250 <commands>
 
 
 ## declare an array variable
@@ -43,6 +43,7 @@ declare -a metaExps=(
 
 rounds=$2
 simConfigFile=$1
+opts=$3
 ## now loop through the above array
 for metaConfig in "${metaExps[@]}"
 do
@@ -50,7 +51,7 @@ do
 	# or do whatever with individual element of the array
 	# echo "$simConfigFile"
 	
-	command="borgy submit --restartable --cpu=24 --mem=64 -w /home/${USER} -v /mnt/home/$USER:/home/$USER --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/$USER -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config="$simConfigFile" --metaConfig="$metaConfig" --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --num_rounds="$rounds" --simulation_timeout=1200 --email_log_data_periodically=true --visualize_expected_value=false --plot=false --Multi_GPU=true --on_policy=true | tee -a $BORGY_JOB_ID.out'"
+	command="borgy submit --restartable --cpu=12 --mem=32 -w /home/glen -v /mnt/home/glen:/home/glen --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/glen -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config="$simConfigFile" --metaConfig="$metaConfig" --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --num_rounds="$rounds" --simulation_timeout=1200 --email_log_data_periodically=true --visualize_expected_value=false --plot=false --Multi_GPU=true --on_policy=true "$opts" | tee -a $BORGY_JOB_ID.out'"
 	echo $command
 	eval $command
 done
