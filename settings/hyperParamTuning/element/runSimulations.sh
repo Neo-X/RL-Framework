@@ -41,6 +41,7 @@ declare -a metaExps=(
 
 rounds=$2
 simConfigFile=$1
+opts=$3
 ## now loop through the above array
 for metaConfig in "${metaExps[@]}"
 do
@@ -48,7 +49,7 @@ do
 	# or do whatever with individual element of the array
 	# echo "$simConfigFile"
 	
-	command="borgy submit --restartable --req-cores=32 --req-ram-gbytes=32 -w /home/${USER} --image=images.borgy.elementai.lan/glen:latest -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config="$simConfigFile" --metaConfig="$metaConfig" --meta_sim_samples=4 --meta_sim_threads=4 --tuning_threads=1 --num_rounds="$rounds" | tee -a $BORGY_JOB_ID.out'"
+	command="borgy submit --restartable --cpu=32 --mem=64 -w /home/${USER} -v /mnt/home/$USER:/home/$USER --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/$USER -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config="$simConfigFile" --metaConfig="$metaConfig" --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --num_rounds="$rounds" --simulation_timeout=1200 --email_log_data_periodically=true --visualize_expected_value=false --plot=false --Multi_GPU=true --on_policy=true "$opts" | tee -a $BORGY_JOB_ID.out'"
 	echo $command
 	eval $command
 done
