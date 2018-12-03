@@ -15,7 +15,7 @@ class TestDDPG(object):
         """
         Test that DDPG can still learn a good policy on 2d particle sim
         """
-        filename = "tests/settings/particleSim/DDPG/Off_Policy.json"
+        filename = "tests/settings/particleSim/DDPG/On_Policy_Tensorflow.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
