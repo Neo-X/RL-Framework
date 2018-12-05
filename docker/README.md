@@ -175,7 +175,7 @@ screen -S sessionName bash -c 'for((i=1;i<=100;i+=1)); do echo "Welcome $i times
 
 Kill all active borgy jobs
 ```
-borgy ps --state alive|cut -d’ ' -f1|tail -n +2|xargs borgy kill
+borgy ps --state alive|cut -d' ' -f1|tail -n +2|xargs borgy kill
 ```
 
 /usr/local/nvidia/lib:/usr/local/nvidia/lib64
