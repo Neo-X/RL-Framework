@@ -531,7 +531,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print ("****Reward was: ", reward_)
         pa = None
         ### Don't reset during evaluation...
-        if (((exp.endOfEpoch() and settings['reset_on_fall'] and (not evaluation))
+        if (((exp.endOfEpoch() and settings['reset_on_fall'] and ((not evaluation)))
              and (reset_prop_tmp <= reset_prop) ) ### Allow option to collect some full trajectories  
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
                 ):

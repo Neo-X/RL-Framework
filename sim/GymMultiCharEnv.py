@@ -66,7 +66,8 @@ class GymMultiCharEnv(SimInterface):
     def endOfEpoch(self):
         eoe = self._exp.endOfEpoch()
         # return self._exp.endOfEpoch()
-        return self._end_of_episode
+        return eoe
+        # return self._end_of_episode
 
     def finish(self):   
         self._exp.finish()
