@@ -419,7 +419,7 @@ def trainModelParallel(inputData):
         from model.LearningAgent import LearningAgent, LearningWorker
         from util.SimulationUtil import validateSettings
         from util.SimulationUtil import createEnvironment
-        from util.SimulationUtil import createRLAgent
+        from util.SimulationUtil import createRLAgent, createNewFDModel
         from util.SimulationUtil import createActor, getAgentName
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
         
@@ -575,45 +575,17 @@ def trainModelParallel(inputData):
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings, print_info=True)
         forwardDynamicsModel = None
         if (settings['train_forward_dynamics']):
-            state_bounds__ = state_bounds
-            if ("use_dual_dense_state_representations" in settings
-                and (settings["use_dual_dense_state_representations"] == True)):
-                state_bounds__ = np.array(settings['state_bounds'])
-            elif (("use_dual_state_representations" in settings
-              and (settings["use_dual_state_representations"] == True))
-                and (not (settings["forward_dynamics_model_type"] == "SingleNet"))
-                and ("fd_use_multimodal_state" in settings
-                     and (settings["fd_use_multimodal_state"] == True))
-                ):
-                print ("Creating multi modal state size****")
-                state_bounds__ = [[0] * (settings["fd_num_terrain_features"] + settings["dense_state_size"]), 
-                                 [1] * (settings["fd_num_terrain_features"] + settings["dense_state_size"])]
-            elif ("use_dual_state_representations" in settings
-                    and (settings["use_dual_state_representations"] == True)
-                    and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
-                if (exp_val == None):
-                    exp_val = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=settings['shouldRender'], index=0)
-                    exp_val.setActor(actor)
-                    exp_val.getActor().init()
-                    exp_val.init()
-                state____ = exp_val.getState()
-                print ("state____: ", state____[0][1].size)
-                state_bounds__ = np.array([[0] * state____[0][1].size, 
-                                           [1] * state____[0][1].size])
-            if ( settings['forward_dynamics_model_type'] == "SingleNet"
-                 and (settings['use_single_network'] == True)):
-                print ("Creating forward dynamics network: Using single network model")
-                
-                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds__, action_bounds, None, None, agentModel=model, print_info=True)
-                # forwardDynamicsModel = model
-            else:
-                print ("Creating forward dynamics network")
-                # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
-                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds__, action_bounds, None, None, agentModel=None, print_info=True)
-            # masterAgent.setForwardDynamics(forwardDynamicsModel)
+            forwardDynamicsModel = createNewFDModel(settings)
             forwardDynamicsModel.setActor(actor)
             # forwardDynamicsModel.setEnvironment(exp)
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
+        
+        if (settings['train_reward_distance_metric']):
+            print ("Creating reward distance model")
+            rewardModel = createNewFDModel(settings)
+            rewardModel.setActor(actor)
+            # forwardDynamicsModel.setEnvironment(exp)
+            rewardModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
         # print ("forwardDynamicsModel.getStateBounds(): ", forwardDynamicsModel.getStateBounds())
         # sys.exit()
@@ -633,6 +605,9 @@ def trainModelParallel(inputData):
         masterAgent.setPolicy(model)
         if (settings['train_forward_dynamics']):
             masterAgent.setForwardDynamics(forwardDynamicsModel)
+            
+        if (settings['train_reward_distance_metric']):
+            masterAgent.setRewardModel(rewardModel)
         
         tmp_p=1.0
         message={}

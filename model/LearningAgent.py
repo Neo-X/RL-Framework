@@ -64,6 +64,21 @@ class LearningAgent(AgentInterface):
         self._fd = fd
         if self._useLock:
             self._accesLock.release()
+            
+    def getRewardModel(self):
+        if self._useLock:
+            self._accesLock.acquire()
+        rm = self._rm
+        if self._useLock:
+            self._accesLock.release()
+        return rm
+                
+    def setRewardModel(self, rm):
+        if self._useLock:
+            self._accesLock.acquire()
+        self._rm = rm
+        if self._useLock:
+            self._accesLock.release()
         
     def setSettings(self, settings):
         self._settings = settings

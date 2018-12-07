@@ -54,48 +54,9 @@ class SimWorker(Process):
         return model
     
     def createNewFDModel(self, env):
-        from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, createActor
+        from util.SimulationUtil import createNewFDModel
         print ("Creating new FD model with different session")
-        state_bounds = self._settings['state_bounds']
-        if ("use_dual_dense_state_representations" in self._settings
-            and (self._settings["use_dual_dense_state_representations"] == True)):
-            state_bounds = self._settings['state_bounds']
-        elif (("use_dual_state_representations" in self._settings
-              and (self._settings["use_dual_state_representations"] == True))
-            and (not (self._settings["forward_dynamics_model_type"] == "SingleNet"))
-            and ("fd_use_multimodal_state" in self._settings
-                 and (self._settings["fd_use_multimodal_state"] == True))
-            ):
-            print ("Creating multi modal state size****")
-            state_bounds = [[0] * (self._settings["fd_num_terrain_features"] + self._settings["dense_state_size"]), 
-                                     [1] * (self._settings["fd_num_terrain_features"] + self._settings["dense_state_size"])]
-        elif ("use_dual_state_representations" in self._settings
-            and (self._settings["use_dual_state_representations"] == True)
-            and (not (self._settings["forward_dynamics_model_type"] == "SingleNet"))):
-            state____ = env.getState()
-            state____[0][1].size
-            state_bounds = [[0] * state____[0][1].size, 
-                                     [1] * state____[0][1].size]
-        # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-        #     print("fd state bounds:", state_bounds)
-        action_bounds = self._settings['action_bounds']
-        
-        forwardDynamicsModel = None
-        if (self._settings['train_forward_dynamics']):
-            actor = createActor(self._settings['environment_type'], self._settings, None)
-            if ( self._settings['forward_dynamics_model_type'] == "SingleNet"
-                 and (self._settings['use_single_network'] == True)):
-                print ("Creating forward dynamics network: Using single network model")
-                forwardDynamicsModel = createForwardDynamicsModel(self._settings, state_bounds, action_bounds, None, None, agentModel=self._model.getPolicy())
-                # forwardDynamicsModel = model
-            else:
-                print ("Creating forward dynamics network")
-                # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
-                forwardDynamicsModel = createForwardDynamicsModel(self._settings, state_bounds, action_bounds, None, None, agentModel=None)
-            # masterAgent.setForwardDynamics(forwardDynamicsModel)
-            forwardDynamicsModel.setActor(actor)
-            # forwardDynamicsModel.setEnvironment(exp)
-            forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, self._settings)
+        forwardDynamicsModel = createNewFDModel(self._settings)
         return forwardDynamicsModel
     
     def createSampler(self, poli, fd, exp_, actor):

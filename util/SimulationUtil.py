@@ -932,6 +932,51 @@ def createSampler(settings, exp):
     
     return sampler
 
+
+def createNewFDModel(settings):
+    print ("Creating new FD model with different session")
+    state_bounds = settings['state_bounds']
+    if ("use_dual_dense_state_representations" in settings
+        and (settings["use_dual_dense_state_representations"] == True)):
+        state_bounds = settings['state_bounds']
+    elif (("use_dual_state_representations" in settings
+          and (settings["use_dual_state_representations"] == True))
+        and (not (settings["forward_dynamics_model_type"] == "SingleNet"))
+        and ("fd_use_multimodal_state" in settings
+             and (settings["fd_use_multimodal_state"] == True))
+        ):
+        print ("Creating multi modal state size****")
+        state_bounds = [[0] * (settings["fd_num_terrain_features"] + settings["dense_state_size"]), 
+                                 [1] * (settings["fd_num_terrain_features"] + settings["dense_state_size"])]
+    elif ("use_dual_state_representations" in settings
+        and (settings["use_dual_state_representations"] == True)
+        and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
+        state____ = env.getState()
+        state____[0][1].size
+        state_bounds = [[0] * state____[0][1].size, 
+                                 [1] * state____[0][1].size]
+    # if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+    #     print("fd state bounds:", state_bounds)
+    action_bounds = settings['action_bounds']
+    
+    forwardDynamicsModel = None
+    if (settings['train_forward_dynamics']):
+        actor = createActor(settings['environment_type'], settings, None)
+        if ( settings['forward_dynamics_model_type'] == "SingleNet"
+             and (settings['use_single_network'] == True)):
+            print ("Creating forward dynamics network: Using single network model")
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=self._model.getPolicy())
+            # forwardDynamicsModel = model
+        else:
+            print ("Creating forward dynamics network")
+            # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None)
+        # masterAgent.setForwardDynamics(forwardDynamicsModel)
+        forwardDynamicsModel.setActor(actor)
+        # forwardDynamicsModel.setEnvironment(exp)
+        forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
+    return forwardDynamicsModel
+
 def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel, reward_bounds=0, print_info=True):
     import numpy as np
     directory= getDataDirectory(settings)
