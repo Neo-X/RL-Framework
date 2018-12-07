@@ -622,7 +622,8 @@ class LearningAgent(AgentInterface):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
                         print ("FD training complete in " + str(sim_time_) + " seconds")
                         
-                if (self._settings['train_reward_distance_metric']
+                if (("train_reward_distance_metric" in self._settings
+                    and (self._settings['train_reward_distance_metric']))
                     and not ((("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True))
                              or 
