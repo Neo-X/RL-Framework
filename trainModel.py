@@ -619,6 +619,16 @@ def trainModelParallel(inputData):
             # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
             data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
                     masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
+        if (settings['train_forward_dynamics'] and
+            ("train_reward_distance_metric" in settings and
+             (settings["train_reward_distance_metric"] == True))):
+            data = ('Update_Policy', tmp_p, 
+                    model.getStateBounds(),
+                    model.getActionBounds(),
+                    model.getRewardBounds(),
+                    masterAgent.getPolicy().getNetworkParameters(),
+                    masterAgent.getForwardDynamics().getNetworkParameters(),
+                    masterAgent.getRewardModel().getNetworkParameters())
         message['type'] = 'Update_Policy'
         message['data'] = data
         for m_q in sim_work_queues:
@@ -1032,6 +1042,17 @@ def trainModelParallel(inputData):
                                 masterAgent.getRewardBounds(),
                                 masterAgent.getPolicy().getNetworkParameters(),
                                  masterAgent.getForwardDynamics().getNetworkParameters())
+                        message['data'] = data
+                    if (settings['train_forward_dynamics'] and
+                        ("train_reward_distance_metric" in settings and
+                         (settings["train_reward_distance_metric"] == True))):
+                        data = ('Update_Policy', p_tmp_, 
+                                masterAgent.getStateBounds(),
+                                masterAgent.getActionBounds(),
+                                masterAgent.getRewardBounds(),
+                                masterAgent.getPolicy().getNetworkParameters(),
+                                masterAgent.getForwardDynamics().getNetworkParameters(),
+                                masterAgent.getRewardModel().getNetworkParameters())
                         message['data'] = data
                     for m_q in sim_work_queues:
                         ## block on full queue

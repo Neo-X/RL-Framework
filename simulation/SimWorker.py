@@ -139,6 +139,9 @@ class SimWorker(Process):
             print("Creating new policy in process:")
             self._model.setPolicy(self.createNewModel())
             self._model.setForwardDynamics(self.createNewFDModel(self._exp))
+            if ("train_reward_distance_metric" in self._settings and
+             (self._settings["train_reward_distance_metric"] == True)):
+                self._model.setRewardModel(self.createNewFDModel(self._exp))
             if ( self._settings['use_simulation_sampling'] ):
                 self._model.setSampler(self.createSampler(self._model.getPolicy(),
                                                           self._model.getForwardDynamics(), 
@@ -170,6 +173,9 @@ class SimWorker(Process):
             # print ("First Message: ", "Updated policy parameters")
             if (self._settings['train_forward_dynamics']):
                 self._model.getForwardDynamics().setNetworkParameters(data[6])
+            if ("train_reward_distance_metric" in self._settings and
+             (self._settings["train_reward_distance_metric"] == True)):
+                self._model.getRewardModel().setNetworkParameters(data[7])
             self._p = data[1]
             self._model.setStateBounds(data[2])
             self._model.setActionBounds(data[3])
