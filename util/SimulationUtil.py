@@ -22,6 +22,15 @@ import gc
 # from guppy import hpy; h=hpy()
 # from memprof import memprof
 
+def updateSettings(settings1, newSettings):
+    """
+        Replace all of the setting sin settings1 with the settings in newSettings
+    """
+    for key_ in newSettings.keys():
+        settings1[key_] = newSettings[key_]
+        
+    return settings1
+    
 def getGPUBusIndex(index=0):
     import re
     print ("args: ", sys.argv)

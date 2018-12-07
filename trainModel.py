@@ -420,7 +420,7 @@ def trainModelParallel(inputData):
         from util.SimulationUtil import validateSettings
         from util.SimulationUtil import createEnvironment
         from util.SimulationUtil import createRLAgent, createNewFDModel
-        from util.SimulationUtil import createActor, getAgentName
+        from util.SimulationUtil import createActor, getAgentName, updateSettings
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
         
         from util.ExperienceMemory import ExperienceMemory
@@ -582,7 +582,9 @@ def trainModelParallel(inputData):
         
         if (settings['train_reward_distance_metric']):
             print ("Creating reward distance model")
-            rewardModel = createNewFDModel(settings)
+            settings_ = copy.deepcopy(settings)
+            settings_ = updateSettings(settings_, settings_["reward_metric_settings"])
+            rewardModel = createNewFDModel(settings_)
             rewardModel.setActor(actor)
             # forwardDynamicsModel.setEnvironment(exp)
             rewardModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)

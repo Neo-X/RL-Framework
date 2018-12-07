@@ -53,10 +53,10 @@ class SimWorker(Process):
         print ("done creating model")
         return model
     
-    def createNewFDModel(self, env):
+    def createNewFDModel(self, env, setting_):
         from util.SimulationUtil import createNewFDModel
         print ("Creating new FD model with different session")
-        forwardDynamicsModel = createNewFDModel(self._settings)
+        forwardDynamicsModel = createNewFDModel(setting_)
         return forwardDynamicsModel
     
     def createSampler(self, poli, fd, exp_, actor):
@@ -94,7 +94,7 @@ class SimWorker(Process):
         # from pympler import summary
         # from pympler import muppy
         import os
-        from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
+        from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend, updateSettings
         ### Flag so simulation models can be a little different.
         self._settings["simulation_model"] = True
         ### Keep forward models on the CPU
@@ -138,10 +138,12 @@ class SimWorker(Process):
             self._model.setEnvironment(self._exp)
             print("Creating new policy in process:")
             self._model.setPolicy(self.createNewModel())
-            self._model.setForwardDynamics(self.createNewFDModel(self._exp))
+            self._model.setForwardDynamics(self.createNewFDModel(self._exp, self._settings))
             if ("train_reward_distance_metric" in self._settings and
              (self._settings["train_reward_distance_metric"] == True)):
-                self._model.setRewardModel(self.createNewFDModel(self._exp))
+                settings_ = copy.deepcopy(self._settings)
+                settings_ = updateSettings(settings_, settings_["reward_metric_settings"])
+                self._model.setRewardModel(self.createNewFDModel(self._exp, settings_))
             if ( self._settings['use_simulation_sampling'] ):
                 self._model.setSampler(self.createSampler(self._model.getPolicy(),
                                                           self._model.getForwardDynamics(), 
