@@ -389,6 +389,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             movieWriter.append_data(image_)
         if ("use_learned_reward_function" in settings
             and (settings["use_learned_reward_function"])):
+            rewmodel = model.getForwardDynamics()
+            if ("train_reward_distance_metric" in settings
+                and (settings["train_reward_distance_metric"])): 
+                rewmodel = model.getRewardModel() 
             if ("fd_algorithm" in settings
                 and (settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")):
                 ### Use Discriminator 
@@ -396,12 +400,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # print ("resultState_[0]: ", np.array(resultState_).shape)
                 # reward_ = model.getForwardDynamics().predict([state_[0][1]], [resultState_[0][1]])[0][0]
                 # print ("learned imitation reward: ", reward_, " imitation state sum: ", np.sum(resultState_[0][1]))
-                reward_ = model.getForwardDynamics().predict([state_[0][0]], [resultState_[0][0]])[0][0]
+                reward_ = rewmodel.predict([state_[0][0]], [resultState_[0][0]])[0][0]
                 # print ("learned reward: ", reward_)
 
             elif ("use_encoding_for_reward" in settings
                 and (settings["use_encoding_for_reward"] == True)):
-                reward__ = exp.computeImitationReward(model.getForwardDynamics().computeEncodingDiff)
+                reward__ = exp.computeImitationReward(rewmodel.computeEncodingDiff)
                 reward_ = np.exp((reward__*reward__)*-5.0)
             else:
                 if ( (("train_LSTM_Reward" in settings)
@@ -409,15 +413,15 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     and 
                         (settings["use_learned_reward_function"] == "dual")
                     ):    
-                    reward__0 = exp.computeImitationReward(model.getForwardDynamics().predict)
-                    reward__1 = exp.computeImitationReward(model.getForwardDynamics().predict_reward)
+                    reward__0 = exp.computeImitationReward(rewmodel.predict)
+                    reward__1 = exp.computeImitationReward(rewmodel.predict_reward)
                     reward__ = ((reward__0 * 0.5) + (reward__1 * 0.5))
                     # print ("reward__: ", reward__, " reward__0: ", reward__0, " reward__1: ", reward__1)
                 elif (("train_LSTM_Reward" in settings)
                     and (settings["train_LSTM_Reward"] == True)):    
-                    reward__ = exp.computeImitationReward(model.getForwardDynamics().predict_reward)
+                    reward__ = exp.computeImitationReward(rewmodel.predict_reward)
                 else:
-                    reward__ = exp.computeImitationReward(model.getForwardDynamics().predict)
+                    reward__ = exp.computeImitationReward(rewmodel.predict)
                     # print ("reward__: ", reward__)
                 
                 if ("learned_reward_smoother" in settings
@@ -503,7 +507,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     value__ = model.q_value(state_)
                 print ("Value: ", value__, " Action " + str(action) + " Reward: " + str(reward_) )
                 # if ( settings['train_reward_predictor'] and (settings['train_forward_dynamics'])):
-                    # predicted_reward = model.getForwardDynamics().predict_reward(state_, action)
+                    # predicted_reward = rewmodel.predict_reward(state_, action)
                     # print ("Predicted reward: ", predicted_reward) 
                 print ("Agent has fallen: ", not agent_not_fell )
                 # print ("Python Reward: " + str(reward(state_, resultState)))

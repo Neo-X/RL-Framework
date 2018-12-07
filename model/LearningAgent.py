@@ -621,6 +621,48 @@ class LearningAgent(AgentInterface):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
                         print ("FD training complete in " + str(sim_time_) + " seconds")
+                        
+                if (self._settings['train_reward_distance_metric']
+                    and not ((("train_LSTM_FD" in self._settings)
+                    and (self._settings["train_LSTM_FD"] == True))
+                             or 
+                             (("train_LSTM_Reward" in self._settings)
+                    and (self._settings["train_LSTM_Reward"] == True))
+                             )):
+                    t0 = time.time()
+                    if ("fd_updates_per_actor_update" in self._settings 
+                        and (self._settings['fd_updates_per_actor_update'] >= 1)):
+                        for i in range(self._settings['fd_updates_per_actor_update']):
+                            
+                            if ("fd_algorithm" in self._settings
+                                and (self._settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")): 
+                                ### hack to train a batch from the policy state distribution
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getExperience().get_batch(value_function_batch_size)
+                                dynamicsLoss = self.getRewardModel().train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__*0)
+                                
+                            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getExperience().get_batch(value_function_batch_size)
+                            if ("fd_algorithm" in self._settings
+                                and (self._settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")):
+                                rewards__ = (rewards__ * 0) + 1
+                            dynamicsLoss = self.getRewardModel().train(states=states__, actions=actions__, result_states=result_states__, rewards=rewards__, lstm=False)
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print ("Reward Distance Model Loss: ", dynamicsLoss)
+                            
+                    else:
+                        if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
+                            # print ("Using seperate (off-policy) exp mem for FD model")
+                            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(value_function_batch_size)
+                            dynamicsLoss = self.getRewardModel().train(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, lstm=False)
+                        else:
+                            dynamicsLoss = self.getRewardModel().train(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, lstm=False)
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print ("Reward Distance Model Loss: ", dynamicsLoss)
+                                
+                    
+                    t1 = time.time()
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        sim_time_ = datetime.timedelta(seconds=(t1-t0))
+                        print ("Reward Distance Model training complete in " + str(sim_time_) + " seconds")
 
                 if (self._settings['train_actor']
                     and (not (("train_LSTM" in self._settings)
