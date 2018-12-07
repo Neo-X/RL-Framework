@@ -580,7 +580,8 @@ def trainModelParallel(inputData):
             # forwardDynamicsModel.setEnvironment(exp)
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
-        if (settings['train_reward_distance_metric']):
+        if ("train_reward_distance_metric" in settings and
+            (settings['train_reward_distance_metric'] == True )):
             print ("Creating reward distance model")
             settings_ = copy.deepcopy(settings)
             settings_ = updateSettings(settings_, settings_["reward_metric_settings"])
@@ -608,7 +609,8 @@ def trainModelParallel(inputData):
         if (settings['train_forward_dynamics']):
             masterAgent.setForwardDynamics(forwardDynamicsModel)
             
-        if (settings['train_reward_distance_metric']):
+        if ("train_reward_distance_metric" in settings and
+            (settings['train_reward_distance_metric'] == True )):
             masterAgent.setRewardModel(rewardModel)
         
         tmp_p=1.0
