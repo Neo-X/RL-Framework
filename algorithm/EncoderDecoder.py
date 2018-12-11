@@ -122,7 +122,7 @@ class EncoderDecoder(KERASAlgorithm):
         print ("self._model._forward_dynamics_net: ", self._model._forward_dynamics_net)
         encoder_outputs = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
         ### Convert single output vector from encoder into a sequence
-        encoder_outputs = keras.layers.RepeatVector(10)(encoder_outputs)
+        encoder_outputs = keras.layers.RepeatVector(64)(encoder_outputs)
         processed_a_r = self._model._reward_net(encoder_outputs)
         # processed_a_r = self._model._reward_net(encoder_states)
         ### The decoder model needs both the encoding from the encoder an some sequence of states to continue to feed into the encoder....
@@ -246,26 +246,13 @@ class EncoderDecoder(KERASAlgorithm):
                         # print ("lstm train loss: ", score.history['loss'])
                         loss_.append(np.mean(score.history['loss']))
             else:
-                # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
-                targets_ = self._model._forward_dynamics_net(states)
-                targets__ = np.mean(targets_, axis=1)
-                if (("train_LSTM_FD" in self._settings)
-                    and (self._settings["train_LSTM_FD"] == True)):
-                    score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets__],
-                                  epochs=1, 
-                                  batch_size=sequences0.shape[0],
-                                  verbose=0
-                                  )
-                    loss_.append(np.mean(score.history['loss']))
                     
-                if (("train_LSTM_Reward" in self._settings)
-                    and (self._settings["train_LSTM_Reward"] == True)):
-                    score = self._model._reward_net.fit([sequences0, sequences1], [targets__],
-                                  epochs=1, 
-                                  batch_size=sequences0.shape[0],
-                                  verbose=0
-                                  )
-                    loss_.append(np.mean(score.history['loss']))
+                score = self._model._reward_net.fit([states], [states],
+                              epochs=1, 
+                              batch_size=states.shape[0],
+                              verbose=0
+                              )
+                loss_.append(np.mean(score.history['loss']))
             
             return np.mean(loss_)
         else:
@@ -395,75 +382,20 @@ class EncoderDecoder(KERASAlgorithm):
 
     def bellman_error(self, states, actions, result_states, rewards):
         self.reset()
-        if (("train_LSTM_FD" in self._settings)
-                    and (self._settings["train_LSTM_FD"] == True)):
-            sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
-            sequences0 = np.array(sequences0)
-            sequences1 = np.array(sequences1)
-            targets_ = np.array(targets_)
-            errors=[]
-            if ("train_LSTM_FD_stateful" in self._settings
-                and (self._settings["train_LSTM_FD_stateful"] == True)
-                # and False
-                ):
-                for k in range(sequences0.shape[1]):
-                    ### shaping data
-                    # print (k)
-                    x0 = np.array(sequences0[:,[k]])
-                    x1 = np.array(sequences1[:,[k]])
-                    y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
-                    predicted_y = self._model._forward_dynamics_net.predict([x0, x1], batch_size=x0.shape[0])
-                    errors.append( compute_accuracy(predicted_y, y0) )
-            else:
-                predicted_y = self._model._forward_dynamics_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
-                # print ("fd error, predicted_y: ", predicted_y)
-                targets__ = np.mean(targets_, axis=1)
-                # print ("fd error, targets_ : ", targets_)
-                # print ("fd error, targets__: ", targets__)
-                errors.append( compute_accuracy(predicted_y, targets__) )
-            # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
-            # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
-            te_acc = np.mean(errors)
-        else:
-            states = np.concatenate((states, result_states), axis=0)
-            te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
         
-            # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
-            predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
-            te_acc = compute_accuracy(predicted_y, te_y)
-            
-        # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
-        return te_acc
+        return 0
     
     def reward_error(self, states, actions, result_states, rewards):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         self.reset()
         if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
-            sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
-            sequences0 = np.array(sequences0)
-            sequences1 = np.array(sequences1)
-            targets_ = np.array(targets_)
-            errors=[]
-            if ("train_LSTM_FD_stateful" in self._settings
-                and (self._settings["train_LSTM_FD_stateful"] == True)
-                # and False
-                ):
-                for k in range(sequences0.shape[1]):
-                    ### shaping data
-                    # print (k)
-                    x0 = np.array(sequences0[:,[k]])
-                    x1 = np.array(sequences1[:,[k]])
-                    y0 = np.array(targets_[:,k]) ### For now reduce the dimensionality of the target because my nets output (batch_size, target)
-                    predicted_y = self._model._reward_net.predict([x0, x1], batch_size=x0.shape[0])
-                    errors.append( compute_accuracy(predicted_y, y0) )
-            else:
-                predicted_y = self._model._reward_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
-                # print ("fd error, predicted_y: ", predicted_y)
-                targets__ = np.mean(targets_, axis=1)
-                # print ("fd error, targets_ : ", targets_)
-                # print ("fd error, targets__: ", targets__)
-                errors.append( compute_accuracy(predicted_y, targets__) )
+            predicted_y = self._model._reward_net.predict([states], batch_size=states.shape[0])
+            # print ("fd error, predicted_y: ", predicted_y)
+            targets__ = np.mean(states, axis=1)
+            # print ("fd error, targets_ : ", targets_)
+            # print ("fd error, targets__: ", targets__)
+            errors.append( np.mean(np.fabs(states - predicted_y)) )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
             te_acc = np.mean(errors)
