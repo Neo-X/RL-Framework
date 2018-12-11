@@ -378,5 +378,9 @@
 	"comment__": "Just train the fd model in an LSTM fashion",
 "train_LSTM_FD": true,
 	"comment__": "Just train the fd model in an LSTM fashion",
-"train_LSTM_Reward": true
+"train_LSTM_Reward": true,
+	"comment__": "batch size for lstm fd models",
+"lstm_batch_size": [4, 14],
+	"comment__": "experience size for fd network",
+"fd_expereince_length": 1000,
 }

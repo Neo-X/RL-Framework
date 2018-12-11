@@ -131,7 +131,6 @@ class EncoderDecoder(KERASAlgorithm):
         distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
 
         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
-                                                          ,state_copy 
                                                           ]
                                                   , outputs=distance_fd
                                                   )
@@ -264,6 +263,7 @@ class EncoderDecoder(KERASAlgorithm):
                         loss_.append(np.mean(score.history['loss']))
             else:
                 # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
+                targets_ = self._model._forward_dynamics_net(states)
                 targets__ = np.mean(targets_, axis=1)
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
