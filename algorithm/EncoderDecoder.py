@@ -122,7 +122,15 @@ class EncoderDecoder(KERASAlgorithm):
         print ("self._model._forward_dynamics_net: ", self._model._forward_dynamics_net)
         encoder_outputs = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
         ### Convert single output vector from encoder into a sequence
-        encoder_outputs = keras.layers.RepeatVector(64)(encoder_outputs)
+        # encoder_outputs = keras.layers.RepeatVector(64)(encoder_outputs)
+        
+        def repeat_vector(args):
+            layer_to_repeat = args[0]
+            sequence_layer = args[1]
+            return keras.layers.RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
+
+        encoder_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encoder_outputs, self._model.getStateSymbolicVariable()])
+        
         processed_a_r = self._model._reward_net(encoder_outputs)
         # processed_a_r = self._model._reward_net(encoder_states)
         ### The decoder model needs both the encoding from the encoder an some sequence of states to continue to feed into the encoder....
@@ -388,6 +396,7 @@ class EncoderDecoder(KERASAlgorithm):
     def reward_error(self, states, actions, result_states, rewards):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         self.reset()
+        errors = []
         if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
             predicted_y = self._model._reward_net.predict([states], batch_size=states.shape[0])
