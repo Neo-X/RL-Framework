@@ -415,8 +415,14 @@ class DeepNNKerasAdaptive(ModelInterface):
                     if (len(layer_sizes[i]) == 4):
                         rnn_dropout = float (layer_sizes[i][3])
                         print("Recurrent Dropout: ", rnn_dropout)
+                    ### the RNN can return a sequence of outputs that can be used with a sequence of target values
+                    rnn_return_sequence = False
+                    if (len(layer_sizes[i]) == 5):
+                        rnn_return_sequence = True
+                        print("rnn_return_sequence: ", rnn_return_sequence)
                     network = GRU(layer_sizes[i][2], stateful=self._stateful_lstm, 
-                                  recurrent_dropout=rnn_dropout)(network)
+                                  recurrent_dropout=rnn_dropout,
+                                  return_sequences=rnn_return_sequence)(network)
                 elif (layer_sizes[i][0] == "Reshape"):
                     network = Reshape(layer_sizes[i][1])(network)
                 elif (layer_sizes[i][0] == "integrate_gan_conditional_cnn"):
