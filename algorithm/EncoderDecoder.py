@@ -97,6 +97,7 @@ class EncoderDecoder(KERASAlgorithm):
             inputs_ = [self._model.getStateSymbolicVariable()]
         else:  
             inputs_ = [self._model.getResultStateSymbolicVariable()] 
+        
         self._model._reward_net = Model(inputs=inputs_, outputs=self._model._reward_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -108,37 +109,29 @@ class EncoderDecoder(KERASAlgorithm):
     def compile(self):
         # sgd = SGD(lr=0.001, momentum=0.9)
         
-        # because we re-use the same instance `base_network`,
-        # the weights of the network
-        # will be shared across the two branches
         state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
-        result_state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getResultStateSymbolicVariable())[1:]
-                                                                              , name="ResultState_2"
-                                                                              )
-        print ("*** self._model.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getStateSymbolicVariable())))
-        print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getResultStateSymbolicVariable())))
+        
         processed_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
         self._model.processed_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a)
         processed_b = self._model._forward_dynamics_net(state_copy)
         self._model.processed_b = Model(inputs=[state_copy], outputs=processed_b)
         
-        processed_a_r = self._model._reward_net(self._model.getResultStateSymbolicVariable())
-        self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
-        processed_b_r = self._model._reward_net(result_state_copy)
-        self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
+        print ("*** self._model.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getStateSymbolicVariable())))
+        print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getResultStateSymbolicVariable())))
+        encoded_state_ = keras.layers.Input(shape=(None, None, keras.backend.int_shape(self._model.getStateSymbolicVariable())[2]), name="Encoded_State_")
+        print ("self._model._forward_dynamics_net: ", self._model._forward_dynamics_net)
+        encoder_outputs = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
+        ### Convert single output vector from encoder into a sequence
+        encoder_outputs = keras.layers.RepeatVector(10)(encoder_outputs)
+        processed_a_r = self._model._reward_net(encoder_outputs)
+        # processed_a_r = self._model._reward_net(encoder_states)
+        ### The decoder model needs both the encoding from the encoder an some sequence of states to continue to feed into the encoder....
+        ### I think this sequence should come from what the decorder is producing in practice...
+        # self._model.processed_a_r = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_r)
         
-        distance_fd = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-        distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
-
-        self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
+        self._model._reward_net = Model(inputs=[self._model.getStateSymbolicVariable()
                                                           ]
-                                                  , outputs=distance_fd
-                                                  )
-        
-        self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable()
-                                                          ,result_state_copy
-                                                          ]
-                                                          , outputs=distance_r
+                                                          , outputs=processed_a_r
                                                           )
 
         # sgd = SGD(lr=0.0005, momentum=0.9)
@@ -158,15 +151,6 @@ class EncoderDecoder(KERASAlgorithm):
             print ("Clipping: ", sgd.decay)
         self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
         
-        self._contrastive_loss = K.function([self._model.getStateSymbolicVariable(), 
-                                             state_copy,
-                                             K.learning_phase()], 
-                                            [distance_fd])
-        
-        self._contrastive_loss_r = K.function([self._model.getResultStateSymbolicVariable(), 
-                                             result_state_copy,
-                                             K.learning_phase()], 
-                                            [distance_r])
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
         
     def getNetworkParameters(self):

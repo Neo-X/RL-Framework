@@ -71,6 +71,9 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
         if ("fd_use_multimodal_state" in settings_ ):
             settings_["use_multimodal_state"] = settings_["fd_use_multimodal_state"]
                 
+        if ("using_encoder_decoder_fd" in settings_ ):
+            settings_["using_encoder_decoder"] = settings_["using_encoder_decoder_fd"]
+            
         print ("FD net n_out: ", n_out)
         print ("FD net n_in: ", n_in)
         super(FDNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)

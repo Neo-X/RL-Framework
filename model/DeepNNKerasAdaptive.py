@@ -288,6 +288,12 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         else:
             network = self._stateInput
+        if ("using_encoder_decoder" in self._settings
+            and (self._settings["using_encoder_decoder"] == True)):
+            print (self._actor)
+            print ("keras.backend.int_shape(self._actor): ", keras.backend.int_shape(self._actor))
+            network = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, 32), name="State")
+            self._ResultState = network
         """
         if ( self._dropout_p > 0.001 ):
             network = Dropout(rate=self._dropout_p)(network)
@@ -412,17 +418,24 @@ class DeepNNKerasAdaptive(ModelInterface):
                     # print ("layer.output_shape: ", keras.backend.shape(network))
                     # network = Reshape((1, layer_sizes[i][1]))(network)
                     rnn_dropout=0.0
-                    if (len(layer_sizes[i]) == 4):
+                    if (len(layer_sizes[i]) >= 4):
                         rnn_dropout = float (layer_sizes[i][3])
                         print("Recurrent Dropout: ", rnn_dropout)
                     ### the RNN can return a sequence of outputs that can be used with a sequence of target values
                     rnn_return_sequence = False
-                    if (len(layer_sizes[i]) == 5):
+                    rnn_return_state = False
+                    if ((len(layer_sizes[i]) >= 5)
+                        and (layer_sizes[i][4] == True)):
                         rnn_return_sequence = True
                         print("rnn_return_sequence: ", rnn_return_sequence)
+                    if ((len(layer_sizes[i]) >= 6)
+                        and (layer_sizes[i][5] == True)):
+                        rnn_return_state = True
+                        print("rnn_return_state: ", rnn_return_state)
                     network = GRU(layer_sizes[i][2], stateful=self._stateful_lstm, 
                                   recurrent_dropout=rnn_dropout,
-                                  return_sequences=rnn_return_sequence)(network)
+                                  return_sequences=rnn_return_sequence,
+                                  return_state=rnn_return_state)(network)
                 elif (layer_sizes[i][0] == "Reshape"):
                     network = Reshape(layer_sizes[i][1])(network)
                 elif (layer_sizes[i][0] == "integrate_gan_conditional_cnn"):
