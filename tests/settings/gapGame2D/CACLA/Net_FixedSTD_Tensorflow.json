@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.CACLA_KERAS.CACLA_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "GapGame_2D-v0/Net_FixedSTD",
+"data_folder": "GapGame_2D-v0/Net_FixedSTD_2",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
