@@ -129,7 +129,7 @@ class EncoderDecoder(KERASAlgorithm):
             sequence_layer = args[1]
             return keras.layers.RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
 
-        encoder_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encoder_outputs, self._model.getStateSymbolicVariable()])
+        encoder_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encoder_outputs, state_copy])
         
         processed_a_r = self._model._reward_net(encoder_outputs)
         # processed_a_r = self._model._reward_net(encoder_states)
@@ -138,6 +138,7 @@ class EncoderDecoder(KERASAlgorithm):
         # self._model.processed_a_r = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_r)
         
         self._model._reward_net = Model(inputs=[self._model.getStateSymbolicVariable()
+                                                ,state_copy
                                                           ]
                                                           , outputs=processed_a_r
                                                           )
@@ -254,8 +255,11 @@ class EncoderDecoder(KERASAlgorithm):
                         # print ("lstm train loss: ", score.history['loss'])
                         loss_.append(np.mean(score.history['loss']))
             else:
-                    
-                score = self._model._reward_net.fit([states], [states],
+                ### Random cut point in length of sequence
+                split_index = np.random.randint(low=1, high=states.shape[1]-1)
+                st = states[:,:split_index, :]
+                en = states[:,split_index:, :]
+                score = self._model._reward_net.fit([st, en], [en],
                               epochs=1, 
                               batch_size=states.shape[0],
                               verbose=0
@@ -399,12 +403,15 @@ class EncoderDecoder(KERASAlgorithm):
         errors = []
         if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
-            predicted_y = self._model._reward_net.predict([states], batch_size=states.shape[0])
+            split_index = np.random.randint(low=1, high=states.shape[1]-1)
+            st = states[:,:split_index, :]
+            en = states[:,split_index:, :]
+            predicted_y = self._model._reward_net.predict([st, en], batch_size=states.shape[0])
             # print ("fd error, predicted_y: ", predicted_y)
             targets__ = np.mean(states, axis=1)
             # print ("fd error, targets_ : ", targets_)
             # print ("fd error, targets__: ", targets__)
-            errors.append( np.mean(np.fabs(states - predicted_y)) )
+            errors.append( np.mean(np.fabs(en - predicted_y)) )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
             te_acc = np.mean(errors)
