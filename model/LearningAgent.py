@@ -186,8 +186,18 @@ class LearningAgent(AgentInterface):
                     tmp_G_t.append(G_t__)
                     
                     ### Data is a trajectory
+                    """
+                    print("state__:", np.array(state__).shape)
+                    print("action__:", np.array(action__).shape)
+                    print("next_state__:", np.array(next_state__).shape)
+                    print("reward__:", np.array(reward__).shape)
+                    print("fall__:", np.array(fall__).shape)
+                    print("G_t__:", np.array(G_t__).shape)
+                    print("exp_action__:", np.array(exp_action__).shape)
+                    print("adv__:", np.array(advantage__).shape)
+                    """
                     for j in range(len(state__)):
-                        # print("adv__:", advantage__)
+                        
                         tup = ([state__[j]], [action__[j]], [next_state__[j]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
                         if ("use_dual_state_representations" in self._settings
                             and (self._settings["use_dual_state_representations"] == True)):
