@@ -337,7 +337,7 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [ ["TimeDistributedConv", [31, 1, 1026], [["Dense", 32, "leaky_rectify"]]], ["GRU", 32, 32, 0.0, true], ["GRU", 32, 32, 0.0, false], ["Dense", 128, "leaky_rectify"]],
 	"comment__": "A list describing the size of the layers for the NN",
-"reward_network_layer_sizes": [["GRU", 128, 32, 0.0, true], ["GRU", 32, 2, 0.0, true]],
+"reward_network_layer_sizes": [["GRU", 32, 32, 0.0, true], ["GRU", 32, 32, 0.0, true], ["TimeDistributedConv", [31, 1, 1026], [["Dense", 32, "leaky_rectify"], ["Dense", 2, "linear"]]]],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
 		"comment__": "type of activation to use for last layer",

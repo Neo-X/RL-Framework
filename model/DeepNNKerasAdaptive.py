@@ -467,8 +467,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                         print("Subnet summary")
                         subnet.summary()
                     else:
-                        print ("*** net input shape: ", repr(keras.backend.int_shape(input)))
-                        input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(input)[-1]), name="State_Conv")
+                        print ("*** net input shape: ", repr(keras.backend.int_shape(network)))
+                        input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(network)[-1]), name="State_Conv")
                         print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
                         subnet = self.createSubNetwork(input_, layer_sizes[i][2])
                         subnet = Model(inputs=input_, outputs=subnet)
@@ -477,9 +477,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                         subnet.summary()
                         
                     ### Create a model (set of layers to distribute) pass in the original input to that model
-                    print ("*** subnet input ", input, " shape: ", repr(keras.backend.int_shape(input)))
+                    print ("*** subnet input ", network, " shape: ", repr(keras.backend.int_shape(network)))
                     print ("self._state_length: ", self._state_length)
-                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
+                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
                     
                     # network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))
                 elif (layer_sizes[i][0] == "TimeDistributed"):
