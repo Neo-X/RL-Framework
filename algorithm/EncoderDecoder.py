@@ -149,7 +149,7 @@ class EncoderDecoder(KERASAlgorithm):
         # sgd = SGD(lr=0.0005, momentum=0.9)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
-                                    clipnorm=2.5)
+                                    clipnorm=1.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
@@ -157,7 +157,7 @@ class EncoderDecoder(KERASAlgorithm):
 
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
-                                    clipnorm=2.5)
+                                    clipnorm=1.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
@@ -260,6 +260,7 @@ class EncoderDecoder(KERASAlgorithm):
             else:
                 ### Random cut point in length of sequence
                 split_index = np.random.randint(low=1, high=states.shape[1]-1)
+                split_index = 32
                 st = states[:,:split_index, :]
                 en = states[:,split_index:, :]
                 score = self._model._reward_net.fit([st, en], [en],
@@ -408,12 +409,13 @@ class EncoderDecoder(KERASAlgorithm):
         if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
             split_index = np.random.randint(low=1, high=states.shape[1]-1)
+            split_index = 32
             st = states[:,:split_index, :]
             en = states[:,split_index:, :]
             predicted_y = self._model._reward_net.predict([st, en], batch_size=states.shape[0])
-            print ("fd error, predicted_y: ", predicted_y)
+            # print ("fd error, predicted_y: ", predicted_y)
             # targets__ = np.mean(states, axis=1)
-            print ("fd error, targets_ : ", en)
+            # print ("fd error, targets_ : ", en)
             # print ("fd error, targets__: ", targets__)
             errors.append( np.mean(np.fabs(en - predicted_y)) )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
