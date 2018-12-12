@@ -420,7 +420,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 elif (("train_LSTM_Reward" in settings)
                     and (settings["train_LSTM_Reward"] == True)
                     and (not (("train_LSTM_FD" in settings)
-                    and (settings["train_LSTM_FD"] == True)))):    
+                    and (settings["train_LSTM_FD"] == True)))
+                    ):    
                     reward__ = exp.computeImitationReward(rewmodel.predict_reward)
                 else:
                     reward__ = exp.computeImitationReward(rewmodel.predict)

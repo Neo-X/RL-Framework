@@ -133,7 +133,7 @@ def trainForwardDynamics(settings):
                              [1] * settings["dense_state_size"]])
         experience.setResultStateBounds(res_state_bounds__)
         """
-        _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(min(experience.samples(), settings["expereince_length"]))
+        # _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(min(experience.samples(), settings["expereince_length"]))
         
         ### Usually the state and next state are the same size, not in this case...
         # s_mean_ = np.mean(_states, axis=0)
@@ -145,14 +145,14 @@ def trainForwardDynamics(settings):
         # experience.setStateBounds(s_state_bounds__)
         print ("state bounds: ", experience.getStateBounds())
         
-        res_mean_ = np.mean(_result_states, axis=0)
-        res_std_ = np.std(_result_states, axis=0) + 0.1 ### hack to avoid zeros
-        res_state_bounds__ = np.array([res_mean_ - res_std_, 
-                             res_mean_ + res_std_])
+        # res_mean_ = np.mean(_result_states, axis=0)
+        # res_std_ = np.std(_result_states, axis=0) + 0.1 ### hack to avoid zeros
+        # res_state_bounds__ = np.array([res_mean_ - res_std_, 
+        #                      res_mean_ + res_std_])
         # print ("result state_bounds: ", res_state_bounds__)
-        experience.setResultStateBounds(res_state_bounds__)
+        # experience.setResultStateBounds(res_state_bounds__)
         
-        print("res_state_bounds__: ", np.array(res_state_bounds__).shape)
+        # print("res_state_bounds__: ", np.array(res_state_bounds__).shape)
         
     
     if ( settings['forward_dynamics_model_type'] == "SingleNet"):
@@ -346,6 +346,7 @@ def trainForwardDynamics(settings):
                 encoding['code'] = []
                 encoding['code2'] = []
                 state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_trajectory_batch(batch_size=min(experience.history_size_Trajectory(), experience.samplesTrajectory()), cast=False)
+                """
                 for l in range(len(state_)):
                     forwardDynamicsModel.reset()
                     h_a = forwardDynamicsModel.predict_reward_encoding(state_[l])
@@ -363,6 +364,7 @@ def trainForwardDynamics(settings):
                 tsne_data = open("tsne_data.json", "w")
                 json.dump(encoding, tsne_data)
                 tsne_data.close()
+                """
                 
         if (round_ % settings['saving_update_freq_num_rounds']) == 0:
             if mean_dynamicsLosses < best_dynamicsLosses:

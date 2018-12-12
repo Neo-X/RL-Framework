@@ -110,6 +110,9 @@ class EncoderDecoder(KERASAlgorithm):
         # sgd = SGD(lr=0.001, momentum=0.9)
         
         state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
+        result_state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getResultStateSymbolicVariable())[1:]
+                                                                              , name="ResultState_2"
+                                                                              )
         
         processed_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
         self._model.processed_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a)
@@ -150,7 +153,7 @@ class EncoderDecoder(KERASAlgorithm):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
-        self._model._forward_dynamics_net.compile(loss=contrastive_loss, optimizer=sgd)
+        self._model._forward_dynamics_net.compile(loss="mse", optimizer=sgd)
 
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
@@ -158,7 +161,7 @@ class EncoderDecoder(KERASAlgorithm):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
-        self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
+        self._model._reward_net.compile(loss="mse", optimizer=sgd)
         
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
         
@@ -400,6 +403,7 @@ class EncoderDecoder(KERASAlgorithm):
     def reward_error(self, states, actions, result_states, rewards):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         self.reset()
+        # self._model._reward_net.reset()
         errors = []
         if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
@@ -407,9 +411,9 @@ class EncoderDecoder(KERASAlgorithm):
             st = states[:,:split_index, :]
             en = states[:,split_index:, :]
             predicted_y = self._model._reward_net.predict([st, en], batch_size=states.shape[0])
-            # print ("fd error, predicted_y: ", predicted_y)
-            targets__ = np.mean(states, axis=1)
-            # print ("fd error, targets_ : ", targets_)
+            print ("fd error, predicted_y: ", predicted_y)
+            # targets__ = np.mean(states, axis=1)
+            print ("fd error, targets_ : ", en)
             # print ("fd error, targets__: ", targets__)
             errors.append( np.mean(np.fabs(en - predicted_y)) )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
