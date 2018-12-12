@@ -292,7 +292,12 @@ class DeepNNKerasAdaptive(ModelInterface):
             and (self._settings["using_encoder_decoder"] == True)):
             print (self._actor)
             print ("keras.backend.int_shape(self._actor): ", keras.backend.int_shape(self._actor))
-            network = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, 32), name="State")
+            if (self._stateful_lstm):
+                network = keras.layers.Input(shape=(self._sequence_length, 
+                      keras.backend.int_shape(self._actor)[1]), 
+                       batch_shape=(self._lstm_batch_size, self._sequence_length, keras.backend.int_shape(self._actor)[2]), name="Encoding_State")
+            else:
+                network = keras.layers.Input(shape=(None, keras.backend.int_shape(self._actor)[1]), name="Encoding_State")
             self._ResultState = network
         """
         if ( self._dropout_p > 0.001 ):

@@ -39,39 +39,6 @@ def eucl_dist_output_shape(shapes):
     shape1, shape2 = shapes
     return (shape1[0], 1)
 
-def contrastive_loss(y_true, y_pred):
-    '''Contrastive loss from Hadsell-et-al.'06
-    http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
-    '''
-    margin = 1
-    ####           Make these smaller               While making these bigger
-    return K.mean((y_true * K.square(y_pred)) + ((1 - y_true) * K.square(K.maximum(margin - y_pred, 0))))
-
-def compute_accuracy(predictions, labels):
-    '''Compute classification accuracy with a fixed threshold on distances.
-    '''
-    cutoff = 0.5
-    pred = predictions.ravel()
-    # print ("pred: ", pred)
-    ind_ = pred < cutoff
-    ind_neg = pred >= cutoff
-    
-    # print ("ind_: ", ind_)
-    ### positive label values that were within a distance of 0.5 of 0
-    values_ = labels[ind_]
-    ### negative label values that were within a distance of 0.5 of 1
-    values_neg = 1.0 - labels[ind_neg]
-    
-    pos_error = np.fabs(pred[labels.ravel() > 0.5]) ### Distance these are from 0.0
-    neg_error = np.fabs(1.0 - pred[labels.ravel() <= 0.5]) ### Distance these are from 1.0
-    # print ("positive pair mean: ", np.mean(pred[labels.ravel() > 0.5]))
-    # print ("negative pair mean: ", np.mean(pred[labels.ravel() <= 0.5]))
-    
-    # print ("values_: ", values_)
-    if (values_ == []): ### No values were close...
-        return 0.0
-    else:
-        return np.mean(pos_error) + np.mean(neg_error)
 
 
 class EncoderDecoder(KERASAlgorithm):
@@ -90,7 +57,7 @@ class EncoderDecoder(KERASAlgorithm):
         self._model._forward_dynamics_net = Model(inputs=inputs_, outputs=self._model._forward_dynamics_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                print("FD Net summary: ", self._model._forward_dynamics_net.summary())
+                print("FD Encoder summary: ", self._model._forward_dynamics_net.summary())
         
         if ("force_use_actor_state_for_critic" in self._settings
             and (self._settings["force_use_actor_state_for_critic"] == True)):
@@ -101,7 +68,7 @@ class EncoderDecoder(KERASAlgorithm):
         self._model._reward_net = Model(inputs=inputs_, outputs=self._model._reward_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                print("FD Reward Net summary: ", self._model._reward_net.summary())
+                print("FD Decoder Net summary: ", self._model._reward_net.summary())
 
         self._modelTarget = None
         EncoderDecoder.compile(self)
@@ -127,6 +94,7 @@ class EncoderDecoder(KERASAlgorithm):
         ### Convert single output vector from encoder into a sequence
         # encoder_outputs = keras.layers.RepeatVector(64)(encoder_outputs)
         
+        print ("Encoder output shape: ", encoder_outputs)
         def repeat_vector(args):
             layer_to_repeat = args[0]
             sequence_layer = args[1]
@@ -260,10 +228,10 @@ class EncoderDecoder(KERASAlgorithm):
             else:
                 ### Random cut point in length of sequence
                 split_index = np.random.randint(low=1, high=states.shape[1]-1)
-                # split_index = 32
+                split_index = 12
                 st = states[:,:split_index, :]
-                en = states[:,split_index:, :]
-                score = self._model._reward_net.fit([st, en], [en],
+                # en = states[:,split_index:, :]
+                score = self._model._reward_net.fit([st, st], [st],
                               epochs=1, 
                               batch_size=states.shape[0],
                               verbose=0
@@ -409,15 +377,15 @@ class EncoderDecoder(KERASAlgorithm):
         if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
             split_index = np.random.randint(low=1, high=states.shape[1]-1)
-            # split_index = 32
+            split_index = 12
             st = states[:,:split_index, :]
-            en = states[:,split_index:, :]
-            predicted_y = self._model._reward_net.predict([st, en], batch_size=states.shape[0])
+            # en = states[:,split_index:, :]
+            predicted_y = self._model._reward_net.predict([st, st], batch_size=states.shape[0])
             # print ("fd error, predicted_y: ", predicted_y)
             # targets__ = np.mean(states, axis=1)
             # print ("fd error, targets_ : ", en)
             # print ("fd error, targets__: ", targets__)
-            errors.append( np.mean(np.fabs(en - predicted_y)) )
+            errors.append( np.mean(np.fabs(st - predicted_y)) )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
             te_acc = np.mean(errors)
