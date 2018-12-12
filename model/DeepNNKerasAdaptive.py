@@ -462,7 +462,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                         print("Subnet summary")
                         subnet.summary()
                     else:
-                        input_ = keras.layers.Input(shape=(1, self._state_length), name="State_Conv")
+                        print ("*** net input shape: ", repr(keras.backend.int_shape(input)))
+                        input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(input)[-1]), name="State_Conv")
                         print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
                         subnet = self.createSubNetwork(input_, layer_sizes[i][2])
                         subnet = Model(inputs=input_, outputs=subnet)
