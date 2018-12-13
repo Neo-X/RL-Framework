@@ -228,7 +228,7 @@ class EncoderDecoder(KERASAlgorithm):
             else:
                 ### Random cut point in length of sequence
                 split_index = np.random.randint(low=1, high=states.shape[1]-1)
-                split_index = 12
+                # split_index = 12
                 st = states[:,:split_index, :]
                 # en = states[:,split_index:, :]
                 score = self._model._reward_net.fit([st, st], [st],
@@ -377,7 +377,7 @@ class EncoderDecoder(KERASAlgorithm):
         if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
             split_index = np.random.randint(low=1, high=states.shape[1]-1)
-            split_index = 12
+            # split_index = 12
             st = states[:,:split_index, :]
             # en = states[:,split_index:, :]
             predicted_y = self._model._reward_net.predict([st, st], batch_size=states.shape[0])
