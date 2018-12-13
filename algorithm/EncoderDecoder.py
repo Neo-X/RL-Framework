@@ -367,6 +367,7 @@ class EncoderDecoder(KERASAlgorithm):
 
     def bellman_error(self, states, actions, result_states, rewards):
         self.reset()
+        ### Just compute the average value of the encodings....
         
         return 0
     

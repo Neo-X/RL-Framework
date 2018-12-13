@@ -120,6 +120,13 @@ class ExperienceMemory(object):
             if len(state_[t]) < shortest_traj:
                 shortest_traj = len(state_[t])
                 
+        use_random_sequence_length_for_lstm = False
+        if ("use_random_sequence_length_for_lstm" in self._settings
+            and (self._settings["use_random_sequence_length_for_lstm"] == True)):
+            use_random_sequence_length_for_lstm = True
+            randomStart = True
+            randomLength = True
+                
         if ( randomStart == True 
              and (shortest_traj > min_seq_length)):
             inds = range(0, shortest_traj)
