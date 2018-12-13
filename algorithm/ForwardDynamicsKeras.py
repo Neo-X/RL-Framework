@@ -3,7 +3,6 @@ from theano import tensor as T
 import numpy as np
 # import lasagne
 import sys
-from Crypto.Random.random import shuffle
 sys.path.append('../')
 from model.ModelUtil import *
 from model.LearningUtil import loglikelihood, loglikelihoodMEAN, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat, likelihood, loglikelihoodMEAN
