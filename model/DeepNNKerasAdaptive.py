@@ -449,9 +449,17 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = Concatenate()([network, subnet] )
                     
                 elif (layer_sizes[i][0] == "Dense"):
-                    network = Dense(layer_sizes[i][1],
-                                kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
-                                bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
+                    if (len(layer_sizes[i]) > 3):
+                        print ("Adding activity regularizer to dense layer")
+                        network = Dense(layer_sizes[i][1],
+                                    kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                    bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                    activity_regularizer=regularizers.l2(layer_sizes[i][3]))(network)
+                    else:
+                        network = Dense(layer_sizes[i][1],
+                                    kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                    bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
+                                        
                     if (len(layer_sizes[i]) > 2):
                         network = getKerasActivation(layer_sizes[i][2])(network)
                     else:
