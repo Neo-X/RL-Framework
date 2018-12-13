@@ -95,6 +95,7 @@ class EncoderDecoder(KERASAlgorithm):
         # encoder_outputs = keras.layers.RepeatVector(64)(encoder_outputs)
         
         print ("Encoder output shape: ", encoder_outputs)
+        ### https://github.com/keras-team/keras/issues/7949
         def repeat_vector(args):
             layer_to_repeat = args[0]
             sequence_layer = args[1]
