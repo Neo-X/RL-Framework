@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.CACLA_KERAS.CACLA_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_2D_Viz3D_64x64_Imitate_30FPS_DualPoseState_v0/LSTM_EncoderDecoder",
+"data_folder": "PD_Humanoid_2D_Viz3D_64x64_Imitate_30FPS_DualPoseState_v0/LSTM_EncoderDecoder_1",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -388,5 +388,9 @@
 	"comment__": "Leave off the final layer of the reward network that would result in a state sized output",
 "reward_network_leave_off_end": true,
 	"comment__": "pretrain the fd model",
-"pretrain_fd": 10
+"pretrain_fd": 20,
+	"comment__": "Make earlier and shorter lstm training batches more probable.",
+"shorter_smaller_rnn_batches": true,
+	"comment__": "Include some randomly sized sequences when training lstms",
+"use_random_sequence_length_for_lstm": true
 }
