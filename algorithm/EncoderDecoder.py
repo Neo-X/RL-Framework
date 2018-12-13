@@ -367,9 +367,14 @@ class EncoderDecoder(KERASAlgorithm):
 
     def bellman_error(self, states, actions, result_states, rewards):
         self.reset()
-        ### Just compute the average value of the encodings....
-        
-        return 0
+        ### Just compute the average distance between the encodings....
+        encodings = self._model.processed_a.predict([states], batch_size=states.shape[0])
+        dist = 0
+        # print ("encodings[0]: ", encodings[0].shape)
+        for i in range(encodings.shape[0]):
+            for j in range(encodings.shape[0]):
+                dist = dist + euclidean_distance_np((np.array([encodings[i]]), np.array([encodings[j]])))[0]
+        return dist / (encodings.shape[0] * encodings.shape[0])
     
     def reward_error(self, states, actions, result_states, rewards):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
