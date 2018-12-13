@@ -386,5 +386,7 @@
 	"comment__": "Inform the system that a encoder decoder model is being used",
 "using_encoder_decoder_fd": true,
 	"comment__": "Leave off the final layer of the reward network that would result in a state sized output",
-"reward_network_leave_off_end": true 
+"reward_network_leave_off_end": true,
+	"comment__": "pretrain the fd model",
+"pretrain_fd": 50
 }
