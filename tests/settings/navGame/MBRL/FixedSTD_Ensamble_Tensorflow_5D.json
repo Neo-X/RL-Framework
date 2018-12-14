@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PolicyDistribution.PolicyDistribution",
     "comment__": "Folder to store the training data in.",
-"data_folder": "NavGame_5D-v0/FixedSTD_MBRL_Tensorflow",
+"data_folder": "NavGame_5D-v0/FixedSTD_MBRL_Ensamble",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
