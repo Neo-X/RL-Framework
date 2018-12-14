@@ -251,6 +251,7 @@ class ForwardDynamicsEncodingKerasEnsamble(KERASAlgorithm):
         # print("Action: ", action)
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        member = np.random.randint(low=0, high=self._fd_ensemble_size)
         state_ = scale_state(np.array(self._models[member].getForwardDynamicsNetwork().predict([state, action]))[:,:self._state_length], self._state_bounds)
         # print("state:", state_)
         return state_
@@ -261,6 +262,7 @@ class ForwardDynamicsEncodingKerasEnsamble(KERASAlgorithm):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         # state_ = scale_state(self.fds[member]([state, action,1])[0][:][:self._state_length], self._state_bounds)
+        member = np.random.randint(low=0, high=self._fd_ensemble_size)
         state_ = scale_state(np.array(self.fds[member]([state, action,1]))[0,:,:self._state_length], self._state_bounds)
         # print("state dropout:", state_)
         return state_
@@ -268,6 +270,7 @@ class ForwardDynamicsEncodingKerasEnsamble(KERASAlgorithm):
     def predict_std(self, state, action, p=1.0, member=0):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        member = np.random.randint(low=0, high=self._fd_ensemble_size)
         if ("use_stochastic_forward_dynamics" in self.getSettings()
             and (self.getSettings()['use_stochastic_forward_dynamics'] == True)):
             state_ = np.array(self.fds[member]([state, action,0]))[0,:,self._state_length:] * (action_bound_std(self._state_bounds))
@@ -281,6 +284,7 @@ class ForwardDynamicsEncodingKerasEnsamble(KERASAlgorithm):
         # states[0, ...] = state
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
+        member = np.random.randint(low=0, high=self._fd_ensemble_size)
         predicted_reward = self.rewards[member]([state, action, 0])[0]
         reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # reward_ = scale_reward(predicted_reward, self.getRewardBounds())[0] * (1.0 / (1.0- self.getSettings()['discount_factor']))
