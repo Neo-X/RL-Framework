@@ -172,7 +172,7 @@ class DPGKeras(KERASAlgorithm):
         return grads
     
     def updateTargetModel(self):
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print ("Updating target Model")
         """
             Target model updates
@@ -208,7 +208,7 @@ class DPGKeras(KERASAlgorithm):
         self._modelTarget.getActorNetwork().set_weights(all_params)
         
     def updateTargetModelCritic(self):
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print ("Updating target critic Model")
         """
             Target model updates
@@ -233,7 +233,7 @@ class DPGKeras(KERASAlgorithm):
         self._modelTarget.getCriticNetwork().set_weights(all_params)
         
     def updateTargetModelActor(self):
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print ("Updating target Actor Model")
         """
             Target model updates
@@ -259,7 +259,7 @@ class DPGKeras(KERASAlgorithm):
         self._modelTarget.getActorNetwork().set_weights(all_params)
     
     def updateTargetModelValue(self):
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print ("Updating MBAE target Model")
         """
             Target model updates
@@ -360,7 +360,7 @@ class DPGKeras(KERASAlgorithm):
         
         # q_fun = np.mean(self._trainPolicy(states))
         
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             # print("Actions mean:     ", np.mean(actions, axis=0))
             poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
             print("Policy mean: ", np.mean(poli_mean, axis=0))

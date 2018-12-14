@@ -83,7 +83,7 @@ class TestSaveAndLoad(object):
             Test that PPO can still learn a good policy on 2d gapgame sim
             If this does not crash, things are good..
         """
-        filename = "tests/settings/gapGame2D/CACLA/Net_FixedSTD.json"
+        filename = "tests/settings/gapGame2D/CACLA/Net_FixedSTD_Tensorflow.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -96,8 +96,8 @@ class TestSaveAndLoad(object):
         settings['rounds'] = 6
         settings["epochs"] = 2
         settings['eval_epochs'] = 2
-        settings["plotting_update_freq_num_rounds"] = 2
-        settings["saving_update_freq_num_rounds"] =  2
+        settings["plotting_update_freq_num_rounds"] = 1
+        settings["saving_update_freq_num_rounds"] =  1
         settings["state_normalization"] = "variance"
         settings["return_model"] = True
         simData = trainModelParallel((filename, settings))

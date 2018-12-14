@@ -47,7 +47,7 @@ class TestCACLA(object):
         # settings['rounds'] = 1
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        assert np.mean(simData['mean_reward'][-5:]) > 0.65
+        assert np.mean(simData['mean_reward'][-5:]) > 0.35
     
     """   
     ### No longer suported

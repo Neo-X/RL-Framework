@@ -13,6 +13,9 @@ class TestSaveAndLoadFD(object):
 
     # @pytest.mark.timeout(600)
     def test_MBRL_keras_cannon_2D_save_and_load_FD_scaling_params(self):
+        """
+            Check to see that the same network scaling value match after training with a reloaded model from a file.
+        """
         filename = "tests/settings/cannonGame/MBRL/FixedSTD_Tensorflow-v2.json"
         file = open(filename)
         settings = json.load(file)
@@ -26,11 +29,12 @@ class TestSaveAndLoadFD(object):
         settings['rounds'] = 1
         settings["epochs"] = 2
         settings['eval_epochs'] = 2
-        settings["plotting_update_freq_num_rounds"] = 2
-        settings["saving_update_freq_num_rounds"] =  2
+        settings["plotting_update_freq_num_rounds"] = 1
+        settings["saving_update_freq_num_rounds"] =  1
         settings["state_normalization"] = "variance"
         settings["return_model"] = True
         settings["num_available_threads"] = 2
+        settings["pretrain_critic"] = 0
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         settings['visualize_expected_value'] = False
@@ -45,6 +49,9 @@ class TestSaveAndLoadFD(object):
     
     # @pytest.mark.timeout(600)   
     def test_MBRL_keras_cannon_2D_save_and_load_FD_net_params(self):
+        """
+            Check to see that the same network parameters match after training with a reloaded model from a file.
+        """
         filename = "tests/settings/cannonGame/MBRL/FixedSTD_Tensorflow-v2.json"
         file = open(filename)
         settings = json.load(file)
@@ -58,12 +65,13 @@ class TestSaveAndLoadFD(object):
         settings['rounds'] = 1
         settings["epochs"] = 2
         settings['eval_epochs'] = 2
-        settings["plotting_update_freq_num_rounds"] = 2
-        settings["saving_update_freq_num_rounds"] =  2
+        settings["plotting_update_freq_num_rounds"] = 1
+        settings["saving_update_freq_num_rounds"] =  1
         settings["state_normalization"] = "variance"
         settings["return_model"] = True
         settings["num_available_threads"] = 2
         settings["learning_backend"] = "theano"
+        settings["pretrain_critic"] = 0
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         settings['visualize_expected_value'] = False
