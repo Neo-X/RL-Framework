@@ -1463,7 +1463,9 @@ def trainModelParallel(inputData):
                         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                             print ("Saving Experience FD memory")
                         file_name=directory+getAgentName()+"_FD_expBufferInit.hdf5"
-                        masterAgent.getFDExperience().saveToFile(file_name)
+                        if ("keep_seperate_fd_exp_buffer" in settings
+                            and (settings["keep_seperate_fd_exp_buffer"] == True)):
+                            masterAgent.getFDExperience().saveToFile(file_name)
                 t1 = time.time()
                 sim_time_ = datetime.timedelta(seconds=(t1-t0))
                 if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):

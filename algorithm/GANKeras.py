@@ -560,4 +560,42 @@ class GANKeras(AlgorithmInterface):
         super(GANKeras,self).setRewardBounds(reward_bounds)
         self._experience.setRewardBounds(copy.deepcopy(self.getRewardBounds()))
         
+    def saveTo(self, fileName):
+        # print(self, "saving model")
+        import h5py
+        hf = h5py.File(fileName+"_bounds.h5", "w")
+        hf.create_dataset('_state_bounds', data=self.getStateBounds())
+        hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
+        hf.create_dataset('_action_bounds', data=self.getActionBounds())
+        # hf.create_dataset('_result_state_bounds', data=self.getResultStateBounds())
+        hf.flush()
+        hf.close()
+        suffix = ".h5"
+        ### Save models
+        # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
+        self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
+        self._model.getCriticNetwork().save(fileName+"_reward"+suffix, overwrite=True)
+        # print ("self._model._actor_train: ", self._model._actor_train)
+        
+    def loadFrom(self, fileName):
+        from keras.models import load_model
+        import h5py
+        suffix = ".h5"
+        print ("Loading agent: ", fileName)
+        # with K.get_session().graph.as_default() as g:
+        self._model._forward_dynamics_net = load_model(fileName+"_FD"+suffix)
+        self._model._critic = load_model(fileName+"_reward"+suffix)
+        if (self._modelTarget is not None):
+            self._modelTarget._forward_dynamics_net = load_model(fileName+"_FD"+suffix)
+            self._modelTarget._reward_net = load_model(fileName+"_reward"+suffix)
+        # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
+        # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
+        # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
+        hf = h5py.File(fileName+"_bounds.h5",'r')
+        self.setStateBounds(np.array(hf.get('_state_bounds')))
+        self.setRewardBounds(np.array(hf.get('_reward_bounds')))
+        self.setActionBounds(np.array(hf.get('_action_bounds')))
+        # self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
+        hf.close()
+        
         

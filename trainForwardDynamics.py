@@ -296,7 +296,8 @@ def trainForwardDynamics(settings):
                 dynamicsLoss_ = forwardDynamicsModel.bellman_error(_states, _actions, _result_states, _rewards)
                 # print ("dynamicsLoss_: ", dynamicsLoss_)
             # dynamicsLoss_ = forwardDynamicsModel.bellman_error((_states), (_actions), (_result_states))
-            if ( settings['use_stochastic_forward_dynamics'] ):
+            if ( "use_stochastic_forward_dynamics" in settings 
+                 and (settings['use_stochastic_forward_dynamics'] == True)):
                 dynamicsLoss = np.mean(dynamicsLoss_)
             else:
                 dynamicsLoss = np.mean(np.fabs(dynamicsLoss_))
