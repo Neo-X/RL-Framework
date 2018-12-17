@@ -688,8 +688,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         assert np.array(tmp_advantage).shape == np.array(tmp_exp_actions).shape, "np.array(tmp_advantage).shape == np.array(tmp_exp_actions).shape: " + str(np.array(tmp_advantage).shape) + " == " + str(np.array(tmp_exp_actions).shape)
         assert np.array(tmp_advantage).shape == np.array(tmp_baselines_).shape, "np.array(tmp_advantage).shape == np.array(tmp_baselines_).shape: " + str(np.array(tmp_advantage).shape) + " == " + str(np.array(tmp_baselines_).shape)
         assert np.array(tmp_baselines_).shape == np.array(tmp_discounted_sum).shape, "np.array(tmp_baselines_).shape == np.array(tmp_discounted_sum).shape: " + str(np.array(tmp_baselines_).shape) + " == " + str(np.array(tmp_discounted_sum).shape)
-    elif ("fd_use_multimodal_state" in settings
+    elif  ("fd_use_multimodal_state" in settings
             and (settings["fd_use_multimodal_state"] == True)):
+        pass
+    elif  ("append_camera_velocity_state" in settings
+            and (settings["append_camera_velocity_state"] == True)):
         pass
         """
         assert np.array(tmp_states)[:,0,:].shape == (i_ * len(states[0]), len(model.getStateBounds()[0])), "np.array(tmp_states).shape: " + str(np.array(tmp_states).shape) + " == " + str((i_ * len(states[0]), len(model.getStateBounds()[0])))
