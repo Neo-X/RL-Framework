@@ -56,7 +56,7 @@ class SimWorker(Process):
     def createNewFDModel(self, env, setting_):
         from util.SimulationUtil import createNewFDModel
         print ("Creating new FD model with different session")
-        forwardDynamicsModel = createNewFDModel(setting_)
+        forwardDynamicsModel = createNewFDModel(setting_, env, self._model.getPolicy())
         return forwardDynamicsModel
     
     def createSampler(self, poli, fd, exp_, actor):

@@ -95,6 +95,13 @@ class ModelDummy(AlgorithmInterface):
         values_ = [[0.8]]
         return values_
     
+    def q_values2(self, states, wrap=True):
+        """
+            For returning a vector of q values, state should already be normalized
+        """
+        values_ = [[0.8]]
+        return values_
+    
     def q_valueWithDropout(self, state):
         values_ = [[0.8]]
         return values_

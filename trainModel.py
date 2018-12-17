@@ -575,7 +575,7 @@ def trainModelParallel(inputData):
         model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings, print_info=True)
         forwardDynamicsModel = None
         if (settings['train_forward_dynamics']):
-            forwardDynamicsModel = createNewFDModel(settings)
+            forwardDynamicsModel = createNewFDModel(settings, exp_val, model)
             forwardDynamicsModel.setActor(actor)
             # forwardDynamicsModel.setEnvironment(exp)
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
@@ -585,7 +585,7 @@ def trainModelParallel(inputData):
             print ("Creating reward distance model")
             settings_ = copy.deepcopy(settings)
             settings_ = updateSettings(settings_, settings_["reward_metric_settings"])
-            rewardModel = createNewFDModel(settings_)
+            rewardModel = createNewFDModel(settings_, exp_val, model)
             rewardModel.setActor(actor)
             # forwardDynamicsModel.setEnvironment(exp)
             rewardModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)

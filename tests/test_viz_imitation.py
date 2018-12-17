@@ -99,7 +99,7 @@ class TestVizImitation(object):
         """
         Test that CACLA can still learn a good policy on 2d particle sim
         """
-        filename = "settings/projectileGame/CACLA/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
+        filename = "tests/settings/projectileGame/CACLA/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
