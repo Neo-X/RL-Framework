@@ -694,6 +694,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     elif  ("append_camera_velocity_state" in settings
             and (settings["append_camera_velocity_state"] == True)):
         pass
+    elif  ("use_viz_for_policy" in settings
+            and (settings["use_viz_for_policy"] == True)):
+        pass
         """
         assert np.array(tmp_states)[:,0,:].shape == (i_ * len(states[0]), len(model.getStateBounds()[0])), "np.array(tmp_states).shape: " + str(np.array(tmp_states).shape) + " == " + str((i_ * len(states[0]), len(model.getStateBounds()[0])))
         assert np.array(tmp_states)[:,0,:].shape == np.array(tmp_res_states)[:,0,:].shape, "np.array(tmp_states).shape == np.array(tmp_res_states).shape: " + str(np.array(tmp_states).shape) + " == " + str(np.array(tmp_res_states).shape)

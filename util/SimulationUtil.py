@@ -974,7 +974,7 @@ def createNewFDModel(settings, env, model):
         if ( settings['forward_dynamics_model_type'] == "SingleNet"
              and (settings['use_single_network'] == True)):
             print ("Creating forward dynamics network: Using single network model")
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model.getPolicy())
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model)
             # forwardDynamicsModel = model
         else:
             print ("Creating forward dynamics network")

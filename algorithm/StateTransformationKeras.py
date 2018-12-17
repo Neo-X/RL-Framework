@@ -25,6 +25,7 @@ class StateTransformationKeras(KERASAlgorithm):
         self._model = model
         self._learning_rate = self.getSettings()["fd_learning_rate"]
         self._regularization_weight = 1e-6
+        self._modelTarget = None
         
         condition_reward_on_result_state = False
         self._train_combined_loss = False
@@ -105,7 +106,7 @@ class StateTransformationKeras(KERASAlgorithm):
         print ("grad: ", grad)
         return grad
     
-    def train(self, states, actions, result_states, rewards, updates=1, batch_size=None):
+    def train(self, states, actions, result_states, rewards, updates=1, batch_size=None, lstm=None):
         # rewards = rewards * (1.0/(1.0-self.getSettings()['discount_factor'])) # scale rewards
         # self.setData(states, actions, result_states, rewards)
         # print ("Performing Critic trainning update")
