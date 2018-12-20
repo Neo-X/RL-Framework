@@ -414,7 +414,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                 print ("layer_sizes[",i,"]: ", layer_sizes[i])
                 # print ("shape[", i, "]: ", repr(keras.backend.int_shape(network)))
-                print ("tensor ", network, "shape[", i, "]: ", repr(keras.backend.int_shape(input)))
+                print ("tensor ", network, "shape[", i, "]: ", repr(keras.backend.int_shape(network)))
             if type(layer_sizes[i]) is list:
                 if (layer_sizes[i][0] == "LSTM"):
                     # print ("layer.output_shape: ", keras.backend.shape(network))
@@ -524,6 +524,18 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                                    data_format=self._data_format_)(network)  
                 elif ( layer_sizes[i][0] == "dropout" ):
                     network = Dropout(rate=layer_sizes[i][1])(network)    
+                elif ( layer_sizes[i][0] == "deconv" ):
+                    network = keras.layers.Conv2DTranspose(layer_sizes[i][1], kernel_size=layer_sizes[i][2], strides=layer_sizes[i][3],
+                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                                     data_format=self._data_format_,
+                                                     padding=layer_sizes[i][4])(network)
+                elif ( layer_sizes[i][0] == "conv" ):
+                    network = keras.layers.Conv2D(layer_sizes[i][1], kernel_size=layer_sizes[i][2], strides=layer_sizes[i][3],
+                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                                     data_format=self._data_format_,
+                                                     padding=layer_sizes[i][4])(network)
                 elif ( len(layer_sizes[i][1])> 1 ):
                     if (i == 0):
                         print ("create self._taskFeatures shape: ", repr(keras.backend.int_shape(self._taskFeatures)))
