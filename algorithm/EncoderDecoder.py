@@ -40,7 +40,6 @@ def eucl_dist_output_shape(shapes):
     return (shape1[0], 1)
 
 
-
 class EncoderDecoder(KERASAlgorithm):
     
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
@@ -74,6 +73,7 @@ class EncoderDecoder(KERASAlgorithm):
         EncoderDecoder.compile(self)
     
     def compile(self):
+        # import keras
         # sgd = SGD(lr=0.001, momentum=0.9)
         
         state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
@@ -97,6 +97,7 @@ class EncoderDecoder(KERASAlgorithm):
         print ("Encoder output shape: ", encoder_outputs)
         ### https://github.com/keras-team/keras/issues/7949
         def repeat_vector(args):
+            # import keras
             layer_to_repeat = args[0]
             sequence_layer = args[1]
             return keras.layers.RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
@@ -427,13 +428,14 @@ class EncoderDecoder(KERASAlgorithm):
     def loadFrom(self, fileName):
         import h5py
         from keras.models import load_model
+        # import keras
         suffix = ".h5"
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Loading agent: ", fileName)
         # with K.get_session().graph.as_default() as g:
         ### Need to lead the model this way because the learning model's State expects batches...
-        forward_dynamics_net = load_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
-        reward_net = load_model(fileName+"_reward"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
+        forward_dynamics_net = load_model(fileName+"_FD"+suffix)
+        reward_net = load_model(fileName+"_reward"+suffix)
         # if ("simulation_model" in self.getSettings() and
         #     (self.getSettings()["simulation_model"] == True)):
         if (True): ### Because the simulation and learning use different model types (statefull vs stateless lstms...)

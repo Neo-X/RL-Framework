@@ -4,6 +4,7 @@ from theano import tensor as T
 import numpy as np
 # import lasagne
 import sys
+from dill.settings import settings
 sys.path.append('../')
 from model.ModelUtil import *
 from keras.models import Sequential, Model
@@ -476,7 +477,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                         subnet.summary()
                     else:
                         print ("*** net input shape: ", repr(keras.backend.int_shape(network)))
-                        input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(network)[-1]), name="State_Conv")
+                        # input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(network)[-1]), name="State_Conv")
+                        if ("num_terrain_features" in settings
+                            and (settings["num_terrain_features"] > 0)):
+                            input_ = keras.layers.Input(shape=(1, settings["num_terrain_features"]), name="State_Conv")
+                        else:
+                            input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(network)[-1]), name="State_Conv")
                         print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
                         subnet = self.createSubNetwork(input_, layer_sizes[i][2])
                         subnet = Model(inputs=input_, outputs=subnet)
