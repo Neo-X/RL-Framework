@@ -478,11 +478,11 @@ class DeepNNKerasAdaptive(ModelInterface):
                     else:
                         print ("*** net input shape: ", repr(keras.backend.int_shape(network)))
                         # input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(network)[-1]), name="State_Conv")
-                        if ("num_terrain_features" in settings
-                            and (settings["num_terrain_features"] > 0)):
-                            input_ = keras.layers.Input(shape=(1, settings["num_terrain_features"]), name="State_Conv")
-                        else:
-                            input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(network)[-1]), name="State_Conv")
+                        # if ("num_terrain_features" in self._settings
+                        #     and (self._settings["num_terrain_features"] > 0)):
+                        #     input_ = keras.layers.Input(shape=(1, self._settings["num_terrain_features"]), name="State_Conv")
+                        # else:
+                        input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(network)[-1]), name="State_Conv")
                         print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
                         subnet = self.createSubNetwork(input_, layer_sizes[i][2])
                         subnet = Model(inputs=input_, outputs=subnet)
@@ -539,7 +539,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                 networkVel_y = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_y)
                                 network = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(self._taskFeatures)
                         else:    
-                            network = Reshape(self._settings['terrain_shape'])(self._taskFeatures)
+                            network = Reshape(self._settings['terrain_shape'])(network)
                     stride = (1,1)
                     if (len(layer_sizes[i]) > 2):
                         stride = layer_sizes[i][2]
