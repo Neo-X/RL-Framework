@@ -12,6 +12,7 @@ from keras.optimizers import SGD
 import keras.backend as K
 import keras
 from keras.models import Sequential, Model
+from keras.layers import RepeatVector
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -100,7 +101,7 @@ class EncoderDecoder(KERASAlgorithm):
             # import keras
             layer_to_repeat = args[0]
             sequence_layer = args[1]
-            return keras.layers.RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
+            return RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
 
         encoder_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encoder_outputs, state_copy])
         
@@ -428,7 +429,7 @@ class EncoderDecoder(KERASAlgorithm):
     def loadFrom(self, fileName):
         import h5py
         from keras.models import load_model
-        # import keras
+        import keras
         suffix = ".h5"
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Loading agent: ", fileName)
