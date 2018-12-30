@@ -105,6 +105,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         if ("train_LSTM_stateful" in self._settings
             and (self._settings["train_LSTM_stateful"])):
             self._stateful_lstm = True
+        isRNN = False
         ### data types for model
         # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name="State")
         # self._State = keras.layers.Input(shape=(self._state_length,), name="State", batch_shape=(32,self._state_length))
@@ -180,6 +181,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
             self._taskFeatures = self._State
+            isRNN = True
         """
         if (self._settings['num_terrain_features'] > 0):
             inputAct = self._taskFeatures
@@ -205,7 +207,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                       and (self._settings["use_dropout_in_actor"] == True)) ):
                 networkAct = Dropout(rate=self._dropout_p)(networkAct)
             
-            networkAct = self.createSubNetwork(networkAct, layer_sizes)
+            networkAct = self.createSubNetwork(networkAct, layer_sizes, isRNN=isRNN)
             
             # inputAct.trainable = True
             networkAct_ = networkAct
@@ -254,10 +256,11 @@ class DeepNNKerasAdaptive(ModelInterface):
             # print("Actor summary: ", self._actor.summary())
         # self._taskFeatures = self._ResultState
         # self._taskFeatures = self._ResultState
-        
+        isRNN = False
         if (("train_LSTM_Reward" in self._settings)
                 and (self._settings["train_LSTM_Reward"] == True)):
             self._taskFeatures = self._ResultState
+            isRNN = True
             
         layer_sizes = self._settings['critic_network_layer_sizes']
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -288,7 +291,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         if ( self._dropout_p > 0.001 ):
             network = Dropout(rate=self._dropout_p)(network)
         """
-        network = self.createSubNetwork(network, layer_sizes)
+        network = self.createSubNetwork(network, layer_sizes, isRNN=isRNN)
         
             
         if ( "use_single_network" in self._settings and 
@@ -389,10 +392,11 @@ class DeepNNKerasAdaptive(ModelInterface):
         """ 
         # print("Critic summary: ", self._critic.summary())
         
-    def createSubNetwork(self, input, layer_info):
+    def createSubNetwork(self, input, layer_info, isRNN=False):
         
         if (len(keras.backend.int_shape(input)) == 2
-            and (self._settings['num_terrain_features'] > 0)): ### Don't do this for RNNs...
+            and (self._settings['num_terrain_features'] > 0)
+            and (not (isRNN))): ### Don't do this for RNNs...
             if ('split_terrain_input' in self._networkSettings 
                 and self._networkSettings['split_terrain_input']):
                 mid = int((self._settings['num_terrain_features']/3) * 2)
@@ -450,7 +454,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 elif (layer_sizes[i][0] == "Reshape"):
                     network = Reshape(layer_sizes[i][1])(network)
                 elif (layer_sizes[i][0] == "integrate_gan_conditional_cnn"):
-                    subnet = self.createSubNetwork(self._ResultState, layer_sizes[i][1])
+                    subnet = self.createSubNetwork(self._ResultState, layer_sizes[i][1], isRNN=False)
                     # nextStateImg = self._ResultState
                     network = Concatenate()([network, subnet] )
                     
@@ -489,7 +493,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                         # else:
                         input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(network)[-1]), name="State_Conv")
                         print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
-                        subnet = self.createSubNetwork(input_, layer_sizes[i][2])
+                        subnet = self.createSubNetwork(input_, layer_sizes[i][2], isRNN=False)
                         subnet = Model(inputs=input_, outputs=subnet)
                         # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Subnet summary")
@@ -509,7 +513,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     else:
                         input_ = keras.layers.Input(shape=(self._state_length,), name="State_subnet")
                         print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
-                        subnet = self.createSubNetwork(input_, layer_sizes[i][2])
+                        subnet = self.createSubNetwork(input_, layer_sizes[i][2], isRNN=False)
                         subnet = Model(inputs=input_, outputs=subnet)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print("Subnet summary")
@@ -519,7 +523,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
                     
                 elif (layer_sizes[i][0] == "integrate_actor_part"):
-                    subnet_ = self.createSubNetwork(self._actionInput, layer_sizes[i][1])
+                    subnet_ = self.createSubNetwork(self._actionInput, layer_sizes[i][1], isRNN=False)
                     network = Concatenate()([network, subnet_])
                 elif (layer_sizes[i][0] == "max_pool"):
                         network = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
