@@ -84,6 +84,9 @@ def getKerasActivation(type_name):
         print ("Activation type unknown: ", type_name)
         sys.exit()
         
+### It is complicated to serialize lambda functions, better to define a function
+def keras_slice(x, begin,end):
+    return x[:,begin:end]
 
 class DeepNNKerasAdaptive(ModelInterface):
     
@@ -174,33 +177,14 @@ class DeepNNKerasAdaptive(ModelInterface):
             print ("self._stateInput ",  self._stateInput)
         inputAct = self._State
         
-        ### It is complicated to serialize lambda functions, better to define a function
-        def keras_slice(x, begin,end):
-            return x[:,begin:end]
-        if ('split_terrain_input' in self._networkSettings 
-            and self._networkSettings['split_terrain_input']):
-            mid = int((self._settings['num_terrain_features']/3) * 2)
-            velFeatures_x = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
-                              arguments={'begin': 0, 'end': int(mid/2)})(inputAct)
-            velFeatures_y = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
-                              arguments={'begin': int(mid/2), 'end': mid})(inputAct)
-            self._taskFeatures = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
-                              arguments={'begin': mid, 'end': self._settings['num_terrain_features']})(inputAct)
-        else:
-            self._taskFeatures = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
-                              arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(inputAct)
-                              
-        self._characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
-                                   arguments={'begin': self._settings['num_terrain_features'], 
-                                              'end': self._state_length})(inputAct)
-        print ("self._taskFeatures shape: ", repr(keras.backend.int_shape(self._taskFeatures)))
-        
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
             self._taskFeatures = self._State
-        
+        """
         if (self._settings['num_terrain_features'] > 0):
             inputAct = self._taskFeatures
+        """
+            
         self._perform_pooling=False
         if ( "perform_convolution_pooling" in self._networkSettings):
             self._perform_pooling = self._networkSettings["perform_convolution_pooling"]
@@ -406,6 +390,27 @@ class DeepNNKerasAdaptive(ModelInterface):
         # print("Critic summary: ", self._critic.summary())
         
     def createSubNetwork(self, input, layer_info):
+        
+        if (len(keras.backend.int_shape(input)) == 2
+            and (self._settings['num_terrain_features'] > 0)): ### Don't do this for RNNs...
+            if ('split_terrain_input' in self._networkSettings 
+                and self._networkSettings['split_terrain_input']):
+                mid = int((self._settings['num_terrain_features']/3) * 2)
+                velFeatures_x = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
+                                  arguments={'begin': 0, 'end': int(mid/2)})(input)
+                velFeatures_y = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
+                                  arguments={'begin': int(mid/2), 'end': mid})(input)
+                self._taskFeatures = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
+                                  arguments={'begin': mid, 'end': self._settings['num_terrain_features']})(input)
+            else:
+                input = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
+                                  arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(input)
+                                  
+            self._characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
+                                       arguments={'begin': self._settings['num_terrain_features'], 
+                                                  'end': self._state_length})(input)
+            print ("self._taskFeatures shape: ", repr(keras.backend.int_shape(input)))
+            print ("self._characterFeatures shape: ", repr(keras.backend.int_shape(self._characterFeatures)))
         
         network = input
         layer_sizes = layer_info
