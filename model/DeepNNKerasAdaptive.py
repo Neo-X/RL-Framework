@@ -141,7 +141,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if (self._stateful_lstm):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, 
                                                                   self._result_state_length), 
-                                                           batch_shape=(1, 1, self._state_length), name="ResultState")
+                                                           batch_shape=(1, 1, self._state_length), name="ResultState_SIM")
                 else:
                     self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState")
             else:
@@ -180,7 +180,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
-            self._taskFeatures = self._State
+            # self._taskFeatures = self._State
             isRNN = True
         """
         if (self._settings['num_terrain_features'] > 0):
@@ -257,17 +257,20 @@ class DeepNNKerasAdaptive(ModelInterface):
         # self._taskFeatures = self._ResultState
         # self._taskFeatures = self._ResultState
         isRNN = False
-        if (("train_LSTM_Reward" in self._settings)
-                and (self._settings["train_LSTM_Reward"] == True)):
-            self._taskFeatures = self._ResultState
+        network = self._stateInput
+        if (("train_LSTM_Critic" in self._settings)
+                and (self._settings["train_LSTM_Critic"] == True)):
+            # self._taskFeatures = self._ResultState
+            network = self._ResultState
             isRNN = True
             
         layer_sizes = self._settings['critic_network_layer_sizes']
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
             print ("Critic Network layer sizes: ", layer_sizes)
+
+        """
         if ((self._settings['num_terrain_features'] > 0)):
             network = self._taskFeatures
-            
         elif (("use_multimodal_state" in self._settings
               and (self._settings["use_multimodal_state"] == True))
         and (("train_LSTM_Reward" in self._settings)
@@ -276,6 +279,8 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         else:
             network = self._stateInput
+        """
+        
         if ("using_encoder_decoder" in self._settings
             and (self._settings["using_encoder_decoder"] == True)):
             print (self._actor)
@@ -413,8 +418,9 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
                                        arguments={'begin': self._settings['num_terrain_features'], 
                                                   'end': self._state_length})(input)
-            print ("self._taskFeatures shape: ", repr(keras.backend.int_shape(input)))
             print ("self._characterFeatures shape: ", repr(keras.backend.int_shape(self._characterFeatures)))
+        # print ("**********************self._taskFeatures shape: ", repr(keras.backend.int_shape(input)))
+        print ("**********************self._taskFeatures shape: ", repr(input))
         
         network = input
         layer_sizes = layer_info
