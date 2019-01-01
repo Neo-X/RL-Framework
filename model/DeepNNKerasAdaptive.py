@@ -399,6 +399,8 @@ class DeepNNKerasAdaptive(ModelInterface):
         
     def createSubNetwork(self, input, layer_info, isRNN=False):
         
+        network = input
+        
         if (len(keras.backend.int_shape(input)) == 2
             and (self._settings['num_terrain_features'] > 0)
             and (not (isRNN))): ### Don't do this for RNNs...
@@ -412,17 +414,21 @@ class DeepNNKerasAdaptive(ModelInterface):
                 self._taskFeatures = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
                                   arguments={'begin': mid, 'end': self._settings['num_terrain_features']})(input)
             else:
-                input = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
+                network = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
                                   arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(input)
                                   
-            self._characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
+            print ("input: ", repr(input))
+            print ("Number charater features: ", self._state_length-self._settings['num_terrain_features'])
+            print ("self._settings['num_terrain_features']: ", self._settings['num_terrain_features'], " self._state_length: ", self._state_length)
+            _characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
                                        arguments={'begin': self._settings['num_terrain_features'], 
                                                   'end': self._state_length})(input)
-            print ("self._characterFeatures shape: ", repr(keras.backend.int_shape(self._characterFeatures)))
+            print ("*** _characterFeatures shape: ", repr(keras.backend.int_shape(_characterFeatures)))
+            print ("*** _characterFeatures shape: ", repr(_characterFeatures))
+            # sys.exit()
         # print ("**********************self._taskFeatures shape: ", repr(keras.backend.int_shape(input)))
         print ("**********************self._taskFeatures shape: ", repr(input))
         
-        network = input
         layer_sizes = layer_info
         for i in range(len(layer_sizes)):
             self._second_last_layer = network
@@ -644,9 +650,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                 # network = Flatten()(network)
                 if ('split_terrain_input' in self._networkSettings 
                     and self._networkSettings['split_terrain_input']):
-                    network = Concatenate(axis=1)([networkVel_x, networkVel_y, network, self._characterFeatures])
+                    network = Concatenate(axis=1)([networkVel_x, networkVel_y, network, _characterFeatures])
                 else:
-                    network = Concatenate(axis=1)([network, self._characterFeatures])
+                    network = Concatenate(axis=1)([network, _characterFeatures])
             elif ( layer_sizes[i] == "flatten_features"):
                     network = Flatten()(network)
                     if ('split_terrain_input' in self._networkSettings 

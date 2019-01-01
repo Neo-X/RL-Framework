@@ -761,7 +761,7 @@ class SiameseNetwork(KERASAlgorithm):
         if (("train_LSTM_Reward" in self._settings)
             and (self._settings["train_LSTM_Reward"] == True)):
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
-            print ("State shape: ", np.array([np.array([state])]).shape)
+            # print ("State shape: ", np.array([np.array([state])]).shape)
             h_a = self._model.processed_a_r.predict([np.array([state])])
             h_b = self._model.processed_b_r.predict([np.array([state2])])
             reward_ = euclidean_distance_np((h_a, h_b))[0]
