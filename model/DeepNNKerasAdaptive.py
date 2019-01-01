@@ -486,6 +486,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     if ("fd" == layer_sizes[i][2]):
                         subnet = self._actor
                         print ("self._State_backup: ", self._State_backup)
+                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(self._State_backup)))
                         subnet = Model(inputs=self._State_backup, outputs=subnet)
                         #if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Subnet summary")
