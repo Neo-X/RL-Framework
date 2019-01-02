@@ -51,6 +51,8 @@ class PPO_KERAS(KERASAlgorithm):
         super(PPO_KERAS,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         
         print ("PPO_KERAS: created models")
+        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
+        
         # self._modelTarget = model
         self._learning_rate = self.getSettings()['learning_rate']
         self._discount_factor= self.getSettings()['discount_factor']
@@ -84,12 +86,22 @@ class PPO_KERAS(KERASAlgorithm):
         self._model._actor = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=[self._model._actor])
         if (print_info):
             print("Actor summary: ", self._model._actor_train.summary())
-        self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=[self._model._critic])
+            
+        if ("force_use_result_state_for_critic" in self._settings
+            and (self._settings["force_use_result_state_for_critic"] == True)):
+            inputs_ = [self._model.getResultStateSymbolicVariable()]
+            inputs_target = [self._modelTarget.getResultStateSymbolicVariable()]
+        else:
+            inputs_ = [self._model.getStateSymbolicVariable()]
+            inputs_target = [self._modelTarget.getStateSymbolicVariable()]
+            
+        print ("critic input: ", repr(inputs_))
+        print ("critic inputs_target: ", repr(inputs_target))
+        self._model._critic = Model(inputs=inputs_, outputs=[self._model._critic])
         if (print_info):
             print("Critic summary: ", self._model._critic.summary())
         ## Target network
         # self._modelTarget = copy.deepcopy(model)
-        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         input_Target = [self._modelTarget.getStateSymbolicVariable(),
                  self._PoliAction,
                  self._Advantage,
@@ -98,7 +110,7 @@ class PPO_KERAS(KERASAlgorithm):
         self._modelTarget._actor = Model(inputs=[self._modelTarget.getStateSymbolicVariable()], outputs=[self._modelTarget._actor])
         if (print_info):
             print("Target Actor summary: ", self._modelTarget._actor.summary())
-        self._modelTarget._critic = Model(inputs=[self._modelTarget.getStateSymbolicVariable()], outputs=[self._modelTarget._critic])
+        self._modelTarget._critic = Model(inputs=inputs_target, outputs=[self._modelTarget._critic])
         if (print_info):
             print("Target Critic summary: ", self._modelTarget._critic.summary())
         
