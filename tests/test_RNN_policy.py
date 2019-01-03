@@ -16,7 +16,7 @@ class TestPPO(object):
         """
         Test that PPO can still learn a good policy on 2d particle sim
         """
-        filename = "settings/particleSim/PPO/PPO_KERAS_LSTM.json"
+        filename = "tests/settings/particleSim/PPO/RNNPolicy_5D.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -31,12 +31,11 @@ class TestPPO(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -0.5
     
-    # @pytest.mark.timeout(600)    
-    def test_ppo_keras_tensorflow_particleNav_2D_stochastic_policy(self):
-        """
+    def test_ppo_keras_tensorflow_particleNav_2D_lstm_critic(self):
+        """u
         Test that PPO can still learn a good policy on 2d particle sim
         """
-        filename = "tests/settings/particleSim/PPO/PPO_KERAS_Tensorflow_stochasticPoli.json"
+        filename = "tests/settings/particleSim/PPO/RNNCritic_5D.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -49,125 +48,7 @@ class TestPPO(object):
         settings['rollouts'] = 4
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        
-    # @pytest.mark.timeout(600)    
-    def test_ppo_keras_tensorflow_SingleNet_particleNav_2D(self):
-        """
-        Test that PPO can still learn a good policy on 2d particle sim
-        """
-        filename = "tests/settings/particleSim/PPO/PPO_KERAS_SingleNet_Tensorflow.json"
-        file = open(filename)
-        settings = json.load(file)
-        file.close()
-        this_function_name = sys._getframe().f_code.co_name
-        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
-        settings['visualize_learning'] = False
-        settings['shouldRender'] = False
-        settings['print_level'] = 'testing_sim'
-        # settings['rounds'] = 2
-        settings['rollouts'] = 4
-        simData = trainModelParallel((filename, settings))
-        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        assert np.mean(simData['mean_reward'][-5:]) > -0.5
-    
-    # @pytest.mark.timeout(600)    
-    def test_ppo_keras_tensorflow_SingleNet_STD_Policy_particleNav_2D(self):
-        """
-        Test that PPO can still learn a good policy on 2d particle sim
-        """
-        filename = "tests/settings/particleSim/PPO/PPO_KERAS_SingleNet_Tensorflow_stochastic_policy.json"
-        file = open(filename)
-        settings = json.load(file)
-        file.close()
-        this_function_name = sys._getframe().f_code.co_name
-        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
-        settings['visualize_learning'] = False
-        settings['shouldRender'] = False
-        settings['print_level'] = 'testing_sim'
-        # settings['rounds'] = 2
-        settings['rollouts'] = 4
-        simData = trainModelParallel((filename, settings))
-        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        assert np.mean(simData['mean_reward'][-5:]) > -0.5
-    """
-    # @pytest.mark.timeout(600)   
-    def test_ppo_keras_tensorflow_particleNav_10D(self):
-        
-        ## Test that PPO can still learn a good policy on 2d particle sim
-        
-        filename = "tests/settings/particleSim/PPO/PPO_KERAS_Tensorflow_10D.json"
-        file = open(filename)
-        settings = json.load(file)
-        file.close()
-        settings['visualize_learning'] = False
-        settings['shouldRender'] = False
-        settings['print_level'] = 'testing_sim'
-        simData = trainModelParallel((filename, settings))
-        # settings['rounds'] = 2
-        settings['rollouts'] = 4
-        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        assert np.mean(simData['mean_reward'][-5:]) > -0.5
-    """
-    # @pytest.mark.timeout(600)   
-    def test_ppo_keras_tensorflow_stochastic_policy_particleNav_10D(self):
-        """
-        Test that PPO can still learn a good policy on 2d particle sim
-        """
-        filename = "tests/settings/particleSim/PPO/PPO_KERAS_Tensorflow_10D_StochasticPolicy.json"
-        file = open(filename)
-        settings = json.load(file)
-        file.close()
-        this_function_name = sys._getframe().f_code.co_name
-        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
-        settings['visualize_learning'] = False
-        settings['shouldRender'] = False
-        settings['print_level'] = 'testing_sim'
-        # settings['rounds'] = 2
-        settings['rollouts'] = 4
-        simData = trainModelParallel((filename, settings))
-        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        assert np.mean(simData['mean_reward'][-5:]) > -0.5
-    
-    # @pytest.mark.timeout(600)    
-    def test_ppo_keras_tensorflow_SingleNet_particleNav_10D(self):
-        """
-        Test that PPO can still learn a good policy on 2d particle sim
-        """
-        filename = "tests/settings/particleSim/PPO/PPO_KERAS_SingleNet_Tensorflow_10D.json"
-        file = open(filename)
-        settings = json.load(file)
-        file.close()
-        this_function_name = sys._getframe().f_code.co_name
-        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
-        settings['visualize_learning'] = False
-        settings['shouldRender'] = False
-        settings['print_level'] = 'testing_sim'
-        # settings['rounds'] = 2
-        settings['rollouts'] = 4
-        simData = trainModelParallel((filename, settings))
-        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        assert np.mean(simData['mean_reward'][-5:]) > -0.5
-    
-    # @pytest.mark.timeout(600)    
-    def test_ppo_keras_tensorflow_SingleNet_STD_Policy_particleNav_10D(self):
-        """
-        Test that PPO can still learn a good policy on 2d particle sim
-        """
-        filename = "tests/settings/particleSim/PPO/PPO_KERAS_SingleNet_Tensorflow_10D_Stochastic_Policy.json"
-        file = open(filename)
-        settings = json.load(file)
-        file.close()
-        this_function_name = sys._getframe().f_code.co_name
-        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
-        settings['visualize_learning'] = False
-        settings['shouldRender'] = False
-        settings['print_level'] = 'testing_sim'
-        # settings['rounds'] = 2
-        settings['rollouts'] = 4
-        simData = trainModelParallel((filename, settings))
-        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        assert np.mean(simData['mean_reward'][-5:]) > -0.5    
+        assert np.mean(simData['mean_reward'][-5:]) > -0.5 
 
             
 

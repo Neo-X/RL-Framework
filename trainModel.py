@@ -683,6 +683,9 @@ def trainModelParallel(inputData):
                     ("fd_use_multimodal_state" in settings
                      and (settings["fd_use_multimodal_state"] == True))):
                     state_size__ = settings["fd_num_terrain_features"] + settings["dense_state_size"]
+                    if ("append_camera_velocity_state" in settings 
+                        and (settings["append_camera_velocity_state"] == True)):
+                        state_size__ = state_size__ + 2
                     experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 
                                                     continuous_actions=True, settings = settings)
                     state_bounds__ = np.array([[0] * (state_size__), 
@@ -800,8 +803,12 @@ def trainModelParallel(inputData):
                          and (settings["fd_use_multimodal_state"] == True))
                     ):
                     print ("Creating multi modal state size****")
-                    state_bounds__ = [[0] * (settings["fd_num_terrain_features"] + settings["dense_state_size"]), 
-                                 [1] * (settings["fd_num_terrain_features"] + settings["dense_state_size"])]
+                    state_size__ = settings["fd_num_terrain_features"] + settings["dense_state_size"]
+                    if ("append_camera_velocity_state" in settings 
+                        and (settings["append_camera_velocity_state"] == True)):
+                        state_size__ = state_size__ + 2
+                    state_bounds__ = [[0] * (state_size__), 
+                                 [1] * (state_size__)]
                     forwardDynamicsModel.setStateBounds(state_bounds__)
                     forwardDynamicsModel.setActionBounds(action_bounds)
                     forwardDynamicsModel.setRewardBounds(reward_bounds)
