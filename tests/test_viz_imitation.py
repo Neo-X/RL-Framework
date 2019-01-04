@@ -1,4 +1,4 @@
-from nose.tools import timed
+# from nose.tools import timed
 from numpy.testing import assert_allclose
 import numpy as np
 import pytest
@@ -117,6 +117,6 @@ class TestVizImitation(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert not (simData is None)
-    """
+
 if __name__ == '__main__':
     pytest.main([__file__])
