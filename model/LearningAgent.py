@@ -357,7 +357,7 @@ class LearningAgent(AgentInterface):
                     if (("train_LSTM_FD" in self._settings)
                         and (self._settings["train_LSTM_FD"] == True)):
                         for e in range(updates___):   
-                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm_fd, 
+                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm_fd, self.getFDExperience().samplesTrajectory()), 
                                                                                                                                                                   randomLength=use_random_sequence_length_for_lstm,
                                                                                                                                                                   randomStart=use_random_sequence_length_for_lstm)
                             dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_)
@@ -371,7 +371,7 @@ class LearningAgent(AgentInterface):
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                     print ("Additional Multi-task training fd: ")
                             for e in range(updates___):   
-                                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=(batch_size_lstm_fd), 
+                                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm_fd, self.getFDExperience().samplesTrajectory()), 
                                                                                                                                                                   randomLength=use_random_sequence_length_for_lstm,
                                                                                                                                                                   randomStart=use_random_sequence_length_for_lstm)
                                 dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_, falls=fall_)
@@ -382,7 +382,7 @@ class LearningAgent(AgentInterface):
                         and (self._settings["train_LSTM_Reward"] == True)):
                         
                         for e in range(updates___):   
-                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm_fd, 
+                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm_fd, self.getFDExperience().samplesTrajectory()), 
                                                                                                                                                                   randomLength=use_random_sequence_length_for_lstm,
                                                                                                                                                                   randomStart=use_random_sequence_length_for_lstm)
                             dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_)
@@ -396,7 +396,7 @@ class LearningAgent(AgentInterface):
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Additional Multi-task reward training : ")
                             for e in range(updates___):   
-                                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=(batch_size_lstm_fd), 
+                                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = self.getFDExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm_fd, self.getFDExperience().samplesTrajectory()), 
                                                                                                                                                                   randomLength=use_random_sequence_length_for_lstm,
                                                                                                                                                                   randomStart=use_random_sequence_length_for_lstm)
                                 dynamicsLoss = self._fd.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_, falls=fall_)
