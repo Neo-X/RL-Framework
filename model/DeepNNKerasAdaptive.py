@@ -420,7 +420,15 @@ class DeepNNKerasAdaptive(ModelInterface):
             print ("input: ", repr(input))
             print ("Number charater features: ", self._state_length-self._settings['num_terrain_features'])
             print ("self._settings['num_terrain_features']: ", self._settings['num_terrain_features'], " self._state_length: ", self._state_length)
-            _characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
+            
+            if ("fd_use_multimodal_state" in self._settings
+                and (self._settings["fd_use_multimodal_state"] == True)):
+                ### Pull out just cam velocity features
+                _characterFeatures = Lambda(keras_slice, output_shape=((self._state_length - self._settings["dense_state_size"])-self._settings['num_terrain_features'],),
+                                       arguments={'begin': self._settings['num_terrain_features'], 
+                                                  'end': self._state_length - self._settings["dense_state_size"]})(input)
+            else:
+                _characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
                                        arguments={'begin': self._settings['num_terrain_features'], 
                                                   'end': self._state_length})(input)
             print ("*** _characterFeatures shape: ", repr(keras.backend.int_shape(_characterFeatures)))
