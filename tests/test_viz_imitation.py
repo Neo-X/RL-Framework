@@ -12,7 +12,7 @@ class TestVizImitation(object):
     
     # @pytest.mark.timeout(600)
     def test_viz_state_normal_reward(self):
-        filename = "tests/settings/projectileGame/PPO/Viz_State_Normal_Reward.json"
+        filename = "settings/projectileGame/CACLA/Viz_State_Learning_Imitation_Reward.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -28,10 +28,9 @@ class TestVizImitation(object):
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert not (simData is None)
     
-    """
     # @pytest.mark.timeout(600)    
     def test_viz_imitation(self):
-        filename = "tests/settings/projectileGame/PPO/Viz_Imitation.json"
+        filename = "tests/settings/projectileGame/DDPG/Viz_Imitation.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -64,8 +63,9 @@ class TestVizImitation(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert not (simData is None)
+        
+    ### TODO: I should put a 3 frame version in here as well
 
-      
     # @pytest.mark.timeout(600)
     def test_viz_state_32x32_LSTM_Siamese(self):
         filename = "tests/settings/projectileGame/CACLA/Imitation_Learning_Viz_32x32_1Sub_LSTM_FD_Reward_Encode.json"
@@ -102,7 +102,7 @@ class TestVizImitation(object):
         assert not (simData is None)
         
     def test_viz_state_32x32_encoder_decoder_lstm(self):
-        filename = "settings/projectileGame/CACLA/Imitation_Learning_Imitation_Dense_Reward_LSTM_EncoderDecoder.json"
+        filename = "tests/settings/projectileGame/CACLA/Imitation_Learning_Imitation_Dense_Reward_LSTM_EncoderDecoder.json"
         file = open(filename)
         settings = json.load(file)
         file.close()

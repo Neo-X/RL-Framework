@@ -588,12 +588,13 @@ class SiameseNetwork(KERASAlgorithm):
             results_states can come from the imitation agent
         """
         self.reset()
+        states_ = states
         if ('anneal_learning_rate' in self.getSettings()
             and (self.getSettings()['anneal_learning_rate'] == True)):
             K.set_value(self._model._forward_dynamics_net.optimizer.lr, np.float32(self.getSettings()['fd_learning_rate']) * p)
         if ("replace_next_state_with_imitation_viz_state" in self.getSettings()
             and (self.getSettings()["replace_next_state_with_imitation_viz_state"] == True)):
-            states_ = np.concatenate((states, result_states), axis=0)
+            states_ = np.concatenate((states_, result_states), axis=0)
         if (((("train_LSTM_FD" in self._settings)
                 and (self._settings["train_LSTM_FD"] == True))
             or

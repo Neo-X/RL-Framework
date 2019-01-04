@@ -411,7 +411,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                   arguments={'begin': 0, 'end': int(mid/2)})(input)
                 velFeatures_y = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
                                   arguments={'begin': int(mid/2), 'end': mid})(input)
-                self._taskFeatures = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
+                network = Lambda(keras_slice, output_shape=(int(self._settings['num_terrain_features']/3),),
                                   arguments={'begin': mid, 'end': self._settings['num_terrain_features']})(input)
             else:
                 network = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
@@ -560,18 +560,18 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                      padding=layer_sizes[i][4])(network)
                 elif ( len(layer_sizes[i][1])> 1 ):
                     if (i == 0):
-                        print ("create self._taskFeatures shape: ", repr(keras.backend.int_shape(self._taskFeatures)))
+                        print ("create self._taskFeatures shape: ", repr(keras.backend.int_shape(network)))
                         if ('split_terrain_input' in self._networkSettings 
                         and self._networkSettings['split_terrain_input']):
                             if ("image_data_format" in self._networkSettings 
                                 and (self._networkSettings["image_data_format"] == "channels_first")):
                                 networkVel_x = Reshape((1, self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(velFeatures_x)
                                 networkVel_y = Reshape((1, self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(velFeatures_y)
-                                network = Reshape((1, self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(self._taskFeatures)
+                                network = Reshape((1, self._settings['terrain_shape'][1], self._settings['terrain_shape'][2]))(network)
                             else:
                                 networkVel_x = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_x)
                                 networkVel_y = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(velFeatures_y)
-                                network = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(self._taskFeatures)
+                                network = Reshape((self._settings['terrain_shape'][0], self._settings['terrain_shape'][1], 1))(network)
                         else:    
                             network = Reshape(self._settings['terrain_shape'])(network)
                     stride = (1,1)
