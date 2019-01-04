@@ -6,7 +6,11 @@ python3 -m pytest tests/
 
 To speed things up and use a lot more memory you can multi process the testing with
 ```
-python3 -m pytest tests/ -n<number_of_processes_to_use>
+python3 -m pytest <test_file_path> -n <number_of_processes_to_use> --junitxml= <name_for_test_output_xml>
+```
+example:
+```
+python3 -m pytest tests/test_viz_imitation.py -n 4 --junitxml=text_viz.xml
 ```
 
 ### Dependancies
