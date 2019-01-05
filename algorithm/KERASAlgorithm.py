@@ -155,6 +155,9 @@ class KERASAlgorithm(AlgorithmInterface):
                             y_[j][k] = state___ ### Reducing dimensionality of targets
                     target = rewards + ((self._discount_factor * np.array(y_)))
                     target = ( target + G_t ) / 2.0
+                if ('dont_use_td_learning' in self.getSettings() 
+                    and self.getSettings()['dont_use_td_learning'] == "only_G"):
+                    target = G_t
                 else:
                     y_ = np.zeros((rewards.shape))
                     for k in range(result_states.shape[1]):

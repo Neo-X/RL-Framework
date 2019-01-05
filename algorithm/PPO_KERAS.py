@@ -120,9 +120,16 @@ class PPO_KERAS(KERASAlgorithm):
         
     def compile(self):
         # sgd = SGD(lr=0.001, momentum=0.9)
-        
-        self.__value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
-        self.__value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
+        if ("force_use_result_state_for_critic" in self._settings
+            and (self._settings["force_use_result_state_for_critic"] == True)):
+            inputs_ = [self._model.getResultStateSymbolicVariable()]
+            inputs_target = [self._modelTarget.getResultStateSymbolicVariable()]
+        else:
+            inputs_ = [self._model.getStateSymbolicVariable()]
+            inputs_target = [self._modelTarget.getStateSymbolicVariable()]
+        print ("self._model.getStateSymbolicVariable(): ", repr(self._model.getStateSymbolicVariable()))
+        self.__value = self._model.getCriticNetwork()(inputs_)
+        self.__value_Target = self._modelTarget.getCriticNetwork()(inputs_target)
         
         _target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self.__value_Target)
         self._loss = K.mean(0.5 * (self.__value - _target) ** 2)
@@ -331,14 +338,22 @@ class PPO_KERAS(KERASAlgorithm):
                                   )
         
         gradients = K.gradients(K.mean(self.__value), [self._model.getStateSymbolicVariable()]) # gradient tensors
-        self._get_gradients = K.function(inputs=[self._model.getStateSymbolicVariable(),  K.learning_phase()], outputs=gradients)
+        # self._get_gradients = K.function(inputs=[self._model.getStateSymbolicVariable(),  K.learning_phase()], outputs=gradients)
         
-        self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
+        if ("force_use_result_state_for_critic" in self._settings
+            and (self._settings["force_use_result_state_for_critic"] == True)):
+            inputs_ = [self._model.getResultStateSymbolicVariable(), K.learning_phase()]
+            inputs_target = [self._modelTarget.getResultStateSymbolicVariable(), K.learning_phase()]
+        else:
+            inputs_ = [self._model.getStateSymbolicVariable(), K.learning_phase()]
+            inputs_target = [self._modelTarget.getStateSymbolicVariable(), K.learning_phase()]
+            
+        self._value = K.function(inputs_, [self.__value])
         if ("use_target_net_for_critic" in self.getSettings() and
             (self.getSettings()["use_target_net_for_critic"] == False)):
             self._value_Target = self._value
         else:
-            self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
+            self._value_Target = K.function(inputs_target, [self.__value_Target])
             
         self._action_Target = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self._q_valsActTarget_State])        
         self._policy_mean = K.function([self._model.getStateSymbolicVariable(), 

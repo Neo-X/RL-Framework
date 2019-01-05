@@ -1089,8 +1089,10 @@ def trainModelParallel(inputData):
                     states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
                     masterAgent.reset()
-                    if (("train_LSTM" in settings)
-                        and (settings["train_LSTM"] == True)):
+                    if ((("train_LSTM" in settings)
+                        and (settings["train_LSTM"] == True))
+                        or (("train_LSTM_Critic" in settings)
+                        and (settings["train_LSTM_Critic"] == True))):
                         batch_size_lstm = 4
                         if ("lstm_batch_size" in settings):
                             batch_size_lstm = settings["lstm_batch_size"][1]

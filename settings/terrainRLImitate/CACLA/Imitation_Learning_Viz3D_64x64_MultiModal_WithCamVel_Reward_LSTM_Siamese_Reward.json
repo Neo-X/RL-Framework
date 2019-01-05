@@ -429,5 +429,7 @@
 	"comment__": "A list describing the size of the layers for the ssecond FD NN",
 "fd2_network_layer_sizes": [ ["Dense", 256, "leaky_rectify"], ["dropout", 0.2], ["Dense", 128, "leaky_rectify"], ["dropout", 0.2], ["Dense", 64, "linear", 0.002]],
 		"comment__": "Add velocity state to image state",
-"append_camera_velocity_state": true
+"append_camera_velocity_state": true,
+	"comment__": "pretrain the fd model",
+"pretrain_fd": 20
 }
