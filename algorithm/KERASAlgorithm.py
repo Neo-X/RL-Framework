@@ -186,9 +186,9 @@ class KERASAlgorithm(AlgorithmInterface):
                     loss_.append(np.mean(score.history['loss']))
             else:
                 # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
-                score = self._model.getCriticNetwork().fit([states], [targets__],
+                score = self._model.getCriticNetwork().fit([states], [G_t],
                               epochs=1, 
-                              batch_size=sequences0.shape[0],
+                              batch_size=states.shape[0],
                               verbose=0
                               )
                 loss_.append(np.mean(score.history['loss']))
@@ -322,11 +322,17 @@ class KERASAlgorithm(AlgorithmInterface):
             # states = np.array([states], dtype=self._settings['float_type'])
             values = []
             self.reset()
+            ##if ("train_LSTM_stateful" in self._settings
+            ##    and (self._settings["train_LSTM_stateful"] == True)):
             for s in states:
                 s_ = np.array([np.array([s])])
                 # print ("s shape: ", s_.shape)
                 values.append(self._model.getCriticNetwork().predict([s_]))
             return values
+            # else:
+            #     values = self._model.getCriticNetwork().predict(states)
+            #     print ("values shape: ", repr(np.array(values).shape))
+            #     return values
         # print("states: ", repr(states))
         values = self._model.getCriticNetwork().predict(states)
         # values = self._value([states,0])[0]
@@ -341,12 +347,18 @@ class KERASAlgorithm(AlgorithmInterface):
             ### This is a trajectory
             # states = np.array([states], dtype=self._settings['float_type'])
             values = []
-            self._model.reset()
+            self.reset()
+            # if ("train_LSTM_stateful" in self._settings
+            #     and (self._settings["train_LSTM_stateful"] == True)):
             for s in states:
                 s_ = np.array([np.array([s])])
                 # print ("s shape: ", s_.shape)
                 values.append(self._model.getCriticNetwork().predict([s_]))
             return values
+            # else:
+            #     values = self._model.getCriticNetwork().predict(np.array([states]))
+            #     print ("values shape: ", repr(np.array(values).shape))
+            #     return values
         # print("states: ", repr(states))
         values = self._model.getCriticNetwork().predict(states)
         # values = self._value([states,0])[0]

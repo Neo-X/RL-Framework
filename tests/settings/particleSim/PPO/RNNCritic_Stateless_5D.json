@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "ParticleGame_5D-v0/RNNCritic_6",
+"data_folder": "ParticleGame_5D-v0/RNNCritic_Stateless_0",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -269,7 +269,7 @@
 	"comment__": "Use the annealing schedule in on policy learning",
 "anneal_on_policy": true,
 	"comment__": "A list describing the size of the layers for the NN",
-"critic_network_layer_sizes": [["TimeDistributed", [1, 1, 49], [64, 32]], ["GRU", 256, 32, 0.1], 32],
+"critic_network_layer_sizes": [["TimeDistributed", [1, 1, 49], [64, 32]], ["GRU", 256, 32, 0.1, true], 32],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [64, 32],
 	"comment__": "Activation function to use for the std part of the policy",
@@ -402,6 +402,6 @@
 	"comment__": "Train the value function using an LSTM network",
 "train_LSTM_Critic": true,
 	"comment__": "Use a stateful LSTM for value function/policy",
-"train_LSTM_stateful": true,
+"train_LSTM_stateful": false,
 "force_use_result_state_for_critic": true
 }
