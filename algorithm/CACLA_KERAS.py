@@ -25,17 +25,24 @@ class CACLA_KERAS(KERASAlgorithm):
         
         ## primary network
         ## primary network
-        self._model = model
-        self._model._actor = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._actor)
-        print("Actor summary: ", self._model._actor.summary())
-        self._model._critic = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._critic)
-        print("Critic summary: ", self._model._critic.summary())
         ## Target network
         # self._modelTarget = copy.deepcopy(model)
         self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
+        if ("force_use_result_state_for_critic" in self._settings
+            and (self._settings["force_use_result_state_for_critic"] == True)):
+            inputs_ = [self._model.getResultStateSymbolicVariable()]
+            inputs_target = [self._modelTarget.getResultStateSymbolicVariable()]
+        else:
+            inputs_ = [self._model.getStateSymbolicVariable()]
+            inputs_target = [self._modelTarget.getStateSymbolicVariable()]
+        self._model = model
+        self._model._actor = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._actor)
+        print("Actor summary: ", self._model._actor.summary())
+        self._model._critic = Model(inputs=inputs_, outputs=self._model._critic)
+        print("Critic summary: ", self._model._critic.summary())
         self._modelTarget._actor = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._actor)
         print("Target Actor summary: ", self._modelTarget._actor.summary())
-        self._modelTarget._critic = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._critic)
+        self._modelTarget._critic = Model(inputs=inputs_target, outputs=self._modelTarget._critic)
         print("Target Critic summary: ", self._modelTarget._critic.summary())
         # print ("Loss ", self._model.getActorNetwork().total_loss)
         
@@ -67,6 +74,14 @@ class CACLA_KERAS(KERASAlgorithm):
         
     def compile(self):
         
+        if ("force_use_result_state_for_critic" in self._settings
+            and (self._settings["force_use_result_state_for_critic"] == True)):
+            inputs_ = [self._model.getResultStateSymbolicVariable()]
+            inputs_target = [self._modelTarget.getResultStateSymbolicVariable()]
+        else:
+            inputs_ = [self._model.getStateSymbolicVariable()]
+            inputs_target = [self._modelTarget.getStateSymbolicVariable()]
+        
         self._q_valsActA = self._model.getActorNetwork()(self._model._stateInput)
         self._q_valsActTarget = self._modelTarget.getActorNetwork()(self._model._stateInput)
         self._q_valsActASTD = ( K.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
@@ -79,16 +94,24 @@ class CACLA_KERAS(KERASAlgorithm):
         self._actor_buffer_falls=[]
         self._actor_buffer_diff=[]
         
-        self.__value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
-        self.__value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
+        self.__value = self._model.getCriticNetwork()(inputs_)
+        self.__value_Target = self._modelTarget.getCriticNetwork()(inputs_target)
         
         _target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self.__value_Target)
         self._loss = K.mean(0.5 * (self.__value - _target) ** 2)
         
-        self._q_action_std = K.function([self._model._stateInput,  K.learning_phase()], [self._q_valsActASTD])
+        if ("force_use_result_state_for_critic" in self._settings
+            and (self._settings["force_use_result_state_for_critic"] == True)):
+            inputs_ = [self._model.getResultStateSymbolicVariable(), K.learning_phase()]
+            inputs_target = [self._modelTarget.getResultStateSymbolicVariable(), K.learning_phase()]
+        else:
+            inputs_ = [self._model.getStateSymbolicVariable(), K.learning_phase()]
+            inputs_target = [self._modelTarget.getStateSymbolicVariable(), K.learning_phase()]
         
-        gradients = K.gradients(K.mean(self.__value), [self._model._stateInput]) # gradient tensors
-        self._get_gradients = K.function(inputs=[self._model._stateInput,  K.learning_phase()], outputs=gradients)
+        self._q_action_std = K.function([self._model.getStateSymbolicVariable()], [self._q_valsActASTD])
+        
+        gradients = K.gradients(K.mean(self.__value), [inputs_[0]]) # gradient tensors
+        self._get_gradients = K.function(inputs=inputs_, outputs=gradients)
         
         if (self.getSettings()["regularization_weight"] > 0.0000001):
             self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
@@ -108,8 +131,8 @@ class CACLA_KERAS(KERASAlgorithm):
                                             self._model.getResultStateSymbolicVariable(),
                                             K.learning_phase()], [self._loss])
         
-        self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
-        self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
+        self._value = K.function(inputs_, [self.__value])
+        self._value_Target = K.function(inputs_target, [self.__value_Target])
         
     def trainActor(self, states, actions, rewards, result_states, falls, advantage,
                     exp_actions=None, G_t=[[0]], forwardDynamicsModel=None, p=1.0, updates=1, batch_size=None):
@@ -123,8 +146,12 @@ class CACLA_KERAS(KERASAlgorithm):
             and (self.getSettings()['anneal_learning_rate'] == True)):
             K.set_value(self._model.getActorNetwork().optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
             
-        if ( 'CACLA_use_advantage' in self.getSettings() 
-             and (self.getSettings()['CACLA_use_advantage'] == True)):
+        if ( ('CACLA_use_advantage' in self.getSettings() 
+             and (self.getSettings()['CACLA_use_advantage'] == True))
+            or 
+            ('train_LSTM_Critic' in self.getSettings() 
+             and (self.getSettings()['train_LSTM_Critic'] == True))
+            ):
             # print ("Using advantage for CACLA")
             diff_ = advantage
         else:
@@ -191,20 +218,6 @@ class CACLA_KERAS(KERASAlgorithm):
         
         return lossActor
     
-    
-    def bellman_error(self, states, actions, rewards, result_states, falls):
-        """
-            Computes the one step temporal difference.
-        """
-        y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
-        target_ = rewards + ((self._discount_factor * y_))
-        if self._settings['on_policy']:
-            values =  self._modelTarget.getCriticNetwork().predict(states, batch_size=states.shape[0])
-        else:
-            values =  self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-        bellman_error = target_ - values
-        return bellman_error
-        # return self._bellman_errorTarget()
         
     def trainDyna(self, predicted_states, actions, rewards, result_states, falls):
         """

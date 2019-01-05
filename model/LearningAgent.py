@@ -930,6 +930,9 @@ class LearningAgent(AgentInterface):
         return q
     
     def q_values2(self, state):
+        """
+            Input: state, non-normalized states from environment
+        """
         if self._useLock:
             self._accesLock.acquire()
         if ("use_dual_state_representations" in self.getSettings()
@@ -943,7 +946,7 @@ class LearningAgent(AgentInterface):
                 state = [state[0][0]]
             else:
                 state = [state[0][0]]
-        q = self._pol.q_values(state)
+        q = self._pol.q_values2(state)
         if self._useLock:
             self._accesLock.release()
         return q

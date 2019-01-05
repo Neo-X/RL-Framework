@@ -312,7 +312,7 @@ class KERASAlgorithm(AlgorithmInterface):
         # return self._q_val()[0]
         
     def q_values2(self, states, wrap=True):
-        ### These versions are normalized
+        ### These versions of states are normalized
         states = norm_state(states, self._state_bounds)
         states = np.array(states, dtype=self._settings['float_type'])
         if (("train_LSTM_Critic" in self._settings)
@@ -327,14 +327,16 @@ class KERASAlgorithm(AlgorithmInterface):
             for s in states:
                 s_ = np.array([np.array([s])])
                 # print ("s shape: ", s_.shape)
-                values.append(self._model.getCriticNetwork().predict([s_]))
+                value = (self._model.getCriticNetwork().predict([s_]) * action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+                values.append(value)
             return values
             # else:
             #     values = self._model.getCriticNetwork().predict(states)
             #     print ("values shape: ", repr(np.array(values).shape))
             #     return values
         # print("states: ", repr(states))
-        values = self._model.getCriticNetwork().predict(states)
+        values = (self._model.getCriticNetwork().predict(states) * action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        # values = self._model.getCriticNetwork().predict(states)
         # values = self._value([states,0])[0]
         # print ("values: ", repr(np.array(values)))
         return values
@@ -372,6 +374,45 @@ class KERASAlgorithm(AlgorithmInterface):
         state = norm_state(state, self._state_bounds)
         self._model.setStates(state)
         return scale_reward(self._q_val_drop() * action_bound_std(self.getRewardBounds()))
+    
+    def bellman_error(self, states, actions, rewards, result_states, falls):
+        """
+            Computes the one step temporal difference.
+        """
+        if (("train_LSTM_Critic" in self._settings)
+            and (self._settings["train_LSTM_Critic"] == True)):
+            self.reset()
+            loss_ = []
+            if ("train_LSTM_stateful" in self._settings
+                and (self._settings["train_LSTM_stateful"] == True)
+                ):
+                y_ = np.zeros((rewards.shape))
+                v_ = np.zeros((rewards.shape))
+                for k in range(result_states.shape[1]):
+                    x0 = np.array(states[:,[k]])
+                    x1 = np.array(result_states[:,[k]])
+                    v__ = self._value([x0,0])[0]
+                    y__ = self._value_Target([x1, 0])[0]
+                    # print ("y__: ", y__)
+                    for j in range(result_states.shape[0]): 
+                        v_[j][k] = v__[j] ### Reducing dimensionality of targets
+                        y_[j][k] = y__[j] ### Reducing dimensionality of targets
+                
+                targets_ = rewards + ((self._discount_factor * y_))
+                # bellman_error = np.mean(targets_ - v_)
+                bellman_error = np.mean(np.fabs(targets_ - v_), axis=0)
+                # print ("bellman_error: ", bellman_error)
+                return bellman_error
+        else:
+            y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
+            # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
+            # target_ = rewards + ((self._discount_factor * y_) * falls)
+            target_ = rewards + ((self._discount_factor * y_))
+            # values =  self._model.getValueFunction().predict(states, batch_size=states.shape[0])
+            values = self._value([states,0])[0]
+            bellman_error = target_ - values
+            return bellman_error
+        # return self._bellman_errorTarget()
         
     def saveTo(self, fileName):
         # print(self, "saving model")
