@@ -140,33 +140,33 @@ class KERASAlgorithm(AlgorithmInterface):
             and (self._settings["train_LSTM_Critic"] == True)):
             self.reset()
             loss_ = []
+            if ('dont_use_td_learning' in self.getSettings() 
+                and self.getSettings()['dont_use_td_learning'] == True):
+                y_ = np.zeros((rewards.shape))
+                for k in range(result_states.shape[1]):
+                    x0 = np.array(result_states[:,[k]])
+                    y__ = self._value_Target([x0, 0])
+                    for j in range(result_states.shape[0]): 
+                        state___ = y__[0][j]
+                        y_[j][k] = state___ ### Reducing dimensionality of targets
+                target = rewards + ((self._discount_factor * np.array(y_)))
+                target = ( target + G_t ) / 2.0
+            elif ('dont_use_td_learning' in self.getSettings() 
+                and self.getSettings()['dont_use_td_learning'] == "only_G"):
+                target = G_t
+            else:
+                y_ = np.zeros((rewards.shape))
+                for k in range(result_states.shape[1]):
+                    x0 = np.array(result_states[:,[k]])
+                    y__ = self._value_Target([x0, 0])
+                    for j in range(result_states.shape[0]): 
+                        state___ = y__[0][j]
+                        y_[j][k] = state___ ### Reducing dimensionality of targets
+                target = rewards + ((self._discount_factor * np.array(y_)))
             if ("train_LSTM_stateful" in self._settings
                 and (self._settings["train_LSTM_stateful"] == True)
                 # and False
                 ):
-                if ('dont_use_td_learning' in self.getSettings() 
-                    and self.getSettings()['dont_use_td_learning'] == True):
-                    y_ = np.zeros((rewards.shape))
-                    for k in range(result_states.shape[1]):
-                        x0 = np.array(result_states[:,[k]])
-                        y__ = self._value_Target([x0, 0])
-                        for j in range(result_states.shape[0]): 
-                            state___ = y__[0][j]
-                            y_[j][k] = state___ ### Reducing dimensionality of targets
-                    target = rewards + ((self._discount_factor * np.array(y_)))
-                    target = ( target + G_t ) / 2.0
-                if ('dont_use_td_learning' in self.getSettings() 
-                    and self.getSettings()['dont_use_td_learning'] == "only_G"):
-                    target = G_t
-                else:
-                    y_ = np.zeros((rewards.shape))
-                    for k in range(result_states.shape[1]):
-                        x0 = np.array(result_states[:,[k]])
-                        y__ = self._value_Target([x0, 0])
-                        for j in range(result_states.shape[0]): 
-                            state___ = y__[0][j]
-                            y_[j][k] = state___ ### Reducing dimensionality of targets
-                    target = rewards + ((self._discount_factor * np.array(y_)))
                     # y_.append(y__)
                 # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
                 # target_ = rewards + ((self._discount_factor * y_) * falls)
@@ -186,7 +186,7 @@ class KERASAlgorithm(AlgorithmInterface):
                     loss_.append(np.mean(score.history['loss']))
             else:
                 # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
-                score = self._model.getCriticNetwork().fit([states], [G_t],
+                score = self._model.getCriticNetwork().fit([states], [target],
                               epochs=1, 
                               batch_size=states.shape[0],
                               verbose=0
@@ -308,7 +308,7 @@ class KERASAlgorithm(AlgorithmInterface):
         value = (self._model.getCriticNetwork().predict(state) * action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # value = scale_reward(self._value([state,0])[0], self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         # print ("value: ", repr(np.array(value)))
-        return value
+        return [np.array([np.mean(value)])]
         # return self._q_val()[0]
         
     def q_values2(self, states, wrap=True):
@@ -327,7 +327,10 @@ class KERASAlgorithm(AlgorithmInterface):
             for s in states:
                 s_ = np.array([np.array([s])])
                 # print ("s shape: ", s_.shape)
-                value = (self._model.getCriticNetwork().predict([s_]) * action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+                ### Seems to return a batch for some reason
+                v_ = np.mean(self._model.getCriticNetwork().predict([s_]))
+                b_ = action_bound_std(self.getRewardBounds())
+                value = (v_ * b_) * (1.0 / (1.0- self.getSettings()['discount_factor']))
                 values.append(value)
             return values
             # else:
@@ -403,6 +406,12 @@ class KERASAlgorithm(AlgorithmInterface):
                 bellman_error = np.mean(np.fabs(targets_ - v_), axis=0)
                 # print ("bellman_error: ", bellman_error)
                 return bellman_error
+            else:
+                y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
+                target_ = rewards + ((self._discount_factor * y_))
+                values = self._value([states,0])[0]
+                bellman_error = target_ - values
+                return np.mean(np.fabs(bellman_error), axis=0)
         else:
             y_ = self._modelTarget.getCriticNetwork().predict(result_states, batch_size=states.shape[0])
             # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])

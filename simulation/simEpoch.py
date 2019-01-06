@@ -564,6 +564,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     evalData = [np.mean(evalDatas)]
     # G_ts.extend(copy.deepcopy(G_t))
     G_ts.extend(copy.deepcopy(discounted_rewards(np.array(rewards), discount_factor)))
+    baseline = np.array(baseline)
+    # baselines_.extend(copy.deepcopy(np.reshape(baseline, newshape=(baseline.size, 1))))
     baselines_.extend(copy.deepcopy(baseline))
     # print ("baseline: ", repr(np.array(baseline)))
     # print ("G_t, rewards: ", repr(np.concatenate((discounted_rewards(np.array(rewards), discount_factor), rewards), axis=1)) )

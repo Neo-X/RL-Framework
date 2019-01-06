@@ -89,6 +89,7 @@ def compute_advantage_(vf, paths, gamma, lam):
     for path in paths:
         path["return"] = discounted_rewards(path["reward"], gamma)
         # q_values
+        # print("reward: ", path['reward'])
         ### state is in environment space not normalized space
         b = path["baseline"] = vf.q_values2(path['states'])
         # print("Baseline: ", b.shape)

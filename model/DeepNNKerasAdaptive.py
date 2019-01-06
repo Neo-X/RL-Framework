@@ -143,7 +143,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                                   self._result_state_length), 
                                                            batch_shape=(1, 1, self._state_length), name="ResultState_SIM")
                 else:
-                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState")
+                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState_SIM")
             else:
                 if (self._stateful_lstm):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, 

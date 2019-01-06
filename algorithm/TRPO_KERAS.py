@@ -492,19 +492,6 @@ class TRPO_KERAS(KERASAlgorithm):
             action_std = self._q_action_std([state])[0] * (action_bound_std(self._action_bounds))
         return action_std * p
 
-    def bellman_error(self, states, actions, rewards, result_states, falls):
-        """
-            Computes the one step temporal difference.
-        """
-        y_ = self._value_Target([result_states,0])[0]
-        # y_ = self._modelTarget2.getValueFunction().predict(result_states, batch_size=states.shape[0])
-        target_ = rewards + ((self._discount_factor * y_))
-        # values =  self._model.getValueFunction().predict(states, batch_size=states.shape[0])
-        values = self._value([states,0])[0]
-        bellman_error = target_ - values
-        return bellman_error
-        # return self._bellman_errorTarget()
-        
     def get_actor_regularization(self):
         return self._get_actor_regularization([])
     
