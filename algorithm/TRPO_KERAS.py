@@ -257,7 +257,7 @@ class TRPO_KERAS(KERASAlgorithm):
             inputs_ = [self._model.getStateSymbolicVariable(), K.learning_phase()]
             inputs_target = [self._modelTarget.getStateSymbolicVariable(), K.learning_phase()]
             
-        self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
+        self._value = K.function(inputs_, [self.__value])
         if ("use_target_net_for_critic" in self.getSettings() and
             (self.getSettings()["use_target_net_for_critic"] == False)):
             self._value_Target = self._value
