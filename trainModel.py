@@ -1105,7 +1105,17 @@ def trainModelParallel(inputData):
                     bellman_errors.append(error)
                     if (settings['debug_critic']):
                         masterAgent.reset()
-                        loss__ = masterAgent.getPolicy().get_critic_loss(states, actions, rewards, result_states)
+                        if ((("train_LSTM" in settings)
+                        and (settings["train_LSTM"] == True))
+                            or (("train_LSTM_Critic" in settings)
+                            and (settings["train_LSTM_Critic"] == True))):
+                            batch_size_lstm = 4
+                            if ("lstm_batch_size" in settings):
+                                batch_size_lstm = settings["lstm_batch_size"][1]
+                            states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_ = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm)
+                            loss__ = masterAgent.getPolicy().get_critic_loss(states_, actions_, rewards_, result_states_)
+                        else:
+                            loss__ = masterAgent.getPolicy().get_critic_loss(states, actions, rewards, result_states)
                         criticLosses.append(loss__)
                         regularizationCost__ = masterAgent.getPolicy().get_critic_regularization()
                         criticRegularizationCosts.append(regularizationCost__)

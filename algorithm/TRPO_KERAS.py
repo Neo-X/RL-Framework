@@ -230,7 +230,7 @@ class TRPO_KERAS(KERASAlgorithm):
         print ("build regularizers")
         self._get_actor_regularization = K.function([], [self._actor_regularization])
         self._get_critic_regularization = K.function([], [self._critic_regularization])
-        self._get_critic_loss = K.function([self._model.getStateSymbolicVariable(),
+        self._get_critic_loss = K.function([inputs_[0],
                                             self._model.getRewardSymbolicVariable(), 
                                             self._model.getResultStateSymbolicVariable(),
                                             K.learning_phase()], [self._loss])
