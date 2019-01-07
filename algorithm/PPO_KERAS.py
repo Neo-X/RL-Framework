@@ -59,13 +59,8 @@ class PPO_KERAS(KERASAlgorithm):
         self._rho = self.getSettings()['rho']
         self._rms_epsilon = self.getSettings()['rms_epsilon']
         
-        # self._Anneal = keras.layers.Input(batch_shape=(1,), name="Anneal")
         self._Anneal = keras.layers.Input(shape=(1,), name="Anneal")
-        # self._Anneal = K.variable(value=np.float32(1.0) ,name="Anneal")
-        # self._Anneal = K.placeholder(ndim=0, name="Anneal")
-        
         self._Advantage = keras.layers.Input(shape=(1,), name="Advantage")
-        # self._Advantage = K.placeholder(shape=(1,), name="Advantage")
         
         self._PoliAction = keras.layers.Input(shape=(self._action_length,), name="PoliAction")
         if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])):

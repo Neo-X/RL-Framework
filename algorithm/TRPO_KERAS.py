@@ -32,15 +32,20 @@ class TRPO_KERAS(KERASAlgorithm):
 
         super(TRPO_KERAS,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_)
         
-        # create a small convolutional neural network
+        ## Target network
+        # self._modelTarget = copy.deepcopy(model)
+        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         
-        # self._Anneal = keras.layers.Input(batch_shape=(1,), name="Anneal")
         self._Anneal = keras.layers.Input(shape=(1,), name="Anneal")
-        # self._Anneal = K.variable(value=np.float32(1.0) ,name="Anneal")
-        # self._Anneal = K.placeholder(ndim=0, name="Anneal")
-        
         self._Advantage = keras.layers.Input(shape=(1,), name="Advantage")
-        # self._Advantage = K.placeholder(shape=(1,), name="Advantage")
+        
+        if ("force_use_result_state_for_critic" in self._settings
+            and (self._settings["force_use_result_state_for_critic"] == True)):
+            inputs_ = [self._model.getResultStateSymbolicVariable()]
+            inputs_target = [self._modelTarget.getResultStateSymbolicVariable()]
+        else:
+            inputs_ = [self._model.getStateSymbolicVariable()]
+            inputs_target = [self._modelTarget.getStateSymbolicVariable()]
         
         self._PoliAction = keras.layers.Input(shape=(self._action_length,), name="PoliAction")
         if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])):
@@ -50,12 +55,9 @@ class TRPO_KERAS(KERASAlgorithm):
         self._model._actor = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._actor)
         if (print_info):
             print("Actor summary: ", self._model._actor.summary())
-        self._model._critic = Model(inputs=self._model.getStateSymbolicVariable(), outputs=self._model._critic)
+        self._model._critic = Model(inputs=inputs_, outputs=self._model._critic)
         if (print_info):
             print("Critic summary: ", self._model._critic.summary())
-        ## Target network
-        # self._modelTarget = copy.deepcopy(model)
-        self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         input_Target = [self._modelTarget.getStateSymbolicVariable(),
                  self._PoliAction,
                  self._Advantage,
@@ -64,7 +66,7 @@ class TRPO_KERAS(KERASAlgorithm):
         self._modelTarget._actor = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._actor)
         if (print_info):
             print("Target Actor summary: ", self._modelTarget._actor.summary())
-        self._modelTarget._critic = Model(inputs=self._modelTarget.getStateSymbolicVariable(), outputs=self._modelTarget._critic)
+        self._modelTarget._critic = Model(inputs=inputs_target, outputs=self._modelTarget._critic)
         if (print_info):
             print("Target Critic summary: ", self._modelTarget._critic.summary())
 
@@ -100,8 +102,16 @@ class TRPO_KERAS(KERASAlgorithm):
         
     def compile(self):
 
-        self.__value = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable()])
-        self.__value_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable()])
+        if ("force_use_result_state_for_critic" in self._settings
+            and (self._settings["force_use_result_state_for_critic"] == True)):
+            inputs_ = [self._model.getResultStateSymbolicVariable()]
+            inputs_target = [self._modelTarget.getResultStateSymbolicVariable()]
+        else:
+            inputs_ = [self._model.getStateSymbolicVariable()]
+            inputs_target = [self._modelTarget.getStateSymbolicVariable()]
+            
+        self.__value = self._model.getCriticNetwork()(inputs_)
+        self.__value_Target = self._modelTarget.getCriticNetwork()(inputs_target)
         
         _target = self._model.getRewardSymbolicVariable() + (self._discount_factor * self.__value_Target)
         self._loss = K.mean(0.5 * (self.__value - _target) ** 2)
@@ -239,13 +249,20 @@ class TRPO_KERAS(KERASAlgorithm):
             # self._Fallen: self._fallen_shared
         }) """
         
-        
+        if ("force_use_result_state_for_critic" in self._settings
+            and (self._settings["force_use_result_state_for_critic"] == True)):
+            inputs_ = [self._model.getResultStateSymbolicVariable(), K.learning_phase()]
+            inputs_target = [self._modelTarget.getResultStateSymbolicVariable(), K.learning_phase()]
+        else:
+            inputs_ = [self._model.getStateSymbolicVariable(), K.learning_phase()]
+            inputs_target = [self._modelTarget.getStateSymbolicVariable(), K.learning_phase()]
+            
         self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         if ("use_target_net_for_critic" in self.getSettings() and
             (self.getSettings()["use_target_net_for_critic"] == False)):
             self._value_Target = self._value
         else:
-            self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
+            self._value_Target = K.function(inputs_target, [self.__value_Target])
         
         self._policy_mean = K.function([self._model.getStateSymbolicVariable(), 
                                           K.learning_phase()], [self._q_valsActA])
