@@ -519,9 +519,6 @@ class TRPO_KERAS(KERASAlgorithm):
     def get_critic_regularization(self):
         return self._get_critic_regularization([])
     
-    def get_critic_loss(self, state, action, reward, nextState):
-        return self._get_critic_loss([state, reward, nextState, 0])
-    
     def loadFrom(self, fileName):
         from keras.models import load_model
         suffix = ".h5"
