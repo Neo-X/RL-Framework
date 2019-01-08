@@ -268,7 +268,7 @@
 	"comment__": "Use the annealing schedule in on policy learning",
 "anneal_on_policy": true,
 	"comment__": "A list describing the size of the layers for the NN",
-"critic_network_layer_sizes": [64, 32],
+"critic_network_layer_sizes": [["GRU", 256, 32, 0.1, true]],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [64, 32],
 	"comment__": "Activation function to use for the std part of the policy",
@@ -409,5 +409,9 @@
 	"comment__": "Add velocity state to image state",
 "append_camera_velocity_state": true,
 	"comment__": "Just train the value function model in an LSTM fashion",
-"train_LSTM_Critic": true
+"train_LSTM_Critic": true,
+	"comment__": "Use a stateful LSTM for value function/policy",
+"train_LSTM_stateful": false,
+	"comment__": "Use the results for the critic net inputs, this is helpful when the policy is not an RNN",
+"force_use_result_state_for_critic": true
 }
