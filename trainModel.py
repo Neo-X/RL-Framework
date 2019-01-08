@@ -1096,7 +1096,7 @@ def trainModelParallel(inputData):
                         batch_size_lstm = 4
                         if ("lstm_batch_size" in settings):
                             batch_size_lstm = settings["lstm_batch_size"][1]
-                        states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_ = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm)
+                        states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_ = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
                         error = masterAgent.bellman_error(states_, actions_, rewards_, result_states_, falls_)
                     else:
                         error = masterAgent.bellman_error(states, actions, rewards, result_states, falls)
@@ -1112,7 +1112,7 @@ def trainModelParallel(inputData):
                             batch_size_lstm = 4
                             if ("lstm_batch_size" in settings):
                                 batch_size_lstm = settings["lstm_batch_size"][1]
-                            states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_ = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm)
+                            states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_ = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
                             loss__ = masterAgent.getPolicy().get_critic_loss(states_, actions_, rewards_, result_states_)
                         else:
                             loss__ = masterAgent.getPolicy().get_critic_loss(states, actions, rewards, result_states)

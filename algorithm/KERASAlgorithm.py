@@ -423,6 +423,14 @@ class KERASAlgorithm(AlgorithmInterface):
             return bellman_error
         # return self._bellman_errorTarget()
         
+    def get_critic_loss(self, state, action, reward, nextState):
+        self.reset()
+        v_ = self._value([state, 0])
+        self.reset()
+        v__ = self._value([nextState, 0])
+        td = v_ - ( reward + v__)
+        return np.mean(0.5 * (td) ** 2)
+        
     def saveTo(self, fileName):
         # print(self, "saving model")
         import h5py

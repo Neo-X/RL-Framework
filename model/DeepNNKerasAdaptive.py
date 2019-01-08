@@ -164,8 +164,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                 print("Training a policy lstm but not a critic one.")
                 self._stateInput = self._ResultState
                 
-        if (("train_LSTM" in self._settings)
-                and (self._settings["train_LSTM"] == True)):
+        if ( (("train_LSTM" in self._settings)
+                and (self._settings["train_LSTM"] == True)) 
+            or
+            (("train_LSTM_Critic" in self._settings)
+                and (self._settings["train_LSTM_Critic"] == True))
+            ):
             self._Reward = keras.layers.Input(shape=(self._sequence_length,1), name="Reward")
         else:
             self._Reward = keras.layers.Input(shape=(1,), name="Reward")
