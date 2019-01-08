@@ -221,6 +221,7 @@ class LearningAgent(AgentInterface):
                                     # print ("self.getFDExperience().getStateBounds() shape : ", self.getFDExperience().getStateBounds().shape)
                                     # print ("fd exp state shape: ", state__[j][1].shape)
                                     tup = ([state__[j][1]], [action__[j]], [next_state__[j][1]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
+                            ### This is always done and works well for computing the adaptive state bounds.
                             self.getFDExperience().insertTuple(tup)
                         num_samples_ = num_samples_ + 1
             batch_size_ = self._settings["batch_size"]        
