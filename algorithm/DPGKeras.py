@@ -429,6 +429,19 @@ class DPGKeras(KERASAlgorithm):
         # print ("q_values: ", value)
         return value
 
+    def q_values2(self, states):
+        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
+        # states[0, ...] = state
+        states = norm_state(states, self._state_bounds)
+        states = np.array(states, dtype=self._settings['float_type'])
+        # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
+        poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
+        value = (self._model.getCriticNetwork().predict([states, poli_mean] , batch_size=states.shape[0])* action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        
+        # value = scale_reward(self._q_func(state), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        return value
+        # return self._q_val()[0]
+        
     def bellman_error(self, states, actions, rewards, result_states, falls):
         """
             Computes the one step temporal difference.
