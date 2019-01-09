@@ -686,6 +686,9 @@ def trainModelParallel(inputData):
                     if ("append_camera_velocity_state" in settings 
                         and (settings["append_camera_velocity_state"] == True)):
                         state_size__ = state_size__ + 2
+                    elif ("append_camera_velocity_state" in settings 
+                        and (settings["append_camera_velocity_state"] == "3D")):
+                        state_size__ = state_size__ + 3
                     experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 
                                                     continuous_actions=True, settings = settings)
                     state_bounds__ = np.array([[0] * (state_size__), 
@@ -807,6 +810,9 @@ def trainModelParallel(inputData):
                     if ("append_camera_velocity_state" in settings 
                         and (settings["append_camera_velocity_state"] == True)):
                         state_size__ = state_size__ + 2
+                    elif ("append_camera_velocity_state" in settings 
+                        and (settings["append_camera_velocity_state"] == "3D")):
+                        state_size__ = state_size__ + 3
                     state_bounds__ = [[0] * (state_size__), 
                                  [1] * (state_size__)]
                     forwardDynamicsModel.setStateBounds(state_bounds__)

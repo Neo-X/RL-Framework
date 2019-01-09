@@ -958,6 +958,9 @@ def createNewFDModel(settings, env, model):
         if ("append_camera_velocity_state" in settings 
             and (settings["append_camera_velocity_state"] == True)):
             state_size__ = state_size__ + 2
+        elif ("append_camera_velocity_state" in settings 
+            and (settings["append_camera_velocity_state"] == "3D")):
+            state_size__ = state_size__ + 3
         print ("Creating multi modal state size****")
         state_bounds = [[0] * (state_size__), 
                                  [1] * (state_size__)]
@@ -1030,6 +1033,9 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                         if ("append_camera_velocity_state" in settings 
                             and (settings["append_camera_velocity_state"] == True)):
                             state_size__ = state_size__ + 2
+                        elif ("append_camera_velocity_state" in settings 
+                            and (settings["append_camera_velocity_state"] == "3D")):
+                            state_size__ = state_size__ + 3
                         print ("Creating multi modal state size****")
                         state_bounds__ = [[0] * (state_size__), 
                                                  [1] * (state_size__)]
