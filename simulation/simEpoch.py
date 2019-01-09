@@ -476,7 +476,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ("replace_next_state_with_imitation_viz_state" in settings
             and (settings["replace_next_state_with_imitation_viz_state"] == True)):
             # print ("resultState_: ", resultState_)
-            print ("Before resultState_[0][1]: ", np.array(resultState_[0][1]).shape)
+            # print ("Before resultState_[0][1]: ", np.array(resultState_[0][1]).shape)
             ### This only works properly in the dual state rep case.
             if ("replace_next_state_with_pose_state" in settings and
                   (settings["replace_next_state_with_pose_state"] == True)):
@@ -496,7 +496,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 pass 
             elif ("fd_use_multimodal_state" in settings and
                   (settings["fd_use_multimodal_state"] == True)):
-                print ("Replacing result state data with multi model imitation data")
+                # print ("Replacing result state data with multi model imitation data")
                 ob = np.asarray(exp.getEnvironment().getMultiModalImitationState())
                 ob = ob.flatten()
                 resultState_[0][1] = ob
@@ -504,8 +504,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 ob = np.asarray(exp.getEnvironment().getImitationVisualState())
                 ob = ob.flatten()
                 resultState_[0][1] = ob
-            print ("resultState_[0][0]: ", np.array(resultState_[0][0]).shape)    
-            print ("resultState_[0][1]: ", np.array(resultState_[0][1]).shape)
+            # print ("resultState_[0][0]: ", np.array(resultState_[0][0]).shape)    
+            # print ("resultState_[0][1]: ", np.array(resultState_[0][1]).shape)
         ## For testing remove later
         if (settings["use_back_on_track_forcing"] and (not evaluation)):
             exp.getControllerBackOnTrack()
