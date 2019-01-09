@@ -689,11 +689,13 @@ def trainModelParallel(inputData):
                     elif ("append_camera_velocity_state" in settings 
                         and (settings["append_camera_velocity_state"] == "3D")):
                         state_size__ = state_size__ + 3
+                    print ("state_size__ for fd: ", state_size__)
                     experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 
                                                     continuous_actions=True, settings = settings)
                     state_bounds__ = np.array([[0] * (state_size__), 
                                          [1] * (state_size__)])
                     experiencefd.setStateBounds(state_bounds__)
+                    experiencefd.setResultStateBounds(state_bounds__)
                     # sys.exit()
                 elif ("fd_num_terrain_features" in settings):
                     state_size__ = settings["fd_num_terrain_features"]
@@ -702,6 +704,7 @@ def trainModelParallel(inputData):
                     state_bounds__ = np.array([[0] * len(forwardDynamicsModel.getStateBounds()[0]), 
                                          [1] * len(forwardDynamicsModel.getStateBounds()[0])])
                     experiencefd.setStateBounds(state_bounds__)
+                    experiencefd.setResultStateBounds(state_bounds__)
                 else:
                     experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 
                                                     continuous_actions=True, settings = settings)
