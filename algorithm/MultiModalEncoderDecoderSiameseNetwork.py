@@ -532,31 +532,54 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
         result_state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._inputs_bb)[1:]
                                                                               , name="ResultState_2"
                                                                               )
-        processed_a = self._model._forward_dynamics_net(self._inputs_a)
-        self._model.processed_a = Model(inputs=[self._inputs_a], outputs=processed_a)
-        processed_b = self._modelTarget._forward_dynamics_net(state_copy)
-        self._model.processed_b = Model(inputs=[state_copy], outputs=processed_b)
+        encode_a = self._model._forward_dynamics_net(self._inputs_a)
+        self._model.encode_a = Model(inputs=[self._inputs_a], outputs=encode_a)
+        encode_b = self._modelTarget._forward_dynamics_net(state_copy)
+        self._model.encode_b = Model(inputs=[state_copy], outputs=encode_b)
         
-        processed_a_r = self._model._reward_net(self._inputs_aa)
-        self._model.processed_a_r = Model(inputs=[self._inputs_aa], outputs=processed_a_r)
-        processed_b_r = self._modelTarget._reward_net(result_state_copy)
-        self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
-        
-        distance_fd = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-        distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
-
+        # distance_fd = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
+        # distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([encode_a, encode_b])
+        """
         self._model._forward_dynamics_net = Model(inputs=[self._inputs_a
                                                           ,state_copy
                                                           ]
                                                   , outputs=distance_fd
                                                   )
-        
+        """
+        """
         self._model._reward_net = Model(inputs=[self._inputs_aa
                                               ,result_state_copy
                                               ]
                                               , outputs=distance_r
                                               )
+        """                                       
+        print ("Encoder output shape: ", encoder_outputs)
+        ### https://github.com/keras-team/keras/issues/7949
+        def repeat_vector(args):
+            # import keras
+            layer_to_repeat = args[0]
+            sequence_layer = args[1]
+            return RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
 
+        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encode_a, state_copy])
+        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encode_b, result_state_copy])
+        
+        decode_a_r = self._model._reward_net(self._inputs_aa)
+        self._model.decode_a_r = Model(inputs=[self._inputs_aa], outputs=decode_a_r)
+        decode_b_r = self._modelTarget._reward_net(result_state_copy)
+        self._model.decode_b_r = Model(inputs=[result_state_copy], outputs=decode_b_r)
+        
+        self._model._reward_net_a = Model(inputs=[self._inputs_a
+                                                ,state_copy
+                                                          ]
+                                                          , outputs=processed_a_r
+                                                          )
+        self._model._reward_net_b = Model(inputs=[self._model.getStateSymbolicVariable()
+                                                ,state_copy
+                                                          ]
+                                                          , outputs=processed_a_r
+                                                          )
+        
         # sgd = SGD(lr=0.0005, momentum=0.9)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
@@ -573,7 +596,7 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
         self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
-        
+        """
         self._contrastive_loss = K.function([self._inputs_a, 
                                              self._inputs_b,
                                              K.learning_phase()], 
@@ -583,6 +606,7 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
                                              self._inputs_bb,
                                              K.learning_phase()], 
                                             [distance_r])
+        """
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
         
     def getNetworkParameters(self):
@@ -768,8 +792,8 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
             
             state2 = state[:, :self._settings["dense_state_size"]]
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
-            h_a = self._model.processed_a.predict([np.array([state])])
-            h_b = self._model.processed_b.predict([np.array([state2])])
+            h_a = self._model.encode_a.predict([np.array([state])])
+            h_b = self._model.encode_b.predict([np.array([state2])])
             state_ = euclidean_distance_np((h_a, h_b))[0]
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
@@ -808,8 +832,8 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
             # print ("state shape: ", state.shape)
             state2 = state[:, :self._settings["dense_state_size"]]
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
-            h_a = self._model.processed_a_r.predict([np.array([state])])
-            h_b = self._model.processed_b_r.predict([np.array([state2])])
+            h_a = self._model.encode_a.predict([np.array([state])])
+            h_b = self._model.encode_b.predict([np.array([state2])])
             reward_ = euclidean_distance_np((h_a, h_b))[0]
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]

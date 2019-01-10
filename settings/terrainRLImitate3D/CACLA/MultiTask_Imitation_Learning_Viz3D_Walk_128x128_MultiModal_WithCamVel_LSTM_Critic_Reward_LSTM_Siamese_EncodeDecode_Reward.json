@@ -575,7 +575,7 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "encoder_network_layer_sizes": [ ["TimeDistributedConv", [31, 1, 1026], [["Dense", 32, "leaky_rectify"]]], ["GRU", 32, 32, 0.0, false], ["Dense", 128, "linear", 0.002]],
 	"comment__": "A list describing the size of the layers for the NN",
-"decoder_network_layer_sizes": [["GRU", 32, 32, 0.0, true], ["TimeDistributedConv", true, [["Dense", 32, "leaky_rectify"], ["Dense", 16387, "linear"]]]],
+"decoder_network_layer_sizes": [["GRU", 32, 32, 0.0, true], ["TimeDistributedConv", true, [["Dense", 32, "leaky_rectify"], ["Dense", 208, "linear"]]]],
 	"comment__": "Inform the system that a encoder decoder model is being used",
 "using_encoder_decoder_fd": true,
 	"comment__": "Leave off the final layer of the reward network that would result in a state sized output",
