@@ -565,7 +565,7 @@
 		"comment__": "Add velocity state to image state",
 "append_camera_velocity_state": "3D",
 	"comment__": "pretrain the fd model",
-"pretrain_fd": 200,
+"pretrain_fd": 20,
 	"comment__": "A mapping from working_id to task id",
 "worker_to_task_mapping": [0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 }

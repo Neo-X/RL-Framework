@@ -292,9 +292,10 @@ class DeepNNKerasAdaptive(ModelInterface):
             if (self._stateful_lstm):
                 network = keras.layers.Input(shape=(self._sequence_length, 
                       keras.backend.int_shape(self._actor)[1]), 
-                       batch_shape=(self._lstm_batch_size, self._sequence_length, keras.backend.int_shape(self._actor)[2]), name="Encoding_State")
+                       batch_shape=(self._lstm_batch_size, self._sequence_length, keras.backend.int_shape(self._actor)[-1]), name="Encoding_State")
             else:
                 network = keras.layers.Input(shape=(None, keras.backend.int_shape(self._actor)[1]), name="Encoding_State")
+            print ("Encoder input: ", network)
             self._ResultState = network
         """
         if ( self._dropout_p > 0.001 ):
@@ -381,7 +382,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             and (self._settings["critic_network_leave_off_end"] == True))):
             if (len(keras.backend.int_shape(network)) > 2):
                 ### THis is an LSTM use time distributed layer
-                input_ = keras.layers.Input(shape=(network,), name="Critic_subnet")
+                input_ = keras.layers.Input(shape=(keras.backend.int_shape(network)[-1],), name="Critic_subnet")
                 print ("*** Critic subnet input shape: ", repr(keras.backend.int_shape(input_)))
                 subnet = Dense(1,
                            kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
