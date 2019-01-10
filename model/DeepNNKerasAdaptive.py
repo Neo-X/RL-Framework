@@ -423,7 +423,10 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         if (len(keras.backend.int_shape(input)) == 2
             and (self._settings['num_terrain_features'] > 0)
-            and (not (isRNN))): ### Don't do this for RNNs...
+            and (not (isRNN))
+            # and (not ("using_encoder_decoder" in self._settings
+            #          and (self._settings["using_encoder_decoder"] == True)))
+            ): ### Don't do this for RNNs...
             if ('split_terrain_input' in self._networkSettings 
                 and self._networkSettings['split_terrain_input']):
                 mid = int((self._settings['num_terrain_features']/3) * 2)
@@ -537,7 +540,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                         # else:
                         input_ = keras.layers.Input(shape=(keras.backend.int_shape(network)[-1],), name="State_Conv")
                         print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
-                        subnet = self.createSubNetwork(input_, layer_sizes[i][2], isRNN=False)
+                        if (layer_sizes[i][1] == True):
+                            subnet = self.createSubNetwork(input_, layer_sizes[i][2], isRNN=True)
+                        else:
+                            subnet = self.createSubNetwork(input_, layer_sizes[i][2], isRNN=False)
                         subnet = Model(inputs=input_, outputs=subnet)
                         # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Subnet summary")
@@ -609,6 +615,15 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      data_format=self._data_format_,
                                                      padding=layer_sizes[i][4])(network)
+                elif ( layer_sizes[i][0] == "slice_features" ):
+                    # network = Concatenate(axis=1)([network, _characterFeatures])
+                    _characterFeatures = Lambda(keras_slice, output_shape=(int(keras.backend.int_shape(network)[-1]) - layer_sizes[i][1],),
+                                   arguments={'begin': layer_sizes[i][1], 
+                                              'end': int(keras.backend.int_shape(network)[-1])})(network)
+                    print ("slice feature extra: ", repr(_characterFeatures))
+                    network = Lambda(keras_slice, output_shape=(layer_sizes[i][1],),
+                                   arguments={'begin': 0, 
+                                              'end': layer_sizes[i][1]})(network)
                 elif ( len(layer_sizes[i][1])> 1 ):
                     if (i == 0):
                         print ("create self._taskFeatures shape: ", repr(keras.backend.int_shape(network)))
