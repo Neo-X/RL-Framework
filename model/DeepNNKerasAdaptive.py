@@ -90,7 +90,7 @@ def keras_slice(x, begin,end):
 
 class DeepNNKerasAdaptive(ModelInterface):
     
-    def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
+    def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False, stateName="State", resultStateName="ResultState"):
 
         super(DeepNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         self._networkSettings = {}
@@ -107,23 +107,23 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._stateful_lstm = True
         isRNN = False
         ### data types for model
-        # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name="State")
-        # self._State = keras.layers.Input(shape=(self._state_length,), name="State", batch_shape=(32,self._state_length))
+        # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name=stateName)
+        # self._State = keras.layers.Input(shape=(self._state_length,), name=stateName, batch_shape=(32,self._state_length))
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
             if ("simulation_model" in self._settings and
                 (self._settings["simulation_model"] == True)):
                 if (self._stateful_lstm):
-                    self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, self._state_length), name="State")
+                    self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, self._state_length), name=stateName)
                 else:
-                    self._State = keras.layers.Input(shape=(None, self._state_length), name="State")
+                    self._State = keras.layers.Input(shape=(None, self._state_length), name=stateName)
             else:
                 if (self._stateful_lstm):
-                    self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="State")
+                    self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
                 else:
-                    self._State = keras.layers.Input(shape=(None, self._state_length), name="State")
+                    self._State = keras.layers.Input(shape=(None, self._state_length), name=stateName)
         else:
-            self._State = keras.layers.Input(shape=(self._state_length,), name="State")
+            self._State = keras.layers.Input(shape=(self._state_length,), name=stateName)
             self._State_backup = self._State
             
 
@@ -148,12 +148,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if (self._stateful_lstm):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, 
                                                                   self._result_state_length), 
-                                                           batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name="ResultState")
+                                                           batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=resultStateName)
                 else:
-                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState")
+                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name=resultStateName)
             # self._stateInput = self._ResultState 
         else:
-            self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name="ResultState")
+            self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name=resultStateName)
             if (
                 (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True))

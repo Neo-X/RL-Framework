@@ -5,7 +5,7 @@ import keras
 
 class FDNNKerasAdaptive(DeepNNKerasAdaptive):
     
-    def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
+    def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False, stateName="State", resultStateName="ResultState"):
         n_out = n_in
         settings_ = copy.deepcopy(settings_)
         settings_['policy_network_layer_sizes'] = settings_['fd_network_layer_sizes']
@@ -80,7 +80,7 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
             
         print ("FD net n_out: ", n_out)
         print ("FD net n_in: ", n_in)
-        super(FDNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
+        super(FDNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info, stateName=stateName, resultStateName=resultStateName)
         self._forward_dynamics_net = self._actor
         self._reward_net = self._critic
 

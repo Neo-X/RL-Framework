@@ -1130,7 +1130,7 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
         
     return forwardDynamicsModel
 
-def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
+def createForwardDynamicsNetwork(state_bounds, action_bounds, settings, stateName="State", resultStateName="ResultState"):
     
     if settings["forward_dynamics_model_type"] == "Deep_NN":
         from model.ForwardDynamicsNetwork import ForwardDynamicsNetwork
@@ -1185,7 +1185,8 @@ def createForwardDynamicsNetwork(state_bounds, action_bounds, settings):
         modelClass = locate(fd_net_type)
         if ( issubclass(modelClass, ModelInterface)): ## Double check this load will work
             model = modelClass(len(state_bounds[0]), len(action_bounds[0]), 
-                                                        state_bounds, action_bounds, settings_=settings, reward_bound=settings["reward_bounds"])
+                                                        state_bounds, action_bounds, settings_=settings, reward_bound=settings["reward_bounds"],
+                                                         stateName=stateName, resultStateName=stateName)
             print("Created model: ", model)
             return model
         else:

@@ -495,7 +495,8 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
         settings__["fd_num_terrain_features"] = 0
         print ("****** Creating dense pose encoding network")
         self._modelTarget = createForwardDynamicsNetwork(settings__["state_bounds"], 
-                                                         settings__["action_bounds"], settings__)
+                                                         settings__["action_bounds"], settings__,
+                                                         stateName="State_", resultStateName="ResultState_")
 
         self._inputs_a = self._model.getStateSymbolicVariable()
         self._inputs_b = self._modelTarget.getStateSymbolicVariable() 
@@ -574,6 +575,16 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
         self._model._reward_net_b = Model(inputs=[self._modelTarget.getStateSymbolicVariable()
                                                           ]
                                                           , outputs=decode_b_r 
+                                                          )
+        
+        distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([encode_a, encode_b])
+        
+        self._model._combination = Model(inputs=[self._model.getStateSymbolicVariable(),
+                                                 self._modelTarget.getStateSymbolicVariable()
+                                                          ]
+                                                          , outputs=[decode_a_r,
+                                                                     decode_b_r,
+                                                                     distance_r] 
                                                           )
         
         # sgd = SGD(lr=0.0005, momentum=0.9)
@@ -724,7 +735,7 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
                 # print ("sequences0 shape: ", np.array(sequences0).shape)
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
-                    score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets__],
+                    score = self._model._combination.fit([sequences0, sequences1], [sequences0, sequences1, targets__],
                                   epochs=1, 
                                   batch_size=sequences0.shape[0],
                                   verbose=0
