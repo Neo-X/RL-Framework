@@ -379,7 +379,22 @@ class DeepNNKerasAdaptive(ModelInterface):
             # plot_model(self._actor, to_file='model.png')
         if ( not ("critic_network_leave_off_end" in self._settings
             and (self._settings["critic_network_leave_off_end"] == True))):
-            network= Dense(1,
+            if (len(keras.backend.int_shape(network)) > 2):
+                ### THis is an LSTM use time distributed layer
+                input_ = keras.layers.Input(shape=(network,), name="Critic_subnet")
+                print ("*** Critic subnet input shape: ", repr(keras.backend.int_shape(input_)))
+                subnet = Dense(1,
+                           kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                           bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(input_)
+                subnet = Model(inputs=input_, outputs=subnet)
+                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                    print("Critic Subnet summary")
+                    subnet.summary()
+                # subnet = Dense(8)
+                ### Create a model (set of layers to distribute) pass in the original input to that model
+                network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
+            else:
+                network= Dense(1,
                            kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                            bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
             
@@ -519,7 +534,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                         #     and (self._settings["num_terrain_features"] > 0)):
                         #     input_ = keras.layers.Input(shape=(1, self._settings["num_terrain_features"]), name="State_Conv")
                         # else:
-                        input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(network)[-1]), name="State_Conv")
+                        input_ = keras.layers.Input(shape=(keras.backend.int_shape(network)[-1],), name="State_Conv")
                         print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
                         subnet = self.createSubNetwork(input_, layer_sizes[i][2], isRNN=False)
                         subnet = Model(inputs=input_, outputs=subnet)
