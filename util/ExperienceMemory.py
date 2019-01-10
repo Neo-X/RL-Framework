@@ -765,6 +765,7 @@ class ExperienceMemory(object):
                     traj.append(np.array(grp_.get(str(it))))
             
                 self._trajectory_history[i] = traj
+            print ("num trajectories: ", min(self.history_size_Trajectory(), self.samplesTrajectory()))
             
         hf.close()
         

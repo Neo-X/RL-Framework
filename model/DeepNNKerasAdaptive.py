@@ -449,11 +449,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                 # print ("shape[", i, "]: ", repr(keras.backend.int_shape(network)))
                 print ("tensor ", network, "shape[", i, "]: ", repr(keras.backend.int_shape(network)))
             if type(layer_sizes[i]) is list:
-                if (layer_sizes[i][0] == "LSTM"):
-                    # print ("layer.output_shape: ", keras.backend.shape(network))
-                    # network = Reshape((-1, layer_sizes[i][1]))(network)
-                    network = LSTM(layer_sizes[i][2], stateful=self._stateful_lstm)(network)
-                elif (layer_sizes[i][0] == "GRU"):
+                if (layer_sizes[i][0] == "GRU" or
+                      layer_sizes[i][0] == "LSTM"):
                     # print ("layer.output_shape: ", keras.backend.shape(network))
                     # network = Reshape((1, layer_sizes[i][1]))(network)
                     rnn_dropout=0.0
@@ -471,7 +468,13 @@ class DeepNNKerasAdaptive(ModelInterface):
                         and (layer_sizes[i][5] == True)):
                         rnn_return_state = True
                         print("rnn_return_state: ", rnn_return_state)
-                    network = GRU(layer_sizes[i][2], stateful=self._stateful_lstm, 
+                    if (layer_sizes[i][0] == "LSTM"):
+                        network = LSTM(layer_sizes[i][2], stateful=self._stateful_lstm, 
+                                  recurrent_dropout=rnn_dropout,
+                                  return_sequences=rnn_return_sequence,
+                                  return_state=rnn_return_state)(network)
+                    else:
+                        network = GRU(layer_sizes[i][2], stateful=self._stateful_lstm, 
                                   recurrent_dropout=rnn_dropout,
                                   return_sequences=rnn_return_sequence,
                                   return_state=rnn_return_state)(network)
@@ -557,7 +560,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                         network = keras.layers.AveragePooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=self._data_format_)(network)  
                 elif ( layer_sizes[i][0] == "dropout" ):
-                    network = Dropout(rate=layer_sizes[i][1])(network)    
+                    network = Dropout(rate=layer_sizes[i][1])(network)
+                elif ( layer_sizes[i][0] == "batchnorm" ):
+                    network = keras.layers.BatchNormalization()(network)    
                 elif ( layer_sizes[i][0] == "deconv" ):
                     network = keras.layers.Conv2DTranspose(layer_sizes[i][1], kernel_size=layer_sizes[i][2], strides=layer_sizes[i][3],
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),

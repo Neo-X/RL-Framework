@@ -468,7 +468,7 @@ def create_pairs2(x, settings):
     # print (np.array(pair1).shape, np.array(pair2).shape, np.array(labels).shape)
     return np.array(pair1), np.array(pair2), np.array(labels)
 
-class MultiModalSiameseNetwork(KERASAlgorithm):
+class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
     """
          This method uses two different types of data and learns a distance function between them.
          In this case the first type of data is pixles and the second is dense pose data.
