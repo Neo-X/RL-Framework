@@ -388,7 +388,7 @@
 	"comment__": "Leave off the final layer of the reward network that would result in a state sized output",
 "reward_network_leave_off_end": true,
 	"comment__": "pretrain the fd model",
-"pretrain_fd": 20,
+"pretrain_fd": 200,
 	"comment__": "Make earlier and shorter lstm training batches more probable.",
 "shorter_smaller_rnn_batches": true,
 	"comment__": "Include some randomly sized sequences when training lstms",

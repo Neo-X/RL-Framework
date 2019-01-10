@@ -550,6 +550,24 @@ class DeepNNKerasAdaptive(ModelInterface):
                     ### Create a model (set of layers to distribute) pass in the original input to that model
                     network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
                     
+                elif (layer_sizes[i][0] == "Residual"):
+                    
+                    print ("*** Residual subnet input shape: ", repr(keras.backend.int_shape(network)))
+                    subnet = self.createSubNetwork(network, layer_sizes[i][1], isRNN=True)
+                    # subnet = Dense(256)(network)
+                    # subnet = Model(inputs=network, outputs=subnet)
+                    # network_ = Model(inputs=network, outputs=network)
+                    network = keras.layers.Add()([network, subnet])
+                    # network = network +
+                    """ 
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print("Residual net summary")
+                        network.summary()
+                    """
+                    # subnet = Dense(8)
+                    ### Create a model (set of layers to distribute) pass in the original input to that model
+                    # network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
+                    
                 elif (layer_sizes[i][0] == "integrate_actor_part"):
                     subnet_ = self.createSubNetwork(self._actionInput, layer_sizes[i][1], isRNN=False)
                     network = Concatenate()([network, subnet_])
