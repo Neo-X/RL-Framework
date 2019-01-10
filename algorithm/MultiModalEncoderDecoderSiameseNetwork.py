@@ -478,7 +478,7 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
     """
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
 
-        super(MultiModalSiameseNetwork,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
+        super(MultiModalEncoderDecoderSiameseNetwork,self).__init__(model, state_length, action_length, state_bounds, action_bounds, reward_bounds, settings_)
         self._model = model
         self._learning_rate = self.getSettings()["fd_learning_rate"]
         self._regularization_weight = 1e-6
@@ -488,7 +488,8 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
         
         ### Need to create a new model that uses a different network
         settings__ = copy.deepcopy(self.getSettings())
-        settings__["fd_network_layer_sizes"] = settings__["fd2_network_layer_sizes"]
+        settings__["fd_network_layer_sizes"] = settings__["encoder_network_layer_sizes"]
+        settings__["reward_network_layer_sizes"] = settings__["decoder_network_layer_sizes"]
         settings__["fd_num_terrain_features"] = 0
         print ("****** Creating dense pose encoding network")
         self._modelTarget = createForwardDynamicsNetwork(settings__["state_bounds"], 
@@ -518,7 +519,7 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
                 print("FD Target Reward Net summary: ", self._modelTarget._reward_net.summary())
                 
 
-        MultiModalSiameseNetwork.compile(self)
+        MultiModalEncoderDecoderSiameseNetwork.compile(self)
     
     def compile(self):
         # sgd = SGD(lr=0.001, momentum=0.9)
