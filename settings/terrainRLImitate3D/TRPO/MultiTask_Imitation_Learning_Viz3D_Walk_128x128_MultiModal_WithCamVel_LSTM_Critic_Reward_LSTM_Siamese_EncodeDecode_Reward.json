@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_GRF_Walk_3D_Viz3D_WithCamVel_128x128_1Sub_Imitate_30FPS_MultiModal_DualState_v0/LSTM_Critic_LSTM_FD_Reward_EncodeDecode_T128_12",
+"data_folder": "PD_Humanoid_GRF_Walk_3D_Viz3D_WithCamVel_128x128_1Sub_Imitate_30FPS_MultiModal_DualState_v0/LSTM_Critic_LSTM_FD_Reward_EncodeDecode_T128_13",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
