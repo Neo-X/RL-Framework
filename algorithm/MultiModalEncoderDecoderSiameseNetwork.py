@@ -537,7 +537,7 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
         self._modelTarget._reward_net.save(fileName+"_reward_T"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
         
-        from keras.utils import plot_model, model_to_dot
+        from keras.utils import plot_model
         ### Save model design as image
         plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.svg', show_shapes=True)
         plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
