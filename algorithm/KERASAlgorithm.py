@@ -450,10 +450,12 @@ class KERASAlgorithm(AlgorithmInterface):
             self._modelTarget._actor.save(fileName+"_actor_T"+suffix, overwrite=True)
             self._modelTarget._critic.save(fileName+"_critic_T"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
+        """
         from keras.utils import plot_model
         ### Save model design as image
         plot_model(self._model._actor, to_file=fileName+"_actor"+'.svg', show_shapes=True)
         plot_model(self._model._critic, to_file=fileName+"_critic"+'.svg', show_shapes=True)
+        """
         
     def loadFrom(self, fileName):
         from keras.models import load_model
