@@ -498,7 +498,12 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
                 targets__ = np.mean(targets_, axis=1)
                 # print ("fd error, targets_ : ", targets_)
                 # print ("fd error, targets__: ", targets__)
-                errors.append( compute_accuracy(predicted_y[2], targets__) )
+                # print ("predicted_y: ", predicted_y[0].shape, predicted_y[1].shape, predicted_y[2].shape)
+                # print ("predicted_y: ", predicted_y[2])
+                # print ("targets__: ", targets__)
+                error = compute_accuracy(predicted_y[2], targets__)
+                # print ("error: ", error)
+                errors.append(error )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
             te_acc = np.mean(errors)
@@ -532,11 +537,11 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
         self._modelTarget._reward_net.save(fileName+"_reward_T"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
         
-        from keras.utils import plot_model
+        from keras.utils import plot_model, model_to_dot
         ### Save model design as image
-        plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.png', show_shapes=True)
-        plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.png', show_shapes=True)
-        plot_model(self._model._combination, to_file=fileName+"_fd_combination"+'.png', show_shapes=True)
+        plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.svg', show_shapes=True)
+        plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
+        dot = model_to_dot(self._model._combination, to_file=fileName+"_fd_combination"+'.svg', show_shapes=True)
         
     def loadFrom(self, fileName):
         import h5py
