@@ -47,6 +47,14 @@ def contrastive_loss(y_true, y_pred):
     ####           Make these smaller               While making these bigger
     return K.mean((y_true * K.square(y_pred)) + ((1 - y_true) * K.square(K.maximum(margin - y_pred, 0))))
 
+def contrastive_loss_np(y_true, y_pred):
+    '''Contrastive loss from Hadsell-et-al.'06
+    http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
+    '''
+    margin = 1
+    ####           Make these smaller               While making these bigger
+    return np.mean((y_true * np.square(y_pred)) + ((1 - y_true) * np.square(np.maximum(margin - y_pred, 0))))
+
 def compute_accuracy(predictions, labels):
     '''Compute classification accuracy with a fixed threshold on distances.
     '''

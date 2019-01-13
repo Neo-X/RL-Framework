@@ -15,7 +15,7 @@ from keras.models import Sequential, Model
 from keras.layers import RepeatVector
 
 from util.SimulationUtil import createForwardDynamicsNetwork
-from algorithm.SiameseNetwork import compute_accuracy
+from algorithm.SiameseNetwork import compute_accuracy, contrastive_loss_np
 from algorithm.MultiModalSiameseNetwork import cosine_distance, cos_dist_output_shape, euclidean_distance, euclidean_distance_np, eucl_dist_output_shape, contrastive_loss, create_sequences, create_multitask_sequences, create_pairs2
 
 # For debugging
@@ -520,8 +520,9 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
                 # print ("predicted_y: ", predicted_y[0].shape, predicted_y[1].shape, predicted_y[2].shape)
                 # print ("predicted_y: ", predicted_y[2])
                 # print ("targets__: ", targets__)
-                error = compute_accuracy(predicted_y[2], targets__)
-                # print ("error: ", error)
+                error = contrastive_loss_np(predicted_y[2], targets__)
+                # error = compute_accuracy(predicted_y[2], targets__)
+                print ("error: ", error)
                 errors.append(error )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )

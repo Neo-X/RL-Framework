@@ -252,6 +252,13 @@ def trainForwardDynamics(settings):
     fig2.savefig("viz_data_std_state.svg")
     fig2.savefig("viz_data_std_state.png")
     
+    denseImitateDataAVG = states_avg[:,settings["fd_num_terrain_features"]:]
+    denseImitateDataSTD = states_std[:,settings["fd_num_terrain_features"]:]
+    
+    print ("denseImitateDataAVG: ", denseImitateDataAVG)
+    print ("denseImitateDataSTD: ", denseImitateDataSTD) 
+    
+    
     plt.show()
     
     return trainData
