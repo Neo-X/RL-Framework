@@ -230,7 +230,8 @@ def trainForwardDynamics(settings):
     states_avg = experience._state_mean
     # matplotlib.use('Agg')
     import matplotlib.pyplot as plt
-    viewData = states_avg
+    print ("state shape: ", np.array(states_avg).shape)
+    viewData = states_avg[:,:settings["fd_num_terrain_features"]]
     img_ = np.reshape(viewData, (128,128))
     print("img_ shape", img_.shape, " sum: ", np.sum(viewData))
     fig1 = plt.figure(1)
@@ -242,7 +243,7 @@ def trainForwardDynamics(settings):
     states_std = np.std(_result_states, axis=0)
     ### The mean of all computed states from learning
     states_std = experience._state_var
-    viewImitateData = states_std
+    viewImitateData = states_std[:,:settings["fd_num_terrain_features"]]
     img_ = viewImitateData
     img_ = np.reshape(viewImitateData, (128,128))
     fig2 = plt.figure(2)

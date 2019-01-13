@@ -158,7 +158,7 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
-        self._model._combination.compile(loss=['mse', 'mse', contrastive_loss], loss_weights=[0.15, 0.15, 0.7],optimizer=sgd)
+        self._model._combination.compile(loss=['mse', 'mse', contrastive_loss], loss_weights=[0.01, 0.01, 0.98],optimizer=sgd)
         """
         self._contrastive_loss = K.function([self._inputs_a, 
                                              self._inputs_b,
