@@ -599,6 +599,16 @@ class SiameseNetwork(KERASAlgorithm):
                                             [distance_r])
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
         
+    def reset(self):
+        """
+            Reset any state for the agent model
+        """
+        self._model.reset()
+        self._model._reward_net.reset_states()
+        self._model._forward_dynamics_net.reset_states()
+        if not (self._modelTarget is None):
+            self._modelTarget.reset()
+            
     def getNetworkParameters(self):
         params = []
         params.append(copy.deepcopy(self._model._forward_dynamics_net.get_weights()))

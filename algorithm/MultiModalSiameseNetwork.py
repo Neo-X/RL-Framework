@@ -576,6 +576,25 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                                               ]
                                               , outputs=distance_r
                                               )
+        
+        rnn_encoding_ = keras.layers.Input(shape=keras.backend.int_shape(processed_a_r)[1:]
+                                                                              , name="RNN_Encoding_"
+                                                                              )
+        print ("*** LSTM encoding shape shape: ", repr(rnn_encoding_))
+        # sys.exit()
+        distance_r2 = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a_r, rnn_encoding_])
+        self._model._reward_net2 = Model(inputs=[self._inputs_aa
+                                              ,rnn_encoding_
+                                              ]
+                                              , outputs=distance_r2
+                                              )
+        
+        distance_r3 = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_b_r, rnn_encoding_])
+        self._model._reward_net3 = Model(inputs=[result_state_copy
+                                      ,rnn_encoding_
+                                      ]
+                                      , outputs=distance_r3
+                                      )
 
         # sgd = SGD(lr=0.0005, momentum=0.9)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
@@ -593,6 +612,8 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
         self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
+        self._model._reward_net2.compile(loss=contrastive_loss, optimizer=sgd)
+        self._model._reward_net3.compile(loss=contrastive_loss, optimizer=sgd)
         
         self._contrastive_loss = K.function([self._inputs_a, 
                                              self._inputs_b,
@@ -605,6 +626,17 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                                             [distance_r])
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
         
+    def reset(self):
+        """
+            Reset any state for the agent model
+        """
+        self._model.reset()
+        self._model._reward_net.reset_states()
+        self._model._reward_net2.reset_states()
+        self._model._forward_dynamics_net.reset_states()
+        if not (self._modelTarget is None):
+            self._modelTarget.reset()
+            
     def getNetworkParameters(self):
         params = []
         params.append(copy.deepcopy(self._model._forward_dynamics_net.get_weights()))
@@ -733,14 +765,32 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                                   verbose=0
                                   )
                     loss_.append(np.mean(score.history['loss']))
+                    print ("lstm fd training")
                     
                 if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
+                    
+                    if (np.random.rand() > 0.5):
+                        h_a = self._model.processed_b_r.predict([sequences1])
+                        score = self._model._reward_net2.fit([sequences0, h_a], [targets__],
+                                      epochs=1, 
+                                      batch_size=sequences0.shape[0],
+                                      verbose=0
+                                      )
+                    else:
+                        h_a = self._model.processed_a_r.predict([sequences0])
+                        score = self._model._reward_net2.fit([sequences1, h_a], [targets__],
+                                      epochs=1, 
+                                      batch_size=sequences0.shape[0],
+                                      verbose=0
+                                      )
+                    """
                     score = self._model._reward_net.fit([sequences0, sequences1], [targets__],
                                   epochs=1, 
                                   batch_size=sequences0.shape[0],
                                   verbose=0
                                   )
+                    """
                     loss_.append(np.mean(score.history['loss']))
             
             return np.mean(loss_)
