@@ -211,7 +211,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                       and (self._settings["use_dropout_in_actor"] == True)) ):
                 networkAct = Dropout(rate=self._dropout_p)(networkAct)
             
-            networkAct = self.createSubNetwork(networkAct, layer_sizes, isRNN=isRNN)
+            networkAct = self.createSubNetwork(networkAct, layer_sizes, isRNN=isRNN, stateName=stateName, resultStateName=resultStateName)
             
             # inputAct.trainable = True
             networkAct_ = networkAct
@@ -301,7 +301,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         if ( self._dropout_p > 0.001 ):
             network = Dropout(rate=self._dropout_p)(network)
         """
-        network = self.createSubNetwork(network, layer_sizes, isRNN=isRNN)
+        network = self.createSubNetwork(network, layer_sizes, isRNN=isRNN, stateName=stateName, resultStateName=resultStateName)
         
             
         if ( "use_single_network" in self._settings and 
@@ -417,7 +417,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         """ 
         # print("Critic summary: ", self._critic.summary())
         
-    def createSubNetwork(self, input, layer_info, isRNN=False):
+    def createSubNetwork(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):
         
         network = input
         
@@ -602,7 +602,21 @@ class DeepNNKerasAdaptive(ModelInterface):
                 elif ( layer_sizes[i][0] == "dropout" ):
                     network = Dropout(rate=layer_sizes[i][1])(network)
                 elif ( layer_sizes[i][0] == "batchnorm" ):
-                    network = keras.layers.BatchNormalization()(network)    
+                    network = keras.layers.BatchNormalization()(network)
+                elif ( layer_sizes[i][0] == "input" ):
+                    if ("simulation_model" in self._settings and
+                        (self._settings["simulation_model"] == True)):
+                        if (self._stateful_lstm):
+                            input_ = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, self._state_length), name=stateName)
+                        else:
+                            input_ = keras.layers.Input(shape=(None, self._state_length), name=stateName)
+                    else:
+                        if (self._stateful_lstm):
+                            input_ = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
+                        else:
+                            input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name=stateName)
+                    network = input_
+                    self._State_ = input_    
                 elif ( layer_sizes[i][0] == "deconv" ):
                     network = keras.layers.Conv2DTranspose(layer_sizes[i][1], kernel_size=layer_sizes[i][2], strides=layer_sizes[i][3],
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
