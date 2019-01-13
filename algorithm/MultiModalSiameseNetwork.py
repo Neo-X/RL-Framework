@@ -779,7 +779,7 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                                       )
                     else:
                         h_a = self._model.processed_a_r.predict([sequences0])
-                        score = self._model._reward_net2.fit([sequences1, h_a], [targets__],
+                        score = self._model._reward_net3.fit([sequences1, h_a], [targets__],
                                       epochs=1, 
                                       batch_size=sequences0.shape[0],
                                       verbose=0
