@@ -559,8 +559,13 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         
         processed_a_r = self._model._reward_net(self._inputs_aa)
         self._model.processed_a_r = Model(inputs=[self._inputs_aa], outputs=processed_a_r)
-        processed_b_r = self._modelTarget._reward_net(result_state_copy)
-        self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
+        use_same_rnn_net = False
+        if (use_same_rnn_net):
+            processed_b_r = self._model._reward_net(result_state_copy)
+            self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
+        else:
+            processed_b_r = self._modelTarget._reward_net(result_state_copy)
+            self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
         
         distance_fd = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
         distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
@@ -612,7 +617,13 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
         self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
+                                    beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
+                                    clipnorm=2.5)
         self._model._reward_net2.compile(loss=contrastive_loss, optimizer=sgd)
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
+                                    beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
+                                    clipnorm=2.5)
         self._model._reward_net3.compile(loss=contrastive_loss, optimizer=sgd)
         
         self._contrastive_loss = K.function([self._inputs_a, 
