@@ -47,6 +47,9 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
         settings__["reward_network_layer_sizes"] = settings__["decoder_network_layer_sizes"]
         settings__["fd_num_terrain_features"] = 0
         print ("****** Creating dense pose encoding network")
+        if ("remove_character_state_features" in settings__):
+            settings__["state_bounds"][0] = settings__["state_bounds"][0][:-settings__["remove_character_state_features"]]
+            settings__["state_bounds"][1] = settings__["state_bounds"][1][:-settings__["remove_character_state_features"]]
         self._modelTarget = createForwardDynamicsNetwork(settings__["state_bounds"], 
                                                          settings__["action_bounds"], settings__,
                                                          stateName="State_", resultStateName="ResultState_")
@@ -288,6 +291,9 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
                 # print ("sequences0 shape: ", np.array(sequences0).shape)
                 ### subtract dense state off
                 vid_targets = sequences0[:,:, self._settings["dense_state_size"]:]
+                if ("remove_character_state_features" in self._settings):
+                    ### Remove ground reaction forces from state
+                    sequences1 = sequences1[:, :, :-self._settings["remove_character_state_features"]]
                 score = self._model._combination.fit([sequences0, sequences1], [vid_targets, sequences1, targets__],
                               epochs=1, 
                               batch_size=sequences0.shape[0],
@@ -343,6 +349,10 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
                     ):
             
             state2 = state[:, :self._settings["dense_state_size"]]
+            
+            if ("remove_character_state_features" in self._settings):
+                ### Remove ground reaction forces from state
+                state2 = state2[:, :-self._settings["remove_character_state_features"]]
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
             h_a = self._model.encode_a.predict([np.array([state])])
             h_b = self._model.encode_b.predict([np.array([state2])])
@@ -383,6 +393,9 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
             and (self._settings["train_LSTM_Reward"] == True)):
             # print ("state shape: ", state.shape)
             state2 = state[:, :self._settings["dense_state_size"]]
+            if ("remove_character_state_features" in self._settings):
+                ### Remove ground reaction forces from state
+                state2 = state2[:, :-self._settings["remove_character_state_features"]]
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
             h_a = self._model.encode_a.predict([np.array([state])])
             h_b = self._model.encode_b.predict([np.array([state2])])
@@ -446,6 +459,9 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
                     predicted_y = self._model._forward_dynamics_net.predict([x0, x1], batch_size=x0.shape[0])
                     errors.append( compute_accuracy(predicted_y, y0) )
             else:
+                if ("remove_character_state_features" in self._settings):
+                    ### Remove ground reaction forces from state
+                    sequences1 = sequences1[:, :, :-self._settings["remove_character_state_features"]]
                 predicted_y = self._model._combination.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
                 # print ("fd error, predicted_y: ", predicted_y)
                 targets__ = np.mean(targets_, axis=1)
@@ -492,11 +508,14 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
                     predicted_y = self._model._reward_net.predict([x0, x1], batch_size=x0.shape[0])
                     errors.append( compute_accuracy(predicted_y, y0) )
             else:
+                if ("remove_character_state_features" in self._settings):
+                    ### Remove ground reaction forces from state
+                    sequences1 = sequences1[:, :, :-self._settings["remove_character_state_features"]]
                 predicted_y = self._model._combination.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
                 # predicted_y = self._model._reward_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
                 # print ("fd error, predicted_y: ", predicted_y)
-                targets__ = np.mean(targets_, axis=1)
-                # print ("fd error, targets_ : ", targets_)
+                targets__ = np.mean(targets_, axis=1) 
+                print ("fd error, targets_ : ", np.mean(targets__))
                 # print ("fd error, targets__: ", targets__)
                 # print ("predicted_y: ", predicted_y[0].shape, predicted_y[1].shape, predicted_y[2].shape)
                 # print ("predicted_y: ", predicted_y[2])

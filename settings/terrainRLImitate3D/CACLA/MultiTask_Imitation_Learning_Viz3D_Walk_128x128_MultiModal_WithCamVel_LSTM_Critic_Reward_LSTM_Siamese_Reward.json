@@ -573,5 +573,7 @@
 	"comment__": "Use a stateful LSTM for value function/policy",
 "train_LSTM_stateful": false,
 	"comment__": "Use the results for the critic net inputs, this is helpful when the policy is not an RNN",
-"force_use_result_state_for_critic": true
+"force_use_result_state_for_critic": true,
+	"comment__": "Remove these last dense character features",
+"remove_character_state_features": 12
 }

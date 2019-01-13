@@ -320,7 +320,8 @@ class LearningAgent(AgentInterface):
                     updates___ = max(1, int((len(_states)/batch_size_lstm) * self._settings["additional_on-poli_trianing_updates"]))
                     print ("Performing lstm policy training")
                     if (("train_LSTM_Critic" in self._settings)
-                        and (self._settings["train_LSTM_Critic"] == True)):
+                        and (self._settings["train_LSTM_Critic"] == True)
+                        and self._settings['train_critic']):
                         for e in range(updates___):  
                             for cu in range(self._settings["critic_updates_per_actor_update"]): 
                                 states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = self.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, self.getExperience().samplesTrajectory()))

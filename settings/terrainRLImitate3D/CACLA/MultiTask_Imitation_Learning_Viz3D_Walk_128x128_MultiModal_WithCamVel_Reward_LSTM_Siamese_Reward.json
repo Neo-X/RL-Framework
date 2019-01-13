@@ -567,5 +567,7 @@
 	"comment__": "pretrain the fd model",
 "pretrain_fd": 20,
 	"comment__": "A mapping from working_id to task id",
-"worker_to_task_mapping": [0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+"worker_to_task_mapping": [0, 1, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	"comment__": "Remove these last dense character features",
+"remove_character_state_features": 12
 }
