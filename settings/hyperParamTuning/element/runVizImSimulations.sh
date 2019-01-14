@@ -26,15 +26,15 @@ declare -a simExps=(
 # 	"settings/terrainRLImitate3D/TRPO/MultiTask_Imitation_Learning_Viz3D_Walk_128x128_MultiModal_WithCamVel_Reward_LSTM_Siamese_Reward.json"
 # 	"settings/terrainRLImitate3D/TRPO/MultiTask_Imitation_Learning_Viz3D_Run_128x128_MultiModal_WithCamVel_Reward_LSTM_Siamese_Reward.json"
 ### Singe modal siamese networks
-#	"settings/terrainRLImitate3D/CACLA/MultiTask2_Imitation_Learning_All8_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
-#	"settings/terrainRLImitate3D/CACLA/MultiTask2_Imitation_Learning_DanceA_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
-#	"settings/terrainRLImitate3D/CACLA/MultiTask2_Imitation_Learning_Jump_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
-#	"settings/terrainRLImitate3D/CACLA/MultiTask2_Imitation_Learning_ZombieWalk_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate3D/CACLA/MultiTask2_Imitation_Learning_All8_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate3D/CACLA/MultiTask2_Imitation_Learning_DanceA_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate3D/CACLA/MultiTask2_Imitation_Learning_Jump_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate3D/CACLA/MultiTask2_Imitation_Learning_ZombieWalk_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
 
-#	"settings/terrainRLImitate3D/TRPO/MultiTask2_Imitation_Learning_All8_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
-#	"settings/terrainRLImitate3D/TRPO/MultiTask2_Imitation_Learning_DanceA_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
-#	"settings/terrainRLImitate3D/TRPO/MultiTask2_Imitation_Learning_Jump_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
-#	"settings/terrainRLImitate3D/TRPO/MultiTask2_Imitation_Learning_ZombieWalk_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate3D/TRPO/MultiTask2_Imitation_Learning_All8_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate3D/TRPO/MultiTask2_Imitation_Learning_DanceA_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate3D/TRPO/MultiTask2_Imitation_Learning_Jump_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate3D/TRPO/MultiTask2_Imitation_Learning_ZombieWalk_128x128_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json"
 ### Single mode with RNN Critic
 	"settings/terrainRLImitate3D/CACLA/MultiTask2_Imitation_Learning_All8_128x128_1Sub_WithCamVel_Walk_30FPS_RNN_Critic_LSTM_FD_Reward_Encode.json"
 	"settings/terrainRLImitate3D/CACLA/MultiTask2_Imitation_Learning_DanceA_128x128_1Sub_WithCamVel_Walk_30FPS_RNN_Critic_LSTM_FD_Reward_Encode.json"
@@ -56,9 +56,9 @@ do
 	# or do whatever with individual element of the array
 	# echo "$simConfigFile"
 	output='| tee -a $BORGY_JOB_ID.out'
-# 	arg="pushd /home/glen/playground/RL-Framework; python3 trainMetaModel.py --config=${simExp} --metaConfig=settings/hyperParamTuning/element/learned_reward_smoother.json --meta_sim_samples=4 --meta_sim_threads=4 --tuning_threads=2 --num_rounds=${rounds} --plot=false --Multi_GPU=true --on_policy=true --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 16 --rollouts=32 --simulation_timeout=3600 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --max_epoch_length=64 ${opts}"
+ 	arg="pushd /home/glen/playground/RL-Framework; python3 trainMetaModel.py --config=${simExp} --metaConfig=settings/hyperParamTuning/element/learned_reward_smoother.json --meta_sim_samples=4 --meta_sim_threads=4 --tuning_threads=2 --num_rounds=${rounds} --plot=false --Multi_GPU=true --on_policy=true --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 16 --rollouts=32 --simulation_timeout=3600 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --max_epoch_length=64 ${opts}"
 ### GPU training
-	arg="source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3 trainMetaModel.py --config=${simExp} --metaConfig=settings/hyperParamTuning/element/learned_reward_smoother.json --meta_sim_samples=4 --meta_sim_threads=4 --tuning_threads=2 --num_rounds=${rounds} --plot=false --Multi_GPU=true --on_policy=true --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 16 --rollouts=32 --simulation_timeout=3600 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --max_epoch_length=64 ${opts}"
+#	arg="source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3 trainMetaModel.py --config=${simExp} --metaConfig=settings/hyperParamTuning/element/learned_reward_smoother.json --meta_sim_samples=4 --meta_sim_threads=4 --tuning_threads=2 --num_rounds=${rounds} --plot=false --Multi_GPU=true --on_policy=true --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 16 --rollouts=32 --simulation_timeout=3600 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --max_epoch_length=64 ${opts}"
 	arg=$arg$output
 	command=(borgy submit --restartable --gpu=4 --cpu=64 --mem=256 -w /home/"$USER" -v /mnt/home/"$USER":/home/"$USER" --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/"$USER" -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c "$arg")
 	echo "${command[@]}"

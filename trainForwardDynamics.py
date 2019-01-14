@@ -245,7 +245,7 @@ def trainForwardDynamics(settings):
                     dynamicsLoss = forwardDynamicsModel.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_)
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                         print ("Forward Dynamics Loss: ", dynamicsLoss)
-                    """
+                    
                     if (type(settings["sim_config_file"]) == list):
                         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                                 print ("Additional Multi-task training: ")
@@ -253,7 +253,7 @@ def trainForwardDynamics(settings):
                         dynamicsLoss = forwardDynamicsModel.train(states=state_, actions=action_, result_states=resultState_, rewards=reward_, falls=fall_)
                         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                             print ("Forward Dynamics Loss: ", dynamicsLoss)
-                    """
+                    
                     if (("train_LSTM_FD" in settings)
                         and (settings["train_LSTM_FD"] == False)):   
                         for k in range(0):  
