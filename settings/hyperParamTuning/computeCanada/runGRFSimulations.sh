@@ -1,7 +1,7 @@
 #!/bin/bash
 ## This script is designed to make it easier to start a number of simulation
 ## example:
-## ./settings/hyperParamTuning/element/runSimulations.sh 250
+## ./settings/hyperParamTuning/computeCanada/runGRFSimulations.sh 500
 
 
 ## declare an array variable
