@@ -51,9 +51,11 @@ class GymMultiCharEnv(SimInterface):
         if ("use_dual_state_representations" in self.getSettings()
                 and (self.getSettings()["use_dual_state_representations"] == True)):
             while not checkDataIsValid(self._previous_observation[0][0]):
+                print ("Invalid epoch initial conditions, trying again.")
                 self._previous_observation = self.getEnvironment().reset()
         else:
             while not checkDataIsValid(self._previous_observation[0]):
+                print ("Invalid epoch initial conditions, trying again.")
                 self._previous_observation = self.getEnvironment().reset()
                 # print ("self._previous_observation: ", self._previous_observation[0])
         

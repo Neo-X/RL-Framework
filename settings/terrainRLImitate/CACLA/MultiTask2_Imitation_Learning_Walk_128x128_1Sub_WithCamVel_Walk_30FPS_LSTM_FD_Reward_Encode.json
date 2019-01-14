@@ -15,7 +15,7 @@
 "learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
 "sim_config_file": [
-					"PD_Humanoid_2D_Viz3D_FixedStart_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_2D_Viz3D_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
 					"PD_Humanoid_GRF_3D_Run_Viz3D_WithCamVel_128x128_1Sub_Imitate_30FPS_DualState_v0", 
 					"PD_Humanoid_GRF_3D_Walk_Viz3D_WithCamVel_128x128_1Sub_Imitate_30FPS_DualState_v0",
 					"PD_Humanoid_GRF_3D_ZombieWalk_Viz3D_WithCamVel_128x128_1Sub_Imitate_30FPS_DualState_v0",
@@ -25,14 +25,14 @@
 					"PD_Humanoid_GRF_3D_DanceB_Viz3D_WithCamVel_128x128_1Sub_Imitate_30FPS_DualState_v0",
 					"PD_Humanoid_GRF_3D_Kick_Viz3D_WithCamVel_128x128_1Sub_Imitate_30FPS_DualState_v0",
 					
-					"PD_Humanoid_2D_Viz3D_FixedStart_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_2D_Viz3D_FixedStart_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_2D_Viz3D_FixedStart_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_2D_Viz3D_FixedStart_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_2D_Viz3D_FixedStart_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_2D_Viz3D_FixedStart_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_2D_Viz3D_FixedStart_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
-					"PD_Humanoid_2D_Viz3D_FixedStart_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0"
+					"PD_Humanoid_2D_Viz3D_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_2D_Viz3D_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_2D_Viz3D_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_2D_Viz3D_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_2D_Viz3D_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_2D_Viz3D_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_2D_Viz3D_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0",
+					"PD_Humanoid_2D_Viz3D_128x128_WithCamVel_1Sub_Imitate_30FPS_DualState_v0"
 					
 					],
     "comment__": "Exploration distance use when randomly generating new actions",
