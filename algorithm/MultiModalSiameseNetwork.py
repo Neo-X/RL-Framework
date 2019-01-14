@@ -532,6 +532,7 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         else:
             self._inputs_aa = self._model.getStateSymbolicVariable()
             self._inputs_bb = self._modelTarget.getStateSymbolicVariable()
+        print ("self._model._State_: ", repr(self._model._State_))
         self._model._reward_net = Model(inputs=[self._model._State_], outputs=self._model._reward_net)
         self._modelTarget._reward_net = Model(inputs=[self._modelTarget._State_], outputs=self._modelTarget._reward_net)
         if (print_info):
@@ -547,8 +548,8 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         
         print ("*** self._model.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getStateSymbolicVariable())))
         print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getResultStateSymbolicVariable())))
-        print ("*** self._model.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._modelTarget.getStateSymbolicVariable())))
-        print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._modelTarget.getResultStateSymbolicVariable())))
+        print ("*** self._modelTarget.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._modelTarget.getStateSymbolicVariable())))
+        print ("*** self._modelTarget.getResultStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._modelTarget.getResultStateSymbolicVariable())))
         state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._inputs_b)[1:], name="State_2")
         result_state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._inputs_bb)[1:]
                                                                               , name="ResultState_2"
@@ -561,7 +562,9 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         self._model.processed_b = Model(inputs=[state_copy], outputs=processed_b)
         ### Convert sequence input to sequence output
         network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
+        print ("network_: ", repr(network_))
         network_b = keras.layers.TimeDistributed(self._model.processed_b, input_shape=(None, 1, self._state_length))(self._modelTarget.getResultStateSymbolicVariable())
+        print ("network_b: ", repr(network_b))
         processed_a_r = self._model._reward_net(network_)
         self._model.processed_a_r = Model(inputs=[self._inputs_aa], outputs=processed_a_r)
         use_same_rnn_net = False

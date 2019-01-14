@@ -141,9 +141,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if (self._stateful_lstm):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, 
                                                                   self._result_state_length), 
-                                                           batch_shape=(1, 1, self._state_length), name="ResultState_SIM")
+                                                           batch_shape=(1, 1, self._state_length), name=resultStateName+"_SIM")
                 else:
-                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name="ResultState_SIM")
+                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name=resultStateName+"_SIM")
             else:
                 if (self._stateful_lstm):
                     self._ResultState = keras.layers.Input(shape=(self._sequence_length, 
@@ -607,16 +607,17 @@ class DeepNNKerasAdaptive(ModelInterface):
                     if ("simulation_model" in self._settings and
                         (self._settings["simulation_model"] == True)):
                         if (self._stateful_lstm):
-                            input_ = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, self._state_length), name=stateName)
+                            input_ = keras.layers.Input(shape=(self._sequence_length, layer_sizes[i][1][-1]), batch_shape=(1, 1, self._state_length), name=stateName)
                         else:
-                            input_ = keras.layers.Input(shape=(None, self._state_length), name=stateName)
+                            input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name=stateName)
                     else:
                         if (self._stateful_lstm):
-                            input_ = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
+                            input_ = keras.layers.Input(shape=(self._sequence_length, layer_sizes[i][1][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
                         else:
                             input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name=stateName)
                     network = input_
-                    self._State_ = input_    
+                    self._State_ = input_   
+                    print ("self._State_: ", repr(self._State_)) 
                 elif ( layer_sizes[i][0] == "deconv" ):
                     network = keras.layers.Conv2DTranspose(layer_sizes[i][1], kernel_size=layer_sizes[i][2], strides=layer_sizes[i][3],
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
