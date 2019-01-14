@@ -41,8 +41,7 @@ declare -a metaExps=(
 #				"settings/hyperParamTuning/element/value_function_batch_size.json"
 )
 
-rounds=$2
-metaConfigFile=$1
+rounds=$1
 ## now loop through the above array
 for metaConfig in "${metaExps[@]}"
 do
