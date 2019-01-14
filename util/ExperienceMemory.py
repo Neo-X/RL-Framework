@@ -261,6 +261,12 @@ class ExperienceMemory(object):
     def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]], exp_action=[[0]], advantage=[[0]]):
         # print "Instert State: " + str(state)
         # state = list(state)
+        if ("use_hack_state_trans" in self.getSettings()
+            and (self.getSettings()["use_hack_state_trans"] == True)):
+            state = np.array(state)
+            state = state[:,:len(self.getStateBounds()[0])]
+            nextState = np.array(nextState)
+            nextState = nextState[:,:len(self.getResultStateBounds()[0])]
         assert len(state[0]) == self._state_length, "len(state[0]) == self._state_length: " + str(self._state_length) + " state shape: " + str(np.asarray(state).shape) 
         assert len(action[0]) == self._action_length, "len(action[0]) == self._action_length: " + str(action)
         assert len(nextState[0]) == self._result_state_length, "len(nextState[0]) == self._result_state shape: " + str(np.asarray(nextState).shape) + " == " + str(self._result_state_length)

@@ -842,6 +842,11 @@ class LearningAgent(AgentInterface):
                 state = [state[0][0]]
             else:
                 state = [state[0][0]]
+        if ("use_hack_state_trans" in self.getSettings()
+            and (self.getSettings()["use_hack_state_trans"] == True)):
+            import numpy as np
+            state = np.array(state)
+            state = state[:,:len(self.getStateBounds()[0])]
         if (use_mbrl):
             action = self.getSampler().predict(state, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
             act = [action]
@@ -865,6 +870,11 @@ class LearningAgent(AgentInterface):
                 state = [state[0][0]]
             else:
                 state = [state[0][0]]
+        if ("use_hack_state_trans" in self.getSettings()
+            and (self.getSettings()["use_hack_state_trans"] == True)):
+            import numpy as np
+            state = np.array(state)
+            state = state[:,:len(self.getStateBounds()[0])]
         std = self._pol.predict_std(state, p=p)
         if self._useLock:
             self._accesLock.release()
@@ -884,6 +894,11 @@ class LearningAgent(AgentInterface):
                 state = [state[0][0]]
             else:
                 state = [state[0][0]]
+        if ("use_hack_state_trans" in self.getSettings()
+            and (self.getSettings()["use_hack_state_trans"] == True)):
+            import numpy as np
+            state = np.array(state)
+            state = state[:,:len(self.getStateBounds()[0])]
         act = self._pol.predictWithDropout(state)
         if self._useLock:
             self._accesLock.release()
@@ -907,6 +922,11 @@ class LearningAgent(AgentInterface):
             else:
                 state = [state[0][0]]
         # print ("State: ", np.array(state).shape)
+        if ("use_hack_state_trans" in self.getSettings()
+            and (self.getSettings()["use_hack_state_trans"] == True)):
+            import numpy as np
+            state = np.array(state)
+            state = state[:,:len(self.getStateBounds()[0])]
         q = self._pol.q_value(state)
         if self._useLock:
             self._accesLock.release()
@@ -926,6 +946,11 @@ class LearningAgent(AgentInterface):
                 state = [state[0][0]]
             else:
                 state = [state[0][0]]
+        if ("use_hack_state_trans" in self.getSettings()
+            and (self.getSettings()["use_hack_state_trans"] == True)):
+            import numpy as np
+            state = np.array(state)
+            state = state[:,:len(self.getStateBounds()[0])]
         q = self._pol.q_values(state)
         if self._useLock:
             self._accesLock.release()
@@ -948,6 +973,11 @@ class LearningAgent(AgentInterface):
                 state = [state[0][0]]
             else:
                 state = [state[0][0]]
+        if ("use_hack_state_trans" in self.getSettings()
+            and (self.getSettings()["use_hack_state_trans"] == True)):
+            import numpy as np
+            state = np.array(state)
+            state = state[:,:len(self.getStateBounds()[0])]
         q = self._pol.q_values2(state)
         if self._useLock:
             self._accesLock.release()
@@ -963,6 +993,11 @@ class LearningAgent(AgentInterface):
             state = state[0]
             print ("State: ", state)
         """
+        if ("use_hack_state_trans" in self.getSettings()
+            and (self.getSettings()["use_hack_state_trans"] == True)):
+            import numpy as np
+            state = np.array(state)
+            state = state[:,:len(self.getStateBounds()[0])]
         err = self._pol.bellman_error(state, action, reward, result_state, fall)
         if self._useLock:
             self._accesLock.release()
