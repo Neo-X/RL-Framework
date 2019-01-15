@@ -13,7 +13,7 @@ import keras.backend as K
 import keras
 from keras.models import Sequential, Model
 from util.SimulationUtil import createForwardDynamicsNetwork
-from algorithm.SiameseNetwork import compute_accuracy
+from algorithm.SiameseNetwork import compute_accuracy, contrastive_loss_np
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -567,7 +567,7 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         print ("network_b: ", repr(network_b))
         processed_a_r = self._model._reward_net(network_)
         self._model.processed_a_r = Model(inputs=[self._inputs_aa], outputs=processed_a_r)
-        use_same_rnn_net = False
+        use_same_rnn_net = True
         if (use_same_rnn_net):
             processed_b_r = self._model._reward_net(network_b)
             self._model.processed_b_r = Model(inputs=[self._inputs_bb], outputs=processed_b_r)
@@ -652,6 +652,7 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         self._model.reset()
         self._model._reward_net.reset_states()
         self._model._reward_net2.reset_states()
+        self._model._reward_net3.reset_states()
         self._model._forward_dynamics_net.reset_states()
         if not (self._modelTarget is None):
             self._modelTarget.reset()
@@ -803,6 +804,7 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                                       )
                         # print ("score_: ", score_)
                     """
+                    """
                     if (np.random.rand() > 0.5):
                         h_a = self._model.processed_b_r.predict([sequences1])
                         score = self._model._reward_net2.fit([sequences0, h_a], [targets__],
@@ -811,12 +813,14 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                                       verbose=0
                                       )
                     else:
-                        h_a = self._model.processed_a_r.predict([sequences0])
-                        score = self._model._reward_net3.fit([sequences1, h_a], [targets__],
-                                      epochs=1, 
-                                      batch_size=sequences0.shape[0],
-                                      verbose=0
-                                      )
+                    """
+                    h_a = self._model.processed_a_r.predict([sequences0])
+                    # score = self._model._reward_net3.fit([sequences1, (h_a * 0.0)], [(targets__ * 0) + 1],
+                    score = self._model._reward_net3.fit([sequences1, h_a], [targets__],
+                                  epochs=1, 
+                                  batch_size=sequences0.shape[0],
+                                  verbose=0
+                                  )
                     """
                     score = self._model._reward_net.fit([sequences0, sequences1], [targets__],
                                   epochs=1, 
@@ -1005,8 +1009,8 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
             predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
             # print ("predicted_y: ", predicted_y)
             # print ("te_y: ", te_y)
-            # te_acc = compute_accuracy(predicted_y, te_y)
-            te_acc = predicted_y
+            te_acc = compute_accuracy(predicted_y, te_y)
+            # te_acc = predicted_y
             # print ("te_acc: ", te_acc)
             
         # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
@@ -1038,12 +1042,16 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                 if ("remove_character_state_features" in self._settings):
                     ### Remove ground reaction forces from state
                     sequences1 = sequences1[:, :, :-self._settings["remove_character_state_features"]]
-                predicted_y = self._model._reward_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
+                # predicted_y = self._model._reward_net3.predict([sequences1, np.zeros((sequences1.shape[0], 64))], batch_size=sequences0.shape[0])
+                h_a = self._model.processed_a_r.predict([sequences0])
+                predicted_y = self._model._reward_net3.predict([sequences1, h_a], batch_size=sequences0.shape[0])
                 # print ("fd error, predicted_y: ", predicted_y)
                 targets__ = np.mean(targets_, axis=1)
                 # print ("fd error, targets_ : ", targets_)
                 # print ("fd error, targets__: ", targets__)
-                errors.append( compute_accuracy(predicted_y, targets__) )
+                # errors.append( compute_accuracy(predicted_y, targets__) )
+                errors.append( contrastive_loss_np(predicted_y, targets__) )
+                # errors.append( predicted_y )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
             te_acc = np.mean(errors)
@@ -1052,7 +1060,7 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
             te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
         
             # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
-            predicted_y = self._model._reward_net.predict([te_pair1, te_pair2])
+            predicted_y = self._model._reward_net._reward_net3([te_pair1, (te_pair2 * 0.0)])
             te_acc = compute_accuracy(predicted_y, te_y)
             
         # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
