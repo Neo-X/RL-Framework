@@ -72,16 +72,16 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
         # because we re-use the same instance `base_network`,
         # the weights of the network
         # will be shared across the two branches
-        state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
+        state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model._State_)[1:], name="State_2")
         result_state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getResultStateSymbolicVariable())[1:]
                                                                               , name="ResultState_2"
                                                                               )
-        print ("*** self._model.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getStateSymbolicVariable())))
-        print ("*** self._model.getStateSymbolicVariable() shape: ", repr(self._model.getStateSymbolicVariable()))
+        print ("*** self._model._State_ shape: ", repr(keras.backend.int_shape(self._model._State_)))
+        print ("*** self._model._State_ shape: ", repr(self._model._State_))
         print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getResultStateSymbolicVariable())))
         print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(self._model.getResultStateSymbolicVariable()))
-        encode_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
-        self._model.processed_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=encode_a)
+        encode_a = self._model._forward_dynamics_net(self._model._State_)
+        self._model.processed_a = Model(inputs=[self._model._State_], outputs=encode_a)
         encode_b = self._model._forward_dynamics_net(state_copy)
         self._model.processed_b = Model(inputs=[state_copy], outputs=encode_b)
         
@@ -89,7 +89,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
         distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([encode_a, encode_b])
         
 
-        self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
+        self._model._forward_dynamics_net = Model(inputs=[self._model._State_
                                                           ,state_copy 
                                                           ]
                                                   , outputs=distance_r
@@ -103,7 +103,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             sequence_layer = args[1]
             return RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
 
-        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encode_a, self._model.getStateSymbolicVariable()])
+        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encode_a, self._model._State_])
         encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encode_b, state_copy])
         print ("Encoder a output shape: ", encoder_a_outputs)
         print ("Encoder b output shape: ", encoder_b_outputs)
@@ -113,7 +113,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
         decode_b_r = self._model._reward_net(encoder_b_outputs)
         # self._model.decode_b_r = Model(inputs=[encoder_b_outputs], outputs=decode_b_r)
         
-        self._model._combination = Model(inputs=[self._model.getStateSymbolicVariable(),
+        self._model._combination = Model(inputs=[self._model._State_,
                                                  state_copy
                                                           ]
                                                           , outputs=[decode_a_r,
@@ -144,7 +144,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
                                              result_state_copy,
                                              K.learning_phase()], 
                                             [distance_r])
-        # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
+        # self.reward = K.function([self._model._State_, self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
         
     def reset(self):
         """
@@ -380,8 +380,8 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             and (self._settings["train_LSTM_Reward"] == True)):
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
             # print ("State shape: ", np.array([np.array([state])]).shape)
-            h_a = self._model.processed_a_r.predict([np.array([state])])
-            h_b = self._model.processed_b_r.predict([np.array([state2])])
+            h_a = self._model.processed_a.predict([np.array([state])])
+            h_b = self._model.processed_b.predict([np.array([state2])])
             reward_ = euclidean_distance_np((h_a, h_b))[0]
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
@@ -455,8 +455,8 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
         
             # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
-            predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
-            te_acc = compute_accuracy(predicted_y, te_y)
+            # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
+            te_acc = 0
             
         # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
         return te_acc
@@ -550,7 +550,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             self._modelTarget._forward_dynamics_net = load_model(fileName+"_actor_T"+suffix)
             self._modelTarget._reward_net = load_model(fileName+"_reward_net_T"+suffix)
         # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
-        # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
+        # self._value = K.function([self._model._State_, K.learning_phase()], [self.__value])
         # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
         hf = h5py.File(fileName+"_bounds.h5",'r')
         self.setStateBounds(np.array(hf.get('_state_bounds')))
