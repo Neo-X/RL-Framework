@@ -606,6 +606,10 @@ class SiameseNetwork(KERASAlgorithm):
         self._model.reset()
         self._model._reward_net.reset_states()
         self._model._forward_dynamics_net.reset_states()
+        self._model.processed_a.reset_states()
+        self._model.processed_b.reset_states()
+        self._model.processed_a_r.reset_states()
+        self._model.processed_b_r.reset_states()
         if not (self._modelTarget is None):
             self._modelTarget.reset()
             
