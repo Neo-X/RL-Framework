@@ -113,7 +113,7 @@ class ExperienceMemory(object):
         state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_ = self.get_trajectory_batch(batch_size=batch_size, cast=False)
         
         ### Find length of shortest trajectory...
-        min_seq_length = 3
+        min_seq_length = 1
         shortest_traj = 10000000
         traj_start = 0
         for t in range(len(state_)):

@@ -569,7 +569,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     baseline = np.array(baseline)
     # baselines_.extend(copy.deepcopy(np.reshape(baseline, newshape=(baseline.size, 1))))
     baselines_.extend(copy.deepcopy(baseline))
-    # print ("baseline: ", repr(np.array(baseline)))
+    print ("baseline: ", repr(np.array(baseline)))
     # print ("G_t, rewards: ", repr(np.concatenate((discounted_rewards(np.array(rewards), discount_factor), rewards), axis=1)) )
     # print ("states: ", repr(np.array(states)))
     # baselines_ = np.transpose(model.q_values(states ))[0]

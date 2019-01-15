@@ -283,7 +283,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
                                   )
                     loss_.append(np.mean(score.history['loss']))
                 """
-                reverse_target_decodings = True
+                reverse_target_decodings = False
                 sequences0_rev = sequences0
                 sequences1_rev = sequences1
                 if ( reverse_target_decodings ):
