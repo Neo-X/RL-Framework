@@ -290,7 +290,7 @@ def trainForwardDynamics(settings):
         if (round_ % settings['plotting_update_freq_num_rounds']) == 0:
             if (("train_LSTM_FD" in settings)
                 and (settings["train_LSTM_FD"] == True)):
-                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=min(experience.samplesTrajectory(),lstm_batch_size_fd**2))
+                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=min(experience.samplesTrajectory(),lstm_batch_size_fd))
                 dynamicsLoss_ = forwardDynamicsModel.bellman_error(state_, action_, resultState_, reward_)
             else:
                 # print ("_states shape: ", _states.shape)
@@ -305,7 +305,7 @@ def trainForwardDynamics(settings):
             if (settings['train_reward_predictor']):
                 if (("train_LSTM_Reward" in settings)
                     and (settings["train_LSTM_Reward"] == True)):
-                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=min(experience.samplesTrajectory(),lstm_batch_size_fd**2))
+                    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_multitask_trajectory_batch(batch_size=min(experience.samplesTrajectory(),lstm_batch_size_fd))
                     dynamicsRewardLoss_ = forwardDynamicsModel.reward_error(state_, action_, resultState_, reward_)
                 else:
                     dynamicsRewardLoss_ = forwardDynamicsModel.reward_error(_states, _actions, _result_states, _rewards)
