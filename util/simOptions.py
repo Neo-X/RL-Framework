@@ -59,6 +59,20 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Whether or not to perform training in epochs [true|false|None]")
     
+    parser.add_option("--GPU_BUS_Index",
+              action="store", dest="GPU_BUS_Index", default=None,
+              # type='choice',
+              # choices=['true', 'false', None],
+              metavar="INTEGER", 
+              help="Index of GPU to perform training on.")
+    
+    parser.add_option("--force_sim_net_to_cpu",
+              action="store", dest="force_sim_net_to_cpu", default=None,
+              type='choice',
+              choices=['true', 'false', None],
+              metavar="STRING", 
+              help="Even if performing training on the GPU the networks for the simulations will be put on the CPU.")
+    
     parser.add_option("--on_policy",
               action="store", dest="on_policy", default=None,
               type='choice',
