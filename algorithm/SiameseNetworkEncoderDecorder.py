@@ -224,9 +224,9 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
                 sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
             else:
                 sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
-            sequences0 = np.array(sequences0)
+            # sequences0 = np.array(sequences0)
             # print ("sequences0 shape: ", sequences0.shape)
-            sequences1 = np.array(sequences1)
+            # sequences1 = np.array(sequences1)
             targets_ = np.array(targets_)
             
             if ( "add_label_noise" in self._settings):
@@ -282,12 +282,25 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
                                   verbose=0
                                   )
                     loss_.append(np.mean(score.history['loss']))
-                """    
+                """
+                reverse_target_decodings = True
+                sequences0_rev = sequences0
+                sequences1_rev = sequences1
+                if ( reverse_target_decodings ):
+                    sequences0_rev = []
+                    sequences1_rev = []
+                    for seq in range(len(sequences0)):
+                        sequences0_rev.append(list(reversed(sequences0[seq])))
+                        sequences1_rev.append(list(reversed(sequences1[seq])))
+                
+                sequences0_rev = np.array(sequences0_rev)
+                sequences1_rev = np.array(sequences1_rev)
+                # print ("sequences0_rev shape: ", sequences0_rev.shape)
                 if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
-                    score = self._model._combination.fit([sequences0, sequences1], [sequences0, sequences1, targets__],
+                    score = self._model._combination.fit([np.array(sequences0), np.array(sequences1)], [sequences0_rev, sequences1_rev, targets__],
                                   epochs=1, 
-                                  batch_size=sequences0.shape[0],
+                                  batch_size=len(sequences0),
                                   verbose=0
                                   )
                     loss_.append(np.mean(score.history['loss']))
