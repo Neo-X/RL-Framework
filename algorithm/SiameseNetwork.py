@@ -100,7 +100,7 @@ def create_sequences(traj0, traj1, settings):
         compare_adjustment = settings["imperfect_compare_offset"]
         # print ("compare_adjustment: ", compare_adjustment)
     noise_scale = 0.02
-    target_noise_scale = 0.1
+    target_noise_scale = 0.02
     sequences0 = []
     sequences1 = []
     targets_ = []
@@ -415,8 +415,8 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
     
     class ids are stored in task_ids
     '''
-    noise_scale = 0.03
-    target_noise_scale = 0.1
+    noise_scale = 0.02
+    target_noise_scale = 0.02
     compare_adjustment = 0.0
     if ("imperfect_compare_offset" in settings):
         compare_adjustment = settings["imperfect_compare_offset"]
