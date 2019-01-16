@@ -567,7 +567,7 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         print ("network_b: ", repr(network_b))
         processed_a_r = self._model._reward_net(network_)
         self._model.processed_a_r = Model(inputs=[self._inputs_aa], outputs=processed_a_r)
-        use_same_rnn_net = True
+        use_same_rnn_net = False
         if (use_same_rnn_net):
             processed_b_r = self._model._reward_net(network_b)
             self._model.processed_b_r = Model(inputs=[self._inputs_bb], outputs=processed_b_r)
@@ -1051,8 +1051,8 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                 targets__ = np.mean(targets_, axis=1)
                 # print ("fd error, targets_ : ", targets_)
                 # print ("fd error, targets__: ", targets__)
-                errors.append( compute_accuracy(predicted_y, targets__) )
-                # errors.append( contrastive_loss_np(predicted_y, targets__) )
+                # errors.append( compute_accuracy(predicted_y, targets__) )
+                errors.append( contrastive_loss_np(predicted_y, targets__) )
                 # errors.append( predicted_y )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )

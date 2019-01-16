@@ -385,7 +385,7 @@
 	"comment__": "specify the learning algorithm to use for the fd model",
 "fd_algorithm" : "algorithm.SiameseNetworkEncoderDecorder.SiameseNetworkEncoderDecorder",
 	"comment__": "A list describing the size of the layers for the NN",
-"fd_network_layer_sizes": [["input", ["none", "none", 16387]], ["TimeDistributedConv", [31, 1, 64], [ ["Reshape", [1, 128, 128]], ["conv", 8, [12, 12], [4, 4], "same"], ["batchnorm"], ["dropout", 0.2], ["conv", 16, [8, 8], [4, 4], "same"], ["batchnorm"], ["dropout", 0.2], ["conv", 16, [6, 6], [2, 2], "same"], ["batchnorm"], "flatten_features", "mark_middle", 256, "merge_features", ["batchnorm"]] ], ["LSTM", 256, 128, 0.1], ["batchnorm"], ["Dense", 128, "sigmoid", 0.002] ],
+"fd_network_layer_sizes": [["input", ["none", "none", 16387]], ["TimeDistributedConv", [31, 1, 64], [ ["Reshape", [1, 128, 128]], ["conv", 8, [12, 12], [4, 4], "same"], ["batchnorm"], ["dropout", 0.2], ["conv", 16, [8, 8], [4, 4], "same"], ["batchnorm"], ["dropout", 0.2], ["conv", 16, [6, 6], [2, 2], "same"], ["batchnorm"], "flatten_features", "mark_middle", 256, "merge_features", ["batchnorm"]] ], ["LSTM", 256, 128, 0.1, true], ["LSTM", 256, 128, 0.1], ["batchnorm"], ["Dense", 128, "sigmoid", 0.002] ],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [["LSTM", 32, 128, 0.1, true],  ["TimeDistributedConv", true, [["batchnorm"], ["Dense", 259], ["slice_features", 256], ["batchnorm"], ["Reshape", [16, 4, 4]], ["dropout", 0.2], ["deconv", 16, [6, 6], [2, 2], "same"], ["batchnorm"],  ["deconv", 16, [8, 8], [4, 4], "same"], ["batchnorm"], ["dropout", 0.2], ["deconv", 1, [12, 12], [4, 4], "same"], ["Reshape", [16384]], "merge_features"]] ],
 	"comment__": "type of activation to use",
