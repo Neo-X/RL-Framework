@@ -107,7 +107,7 @@ def compute_advantage_(vf, paths, gamma, lam):
     for path in paths:
         path["advantage"] = (path["advantage"] - mean) / std
     """
-    return paths[0]["advantage"]
+    return paths[0]
 
 def btVectorToNumpy(vec):
     import numpy as np
