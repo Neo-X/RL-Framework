@@ -804,16 +804,14 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                                       )
                         # print ("score_: ", score_)
                     """
-                    """
-                    if (np.random.rand() > 0.5):
-                        h_a = self._model.processed_b_r.predict([sequences1])
-                        score = self._model._reward_net2.fit([sequences0, h_a], [targets__],
-                                      epochs=1, 
-                                      batch_size=sequences0.shape[0],
-                                      verbose=0
-                                      )
-                    else:
-                    """
+                    # if (np.random.rand() > 0.5):
+                    h_a = self._model.processed_b_r.predict([sequences1])
+                    score = self._model._reward_net2.fit([sequences0, h_a], [targets__],
+                                  epochs=1, 
+                                  batch_size=sequences0.shape[0],
+                                  verbose=0
+                                  )
+                    # else:
                     h_a = self._model.processed_a_r.predict([sequences0])
                     # score = self._model._reward_net3.fit([sequences1, (h_a * 0.0)], [(targets__ * 0) + 1],
                     score = self._model._reward_net3.fit([sequences1, h_a], [targets__],
@@ -1043,14 +1041,18 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                     ### Remove ground reaction forces from state
                     sequences1 = sequences1[:, :, :-self._settings["remove_character_state_features"]]
                 # predicted_y = self._model._reward_net3.predict([sequences1, np.zeros((sequences1.shape[0], 64))], batch_size=sequences0.shape[0])
-                h_a = self._model.processed_a_r.predict([sequences0])
-                predicted_y = self._model._reward_net3.predict([sequences1, h_a], batch_size=sequences0.shape[0])
+                # if (np.random.rand() > 0.5):
+                # h_a = self._model.processed_b_r.predict([sequences0])
+                predicted_y = self._model._reward_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
+                # else:
+                # h_a = self._model.processed_a_r.predict([sequences0])
+                # predicted_y2 = self._model._reward_net3.predict([sequences1, h_a], batch_size=sequences0.shape[0])
                 # print ("fd error, predicted_y: ", predicted_y)
                 targets__ = np.mean(targets_, axis=1)
                 # print ("fd error, targets_ : ", targets_)
                 # print ("fd error, targets__: ", targets__)
-                # errors.append( compute_accuracy(predicted_y, targets__) )
-                errors.append( contrastive_loss_np(predicted_y, targets__) )
+                errors.append( compute_accuracy(predicted_y, targets__) )
+                # errors.append( contrastive_loss_np(predicted_y, targets__) )
                 # errors.append( predicted_y )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
