@@ -16,6 +16,11 @@ scancel -t PENDING -u $USER
 ### monitor specific job by <job_id>
 scontrol show job -dd <job_id>
 
+### Job Usage
+For after the job is finished
+```
+seff <job_id>
+```
 ## Using singularity on Compute Canada
 
 ```
