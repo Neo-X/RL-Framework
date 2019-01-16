@@ -107,9 +107,9 @@ class LearningAgent(AgentInterface):
         
         # print ("****** state bounds mean ***: ", np.mean(self.getFDExperience().getStateBounds()))
         # print ("****** fd exp mem insters ***: ", self.getFDExperience().inserts())
-        # print ("Bounds comparison: ", self._pol.getStateBounds(), " exp mem: ", 
+        # print ("Bounds comparison: ", self.getPolicy().getStateBounds(), " exp mem: ", 
         #        self._expBuff.getStateBounds())
-        # print ("Bounds comparison: ", self._pol.getActionBounds(), " exp mem: ", 
+        # print ("Bounds comparison: ", self.getPolicy().getActionBounds(), " exp mem: ", 
         #        self._expBuff.getActionBounds())
         
         # print("_exp_actions: ", _exp_actions)
@@ -144,7 +144,7 @@ class LearningAgent(AgentInterface):
                 print("Actions std:  ", np.std(_actions__, axis=0) )
             
             ### Update target networks
-            self._pol.updateTargetModel()
+            self.getPolicy().updateTargetModel()
             ### Validate data
             tmp_states = []
             tmp_actions = []
@@ -269,8 +269,8 @@ class LearningAgent(AgentInterface):
                     if ("use_dual_state_representations" in self.getSettings()
                         and (self.getSettings()["use_dual_state_representations"] == True)):
                         """
-                        _states.append([np.array(norm_action(np.array(tmp_states__[0][0]), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
-                        _result_states.append([np.array(norm_action(np.array(tmp_result_states__[0][0]), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
+                        _states.append([np.array(norm_action(np.array(tmp_states__[0][0]), self.getPolicy().getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
+                        _result_states.append([np.array(norm_action(np.array(tmp_result_states__[0][0]), self.getPolicy().getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
                         
                         _states_fd.append([np.array(norm_action(np.array(tmp_states__[0][1]), self._fd.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
                         _result_states_fd.append([np.array(norm_action(np.array(tmp_result_states__[0][1]), self._fd.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
@@ -282,8 +282,8 @@ class LearningAgent(AgentInterface):
                         _result_states_fd.append([np.array(np.array(tmp_result_states__[1]), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
                     else:
                         """
-                        _states.append([np.array(norm_action(np.array(tmp_states__), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states])
-                        _result_states.append([np.array(norm_action(np.array(tmp_result_states__), self._pol.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states])
+                        _states.append([np.array(norm_action(np.array(tmp_states__), self.getPolicy().getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states])
+                        _result_states.append([np.array(norm_action(np.array(tmp_result_states__), self.getPolicy().getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states])
                         """
                         # _states.append([np.array(np.array(tmp_states__), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
                         # _result_states.append([np.array(np.array(tmp_result_states__), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
@@ -294,8 +294,8 @@ class LearningAgent(AgentInterface):
                         _result_states_fd = _result_states
                     
                     """
-                    _actions.append([np.array(norm_action(np.array(tmp_actions__), self._pol.getActionBounds()), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions[i]])
-                    _rewards.append([np.array(norm_state(tmp_rewards__ , self._pol.getRewardBounds() ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards[i]])
+                    _actions.append([np.array(norm_action(np.array(tmp_actions__), self.getPolicy().getActionBounds()), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions[i]])
+                    _rewards.append([np.array(norm_state(tmp_rewards__ , self.getPolicy().getRewardBounds() ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards[i]])
                     """
                     # _actions.append([np.array(np.array(tmp_actions__), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions[i]])
                     # _rewards.append([np.array(tmp_rewards__ , dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards[i]])
@@ -325,7 +325,7 @@ class LearningAgent(AgentInterface):
                         for e in range(updates___):  
                             for cu in range(self._settings["critic_updates_per_actor_update"]): 
                                 states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = self.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, self.getExperience().samplesTrajectory()))
-                                loss = self._pol.trainCritic(states=states_, actions=actions_, rewards=rewards_, 
+                                loss = self.getPolicy().trainCritic(states=states_, actions=actions_, rewards=rewards_, 
                                                              result_states=result_states_, falls=falls_, G_t=G_ts_,
                                                              p=p)
                                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -334,7 +334,7 @@ class LearningAgent(AgentInterface):
                         and (self._settings["train_LSTM"] == True)):
                         states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = self.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, self.getExperience().samplesTrajectory()))
                         if (self._settings["train_actor"] == True):
-                            loss_ = self._pol.trainActor(states=states_, actions=actions_, rewards=rewards_, result_states=result_states_, 
+                            loss_ = self.getPolicy().trainActor(states=states_, actions=actions_, rewards=rewards_, result_states=result_states_, 
                                                          falls=falls_, advantage=advantages_, exp_actions=exp_actions_, 
                                                          G_t=G_ts_, forwardDynamicsModel=self._fd, p=p)
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -456,7 +456,7 @@ class LearningAgent(AgentInterface):
                     vf_updates = max(vf_updates, 1)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Performing ", vf_updates, " critic epochs")
-                    loss = self._pol.trainCritic(states=states__, actions=actions__, 
+                    loss = self.getPolicy().trainCritic(states=states__, actions=actions__, 
                                                  rewards=rewards__, result_states=result_states__, 
                                                  falls=falls__, G_t=G_ts__, p=p, updates=vf_updates, 
                                                  batch_size=value_function_batch_size)
@@ -487,7 +487,7 @@ class LearningAgent(AgentInterface):
                         print ("Performing ", int(additional_on_poli_trianing_updates_), " policy epoch(s)")
                         
                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(self._expBuff.samples(), self._settings["expereince_length"]))
-                    loss_ = self._pol.trainActor(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__, 
+                    loss_ = self.getPolicy().trainActor(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__, 
                                                      advantage=advantage__, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
                                                      p=p, updates=int(additional_on_poli_trianing_updates_), batch_size=batch_size_)
                 dynamicsLoss = 0
@@ -518,24 +518,24 @@ class LearningAgent(AgentInterface):
                               or (self._settings['agent_name'] == 'algorithm.QPropKeras.QPropKeras')
                               ):
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
-                                loss = self._pol.trainOnPolicyCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
-                            # loss = self._pol.trainOnPolicyCritic(states=tmp_states, actions=tmp_actions, rewards=tmp_rewards, result_states=tmp_result_states, falls=tmp_falls)
+                                loss = self.getPolicy().trainOnPolicyCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                            # loss = self.getPolicy().trainOnPolicyCritic(states=tmp_states, actions=tmp_actions, rewards=tmp_rewards, result_states=tmp_result_states, falls=tmp_falls)
                             # print ("Number of samples:", self._expBuff.samples())
                             if ( 'give_mbae_actions_to_critic' in self._settings and 
                                  (self._settings['give_mbae_actions_to_critic'] == False)):
                                 # if ( np.random.random() >= self._settings['model_based_action_omega']):
                                 if ( np.random.random() >= -1.0):
                                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
-                                    loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, 
+                                    loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
                                                                  result_states=result_states__, falls=falls__, G_t=G_ts__,
                                                                  p=p)
                                 else:
                                     # print('off-policy action update')
                                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
-                                    actions____ = self._pol.predict_batch(states=result_states__) 
+                                    actions____ = self.getPolicy().predict_batch(states=result_states__) 
                                     predicted_result_states__ = self._fd.predict_batch(states=result_states__, actions=actions____)
                                     rewards____ = self._fd.predict_reward_batch(states=result_states__, actions=actions____)
-                                    loss = self._pol.trainCritic(states=result_states__, actions=actions____, rewards=rewards____, 
+                                    loss = self.getPolicy().trainCritic(states=result_states__, actions=actions____, rewards=rewards____, 
                                                                  result_states=predicted_result_states__, falls=falls__, G_t=G_ts__,
                                                                  p=p)
                             else:
@@ -548,7 +548,7 @@ class LearningAgent(AgentInterface):
                                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(value_function_batch_size)
                                 else:
                                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
-                                loss = self._pol.trainCritic(states=states__, actions=actions__, rewards=rewards__, 
+                                loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
                                                              result_states=result_states__, falls=falls__, G_t=G_ts__,
                                                              p=p)
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -560,7 +560,7 @@ class LearningAgent(AgentInterface):
                             
                     else:
                         _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_batch(value_function_batch_size)
-                        loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, 
+                        loss = self.getPolicy().trainCritic(states=_states, actions=_actions, rewards=_rewards, 
                                                      result_states=_result_states, falls=_falls, G_t=G_ts__,
                                                      p=p)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -606,18 +606,18 @@ class LearningAgent(AgentInterface):
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Forward Dynamics Loss: ", dynamicsLoss)
                             
-                                # loss = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                                # loss = self.getPolicy().trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                             if (self._settings['train_critic_on_fd_output'] and 
-                                (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
-                                ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
-                                ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
+                                (( self.getPolicy().numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
+                                ( ( self.getPolicy().numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
+                                ( ( self.getPolicy().numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
                                 ):
                                 predicted_result_states__ = self._fd.predict_batch(states=states__, actions=actions__)
-                                loss = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                                loss = self.getPolicy().trainDyna(predicted_states=predicted_result_states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                                 
                                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                     print("Performing Dyna Update, loss: ", loss)
-                                # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
+                                # print("Updated params: ", self.getPolicy().getNetworkParameters()[0][0][0])
                     else:
                         if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                             # print ("Using seperate (off-policy) exp mem for FD model")
@@ -629,16 +629,16 @@ class LearningAgent(AgentInterface):
                                 print ("Forward Dynamics Loss: ", dynamicsLoss)
                                 
                         if (self._settings['train_critic_on_fd_output'] and 
-                            (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
-                            ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
-                            ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
+                            (( self.getPolicy().numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
+                            ( ( self.getPolicy().numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
+                            ( ( self.getPolicy().numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
                             ):
                             predicted_result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
-                            loss = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                            loss = self.getPolicy().trainDyna(predicted_states=predicted_result_states__, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                             
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print("Performing Dyna Update, loss: ", loss)
-                            # print("Updated params: ", self._pol.getNetworkParameters()[0][0][0])
+                            # print("Updated params: ", self.getPolicy().getNetworkParameters()[0][0][0])
                     
                     t1 = time.time()
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
@@ -698,12 +698,12 @@ class LearningAgent(AgentInterface):
                         
                             _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_exporation_action_batch(batch_size_)
                             
-                            loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, 
+                            loss_ = self.getPolicy().trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, 
                                                          falls=_falls, advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, 
                                                          forwardDynamicsModel=self._fd, p=p)
                     else:
                         _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_exporation_action_batch(batch_size_)
-                        loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
+                        loss_ = self.getPolicy().trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
                                                      advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
                                                      p=p)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -737,13 +737,13 @@ class LearningAgent(AgentInterface):
                          (self._settings['give_mbae_actions_to_critic'] == False)):
                         # if ( np.random.random() >= self._settings['model_based_action_omega']):
                         _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = self._expBuff.getNonMBAEBatch(value_function_batch_size)
-                        loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, 
+                        loss = self.getPolicy().trainCritic(states=_states, actions=_actions, rewards=_rewards, 
                                                      result_states=_result_states, falls=_falls, G_t=G_ts__,
                                                      p=p)
                         _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = self._expBuff.get_batch(value_function_batch_size)
                     else:
                         _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = self._expBuff.get_batch(value_function_batch_size)
-                        loss = self._pol.trainCritic(states=_states, actions=_actions, rewards=_rewards, 
+                        loss = self.getPolicy().trainCritic(states=_states, actions=_actions, rewards=_rewards, 
                                                      result_states=_result_states, falls=_falls, G_t=G_ts__,
                                                      p=p)
                         if ('rebatch_data' in self._settings 
@@ -765,7 +765,7 @@ class LearningAgent(AgentInterface):
                     
                 if (self._settings['train_actor']):
                     t1 = time.time()
-                    loss_ = self._pol.trainActor(states=_states, actions=_actions, rewards=_rewards, 
+                    loss_ = self.getPolicy().trainActor(states=_states, actions=_actions, rewards=_rewards, 
                                                  result_states=_result_states, falls=_falls, advantage=_advantage, 
                                                  exp_actions=_exp_actions, G_t=G_ts__, forwardDynamicsModel=self._fd, p=p)
                     t1 = time.time()
@@ -786,21 +786,21 @@ class LearningAgent(AgentInterface):
                     if ( 'give_mbae_actions_to_critic' in self._settings and 
                          (self._settings['give_mbae_actions_to_critic'] == False)):
                         ### perform a Q like update
-                        actions____ = self._pol.predict_batch(states=_result_states) ### I think these could have noise added to them.
+                        actions____ = self.getPolicy().predict_batch(states=_result_states) ### I think these could have noise added to them.
                         predicted_result_states__ = self._fd.predict_batch(states=_result_states, actions=actions____)
                         rewards____ = self._fd.predict_reward_batch(states=_result_states, actions=actions____)
-                        loss = self._pol.trainCritic(states=_result_states, actions=actions____, rewards=rewards____, 
+                        loss = self.getPolicy().trainCritic(states=_result_states, actions=actions____, rewards=rewards____, 
                                                      result_states=predicted_result_states__, falls=_falls,
                                                      p=p)
                         
                     if (self._settings['train_critic_on_fd_output'] and 
-                        (( self._pol.numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
-                        ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
-                        ( ( self._pol.numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
+                        (( self.getPolicy().numUpdates() % self._settings['dyna_update_lag_steps']) == 0) and 
+                        ( ( self.getPolicy().numUpdates() %  self._settings['steps_until_target_network_update']) >= (self._settings['steps_until_target_network_update']/10)) and
+                        ( ( self.getPolicy().numUpdates() %  self._settings['steps_until_target_network_update']) <= (self._settings['steps_until_target_network_update'] - (self._settings['steps_until_target_network_update']/10)))
                         ):
                         
                         predicted_result_states__ = self._fd.predict_batch(states=_states, actions=_actions)
-                        loss = self._pol.trainDyna(predicted_states=predicted_result_states__, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
+                        loss = self.getPolicy().trainDyna(predicted_states=predicted_result_states__, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                             print ( "Dyna training loss: ", loss)
                         if not np.isfinite(loss) or (loss > 500) :
@@ -814,10 +814,10 @@ class LearningAgent(AgentInterface):
                         print ("FD training complete in " + str(sim_time_) + " seconds")
                             
             # import lasagne
-            # val_params = lasagne.layers.helper.get_all_param_values(self._pol.getModel().getCriticNetwork())
-            # pol_params = lasagne.layers.helper.get_all_param_values(self._pol.getModel().getActorNetwork())
+            # val_params = lasagne.layers.helper.get_all_param_values(self.getPolicy().getModel().getCriticNetwork())
+            # pol_params = lasagne.layers.helper.get_all_param_values(self.getPolicy().getModel().getActorNetwork())
             # fd_params = lasagne.layers.helper.get_all_param_values(self._fd.getModel().getForwardDynamicsNetwork())
-            # print ("Learning Agent: Model pointers: val, ", self._pol.getModel(), " poli, ", self._pol.getModel(),  " fd, ", self._fd.getModel())
+            # print ("Learning Agent: Model pointers: val, ", self.getPolicy().getModel(), " poli, ", self.getPolicy().getModel(),  " fd, ", self._fd.getModel())
             # print("pol first layer params: ", pol_params[1])
             # print("val first layer params: ", val_params[1])
             # print("fd first layer params: ", fd_params[1])               
@@ -830,28 +830,12 @@ class LearningAgent(AgentInterface):
         if self._useLock:
             self._accesLock.acquire()
         
-        if ("use_dual_state_representations" in self.getSettings()
-            and (self.getSettings()["use_dual_state_representations"] == True)):
-            # print ("State: ", state)
-            if ("use_viz_for_policy" in self.getSettings() 
-                and self.getSettings()["use_viz_for_policy"] == True):
-                state = [state[0][1]]
-            elif ("use_dual_viz_state_representations" in self.getSettings()
-                  and (self.getSettings()["use_dual_viz_state_representations"] == True)):
-                # print ("state: ", np.array(state).shape)
-                state = [state[0][0]]
-            else:
-                state = [state[0][0]]
-        if ("use_hack_state_trans" in self.getSettings()
-            and (self.getSettings()["use_hack_state_trans"] == True)):
-            import numpy as np
-            state = np.array(state)
-            state = state[:,:len(self.getStateBounds()[0])]
+        state = self.processState(state)
         if (use_mbrl):
             action = self.getSampler().predict(state, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
             act = [action]
         else:
-            act = self._pol.predict(state, evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+            act = self.getPolicy().predict(state, evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
         if self._useLock:
             self._accesLock.release()
         return act
@@ -859,23 +843,8 @@ class LearningAgent(AgentInterface):
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:
             self._accesLock.acquire()
-        if ("use_dual_state_representations" in self.getSettings()
-            and (self.getSettings()["use_dual_state_representations"] == True)):
-            if ("use_viz_for_policy" in self.getSettings() 
-                and self.getSettings()["use_viz_for_policy"] == True):
-            # print ("State: ", state)
-                state = [state[0][1]]
-            elif ("use_dual_viz_state_representations" in self.getSettings()
-                  and (self.getSettings()["use_dual_viz_state_representations"] == True)):
-                state = [state[0][0]]
-            else:
-                state = [state[0][0]]
-        if ("use_hack_state_trans" in self.getSettings()
-            and (self.getSettings()["use_hack_state_trans"] == True)):
-            import numpy as np
-            state = np.array(state)
-            state = state[:,:len(self.getStateBounds()[0])]
-        std = self._pol.predict_std(state, p=p)
+        state = self.processState(state)
+        std = self.getPolicy().predict_std(state, p=p)
         if self._useLock:
             self._accesLock.release()
         return std
@@ -883,23 +852,8 @@ class LearningAgent(AgentInterface):
     def predictWithDropout(self, state):
         if self._useLock:
             self._accesLock.acquire()
-        if ("use_dual_state_representations" in self.getSettings()
-            and (self.getSettings()["use_dual_state_representations"] == True)):
-            if ("use_viz_for_policy" in self.getSettings() 
-                and self.getSettings()["use_viz_for_policy"] == True):
-            # print ("State: ", state)
-                state = [state[0][1]]
-            elif ("use_dual_viz_state_representations" in self.getSettings()
-                  and (self.getSettings()["use_dual_viz_state_representations"] == True)):
-                state = [state[0][0]]
-            else:
-                state = [state[0][0]]
-        if ("use_hack_state_trans" in self.getSettings()
-            and (self.getSettings()["use_hack_state_trans"] == True)):
-            import numpy as np
-            state = np.array(state)
-            state = state[:,:len(self.getStateBounds()[0])]
-        act = self._pol.predictWithDropout(state)
+        state = self.processState(state)
+        act = self.getPolicy().predictWithDropout(state)
         if self._useLock:
             self._accesLock.release()
         return act
@@ -910,24 +864,8 @@ class LearningAgent(AgentInterface):
     def q_value(self, state):
         if self._useLock:
             self._accesLock.acquire()
-        if ("use_dual_state_representations" in self.getSettings()
-            and (self.getSettings()["use_dual_state_representations"] == True)):
-            if ("use_viz_for_policy" in self.getSettings() 
-                and self.getSettings()["use_viz_for_policy"] == True):
-                # print ("State: ", np.array(state[0]).shape)
-                state = [state[0][1]]
-            elif ("use_dual_viz_state_representations" in self.getSettings()
-                  and (self.getSettings()["use_dual_viz_state_representations"] == True)):
-                state = [state[0][0]]
-            else:
-                state = [state[0][0]]
-        # print ("State: ", np.array(state).shape)
-        if ("use_hack_state_trans" in self.getSettings()
-            and (self.getSettings()["use_hack_state_trans"] == True)):
-            import numpy as np
-            state = np.array(state)
-            state = state[:,:len(self.getStateBounds()[0])]
-        q = self._pol.q_value(state)
+        state = self.processState(state)
+        q = self.getPolicy().q_value(state)
         if self._useLock:
             self._accesLock.release()
         return q
@@ -935,31 +873,24 @@ class LearningAgent(AgentInterface):
     def q_values(self, state):
         if self._useLock:
             self._accesLock.acquire()
-        if ("use_dual_state_representations" in self.getSettings()
-            and (self.getSettings()["use_dual_state_representations"] == True)):
-            if ("use_viz_for_policy" in self.getSettings() 
-                and self.getSettings()["use_viz_for_policy"] == True):
-            # print ("State: ", state)
-                state = [state[0][1]]
-            elif ("use_dual_viz_state_representations" in self.getSettings()
-                  and (self.getSettings()["use_dual_viz_state_representations"] == True)):
-                state = [state[0][0]]
-            else:
-                state = [state[0][0]]
-        if ("use_hack_state_trans" in self.getSettings()
-            and (self.getSettings()["use_hack_state_trans"] == True)):
-            import numpy as np
-            state = np.array(state)
-            state = state[:,:len(self.getStateBounds()[0])]
-        q = self._pol.q_values(state)
+        state = self.processState(state)
+        q = self.getPolicy().q_values(state)
         if self._useLock:
             self._accesLock.release()
         return q
     
     def q_values2(self, state):
+        state = self.processState(state)
+        q = self.getPolicy().q_values2(state)
+        if self._useLock:
+            self._accesLock.release()
+        return q
+    
+    def processState(self, state):
         """
             Input: state, non-normalized states from environment
         """
+        s_length = len(state)
         if self._useLock:
             self._accesLock.acquire()
         if ("use_dual_state_representations" in self.getSettings()
@@ -967,22 +898,21 @@ class LearningAgent(AgentInterface):
             if ("use_viz_for_policy" in self.getSettings() 
                 and self.getSettings()["use_viz_for_policy"] == True):
             # print ("State: ", state)
-                state = [state[0][1]]
+                state = [x[1] for x in state]
             elif ("use_dual_viz_state_representations" in self.getSettings()
                   and (self.getSettings()["use_dual_viz_state_representations"] == True)):
-                state = [state[0][0]]
+                # state = state[:,0,0]
+                state = [x[0] for x in state]
             else:
-                state = [state[0][0]]
+                state = [x[0] for x in state]
         if ("use_hack_state_trans" in self.getSettings()
             and (self.getSettings()["use_hack_state_trans"] == True)):
             import numpy as np
             state = np.array(state)
             state = state[:,:len(self.getStateBounds()[0])]
-        q = self._pol.q_values2(state)
-        if self._useLock:
-            self._accesLock.release()
-        return q
-    
+        assert s_length == len(state), "before state length: " + str(s_length) + " == " + str(len(state))
+        return state
+        
     def bellman_error(self, state, action, reward, result_state, fall):
         if self._useLock:
             self._accesLock.acquire()
@@ -998,7 +928,7 @@ class LearningAgent(AgentInterface):
             import numpy as np
             state = np.array(state)
             state = state[:,:len(self.getStateBounds()[0])]
-        err = self._pol.bellman_error(state, action, reward, result_state, fall)
+        err = self.getPolicy().bellman_error(state, action, reward, result_state, fall)
         if self._useLock:
             self._accesLock.release()
         return err

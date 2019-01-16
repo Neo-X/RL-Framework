@@ -312,7 +312,7 @@ class KERASAlgorithm(AlgorithmInterface):
         # return self._q_val()[0]
         
     def q_values2(self, states, wrap=True):
-        ### These versions of states are normalized
+        ### These versions of states are NOT normalized
         states = norm_state(states, self._state_bounds)
         states = np.array(states, dtype=self._settings['float_type'])
         if (("train_LSTM_Critic" in self._settings)
