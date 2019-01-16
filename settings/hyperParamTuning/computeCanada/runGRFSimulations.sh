@@ -43,7 +43,7 @@ declare -a metaExps=(
 
 rounds=$1
 simConfig=$2
-$extraOpts=$3
+extraOpts=$3
 ## now loop through the above array
 for metaConfig in "${metaExps[@]}"
 do
