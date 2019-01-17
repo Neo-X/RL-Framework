@@ -212,7 +212,7 @@
 	"comment__": "KL divergence threshold between policy updates",
 "kl_divergence_threshold": 0.1,
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy [true|fast]",
-"on_policy": true,
+"on_policy": "fast",
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
 "use_stochastic_policy": false,
 	"comment__": "Whether or  not to train the critic at all. Usually used for debugging",
@@ -339,11 +339,11 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
 	"comment__": "specify the learning algorithm to use for the fd model",
-"fd_algorithm" : "algorithm.SiameseNetwork.SiameseNetwork",
+"fd_algorithm" : "algorithm.SiameseNetworkEncoderDecorder.SiameseNetworkEncoderDecorder",
 	"comment__": "A list describing the size of the layers for the NN",
-"fd_network_layer_sizes": [ ["TimeDistributedConv", [31, 1, 1026], ["Reshape", [1, 32, 32]], [8,[3,3], [2,2]], ["dropout", 0.2], [8,[2,2], [2,2]], ["dropout", 0.2],  "flatten_features", "merge_features", 64, "mark_middle", ["Dense", 32, "sigmoid"]], ["GRU", 32, 32], ["Dense", 32, "linear"]],
+"fd_network_layer_sizes": [ ["input", ["none", "none", 1026]], ["TimeDistributedConv", [31, 1, 1026], [["Reshape", [1, 32, 32]], ["conv", 8,[3,3], [2,2], "same"], ["dropout", 0.2], ["conv", 8,[2,2], [2,2], "same"], ["dropout", 0.2],  "flatten_features", 64, "merge_features", "mark_middle", ["Dense", 32, "sigmoid"]] ], ["GRU", 32, 32]],
 	"comment__": "A list describing the size of the layers for the NN",
-"reward_network_layer_sizes": [["LSTM", 32, 32, 0.1, true],  ["TimeDistributedConv", true, [["Dense", 259], ["slice_features", 256], ["Reshape", [16, 4, 4]], ["dropout", 0.2], ["deconv", 16, [6, 6], [2, 2], "same"],  ["deconv", 16, [8, 8], [4, 4], "same"], ["dropout", 0.2], ["deconv", 1, [12, 12], [4, 4], "same"], ["Reshape", [16384]], "merge_features"]] ],
+"reward_network_layer_sizes": [["LSTM", 32, 32, 0.1, true],  ["TimeDistributedConv", true, [["Dense", 66], ["slice_features", 64], ["Dense", 512], ["Reshape", [8, 8, 8]], ["dropout", 0.2], ["deconv", 8, [2, 2], [2, 2], "same"],  ["deconv", 1, [3, 3], [2, 2], "same"], ["dropout", 0.2], ["Reshape", [1024]], "merge_features"]] ],
 		"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
 	"comment__": "type of activation to use for policy",
@@ -413,5 +413,7 @@
 	"comment__": "Inform the system that a encoder decoder model is being used",
 "using_encoder_decoder_fd": true,
 	"comment__": "The shortest sequence the RNN network will be trained on",
-"min_sequece_length": 3
+"min_sequece_length": 3,
+	"comment__": "Add velocity state to image state",
+"append_camera_velocity_state": true
 }

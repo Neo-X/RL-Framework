@@ -138,7 +138,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             print ("Clipping: ", sgd.decay)
         self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
         
-        self._model._combination.compile(loss=['mse', 'mse', contrastive_loss], loss_weights=[0.01, 0.01, 0.98], optimizer=sgd)
+        self._model._combination.compile(loss=['mse', 'mse', contrastive_loss], loss_weights=[0.15, 0.15, 0.7], optimizer=sgd)
         
         self._contrastive_loss_r = K.function([self._model.getResultStateSymbolicVariable(), 
                                              result_state_copy,
@@ -297,7 +297,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
                     
                     sequences0_rev = np.array(sequences0_rev)
                     sequences1_rev = np.array(sequences1_rev)
-                    print ("sequences0_rev shape: ", sequences0_rev.shape)
+                    # print ("sequences0_rev shape: ", sequences0_rev.shape)
                     ### Alternate between positive example and negative example updates
                     alternate_pos_neg = False
                     if ( alternate_pos_neg ):
