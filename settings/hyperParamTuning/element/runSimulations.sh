@@ -57,7 +57,7 @@ do
 	command=(borgy submit --restartable --gpu=4 --cpu=64 --mem=384 -w /home/"$USER" -v /mnt/home/"$USER":/home/"$USER" --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/"$USER" -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c "$arg")
 	echo "${command[@]}"
 	# eval $command
-	# "${command[@]}"
+	"${command[@]}"
 done
 
 ### TerrainRL sim
