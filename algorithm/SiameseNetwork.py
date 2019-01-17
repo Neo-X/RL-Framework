@@ -830,7 +830,7 @@ class SiameseNetwork(KERASAlgorithm):
         """
             Predict reward which is inverse of distance metric
         """
-        print ("state bounds length: ", self.getStateBounds())
+        # print ("state bounds length: ", self.getStateBounds())
         # print ("fd: ", self)
         state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         state2 = np.array(norm_state(state2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
