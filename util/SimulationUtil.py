@@ -964,6 +964,8 @@ def createNewFDModel(settings, env, model):
         elif ("append_camera_velocity_state" in settings 
             and (settings["append_camera_velocity_state"] == "3D")):
             state_size__ = state_size__ + 3
+            # print ("***** Adding ", settings["append_camera_velocity_state"], " camera")
+            # sys.exit()
         print ("Creating multi modal state size****")
         state_bounds = [[0] * (state_size__), 
                                  [1] * (state_size__)]
