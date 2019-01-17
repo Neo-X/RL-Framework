@@ -256,7 +256,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     from simulation.evalModel import evalModelParrallel, evalModel
     # from model.ModelUtil import validBounds
     from model.LearningAgent import LearningAgent, LearningWorker
-    from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor
+    from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor, createNewFDModel
     from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, getAgentName
     
     
@@ -296,8 +296,13 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
         sim_index = settings['override_sim_env_id']
     # exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
+    actor = createActor(str(settings['environment_type']),settings, None)
+    
     if (exp is None):
         exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=render, index=sim_index)
+        exp.setActor(actor)
+        exp.getActor().init()
+        exp.init()
     if (state_bounds == "ask_env"): # This is okay if there is one thread only...
         print ("Getting state bounds from environment")
         s_min = exp.getEnvironment().observation_space.getMinimum()
@@ -312,8 +317,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     else:
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
     # actor = ActorInterface(discrete_actions)
-    actor = createActor(str(settings['environment_type']),settings, experience)
-    
+        
     masterAgent = LearningAgent(settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
@@ -331,9 +335,12 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     
     if (settings['train_forward_dynamics']):
         if (runLastModel == True):
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
+            # createNewFDModel(settings, exp_val, model)
+            forwardDynamicsModel = createNewFDModel(settings, exp, model)
+            # forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
         else:
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
+            forwardDynamicsModel = createNewFDModel(settings, exp, model)
+            # forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
         
         forwardDynamicsModel.setActor(actor)
         masterAgent.setForwardDynamics(forwardDynamicsModel)
@@ -372,6 +379,9 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     masterAgent.setSettings(settings)
     masterAgent.setExperience(experience)
     masterAgent.setPolicy(model)
+    
+    # print (masterAgent.getRewardModel())
+    # sys.exit()
     
     movieWriter = None
     if ("save_video_to_file" in settings):

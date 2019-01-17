@@ -624,6 +624,19 @@ def trainModelParallel(inputData):
             # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
             data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
                     masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
+            if ( "keep_seperate_fd_exp_buffer" in settings 
+                 and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+                data = ('Update_Policy', tmp_p, 
+                    masterAgent.getStateBounds(),
+                    masterAgent.getActionBounds(),
+                    masterAgent.getRewardBounds(),
+                    masterAgent.getPolicy().getNetworkParameters(),
+                    masterAgent.getForwardDynamics().getNetworkParameters(),
+                    "blah",
+                    masterAgent.getForwardDynamics().getStateBounds(),
+                    masterAgent.getForwardDynamics().getActionBounds(),
+                    masterAgent.getForwardDynamics().getRewardBounds(),
+                     ) 
         if (settings['train_forward_dynamics'] and
             ("train_reward_distance_metric" in settings and
              (settings["train_reward_distance_metric"] == True))):
@@ -634,6 +647,19 @@ def trainModelParallel(inputData):
                     masterAgent.getPolicy().getNetworkParameters(),
                     masterAgent.getForwardDynamics().getNetworkParameters(),
                     masterAgent.getRewardModel().getNetworkParameters())
+            if ( "keep_seperate_fd_exp_buffer" in settings
+                 and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+                data = ('Update_Policy', tmp_p, 
+                    masterAgent.getStateBounds(),
+                    masterAgent.getActionBounds(),
+                    masterAgent.getRewardBounds(),
+                    masterAgent.getPolicy().getNetworkParameters(),
+                    masterAgent.getForwardDynamics().getNetworkParameters(),
+                    masterAgent.getRewardModel().getNetworkParameters(),
+                    masterAgent.getForwardDynamics().getStateBounds(),
+                    masterAgent.getForwardDynamics().getActionBounds(),
+                    masterAgent.getForwardDynamics().getRewardBounds(),
+                     )
         message['type'] = 'Update_Policy'
         message['data'] = data
         for m_q in sim_work_queues:
@@ -1063,6 +1089,19 @@ def trainModelParallel(inputData):
                                 masterAgent.getRewardBounds(),
                                 masterAgent.getPolicy().getNetworkParameters(),
                                  masterAgent.getForwardDynamics().getNetworkParameters())
+                        if ( "keep_seperate_fd_exp_buffer" in settings 
+                             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+                            data = ('Update_Policy', p_tmp_, 
+                                masterAgent.getStateBounds(),
+                                masterAgent.getActionBounds(),
+                                masterAgent.getRewardBounds(),
+                                masterAgent.getPolicy().getNetworkParameters(),
+                                 masterAgent.getForwardDynamics().getNetworkParameters(),
+                                 "blah",
+                                masterAgent.getForwardDynamics().getStateBounds(),
+                                masterAgent.getForwardDynamics().getActionBounds(),
+                                masterAgent.getForwardDynamics().getRewardBounds()
+                                 )
                         message['data'] = data
                     if (settings['train_forward_dynamics'] and
                         ("train_reward_distance_metric" in settings and
@@ -1074,6 +1113,19 @@ def trainModelParallel(inputData):
                                 masterAgent.getPolicy().getNetworkParameters(),
                                 masterAgent.getForwardDynamics().getNetworkParameters(),
                                 masterAgent.getRewardModel().getNetworkParameters())
+                        if ( "keep_seperate_fd_exp_buffer" in settings 
+                             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+                            data = ('Update_Policy', p_tmp_, 
+                                masterAgent.getStateBounds(),
+                                masterAgent.getActionBounds(),
+                                masterAgent.getRewardBounds(),
+                                masterAgent.getPolicy().getNetworkParameters(),
+                                masterAgent.getForwardDynamics().getNetworkParameters(),
+                                masterAgent.getRewardModel().getNetworkParameters(),
+                                masterAgent.getForwardDynamics().getStateBounds(),
+                                masterAgent.getForwardDynamics().getActionBounds(),
+                                masterAgent.getForwardDynamics().getRewardBounds(),
+                                 )
                         message['data'] = data
                     for m_q in sim_work_queues:
                         ## block on full queue

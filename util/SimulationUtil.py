@@ -971,7 +971,8 @@ def createNewFDModel(settings, env, model):
         and (settings["use_dual_state_representations"] == True)
         and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
         state____ = env.getState()
-        state____[0][1].size
+        print("state____ shape: ", state____)
+        
         state_bounds = [[0] * state____[0][1].size, 
                                  [1] * state____[0][1].size]
     # if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):

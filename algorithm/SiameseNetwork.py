@@ -629,9 +629,9 @@ class SiameseNetwork(KERASAlgorithm):
         
     def getGrads(self, states, actions, result_states, v_grad=None, alreadyNormed=False):
         if ( alreadyNormed == False ):
-            states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
+            states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
             actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
-            result_states = np.array(norm_state(result_states, self._state_bounds), dtype=self.getSettings()['float_type'])
+            result_states = np.array(norm_state(result_states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         # result_states = np.array(result_states, dtype=self.getSettings()['float_type'])
         # self.setData(states, actions, result_states)
         # if (v_grad != None):
@@ -647,7 +647,7 @@ class SiameseNetwork(KERASAlgorithm):
         # states = np.array(states, dtype=self.getSettings()['float_type'])
         # actions = np.array(actions, dtype=self.getSettings()['float_type'])
         if ( alreadyNormed is False ):
-            states = np.array(norm_state(states, self._state_bounds), dtype=self.getSettings()['float_type'])
+            states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
             actions = np.array(norm_action(actions, self._action_bounds), dtype=self.getSettings()['float_type'])
             # rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
         # self.setData(states, actions)
@@ -658,6 +658,8 @@ class SiameseNetwork(KERASAlgorithm):
             states will come for the agent and
             results_states can come from the imitation agent
         """
+        # print ("fd: ", self)
+        # print ("state length: ", len(self.getStateBounds()[0]))
         self.reset()
         states_ = states
         if ('anneal_learning_rate' in self.getSettings()
@@ -777,7 +779,7 @@ class SiameseNetwork(KERASAlgorithm):
         """
             Compute distance between two states
         """
-        # state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        # state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
             h_a = self._model.processed_a.predict([np.array([state])])
@@ -790,8 +792,8 @@ class SiameseNetwork(KERASAlgorithm):
             Compute distance between two states
         """
         # print("state shape: ", np.array(state).shape)
-        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
+        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        state2 = np.array(norm_state(state2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         if ((("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True))
                     # or
@@ -811,25 +813,27 @@ class SiameseNetwork(KERASAlgorithm):
     
     def predictWithDropout(self, state, action):
         # "dropout"
-        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         self._model.setStates(state)
         self._model.setActions(action)
-        state_ = scale_state(self._forwardDynamics_drop()[0], self._state_bounds)
+        state_ = scale_state(self._forwardDynamics_drop()[0], self.getStateBounds())
         return state_
     
     def predict_std(self, state, action, p=1.0):
-        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
-        state_ = self._forwardDynamics_std() * (action_bound_std(self._state_bounds))
+        state_ = self._forwardDynamics_std() * (action_bound_std(self.getStateBounds()))
         return state_
     
     def predict_reward(self, state, state2):
         """
             Predict reward which is inverse of distance metric
         """
-        state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
-        state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
+        print ("state bounds length: ", self.getStateBounds())
+        # print ("fd: ", self)
+        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        state2 = np.array(norm_state(state2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         if (("train_LSTM_Reward" in self._settings)
             and (self._settings["train_LSTM_Reward"] == True)):
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
@@ -850,7 +854,7 @@ class SiameseNetwork(KERASAlgorithm):
         """
             Predict reward which is inverse of distance metric
         """
-        # state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
+        # state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         if (("train_LSTM_Reward" in self._settings)
             and (self._settings["train_LSTM_Reward"] == True)):
             h_a = self._model.processed_a_r.predict([np.array([state])])
@@ -965,7 +969,10 @@ class SiameseNetwork(KERASAlgorithm):
         hf.create_dataset('_state_bounds', data=self.getStateBounds())
         hf.create_dataset('_reward_bounds', data=self.getRewardBounds())
         hf.create_dataset('_action_bounds', data=self.getActionBounds())
-        # hf.create_dataset('_result_state_bounds', data=self.getResultStateBounds())
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("fd save self.getStateBounds(): ", len(self.getStateBounds()[0]))
+        # hf.create_dataset('_resultgetStateBounds()', data=self.getResultStateBounds())
+        # print ("fd: ", self)
         hf.flush()
         hf.close()
         suffix = ".h5"
@@ -1011,7 +1018,7 @@ class SiameseNetwork(KERASAlgorithm):
         self.setRewardBounds(np.array(hf.get('_reward_bounds')))
         self.setActionBounds(np.array(hf.get('_action_bounds')))
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("fd self.getStateBounds(): ", self.getStateBounds())
-        # self._result_state_bounds = np.array(hf.get('_result_state_bounds'))
+            print("fd load self.getStateBounds(): ", len(self.getStateBounds()[0]))
+        # self._resultgetStateBounds() = np.array(hf.get('_resultgetStateBounds()'))
         hf.close()
         
