@@ -114,6 +114,8 @@ class ExperienceMemory(object):
         
         ### Find length of shortest trajectory...
         min_seq_length = 1
+        if ("min_sequece_length" in self._settings):
+            min_seq_length = self._settings["min_sequece_length"]
         shortest_traj = 10000000
         traj_start = 0
         for t in range(len(state_)):

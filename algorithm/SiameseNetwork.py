@@ -73,6 +73,7 @@ def compute_accuracy(predictions, labels):
     pos_error = np.fabs(pred[labels.ravel() > 0.5]) ### Distance these are from 0.0
     neg_error = np.fabs(1.0 - pred[labels.ravel() <= 0.5]) ### Distance these are from 1.0
     # print ("positive pair: ", pos_error)
+    # print ("negative pair: ", neg_error)
     # print ("positive pair mean: ", np.mean(pred[labels.ravel() > 0.5]))
     # print ("negative pair mean: ", np.mean(pred[labels.ravel() <= 0.5]))
     ### What if all the labels are above 0.5... then neg will be nan...
@@ -85,7 +86,7 @@ def compute_accuracy(predictions, labels):
     if (values_ == []): ### No values were close...
         return 0.0
     else:
-        return np.mean(pos_error) + np.mean(neg_error)
+        return np.concatenate((np.array(pos_error), np.array(neg_error)), axis=0)
 
 def create_sequences(traj0, traj1, settings):
     '''Positive and negative sequence creation.

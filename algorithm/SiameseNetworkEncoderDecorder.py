@@ -283,26 +283,57 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
                                   )
                     loss_.append(np.mean(score.history['loss']))
                 """
-                reverse_target_decodings = False
-                sequences0_rev = sequences0
-                sequences1_rev = sequences1
-                if ( reverse_target_decodings ):
-                    sequences0_rev = []
-                    sequences1_rev = []
-                    for seq in range(len(sequences0)):
-                        sequences0_rev.append(list(reversed(sequences0[seq])))
-                        sequences1_rev.append(list(reversed(sequences1[seq])))
-                
-                sequences0_rev = np.array(sequences0_rev)
-                sequences1_rev = np.array(sequences1_rev)
-                # print ("sequences0_rev shape: ", sequences0_rev.shape)
                 if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
-                    score = self._model._combination.fit([np.array(sequences0), np.array(sequences1)], [sequences0_rev, sequences1_rev, targets__],
+                    reverse_target_decodings = False
+                    sequences0_rev = sequences0
+                    sequences1_rev = sequences1
+                    if ( reverse_target_decodings ):
+                        sequences0_rev = []
+                        sequences1_rev = []
+                        for seq in range(len(sequences0)):
+                            sequences0_rev.append(list(reversed(sequences0[seq])))
+                            sequences1_rev.append(list(reversed(sequences1[seq])))
+                    
+                    sequences0_rev = np.array(sequences0_rev)
+                    sequences1_rev = np.array(sequences1_rev)
+                    print ("sequences0_rev shape: ", sequences0_rev.shape)
+                    ### Alternate between positive example and negative example updates
+                    alternate_pos_neg = False
+                    if ( alternate_pos_neg ):
+                        seq0 = []
+                        seq1 = []
+                        tar_ = []
+                        for seq in range(len(targets__)):
+                            if ( targets__[seq] > 0.5):
+                                seq0.append(sequences0[seq])
+                                seq1.append(sequences1[seq])
+                                tar_.append(targets__[seq])
+                        
+                        score = self._model._combination.fit([np.array(seq0), np.array(seq1)], [np.array(seq0), np.array(seq1), np.array(tar_)],
                                   epochs=1, 
                                   batch_size=len(sequences0),
                                   verbose=0
                                   )
+                        seq0 = []
+                        seq1 = []
+                        tar_ = []
+                        for seq in range(len(targets__)):
+                            if ( targets__[seq] > 0.5):
+                                seq0.append(sequences0[seq])
+                                seq1.append(sequences1[seq])
+                                tar_.append(targets__[seq])
+                        score = self._model._combination.fit([np.array(seq0), np.array(seq1)], [np.array(seq0), np.array(seq1), np.array(tar_)],
+                                  epochs=1, 
+                                  batch_size=len(sequences0),
+                                  verbose=0
+                                  )
+                    else:
+                        score = self._model._combination.fit([np.array(sequences0), np.array(sequences1)], [sequences0_rev, sequences1_rev, targets__],
+                                      epochs=1, 
+                                      batch_size=len(sequences0),
+                                      verbose=0
+                                      )
                     loss_.append(np.mean(score.history['loss']))
             
             return np.mean(loss_)
@@ -498,14 +529,14 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
                     errors.append( compute_accuracy(predicted_y, y0) )
             else:
                 predicted_y = self._model._combination.predict([sequences0, sequences1], batch_size=sequences0.shape[0])[2]
-                # print ("fd error, predicted_y: ", predicted_y)
+                print ("fd error, predicted_y: ", np.mean(predicted_y), " std: ", np.std(predicted_y))
                 targets__ = np.mean(targets_, axis=1)
                 # print ("fd error, targets_ : ", targets_)
                 # print ("fd error, targets__: ", targets__)
-                errors.append( compute_accuracy(predicted_y, targets__) )
+                errors = compute_accuracy(predicted_y, targets__) 
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
-            te_acc = np.mean(errors)
+            te_acc = errors
         else:
             states = np.concatenate((states, result_states), axis=0)
             te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
@@ -515,6 +546,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             te_acc = compute_accuracy(predicted_y, te_y)
             
         # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
+        # print ("te_acc: ", te_acc)
         return te_acc
 
     def saveTo(self, fileName):
