@@ -445,5 +445,7 @@
 	"comment__": "Add label noise to Discriminator/Simease network training",
 "add_label_noise": 0.1,
 	"comment__": "Use hacky state and action transformations. So the I can mix 2d and 2d simulations while using multiclass training.",
-"use_hack_state_trans": true
+"use_hack_state_trans": true,
+	"comment__": "Add velocity state to image state",
+"append_camera_velocity_state": "3D"
 }

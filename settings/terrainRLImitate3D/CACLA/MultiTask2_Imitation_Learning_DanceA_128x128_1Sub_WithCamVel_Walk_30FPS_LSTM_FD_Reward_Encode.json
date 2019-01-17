@@ -559,5 +559,7 @@
 	"comment__": "Use a sparse sequence based reward",
 "use_sparse_sequence_based_reward": false,
 	"comment__": "Add label noise to Discriminator/Simease network training",
-"add_label_noise": 0.1
+"add_label_noise": 0.1,
+	"comment__": "Add velocity state to image state",
+"append_camera_velocity_state": "3D"
 }

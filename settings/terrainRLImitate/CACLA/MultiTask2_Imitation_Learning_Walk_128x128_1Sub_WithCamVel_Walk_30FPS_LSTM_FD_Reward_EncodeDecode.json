@@ -447,5 +447,7 @@
 	"comment__": "Use hacky state and action transformations. So the I can mix 2d and 2d simulations while using multiclass training.",
 "use_hack_state_trans": true,
 	"comment__": "Inform the system that a encoder decoder model is being used",
-"using_encoder_decoder_fd": true
+"using_encoder_decoder_fd": true,
+	"comment__": "Add velocity state to image state",
+"append_camera_velocity_state": "3D"
 }

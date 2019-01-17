@@ -449,5 +449,7 @@
 	"comment__": "Inform the system that a encoder decoder model is being used",
 "using_encoder_decoder_fd": true,
 	"comment__": "The shortest sequence the RNN network will be trained on",
-"min_sequece_length": 3
+"min_sequece_length": 3,
+	"comment__": "Add velocity state to image state",
+"append_camera_velocity_state": "3D"
 }
