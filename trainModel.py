@@ -417,7 +417,7 @@ def trainModelParallel(inputData):
         from simulation.collectExperience import collectExperience
         from model.ModelUtil import validBounds, fixBounds, anneal_value
         from model.LearningAgent import LearningAgent, LearningWorker
-        from util.SimulationUtil import validateSettings
+        from util.SimulationUtil import validateSettings, getFDStateSize
         from util.SimulationUtil import createEnvironment
         from util.SimulationUtil import createRLAgent, createNewFDModel
         from util.SimulationUtil import createActor, getAgentName, updateSettings
@@ -667,7 +667,7 @@ def trainModelParallel(inputData):
             m_q.put(message, timeout=timeout_)
         
         if ( int(settings["num_available_threads"]) ==  -1):
-           experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperience(actor, exp_val, model, settings,
+           experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, exp_val, model, settings,
                            sim_work_queues=None, 
                            eval_episode_data_queue=None)
             
@@ -679,11 +679,11 @@ def trainModelParallel(inputData):
             else:
                 if (settings['on_policy'] == True):
                     
-                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperience(actor, None, model, settings,
+                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, model, settings,
                                sim_work_queues=sim_work_queues, 
                                eval_episode_data_queue=eval_episode_data_queue)
                 else:
-                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperience(actor, None, model, settings,
+                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, model, settings,
                                sim_work_queues=input_anchor_queue, 
                                eval_episode_data_queue=eval_episode_data_queue)
             masterAgent.setExperience(experience)
@@ -691,56 +691,11 @@ def trainModelParallel(inputData):
         if ("fd_expereince_length" in settings):
             fd_epxerience_length = settings["fd_expereince_length"]
         if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
-            masterAgent.setFDExperience(copy.deepcopy(masterAgent.getExperience()))
-            if ("use_dual_state_representations" in settings
-                and (settings["use_dual_state_representations"] == True)
-                and (settings["forward_dynamics_model_type"] == "SingleNet")):
-                    experiencefd = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), fd_epxerience_length, 
-                                                    continuous_actions=True, settings = settings, result_state_length=settings["dense_state_size"])
-                    res_state_bounds__ = np.array([[0] * settings["dense_state_size"], 
-                                         [1] * settings["dense_state_size"]])
-                    state_bounds__ = state_bounds
-                    ### Usually the state and next state are the same size, not in this case...
-                    experiencefd.setStateBounds(state_bounds__)
-                    experiencefd.setResultStateBounds(res_state_bounds__)
-            else:
-                state_size__ = len(state_bounds[0])
-                if ("fd_num_terrain_features" in settings 
-                    and
-                    ("fd_use_multimodal_state" in settings
-                     and (settings["fd_use_multimodal_state"] == True))):
-                    state_size__ = settings["fd_num_terrain_features"] + settings["dense_state_size"]
-                    if ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == True)):
-                        state_size__ = state_size__ + 2
-                    elif ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == "3D")):
-                        state_size__ = state_size__ + 3
-                    print ("state_size__ for fd: ", state_size__)
-                    experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 
-                                                    continuous_actions=True, settings = settings)
-                    state_bounds__ = np.array([[0] * (state_size__), 
-                                         [1] * (state_size__)])
-                    experiencefd.setStateBounds(state_bounds__)
-                    experiencefd.setResultStateBounds(state_bounds__)
-                    # sys.exit()
-                elif ("fd_num_terrain_features" in settings):
-                    state_size__ = settings["fd_num_terrain_features"]
-                    experiencefd = ExperienceMemory(len(forwardDynamicsModel.getStateBounds()[0]), len(action_bounds[0]), fd_epxerience_length, 
-                                                    continuous_actions=True, settings = settings)
-                    state_bounds__ = np.array([[0] * len(forwardDynamicsModel.getStateBounds()[0]), 
-                                         [1] * len(forwardDynamicsModel.getStateBounds()[0])])
-                    experiencefd.setStateBounds(state_bounds__)
-                    experiencefd.setResultStateBounds(state_bounds__)
-                else:
-                    experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 
-                                                    continuous_actions=True, settings = settings)
-            if ("use_dual_dense_state_representations" in settings
-                and (settings["use_dual_dense_state_representations"] == True)):
-                # state_bounds__ = np.array(settings['state_bounds'])
-                state_bounds__ = np.array([[0] * settings["dense_state_size"], 
-                                 [1] * settings["dense_state_size"]])
-                experiencefd.setStateBounds(state_bounds__)
+            # masterAgent.setFDExperience(copy.deepcopy(masterAgent.getExperience()))
+            # experiencefd = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), fd_epxerience_length, 
+            #                                         continuous_actions=True, settings = settings, result_state_length=settings["dense_state_size"])
+            state_bounds__ = getFDStateSize(settings)
+            experiencefd.setStateBounds(state_bounds__)
             experiencefd.setActionBounds(action_bounds)
             experiencefd.setRewardBounds(reward_bounds)
             masterAgent.setFDExperience(copy.deepcopy(experiencefd))

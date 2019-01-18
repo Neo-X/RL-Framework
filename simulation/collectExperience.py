@@ -20,6 +20,7 @@ from model.ModelUtil import *
 # import resources
 
 from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
+from util.SimulationUtil import validateSettings, getFDStateSize
 
         
 # @profile(precision=5)
@@ -42,7 +43,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     state_bounds = np.array(settings['state_bounds'], dtype=float)
     
     data__ = ([],[],[],[],[],[],[],[])
-    
+    experiencefd = None
     if (settings["bootsrap_with_discrete_policy"]) and (settings['bootstrap_samples'] > 0):
         
         if settings['action_space_continuous']:
@@ -54,6 +55,13 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                                           )
             else:
                 experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], 
+                                          continuous_actions=True, settings = settings, 
+                                          # result_state_length=settings["dense_state_size"]
+                                          )
+            if ( "keep_seperate_fd_exp_buffer" in settings 
+                and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+                    state_bounds_fd__ = getFDStateSize(settings)
+                    experiencefd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds[0]), settings['expereince_length'], 
                                           continuous_actions=True, settings = settings, 
                                           # result_state_length=settings["dense_state_size"]
                                           )
@@ -168,6 +176,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             # print("state shape: ", np.array(state).shape)
             if ("use_dual_state_representations" in settings
                 and (settings["use_dual_state_representations"] == True)):
+                statefd = state[1]
+                resultStatefd = resultState[1]
                 if ("use_viz_for_policy" in settings 
                     and settings["use_viz_for_policy"] == True):
                     state_ = state[1]
@@ -180,17 +190,15 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                         ### grab viz data
                         resultState = resultState[1][0]
                     state = state_
-                elif ("use_dual_viz_state_representations" in settings
-                      and (settings["use_dual_viz_state_representations"] == True)):
-                    state = state[0]
-                    resultState = resultState[0]
-                
                 else:
                     state = state[0]
                     resultState = resultState[0]
             if settings['action_space_continuous']:
                 # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
                 experience.insertTuple(([state], [action], [resultState], [reward_], [fall_], [G_t], [exp_action], [adv]))
+                if ( "keep_seperate_fd_exp_buffer" in settings 
+                     and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+                    experiencefd.insertTuple(([statefd], [action], [resultStatefd], [reward_], [fall_], [G_t], [exp_action], [adv]))
             else:
                 experience.insertTuple(([state], [action], [resultState], [reward_], [falls_], G_t, [exp_action], [adv]))
             # else:
@@ -221,7 +229,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         """
         
         
-    return  experience, state_bounds, reward_bounds, action_bounds, data__
+    return  experience, state_bounds, reward_bounds, action_bounds, data__, experiencefd
 
 # @profile(precision=5)
 def collectExperienceActionsContinuous(actor, exp, model, samples, settings, action_selection, sim_work_queues=None, eval_episode_data_queue=None):

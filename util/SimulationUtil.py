@@ -192,6 +192,46 @@ def my_import(name):
         mod = getattr(mod, comp)
     return mod
 
+def getFDStateSize(settings):
+    if ("use_dual_state_representations" in settings
+        and (settings["use_dual_state_representations"] == True)
+        and (settings["forward_dynamics_model_type"] == "SingleNet")):
+            res_state_bounds__ = [[0] * settings["dense_state_size"], 
+                                 [1] * settings["dense_state_size"]]
+            state_bounds__ = state_bounds
+            ### Usually the state and next state are the same size, not in this case...
+            # experiencefd.setStateBounds(state_bounds__)
+            # experiencefd.setResultStateBounds(res_state_bounds__)
+    else:
+        state_size__ = settings["fd_num_terrain_features"]
+        if ("fd_num_terrain_features" in settings ):
+            if ("append_camera_velocity_state" in settings 
+                and (settings["append_camera_velocity_state"] == True)):
+                state_size__ = state_size__ + 2
+            elif ("append_camera_velocity_state" in settings 
+                and (settings["append_camera_velocity_state"] == "3D")):
+                state_size__ = state_size__ + 3
+            print ("state_size__ for fd: ", state_size__)
+            # experiencefd = ExperienceMemory(state_size__, len(action_bounds[0]), fd_epxerience_length, 
+            #    
+            if ("fd_use_multimodal_state" in settings
+                and (settings["fd_use_multimodal_state"] == True) ):
+                state_size__ = state_size__ + settings["dense_state_size"]
+
+        state_bounds__ = [[0] * (state_size__), 
+                             [1] * (state_size__)]
+        # experiencefd.setStateBounds(state_bounds__)
+        # experiencefd.setResultStateBounds(state_bounds__)
+        # sys.exit()
+            
+    if ("use_dual_dense_state_representations" in settings
+        and (settings["use_dual_dense_state_representations"] == True)):
+        # state_bounds__ = np.array(settings['state_bounds'])
+        state_bounds__ = np.array([[0] * settings["dense_state_size"], 
+                         [1] * settings["dense_state_size"]])
+        # experiencefd.setStateBounds(state_bounds__)
+    return state_bounds__
+
 def validateSettings(settings):
     """
         This method is used to check and overwrite any settings that are not going to work properly

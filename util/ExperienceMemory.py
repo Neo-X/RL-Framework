@@ -624,18 +624,18 @@ class ExperienceMemory(object):
     
     def setStateBounds(self, _state_bounds):
         assert len(_state_bounds[0]) == self._state_length, "len(_state_bounds[0]) == self._state_length: " + str(len(_state_bounds[0])) + " == " + str(self._state_length)
-        self._state_bounds = _state_bounds
+        self._state_bounds = np.array(_state_bounds)
         self.setResultStateBounds(_state_bounds)
         # self._state_length = len(self.getStateBounds()[0])
         
     def setRewardBounds(self, _reward_bounds):
-        self._reward_bounds = _reward_bounds
+        self._reward_bounds = np.array(_reward_bounds)
     def setActionBounds(self, _action_bounds):
         assert len(_action_bounds[0]) == self._action_length
-        self._action_bounds = _action_bounds
+        self._action_bounds = np.array(_action_bounds)
     def setResultStateBounds(self, _result_state_bounds):
         assert len(_result_state_bounds[0]) == self._result_state_length
-        self._result_state_bounds = _result_state_bounds
+        self._result_state_bounds = np.array(_result_state_bounds)
         # self._result_state_length = len(self.getResultStateBounds()[0])
         
     def getStateBounds(self):
