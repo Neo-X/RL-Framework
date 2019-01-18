@@ -108,7 +108,7 @@ class CACLA_KERAS(KERASAlgorithm):
             inputs_ = [self._model.getStateSymbolicVariable(), K.learning_phase()]
             inputs_target = [self._modelTarget.getStateSymbolicVariable(), K.learning_phase()]
         
-        self._q_action_std = K.function([self._model.getStateSymbolicVariable()], [self._q_valsActASTD])
+        self._q_action_std = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self._q_valsActASTD])
         
         gradients = K.gradients(K.mean(self.__value), [inputs_[0]]) # gradient tensors
         self._get_gradients = K.function(inputs=inputs_, outputs=gradients)
@@ -128,7 +128,7 @@ class CACLA_KERAS(KERASAlgorithm):
         self._get_critic_regularization = K.function([], [self._critic_regularization])
         self._get_critic_loss = K.function([inputs_[0],
                                             self._model.getRewardSymbolicVariable(), 
-                                            inputs_[0],
+                                            inputs_target[0],
                                             K.learning_phase()], [self._loss])
         
         self._value = K.function(inputs_, [self.__value])
