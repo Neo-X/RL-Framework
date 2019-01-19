@@ -202,7 +202,7 @@ def getFDStateSize(settings):
             ### Usually the state and next state are the same size, not in this case...
             # experiencefd.setStateBounds(state_bounds__)
             # experiencefd.setResultStateBounds(res_state_bounds__)
-    else:
+    elif ("fd_num_terrain_features" in settings):
         state_size__ = settings["fd_num_terrain_features"]
         if ("fd_num_terrain_features" in settings ):
             if ("append_camera_velocity_state" in settings 
@@ -223,7 +223,9 @@ def getFDStateSize(settings):
         # experiencefd.setStateBounds(state_bounds__)
         # experiencefd.setResultStateBounds(state_bounds__)
         # sys.exit()
-            
+    else: 
+        state_bounds__ = settings["state_bounds"]
+          
     if ("use_dual_dense_state_representations" in settings
         and (settings["use_dual_dense_state_representations"] == True)):
         # state_bounds__ = np.array(settings['state_bounds'])
