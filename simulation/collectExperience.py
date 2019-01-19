@@ -43,7 +43,6 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     state_bounds = np.array(settings['state_bounds'], dtype=float)
     
     data__ = ([],[],[],[],[],[],[],[])
-    experiencefd = None
     if (settings["bootsrap_with_discrete_policy"]) and (settings['bootstrap_samples'] > 0):
         
         if settings['action_space_continuous']:
