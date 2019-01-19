@@ -568,5 +568,7 @@
 	"comment__": "Perform multitask training for policy",
 "multitask_learning": true,
 	"comment__": "Add velocity state to image state",
-"append_camera_velocity_state": "3D"
+"append_camera_velocity_state": "3D",
+	"comment__": "Add a negative reward when the robot falls",
+"use_fall_reward_shaping2": true
 }

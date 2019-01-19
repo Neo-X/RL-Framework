@@ -447,5 +447,7 @@
 	"comment__": "Use hacky state and action transformations. So the I can mix 2d and 2d simulations while using multiclass training.",
 "use_hack_state_trans": true,
 	"comment__": "Add velocity state to image state",
-"append_camera_velocity_state": "3D"
+"append_camera_velocity_state": "3D",
+	"comment__": "Add a negative reward when the robot falls",
+"use_fall_reward_shaping2": true
 }

@@ -564,6 +564,8 @@
 "fd2_network_layer_sizes": [ ["Dense", 256, "leaky_rectify"], ["batchnorm"], ["dropout", 0.1], ["Dense", 32, "sigmoid", 0.002]],
 		"comment__": "Add velocity state to image state",
 "append_camera_velocity_state": "3D",
+	"comment__": "Add a negative reward when the robot falls",
+"use_fall_reward_shaping2": true,
 	"comment__": "pretrain the fd model",
 "pretrain_fd": 20,
 	"comment__": "A mapping from working_id to task id",

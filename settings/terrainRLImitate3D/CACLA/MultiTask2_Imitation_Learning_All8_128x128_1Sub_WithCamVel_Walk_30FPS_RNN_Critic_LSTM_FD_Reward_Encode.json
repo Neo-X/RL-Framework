@@ -574,5 +574,7 @@
 	"comment__": "Use the results for the critic net inputs, this is helpful when the policy is not an RNN",
 "force_use_result_state_for_critic": true,
 	"comment__": "Add velocity state to image state",
-"append_camera_velocity_state": "3D"
+"append_camera_velocity_state": "3D",
+	"comment__": "Add a negative reward when the robot falls",
+"use_fall_reward_shaping2": true
 }
