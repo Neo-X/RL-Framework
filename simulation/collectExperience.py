@@ -70,7 +70,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print ("Collecting bootstrap samples from simulation")
-        (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
+        (states_, actions_, resultStates_, rewards_, falls_, G_ts_, exp_actions_, advantage_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
         
                                                                                                                    eval_episode_data_queue=eval_episode_data_queue)
         """
@@ -79,28 +79,30 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                                         falls_[e], G_ts_[e], advantage_[e], exp_actions[e])
         """
         
-        data__ = (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_)
+        data__ = (states_, actions_, resultStates_, rewards_, falls_, G_ts_, exp_actions_, advantage_)
         # states = np.array(states)
         # states = np.append(states, state_bounds,0) # Adding that already specified bounds will ensure the final calculated is beyond these
-        states = np.array(list(itertools.chain(*states)))
+        # print ("states before shape: ", np.array(states).shape)
+        states = np.array(list(itertools.chain(*states_)))
+        # print ("states after shape: ", np.array(states).shape)
         # states = np.array([states_ for states_ in s for s in states])
-        actions = np.array(list(itertools.chain(*actions)))
-        resultStates = np.array(list(itertools.chain(*resultStates)))
-        # reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-self._settings['discount_factor']))) # scale rewards
-        rewards_ = np.array(list(itertools.chain(*rewards_)))
+        actions = np.array(list(itertools.chain(*actions_)))
+        resultStates = np.array(list(itertools.chain(*resultStates_)))
+        # reward.append(norm_state(self._reward_history[i] , self._reward_bounds ) * ((1.0-settings['discount_factor']))) # scale rewards
+        rewards = np.array(list(itertools.chain(*rewards_)))
         # _rewards = np.reshape(_rewards, (len(tmp_states), 1))
-        falls_ = np.array(list(itertools.chain(*falls_)))
-        advantage_ = np.array(list(itertools.chain(*advantage_)))
-        G_ts_ = np.array(list(itertools.chain(*G_ts_)))
-        exp_actions = np.array(list(itertools.chain(*exp_actions)))
+        falls = np.array(list(itertools.chain(*falls_)))
+        advantage = np.array(list(itertools.chain(*advantage_)))
+        G_ts = np.array(list(itertools.chain(*G_ts_)))
+        exp_actions = np.array(list(itertools.chain(*exp_actions_)))
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print (" Shape states: ", states.shape)
             print (" Shape Actions: ", actions.shape)
             print (" Shape result states: ", resultStates.shape)
-            print (" Shape rewards_: ", rewards_.shape)
-            print (" Shape falls: ", falls_.shape)
-            print (" Shape G_ts_: ", G_ts_.shape)
-            print (" Shape advantage: ", advantage_.shape)
+            print (" Shape rewards: ", rewards.shape)
+            print (" Shape falls: ", falls.shape)
+            print (" Shape G_ts: ", G_ts.shape)
+            print (" Shape advantage: ", advantage.shape)
             print (" Shape exp_actions: ", exp_actions.shape)
         
         scale_factor = 1.0
@@ -123,8 +125,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
               state_normalization == "adaptive"):
             state_avg = np.mean(states[:settings['bootstrap_samples']], axis=0)
             state_stddev = np.std(states[:settings['bootstrap_samples']], axis=0)
-            reward_avg = np.mean(rewards_[:settings['bootstrap_samples']], axis=0)
-            reward_stddev = np.std(rewards_[:settings['bootstrap_samples']], axis=0)
+            reward_avg = np.mean(rewards[:settings['bootstrap_samples']], axis=0)
+            reward_stddev = np.std(rewards[:settings['bootstrap_samples']], axis=0)
             action_avg = np.mean(actions[:settings['bootstrap_samples']], axis=0)
             action_stddev = np.std(actions[:settings['bootstrap_samples']], axis=0)
             if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
@@ -169,7 +171,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         experience.setRewardBounds(reward_bounds)
         experience.setActionBounds(action_bounds)
         
-        for state, action, resultState, reward_, fall_, G_t, exp_action, adv in zip(states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_):
+        for state, action, resultState, reward, fall, G_t, exp_action, adv in zip(states, actions, resultStates, rewards, falls, G_ts, exp_actions, advantage):
             # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
             # for j in range(len(state)):
             # print("state shape: ", np.array(state).shape)
@@ -194,14 +196,50 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                     resultState = resultState[0]
             if settings['action_space_continuous']:
                 # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
-                experience.insertTuple(([state], [action], [resultState], [reward_], [fall_], [G_t], [exp_action], [adv]))
+                experience.insertTuple(([state], [action], [resultState], [reward], [fall], [G_t], [exp_action], [adv]))
                 if ( "keep_seperate_fd_exp_buffer" in settings 
                      and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                    experiencefd.insertTuple(([statefd], [action], [resultStatefd], [reward_], [fall_], [G_t], [exp_action], [adv]))
+                    experiencefd.insertTuple(([statefd], [action], [resultStatefd], [reward], [fall], [G_t], [exp_action], [adv]))
             else:
-                experience.insertTuple(([state], [action], [resultState], [reward_], [falls_], G_t, [exp_action], [adv]))
+                experience.insertTuple(([state], [action], [resultState], [reward], [falls], G_t, [exp_action], [adv]))
             # else:
                 # print ("Tuple with reward: " + str(reward_) + " skipped")
+                
+        ### Need to normalize data
+        _states = []
+        _result_states = []
+        _states_fd = []
+        _result_states_fd = []
+                
+        for i in range(len(states_)):
+            if ("use_dual_state_representations" in settings
+                and (settings["use_dual_state_representations"] == True)):
+                _states.append([np.array(np.array(tmp_states__[0]), dtype=settings['float_type']) for tmp_states__ in states_[i]])
+                _result_states.append([np.array(np.array(tmp_result_states__[0]), dtype=settings['float_type']) for tmp_result_states__ in resultStates_[i]])
+                
+                _states_fd.append([np.array(np.array(tmp_states__[1]), dtype=settings['float_type']) for tmp_states__ in states_[i]])
+                _result_states_fd.append([np.array(np.array(tmp_result_states__[1]), dtype=settings['float_type']) for tmp_result_states__ in resultStates_[i]])
+            else:
+                _states = states_
+                _result_states = resultsStates_
+                
+                _states_fd = _states
+                _result_states_fd = _result_states
+                
+        for e in range(len(_states)):
+            experience.insertTrajectory(_states[e], actions_[e], _result_states[e], rewards_[e], 
+                                        falls_[e], G_ts_[e], advantage_[e], exp_actions_[e])
+            if ( "keep_seperate_fd_exp_buffer" in settings 
+                     and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+                experiencefd.insertTrajectory(_states_fd[e], actions_[e], _result_states_fd[e], rewards_[e], 
+                                            falls_[e], G_ts_[e], advantage_[e], exp_actions_[e])
+        
+        if ('state_normalization' in settings and 
+            (settings["state_normalization"] == "adaptive")):
+            experience._updateScaling()
+            if ( "keep_seperate_fd_exp_buffer" in settings 
+                     and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+                experiencefd._updateScaling()
         # sys.exit()
     else: ## Most likely performing continuation learning
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
@@ -227,7 +265,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         print ("Min Reward:" + str(reward_bounds[0]))
         """
         
-        
+    
     return  experience, state_bounds, reward_bounds, action_bounds, data__, experiencefd
 
 # @profile(precision=5)

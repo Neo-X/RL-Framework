@@ -105,6 +105,11 @@ class ExperienceMemory(object):
         self._samplesTrajectory+=1
         
     def insertTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions):
+        """
+            Insert a trajectory as a collection of sequences
+        """
+        assert len(states[0]) == self._state_length
+        assert len(actions[0]) == self._action_length
         
         self._insertTrajectory([states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions])
         
