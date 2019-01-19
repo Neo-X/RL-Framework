@@ -432,7 +432,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     and (settings["learned_reward_smoother"] == False)):
                     reward_ = reward__
                 else:
-                    reward_ = np.exp((reward__*reward__)*-5.0)
+                    reward_ = np.exp((reward__*reward__)*-2.0)
                 # print ("Reward: ", reward_)
                 # reward_ = reward__
                     
