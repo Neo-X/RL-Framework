@@ -543,5 +543,5 @@
 	"comment__": "Add velocity state to image state",
 "append_camera_velocity_state": false,
 	"comment__": "Add a negative reward when the robot falls",
-"use_fall_reward_shaping2": false
+"use_fall_reward_shaping": true
 }
