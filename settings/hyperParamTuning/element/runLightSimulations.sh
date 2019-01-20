@@ -9,7 +9,8 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/activation_type.json" 
 #  				"settings/hyperParamTuning/element/additional_on-poli_trianing_updates.json" 
 # 				"settings/hyperParamTuning/element/advantage_scaling.json" 
-# 				"settings/hyperParamTuning/element/anneal_exploration.json" 
+ 				"settings/hyperParamTuning/element/anneal_exploration.json"
+ 				"settings/hyperParamTuning/element/anneal_policy_std.json" 
 # 				"settings/hyperParamTuning/element/anneal_learning_rate.json" 		
 # 				"settings/hyperParamTuning/element/batch_size.json"
 # 				"settings/hyperParamTuning/element/CACLA_use_advantage.json"
@@ -18,7 +19,7 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/critic_learning_rate.json"
 #				"settings/hyperParamTuning/element/critic_network_layer_sizes.json"
 # 				"settings/hyperParamTuning/element/critic_updates_per_actor_update.json"
-# 				"settings/hyperParamTuning/element/dont_use_td_learning.json"
+ 				"settings/hyperParamTuning/element/dont_use_td_learning.json"
 # 				"settings/hyperParamTuning/element/dropout_p.json" 
 				"settings/hyperParamTuning/element/exploration_rate.json" 
 # 				"settings/hyperParamTuning/element/fd_updates_per_actor_update.json" 
@@ -37,7 +38,7 @@ declare -a metaExps=(
 #  				"settings/hyperParamTuning/element/use_single_network.json"
 #  				"settings/hyperParamTuning/element/use_stocastic_policy.json"
 #  				"settings/hyperParamTuning/element/use_target_net_for_critic.json"
-#				"settings/hyperParamTuning/element/value_function_batch_size.json"ballsValeriepasword
+#				"settings/hyperParamTuning/element/value_function_batch_size.json"
 )
 
 simConfigFile=$1

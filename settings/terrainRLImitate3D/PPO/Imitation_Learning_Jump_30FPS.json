@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_GRF_3D_Jump_Viz3D_1Sub_Imitate_30FPS_v0_v0/T128_22",
+"data_folder": "PD_Humanoid_GRF_3D_Jump_Viz3D_1Sub_Imitate_30FPS_v0_v0/T128_23",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -543,5 +543,5 @@
 	"comment__": "Add velocity state to image state",
 "append_camera_velocity_state": "3D",
 	"comment__": "Add a negative reward when the robot falls",
-"use_fall_reward_shaping2": true
+"use_fall_reward_shaping2": false
 }
