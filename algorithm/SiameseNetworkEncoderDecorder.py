@@ -138,7 +138,10 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             print ("Clipping: ", sgd.decay)
         self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
         
-        self._model._combination.compile(loss=['mse', 'mse', contrastive_loss], loss_weights=[0.15, 0.15, 0.7], optimizer=sgd)
+        def mean_squared_error_(y_true, y_pred):
+            ### Mean squared error over a sequence
+            return K.mean(K.square(y_pred - y_true))
+        self._model._combination.compile(loss=[mean_squared_error_, mean_squared_error_, contrastive_loss], loss_weights=[0.15, 0.15, 0.7], optimizer=sgd)
         
         self._contrastive_loss_r = K.function([self._model.getResultStateSymbolicVariable(), 
                                              result_state_copy,
@@ -334,6 +337,8 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
                                       batch_size=len(sequences0),
                                       verbose=0
                                       )
+                    # loss___ = np.mean(np.square(self._model._combination.predict([np.array(sequences0), np.array(sequences1)])[0] - np.array(sequences0)))
+                    # print ("State shape: ", np.array(sequences0).shape, " Loss shape: ", loss___)
                     loss_.append(np.mean(score.history['loss']))
             
             return np.mean(loss_)
