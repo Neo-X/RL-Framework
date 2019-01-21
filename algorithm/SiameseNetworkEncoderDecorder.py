@@ -140,7 +140,9 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
         
         def mean_squared_error_(y_true, y_pred):
             ### Mean squared error over a sequence
-            return K.mean(K.square(y_pred - y_true))
+            length = K.cast(K.shape(y_true)[1], dtype=self.getSettings()['float_type'])
+            print ("length: ", length)
+            return K.mean(K.square(y_pred - y_true))/ length
         self._model._combination.compile(loss=[mean_squared_error_, mean_squared_error_, contrastive_loss], loss_weights=[0.15, 0.15, 0.7], optimizer=sgd)
         
         self._contrastive_loss_r = K.function([self._model.getResultStateSymbolicVariable(), 
