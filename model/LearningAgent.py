@@ -834,8 +834,10 @@ class LearningAgent(AgentInterface):
     def predict(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False, use_mbrl=False):
         if self._useLock:
             self._accesLock.acquire()
-        
+        # import numpy as np
+        # print ("state: ", np.array(state).shape, state)
         state = self.processState(state)
+        # print ("state after: ", np.array(state).shape, state)
         if (use_mbrl):
             action = self.getSampler().predict(state, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
             act = [action]
