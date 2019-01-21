@@ -561,7 +561,7 @@
 	"comment__": "Perform multitask training for policy",
 "multitask_learning": true,
 	"comment__": "When the agent falls give it a bad reward 1/(1-discount_fator)",
-"use_fall_reward_shaping2": true,
+"use_fall_reward_shaping": true,
 	"comment__": "Run some initial training steps to pretrain the fd before starting policy training",
 "pretrain_fd": 200
 }

@@ -556,5 +556,5 @@
 	"comment__": "Make earlier and shorter lstm training batches more probable.",
 "shorter_smaller_rnn_batches": true,
 	"comment__": "When the agent falls give it a bad reward 1/(1-discount_fator)",
-"use_fall_reward_shaping2": true
+"use_fall_reward_shaping": true
 }

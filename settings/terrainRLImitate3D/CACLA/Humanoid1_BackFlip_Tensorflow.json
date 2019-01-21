@@ -333,7 +333,7 @@
 	"comment__": "Use an L2 loss over for the value function over the G_t from rollouts (no TD loss)",
 "dont_use_td_learning": false,
 	"comment__": "When the agent falls give it a bad reward 1/(1-discount_fator)",
-"use_fall_reward_shaping2": true,
+"use_fall_reward_shaping": true,
 	"comment__": "Update reward normalization while training",
 "update_adaptive_reward_normalization": false
 }

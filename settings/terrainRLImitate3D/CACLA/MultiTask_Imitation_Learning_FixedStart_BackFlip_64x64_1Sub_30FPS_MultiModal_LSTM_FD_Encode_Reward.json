@@ -560,7 +560,7 @@
 	"comment__": "Perform multitask training for policy",
 "multitask_learning": false,
 	"comment__": "When the agent falls give it a bad reward 1/(1-discount_fator)",
-"use_fall_reward_shaping2": true,
+"use_fall_reward_shaping": true,
 	"comment__": "Test movie rendering",
 "test_movie_rendering": false
 }
