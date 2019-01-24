@@ -143,7 +143,8 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             length = K.cast(K.shape(y_true)[1], dtype=self.getSettings()['float_type'])
             print ("length: ", length)
             ### I think technically this should be a log() not division
-            return K.mean(K.square(y_pred - y_true))/ length
+            # return K.mean(K.square(y_pred - y_true))/ length
+            return K.mean(K.square(y_pred - y_true))
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
                                     clipnorm=1.0)
@@ -308,6 +309,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
                     sequences1_rev = np.array(sequences1_rev)
                     # print ("sequences0_rev shape: ", sequences0_rev.shape)
                     ### Alternate between positive example and negative example updates
+                    """
                     alternate_pos_neg = False
                     if ( alternate_pos_neg ):
                         seq0 = []
@@ -338,13 +340,19 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
                                   verbose=0
                                   )
                     else:
-                        score = self._model._combination.fit([np.array(sequences0), np.array(sequences1)], [sequences0_rev, sequences1_rev, targets__],
-                                      epochs=1, 
-                                      batch_size=len(sequences0),
-                                      verbose=0
-                                      )
-                    loss___ = np.mean(np.square(self._model._combination.predict([np.array(sequences0), np.array(sequences1)])[0] - np.array(sequences0)))
-                    print ("State shape: ", np.array(sequences0).shape, " Loss shape: ", loss___)
+                    """
+                    score = self._model._combination.fit([np.array(sequences0), np.array(sequences1)], [sequences0_rev, sequences1_rev, targets__],
+                                  epochs=1, 
+                                  batch_size=len(sequences0),
+                                  verbose=0
+                                  )
+                    """
+                    out___ = self._model._combination.predict([np.array(sequences0), np.array(sequences1)])
+                    loss___0 = np.mean(np.square(out___[0] - np.array(sequences0_rev)))
+                    loss___1 = np.mean(np.square(out___[1] - np.array(sequences1_rev)))
+                    loss___2 = np.mean(contrastive_loss_np(out___[2], targets__))
+                    print ("State shape: ", np.array(sequences0).shape, " Loss shape: ", (loss___0, loss___1, loss___2), " keras loss: ", score.history['loss'])
+                    """
                     loss_.append(np.mean(score.history['loss']))
             
             return np.mean(loss_)
