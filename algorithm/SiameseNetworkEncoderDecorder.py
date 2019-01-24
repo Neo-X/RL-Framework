@@ -143,8 +143,8 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             length = K.cast(K.shape(y_true)[1], dtype=self.getSettings()['float_type'])
             print ("length: ", length)
             ### I think technically this should be a log() not division
-            # return K.mean(K.square(y_pred - y_true))/ length
-            return K.mean(K.square(y_pred - y_true))
+            return K.mean(K.square(y_pred - y_true)) / length
+            # return K.mean(K.square(y_pred - y_true))
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
                                     clipnorm=1.0)
