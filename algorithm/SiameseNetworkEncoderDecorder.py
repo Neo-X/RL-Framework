@@ -124,7 +124,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
         # sgd = SGD(lr=0.0005, momentum=0.9)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
-                                    clipnorm=2.5)
+                                    clipnorm=1.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
@@ -132,7 +132,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
 
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
-                                    clipnorm=2.5)
+                                    clipnorm=1.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
@@ -142,7 +142,11 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             ### Mean squared error over a sequence
             length = K.cast(K.shape(y_true)[1], dtype=self.getSettings()['float_type'])
             print ("length: ", length)
+            ### I think technically this should be a log() not division
             return K.mean(K.square(y_pred - y_true))/ length
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
+                                    beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
+                                    clipnorm=1.0)
         self._model._combination.compile(loss=[mean_squared_error_, mean_squared_error_, contrastive_loss], loss_weights=[0.15, 0.15, 0.7], optimizer=sgd)
         
         self._contrastive_loss_r = K.function([self._model.getResultStateSymbolicVariable(), 
@@ -339,8 +343,8 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
                                       batch_size=len(sequences0),
                                       verbose=0
                                       )
-                    # loss___ = np.mean(np.square(self._model._combination.predict([np.array(sequences0), np.array(sequences1)])[0] - np.array(sequences0)))
-                    # print ("State shape: ", np.array(sequences0).shape, " Loss shape: ", loss___)
+                    loss___ = np.mean(np.square(self._model._combination.predict([np.array(sequences0), np.array(sequences1)])[0] - np.array(sequences0)))
+                    print ("State shape: ", np.array(sequences0).shape, " Loss shape: ", loss___)
                     loss_.append(np.mean(score.history['loss']))
             
             return np.mean(loss_)

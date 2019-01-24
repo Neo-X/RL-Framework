@@ -18,6 +18,7 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/critic_learning_rate.json"
 #				"settings/hyperParamTuning/element/critic_network_layer_sizes.json"
 # 				"settings/hyperParamTuning/element/critic_updates_per_actor_update.json"
+ 				"settings/hyperParamTuning/element/discount_factor.json" 
 # 				"settings/hyperParamTuning/element/dont_use_td_learning.json"
 # 				"settings/hyperParamTuning/element/dropout_p.json" 
 				"settings/hyperParamTuning/element/exploration_rate.json" 
@@ -25,6 +26,7 @@ declare -a metaExps=(
 #				"settings/hyperParamTuning/element/GAE_lambda.json"
 # 				"settings/hyperParamTuning/element/initial_temperature.json" 
 #  				"settings/hyperParamTuning/element/kl_divergence_threshold.json" 
+  				"settings/hyperParamTuning/element/learned_reward_function_norm_weight.json" 
 # 				"settings/hyperParamTuning/element/normalize_advantage.json" 
 #  				"settings/hyperParamTuning/element/num_on_policy_rollouts.json" 
 #  				"settings/hyperParamTuning/element/optimizer.json" 
@@ -52,7 +54,7 @@ do
 	output=' | tee -a $BORGY_JOB_ID.out'
 # 	arg="pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simExp} --metaConfig=settings/hyperParamTuning/element/learned_reward_smoother.json --meta_sim_samples=4 --meta_sim_threads=4 --tuning_threads=2 --num_rounds=${rounds} --plot=false --Multi_GPU=true --on_policy=true --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 16 --rollouts=16 --simulation_timeout=1200 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --max_epoch_length=64 ${opts}"
 ### GPU training
-	arg="source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --num_rounds=${rounds} --plot=false --Multi_GPU=true --on_policy=true --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 16 --rollouts=16 --simulation_timeout=1200 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --max_epoch_length=64 --force_sim_net_to_cpu=true ${opts}"
+	arg="source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --num_rounds=${rounds} --plot=false --Multi_GPU=true --on_policy=true --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 16 --rollouts=16 --simulation_timeout=1200 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --force_sim_net_to_cpu=true ${opts}"
 	arg=$arg$output
 	command=(borgy submit --restartable --gpu=4 --cpu=64 --mem=384 -w /home/"$USER" -v /mnt/home/"$USER":/home/"$USER" --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/"$USER" -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c "$arg")
 	echo "${command[@]}"

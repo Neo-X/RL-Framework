@@ -391,6 +391,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if ("use_learned_reward_function" in settings
             and (settings["use_learned_reward_function"])):
             rewmodel = model.getForwardDynamics()
+            w_d = -2.0
+            if ("learned_reward_function_norm_weight" in settings):
+                w_d = settings["learned_reward_function_norm_weight"]
             if ("train_reward_distance_metric" in settings
                 and (settings["train_reward_distance_metric"])): 
                 rewmodel = model.getRewardModel() 
@@ -407,7 +410,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             elif ("use_encoding_for_reward" in settings
                 and (settings["use_encoding_for_reward"] == True)):
                 reward__ = exp.computeImitationReward(rewmodel.computeEncodingDiff)
-                reward_ = np.exp((reward__*reward__)*-5.0)
+                reward_ = np.exp((reward__*reward__)*w_d)
             else:
                 if ( (("train_LSTM_Reward" in settings)
                         and (settings["train_LSTM_Reward"] == True))
@@ -432,7 +435,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     and (settings["learned_reward_smoother"] == False)):
                     reward_ = reward__
                 else:
-                    reward_ = np.exp((reward__*reward__)*-2.0)
+                    reward_ = np.exp((reward__*reward__)*w_d)
                 # print ("Reward: ", reward_)
                 # reward_ = reward__
                     
