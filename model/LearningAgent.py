@@ -971,19 +971,27 @@ class LearningAgent(AgentInterface):
             else:
                 self.getForwardDynamics().setStateBounds(bounds)
                 if ( 'keep_seperate_fd_exp_buffer' in self._settings 
-                     and (self._settings['keep_seperate_fd_exp_buffer'])
+                     and (self._settings['keep_seperate_fd_exp_buffer'] == True)
                      and (self.getFDExperience() is not None)):
-                    self.getFDExperience().setStateBounds(bounds)
+                    self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
+                    # self.getFDExperience().setStateBounds(bounds)
+                else:
+                    ### Using the same state bounds across models 
+                    self.getForwardDynamics().setStateBounds(bounds)
     def setActionBounds(self, bounds):
         import numpy as np
         bounds = np.array(bounds)
         self.getPolicy().setActionBounds(bounds)
         if (self._settings['train_forward_dynamics']):
-            self.getForwardDynamics().setActionBounds(bounds)
+            
             if ( 'keep_seperate_fd_exp_buffer' in self._settings 
                  and (self._settings['keep_seperate_fd_exp_buffer'])
                  and (self.getFDExperience() is not None)):
-                self.getFDExperience().setActionBounds(bounds)
+                # self.getFDExperience().setActionBounds(bounds)
+                self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
+            else:
+                self.getForwardDynamics().setActionBounds(bounds)
+                
     def setRewardBounds(self, bounds):
         import numpy as np
         bounds = np.array(bounds)
@@ -993,7 +1001,10 @@ class LearningAgent(AgentInterface):
             if ( 'keep_seperate_fd_exp_buffer' in self._settings 
                  and (self._settings['keep_seperate_fd_exp_buffer'])
                  and (self.getFDExperience() is not None)):
-                self.getFDExperience().setRewardBounds(bounds)
+                # self.getFDExperience().setRewardBounds(bounds)
+                self.getForwardDynamics().setRewardBounds(self.getFDExperience().getRewardBounds())
+            else:
+                self.getForwardDynamics().setRewardBounds(bounds)
             
     def saveTo(self, directory, bestPolicy=False, bestFD=False):
         from util.SimulationUtil import getAgentName

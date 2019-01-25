@@ -699,7 +699,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 else:
                     if (i == 0):
                         # network = Reshape((self._state_length, 1))(self._taskFeatures)
-                        network = Reshape((self._settings['num_terrain_features'], 1))(self._taskFeatures)
+                        network = Reshape((self._settings['num_terrain_features'], 1))(network)
                     stride_ = 1
                     if (len(layer_sizes[i]) > 2):
                         stride_ = layer_sizes[i][2]

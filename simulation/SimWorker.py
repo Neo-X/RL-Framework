@@ -179,8 +179,11 @@ class SimWorker(Process):
              (self._settings["train_reward_distance_metric"] == True)):
                 self._model.getRewardModel().setNetworkParameters(data[7])
                 
-            if ( "train_forward_dynamics" in self._settings 
-                 and ( self._settings["train_forward_dynamics"] == True )):
+            if (( "train_forward_dynamics" in self._settings 
+                 and ( self._settings["train_forward_dynamics"] == True ))
+                and ( "keep_seperate_fd_exp_buffer" in self._settings 
+                 and ( self._settings["keep_seperate_fd_exp_buffer"] == True ))
+                ):
                 # print ("Updating fd bounds")
                 self._model.getForwardDynamics().setStateBounds(data[8])
                 self._model.getForwardDynamics().setActionBounds(data[9])
@@ -225,8 +228,11 @@ class SimWorker(Process):
                     if ("train_reward_distance_metric" in self._settings and
                          (self._settings["train_reward_distance_metric"] == True)):
                         self._model.getRewardModel().setNetworkParameters(data[7])
-                    if ( "train_forward_dynamics" in self._settings 
-                         and ( self._settings["train_forward_dynamics"] == True )):
+                    if (( "train_forward_dynamics" in self._settings 
+                         and ( self._settings["train_forward_dynamics"] == True ))
+                        and ( "keep_seperate_fd_exp_buffer" in self._settings 
+                         and ( self._settings["keep_seperate_fd_exp_buffer"] == True ))
+                        ):
                         # print ("Updating fd bounds")
                         self._model.getForwardDynamics().setStateBounds(data[8])
                         self._model.getForwardDynamics().setActionBounds(data[9])
