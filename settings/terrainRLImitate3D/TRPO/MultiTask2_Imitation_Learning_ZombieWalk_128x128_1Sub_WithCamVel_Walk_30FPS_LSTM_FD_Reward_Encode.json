@@ -545,7 +545,7 @@
 	"comment__": "A mapping from working_id to task id",
 "worker_to_task_mapping": [0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0],
 	"comment__": "A small offset for comparing states that we now are imperfect comparisons",
-"imperfect_compare_offset": 0.0,
+"imperfect_compare_offset": 0.1,
 	"comment__": "Force the simulation workers to use the CPU only for network models",
 "force_sim_net_to_cpu": false,
 	"comment__": "Just train the fd model in an LSTM fashion",
@@ -559,11 +559,9 @@
 	"comment__": "Use a sparse sequence based reward",
 "use_sparse_sequence_based_reward": false,
 	"comment__": "Add label noise to Discriminator/Simease network training",
-"add_label_noise": 0.0,
+"add_label_noise": 0.1,
 	"comment__": "Add velocity state to image state",
 "append_camera_velocity_state": "3D",
 	"comment__": "Add a negative reward when the robot falls",
-"use_fall_reward_shaping": false,
-	"comment__": "image noise factor that is added to the frames captured from the simulations",
-"image_noise_scale": 0.000001
+"use_fall_reward_shaping": false
 }

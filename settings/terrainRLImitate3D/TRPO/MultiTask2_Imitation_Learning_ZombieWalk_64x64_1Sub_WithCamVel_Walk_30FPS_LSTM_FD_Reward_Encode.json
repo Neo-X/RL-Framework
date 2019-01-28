@@ -565,5 +565,7 @@
 	"comment__": "Add velocity state to image state",
 "append_camera_velocity_state": "3D",
 	"comment__": "Add a negative reward when the robot falls",
-"use_fall_reward_shaping2": true
+"use_fall_reward_shaping2": true,
+	"comment__": "image noise factor that is added to the frames captured from the simulations",
+"image_noise_scale": 0.02
 }
