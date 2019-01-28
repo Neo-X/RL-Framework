@@ -22,7 +22,7 @@
 	"comment__": "Password for email address",
 "from_email_password": "123Neo1001652",
 	"comment__": "Flag to say this is a testing run",
-"testing": true,
+"testing": false,
 	"comment__": "Type of curve to blend values along [linear|squared|exponential]",
 "curve_scheme": ["linear"]
 }

@@ -53,7 +53,9 @@ def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
             ## Add pictures to tar file
             _data_dir = getDataDirectory(settings)
             addPicturesToTarBall(dataTar, settings, data_folder=_data_dir)
-            pictureFileName=  root_data_dir + getAgentName() + ".png"
+            pictureFileName= [ root_data_dir + getAgentName() + ".png",
+                              root_data_dir + "trainingGraphNN" + ".png",
+                              root_data_dir + "rewardTrainingGraph" + ".png"]
         except Exception as e:
             # dataTar.close()
             print("Error plotting data there my not be a DISPLAY available.")

@@ -54,7 +54,7 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
     
     from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory
     
-    rlv = PolicyTrainVisualize("Training Curves: " + str(settings['agent_name']), settings=settings)
+    rlv = PolicyTrainVisualize("Policy Training Curves: " + str(settings['agent_name']), settings=settings)
     otherDatas = []
     # settingsFiles = sys.argv[2:]
     print("settingsFiles: ", settingsFiles)
@@ -114,33 +114,36 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
     rlv.saveVisual(folder+"Training_curves")
     # rlv.show()
     
-    rlv_value_function = PolicyTrainVisualize("Training Curves: " + str(settings['agent_name']), settings=settings)
+    rlv_value_function = PolicyTrainVisualize("Value Function Training Curves: " + str(settings['agent_name']), 
+                                              settings=settings, y_lable="Bellman Error")
     rlv_value_function.setLength(min_length)
     # rlv.setLength(64)
     rlv_value_function.updateRewards(trainingDatas, otherDatas, 
                                      mean_key="mean_discount_error", std_key="std_discount_error")
     rlv_value_function.init()
-    rlv_value_function.saveVisual(folder+"critic_Training_curves")
+    rlv_value_function.saveVisual(folder+"Training_curves_discounted_error")
     # rlv.show()
     
     if (settings["train_forward_dynamics"] == True):
-        rlv_fd = PolicyTrainVisualize("Training Curves: " + str(settings['agent_name']), settings=settings)
+        rlv_fd = PolicyTrainVisualize("FD Training Curves: " + str(settings['agent_name']), 
+                                      settings=settings, y_lable="Loss")
         rlv_fd.setLength(min_length)
         # rlv.setLength(64)
         rlv_fd.updateRewards(trainingDatas, otherDatas, 
                                          mean_key="mean_forward_dynamics_loss", std_key="std_forward_dynamics_loss")
         rlv_fd.init()
-        rlv_fd.saveVisual(folder+"fd_Training_curves")
+        rlv_fd.saveVisual(folder+"Training_curves_fd")
         
         if ("train_reward_predictor" in settings and
             (settings["train_reward_predictor"] == True)):
-            rlv_reward = PolicyTrainVisualize("Training Curves: " + str(settings['agent_name']), settings=settings)
+            rlv_reward = PolicyTrainVisualize("Reward Training Curves: " + str(settings['agent_name']), 
+                                              settings=settings, y_lable="Loss")
             rlv_reward.setLength(min_length)
             # rlv.setLength(64)
             rlv_reward.updateRewards(trainingDatas, otherDatas, 
                                              mean_key="mean_forward_dynamics_reward_loss", std_key="std_forward_dynamics_reward_loss")
             rlv_reward.init()
-            rlv_reward.saveVisual(folder+"reward_Training_curves")
+            rlv_reward.saveVisual(folder+"Training_curves_reward")
         
     
     

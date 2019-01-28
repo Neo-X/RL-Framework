@@ -55,7 +55,9 @@ def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
         ## Add pictures to tar file
         addPicturesToTarBall(dataTar, settings)
         pictureFileName=[figure_file_name + "Training_curves.png", 
-                         figure_file_name + "Training_curves_discounted_error.png"]
+                         figure_file_name + "Training_curves_discounted_error.png",
+                         figure_file_name + "Training_curves_fd.png",
+                         figure_file_name + "Training_curves_reward.png"]
     except Exception as e:
         dataTar.close()
         print("Error plotting data there my not be a DISPLAY available.")
