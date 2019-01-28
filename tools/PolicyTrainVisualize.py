@@ -26,6 +26,8 @@ class PolicyTrainVisualize(object):
         self._title=title
         self._length = 0
         self._bin_size = 1
+        self._key_ = "mean_eval"
+        self._key_std_ = "std_eval"
         
         
     def setLength(self, length):
@@ -67,19 +69,19 @@ class PolicyTrainVisualize(object):
             self._fig_value, (self._value_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
             for i in range(0, len(self._trainingDatas), 1):
                 if ( (self._length) > 0 and (j > 0) ):
-                    if ( (self._length) < (len(self._trainingDatas[i]['data']["mean_eval"]) ) ):
+                    if ( (self._length) < (len(self._trainingDatas[i]['data'][self._key_]) ) ):
                         x_range = range(0, self._length, 1)
                         print ("x_range: ", x_range)
                     else:
-                        x_range = range(len(self._trainingDatas[i]['data']["mean_eval"]))
+                        x_range = range(len(self._trainingDatas[i]['data'][self._key_]))
                 else:
-                    x_range = range(len(self._trainingDatas[i]['data']["mean_eval"]))
+                    x_range = range(len(self._trainingDatas[i]['data'][self._key_]))
                 new_shape = (int(len(x_range)/self._bin_size), int(self._bin_size))
                 new_length = new_shape[0]*new_shape[1]
                 x_range_ = range(int(new_shape[0]))
                 # self._length = self._length/self._bin_size
-                mean = np.mean(np.reshape(self._trainingDatas[i]['data']["mean_eval"][:new_length], new_shape), axis=1)
-                std = np.mean(np.reshape(self._trainingDatas[i]['data']["std_eval"][:new_length], new_shape), axis=1)
+                mean = np.mean(np.reshape(self._trainingDatas[i]['data'][self._key_][:new_length], new_shape), axis=1)
+                std = np.mean(np.reshape(self._trainingDatas[i]['data'][self._key_std_][:new_length], new_shape), axis=1)
                 
                 colour_ = cmap(i)
                 if ('colour' in self._trainingDatas[i]):
@@ -94,7 +96,7 @@ class PolicyTrainVisualize(object):
                                                                               np.array(mean) + std,
                                                                               facecolor=self._reward.get_color(),
                                                                               alpha=0.25)
-                
+                """
                 mean_value = np.mean(np.reshape(self._trainingDatas[i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
                 std_value = np.mean(np.reshape(self._trainingDatas[i]['data']["std_discount_error"][:new_length], new_shape), axis=1)
                 self._value, = self._value_ax.plot(x_range_, mean_value, 
@@ -108,35 +110,39 @@ class PolicyTrainVisualize(object):
                                                                               np.array(mean_value) + std_value,
                                                                               facecolor=self._reward.get_color(),
                                                                               alpha=0.25)
+                """
+                
             # self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
             leng = self._reward_ax.legend(loc="lower right",
                          ncol=1, shadow=True, fancybox=True)
             leng.get_frame().set_alpha(0.3)
+            """
             leng = self._value_ax.legend(loc="lower right",
                          ncol=1, shadow=True, fancybox=True)
             leng.get_frame().set_alpha(0.3)
+            """
             # self._reward_ax.set_title('Mean Reward')
             self._reward_ax.set_ylabel("Mean Reward", fontsize=16)
             self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')
             plt.xlabel("Iteration x" + str(self._iteration_scale), fontsize=16)
             self._fig.suptitle(self._title, fontsize=18)
             self._reward_ax.set_xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale), fontsize=16)
-            
+            """
             self._value_ax.set_ylabel("Mean Reward", fontsize=16)
             self._value_ax.grid(b=True, which='major', color='black', linestyle='--')
             plt.xlabel("Iteration x" + str(self._iteration_scale), fontsize=16)
             self._fig_value.suptitle(self._title, fontsize=18)
             self._value_ax.set_xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale), fontsize=16)
-            
+            """
             # plt.grid(b=True, which='major', color='black', linestyle='--')
             # plt.grid(b=True, which='minor', color='g', linestyle='--'
             
             self._fig.set_size_inches(11.0, 6.0, forward=True)
-            self._fig_value.set_size_inches(11.0, 6.0, forward=True)
+            # self._fig_value.set_size_inches(11.0, 6.0, forward=True)
             # plt.show()
         else:
             means_ = []
-            mean_values_ = []
+            # mean_values_ = []
             cmap = get_cmap(len(self._otherDatas)+1)
             self._fig, (self._reward_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
             self._fig_value, (self._value_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
@@ -147,23 +153,23 @@ class PolicyTrainVisualize(object):
                         self._length = 40
                     """
                     if ( (self._length) > 0 ): ## potentially reduce the range of data plotted
-                        if ( (self._length) < (len(self._otherDatas[j][i]['data']["mean_eval"]) ) ):
+                        if ( (self._length) < (len(self._otherDatas[j][i]['data'][self._key_]) ) ):
                             x_range = range(0, self._length, 1)
                         else:
-                            x_range = range(len(self._otherDatas[j][i]['data']["mean_eval"]))
+                            x_range = range(len(self._otherDatas[j][i]['data'][self._key_]))
                     else:
-                        x_range = range(len(self._otherDatas[j][i]['data']["mean_eval"]))
+                        x_range = range(len(self._otherDatas[j][i]['data'][self._key_]))
                     new_shape = (int(len(x_range)/self._bin_size), int(self._bin_size))
                     new_length = new_shape[0]*new_shape[1]
                     x_range_ = list(range(int(new_shape[0])))
                     # self._length = self._length/self._bin_size
-                    mean = np.mean(np.reshape(self._otherDatas[j][i]['data']["mean_eval"][:new_length], new_shape), axis=1)
-                    mean_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
+                    mean = np.mean(np.reshape(self._otherDatas[j][i]['data'][self._key_][:new_length], new_shape), axis=1)
+                    # mean_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
                     # std_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_discount_error"][:new_length], new_shape), axis=1)
-                    # std = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_eval"][:new_length], new_shape), axis=1)
+                    std = np.mean(np.reshape(self._otherDatas[j][i]['data'][self._key_std_][:new_length], new_shape), axis=1)
                     if (np.all(np.isfinite(mean))):
                         means_.append(mean)
-                        mean_values_.append(mean_value)
+                        # mean_values_.append(mean_value)
                 
                 print("means_: ", means_)
                 """          
@@ -171,16 +177,16 @@ class PolicyTrainVisualize(object):
                     for i in range(len(means_)):
                         ### Add the last item of the PLAiD sim to the first of the Distillation data.
                         if ( (self._length) > 0 ): ## potentially reduce the range of data plotted
-                            if ( (self._length) < (len(self._otherDatas[2][i]['data']["mean_eval"]) ) ):
+                            if ( (self._length) < (len(self._otherDatas[2][i]['data'][self._key_]) ) ):
                                 x_range = range(0, self._length, 1)
                             else:
-                                x_range = range(len(self._otherDatas[2][i]['data']["mean_eval"]))
+                                x_range = range(len(self._otherDatas[2][i]['data'][self._key_]))
                         else:
-                            x_range = range(len(self._otherDatas[2][i]['data']["mean_eval"]))
+                            x_range = range(len(self._otherDatas[2][i]['data'][self._key_]))
                         new_shape = (int(len(x_range)/self._bin_size), int(self._bin_size))
                         new_length = new_shape[0]*new_shape[1]
-                        print ("Shape of data: ", len(self._otherDatas[2][i]['data']["mean_eval"]))
-                        mean = np.mean(np.reshape(self._otherDatas[2][i]['data']["mean_eval"][:new_length], new_shape), axis=1)
+                        print ("Shape of data: ", len(self._otherDatas[2][i]['data'][self._key_]))
+                        mean = np.mean(np.reshape(self._otherDatas[2][i]['data'][self._key_][:new_length], new_shape), axis=1)
                         mean_value = np.mean(np.reshape(self._otherDatas[2][i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
                         print ("mean: ", mean)
                         print ("last mean: ", mean[-1])
@@ -192,8 +198,8 @@ class PolicyTrainVisualize(object):
                 print ("x_range_:", x_range_)
                 mean = np.mean(means_, axis=0)
                 std = np.std(means_, axis=0)
-                mean_value = np.mean(mean_values_, axis=0)
-                std_value = np.std(mean_values_, axis=0)
+                # mean_value = np.mean(mean_values_, axis=0)
+                # std_value = np.std(mean_values_, axis=0)
                 colour_ = cmap(j)
                 
                 if ('colour' in self._otherDatas[j][i]):
@@ -215,7 +221,7 @@ class PolicyTrainVisualize(object):
                                                                               np.array(mean) + std,
                                                                               facecolor=self._reward.get_color(),
                                                                               alpha=0.25)
-                
+                """
                 for v in mean_values_:
                     self._value, = self._value_ax.plot(x_range_, v, 
                                                      linewidth=2.0, 
@@ -232,8 +238,9 @@ class PolicyTrainVisualize(object):
                                                                               np.array(mean_value) + std_value,
                                                                               facecolor=self._reward.get_color(),
                                                                               alpha=0.25)
+                """
                 means_ = []
-                mean_values_ = []
+                # mean_values_ = []
                 
             
             # self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
@@ -263,9 +270,12 @@ class PolicyTrainVisualize(object):
             self._fig_value.set_size_inches(11.0, 6.0, forward=True)
             # plt.show()
             
-    def updateRewards(self, trainingDatas, otherDatas=None):
+    def updateRewards(self, trainingDatas, otherDatas=None, mean_key="mean_eval", std_key="std_eval"):
         self._trainingDatas = trainingDatas
         self._otherDatas = otherDatas
+        self._key_ = mean_key
+        self._key_std_ = std_key
+        
        
         
     def show(self):
@@ -284,6 +294,6 @@ class PolicyTrainVisualize(object):
     def saveVisual(self, fileName):
         self._fig.savefig(fileName+".svg")
         self._fig.savefig(fileName+".png")
-        self._fig_value.savefig(fileName+"_discounted_error.svg")
-        self._fig_value.savefig(fileName+"_discounted_error.png")
+        # self._fig_value.savefig(fileName+"_discounted_error.svg")
+        # self._fig_value.savefig(fileName+"_discounted_error.png")
         
