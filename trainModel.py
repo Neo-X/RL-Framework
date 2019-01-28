@@ -998,18 +998,23 @@ def trainModelParallel(inputData):
                 if (settings['on_policy']):
                     
                     # if ( settings['num_available_threads'] > 0 ):  
-                    if (settings['on_policy'] == "fast"):
-                        out = simModelMoreParrallel( sw_message_queues=input_anchor_queue,
-                                                   model=masterAgent, settings=settings, 
-                                                   eval_episode_data_queue=eval_episode_data_queue, 
-                                                   anchors=settings['num_on_policy_rollouts']
-                                                   ,p=p)
+                    if ("skip_rollouts" in settings and 
+                        (settings["skip_rollouts"] == True)):
+                        out = (([],[],[],[],[],[],[],[]), [], [], [])
+                    
                     else:
-                        out = simModelParrallel( sw_message_queues=sim_work_queues,
-                                                   model=masterAgent, settings=settings, 
-                                                   eval_episode_data_queue=eval_episode_data_queue, 
-                                                   anchors=settings['num_on_policy_rollouts']
-                                                   ,p=p)
+                        if (settings['on_policy'] == "fast"):
+                            out = simModelMoreParrallel( sw_message_queues=input_anchor_queue,
+                                                       model=masterAgent, settings=settings, 
+                                                       eval_episode_data_queue=eval_episode_data_queue, 
+                                                       anchors=settings['num_on_policy_rollouts']
+                                                       ,p=p)
+                        else:
+                            out = simModelParrallel( sw_message_queues=sim_work_queues,
+                                                       model=masterAgent, settings=settings, 
+                                                       eval_episode_data_queue=eval_episode_data_queue, 
+                                                       anchors=settings['num_on_policy_rollouts']
+                                                       ,p=p)
                     
                     if ("divide_by_zero" in settings
                         and (settings["divide_by_zero"] == True)):

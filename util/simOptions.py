@@ -31,6 +31,20 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Whether or not to train the policy. Used for debugging")
     
+    parser.add_option("--train_critic",
+              action="store", dest="train_critic", default=None,
+              type='choice',
+              choices=['true', 'false', None],
+              metavar="STRING", 
+              help="Whether or not to train the value function. Used for debugging")
+    
+    parser.add_option("--skip_rollouts",
+              action="store", dest="skip_rollouts", default=None,
+              type='choice',
+              choices=['true', 'false', None],
+              metavar="STRING", 
+              help="A flag to turn off data collections phases (rollouts) after initial bootstrapping.")
+    
     parser.add_option("--email_log_data_periodically",
               action="store", dest="email_log_data_periodically", default=None,
               type='choice',
