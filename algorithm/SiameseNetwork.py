@@ -102,6 +102,9 @@ def create_sequences(traj0, traj1, settings):
         # print ("compare_adjustment: ", compare_adjustment)
     noise_scale = 0.02
     target_noise_scale = 0.02
+    if ("image_noise_scale" in settings):
+        noise_scale = settings["image_noise_scale"]
+        target_noise_scale = settings["image_noise_scale"]
     sequences0 = []
     sequences1 = []
     targets_ = []
@@ -418,6 +421,9 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
     '''
     noise_scale = 0.02
     target_noise_scale = 0.02
+    if ("image_noise_scale" in settings):
+        noise_scale = settings["image_noise_scale"]
+        target_noise_scale = settings["image_noise_scale"]
     compare_adjustment = 0.0
     if ("imperfect_compare_offset" in settings):
         compare_adjustment = settings["imperfect_compare_offset"]
@@ -466,6 +472,9 @@ def create_pairs2(x, settings):
     if ("imperfect_compare_offset" in settings):
         compare_adjustment = settings["imperfect_compare_offset"]
     noise_scale = 0.02
+    if ("image_noise_scale" in settings):
+        noise_scale = settings["image_noise_scale"]
+        target_noise_scale = settings["image_noise_scale"]
     pair1 = []
     pair2 = []
     labels = []
