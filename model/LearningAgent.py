@@ -158,7 +158,7 @@ class LearningAgent(AgentInterface):
             # print ("rewards:", _rewards)
             # print("Batch size: ", len(_states), len(_actions), len(_result_states), len(_rewards), len(_falls), len(_advantage))
             ### Validate every tuple before giving them to the learning method
-            num_samples_=0
+            num_samples_=1
             t0 = time.time()
             
             ### Causes the new scaling values to be computed but not applied. They are applied later after the updates
@@ -228,8 +228,11 @@ class LearningAgent(AgentInterface):
             if (self._settings["batch_size"] == "all"):
                 batch_size_ = num_samples_
             ### If for some reason the data was all garbage, skip this training update.
-            if (self._expBuff.samples() < value_function_batch_size 
-                or (self._expBuff.samples() < batch_size_)):
+            if ((self._expBuff.samples() < value_function_batch_size 
+                or (self._expBuff.samples() < batch_size_))
+                and
+                (not ("skip_rollouts" in self._settings and 
+                        (self._settings["skip_rollouts"] == True)))):
                 print("Data was mostly/all garbage or your batch size is larger than the data collected.")
                 return 0
             t1 = time.time()
@@ -243,8 +246,9 @@ class LearningAgent(AgentInterface):
                     print ("self.getFDExperience().samples(): ", self.getFDExperience().samples())
                 # print ("exp_actions sum: ", np.sum(tmp_exp_action))
             
-            if (len(tmp_states) > 0 
-                and ( 
+            # if (((len(tmp_states) > 0 ) or (self._settings))
+            #     and (
+            if ((         
                      (("train_LSTM" in self._settings)
                         and (self._settings["train_LSTM"] == True))
                      or

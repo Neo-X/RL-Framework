@@ -1087,14 +1087,19 @@ def trainModelParallel(inputData):
                                 masterAgent.getForwardDynamics().getRewardBounds(),
                                  )
                         message['data'] = data
-                    for m_q in sim_work_queues:
-                        ## block on full queue
-                        m_q.put(message, timeout=timeout_)
                     
-                    if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
-                        for m_q in eval_sim_work_queues:
+                    if ("skip_rollouts" in settings and 
+                        (settings["skip_rollouts"] == True)):
+                        pass
+                    else:
+                        for m_q in sim_work_queues:
                             ## block on full queue
                             m_q.put(message, timeout=timeout_)
+                        
+                        if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
+                            for m_q in eval_sim_work_queues:
+                                ## block on full queue
+                                m_q.put(message, timeout=timeout_)
                     
                     # states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
@@ -1107,6 +1112,8 @@ def trainModelParallel(inputData):
                 # pr.enable()
                 # print ("Current Tuple: " + str(learningNamespace.experience.current()))
                 # print ("masterAgent.getExperience().samples() >= batch_size: ", masterAgent.getExperience().samples(), " >= ", batch_size)
+                error = 0
+                rewards = 0
                 if masterAgent.getExperience().samples() >= batch_size:
                     states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
@@ -1167,45 +1174,45 @@ def trainModelParallel(inputData):
                         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                             print (states, actions, rewards, result_states)
                         
-                    if (settings['train_forward_dynamics']):
-                        if ( 'keep_seperate_fd_exp_buffer' in settings 
-                             and (settings['keep_seperate_fd_exp_buffer'])):
-                            states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getFDExperience().get_batch(batch_size)
+                if (settings['train_forward_dynamics']):
+                    if ( 'keep_seperate_fd_exp_buffer' in settings 
+                         and (settings['keep_seperate_fd_exp_buffer'])):
+                        states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getFDExperience().get_batch(batch_size)
+                    masterAgent.reset()
+                    if (("train_LSTM_FD" in settings)
+                        and (settings["train_LSTM_FD"] == True)):
+                        batch_size_lstm_fd = 4
+                        if ("lstm_batch_size" in settings):
+                            batch_size_lstm_fd = settings["lstm_batch_size"][0]
+                        ### This can consume a lot of memory if trajectories are long...
+                        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=2)
+                        dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(state_, action_, resultState_, reward_)
+                    else:
+                        dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
+                    if (type(dynamicsLoss) == 'list'):
+                        dynamicsLoss = np.mean([np.mean(np.fabs(dfl)) for dfl in dynamicsLoss])
+                    else:
+                        dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
+                    dynamicsLosses.append(dynamicsLoss)
+                    if (settings['train_reward_predictor']):
                         masterAgent.reset()
-                        if (("train_LSTM_FD" in settings)
-                            and (settings["train_LSTM_FD"] == True)):
+                        if (("train_LSTM_Reward" in settings)
+                            and (settings["train_LSTM_Reward"] == True)):
                             batch_size_lstm_fd = 4
                             if ("lstm_batch_size" in settings):
                                 batch_size_lstm_fd = settings["lstm_batch_size"][0]
                             ### This can consume a lot of memory if trajectories are long...
                             state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=2)
-                            dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(state_, action_, resultState_, reward_)
+                            dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
                         else:
-                            dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
-                        if (type(dynamicsLoss) == 'list'):
-                            dynamicsLoss = np.mean([np.mean(np.fabs(dfl)) for dfl in dynamicsLoss])
+                            dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
+                        
+                        if (type(dynamicsRewardLoss) == 'list'):
+                            dynamicsRewardLoss = np.mean([np.mean(np.fabs(drl)) for drl in dynamicsRewardLoss])
                         else:
-                            dynamicsLoss = np.mean(np.fabs(dynamicsLoss))
-                        dynamicsLosses.append(dynamicsLoss)
-                        if (settings['train_reward_predictor']):
-                            masterAgent.reset()
-                            if (("train_LSTM_Reward" in settings)
-                                and (settings["train_LSTM_Reward"] == True)):
-                                batch_size_lstm_fd = 4
-                                if ("lstm_batch_size" in settings):
-                                    batch_size_lstm_fd = settings["lstm_batch_size"][0]
-                                ### This can consume a lot of memory if trajectories are long...
-                                state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=2)
-                                dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
-                            else:
-                                dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
-                            
-                            if (type(dynamicsRewardLoss) == 'list'):
-                                dynamicsRewardLoss = np.mean([np.mean(np.fabs(drl)) for drl in dynamicsRewardLoss])
-                            else:
-                                dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss))
+                            dynamicsRewardLoss = np.mean(np.fabs(dynamicsRewardLoss))
 
-                            dynamicsRewardLosses.append(dynamicsRewardLoss)
+                        dynamicsRewardLosses.append(dynamicsRewardLoss)
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                         if (settings['train_forward_dynamics']):
                             print ("Round: " + str(trainData["round"]) + " of ", rounds,  ", Epoch: " + str(epoch) + " p: " + str(p) + " With mean reward: " + str(np.mean(rewards)) + " bellman error: " + str(error) + " ForwardPredictionLoss: " + str(dynamicsLoss))
@@ -1296,14 +1303,18 @@ def trainModelParallel(inputData):
                 #     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp_val, masterAgent, discount_factor, 
                 #                                         anchors=settings['eval_epochs'], action_space_continuous=action_space_continuous, settings=settings)
                 # else:
-                if (settings['on_policy'] == True ):
-                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=eval_sim_work_queues,
-                                                               model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
-                elif (settings['on_policy'] == "fast"):
-                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelMoreParrallel( input_anchor_queue=input_anchor_queue_eval,
-                                                               model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
+                if ("skip_rollouts" in settings and 
+                        (settings["skip_rollouts"] == True)):
+                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = 0,0,0,0,0,0,0,0
                 else:
-                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue_eval,
+                    if (settings['on_policy'] == True ):
+                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=eval_sim_work_queues,
+                                                                   model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
+                    elif (settings['on_policy'] == "fast"):
+                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelMoreParrallel( input_anchor_queue=input_anchor_queue_eval,
+                                                                   model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
+                    else:
+                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue_eval,
                                                                 model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                 """
                 for sm in sim_workers:

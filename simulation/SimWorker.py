@@ -244,6 +244,9 @@ class SimWorker(Process):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
                         print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
+                
+                    continue
+                
                 elif episodeData['type'] == "eval":
                     eval=True
                     episodeData = episodeData['data']
