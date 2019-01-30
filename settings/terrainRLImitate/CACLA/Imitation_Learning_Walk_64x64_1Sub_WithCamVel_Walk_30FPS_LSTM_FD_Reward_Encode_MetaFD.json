@@ -4,9 +4,9 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.CACLA_KERAS.CACLA_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_2D_GRF_Viz3D_64x64_WithCamVel_1Sub_Imitate_30FPS_DualState_v0/Encode_MetaFD_TheWorks_LSTM_FD_Reward_T128_20",
+"data_folder": "PD_Humanoid_2D_GRF_Viz3D_64x64_WithCamVel_1Sub_Imitate_30FPS_DualState_v0/Encode_MetaFD_TheWorks_LSTM_FD_Reward_T128_21",
 	"comment": "initial probability of selecting a random action",
-"epsilon": 1.0, PD_Humanoid_2D_Viz3D_64x64_WithCamVel_1Sub_Imitate_30FPS_DualState_v0
+"epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
 "omega": 0.00,
     "comment__": "Batch size used for learning",
