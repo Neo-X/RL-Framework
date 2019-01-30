@@ -289,7 +289,7 @@ class ExperienceMemory(object):
         nums = state+action+nextState+reward
         """
         
-        if ( checkValidData(state, action, nextState, reward) == False ):
+        if ( checkValidData(state, action, nextState, reward, verbose=True) == False ):
             print ("Failed inserting bad tuple: ")
             return
         

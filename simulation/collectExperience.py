@@ -147,9 +147,9 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             assert False
             
         ## Cast data to the proper type
-        state_bounds = np.array(state_bounds, dtype=settings['float_type'])
-        reward_bounds = np.array(reward_bounds, dtype=settings['float_type'])
-        action_bounds = np.array(action_bounds, dtype=settings['float_type'])
+        state_bounds = fixBounds(np.array(state_bounds, dtype=settings['float_type']))
+        reward_bounds = fixBounds(np.array(reward_bounds, dtype=settings['float_type']))
+        action_bounds = fixBounds(np.array(action_bounds, dtype=settings['float_type']))
 
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):            
             # print ("State Mean:" + str(state_avg))
