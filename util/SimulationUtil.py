@@ -54,7 +54,8 @@ def setupEnvironmentVariable(settings):
         
     ### Setup GPU resources
     if ("GPU_BUS_Index" in settings):
-        
+        print ("GPU_BUS_index: ", settings["GPU_BUS_Index"])
+        # sys.exit()
         if (("force_sim_net_to_cpu" in settings
                 and (settings["force_sim_net_to_cpu"] == True))
             and

@@ -141,6 +141,8 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         if ("Use_Multi_GPU_Simulation" in settings_original
             and (settings_original["Use_Multi_GPU_Simulation"] == True)):
             settings["GPU_BUS_Index"] = str(i + settings['meta_thread_index']) ### The first one is reserved for rendering
+            if ("num_gpus" in settings_original):
+                settings["GPU_BUS_Index"] = str(int(settings["GPU_BUS_Index"]) % int(settings_original["num_gpus"]))
             print ("\nGPU bus index: ", settings["GPU_BUS_Index"], "\n")
         
         if ( 'expert_policy_files' in settings):

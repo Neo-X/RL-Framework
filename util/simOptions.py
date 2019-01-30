@@ -73,6 +73,13 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Whether or not to perform training in epochs [true|false|None]")
     
+    parser.add_option("--gpus",
+              action="store", dest="num_gpus", default=None,
+              # type='choice',
+              # choices=['true', 'false', None],
+              metavar="INTEGER", 
+              help="The number of GPUs the simulation will have access to.")
+    
     parser.add_option("--GPU_BUS_Index",
               action="store", dest="GPU_BUS_Index", default=None,
               # type='choice',
