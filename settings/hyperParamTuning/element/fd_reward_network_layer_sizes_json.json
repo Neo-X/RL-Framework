@@ -16,7 +16,7 @@
 						[
 						{"layer_type": "TimeDistributedConv", "net_info": "fd"},
 						{"layer_type": "GRU", "units": 128, "recurrent_dropout": 0.1, "return_sequences": false, "return_state": false},
-						{"layer_type": "Dense", "units": 64, "use_bias": true}
+						{"layer_type": "Dense", "units": 64, "use_bias": true},
 						{"layer_type": "activation", "activation_type": "sigmoid" }
 						], 
 						[
