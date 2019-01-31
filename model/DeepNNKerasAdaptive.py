@@ -5,6 +5,7 @@ import numpy as np
 # import lasagne
 import sys
 from dill.settings import settings
+from tensorflow.python.layers.normalization import BatchNorm
 sys.path.append('../')
 from model.ModelUtil import *
 from keras.models import Sequential, Model
@@ -450,17 +451,21 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Flatten()(network)
             elif (layer_info[i]["layer_type"] == "Dropout"):
                 network = Dropout(**layer_parms)(network)
+            elif (layer_info[i]["layer_type"] == "BatchNormalization"):
+                network = keras.layers.BatchNormalization(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Concatenate"):
                 network = Concatenate(axis=1)([network, _characterFeatures])
             elif (layer_info[i]["layer_type"] == "GRU"):
                 network = GRU(
                               kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                    recurrent_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                     **layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "LSTM"):
                 network = LSTM(
-                               kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                              kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                    recurrent_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                     **layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "TimeDistributedConv"):
                     ### https://machinelearningmastery.com/timedistributed-layer-for-long-short-term-memory-networks-in-python/

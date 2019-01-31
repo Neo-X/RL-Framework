@@ -376,17 +376,22 @@
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice"},
 							{"layer_type": "Reshape", "target_shape": [1,64,64]},
-							{"layer_type": "conv2d", "filters": 8, "kernel_size": [6,6], "strides": [3,3], "activation_type": "leaky_rectify", "use_bias": true},
-							{"layer_type": "conv2d", "filters": 8, "kernel_size": [4,4], "strides": [2,2], "activation_type": "leaky_rectify", "use_bias": true},
-							{"layer_type": "conv2d", "filters": 8, "kernel_size": [2,2], "strides": [1,1], "activation_type": "leaky_rectify", "use_bias": true},
+							{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "activation_type": "leaky_rectify", "use_bias": false},
+							{"layer_type": "BatchNormalization"},
+							{"layer_type": "conv2d", "filters": 16, "kernel_size": [4,4], "strides": [2,2], "activation_type": "leaky_rectify", "use_bias": false},
+							{"layer_type": "BatchNormalization"},
+							{"layer_type": "conv2d", "filters": 16, "kernel_size": [2,2], "strides": [1,1], "activation_type": "leaky_rectify", "use_bias": false},
+							{"layer_type": "BatchNormalization"},
 							{"layer_type": "Flatten"},
-							{"layer_type": "Concatenate"}, 
-							{"layer_type": "Dense", "units": 64, "activation_type": "leaky_rectify", "use_bias": true}],
+							{"layer_type": "Dense", "units": 128, "activation_type": "leaky_rectify", "use_bias": true},
+							{"layer_type": "Concatenate"}
+							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
 							{"layer_type": "TimeDistributedConv", "net_info": "fd"},
 							{"layer_type": "GRU", "units": 128, "recurrent_dropout": 0.1, "return_sequences": false, "return_state": false},
-							{"layer_type": "Dense", "units": 64, "activation_type": "leaky_rectify", "use_bias": true}],
+							{"layer_type": "Dense", "units": 64, "activation_type": "leaky_rectify", "use_bias": true}
+							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
 	"comment__": "type of activation to use for policy",
