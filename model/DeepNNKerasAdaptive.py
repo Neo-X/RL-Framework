@@ -448,8 +448,45 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Reshape(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Flatten"):
                 network = Flatten()(network)
+            elif (layer_info[i]["layer_type"] == "Dropout"):
+                network = Dropout(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Concatenate"):
                 network = Concatenate(axis=1)([network, _characterFeatures])
+            elif (layer_info[i]["layer_type"] == "GRU"):
+                network = GRU(
+                              kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                    bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                    **layer_parms)(network)
+            elif (layer_info[i]["layer_type"] == "LSTM"):
+                network = LSTM(
+                               kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                    bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                    **layer_parms)(network)
+            elif (layer_info[i]["layer_type"] == "TimeDistributedConv"):
+                    ### https://machinelearningmastery.com/timedistributed-layer-for-long-short-term-memory-networks-in-python/
+                    if ( layer_info[i]["net_info"] == "fd" ):
+                        subnet = self._actor
+                        print ("self._State_backup: ", self._State_backup)
+                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(self._State_backup)))
+                        subnet = Model(inputs=self._State_backup, outputs=subnet)
+                        print("Subnet summary")
+                        subnet.summary()
+                    else:
+                        print ("*** net input shape: ", repr(keras.backend.int_shape(network)))
+                        input_ = keras.layers.Input(shape=(keras.backend.int_shape(network)[-1],), name="State_Conv")
+                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
+                        if (layer_sizes[i][1] == True):
+                            subnet = self.createSubNetwork(input_, layer_info[i]["net_info"], isRNN=True)
+                        else:
+                            subnet = self.createSubNetwork(input_, layer_info[i]["net_info"], isRNN=False)
+                        subnet = Model(inputs=input_, outputs=subnet)
+                        print("Subnet summary")
+                        subnet.summary()
+                        
+                    ### Create a model (set of layers to distribute) pass in the original input to that model
+                    print ("*** subnet input ", network, " shape: ", repr(keras.backend.int_shape(network)))
+                    print ("self._state_length: ", self._state_length)
+                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
             elif (layer_info[i]["layer_type"] == "slice"):
                 network = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
                                   arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(input)
