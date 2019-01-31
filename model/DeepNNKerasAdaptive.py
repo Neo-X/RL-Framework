@@ -453,6 +453,11 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Dropout(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "BatchNormalization"):
                 network = keras.layers.BatchNormalization(**layer_parms)(network)
+            elif (layer_info[i]["layer_type"] == "LayerNormalization"):
+                from keras_layer_normalization import LayerNormalization
+                network = LayerNormalization(**layer_parms)(network)
+            if ( layer_info[i]["layer_type"] == "activation"):
+                network = getKerasActivation(layer_info[i]["activation_type"])(network)                
             elif (layer_info[i]["layer_type"] == "Concatenate"):
                 network = Concatenate(axis=1)([network, _characterFeatures])
             elif (layer_info[i]["layer_type"] == "GRU"):
@@ -505,9 +510,6 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                  data_format=self._data_format_,
                                                  **layer_parms)(network)
                                                      
-            if ( "activation_type" in layer_info[i]):
-                network = getKerasActivation(layer_info[i]["activation_type"])(network)
-                
         return network
     
     def _createSubNetwork(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):

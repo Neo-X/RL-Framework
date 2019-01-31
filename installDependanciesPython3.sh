@@ -20,6 +20,7 @@ pip3 install --user pyOpenGL
 ### I have a custom version of keras now...
 pip3 install --user git+https://github.com/Neo-X/keras.git
 pip3 install --user tensorflow
+pip3 install --user -U --no-deps keras-layer-normalization
 ## Does not work in Python3
 # pip3 install pyODE
 pip3 install --user h5py

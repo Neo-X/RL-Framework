@@ -12,6 +12,7 @@ declare -a metaExps=(
  				"settings/hyperParamTuning/element/lstm_batch_size.json" 
  				"settings/hyperParamTuning/element/fd_learning_rate.json" 
 				"settings/hyperParamTuning/element/fd_network_layer_sizes_json.json"
+				"settings/hyperParamTuning/element/fd_reward_network_layer_sizes_json.json"
 )
 
 ## declare an array variable
