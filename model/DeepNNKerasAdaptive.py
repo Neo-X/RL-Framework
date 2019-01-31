@@ -418,6 +418,57 @@ class DeepNNKerasAdaptive(ModelInterface):
         # print("Critic summary: ", self._critic.summary())
         
     def createSubNetwork(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):
+    
+        if ( "network_description_type" in self._settings and
+             (self._settings["network_description_type"] == "json")):
+            net = self._createSubNetworkFromJSON(input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState")
+        else:  
+            net = self._createSubNetwork(input=input, layer_info=layer_info, 
+                                         isRNN=isRNN, stateName=stateName, 
+                                         resultStateName=resultStateName)
+        
+        return net
+    
+    def _createSubNetworkFromJSON(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):
+        
+        network = input
+        for i in range(len(layer_info)):
+            # layer_desc = dict(layer_info[i])
+            print ("Layer info: ", type(layer_info[i]))
+            print ("input: ", repr(network))
+            layer_parms = copy.deepcopy(layer_info[i])
+            layer_parms.pop("layer_type", None)
+            layer_parms.pop("activation_type", None) 
+            if (layer_info[i]["layer_type"] == "Dense"):
+                network = Dense( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                    bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                 **layer_parms)(network)
+            
+            elif (layer_info[i]["layer_type"] == "Reshape"):
+                network = Reshape(**layer_parms)(network)
+            elif (layer_info[i]["layer_type"] == "Flatten"):
+                network = Flatten()(network)
+            elif (layer_info[i]["layer_type"] == "Concatenate"):
+                network = Concatenate(axis=1)([network, _characterFeatures])
+            elif (layer_info[i]["layer_type"] == "slice"):
+                network = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
+                                  arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(input)
+                _characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
+                                       arguments={'begin': self._settings['num_terrain_features'], 
+                                                  'end': self._state_length})(input)
+                                  
+            elif ( layer_info[i]["layer_type"] == "conv2d" ):
+                network = keras.layers.Conv2D( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                                 bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                                 data_format=self._data_format_,
+                                                 **layer_parms)(network)
+                                                     
+            if ( "activation_type" in layer_info[i]):
+                network = getKerasActivation(layer_info[i]["activation_type"])(network)
+                
+        return network
+    
+    def _createSubNetwork(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):
         
         network = input
         
@@ -630,6 +681,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      data_format=self._data_format_,
                                                      padding=layer_sizes[i][4])(network)
+                # elif ( layer_sizes[i][0] == "json" ):
+                    # network = self.createSubNetwork(network, layer_info=[layer_sizes[i][1]["layer_type"]])
                 elif ( layer_sizes[i][0] == "slice_features" ):
                     # network = Concatenate(axis=1)([network, _characterFeatures])
                     _characterFeatures = Lambda(keras_slice, output_shape=(int(keras.backend.int_shape(network)[-1]) - layer_sizes[i][1],),
