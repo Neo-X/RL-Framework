@@ -11,11 +11,12 @@ declare -a metaExps=(
  				"settings/hyperParamTuning/element/imperfect_compare_offset.json" 
  				"settings/hyperParamTuning/element/lstm_batch_size.json" 
  				"settings/hyperParamTuning/element/fd_learning_rate.json" 
+				"settings/hyperParamTuning/element/fd_network_layer_sizes_json.json"
 )
 
 ## declare an array variable
 declare -a simConfigs=(
- 				"settings/terrainRLImitate/CACLA/Imitation_Learning_Walk_64x64_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode_MetaFD.json"
+ 				"settings/terrainRLImitate/CACLA/Imitation_Learning_Walk_64x64_1Sub_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode_MetaFD2.json"
 # 				"settings/terrainRLImitate3D/TRPO/MultiTask2_Imitation_Learning_ZombieWalk_64x64_1Sub_MultiModal_WithCamVel_Walk_30FPS_LSTM_FD_Reward_Encode.json" 
 )
 
