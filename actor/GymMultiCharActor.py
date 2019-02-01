@@ -120,7 +120,10 @@ class GymMultiCharActor(ActorInterface):
     def updateActor(self, sim, action_):
         # llc_state = sim.getState()[:,self._settings['num_terrain_features']:]
         llc_state = sim.getLLCState()
-        # print("LLC state: ", llc_state.shape,  " ", llc_state)
+        # llc_state = sim.getState()
+        # print("LLC state: ", llc_state.shape)
+        # print("LLC state: ", llc_state)
+        # llc_state = llc_state[:,self._settings["num_terrain_features"]:]
         # print("LLC state: ", llc_state[0].shape,  " ", llc_state[0])
         llc_state = np.array(llc_state)
         # action__ = np.array([[action_[0], action_[1], 0.0, action_[2], action_[3], 0.0, action_[4]]])

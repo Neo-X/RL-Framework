@@ -13,6 +13,8 @@ declare -a metaExps=(
 	"settings/terrainRLImitate3D/Path_Folowing/LargeBlocks_OnPolicy-OLDLLC.json"
 	"settings/terrainRLImitate3D/Path_Folowing/LargeBlocks_OnPolicy-NEWLLC.json"
 	"settings/terrainRLImitate3D/Path_Folowing/Path_Following.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_NEWLLC.json"
 )
 
 metaConfigFile=$1
