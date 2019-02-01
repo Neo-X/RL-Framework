@@ -23,10 +23,14 @@ class GymMultiCharActor(ActorInterface):
         
         self._llc_policy = None
         model = None
+        # self.init()
+        
+    def init(self):
+        
         if ('llc_policy_model_path' in self._settings):
             print ("Loading pre compiled network")
             file_name=self._settings['llc_policy_model_path']
-            """
+            
             if (file_name[-5:] == '.json'): ### Keras model
                 import json
                 file = open(file_name)
@@ -41,13 +45,14 @@ class GymMultiCharActor(ActorInterface):
                                        settings=settings)
     
             else: ### Lasagne model
-            """
-            f = open(file_name, 'rb')
-            model = dill.load(f)
-            # model.setSettings(settings_)
-            f.close()
+            
+                f = open(file_name, 'rb')
+                model = dill.load(f)
+                # model.setSettings(settings_)
+                f.close()
                 
             self._llc_policy = model
+        
         
     def updateAction(self, sim, action_):
         action_ = np.array(action_, dtype='float64')
