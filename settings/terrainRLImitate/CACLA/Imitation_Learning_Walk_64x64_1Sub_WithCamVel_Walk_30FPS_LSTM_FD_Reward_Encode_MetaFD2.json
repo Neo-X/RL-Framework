@@ -159,7 +159,7 @@
     "comment__": "draw/render the next state suggested by the forward dynamics model",
 "visualize_forward_dynamics": false,
     "comment__": "Learning rate for the forward dynamics model",
-"fd_learning_rate": 0.0001,
+"fd_learning_rate": 0.0005,
     "comment__": "Whether or not to train the policy. Used for debugging",
 "train_actor": false,
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
@@ -386,7 +386,8 @@
 							{"layer_type": "BatchNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "Flatten"},
-							{"layer_type": "Dense", "units": 128, "activation_type": "leaky_rectify", "use_bias": true},
+							{"layer_type": "Dense", "units": 128, "use_bias": false},
+							{"layer_type": "BatchNormalization"},
 							{"layer_type": "Concatenate"},
 							{"layer_type": "activation", "activation_type": "sigmoid" }
 							],
