@@ -15,6 +15,8 @@ declare -a metaExps=(
 	"settings/terrainRLImitate3D/Path_Folowing/Path_Following.json"
 	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles.json"
 	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_NEWLLC.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_NEWLLC_Tensorflow.json"
+	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_NEWLLC_Tensorflow.json"
 )
 
 metaConfigFile=$1
