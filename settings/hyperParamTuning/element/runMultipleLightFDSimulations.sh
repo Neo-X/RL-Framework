@@ -37,7 +37,7 @@ do
 	### GPU training
 		arg="source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --num_rounds=${rounds} --plot=false --Multi_GPU=true --on_policy=true --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 8 --rollouts=16 --simulation_timeout=1200 --train_critic=false --train_actor=false --eval_epochs=0 --skip_rollouts=true --email_log_data_periodically=true --visualize_expected_value=false --force_sim_net_to_cpu=true --gpus=2 ${opts}"
 		arg=$arg$output
-		command=(borgy submit --restartable --gpu=2 --cpu=32 --mem=128 -w /home/"$USER" -v /mnt/home/"$USER":/home/"$USER" --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/"$USER" -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c "$arg")
+		command=(borgy submit --restartable --gpu=2 --cpu=32 --mem=128 --max-run-time-secs=14400 -w /home/"$USER" -v /mnt/home/"$USER":/home/"$USER" --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/"$USER" -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c "$arg")
 		echo "${command[@]}"
 		# eval $command
 		"${command[@]}"

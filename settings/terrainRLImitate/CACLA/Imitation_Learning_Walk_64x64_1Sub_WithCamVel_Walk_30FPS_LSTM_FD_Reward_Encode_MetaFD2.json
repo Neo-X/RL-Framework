@@ -376,11 +376,14 @@
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice"},
 							{"layer_type": "Reshape", "target_shape": [1,64,64]},
-							{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+							{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": false},
+							{"layer_type": "BatchNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "conv2d", "filters": 16, "kernel_size": [4,4], "strides": [2,2], "use_bias": true},
+							{"layer_type": "conv2d", "filters": 16, "kernel_size": [4,4], "strides": [2,2], "use_bias": false},
+							{"layer_type": "BatchNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "conv2d", "filters": 16, "kernel_size": [2,2], "strides": [1,1], "use_bias": true},
+							{"layer_type": "conv2d", "filters": 16, "kernel_size": [2,2], "strides": [1,1], "use_bias": false},
+							{"layer_type": "BatchNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "Flatten"},
 							{"layer_type": "Dense", "units": 128, "activation_type": "leaky_rectify", "use_bias": true},
@@ -390,7 +393,8 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
 							{"layer_type": "TimeDistributedConv", "net_info": "fd"},
-							{"layer_type": "GRU", "units": 128, "recurrent_dropout": 0.1, "return_sequences": false, "return_state": false, "use_bias": true, "activation": null},
+							{"layer_type": "GRU", "units": 128, "recurrent_dropout": 0.1, "return_sequences": false, "return_state": false, "use_bias": false, "activation": null},
+							{"layer_type": "LayerNormalization"},
 							{"layer_type": "activation", "activation_type": "tanh" },
 							{"layer_type": "Dense", "units": 64, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "sigmoid" }
