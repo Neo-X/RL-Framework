@@ -547,8 +547,6 @@
 "use_sparse_sequence_based_reward": false,
 	"comment__": "Add label noise to Discriminator/Simease network training",
 "add_label_noise": 0.1,
-	"comment__": "Update reward normalization while training",
-"update_adaptive_reward_normalization": false,
 	"comment__": "Use a multi-modal state for the agent and imitation character.",
 "fd_use_multimodal_state": true,
 	"comment__": "A list describing the size of the layers for the ssecond FD NN",

@@ -368,14 +368,14 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
             print ("Unknown network model type: ", str(model_type), " I hope you know what you are doing....")
         # sys.exit(2)
             return
-    import lasagne
+    # import lasagne
     print (" network type: ", model_type, " : ", model)
-    print ("Number of Critic network parameters", lasagne.layers.count_params(model.getCriticNetwork()))
-    print ("Number of Actor network parameters", lasagne.layers.count_params(model.getActorNetwork()))
+    # print ("Number of Critic network parameters", lasagne.layers.count_params(model.getCriticNetwork()))
+    # print ("Number of Actor network parameters", lasagne.layers.count_params(model.getActorNetwork()))
     
-    if (settings['train_forward_dynamics'] and (settings['forward_dynamics_model_type'] == 'SingleNet')):
-        print ("Number of Forward Dynamics network parameters", lasagne.layers.count_params(model.getForwardDynamicsNetwork()))
-        print ("Number of Reward predictor network parameters", lasagne.layers.count_params(model.getRewardNetwork()))
+    # if (settings['train_forward_dynamics'] and (settings['forward_dynamics_model_type'] == 'SingleNet')):
+    #     print ("Number of Forward Dynamics network parameters", lasagne.layers.count_params(model.getForwardDynamicsNetwork()))
+    #     print ("Number of Reward predictor network parameters", lasagne.layers.count_params(model.getRewardNetwork()))
 
     return model
 
