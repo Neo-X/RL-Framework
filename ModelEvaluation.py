@@ -288,7 +288,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     num_actions= discrete_actions.shape[0]
     reward_bounds=np.array(settings["reward_bounds"])
     action_space_continuous=settings['action_space_continuous']
-    if action_space_continuous:
+    if ( not (settings["action_bounds"] == "ask_env")) and action_space_continuous:
         action_bounds = np.array(settings["action_bounds"], dtype=float)
     
     print ("Sim config file name: " + str(settings["sim_config_file"]))
@@ -310,6 +310,13 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
         print (exp.getEnvironment().observation_space.getMinimum())
         settings['state_bounds'] = [s_min,s_max]
         state_bounds = settings['state_bounds']
+    if (settings["action_bounds"] == "ask_env"): # This is okay if there is one thread only...
+        print ("Getting state bounds from environment")
+        s_min = exp.getEnvironment().action_space.getMinimum()
+        s_max = exp.getEnvironment().action_space.getMaximum()
+        print (exp.getEnvironment().action_space.getMinimum())
+        settings['action_bounds'] = [s_min,s_max]
+        action_bounds = settings['state_bounds']
     
     ### Using a wrapper for the type of actor now
     if action_space_continuous:
