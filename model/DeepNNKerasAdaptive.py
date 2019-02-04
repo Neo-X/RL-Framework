@@ -26,6 +26,7 @@ from util.coordconv import *
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 from model.ModelInterface import ModelInterface
+from pydoc import locate
 
 class CoordConv2D(Layer):
     """
@@ -433,6 +434,7 @@ class DeepNNKerasAdaptive(ModelInterface):
     def _createSubNetworkFromJSON(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):
         
         network = input
+        slices = {}
         for i in range(len(layer_info)):
             # layer_desc = dict(layer_info[i])
             print ("Layer info: ", type(layer_info[i]))
@@ -444,7 +446,6 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Dense( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                  **layer_parms)(network)
-            
             elif (layer_info[i]["layer_type"] == "Reshape"):
                 network = Reshape(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Flatten"):
@@ -459,7 +460,10 @@ class DeepNNKerasAdaptive(ModelInterface):
             if ( layer_info[i]["layer_type"] == "activation"):
                 network = getKerasActivation(layer_info[i]["activation_type"])(network)                
             elif (layer_info[i]["layer_type"] == "Concatenate"):
-                network = Concatenate(axis=1)([network, _characterFeatures])
+                if ("slice_label" in layer_info[i]):
+                    network = Concatenate(axis=1)([network, slices[layer_info[i]["slice_label"]]])
+                else:
+                    network = Concatenate(axis=1)([network, _characterFeatures])
             elif (layer_info[i]["layer_type"] == "GRU"):
                 network = GRU(
                               kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
@@ -498,17 +502,41 @@ class DeepNNKerasAdaptive(ModelInterface):
                     print ("self._state_length: ", self._state_length)
                     network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
             elif (layer_info[i]["layer_type"] == "slice"):
-                network = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
-                                  arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(input)
-                _characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
-                                       arguments={'begin': self._settings['num_terrain_features'], 
-                                                  'end': self._state_length})(input)
+                ### Need to make sure to create end slice first to not overwrite network then try and slice from it again...
+                if ("slice_index" in layer_info[i]):
+                    state_length_ = keras.backend.int_shape(network)[1]
+                    print ("slice, state_length_: ", state_length_)
+                    # sys.exit()
+                    slices[layer_info[i]["slice_label"]] = Lambda(keras_slice, output_shape=(state_length_-layer_info[i]["slice_index"],),
+                                       arguments={'begin': layer_info[i]["slice_index"], 
+                                                  'end': state_length_})(network)
+                    print ("new slice network shape: ", repr(slices[layer_info[i]["slice_label"]]))
+                    network = Lambda(keras_slice, output_shape=(layer_info[i]["slice_index"],),
+                                  arguments={'begin': 0, 'end': layer_info[i]["slice_index"]})(network)
+                    print ("new network shape: ", repr(network))
+                    # sys.exit()
+                else:
+                    _characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
+                                           arguments={'begin': self._settings['num_terrain_features'], 
+                                                      'end': self._state_length})(network)
+                    network = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
+                                      arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(network)
                                   
             elif ( layer_info[i]["layer_type"] == "conv2d" ):
                 network = keras.layers.Conv2D( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                  bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                  data_format=self._data_format_,
                                                  **layer_parms)(network)
+            elif (layer_info[i]["layer_type"] == "subnet"):
+                input_ = slices[layer_info[i]["input"]]
+                subnet = self.createSubNetwork(input_, layer_info[i]["layer_info"], isRNN=False)
+                ### build model, maybe?
+                slices[layer_info[i]["output_label"]] = subnet
+            else:
+                model_ = locate(layer_info[i]["layer_type"])
+                if (issubclass(model_, keras.layers)):
+                    network = model_()(network)
+                    
                                                      
         return network
     
