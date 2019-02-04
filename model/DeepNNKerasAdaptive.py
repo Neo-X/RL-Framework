@@ -457,7 +457,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             elif (layer_info[i]["layer_type"] == "LayerNormalization"):
                 from keras_layer_normalization import LayerNormalization
                 network = LayerNormalization(**layer_parms)(network)
-            if ( layer_info[i]["layer_type"] == "activation"):
+            elif ( layer_info[i]["layer_type"] == "activation"):
                 network = getKerasActivation(layer_info[i]["activation_type"])(network)                
             elif (layer_info[i]["layer_type"] == "Concatenate"):
                 if ("slice_label" in layer_info[i]):
@@ -527,15 +527,26 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                  bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                  data_format=self._data_format_,
                                                  **layer_parms)(network)
+            elif ( layer_info[i]["layer_type"] == "sepconv2d" ):
+                network = keras.layers.SeparableConv2D( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                                 bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                                 data_format=self._data_format_,
+                                                 **layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "subnet"):
                 input_ = slices[layer_info[i]["input"]]
                 subnet = self.createSubNetwork(input_, layer_info[i]["layer_info"], isRNN=False)
                 ### build model, maybe?
                 slices[layer_info[i]["output_label"]] = subnet
             else:
+                print ("layer type: ", layer_info[i]["layer_type"])
                 model_ = locate(layer_info[i]["layer_type"])
+                print ("layer model: ", model_)
                 if (issubclass(model_, keras.layers)):
-                    network = model_()(network)
+                    network = model_(
+                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                     data_format=self._data_format_,
+                                     **layer_parms)(network)
                     
                                                      
         return network
