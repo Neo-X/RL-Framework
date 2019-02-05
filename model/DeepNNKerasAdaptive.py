@@ -216,13 +216,19 @@ class DeepNNKerasAdaptive(ModelInterface):
             networkAct = self.createSubNetwork(networkAct, layer_sizes, isRNN=isRNN, stateName=stateName, resultStateName=resultStateName)
             
             # inputAct.trainable = True
+            actor_out_init_layer_scale = 1.0
+            if ("actor_out_init_layer_scale" in self._settings):
+                actor_out_init_layer_scale = self._settings["actor_out_init_layer_scale"]
             networkAct_ = networkAct
             if (layer_sizes[-1] != "merge_state_types"
                 and ( not ("network_leave_off_end" in self._settings 
                            and (self._settings["network_leave_off_end"] == True )))):
+                
                 networkAct = Dense(n_out, 
                                    kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
-                                   bias_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
+                                   bias_regularizer=regularizers.l2(self._settings['regularization_weight']),
+                                    kernel_initializer=(keras.initializers.VarianceScaling(scale=actor_out_init_layer_scale,
+                                mode='fan_avg', distribution='uniform', seed=None) ))(networkAct)
                 networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
             """
             if (("train_LSTM" in self._settings)

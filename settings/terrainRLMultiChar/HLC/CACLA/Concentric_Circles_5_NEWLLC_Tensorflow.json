@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.CACLA_KERAS.CACLA_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Biped3D_MutliChar_ConcentricCircle_5_OnlyVel_v0/Tensorflow_TRUE-v0_NewLLC_4",
+"data_folder": "PD_Biped3D_MutliChar_ConcentricCircle_5_OnlyVel_v0/Tensorflow_TRUE-v0_NewLLC_5",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -417,5 +417,9 @@
 	"comment__": "Lets the network models handle the training and batch processing",
 "model_perform_batch_training": false,
 	"comment__": "Anneal the learning rate",
-"anneal_learning_rate": false
+"anneal_learning_rate": false,
+	"comment__": "Add a negative reward when the robot falls",
+"use_fall_reward_shaping": true,
+	"comment__": "Actor to scale the variance use to init the last layer of the policy",
+"actor_out_init_layer_scale": 0.01
 }

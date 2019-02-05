@@ -100,12 +100,9 @@ class GymMultiCharActor(ActorInterface):
         if (updates_ == 0): #Something went wrong...
             print("There were no updates... This is bad")
             return np.array(sim.getEnvironment().calcRewards()) * 0.0
-        # reward_ = np.reshape(sim.getEnvironment().calcRewards(), (len(action_),1))
-        # reward_ = sim.getEnvironment().calcRewards()
+        # else:
         reward_ = reward_/updates_
-        # print ("reward_: ", repr(reward_))
         self._reward_sum = self._reward_sum + np.mean(reward_)
-        # return reward_[0][0]
         return reward_
         
     
@@ -118,9 +115,9 @@ class GymMultiCharActor(ActorInterface):
             return false when the agent has fallen (end of episode)
         """
         falls = exp.getEnvironment().agentHasFallenMultiAgent()
-        print ("falls: ", falls)
+        # print ("falls: ", falls)
         falls_ = [[not fall] for fall in falls]
-        print ("Not falls: ", falls_)
+        # print ("Not falls: ", falls_)
         return falls_
         
     def updateActor(self, sim, action_):

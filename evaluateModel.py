@@ -140,6 +140,8 @@ class SimContainer(object):
                     self._action = self._action
                     print( "New action: ", self._action)
                     self._exp.updateAction(self._action)
+                    ### For multi agent sim only
+                    # print ("Fallen: ", self._exp.getEnvironment().agentHasFallenMultiAgent())
                 
                 if ( self._settings['environment_type'] == 'terrainRLHLCBiped3D'
                      or (self._settings['environment_type'] == 'GymMultiChar') ):

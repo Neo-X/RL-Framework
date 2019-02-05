@@ -376,7 +376,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             reward_ = actor.actContinuous(exp, action__, bootstrapping=True)
             agent_not_fell = actor.hasNotFallen(exp)
             # print ("performed action: ", reward)
-        print ("Reward: ", reward_)
+        # print ("Reward: ", reward_)
         resultState_ = exp.getState()
         # print ("resultState_: ", np.array(resultState_).shape)
         if (movieWriter is not None):
@@ -537,8 +537,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # Pushing working id as fall value
             falls.append([[worker_id]] * len(state_))
         else:
-            print("Pushing actual fall value before : ", agent_not_fell)
-            print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])
+            # print("Pushing actual fall value before : ", agent_not_fell)
+            # print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])
             # falls.append([[agent_not_fell]] * len(state_))
             falls.append(agent_not_fell)
         exp_act = [[exp_action]]  * len(state_)
