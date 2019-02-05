@@ -19,6 +19,12 @@ declare -a metaExps=(
 	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_NEWLLC_Tensorflow.json"
 	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_5_NEWLLC_Tensorflow.json"
 	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_5_NEWLLC_Tensorflow.json"
+#	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles.json"
+#	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_NEWLLC.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_NEWLLC_Tensorflow_v1.json"
+	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_NEWLLC_Tensorflow_v1.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_5_NEWLLC_Tensorflow_v1.json"
+	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_5_NEWLLC_Tensorflow_v1.json"
 )
 
 metaConfigFile=$1
