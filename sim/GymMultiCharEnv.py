@@ -182,16 +182,6 @@ class GymMultiCharEnv(SimInterface):
         if (self.getSettings()['render']):
             self.getEnvironment().render()
     
-    def setRandomSeed(self, seed):
-        """
-            Set the random seed for the simulator
-            This is helpful if you are running many simulations in parallel you don't
-            want them to be producing the same results if they all init their random number 
-            generator the same.
-        """
-        print ( "Setting random seed: ", seed )
-        self.getEnvironment().setRandomSeed(seed)
-        
     def computeReward(self, state, next_state):
         """
             Computes a version of the true environment reward

@@ -117,10 +117,11 @@ class GymMultiCharActor(ActorInterface):
             Returns True when the agent is still going (not end of episode)
             return false when the agent has fallen (end of episode)
         """
-        if ( exp.endOfEpoch() ):
-            return 0
-        else:
-            return 1
+        falls = exp.getEnvironment().agentHasFallenMultiAgent()
+        print ("falls: ", falls)
+        falls_ = [[not fall] for fall in falls]
+        print ("Not falls: ", falls_)
+        return falls_
         
     def updateActor(self, sim, action_):
         # llc_state = sim.getState()[:,self._settings['num_terrain_features']:]
