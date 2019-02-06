@@ -53,7 +53,7 @@ class OpenAIGymHRLActor(OpenAIGymActor):
             hlc_action = np.concatenate((action_, np.zeros((llc_state_.shape[0], 1))),axis=1)
             # print ("hlc action: ", hlc_action)
             llc_state_[:,-3:] = hlc_action
-            print ("New llc state: ", llc_state_)
+            # print ("New llc state: ", llc_state_)
             llc_action = self._llc_policy.predict(llc_state_)
             reward = exp.step(llc_action)
             reward_ = reward_ + reward
