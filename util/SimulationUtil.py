@@ -722,6 +722,20 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
             exp = OpenAIGymEnv(env, conf, multiAgent=False)
         return exp
     
+    elif ((env_type == 'HRLSimulations')):
+        from rlsimenv.EnvWrapper import getEnv
+        from sim.OpenAIGymHRLEnv import OpenAIGymHRLEnv
+        env_name = config_file
+        env = getEnv(env_name, render=render)
+        
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        if (env.getNumberofAgents() > 1):
+            exp = OpenAIGymHRLEnv(env, conf, multiAgent=True)
+        else:
+            exp = OpenAIGymHRLEnv(env, conf, multiAgent=False)
+        return exp
+    
     elif ((env_type == 'simbiconBiped2D') or (env_type == 'simbiconBiped3D') or (env_type == 'Imitate3D') or 
           (env_type == 'simbiconBiped2DTerrain') or (env_type == 'hopper_2D')):
         import simbiconAdapter
@@ -945,6 +959,10 @@ def createActor(env_type, settings, experience):
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
+    elif ( (env_type == 'HRLSimulations')
+          ):
+        from actor.OpenAIGymHRLActor import OpenAIGymHRLActor
+        actor = OpenAIGymHRLActor(settings, experience)
     elif (
           (env_type == 'terrainRLSim')
           ):

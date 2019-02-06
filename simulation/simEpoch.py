@@ -124,7 +124,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     while (i_ < settings['max_epoch_length']):
         
         state_ = exp.getState()
-        # print ("state_: ", repr(state_))
+        # print ("state_: ", repr(np.array(state_).shape))
         
         states.append(state_)
         states__.extend(state_)
