@@ -31,6 +31,10 @@ def euclidean_distance(vects):
     x, y = vects
     return K.sqrt(K.sum(K.square(x - y), axis=1, keepdims=True))
 
+def l1_distance(vects):
+    x, y = vects
+    return K.sum(K.abs(x - y), axis=1, keepdims=True)
+
 def euclidean_distance_np(vects):
     x, y = vects
     return np.sqrt(np.sum(np.square(x - y), axis=1, keepdims=True))
@@ -45,7 +49,7 @@ def contrastive_loss(y_true, y_pred):
     '''
     margin = 1
     ####           Make these smaller               While making these bigger
-    return K.mean((y_true * K.square(y_pred)) + ((1 - y_true) * K.square(K.maximum(margin - y_pred, 0))))
+    return K.mean((y_true * y_pred) + ((1 - y_true) * K.maximum(margin - y_pred, 0)))
 
 def contrastive_loss_np(y_true, y_pred):
     '''Contrastive loss from Hadsell-et-al.'06
@@ -53,7 +57,7 @@ def contrastive_loss_np(y_true, y_pred):
     '''
     margin = 1
     ####           Make these smaller               While making these bigger
-    return np.mean((y_true * np.square(y_pred)) + ((1 - y_true) * np.square(np.maximum(margin - y_pred, 0))))
+    return np.mean((y_true * y_pred) + ((1 - y_true) * np.maximum(margin - y_pred, 0)))
 
 def compute_accuracy(predictions, labels):
     '''Compute classification accuracy with a fixed threshold on distances.
