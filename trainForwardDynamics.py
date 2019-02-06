@@ -265,9 +265,9 @@ def trainForwardDynamics(settings):
                     
                 else:
                     _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(batch_size)
-                    print("result state shape: ", np.asarray(_result_states).shape)
+                    # print("result state shape: ", np.asarray(_result_states).shape)
                     dynamicsLoss = forwardDynamicsModel.train(_states, _actions, _result_states, _rewards)
-                    print ("dynamicsLoss: ", dynamicsLoss)
+                    # print ("dynamicsLoss: ", dynamicsLoss)
                     # reg_loss = forwardDynamicsModel._get_fd_regularization([])
                     # print("regularization_loss: ", reg_loss)
                 if (False):

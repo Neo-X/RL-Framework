@@ -56,8 +56,10 @@ class OpenAIGymHRLActor(OpenAIGymActor):
             # print ("New llc state: ", llc_state_)
             llc_action = self._llc_policy.predict(llc_state_)
             reward = exp.step(llc_action)
+            print ("reward: ", reward)
             reward_ = reward_ + reward
             steps = steps + 1
+            # print ("Step: ", steps)
         reward = reward_ / float(steps)
         self._reward_sum = self._reward_sum + np.mean(reward)
         return reward
