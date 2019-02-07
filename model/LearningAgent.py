@@ -97,6 +97,13 @@ class LearningAgent(AgentInterface):
     def getFDExperience(self):
         return self._expBuff_FD  
     
+    
+    def recomputeRewards(self):
+        """
+            While learning a reward function re compute the rewards after performing critic and fd updates before policy update
+        """
+        pass
+    
     # @profile(precision=5)
     def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
               _exp_actions=None, _G_t=None, p=1.0):
