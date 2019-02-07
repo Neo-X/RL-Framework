@@ -467,7 +467,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         G_t.append(np.array([[0]])) # *(1.0-discount_factor)))
         for i in range(len(G_t)):
             if isinstance(reward_, (list, tuple, np.ndarray)):
-                assert len(np.array(reward_).shape) == 2
+                assert len(np.array(reward_).shape) == 2, "reward shape is " + str(np.array(reward_).shape) + str(reward_) 
                 # G_t[i] = G_t[i] + (((np.power(discount_factor,(len(G_t)-i)-1) * (np.array(reward_) ))))
                 # print( "reward: ", repr(np.array(reward_)) )
                 # print( "G_t: ", repr(np.array(G_t)) )

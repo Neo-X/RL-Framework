@@ -377,7 +377,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
 	"comment__": "specify the learning algorithm to use for the fd model",
-"fd_algorithm" : "algorithm.SiameseNetwork.SiameseNetwork",
+"fd_algorithm" : "algorithm.SiameseNetworkBinaryCrossEntropy.SiameseNetworkBinaryCrossEntropy",
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice"},
