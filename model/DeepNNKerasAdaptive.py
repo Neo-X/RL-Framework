@@ -226,9 +226,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                 
                 networkAct = Dense(n_out, 
                                    kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
-                                   bias_regularizer=regularizers.l2(self._settings['regularization_weight']),
-                                    kernel_initializer=(keras.initializers.VarianceScaling(scale=actor_out_init_layer_scale,
-                                mode='fan_avg', distribution='uniform', seed=None) ))(networkAct)
+                                   bias_regularizer=regularizers.l2(self._settings['regularization_weight'])
+                                   # , kernel_initializer=(keras.initializers.VarianceScaling(scale=actor_out_init_layer_scale,
+                                # mode='fan_avg', distribution='uniform', seed=None) )
+                                   )(networkAct)
                 networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
             """
             if (("train_LSTM" in self._settings)
