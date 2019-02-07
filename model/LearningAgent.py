@@ -98,11 +98,15 @@ class LearningAgent(AgentInterface):
         return self._expBuff_FD  
     
     
-    def recomputeRewards(self):
+    def recomputeRewards(self, agentExperience, fdExperience):
         """
             While learning a reward function re compute the rewards after performing critic and fd updates before policy update
         """
         pass
+        
+        for tr in range(min(fdExperience.history_size_Trajectory(), fdExperience.samplesTrajectory())):
+            [states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions] = fdExperience.getTrajectory(tr)
+            print (rewards)
     
     # @profile(precision=5)
     def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 

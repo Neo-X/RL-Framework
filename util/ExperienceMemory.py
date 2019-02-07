@@ -104,6 +104,12 @@ class ExperienceMemory(object):
         self._trajectory_update_index+=1
         self._samplesTrajectory+=1
         
+    def getTrajectory(self, i):
+        """
+            Insert a trajectory as a collection of sequences
+        """
+        return self._trajectory_history[i]
+        
     def insertTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions):
         """
             Insert a trajectory as a collection of sequences
