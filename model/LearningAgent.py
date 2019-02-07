@@ -174,8 +174,8 @@ class LearningAgent(AgentInterface):
                     state___ = [s[0] for s in state__]
                     next_state___ = [ns[1] for ns in next_state__]
                 
-                if (checkValidData(state___, action__, next_state___, reward__) and 
-                    checkDataIsValid(advantage__), checkDataIsValid(G_t__)):
+                if (checkValidData(state___, action__, next_state___, reward__, verbose=True) and 
+                    checkDataIsValid(advantage__, verbose=True), checkDataIsValid(G_t__, verbose=True)):
                     tmp_states.append(state__)
                     tmp_actions.append(action__)
                     tmp_result_states.append(next_state__)
@@ -226,14 +226,17 @@ class LearningAgent(AgentInterface):
                         num_samples_ = num_samples_ + 1
             batch_size_ = self._settings["batch_size"]        
             if (self._settings["batch_size"] == "all"):
-                batch_size_ = num_samples_
+                batch_size_ = num_samples_ - 1
+                print ("num_samples_: ", num_samples_)
             ### If for some reason the data was all garbage, skip this training update.
             if ((self._expBuff.samples() < value_function_batch_size 
                 or (self._expBuff.samples() < batch_size_))
                 and
                 (not ("skip_rollouts" in self._settings and 
                         (self._settings["skip_rollouts"] == True)))):
-                print("Data was mostly/all garbage or your batch size is larger than the data collected.")
+                print("Data was mostly/all garbage or your batch size is larger than the data collected.", self._expBuff.samples(),
+                      " batch size ", batch_size_, 
+                      " value func batch size ", value_function_batch_size)
                 return 0
             t1 = time.time()
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):

@@ -363,7 +363,7 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
             h_b = self._model.processed_b_r.predict([np.array([state2])])
             reward_ = self._distance_func_np((h_a, h_b))[0]
             """
-            # print ("siamese dist: ", state_)
+            # print ("siamese dist: ", reward_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
             predicted_reward = 1 - self._model._reward_net.predict([state, state2])[0]
