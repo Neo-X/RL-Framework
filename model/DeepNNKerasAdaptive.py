@@ -528,6 +528,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
                                       arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(network)
                                   
+            elif ( layer_info[i]["layer_type"] == "coordconv2d" ):
+                  network = CoordinateChannel2D()(network)
             elif ( layer_info[i]["layer_type"] == "conv2d" ):
                 network = keras.layers.Conv2D( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                  bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
