@@ -216,6 +216,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             networkAct = self.createSubNetwork(networkAct, layer_sizes, isRNN=isRNN, stateName=stateName, resultStateName=resultStateName)
             
             # inputAct.trainable = True
+            
             actor_out_init_layer_scale = 1.0
             if ("actor_out_init_layer_scale" in self._settings):
                 actor_out_init_layer_scale = self._settings["actor_out_init_layer_scale"]
@@ -228,7 +229,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                    kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                    bias_regularizer=regularizers.l2(self._settings['regularization_weight'])
                                    # , kernel_initializer=(keras.initializers.VarianceScaling(scale=actor_out_init_layer_scale,
-                                # mode='fan_avg', distribution='uniform', seed=None) )
+                                   # mode='fan_avg', distribution='uniform', seed=None) )
                                    )(networkAct)
                 networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
             """
