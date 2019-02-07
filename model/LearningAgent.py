@@ -712,7 +712,6 @@ class LearningAgent(AgentInterface):
                     and (not (("train_LSTM" in self._settings)
                     and (self._settings["train_LSTM"] == True)))):
                     t1 = time.time()
-                    """
                     if ( 'use_multiple_policy_updates' in self._settings and 
                          ( self._settings['use_multiple_policy_updates'] == True) ):
                         for i in range(self._settings['critic_updates_per_actor_update']):
@@ -723,11 +722,10 @@ class LearningAgent(AgentInterface):
                                                          falls=_falls, advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, 
                                                          forwardDynamicsModel=self._fd, p=p)
                     else:
-                    """
-                    _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_exporation_action_batch(batch_size_)
-                    loss_ = self.getPolicy().trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
-                                                 advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
-                                                 p=p)
+                        _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_exporation_action_batch(batch_size_)
+                        loss_ = self.getPolicy().trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
+                                                     advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
+                                                     p=p)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Policy Loss: ", loss_)
                     t1 = time.time()

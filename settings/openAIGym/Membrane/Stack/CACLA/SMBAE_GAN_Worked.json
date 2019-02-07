@@ -208,7 +208,7 @@
     "visualize_learning": true,
     "print_level": "train",
     "bootsrap_with_discrete_policy": true,
-    "use_multiple_policy_updates": true,
+    "use_multiple_policy_updates": false,
     "saving_update_freq_num_rounds": 10,
     "train_gan": false,
     "use_guided_policy_search": false,
