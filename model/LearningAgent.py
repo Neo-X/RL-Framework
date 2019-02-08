@@ -8,6 +8,7 @@ import threading
 import time
 from model.AgentInterface import AgentInterface
 from model.ModelUtil import *
+from util.utils import rlPrint
 import os
 import copy
 import time
@@ -97,17 +98,90 @@ class LearningAgent(AgentInterface):
     def getFDExperience(self):
         return self._expBuff_FD  
     
-    
-    def recomputeRewards(self, agentExperience, fdExperience):
+    def putDataInExpMem(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
+              _exp_actions=None, _G_t=None, recomputeRewards=False):
+        import numpy as np
+        num_samples_ = 0
+        tmp_states = []
+        tmp_actions = []
+        tmp_result_states = [] 
+        tmp_rewards = []
+        tmp_falls = []
+        tmp_G_t = []
+        tmp_advantage = []
+        tmp_exp_action = []
+        ### Causes the new scaling values to be computed but not applied. They are applied later after the updates
+        self.getExperience()._settings["state_normalization"] = "variance"
+        for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, advantage__) in zip(_states, _actions, _result_states, _rewards, _falls, _G_t, _exp_actions, _advantage):
+
+            ### Because the valid state checks only like numpy arrays, not lists
+            state___ = state__
+            next_state___ = next_state__
+            
+            if ("use_dual_state_representations" in self._settings
+                        and (self._settings["use_dual_state_representations"] == True)):
+                state___ = [s[0] for s in state__]
+                next_state___ = [ns[1] for ns in next_state__]
+            ### Validate data
+            if (checkValidData(state___, action__, next_state___, reward__, verbose=True) and 
+                checkDataIsValid(advantage__, verbose=True), checkDataIsValid(G_t__, verbose=True)):
+                
+                if (recomputeRewards==True):
+                    agent_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in state__])])
+                    print ("agent_traj shape: ", agent_traj.shape)
+                    imitation_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in next_state__])])
+                    print ("imitation_traj shape: ", imitation_traj.shape)
+                    reward__ = self.getForwardDynamics().predict_reward_batch(agent_traj, imitation_traj)
+                    print ("reward__", reward__)
+                
+                tmp_states.append(state__)
+                tmp_actions.append(action__)
+                tmp_result_states.append(next_state__)
+                tmp_rewards.append(reward__)
+                tmp_falls.append(fall__)
+                tmp_advantage.append(advantage__)
+                tmp_exp_action.append(exp_action__)
+                tmp_G_t.append(G_t__)
+                
+                ### Data is a trajectory
+                for j in range(len(state__)):
+                    
+                    tup = ([state__[j]], [action__[j]], [next_state__[j]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
+                    if ("use_dual_state_representations" in self._settings
+                        and (self._settings["use_dual_state_representations"] == True)):
+                        if ("use_viz_for_policy" in self._settings 
+                                and self._settings["use_viz_for_policy"] == True):
+                            tup = ([state__[j][1]], [action__[j]], [next_state__[j][1]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
+                        elif ("use_dual_viz_state_representations" in self._settings
+                            and (self._settings["use_dual_viz_state_representations"] == True)):
+                            tup = ([state__[j][0]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
+                        else:
+                            tup = ([state__[j][0]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
+                    self.getExperience().insertTuple(tup)
+                    if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
+                        if ("use_dual_state_representations" in self._settings
+                        and (self._settings["use_dual_state_representations"] == True)):
+                            if ("use_viz_for_policy" in self._settings 
+                                and self._settings["use_viz_for_policy"] == True):
+                                ### Want viz for input and dense for output to condition the preception part of the network
+                                tup = ([state__[j][1]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
+                            else:
+                                # print ("self.getFDExperience().getStateBounds() shape : ", self.getFDExperience().getStateBounds().shape)
+                                # print ("fd exp state shape: ", state__[j][1].shape)
+                                tup = ([state__[j][1]], [action__[j]], [next_state__[j][1]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
+                        ### This is always done and works well for computing the adaptive state bounds.
+                        self.getFDExperience().insertTuple(tup)
+                    num_samples_ = num_samples_ + 1
+                    
+        return ( num_samples_, (tmp_states, tmp_actions, tmp_result_states, tmp_rewards, tmp_falls, tmp_G_t, tmp_advantage, tmp_exp_action))
+        
+    def recomputeRewards(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
+              _exp_actions, _G_t):
         """
             While learning a reward function re compute the rewards after performing critic and fd updates before policy update
         """
-        pass
+        self.putDataInExpMem(_states, _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, recomputeRewards=True)
         
-        for tr in range(min(fdExperience.history_size_Trajectory(), fdExperience.samplesTrajectory())):
-            [states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions] = fdExperience.getTrajectory(tr)
-            print (rewards)
-    
     # @profile(precision=5)
     def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
               _exp_actions=None, _G_t=None, p=1.0):
@@ -115,30 +189,6 @@ class LearningAgent(AgentInterface):
             self._accesLock.acquire()
         loss = 0
         import numpy as np
-        
-        # print ("****** state bounds mean ***: ", np.mean(self.getFDExperience().getStateBounds()))
-        # print ("****** fd exp mem insters ***: ", self.getFDExperience().inserts())
-        # print ("Bounds comparison: ", self.getPolicy().getStateBounds(), " exp mem: ", 
-        #        self._expBuff.getStateBounds())
-        # print ("Bounds comparison: ", self.getPolicy().getActionBounds(), " exp mem: ", 
-        #        self._expBuff.getActionBounds())
-        
-        # print("_exp_actions: ", _exp_actions)
-        # print ("Shapes of things: ")
-        
-        ### The first dimension of all these should be the same.
-        # print ("_states: ", np.array(_states).shape)
-        # print ("Actions: ", np.array(_actions).shape)
-        # print ("_result_states: ", np.array(_result_states).shape)
-        # print ("Advantage: ", np.array(_advantage).shape)
-        # print ("_rewards: ", np.array(_rewards).shape)
-        # print ("_falls: ", np.array(_falls).shape)
-        # print ("_exp_actions: ", np.array(_exp_actions).shape)
-        
-        # print ("self.getFDExperience().getStateBounds() shape : ", self.getFDExperience().getStateBounds())
-        # print ("self._fd() bound diff : ", np.array(self.getFDExperience().getStateBounds()) - np.array(self._fd.getStateBounds()))
-        # sys.exit()
-        
         
         if ("value_function_batch_size" in self._settings):
             value_function_batch_size = self._settings['value_function_batch_size']
@@ -156,85 +206,12 @@ class LearningAgent(AgentInterface):
             
             ### Update target networks
             self.getPolicy().updateTargetModel()
-            ### Validate data
-            tmp_states = []
-            tmp_actions = []
-            tmp_result_states = [] 
-            tmp_rewards = []
-            tmp_falls = []
-            tmp_G_t = []
-            tmp_advantage = []
-            tmp_exp_action = []
-            # print ("Advantage:", _advantage)
-            # print ("rewards:", _rewards)
-            # print("Batch size: ", len(_states), len(_actions), len(_result_states), len(_rewards), len(_falls), len(_advantage))
-            ### Validate every tuple before giving them to the learning method
             num_samples_=1
             t0 = time.time()
             
-            ### Causes the new scaling values to be computed but not applied. They are applied later after the updates
-            self.getExperience()._settings["state_normalization"] = "variance"
-            for (state__, action__, next_state__, reward__, fall__, G_t__, exp_action__, advantage__) in zip(_states, _actions, _result_states, _rewards, _falls, _G_t, _exp_actions, _advantage):
-
-                ### Because the valid state checks only like numpy arrays, not lists
-                state___ = state__
-                next_state___ = next_state__
-                
-                if ("use_dual_state_representations" in self._settings
-                            and (self._settings["use_dual_state_representations"] == True)):
-                    state___ = [s[0] for s in state__]
-                    next_state___ = [ns[1] for ns in next_state__]
-                
-                if (checkValidData(state___, action__, next_state___, reward__, verbose=True) and 
-                    checkDataIsValid(advantage__, verbose=True), checkDataIsValid(G_t__, verbose=True)):
-                    tmp_states.append(state__)
-                    tmp_actions.append(action__)
-                    tmp_result_states.append(next_state__)
-                    tmp_rewards.append(reward__)
-                    tmp_falls.append(fall__)
-                    tmp_advantage.append(advantage__)
-                    tmp_exp_action.append(exp_action__)
-                    tmp_G_t.append(G_t__)
-                    
-                    ### Data is a trajectory
-                    """
-                    print("state__:", np.array(state__).shape)
-                    print("action__:", np.array(action__).shape)
-                    print("next_state__:", np.array(next_state__).shape)
-                    print("reward__:", np.array(reward__).shape)
-                    print("fall__:", np.array(fall__).shape)
-                    print("G_t__:", np.array(G_t__).shape)
-                    print("exp_action__:", np.array(exp_action__).shape)
-                    print("adv__:", np.array(advantage__).shape)
-                    """
-                    for j in range(len(state__)):
-                        
-                        tup = ([state__[j]], [action__[j]], [next_state__[j]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
-                        if ("use_dual_state_representations" in self._settings
-                            and (self._settings["use_dual_state_representations"] == True)):
-                            if ("use_viz_for_policy" in self._settings 
-                                    and self._settings["use_viz_for_policy"] == True):
-                                tup = ([state__[j][1]], [action__[j]], [next_state__[j][1]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
-                            elif ("use_dual_viz_state_representations" in self._settings
-                                and (self._settings["use_dual_viz_state_representations"] == True)):
-                                tup = ([state__[j][0]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
-                            else:
-                                tup = ([state__[j][0]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
-                        self.getExperience().insertTuple(tup)
-                        if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
-                            if ("use_dual_state_representations" in self._settings
-                            and (self._settings["use_dual_state_representations"] == True)):
-                                if ("use_viz_for_policy" in self._settings 
-                                    and self._settings["use_viz_for_policy"] == True):
-                                    ### Want viz for input and dense for output to condition the preception part of the network
-                                    tup = ([state__[j][1]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
-                                else:
-                                    # print ("self.getFDExperience().getStateBounds() shape : ", self.getFDExperience().getStateBounds().shape)
-                                    # print ("fd exp state shape: ", state__[j][1].shape)
-                                    tup = ([state__[j][1]], [action__[j]], [next_state__[j][1]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
-                            ### This is always done and works well for computing the adaptive state bounds.
-                            self.getFDExperience().insertTuple(tup)
-                        num_samples_ = num_samples_ + 1
+            ( num_samples_, (tmp_states, tmp_actions, tmp_result_states, tmp_rewards, tmp_falls, tmp_G_t, tmp_advantage, tmp_exp_action)) = self.putDataInExpMem(_states, _actions, _rewards, _result_states, _falls, _advantage, 
+              _exp_actions, _G_t)
+            
             batch_size_ = self._settings["batch_size"]        
             if (self._settings["batch_size"] == "all"):
                 batch_size_ = num_samples_ - 1
@@ -278,6 +255,9 @@ class LearningAgent(AgentInterface):
                 ):
                 
                 ### Need to normalize data
+                __states = _states 
+                __result_states = _result_states
+                
                 _states = []
                 _result_states = []
                 _states_fd = []
@@ -286,42 +266,18 @@ class LearningAgent(AgentInterface):
                 for i in range(len(tmp_states)):
                     if ("use_dual_state_representations" in self.getSettings()
                         and (self.getSettings()["use_dual_state_representations"] == True)):
-                        """
-                        _states.append([np.array(norm_action(np.array(tmp_states__[0][0]), self.getPolicy().getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
-                        _result_states.append([np.array(norm_action(np.array(tmp_result_states__[0][0]), self.getPolicy().getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
-                        
-                        _states_fd.append([np.array(norm_action(np.array(tmp_states__[0][1]), self._fd.getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
-                        _result_states_fd.append([np.array(norm_action(np.array(tmp_result_states__[0][1]), self._fd.getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
-                        """
                         _states.append([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
                         _result_states.append([np.array(np.array(tmp_result_states__[0]), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
                         
                         _states_fd.append([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
                         _result_states_fd.append([np.array(np.array(tmp_result_states__[1]), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
                     else:
-                        """
-                        _states.append([np.array(norm_action(np.array(tmp_states__), self.getPolicy().getStateBounds()), dtype=self._settings['float_type']) for tmp_states__ in tmp_states])
-                        _result_states.append([np.array(norm_action(np.array(tmp_result_states__), self.getPolicy().getStateBounds()), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states])
-                        """
-                        # _states.append([np.array(np.array(tmp_states__), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
-                        # _result_states.append([np.array(np.array(tmp_result_states__), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
                         _states = tmp_states
                         _result_states = tmp_result_states
                         
                         _states_fd = _states
                         _result_states_fd = _result_states
                     
-                    """
-                    _actions.append([np.array(norm_action(np.array(tmp_actions__), self.getPolicy().getActionBounds()), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions[i]])
-                    _rewards.append([np.array(norm_state(tmp_rewards__ , self.getPolicy().getRewardBounds() ) * ((1.0-self._settings['discount_factor'])), dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards[i]])
-                    """
-                    # _actions.append([np.array(np.array(tmp_actions__), dtype=self._settings['float_type']) for tmp_actions__ in tmp_actions[i]])
-                    # _rewards.append([np.array(tmp_rewards__ , dtype=self._settings['float_type']) for tmp_rewards__ in tmp_rewards[i]])
-                    # _rewards = np.reshape(_rewards, (len(tmp_states), 1))
-                    # _falls = [np.array(tmp_falls__, dtype='int8') for tmp_falls__ in tmp_falls]
-                    # _advantage = [np.array(tmp_advantage__, dtype=self._settings['float_type']) for tmp_advantage__ in tmp_advantage]
-                    # _G_t = [np.array(tmp_G_t__, dtype=self._settings['float_type']) for tmp_G_t__ in tmp_G_t]
-                    # _exp_action = [np.array(tmp_exp_action__, dtype=self._settings['float_type']) for tmp_exp_action__ in tmp_exp_action]
                 if ((("train_LSTM" in self._settings)
                     and (self._settings["train_LSTM"] == True))
                     or
@@ -527,73 +483,7 @@ class LearningAgent(AgentInterface):
                         
                                 
             for ii__ in range(additional_on_poli_trianing_updates):
-                if (self._settings['train_critic']
-                    and (not (("train_LSTM_Critic" in self._settings)
-                    and (self._settings["train_LSTM_Critic"] == True)))):
-                    t0 = time.time()
-                    if (self._settings['critic_updates_per_actor_update'] > 1):
-                        
-                        for i in range(self._settings['critic_updates_per_actor_update']):
-                            if ( self._settings['agent_name'] == "algorithm.QProp.QProp"
-                              or (self._settings['agent_name'] == 'algorithm.QPropKeras.QPropKeras')
-                              ):
-                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
-                                loss = self.getPolicy().trainOnPolicyCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
-                            # loss = self.getPolicy().trainOnPolicyCritic(states=tmp_states, actions=tmp_actions, rewards=tmp_rewards, result_states=tmp_result_states, falls=tmp_falls)
-                            # print ("Number of samples:", self._expBuff.samples())
-                            if ( 'give_mbae_actions_to_critic' in self._settings and 
-                                 (self._settings['give_mbae_actions_to_critic'] == False)):
-                                # if ( np.random.random() >= self._settings['model_based_action_omega']):
-                                if ( np.random.random() >= -1.0):
-                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
-                                    loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
-                                                                 result_states=result_states__, falls=falls__, G_t=G_ts__,
-                                                                 p=p)
-                                else:
-                                    # print('off-policy action update')
-                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
-                                    actions____ = self.getPolicy().predict_batch(states=result_states__) 
-                                    predicted_result_states__ = self._fd.predict_batch(states=result_states__, actions=actions____)
-                                    rewards____ = self._fd.predict_reward_batch(states=result_states__, actions=actions____)
-                                    loss = self.getPolicy().trainCritic(states=result_states__, actions=actions____, rewards=rewards____, 
-                                                                 result_states=predicted_result_states__, falls=falls__, G_t=G_ts__,
-                                                                 p=p)
-                            else:
-                                if ( 'keep_seperate_fd_exp_buffer' in self._settings 
-                                     and (self._settings['keep_seperate_fd_exp_buffer'] == True)
-                                    and ('train_critic_with_fd_data' in self._settings) 
-                                     and (self._settings['train_critic_with_fd_data'] == True)
-                                     ):
-                                    # print ("Using seperate (off-policy) exp mem for Q model")
-                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(value_function_batch_size)
-                                else:
-                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
-                                loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
-                                                             result_states=result_states__, falls=falls__, G_t=G_ts__,
-                                                             p=p)
-                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                print("Critic loss: ", loss)
-                            if not np.isfinite(loss) or (loss > 500) :
-                                np.set_printoptions(threshold=np.nan)
-                                print ("Critic training loss is Odd: ", loss)
-                                print ("States: " + str(np.mean(states__)) + " ResultsStates: " + str(np.mean(result_states__)) + " Rewards: " + str(np.mean(rewards__)) + " Actions: " + str(np.mean(actions__)))
-                            
-                    else:
-                        _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_batch(value_function_batch_size)
-                        loss = self.getPolicy().trainCritic(states=_states, actions=_actions, rewards=_rewards, 
-                                                     result_states=_result_states, falls=_falls, G_t=G_ts__,
-                                                     p=p)
-                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                print("Critic loss: ", loss)
-                        if not np.isfinite(loss) or (loss > 500) :
-                            np.set_printoptions(threshold=np.nan)
-                            print ("Critic training loss is Odd: ", loss)
-                            print ("States: " + str(np.mean(_states)) + " ResultsStates: " + str(np.mean(_result_states)) + " Rewards: " + str(np.mean(_rewards)) + " Actions: " + str(np.mean(_actions)))
-                    
-                    t1 = time.time()
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
-                        sim_time_ = datetime.timedelta(seconds=(t1-t0))
-                        print ("Critic training complete in " + str(sim_time_) + " seconds")
+                
                 if (self._settings['train_forward_dynamics']
                     and not ((("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True))
@@ -707,6 +597,79 @@ class LearningAgent(AgentInterface):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
                         print ("Reward Distance Model training complete in " + str(sim_time_) + " seconds")
+                if ( "refresh_rewards" in self._settings
+                     and (self._settings["refresh_rewards"])):
+                    rlPrint(self._settings, "train", "Refreshing rewards.")
+                    self.recomputeRewards(__states, _actions, _rewards, __result_states, _falls, _advantage, 
+                                          _exp_actions, _G_t)
+                
+                if (self._settings['train_critic']
+                    and (not (("train_LSTM_Critic" in self._settings)
+                    and (self._settings["train_LSTM_Critic"] == True)))):
+                    t0 = time.time()
+                    if (self._settings['critic_updates_per_actor_update'] > 1):
+                        
+                        for i in range(self._settings['critic_updates_per_actor_update']):
+                            if ( self._settings['agent_name'] == "algorithm.QProp.QProp"
+                              or (self._settings['agent_name'] == 'algorithm.QPropKeras.QPropKeras')
+                              ):
+                                states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
+                                loss = self.getPolicy().trainOnPolicyCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                            # loss = self.getPolicy().trainOnPolicyCritic(states=tmp_states, actions=tmp_actions, rewards=tmp_rewards, result_states=tmp_result_states, falls=tmp_falls)
+                            # print ("Number of samples:", self._expBuff.samples())
+                            if ( 'give_mbae_actions_to_critic' in self._settings and 
+                                 (self._settings['give_mbae_actions_to_critic'] == False)):
+                                # if ( np.random.random() >= self._settings['model_based_action_omega']):
+                                if ( np.random.random() >= -1.0):
+                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
+                                    loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
+                                                                 result_states=result_states__, falls=falls__, G_t=G_ts__,
+                                                                 p=p)
+                                else:
+                                    # print('off-policy action update')
+                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
+                                    actions____ = self.getPolicy().predict_batch(states=result_states__) 
+                                    predicted_result_states__ = self._fd.predict_batch(states=result_states__, actions=actions____)
+                                    rewards____ = self._fd.predict_reward_batch(states=result_states__, actions=actions____)
+                                    loss = self.getPolicy().trainCritic(states=result_states__, actions=actions____, rewards=rewards____, 
+                                                                 result_states=predicted_result_states__, falls=falls__, G_t=G_ts__,
+                                                                 p=p)
+                            else:
+                                if ( 'keep_seperate_fd_exp_buffer' in self._settings 
+                                     and (self._settings['keep_seperate_fd_exp_buffer'] == True)
+                                    and ('train_critic_with_fd_data' in self._settings) 
+                                     and (self._settings['train_critic_with_fd_data'] == True)
+                                     ):
+                                    # print ("Using seperate (off-policy) exp mem for Q model")
+                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(value_function_batch_size)
+                                else:
+                                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
+                                loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
+                                                             result_states=result_states__, falls=falls__, G_t=G_ts__,
+                                                             p=p)
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print("Critic loss: ", loss)
+                            if not np.isfinite(loss) or (loss > 500) :
+                                np.set_printoptions(threshold=np.nan)
+                                print ("Critic training loss is Odd: ", loss)
+                                print ("States: " + str(np.mean(states__)) + " ResultsStates: " + str(np.mean(result_states__)) + " Rewards: " + str(np.mean(rewards__)) + " Actions: " + str(np.mean(actions__)))
+                            
+                    else:
+                        _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_batch(value_function_batch_size)
+                        loss = self.getPolicy().trainCritic(states=_states, actions=_actions, rewards=_rewards, 
+                                                     result_states=_result_states, falls=_falls, G_t=G_ts__,
+                                                     p=p)
+                        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print("Critic loss: ", loss)
+                        if not np.isfinite(loss) or (loss > 500) :
+                            np.set_printoptions(threshold=np.nan)
+                            print ("Critic training loss is Odd: ", loss)
+                            print ("States: " + str(np.mean(_states)) + " ResultsStates: " + str(np.mean(_result_states)) + " Rewards: " + str(np.mean(_rewards)) + " Actions: " + str(np.mean(_actions)))
+                    
+                    t1 = time.time()
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                        sim_time_ = datetime.timedelta(seconds=(t1-t0))
+                        print ("Critic training complete in " + str(sim_time_) + " seconds")
 
                 if (self._settings['train_actor']
                     and (not (("train_LSTM" in self._settings)

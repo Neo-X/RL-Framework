@@ -24,6 +24,10 @@ def checkSettingExists(settings, key):
         return True
     else:
         return False
+    
+def rlPrint(settings=None, level="train", text=""):
+    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"][level]):
+        print (text)
 
 
 if __name__ == '__main__':

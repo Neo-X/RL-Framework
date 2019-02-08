@@ -316,7 +316,7 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
                     # settings["use_learned_reward_function"] == "dual"
                     ):
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
-            state_ = 1 - self._model._forward_dynamics_net([np.array([state]), np.array([state2])])
+            state_ = 1 - self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])
             """
             h_a = self._model.processed_a.predict([np.array([state])])
             h_b = self._model.processed_b.predict([np.array([state2])])
@@ -388,7 +388,7 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
     
     def predict_batch(self, states, actions):
         ## These input should already be normalized.
-        return self.fd([states, actions, 0])[0]
+        return 1 - self._model._forward_dynamics_net.predict([states, actions])
     
     def predict_reward_batch(self, states, actions):
         """
@@ -396,7 +396,7 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
         """
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        predicted_reward = self.reward([states, actions, 0])[0]
+        predicted_reward = 1 - self._model._reward_net.predict([states, actions], batch_size=1)
         return predicted_reward
 
     def bellman_error(self, states, actions, result_states, rewards):
@@ -464,6 +464,7 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
                     predicted_y = self._model._reward_net.predict([x0, x1], batch_size=x0.shape[0])
                     errors.append( compute_accuracy(predicted_y, y0) )
             else:
+                print ("sequences0 shape: ", sequences0.shape)
                 predicted_y = self._model._reward_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
                 # print ("fd error, predicted_y: ", predicted_y)
                 targets__ = np.mean(targets_, axis=1)
