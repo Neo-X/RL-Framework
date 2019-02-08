@@ -500,7 +500,7 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
                     predicted_y = self._model._reward_net.predict([x0, x1], batch_size=x0.shape[0])
                     errors.append( compute_accuracy(predicted_y, y0) )
             else:
-                print ("sequences0 shape: ", sequences0.shape)
+                # print ("sequences0 shape: ", sequences0.shape)
                 predicted_y = self._model._reward_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
                 # print ("fd error, predicted_y: ", predicted_y)
                 targets__ = np.mean(targets_, axis=1)

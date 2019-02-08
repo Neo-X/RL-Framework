@@ -1712,6 +1712,7 @@ def trainModelParallel(inputData):
     if ("return_model" in settings 
         and (settings['return_model'] == True)):
         trainData['masterAgent'] = masterAgent
+    print ("Done sim")
     return trainData
         
 import inspect
