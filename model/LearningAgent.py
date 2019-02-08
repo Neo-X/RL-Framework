@@ -132,7 +132,7 @@ class LearningAgent(AgentInterface):
                     imitation_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in next_state__])])
                     print ("imitation_traj shape: ", imitation_traj.shape)
                     reward__ = self.getForwardDynamics().predict_reward_batch(agent_traj, imitation_traj)
-                    print ("reward__", reward__)
+                    # print ("reward__", reward__)
                 
                 tmp_states.append(state__)
                 tmp_actions.append(action__)
