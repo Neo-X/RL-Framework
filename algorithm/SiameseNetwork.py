@@ -31,6 +31,10 @@ def euclidean_distance(vects):
     x, y = vects
     return K.sqrt(K.sum(K.square(x - y), axis=1, keepdims=True))
 
+def euclidean_distance_(vects):
+    x, y = vects
+    return K.sqrt(K.square(x - y))
+
 def euclidean_distance_np(vects):
     x, y = vects
     return np.sqrt(np.sum(np.square(x - y), axis=1, keepdims=True))
@@ -38,6 +42,7 @@ def euclidean_distance_np(vects):
 def l1_distance(vects):
     x, y = vects
     return K.sum(K.abs(x - y), axis=1, keepdims=True)
+
 def l1_distance_np(vects):
     x, y = vects
     return np.sum(np.abs(x - y), axis=1, keepdims=True)

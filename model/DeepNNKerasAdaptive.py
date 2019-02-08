@@ -100,7 +100,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._networkSettings = settings_["network_settings"]
             
         self._sequence_length = 1
-        self._lstm_batch_size = 32
+        self._lstm_batch_size = 1
         if ( "lstm_batch_size" in settings_):
             self._lstm_batch_size = settings_["lstm_batch_size"][1]
         self._stateful_lstm = False

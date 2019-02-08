@@ -256,7 +256,13 @@ class LearningAgent(AgentInterface):
                 
                 ### Need to normalize data
                 __states = _states 
+                __actions = _actions
+                __rewards = _rewards 
                 __result_states = _result_states
+                __falls = _falls 
+                __advantage = _advantage
+                __exp_actions = _exp_actions
+                __G_t = _G_t
                 
                 _states = []
                 _result_states = []
@@ -600,8 +606,8 @@ class LearningAgent(AgentInterface):
                 if ( "refresh_rewards" in self._settings
                      and (self._settings["refresh_rewards"])):
                     rlPrint(self._settings, "train", "Refreshing rewards.")
-                    self.recomputeRewards(__states, _actions, _rewards, __result_states, _falls, _advantage, 
-                                          _exp_actions, _G_t)
+                    self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
+                                          __exp_actions, __G_t)
                 
                 if (self._settings['train_critic']
                     and (not (("train_LSTM_Critic" in self._settings)

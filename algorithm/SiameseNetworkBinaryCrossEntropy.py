@@ -18,6 +18,18 @@ from keras.models import Sequential, Model
 from algorithm.KERASAlgorithm import KERASAlgorithm
 from algorithm.SiameseNetwork import *
 
+def eucl_dist_output_shape_seq(shapes):
+    shape1, shape2 = shapes
+    return shape1
+
+def l1_distance_(vects):
+    x, y = vects
+    return K.abs(x - y)
+
+def l1_distance_np_(vects):
+    x, y = vects
+    return K.abs(x - y)
+
 class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
     
     def __init__(self, model, state_length, action_length, state_bounds, action_bounds, settings_, reward_bounds=0, print_info=False):
@@ -27,13 +39,8 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
         self._learning_rate = self.getSettings()["fd_learning_rate"]
         self._regularization_weight = 1e-6
         
-        self._distance_func = euclidean_distance
-        self._distance_func_np = euclidean_distance_np
-        if ( "fd_distance_function" in self.getSettings()
-             and (self.getSettings()["fd_distance_function"] == "l1")):
-            print ("Using ", self.getSettings()["fd_distance_function"], " distance metric for siamese network.")
-            self._distance_func = l1_distance
-            self._distance_func_np = l1_distance_np
+        self._distance_func = l1_distance_
+        self._distance_func_np = l1_distance_np_
         condition_reward_on_result_state = False
         self._train_combined_loss = False
 
@@ -75,16 +82,32 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
         processed_b = self._model._forward_dynamics_net(state_copy)
         self._model.processed_b = Model(inputs=[state_copy], outputs=processed_b)
         
-        processed_a_r = self._model._reward_net(self._model.getResultStateSymbolicVariable())
+        processed_a_r_seq , processed_a_r, processed_a_r_c  = self._model._reward_net(self._model.getResultStateSymbolicVariable())
         self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
-        processed_b_r = self._model._reward_net(result_state_copy)
+        processed_b_r_seq , processed_b_r, processed_b_r_c = self._model._reward_net(result_state_copy)
+        print ("processed_b_r: ", repr(processed_b_r))
         self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
         
-        distance_fd = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
+        distance_fd = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_seq)([processed_a, processed_b])
         distance_fd_weighted = keras.layers.Dense(1, activation = 'sigmoid')(distance_fd)
         
-        distance_r = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
-        distance_r_weighted = keras.layers.Dense(1, activation = 'sigmoid')(distance_r)
+        distance_r = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_seq)([processed_a_r, processed_b_r])
+        print ("distance_r: ", repr(distance_r))
+        encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(distance_r)[1:]
+                                                                              , name="encoding_2"
+                                                                              )
+        print ("encode_input__: ", repr(encode_input__))
+        distance_r_weighted = keras.layers.Dense(1, activation = 'sigmoid')(encode_input__)
+        self._distance_weighting_ = Model(inputs=[encode_input__], outputs=distance_r_weighted)
+        distance_r_weighted = self._distance_weighting_(distance_r)
+        print ("distance_r_weighted: ", repr(distance_r_weighted))
+        
+        # distance_r_seq = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_seq)([processed_a_r_seq, processed_b_r_seq])
+        # distance_r_seq = self._distance_func([processed_a_r_seq, processed_b_r_seq])
+        distance_r_seq = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_seq)([processed_a_r_seq, processed_b_r_seq])
+        print ("distance_r_seq: ", repr(distance_r_seq))
+        distance_r_weighted_seq = keras.layers.TimeDistributed(self._distance_weighting_)(distance_r_seq)
+        print ("distance_r_weighted_seq: ", repr(distance_r_weighted_seq))
         
         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
                                                           ,state_copy 
@@ -96,6 +119,11 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
                                                           ,result_state_copy
                                                           ]
                                                           , outputs=distance_r_weighted
+                                                          )
+        self._model._reward_net_seq = Model(inputs=[self._model.getResultStateSymbolicVariable()
+                                                          ,result_state_copy
+                                                          ]
+                                                          , outputs=distance_r_weighted_seq
                                                           )
 
         # sgd = SGD(lr=0.0005, momentum=0.9)
@@ -388,7 +416,7 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
     
     def predict_batch(self, states, actions):
         ## These input should already be normalized.
-        return 1 - self._model._forward_dynamics_net.predict([states, actions])
+        return 1 - self._model._forward_dynamics_net.predict([states, actions])[0]
     
     def predict_reward_batch(self, states, actions):
         """
@@ -396,7 +424,7 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
         """
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
-        predicted_reward = 1 - self._model._reward_net.predict([states, actions], batch_size=1)
+        predicted_reward = 1 - self._model._reward_net_seq.predict([states, actions], batch_size=1)[0]
         return predicted_reward
 
     def bellman_error(self, states, actions, result_states, rewards):
