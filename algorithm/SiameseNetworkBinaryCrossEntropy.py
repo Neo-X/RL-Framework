@@ -81,10 +81,15 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
         self._model.processed_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a)
         processed_b = self._model._forward_dynamics_net(state_copy)
         self._model.processed_b = Model(inputs=[state_copy], outputs=processed_b)
-        
-        processed_a_r_seq , processed_a_r, processed_a_r_c  = self._model._reward_net(self._model.getResultStateSymbolicVariable())
+
+        if ( "return_rnn_sequence" in self.getSettings()
+             and (self.getSettings()["return_rnn_sequence"])):        
+            processed_a_r_seq , processed_a_r, processed_a_r_c  = self._model._reward_net(self._model.getResultStateSymbolicVariable())
+            processed_b_r_seq , processed_b_r, processed_b_r_c = self._model._reward_net(result_state_copy)
+        else:
+            processed_a_r = self._model._reward_net(self._model.getResultStateSymbolicVariable())
+            processed_b_r = self._model._reward_net(result_state_copy)
         self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
-        processed_b_r_seq , processed_b_r, processed_b_r_c = self._model._reward_net(result_state_copy)
         print ("processed_b_r: ", repr(processed_b_r))
         self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
         
@@ -104,11 +109,6 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
         
         # distance_r_seq = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_seq)([processed_a_r_seq, processed_b_r_seq])
         # distance_r_seq = self._distance_func([processed_a_r_seq, processed_b_r_seq])
-        distance_r_seq = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_seq)([processed_a_r_seq, processed_b_r_seq])
-        print ("distance_r_seq: ", repr(distance_r_seq))
-        distance_r_weighted_seq = keras.layers.TimeDistributed(self._distance_weighting_)(distance_r_seq)
-        print ("distance_r_weighted_seq: ", repr(distance_r_weighted_seq))
-        
         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
                                                           ,state_copy 
                                                           ]
@@ -120,11 +120,17 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
                                                           ]
                                                           , outputs=distance_r_weighted
                                                           )
-        self._model._reward_net_seq = Model(inputs=[self._model.getResultStateSymbolicVariable()
-                                                          ,result_state_copy
-                                                          ]
-                                                          , outputs=distance_r_weighted_seq
-                                                          )
+        if ( "return_rnn_sequence" in self.getSettings()
+             and (self.getSettings()["return_rnn_sequence"])):
+            distance_r_seq = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_seq)([processed_a_r_seq, processed_b_r_seq])
+            print ("distance_r_seq: ", repr(distance_r_seq))
+            distance_r_weighted_seq = keras.layers.TimeDistributed(self._distance_weighting_)(distance_r_seq)
+            print ("distance_r_weighted_seq: ", repr(distance_r_weighted_seq))
+            self._model._reward_net_seq = Model(inputs=[self._model.getResultStateSymbolicVariable()
+                                                              ,result_state_copy
+                                                              ]
+                                                              , outputs=distance_r_weighted_seq
+                                                              )
 
         # sgd = SGD(lr=0.0005, momentum=0.9)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
