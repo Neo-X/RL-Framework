@@ -418,12 +418,14 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
         ## These input should already be normalized.
         return 1 - self._model._forward_dynamics_net.predict([states, actions])[0]
     
-    def predict_reward_batch(self, states, actions):
+    def predict_reward_(self, states, actions):
         """
             This data should already be normalized
         """
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
+        states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        actions = np.array(norm_state(actions, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         predicted_reward = 1 - self._model._reward_net_seq.predict([states, actions], batch_size=1)[0]
         return predicted_reward
 

@@ -127,12 +127,22 @@ class LearningAgent(AgentInterface):
                 checkDataIsValid(advantage__, verbose=True), checkDataIsValid(G_t__, verbose=True)):
                 
                 if (recomputeRewards==True):
+                    path = {}
+                    ### timestep, agent, state
+                    path["terminated"] = False
                     agent_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in state__])])
                     print ("agent_traj shape: ", agent_traj.shape)
                     imitation_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in next_state__])])
                     print ("imitation_traj shape: ", imitation_traj.shape)
-                    reward__ = self.getForwardDynamics().predict_reward_batch(agent_traj, imitation_traj)
+                    reward__ = self.getForwardDynamics().predict_reward_(agent_traj, imitation_traj)
                     # print ("reward__", reward__)
+                    path['states'] = state__ # np.array([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in state__])
+                    path['reward'] = reward__
+                    # print ("state__ shape: ", path['states'].shape)
+                    paths = compute_advantage_(self, [path], self._settings["discount_factor"], self._settings['GAE_lambda'])
+                    advantage__ = paths["advantage"]
+                    # baselines_.append(np.array(paths["baseline"]))
+                    # advantage.append(np.array(adv__))
                 
                 tmp_states.append(state__)
                 tmp_actions.append(action__)

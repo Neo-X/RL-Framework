@@ -194,10 +194,11 @@ def norm_action(action_, action_bounds_):
     # print ("action_: ", action_)
     ### Lets not accidentally broadcast...
     # if (len(action_) != len(action_bounds_[0])):
-    #     print (np.array(action_).shape, " == " , np.array(action_bounds_[0]).shape)
+    # print (np.array(action_).shape, " == " , np.array(action_bounds_[0]).shape)
     #     print (np.array(action_), " == " , np.array(action_bounds_[0]))
-    assert (len(action_) == len(action_bounds_[0]) or
-            len(action_[0]) == len(action_bounds_[0])), "action_ " + str(np.array(action_).shape ) + " == " + str(np.array(action_bounds_[0]).shape)
+    assert (   (len(action_) == len(action_bounds_[0]))
+            or (np.array(action_).shape[-1] == len(action_bounds_[0]))
+            or (len(action_[0]) == len(action_bounds_[0])) ), "action_ " + str(np.array(action_).shape ) + " == " + str(np.array(action_bounds_[0]).shape)
     
     avg = (action_bounds_[0] + action_bounds_[1])/2.0
     std = (action_bounds_[1] - action_bounds_[0])/2.0

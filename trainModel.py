@@ -808,8 +808,15 @@ def trainModelParallel(inputData):
                 elif ("use_dual_state_representations" in settings
                     and (settings["use_dual_state_representations"] == True)
                     and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
-                    state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
-                                     [1] * settings["fd_num_terrain_features"]])
+                    state_size__ = settings["fd_num_terrain_features"]
+                    if ("append_camera_velocity_state" in settings 
+                        and (settings["append_camera_velocity_state"] == True)):
+                        state_size__ = state_size__ + 2
+                    elif ("append_camera_velocity_state" in settings 
+                        and (settings["append_camera_velocity_state"] == "3D")):
+                        state_size__ = state_size__ + 3
+                    state_bounds__ = np.array([[0] * state_size__, 
+                                     [1] * state_size__])
                     if ("use_dual_dense_state_representations" in settings
                         and (settings["use_dual_dense_state_representations"] == True)):
                         state_bounds = np.array(settings['state_bounds'])
