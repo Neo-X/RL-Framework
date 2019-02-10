@@ -7,9 +7,11 @@
 ## declare an array variable
 declare -a metaExps=(
 #	"settings/terrainRLMultiChar/HLC/CACLA/LargeBlocks_Multi_Char_On_Policy.json"
-#	"settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles.json"
-#	"settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles_NEWLLC.json"
-#	"settings/terrainRLImitate3D/Path_Folowing/Dynamic_Obstacles.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles_NEWLLC.json"
+	"settings/terrainRLImitate3D/Path_Folowing/Dynamic_Obstacles.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
+	"settings/terrainRLMultiChar/HLC/PPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
 #	"settings/terrainRLImitate3D/Path_Folowing/LargeBlocks_OnPolicy-OLDLLC.json"
 #	"settings/terrainRLImitate3D/Path_Folowing/LargeBlocks_OnPolicy-NEWLLC.json"
 #	"settings/terrainRLImitate3D/Path_Folowing/Path_Following.json"
