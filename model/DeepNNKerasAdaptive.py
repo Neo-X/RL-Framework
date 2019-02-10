@@ -386,8 +386,6 @@ class DeepNNKerasAdaptive(ModelInterface):
             # self._actor = Model(input=self._stateInput, output=self._actor)
             # print("Actor summary: ", self._actor.summary())
             ### Render a nice graph of the network
-            # from keras.utils import plot_model
-            # plot_model(self._actor, to_file='model.png')
         if ( not ("critic_network_leave_off_end" in self._settings
             and (self._settings["critic_network_leave_off_end"] == True))):
             if (len(keras.backend.int_shape(network)) > 2):

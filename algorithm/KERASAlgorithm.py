@@ -450,6 +450,7 @@ class KERASAlgorithm(AlgorithmInterface):
             self._modelTarget._actor.save(fileName+"_actor_T"+suffix, overwrite=True)
             self._modelTarget._critic.save(fileName+"_critic_T"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
+        """
         try:
             from keras.utils import plot_model
             ### Save model design as image
@@ -459,6 +460,7 @@ class KERASAlgorithm(AlgorithmInterface):
             ### Maybe the needed libraries are not available
             print ("Error saving diagrams for rl models.")
             print (inst)
+        """
         
     def loadFrom(self, fileName):
         from keras.models import load_model
