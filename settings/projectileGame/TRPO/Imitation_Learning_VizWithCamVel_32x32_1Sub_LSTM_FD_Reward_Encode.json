@@ -135,7 +135,7 @@
     "comment__": "draw/render the next state suggested by the forward dynamics model",
 "visualize_forward_dynamics": false,
     "comment__": "Learning rate for the forward dynamics model",
-"fd_learning_rate": 0.0001,
+"fd_learning_rate": 0.0005,
     "comment__": "Whether or not to train the policy. Used for debugging",
 "train_actor": true,
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
@@ -409,5 +409,7 @@
 	"comment__": "Add velocity state to image state",
 "append_camera_velocity_state": true,
 	"comment__": "The shortest sequence the RNN network will be trained on",
-"min_sequece_length": 3
+"min_sequece_length": 3,
+	"comment__": "The type of distance function the fd learning model should use to compute differences.",
+"fd_distance_function": "l1"
 }
