@@ -7,25 +7,33 @@
 ## declare an array variable
 declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/activation_type.json" 
+				"settings/hyperParamTuning/element/add_label_noise.json" 
 #  				"settings/hyperParamTuning/element/additional_on-poli_trianing_updates.json" 
 # 				"settings/hyperParamTuning/element/advantage_scaling.json" 
- 				"settings/hyperParamTuning/element/anneal_exploration.json"
- 				"settings/hyperParamTuning/element/anneal_policy_std.json" 
+#  				"settings/hyperParamTuning/element/anneal_exploration.json"
+#  				"settings/hyperParamTuning/element/anneal_policy_std.json" 
 # 				"settings/hyperParamTuning/element/anneal_learning_rate.json" 		
 # 				"settings/hyperParamTuning/element/batch_size.json"
 # 				"settings/hyperParamTuning/element/CACLA_use_advantage.json"
 # 				"settings/hyperParamTuning/element/CACLA_use_advantage_action_weighting.json"
 # 				"settings/hyperParamTuning/element/clamp_actions_to_stay_inside_bounds.json" 
-# 				"settings/hyperParamTuning/element/critic_learning_rate.json"
+ 				"settings/hyperParamTuning/element/critic_learning_rate.json"
 #				"settings/hyperParamTuning/element/critic_network_layer_sizes.json"
 # 				"settings/hyperParamTuning/element/critic_updates_per_actor_update.json"
- 				"settings/hyperParamTuning/element/dont_use_td_learning.json"
+#				"settings/hyperParamTuning/element/dont_use_td_learning.json"
 # 				"settings/hyperParamTuning/element/dropout_p.json" 
-				"settings/hyperParamTuning/element/exploration_rate.json" 
+# 				"settings/hyperParamTuning/element/exploration_rate.json"
+				"settings/hyperParamTuning/element/fd_algorithm.json"
+				"settings/hyperParamTuning/element/fd_distance_function.json"
+ 				"settings/hyperParamTuning/element/fd_learning_rate.json" 
 # 				"settings/hyperParamTuning/element/fd_updates_per_actor_update.json" 
 #				"settings/hyperParamTuning/element/GAE_lambda.json"
+ 				"settings/hyperParamTuning/element/image_noise_scale.json" 
+ 				"settings/hyperParamTuning/element/imperfect_compare_offset.json" 
 # 				"settings/hyperParamTuning/element/initial_temperature.json" 
 #  				"settings/hyperParamTuning/element/kl_divergence_threshold.json" 
+#  				"settings/hyperParamTuning/element/lstm_batch_size.json" 
+				"settings/hyperParamTuning/element/min_sequece_length.json" 
 # 				"settings/hyperParamTuning/element/normalize_advantage.json" 
 #  				"settings/hyperParamTuning/element/num_on_policy_rollouts.json" 
 #  				"settings/hyperParamTuning/element/optimizer.json" 
@@ -43,12 +51,8 @@ declare -a metaExps=(
 
 ## declare an array variable
 declare -a simConfigs=(
- 				"settings/terrainRLImitate3D/CACLA/Imitation_Learning_Jump_30FPS.json"
- 				"settings/terrainRLImitate3D/CACLA/Imitation_Learning_ZombieWalk_30FPS.json" 
- 				"settings/terrainRLImitate3D/PPO/Imitation_Learning_Jump_30FPS.json"
- 				"settings/terrainRLImitate3D/PPO/Imitation_Learning_ZombieWalk_30FPS.json" 
- 				"settings/terrainRLImitate3D/TRPO/Imitation_Learning_Jump_30FPS.json"
- 				"settings/terrainRLImitate3D/TRPO/Imitation_Learning_ZombieWalk_30FPS.json" 
+ 	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
 )
 
 rounds=$1
@@ -63,11 +67,11 @@ do
 		# or do whatever with individual element of the array
 		# echo "$simConfigFile"
 		output=' | tee -a $BORGY_JOB_ID.out'
-	 	arg="pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --num_rounds=${rounds} --plot=false --Multi_GPU=true --on_policy=fast --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 6 --rollouts=12 --simulation_timeout=1200 --email_log_data_periodically=true --visualize_expected_value=false ${opts}"
+	 	arg="pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --num_rounds=${rounds} --plot=false --on_policy=fast --shouldRender=false --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 4 --rollouts=12 --simulation_timeout=1200 --email_log_data_periodically=true --Multi_GPU=true --gpus=2 ${opts}"
 	### GPU training
-	# 	arg="source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --num_rounds=${rounds} --plot=false --Multi_GPU=true --on_policy=true --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 16 --rollouts=16 --simulation_timeout=1200 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --max_epoch_length=64 --force_sim_net_to_cpu=true ${opts}"
+# 	 	arg="source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --num_rounds=${rounds} --plot=false --on_policy=fast --shouldRender=false --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 4 --rollouts=16 --simulation_timeout=1200 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --force_sim_net_to_cpu=true ${opts}"
 		arg=$arg$output
-		command=(borgy submit --restartable --gpu=0 --cpu=36 --mem=64 -w /home/"$USER" -v /mnt/home/"$USER":/home/"$USER" --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/"$USER" -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c "$arg")
+		command=(borgy submit --restartable --gpu=2 --cpu=24 --mem=128 --max-run-time-secs=100000 -w /home/"$USER" -v /mnt/home/"$USER":/home/"$USER" --image=images.borgy.elementai.lan/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/"$USER" -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390 -- /bin/bash -c "$arg")
 		echo "${command[@]}"
 		# eval $command
 		"${command[@]}"
