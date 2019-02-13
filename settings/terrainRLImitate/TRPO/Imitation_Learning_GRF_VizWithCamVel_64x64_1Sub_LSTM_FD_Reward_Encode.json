@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_2D_GRF_Viz3D_64x64_WithCamVel_1Sub_Imitate_30FPS_DualState_v0/LSTM_FD_Reward_T128__5",
+"data_folder": "PD_Humanoid_2D_GRF_Viz3D_64x64_WithCamVel_1Sub_Imitate_30FPS_DualState_v0/LSTM_FD_Reward_T128__6",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -402,6 +402,7 @@
 "reward_network_layer_sizes": [
 							{"layer_type": "TimeDistributedConv", "net_info": "fd"},
 							{"layer_type": "GRU", "units": 128, "return_sequences": false, "return_state": false, "use_bias": false, "activation": null},
+							{"layer_type": "LayerNormalization"},
 							{"layer_type": "activation", "activation_type": "tanh" },
 							{"layer_type": "Dense", "units": 64, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "linear" }

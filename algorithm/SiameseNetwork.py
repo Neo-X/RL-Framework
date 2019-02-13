@@ -1013,14 +1013,15 @@ class SiameseNetwork(KERASAlgorithm):
     def loadFrom(self, fileName):
         import h5py
         from keras.models import load_model
-        from keras_layer_normalization import LayerNormalization
+        import keras_layer_normalization
         suffix = ".h5"
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Loading agent: ", fileName)
         # with K.get_session().graph.as_default() as g:
         ### Need to lead the model this way because the learning model's State expects batches...
         forward_dynamics_net = load_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
-        reward_net = load_model(fileName+"_reward"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
+        reward_net = load_model(fileName+"_reward"+suffix, custom_objects={'contrastive_loss': contrastive_loss, 
+                                                                           "LayerNormalization": keras_layer_normalization.LayerNormalization})
         # if ("simulation_model" in self.getSettings() and
         #     (self.getSettings()["simulation_model"] == True)):
         if (True): ### Because the simulation and learning use different model types (statefull vs stateless lstms...)
