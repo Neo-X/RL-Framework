@@ -44,7 +44,10 @@ class OpenAIGymActor(ActorInterface):
             return false when the agent has fallen (end of episode)
         """
         # falls_ = [[not e] for e in exp._fallen]
-        falls_ = [[not e] for e in exp._end_of_episode]
+        if (type(exp._end_of_episode) is list):
+            falls_ = [[not e] for e in exp._end_of_episode]
+        else:
+            falls_ = not exp._end_of_episode
         return falls_
         """
         if ( exp._end_of_episode ):
