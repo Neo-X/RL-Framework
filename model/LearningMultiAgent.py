@@ -88,11 +88,11 @@ class LearningMultiAgent(LearningAgent):
         return self._settings
     
     def getPolicyNetworkParameters(self):
-        return self.getPolicy().getNetworkParameters()
+        return [p.getNetworkParameters() for p in self.getPolicy()]
     def getFDNetworkParameters(self):
-        return self.getForwardDynamics().getNetworkParameters()
+        return [p.getNetworkParameters() for p in self.getForwardDynamics()]
     def getRewardNetworkParameters(self):
-        return self.getRewardModel().getNetworkParameters()
+        return [p.getNetworkParameters() for p in self.getRewardModel()]
         
     def setExperience(self, experienceBuffer):
         self._expBuff = experienceBuffer 
