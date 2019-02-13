@@ -27,6 +27,8 @@ class OpenAIGymEnv(SimInterface):
         super(OpenAIGymEnv,self).__init__(exp, settings)
         self._previous_observation=None
         self._end_of_episode=False
+        ### This can be more agent specific
+        self._fallen=[False]
         self._multiAgent=multiAgent
         
         ## Should print the type of actions space, continuous/discrete, how many parameters
@@ -45,10 +47,12 @@ class OpenAIGymEnv(SimInterface):
         # self.getEnvironment().init()
         self._previous_observation = self.getEnvironment().reset()
         self._end_of_episode = False
+        self._fallen=[False]
             
     def initEpoch(self):
         self._previous_observation = self.getEnvironment().reset()
         self._end_of_episode = False
+        self._fallen=[False]
         
     def endOfEpoch(self):
         return self._end_of_episode
@@ -81,6 +85,7 @@ class OpenAIGymEnv(SimInterface):
             observation, reward, done, info = self.getEnvironment().step(action_[0])
         # print ("observation: ", observation)
         self._end_of_episode = done
+        # self._fallen = done
         self._previous_observation = observation
         return reward
     

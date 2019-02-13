@@ -531,6 +531,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         ### I can't just unpack the vector of states here in a multi char sim because the 
         ### Order needs to be preserved for computing the advantage.
         actions.append(action)
+        # print ("reward_: ", reward_)
         rewards.append(reward_)
         result_states___.append(resultState_)
         if (worker_id is not None):
@@ -557,6 +558,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         pa = None
         i_ += 1
         ### Don't reset during evaluation...
+        print ("exp.endOfEpoch(): ", exp.endOfEpoch())
         if (((exp.endOfEpoch() and settings['reset_on_fall'] and ((not evaluation)))
              and (reset_prop_tmp <= reset_prop) ) ### Allow option to collect some full trajectories  
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))

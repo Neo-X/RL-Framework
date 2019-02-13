@@ -11,12 +11,6 @@ class OpenAIGymActor(ActorInterface):
         self._target_vel = self._settings["target_velocity"]
         # self._target_vel = self._settings["target_velocity"]
         self._end_of_episode=False
-        self._param_mask = [    False,        True,        True,        False,        False,    
-        True,        True,        True,        True,        True,        True,        True,    
-        True,        True,        True,        True,        True,        True,        True,    
-        False,        True,        True,        True,        True,        True,        True,    
-        False,        True,        True,        True,        True,        True,        True]
-        
     
     # @profile(precision=5)
     def act(self, exp, action_, bootstrapping=False):
@@ -49,7 +43,12 @@ class OpenAIGymActor(ActorInterface):
             Returns True when the agent is still going (not end of episode)
             return false when the agent has fallen (end of episode)
         """
+        # falls_ = [[not e] for e in exp._fallen]
+        falls_ = [[not e] for e in exp._end_of_episode]
+        return falls_
+        """
         if ( exp._end_of_episode ):
             return 1
         else:
             return 0
+        """
