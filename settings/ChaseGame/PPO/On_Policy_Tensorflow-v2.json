@@ -320,4 +320,6 @@
 "anneal_exploration": 0.5,
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
 "learning_backend": "tensorflow"
+	"comment__": "Perform multi agent training using different policies",
+"perform_multiagent-training": true
 }
