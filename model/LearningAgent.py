@@ -87,6 +87,13 @@ class LearningAgent(AgentInterface):
         # self.getForwardDynamics().setSettings(settings)
     def getSettings(self):
         return self._settings
+    
+    def getPolicyNetworkParameters(self):
+        return self.getPolicy().getNetworkParameters()
+    def getFDNetworkParameters(self):
+        return self.getForwardDynamics().getNetworkParameters()
+    def getRewardNetworkParameters(self):
+        return self.getRewardModel().getNetworkParameters()
         
     def setExperience(self, experienceBuffer):
         self._expBuff = experienceBuffer 
@@ -958,6 +965,13 @@ class LearningAgent(AgentInterface):
         return self.getPolicy().getActionBounds()
     def getRewardBounds(self):
         return self.getPolicy().getRewardBounds()
+    
+    def getFDStateBounds(self):
+        return self.getForwardDynamics().getStateBounds()
+    def getFDActionBounds(self):
+        return self.getForwardDynamics().getActionBounds()
+    def getFDRewardBounds(self):
+        return self.getForwardDynamics().getRewardBounds()
     
     def setStateBounds(self, bounds):
         import numpy as np

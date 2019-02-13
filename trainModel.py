@@ -163,6 +163,51 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
 
     return (sim_workers, sim_work_queues)
     
+def getLearningData(masterAgent, settings, tmp_p):
+    data = ('Update_Policy', tmp_p, masterAgent.getStateBounds(), masterAgent.getActionBounds(), masterAgent.getRewardBounds(), 
+            masterAgent.getPolicyNetworkParameters())
+    if (settings['train_forward_dynamics']):
+        # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
+        data = ('Update_Policy', tmp_p, masterAgent.getStateBounds(), masterAgent.getActionBounds(), masterAgent.getRewardBounds(), 
+                masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
+        if ( "keep_seperate_fd_exp_buffer" in settings 
+             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+            data = ('Update_Policy', tmp_p, 
+                masterAgent.getStateBounds(),
+                masterAgent.getActionBounds(),
+                masterAgent.getRewardBounds(),
+                masterAgent.getPolicyNetworkParameters(),
+                masterAgent.getFDNetworkParameters(),
+                "blah",
+                masterAgent.getFDStateBounds(),
+                masterAgent.getFDActionBounds(),
+                masterAgent.getFDRewardBounds(),
+                 ) 
+    if (settings['train_forward_dynamics'] and
+        ("train_reward_distance_metric" in settings and
+         (settings["train_reward_distance_metric"] == True))):
+        data = ('Update_Policy', tmp_p, 
+                masterAgent.getStateBounds(),
+                masterAgent.getActionBounds(),
+                masterAgent.getRewardBounds(),
+                masterAgent.getPolicyNetworkParameters(),
+                masterAgent.getFDNetworkParameters(),
+                masterAgent.getRewardNetworkParameters()
+                )
+        if ( "keep_seperate_fd_exp_buffer" in settings
+             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+            data = ('Update_Policy', tmp_p, 
+                masterAgent.getStateBounds(),
+                masterAgent.getActionBounds(),
+                masterAgent.getRewardBounds(),
+                masterAgent.getPolicyNetworkParameters(),
+                masterAgent.getFDNetworkParameters(),
+                masterAgent.getRewardNetworkParameters(),
+                masterAgent.getFDStateBounds(),
+                masterAgent.getFDActionBounds(),
+                masterAgent.getFDRewardBounds(),
+                 )
+    return data
     
 def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
                    sim_work_queues, eval_episode_data_queue):
@@ -620,48 +665,8 @@ def trainModelParallel(inputData):
         message={}
         if ( settings['load_saved_model'] ):
             tmp_p = settings['min_epsilon']
-        data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
-                masterAgent.getPolicy().getNetworkParameters())
-        if (settings['train_forward_dynamics']):
-            # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-            data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
-                    masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
-            if ( "keep_seperate_fd_exp_buffer" in settings 
-                 and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                data = ('Update_Policy', tmp_p, 
-                    masterAgent.getStateBounds(),
-                    masterAgent.getActionBounds(),
-                    masterAgent.getRewardBounds(),
-                    masterAgent.getPolicy().getNetworkParameters(),
-                    masterAgent.getForwardDynamics().getNetworkParameters(),
-                    "blah",
-                    masterAgent.getForwardDynamics().getStateBounds(),
-                    masterAgent.getForwardDynamics().getActionBounds(),
-                    masterAgent.getForwardDynamics().getRewardBounds(),
-                     ) 
-        if (settings['train_forward_dynamics'] and
-            ("train_reward_distance_metric" in settings and
-             (settings["train_reward_distance_metric"] == True))):
-            data = ('Update_Policy', tmp_p, 
-                    model.getStateBounds(),
-                    model.getActionBounds(),
-                    model.getRewardBounds(),
-                    masterAgent.getPolicy().getNetworkParameters(),
-                    masterAgent.getForwardDynamics().getNetworkParameters(),
-                    masterAgent.getRewardModel().getNetworkParameters())
-            if ( "keep_seperate_fd_exp_buffer" in settings
-                 and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                data = ('Update_Policy', tmp_p, 
-                    masterAgent.getStateBounds(),
-                    masterAgent.getActionBounds(),
-                    masterAgent.getRewardBounds(),
-                    masterAgent.getPolicy().getNetworkParameters(),
-                    masterAgent.getForwardDynamics().getNetworkParameters(),
-                    masterAgent.getRewardModel().getNetworkParameters(),
-                    masterAgent.getForwardDynamics().getStateBounds(),
-                    masterAgent.getForwardDynamics().getActionBounds(),
-                    masterAgent.getForwardDynamics().getRewardBounds(),
-                     )
+            
+        data = getLearningData(masterAgent, settings, tmp_p)
         message['type'] = 'Update_Policy'
         message['data'] = data
         for m_q in sim_work_queues:
@@ -1042,60 +1047,8 @@ def trainModelParallel(inputData):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
                                            _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_)
                     masterAgent.reset()
-                    data = ('Update_Policy', p_tmp_, 
-                            masterAgent.getStateBounds(),
-                            masterAgent.getActionBounds(),
-                            masterAgent.getRewardBounds(),
-                            masterAgent.getPolicy().getNetworkParameters())
-                    message = {}
-                    message['type'] = 'Update_Policy'
+                    data = getLearningData(masterAgent, settings, tmp_p)
                     message['data'] = data
-                    if (settings['train_forward_dynamics']):
-                        # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-                        data = ('Update_Policy', p_tmp_, 
-                                masterAgent.getStateBounds(),
-                                masterAgent.getActionBounds(),
-                                masterAgent.getRewardBounds(),
-                                masterAgent.getPolicy().getNetworkParameters(),
-                                 masterAgent.getForwardDynamics().getNetworkParameters())
-                        if ( "keep_seperate_fd_exp_buffer" in settings 
-                             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                            data = ('Update_Policy', p_tmp_, 
-                                masterAgent.getStateBounds(),
-                                masterAgent.getActionBounds(),
-                                masterAgent.getRewardBounds(),
-                                masterAgent.getPolicy().getNetworkParameters(),
-                                 masterAgent.getForwardDynamics().getNetworkParameters(),
-                                 "blah",
-                                masterAgent.getForwardDynamics().getStateBounds(),
-                                masterAgent.getForwardDynamics().getActionBounds(),
-                                masterAgent.getForwardDynamics().getRewardBounds()
-                                 )
-                        message['data'] = data
-                    if (settings['train_forward_dynamics'] and
-                        ("train_reward_distance_metric" in settings and
-                         (settings["train_reward_distance_metric"] == True))):
-                        data = ('Update_Policy', p_tmp_, 
-                                masterAgent.getStateBounds(),
-                                masterAgent.getActionBounds(),
-                                masterAgent.getRewardBounds(),
-                                masterAgent.getPolicy().getNetworkParameters(),
-                                masterAgent.getForwardDynamics().getNetworkParameters(),
-                                masterAgent.getRewardModel().getNetworkParameters())
-                        if ( "keep_seperate_fd_exp_buffer" in settings 
-                             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                            data = ('Update_Policy', p_tmp_, 
-                                masterAgent.getStateBounds(),
-                                masterAgent.getActionBounds(),
-                                masterAgent.getRewardBounds(),
-                                masterAgent.getPolicy().getNetworkParameters(),
-                                masterAgent.getForwardDynamics().getNetworkParameters(),
-                                masterAgent.getRewardModel().getNetworkParameters(),
-                                masterAgent.getForwardDynamics().getStateBounds(),
-                                masterAgent.getForwardDynamics().getActionBounds(),
-                                masterAgent.getForwardDynamics().getRewardBounds(),
-                                 )
-                        message['data'] = data
                     
                     if ("skip_rollouts" in settings and 
                         (settings["skip_rollouts"] == True)):

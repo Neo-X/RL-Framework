@@ -547,9 +547,20 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
         # modelClass = my_import(path_)
         modelAlgorithm = locate(algorihtm_type)
         if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
-            model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                          action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings, print_info=print_info)
-            print("Loaded algorithm: ", model)
+            if ("perform_multiagent_training" in settings):
+                models = []
+                assert settings["perform_multiagent_training"] == len(state_bounds)
+                for m in range(settings["perform_multiagent_training"]):
+                    networkModel = createNetworkModel(settings["model_type"], state_bounds[m], action_bounds[m], reward_bounds[m], settings, print_info=print_info)
+                    models.append(modelAlgorithm(networkModel, n_in=len(state_bounds[m][0]), n_out=len(action_bounds[m][0]), state_bounds=state_bounds[m], 
+                              action_bounds=action_bounds[m], reward_bound=reward_bounds[m], settings_=settings, print_info=print_info))
+                    
+                    print("Loaded algorithm: ", models)
+                model = models
+            else:
+                model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings, print_info=print_info)
+                print("Loaded algorithm: ", model)
             # return model
         else:
             print ("Unknown learning algorithm type: " + str(algorihtm_type))
@@ -796,7 +807,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         ### Check action space size
         actionSpace = env.getActionSpace()
         
-        assert ((len(actionSpace.getMaximum()) == len(settings["action_bounds"][0])), 
+        assert (len(actionSpace.getMaximum() == len(settings["action_bounds"][0])), 
                 "Length of action vector is " + str (len(settings["action_bounds"][0])) + " is should be " + 
                 str(len(actionSpace.getMaximum())))
         # sim.setRender(render)

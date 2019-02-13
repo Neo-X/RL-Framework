@@ -22,201 +22,7 @@ _output_experience_queue = None
 _eval_episode_data_queue = None
 _sim_work_queues = []
 
-def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
-    from sendEmail import sendEmail
-    import json
-    import tarfile
-    from util.SimulationUtil import addDataToTarBall, addPicturesToTarBall
-    from util.SimulationUtil import getDataDirectory, getBaseDataDirectory, getRootDataDirectory, getAgentName
-    from ModelEvaluation import modelEvaluation
-    import os
-    
-    if (("email_log_data_periodically" in settings)
-        and (settings["email_log_data_periodically"] == True)):
-        ### Create a tar file of all the sim data
-        root_data_dir = getDataDirectory(settings)+"/"
-        tarFileName = (root_data_dir + '_sim_data.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
-        dataTar = tarfile.open(tarFileName, mode='w:gz')
-        addDataToTarBall(dataTar, settings)
-            
-        print("root_data_dir: ", root_data_dir)
-        pictureFileName=None
-        try:
-            ## Add pictures to tar file
-            _data_dir = getDataDirectory(settings)
-            addPicturesToTarBall(dataTar, settings, data_folder=_data_dir)
-            pictureFileName= [ root_data_dir + getAgentName() + ".png",
-                              root_data_dir + "trainingGraphNN" + ".png",
-                              root_data_dir + "rewardTrainingGraph" + ".png"]
-        except Exception as e:
-            # dataTar.close()
-            print("Error plotting data there my not be a DISPLAY available.")
-            print("Error: ", e)
-        dataTar.close()
-        
-        
-        ## Send an email so I know this training has completed
-        contents_ = json.dumps(metaSettings, indent=4, sort_keys=True)
-        sub = "Simulation complete: " + str(sim_time_)
-        simData = {}
-        if ('error' in simData):
-            contents_ = contents_ + "\n" + simData['error']
-            sub = "ERROR*****     " + "Simulation terminated: " + str(sim_time_)
-         
-        sendEmail(subject=sub, contents=contents_, hyperSettings=metaSettings, simSettings=settings['configFile'], dataFile=tarFileName,
-                  pictureFile=pictureFileName) 
-    
-    if ("save_video_to_file" in settings):
-        ### Render a video of the policies current performance
-        print ("exp for video: ", exp)
-        modelEvaluation("", settings=settings, exp=exp)
-
-def createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds, print_info=False):
-    """
-        Create the Learning Agent to be used
-    """
-    from model.LearningAgent import LearningAgent, LearningWorker
-    
-    learning_workers = []
-    for process in range(1):
-        agent = LearningAgent(settings_=settings)
-        
-        agent.setSettings(settings)
-        
-        lw = LearningWorker(output_experience_queue, agent, random_seed_=settings['random_seed']+process + 1)
-        learning_workers.append(lw)  
-    masterAgent = agent
-    return (agent, learning_workers)
-
-def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds, default_sim_id=None):
-    """
-        Creates a number of simulation workers and the message queues that
-        are used to tell them what to simulate.
-    """
-    
-    from model.LearningAgent import LearningAgent, LearningWorker
-    from simulation.SimWorker import SimWorker
-    from util.SimulationUtil import createActor, getAgentName, createSampler, createForwardDynamicsModel
-    
-    
-    sim_workers = []
-    sim_work_queues = []
-    for process in range(abs(settings['num_available_threads'])):
-        # this is the process that selects which game to play
-        exp_=None
-        
-        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
-            print ("Assigning same EXP")
-            exp_ = exp_val # This should not work properly for many simulations running at the same time. It could try and evalModel a simulation while it is still running samples 
-        print ("original exp: ", exp_)
-            # sys.exit()
-        ### Using a wrapper for the type of actor now
-        actor = createActor(settings['environment_type'], settings, None)
-        
-        agent = LearningAgent(settings_=settings)
-        agent.setSettings(settings)
-        agent.setPolicy(model)
-        if (settings['train_forward_dynamics']):
-            agent.setForwardDynamics(forwardDynamicsModel)
-        
-        elif ( settings['use_simulation_sampling'] ):
-            
-            sampler = createSampler(settings, exp_)
-            ## This should be some kind of copy of the simulator not a network
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp_, agentModel=None, print_info=True)
-            sampler.setForwardDynamics(forwardDynamicsModel)
-            # sampler.setPolicy(model)
-            agent.setSampler(sampler)
-            print ("thread together exp: ", sampler._exp)
-        
-        ### Check if this is to be a multi-task simulation
-        if type(settings['sim_config_file']) is list:
-            if (default_sim_id != None):
-                print("Setting sim_id to default id")
-                sim_id = default_sim_id
-            else:
-                print("Setting sim_id to process number")
-                sim_id = process
-        else:
-            print("Not Multi task simulation")
-            sim_id = None
-            
-        print("Setting sim_id to:" , sim_id)
-        if (settings['on_policy']):
-            message_queue = multiprocessing.Queue(1)
-        else:
-            message_queue = multiprocessing.Queue(settings['num_available_threads'])
-        sim_work_queues.append(message_queue)
-        w = SimWorker(input_anchor_queue, output_experience_queue, actor, exp_, agent, settings["discount_factor"], action_space_continuous=settings['action_space_continuous'], 
-                settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process + 1,
-                message_que=message_queue, worker_id=sim_id )
-        # w.start()
-        sim_workers.append(w)
-
-    return (sim_workers, sim_work_queues)
-    
-    
-def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
-                   sim_work_queues, eval_episode_data_queue):
-    from simulation.simEpoch import simModelParrallel
-    settings__ = copy.deepcopy(masterAgent.getSettings())
-    settings__2 = copy.deepcopy(masterAgent.getSettings())
-    settings__["train_actor"] = False
-    settings__["clear_exp_mem_on_poli"] = True
-    ### Protects for the case when they are singular and don't want to skip training the critic and train the policy
-    settings__["ppo_use_seperate_nets"] = True
-    if (settings__["on_policy"] == "fast"):
-        settings__["on_policy"] = True
-    masterAgent.setSettings(settings__)
-    masterAgent.getPolicy().setSettings(settings__)
-    # masterAgent.getForwardDynamics().setSettings(settings)
-    for i in range(int(settings__["pretrain_critic"])):
-        print ("pretraining critic round: ", i)
-        masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
-                                       _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
-                                       _G_t=G_ts_, p=1.0)
-        ### Send keep alive to sim processes
-        out = simModelParrallel( sw_message_queues=sim_work_queues,
-                                                   model=masterAgent, settings=settings__, 
-                                                   eval_episode_data_queue=eval_episode_data_queue, 
-                                                   anchors=settings__['num_on_policy_rollouts'],
-                                                   type='keep_alive',
-                                                   p=1)
-    ### back to normal settings
-    masterAgent.setSettings(settings__2)
-    masterAgent.getPolicy().setSettings(settings__2)
-    print ("Done pretraining fd")
-    
-def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
-                   sim_work_queues, eval_episode_data_queue):
-    from simulation.simEpoch import simModelParrallel
-    settings__ = copy.deepcopy(masterAgent.getSettings())
-    settings__2 = copy.deepcopy(masterAgent.getSettings())
-    settings__["train_actor"] = False
-    settings__["train_critic"] = False
-    settings__["clear_exp_mem_on_poli"] = True
-    ### Protects for the case when they are singular and don't want to skip training the critic and train the policy
-    settings__["ppo_use_seperate_nets"] = True
-    masterAgent.setSettings(settings__)
-    masterAgent.getPolicy().setSettings(settings__)
-    # masterAgent.getForwardDynamics().setSettings(settings)
-    for i in range(int(settings__["pretrain_fd"])):
-        print ("pretraining fd round: ", i)
-        masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
-                                       _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
-                                       _G_t=G_ts_, p=1.0)
-        ### Send keep alive to sim processes
-        out = simModelParrallel( sw_message_queues=sim_work_queues,
-                                                   model=masterAgent, settings=settings__, 
-                                                   eval_episode_data_queue=eval_episode_data_queue, 
-                                                   anchors=settings__['num_on_policy_rollouts'],
-                                                   type='keep_alive',
-                                                   p=1)
-    ### back to normal settings
-    masterAgent.setSettings(settings__2)
-    masterAgent.getPolicy().setSettings(settings__2)
-    print ("Done pretraining fd")
-
+from trainModel import getLearningData, createSimWorkers, createLearningAgent, collectEmailData, pretrainCritic, pretrainFD
 # python -m memory_profiler example.py
 # @profile(precision=5)
 # def trainModelParallel(settingsFileName, settings):
@@ -345,16 +151,14 @@ def trainModelParallel(inputData):
         ### These are the workers for training
         (sim_workers, sim_work_queues) = createSimWorkers(settings, input_anchor_queue, 
                                               output_experience_queue, eval_episode_data_queue, 
-                                              None, None, exp_val, state_bounds, action_bounds, 
-                                              reward_bounds)
+                                              None, None, exp_val)
 
         eval_sim_workers = sim_workers
         eval_sim_work_queues = sim_work_queues
         if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
             (eval_sim_workers, eval_sim_work_queues) = createSimWorkers(settings, input_anchor_queue_eval, 
                                                             output_experience_queue, eval_episode_data_queue, 
-                                                            None, forwardDynamicsModel, exp_val, state_bounds, 
-                                                            action_bounds, reward_bounds, 
+                                                            None, forwardDynamicsModel, exp_val,
                                                             default_sim_id=settings['override_sim_env_id'])
         else:
             input_anchor_queue_eval = input_anchor_queue
@@ -410,7 +214,8 @@ def trainModelParallel(inputData):
         from simulation.evalModel import evalModelParrallel, evalModel, evalModelMoreParrallel
         from simulation.collectExperience import collectExperience
         from model.ModelUtil import validBounds, fixBounds, anneal_value
-        from model.LearningAgent import LearningAgent, LearningWorker
+        # from model.LearningMultiAgent import LearningMultiAgent, LearningWorker
+        # from model.LearningAgent import LearningMultiAgent, LearningWorker
         from util.SimulationUtil import validateSettings, getFDStateSize
         from util.SimulationUtil import createEnvironment
         from util.SimulationUtil import createRLAgent, createNewFDModel
@@ -492,7 +297,7 @@ def trainModelParallel(inputData):
         if ((action_bounds != "ask_env")
             and
             not validBounds(action_bounds)):
-            # Check that the action bounds are spcified correctly
+            # Check that the action bounds are specified correctly
             print("Action bounds invalid: ", action_bounds)
             sys.exit()
         if ( (state_bounds != "ask_env") 
@@ -612,48 +417,7 @@ def trainModelParallel(inputData):
         message={}
         if ( settings['load_saved_model'] ):
             tmp_p = settings['min_epsilon']
-        data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
-                masterAgent.getPolicy().getNetworkParameters())
-        if (settings['train_forward_dynamics']):
-            # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-            data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
-                    masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
-            if ( "keep_seperate_fd_exp_buffer" in settings 
-                 and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                data = ('Update_Policy', tmp_p, 
-                    masterAgent.getStateBounds(),
-                    masterAgent.getActionBounds(),
-                    masterAgent.getRewardBounds(),
-                    masterAgent.getPolicy().getNetworkParameters(),
-                    masterAgent.getForwardDynamics().getNetworkParameters(),
-                    "blah",
-                    masterAgent.getForwardDynamics().getStateBounds(),
-                    masterAgent.getForwardDynamics().getActionBounds(),
-                    masterAgent.getForwardDynamics().getRewardBounds(),
-                     ) 
-        if (settings['train_forward_dynamics'] and
-            ("train_reward_distance_metric" in settings and
-             (settings["train_reward_distance_metric"] == True))):
-            data = ('Update_Policy', tmp_p, 
-                    model.getStateBounds(),
-                    model.getActionBounds(),
-                    model.getRewardBounds(),
-                    masterAgent.getPolicy().getNetworkParameters(),
-                    masterAgent.getForwardDynamics().getNetworkParameters(),
-                    masterAgent.getRewardModel().getNetworkParameters())
-            if ( "keep_seperate_fd_exp_buffer" in settings
-                 and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                data = ('Update_Policy', tmp_p, 
-                    masterAgent.getStateBounds(),
-                    masterAgent.getActionBounds(),
-                    masterAgent.getRewardBounds(),
-                    masterAgent.getPolicy().getNetworkParameters(),
-                    masterAgent.getForwardDynamics().getNetworkParameters(),
-                    masterAgent.getRewardModel().getNetworkParameters(),
-                    masterAgent.getForwardDynamics().getStateBounds(),
-                    masterAgent.getForwardDynamics().getActionBounds(),
-                    masterAgent.getForwardDynamics().getRewardBounds(),
-                     )
+        data = getLearningData(masterAgent, settings, tmp_p)
         message['type'] = 'Update_Policy'
         message['data'] = data
         for m_q in sim_work_queues:
@@ -1034,60 +798,9 @@ def trainModelParallel(inputData):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
                                            _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_)
                     masterAgent.reset()
-                    data = ('Update_Policy', p_tmp_, 
-                            masterAgent.getStateBounds(),
-                            masterAgent.getActionBounds(),
-                            masterAgent.getRewardBounds(),
-                            masterAgent.getPolicy().getNetworkParameters())
-                    message = {}
-                    message['type'] = 'Update_Policy'
+                    
+                    data = getLearningData(masterAgent, settings, tmp_p)
                     message['data'] = data
-                    if (settings['train_forward_dynamics']):
-                        # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-                        data = ('Update_Policy', p_tmp_, 
-                                masterAgent.getStateBounds(),
-                                masterAgent.getActionBounds(),
-                                masterAgent.getRewardBounds(),
-                                masterAgent.getPolicy().getNetworkParameters(),
-                                 masterAgent.getForwardDynamics().getNetworkParameters())
-                        if ( "keep_seperate_fd_exp_buffer" in settings 
-                             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                            data = ('Update_Policy', p_tmp_, 
-                                masterAgent.getStateBounds(),
-                                masterAgent.getActionBounds(),
-                                masterAgent.getRewardBounds(),
-                                masterAgent.getPolicy().getNetworkParameters(),
-                                 masterAgent.getForwardDynamics().getNetworkParameters(),
-                                 "blah",
-                                masterAgent.getForwardDynamics().getStateBounds(),
-                                masterAgent.getForwardDynamics().getActionBounds(),
-                                masterAgent.getForwardDynamics().getRewardBounds()
-                                 )
-                        message['data'] = data
-                    if (settings['train_forward_dynamics'] and
-                        ("train_reward_distance_metric" in settings and
-                         (settings["train_reward_distance_metric"] == True))):
-                        data = ('Update_Policy', p_tmp_, 
-                                masterAgent.getStateBounds(),
-                                masterAgent.getActionBounds(),
-                                masterAgent.getRewardBounds(),
-                                masterAgent.getPolicy().getNetworkParameters(),
-                                masterAgent.getForwardDynamics().getNetworkParameters(),
-                                masterAgent.getRewardModel().getNetworkParameters())
-                        if ( "keep_seperate_fd_exp_buffer" in settings 
-                             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                            data = ('Update_Policy', p_tmp_, 
-                                masterAgent.getStateBounds(),
-                                masterAgent.getActionBounds(),
-                                masterAgent.getRewardBounds(),
-                                masterAgent.getPolicy().getNetworkParameters(),
-                                masterAgent.getForwardDynamics().getNetworkParameters(),
-                                masterAgent.getRewardModel().getNetworkParameters(),
-                                masterAgent.getForwardDynamics().getStateBounds(),
-                                masterAgent.getForwardDynamics().getActionBounds(),
-                                masterAgent.getForwardDynamics().getRewardBounds(),
-                                 )
-                        message['data'] = data
                     
                     if ("skip_rollouts" in settings and 
                         (settings["skip_rollouts"] == True)):
