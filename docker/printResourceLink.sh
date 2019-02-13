@@ -11,5 +11,6 @@ echo $activeJobs
 ### For each active job print just the resource link
 for jobb in $activeJobs;
 do 
-	borgy info $jobb | grep resourceUsageUrl
+	link=$(borgy info $jobb | grep resourceUsageUrl | grep "to=now" | cut -d' ' -f4)
+	echo $link
 done

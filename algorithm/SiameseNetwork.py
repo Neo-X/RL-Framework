@@ -1013,6 +1013,7 @@ class SiameseNetwork(KERASAlgorithm):
     def loadFrom(self, fileName):
         import h5py
         from keras.models import load_model
+        from keras_layer_normalization import LayerNormalization
         suffix = ".h5"
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Loading agent: ", fileName)
