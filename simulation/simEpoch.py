@@ -537,6 +537,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         if (worker_id is not None):
             # Pushing working id as fall value
             falls.append([[worker_id]] * len(state_))
+        elif ("perform_multiagent_training" in settings
+              and (settings["perform_multiagent_training"] > 1)):
+            falls_ = []
+            for f in range(len(state_)):
+                falls_.append([f])
+            falls.append(falls_)
         else:
             # print("Pushing actual fall value before : ", agent_not_fell)
             # print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])

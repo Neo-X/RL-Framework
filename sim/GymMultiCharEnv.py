@@ -218,5 +218,6 @@ class GymMultiCharEnv(SimInterface):
             want them to be producing the same results if they all init their random number 
             generator the same.
         """
-        print ( "Setting random seed: ", seed )
+        print ( "class ", self, " Setting random seed: ", seed )
         self.getEnvironment().setRandomSeed(seed)
+        # sys.exit()
