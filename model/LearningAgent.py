@@ -1054,23 +1054,22 @@ class LearningAgent(AgentInterface):
     def get_multitask_trajectory_batch(self, batch_size):
         return self.getExperience().get_multitask_trajectory_batch(batch_size)
                     
-    def saveTo(self, directory, bestPolicy=False, bestFD=False):
+    def saveTo(self, directory, bestPolicy=False, bestFD=False, suffix=""):
         from util.SimulationUtil import getAgentName
-        suffix = ""
+        suffix_ = suffix
         if ( bestPolicy == True):
-            suffix = "_Best"
-        self.getPolicy().saveTo(directory+getAgentName()+suffix )
+            suffix_ = suffix_ + "_Best"
+        self.getPolicy().saveTo(directory+getAgentName()+suffix_ )
         
-        suffix = ""
+        suffix_ = suffix
         if ( bestFD == True):
-            suffix = "_Best"
+            suffix_ = "_Best"
         if (self._settings['train_forward_dynamics']):
-            self.getForwardDynamics().saveTo(directory+"forward_dynamics"+suffix)
+            self.getForwardDynamics().saveTo(directory+"forward_dynamics"+suffix_)
         
-    def loadFrom(self, directory, best=False):
+    def loadFrom(self, directory, best=False, suffix_=".plk"):
         import dill
         from util.SimulationUtil import getAgentName
-        suffix = ".pkl"
         if ( bestPolicy == True):
             suffix = "_Best.pkl"
         file_name=directory+getAgentName()+"_Best.pkl"

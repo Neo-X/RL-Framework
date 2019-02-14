@@ -328,20 +328,11 @@ class LearningMultiAgent(LearningAgent):
     def get_batch(self, size_):
         return self.getAgents()[0].get_batch(size_)
         
-    def saveTo(self, directory, bestPolicy=False, bestFD=False):
+    def saveTo(self, directory, bestPolicy=False, bestFD=False, suffix=""):
         from util.SimulationUtil import getAgentName
         suffix = ""
-        if ( bestPolicy == True):
-            suffix = "_Best"
-        self.getPolicy().saveTo(directory+getAgentName()+suffix )
-        [self.getPolicy()[i].saveTo(directory+getAgentName()+suffix+str(i) ) for i in range(len(self.getPolicy()))]
-        
-        suffix = ""
-        if ( bestFD == True):
-            suffix = "_Best"
-        if (self._settings['train_forward_dynamics']):
-            # self.getForwardDynamics().saveTo(directory+"forward_dynamics"+suffix)
-            [self.getForwardDynamics()[i].saveTo(directory+"forward_dynamics"+suffix+str(i) ) for i in range(len(self.getForwardDynamics()))]
+        # self.getPolicy().saveTo(directory+getAgentName()+suffix )
+        [self.getAgents()[i].saveTo(directory+getAgentName()+suffix+str(i) ) for i in range(len(self.getAgents()))]
         
     def loadFrom(self, directory, best=False):
         import dill

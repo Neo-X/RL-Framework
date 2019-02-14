@@ -670,7 +670,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_rewards.extend(rewards[s])
         tmp_discounted_sum.extend(discounted_sum[s])
         tmp_G_ts.extend(G_ts[s])
-        print ("falls[s], rewards[s]: ", falls[s], rewards[s])
+        # print ("falls[s], rewards[s]: ", falls[s], rewards[s])
         tmp_falls.extend(falls[s])
         tmp_exp_actions.extend(exp_actions[s])
         ### Advantage is in a different format (agent , state)
