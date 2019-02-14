@@ -89,6 +89,40 @@ class SimWorker(Process):
         self._exp = exp_
         self._model.setEnvironment(self._exp)
         
+    def updateAgent(self, data):
+        """
+        poli_params = []
+        for i in range(len(data[5])):
+            print ("poli params", data[5][i])
+            net_params=[]
+            for j in range(len(data[5][i])):
+                net_params.append(np.array(data[5][i][j], dtype='float32'))
+            poli_params.append(net_params)
+            """
+        # print("Setting net params")
+        self._model.setPolicyNetworkParameters(data[5])
+        # print ("First Message: ", "Updated policy parameters")
+        if (self._settings['train_forward_dynamics']):
+            self._model.setFDNetworkParameters(data[6])
+        if ("train_reward_distance_metric" in self._settings and
+         (self._settings["train_reward_distance_metric"] == True)):
+            self._model.setRewardNetworkParameters(data[7])
+            
+        if (( "train_forward_dynamics" in self._settings 
+             and ( self._settings["train_forward_dynamics"] == True ))
+            and ( "keep_seperate_fd_exp_buffer" in self._settings 
+             and ( self._settings["keep_seperate_fd_exp_buffer"] == True ))
+            ):
+            # print ("Updating fd bounds")
+            self._model.getForwardDynamics().setStateBounds(data[8])
+            self._model.getForwardDynamics().setActionBounds(data[9])
+            self._model.getForwardDynamics().setRewardBounds(data[10])
+        self._p = data[1]
+        self._model.setStateBounds(data[2])
+        self._model.setActionBounds(data[3])
+        self._model.setRewardBounds(data[4])
+        
+        
     # @profile(precision=5)
     def run(self):
         # from pympler import summary
@@ -161,37 +195,7 @@ class SimWorker(Process):
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                 print ("First Message: ", message)
             data = episodeData['data']
-            """
-            poli_params = []
-            for i in range(len(data[5])):
-                print ("poli params", data[5][i])
-                net_params=[]
-                for j in range(len(data[5][i])):
-                    net_params.append(np.array(data[5][i][j], dtype='float32'))
-                poli_params.append(net_params)
-                """
-            # print("Setting net params")
-            self._model.getPolicy().setNetworkParameters(data[5])
-            # print ("First Message: ", "Updated policy parameters")
-            if (self._settings['train_forward_dynamics']):
-                self._model.getForwardDynamics().setNetworkParameters(data[6])
-            if ("train_reward_distance_metric" in self._settings and
-             (self._settings["train_reward_distance_metric"] == True)):
-                self._model.getRewardModel().setNetworkParameters(data[7])
-                
-            if (( "train_forward_dynamics" in self._settings 
-                 and ( self._settings["train_forward_dynamics"] == True ))
-                and ( "keep_seperate_fd_exp_buffer" in self._settings 
-                 and ( self._settings["keep_seperate_fd_exp_buffer"] == True ))
-                ):
-                # print ("Updating fd bounds")
-                self._model.getForwardDynamics().setStateBounds(data[8])
-                self._model.getForwardDynamics().setActionBounds(data[9])
-                self._model.getForwardDynamics().setRewardBounds(data[10])
-            self._p = data[1]
-            self._model.setStateBounds(data[2])
-            self._model.setActionBounds(data[3])
-            self._model.setRewardBounds(data[4])
+            self.updateAgent(data)
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                 print ("Sim worker:", os.getpid(), " State Bounds: ", self._model.getStateBounds())
             print ("Initial policy ready:")
@@ -215,28 +219,8 @@ class SimWorker(Process):
                     data = episodeData['data']
                     # print ("New model parameters: ", data[2][1][0])
                     ### Update scaling parameters
-                    self._model.setStateBounds(data[2])
-                    self._model.setActionBounds(data[3])
-                    self._model.setRewardBounds(data[4])
-                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
-                        print("Scaling State params: ", self._model.getStateBounds())
-                        print("Scaling Action params: ", self._model.getActionBounds())
-                        print("Scaling Reward params: ", self._model.getRewardBounds())        
-                    self._model.getPolicy().setNetworkParameters(data[5])
-                    if (self._settings['train_forward_dynamics']):
-                        self._model.getForwardDynamics().setNetworkParameters(data[6])
-                    if ("train_reward_distance_metric" in self._settings and
-                         (self._settings["train_reward_distance_metric"] == True)):
-                        self._model.getRewardModel().setNetworkParameters(data[7])
-                    if (( "train_forward_dynamics" in self._settings 
-                         and ( self._settings["train_forward_dynamics"] == True ))
-                        and ( "keep_seperate_fd_exp_buffer" in self._settings 
-                         and ( self._settings["keep_seperate_fd_exp_buffer"] == True ))
-                        ):
-                        # print ("Updating fd bounds")
-                        self._model.getForwardDynamics().setStateBounds(data[8])
-                        self._model.getForwardDynamics().setActionBounds(data[9])
-                        self._model.getForwardDynamics().setRewardBounds(data[10])
+                    self.updateAgent(data)
+                    
                     p = data[1]
                     # if p < 0.1:
                     #     p = 0.1

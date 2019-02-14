@@ -702,7 +702,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     
     ### Doesn't work with simulations that have multiple state types/definitions
     # if ( len(np.array(tmp_states).shape) == 2):
-    if (not ("use_dual_state_representations" in settings
+    if ("perform_multiagent_training" in settings):
+        pass
+        ### This will be a little complex because agents can have different state dimensions
+    elif (not ("use_dual_state_representations" in settings
             and (settings["use_dual_state_representations"] == True))
         ):
         ### consistency checks

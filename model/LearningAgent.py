@@ -94,6 +94,13 @@ class LearningAgent(AgentInterface):
         return self.getForwardDynamics().getNetworkParameters()
     def getRewardNetworkParameters(self):
         return self.getRewardModel().getNetworkParameters()
+    
+    def setPolicyNetworkParameters(self, params):
+        return self.getPolicy().setNetworkParameters(params)
+    def setFDNetworkParameters(self, params):
+        return self.getForwardDynamics().setNetworkParameters(params)
+    def setRewardNetworkParameters(self, params):
+        return self.getRewardModel().setNetworkParameters(params)
         
     def setExperience(self, experienceBuffer):
         self._expBuff = experienceBuffer 

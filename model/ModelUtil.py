@@ -985,25 +985,49 @@ def fixBounds(bounds):
         Fixes bounds that are too close together
         pre-req all(bounds[1] is > bounds[0])
     """
-    import numpy as np
-        
     # bounds not too close to each other
     epsilon = 0.1
-    bounds = np.array(bounds)
-    diff = bounds[1]-bounds[0]
-    # print ("bounds: ", bounds)
-    # print("diff: ", diff)
-    for i in range(diff.shape[0]):
-        if (diff[i] < epsilon ):
-            bounds[1][i] = bounds[1][i] + epsilon
-            bounds[0][i] = bounds[0][i] - epsilon
-        elif ((not np.isfinite(diff[i]))
-               # or (diff[i] != diff[i])
-              ):
-            ## Fix inf and nan
-            bounds[1][i] = epsilon*10
-            bounds[0][i] = -epsilon*10
-    # print("Bounds fixed: ", bounds)
+    
+    import numpy as np
+    bounds_ = np.array(bounds)
+    if (len(bounds_.shape) == 3):
+        bounds_ = []
+        for bounds__ in bounds:
+            bounds__ = np.array(bounds__)
+            diff = bounds__[1]-bounds__[0]
+            # print ("bounds: ", bounds)
+            # print("diff: ", diff)
+            for i in range(diff.shape[0]):
+                if (diff[i] < epsilon ):
+                    bounds__[1][i] = bounds__[1][i] + epsilon
+                    bounds__[0][i] = bounds__[0][i] - epsilon
+                elif ((not np.isfinite(diff[i]))
+                       # or (diff[i] != diff[i])
+                      ):
+                    ## Fix inf and nan
+                    bounds__[1][i] = epsilon
+                    bounds__[0][i] = -epsilon
+                    
+            bounds_.append(bounds__)
+            # print("Bounds fixed: ", bounds)
+        bounds = bounds_
+    else:
+        
+        bounds = np.array(bounds)
+        diff = bounds[1]-bounds[0]
+        # print ("bounds: ", bounds)
+        # print("diff: ", diff)
+        for i in range(diff.shape[0]):
+            if (diff[i] < epsilon ):
+                bounds[1][i] = bounds[1][i] + epsilon
+                bounds[0][i] = bounds[0][i] - epsilon
+            elif ((not np.isfinite(diff[i]))
+                   # or (diff[i] != diff[i])
+                  ):
+                ## Fix inf and nan
+                bounds[1][i] = epsilon
+                bounds[0][i] = -epsilon
+        # print("Bounds fixed: ", bounds)
     return bounds
 
 def checkDataIsValid(data, verbose=False, scale=1.0):
