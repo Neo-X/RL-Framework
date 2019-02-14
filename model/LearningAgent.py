@@ -899,7 +899,7 @@ class LearningAgent(AgentInterface):
             self._accesLock.release()
         return q
     
-    def q_values2(self, state):
+    def q_values2(self, state, falls):
         state = self.processState(state)
         q = self.getPolicy().q_values2(state)
         if self._useLock:
@@ -1044,6 +1044,15 @@ class LearningAgent(AgentInterface):
         
     def insertFDTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions):
         self.getFDExperience().insertTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
+        
+    def samples(self):
+        return self.getExperience().samples()
+    
+    def get_batch(self, size_):
+        return self.getExperience().get_batch(size_)
+    
+    def get_multitask_trajectory_batch(self, batch_size):
+        return self.getExperience().get_multitask_trajectory_batch(batch_size)
                     
     def saveTo(self, directory, bestPolicy=False, bestFD=False):
         from util.SimulationUtil import getAgentName

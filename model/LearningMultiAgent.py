@@ -197,6 +197,14 @@ class LearningMultiAgent(LearningAgent):
                     num_samples_ = num_samples_ + 1
                     
         return ( num_samples_, (tmp_states, tmp_actions, tmp_result_states, tmp_rewards, tmp_falls, tmp_G_t, tmp_advantage, tmp_exp_action))
+    
+    # @profile(precision=5)
+    def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
+              _exp_actions=None, _G_t=None, p=1.0):
+        
+        for agent_ in self.getAgents():
+            agent_.train(_states, _actions, _rewards, _result_states, _falls, _advantage=_advantage, 
+              _exp_actions=_exp_actions, _G_t=_G_t, p=p)
         
     def recomputeRewards(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t):
@@ -254,8 +262,11 @@ class LearningMultiAgent(LearningAgent):
             self._accesLock.release()
         return q
     
-    def q_values2(self, state):
-        q = [p_.q_values2([state_])[0] for p_, state_ in zip(self.getAgents(), state) ]
+    def q_values2(self, state, agent_id):
+        """
+            
+        """
+        q = self.getAgents()[agent_id[0][0]].q_values2(state, agent_id)
         if self._useLock:
             self._accesLock.release()
         return q
@@ -263,23 +274,10 @@ class LearningMultiAgent(LearningAgent):
     def bellman_error(self, state, action, reward, result_state, fall):
         if self._useLock:
             self._accesLock.acquire()
-        """
-        if ("use_dual_state_representations" in self.getSettings()
-            and (self.getSettings()["use_dual_state_representations"] == True)):
-            print ("State: ", state)
-            state = state[0]
-            print ("State: ", state)
-        """
-        if ("use_hack_state_trans" in self.getSettings()
-            and (self.getSettings()["use_hack_state_trans"] == True)):
-            import numpy as np
-            state = np.array(state)
-            state = state[:,:len(self.getStateBounds()[0])]
-        # err = self.getPolicy().bellman_error(state, action, reward, result_state, fall)
         err = [p_.bellman_error(state, action, reward, result_state, fall) for p_, state_, action_, reward_, result_state_, fall_ in zip(self.getAgents(), state, action, reward, result_state, fall)] 
         if self._useLock:
             self._accesLock.release()
-        return err
+        return err[0]
         
     def initEpoch(self, exp_):
         if (not (self._sampler == None ) ):
@@ -318,10 +316,17 @@ class LearningMultiAgent(LearningAgent):
         [p.setRewardBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
             
     def insertTuple(self, tuple):
-        self.getExperience().insertTuple(tuple)
+        ([state], [action], [resultState], [reward], [fall], [G_t], [exp_action], [adv]) = tuple
+        self.getAgents()[fall[0]].insertTuple(tuple)
         
     def insertTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions):
-        self.getExperience().insertTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
+        self.getAgents()[falls[0][0]].insertTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
+        
+    def samples(self):
+        return self.getAgents()[0].samples()
+    
+    def get_batch(self, size_):
+        return self.getAgents()[0].get_batch(size_)
         
     def saveTo(self, directory, bestPolicy=False, bestFD=False):
         from util.SimulationUtil import getAgentName

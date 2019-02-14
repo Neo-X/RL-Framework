@@ -620,6 +620,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         ### timestep, agent, state
         path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
         path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
+        path['falls'] = np.array(np.array(falls[last_epoch_end:])[:,a,:])
         path["terminated"] = False
         # print ("path['states']", path['states'].shape)
         ## Append so that we can preserve the paths/trajectory structure.
@@ -669,7 +670,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_rewards.extend(rewards[s])
         tmp_discounted_sum.extend(discounted_sum[s])
         tmp_G_ts.extend(G_ts[s])
-        # print ("falls[s], rewards[s]: ", falls[s], rewards[s])
+        print ("falls[s], rewards[s]: ", falls[s], rewards[s])
         tmp_falls.extend(falls[s])
         tmp_exp_actions.extend(exp_actions[s])
         ### Advantage is in a different format (agent , state)

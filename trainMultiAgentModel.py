@@ -578,10 +578,10 @@ def trainModelParallel(inputData):
             print("Reward bounds invalid: ", reward_bounds)
             sys.exit()
         
-        print ("Reward History: ", masterAgent.getExperience()._reward_history)
-        print ("Action History: ", masterAgent.getExperience()._action_history)
-        print ("Action Mean: ", np.mean(masterAgent.getExperience()._action_history))
-        print ("masterAgent.getExperience() Samples: ", (masterAgent.getExperience().samples()))
+        # print ("Reward History: ", masterAgent.getExperience()._reward_history)
+        # print ("Action History: ", masterAgent.getExperience()._action_history)
+        # print ("Action Mean: ", np.mean(masterAgent.getExperience()._action_history))
+        # print ("masterAgent.getExperience() Samples: ", (masterAgent.getExperience().samples()))
         
         """
         if action_space_continuous:
@@ -590,17 +590,17 @@ def trainModelParallel(inputData):
             model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         """
         if ( settings['load_saved_model'] or (settings['load_saved_model'] == 'network_and_scales') ): ## Transfer learning
-            masterAgent.getExperience().setStateBounds(copy.deepcopy(model.getStateBounds()))
-            masterAgent.getExperience().setRewardBounds(copy.deepcopy(model.getRewardBounds()))
-            masterAgent.getExperience().setActionBounds(copy.deepcopy(model.getActionBounds()))
-            model.setSettings(settings)
+            masterAgent.setStateBounds(copy.deepcopy(model.getStateBounds()))
+            masterAgent.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
+            masterAgent.setActionBounds(copy.deepcopy(model.getActionBounds()))
+            masterAgent.setSettings(settings)
         else: ## Normal
-            model.setStateBounds(state_bounds)
-            model.setActionBounds(action_bounds)
-            model.setRewardBounds(reward_bounds)
-            masterAgent.getExperience().setStateBounds(copy.deepcopy(model.getStateBounds()))
-            masterAgent.getExperience().setRewardBounds(copy.deepcopy(model.getRewardBounds()))
-            masterAgent.getExperience().setActionBounds(copy.deepcopy(model.getActionBounds()))
+            # model.setStateBounds(state_bounds)
+            # model.setActionBounds(action_bounds)
+            # model.setRewardBounds(reward_bounds)
+            # masterAgent.getExperience().setStateBounds(copy.deepcopy(model.getStateBounds()))
+            # masterAgent.getExperience().setRewardBounds(copy.deepcopy(model.getRewardBounds()))
+            # masterAgent.getExperience().setActionBounds(copy.deepcopy(model.getActionBounds()))
             masterAgent.setStateBounds(state_bounds)
             masterAgent.setActionBounds(action_bounds)
             masterAgent.setRewardBounds(reward_bounds)
@@ -676,7 +676,7 @@ def trainModelParallel(inputData):
         # masterAgent.setForwardDynamics(forwardDynamicsModel)
         # learningNamespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
         # learningNamespace.model = model
-        print("Master agent state bounds: ",  repr(masterAgent.getPolicy().getStateBounds()))
+        print("Master agent state bounds: ",  repr(masterAgent.getStateBounds()))
         # sys.exit()
         for sw in sim_workers: # Need to update parameter bounds for models
             # sw._model.setPolicy(copy.deepcopy(model))
@@ -913,8 +913,8 @@ def trainModelParallel(inputData):
                 # print ("masterAgent.getExperience().samples() >= batch_size: ", masterAgent.getExperience().samples(), " >= ", batch_size)
                 error = 0
                 rewards = 0
-                if masterAgent.getExperience().samples() >= batch_size:
-                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getExperience().get_batch(batch_size)
+                if masterAgent.samples() >= batch_size:
+                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
                     masterAgent.reset()
                     if ((("train_LSTM" in settings)
@@ -1020,7 +1020,7 @@ def trainModelParallel(inputData):
                     # discounted_values.append(discounted_sum)
                     
                 if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                    print ("Master agent experience size: " + str(masterAgent.getExperience().samples()))
+                    print ("Master agent experience size: " + str(masterAgent.samples()))
                 # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
                 
                 if (settings['on_policy'] is False):
