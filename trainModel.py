@@ -674,7 +674,7 @@ def trainModelParallel(inputData):
             m_q.put(message, timeout=timeout_)
         
         if ( int(settings["num_available_threads"]) ==  -1):
-           experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, exp_val, model, settings,
+           experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, exp_val, masterAgent, settings,
                            sim_work_queues=None, 
                            eval_episode_data_queue=None)
             
@@ -686,11 +686,11 @@ def trainModelParallel(inputData):
             else:
                 if (settings['on_policy'] == True):
                     
-                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, model, settings,
+                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, masterAgent, settings,
                                sim_work_queues=sim_work_queues, 
                                eval_episode_data_queue=eval_episode_data_queue)
                 else:
-                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, model, settings,
+                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, masterAgent, settings,
                                sim_work_queues=input_anchor_queue, 
                                eval_episode_data_queue=eval_episode_data_queue)
             masterAgent.setExperience(experience)

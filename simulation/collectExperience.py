@@ -52,19 +52,33 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                                           result_state_length=settings["dense_state_size"]
                                           )
             else:
-                experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], 
+                if ("perform_multiagent_training" in settings):
+                    experience = [ExperienceMemory(len(state_bounds[i][0]), len(action_bounds[i][0]), settings['expereince_length'], 
+                                          continuous_actions=True, settings = settings, 
+                                          # result_state_length=settings["dense_state_size"]
+                                          ) for i in range(settings["perform_multiagent_training"])]
+                else:
+                    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], 
                                           continuous_actions=True, settings = settings, 
                                           # result_state_length=settings["dense_state_size"]
                                           )
             if ( "keep_seperate_fd_exp_buffer" in settings 
                 and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                    state_bounds_fd__ = getFDStateSize(settings)
+                state_bounds_fd__ = getFDStateSize(settings)
+                if ("perform_multiagent_training" in settings):
+                    experiencefd = [ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds[0]), settings['expereince_length'], 
+                                      continuous_actions=True, settings = settings 
+                                      # result_state_length=settings["dense_state_size"]
+                                      ) for i in range(settings["perform_multiagent_training"])]
+                else:
                     experiencefd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds[0]), settings['expereince_length'], 
-                                          continuous_actions=True, settings = settings, 
-                                          # result_state_length=settings["dense_state_size"]
-                                          )
+                                      continuous_actions=True, settings = settings 
+                                      # result_state_length=settings["dense_state_size"]
+                                      )
+                model.setFDExperience(experiencefd)
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+        model.setExperience(experience)
         experience.setSettings(settings)
         
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
@@ -247,7 +261,12 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             print ("Skipping bootstrap samples from simulation")
             print ("State length: ", len(model.getStateBounds()[0]))
         if settings['action_space_continuous']:
-            experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
+            if ("perform_multiagent_training" in settings):
+                experience = [ExperienceMemory(len(model.getStateBounds()[i][0]), len(model.getActionBounds()[i][0]), 
+                                               settings['expereince_length'], continuous_actions=True, settings = settings)
+                             for i in range(settings["perform_multiagent_training"])]
+            else:
+                experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['expereince_length'], continuous_actions=True, settings = settings)
         else:
             experience = ExperienceMemory(len(model.getStateBounds()[0]), 1, settings['expereince_length'])
             experience.setSettings(settings)
