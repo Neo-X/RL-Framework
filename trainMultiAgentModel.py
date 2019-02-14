@@ -236,7 +236,7 @@ def trainModelParallel(inputData):
         ### These are the workers for training
         (sim_workers, sim_work_queues) = createSimWorkers(settings, input_anchor_queue, 
                                               output_experience_queue, eval_episode_data_queue, 
-                                              None, None, exp_val)
+                                              [], [], exp_val)
 
         eval_sim_workers = sim_workers
         eval_sim_work_queues = sim_work_queues

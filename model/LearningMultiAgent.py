@@ -22,16 +22,13 @@ class LearningMultiAgent(LearningAgent):
         self._useLock = False
         if self._useLock:
             self._accesLock = threading.Lock()
-        self._pol = None
-        self._fd = None
-        self._sampler = None
-        self._expBuff = None
-        self._expBuff_FD = None
+        self._agents = [LearningAgent(self.getSettings()) for i in range(self.getSettings()["perform_multiagent_training"])]
         
+    def getAgents(self):
+        return self._agents
+    
     def reset(self):
-        [p.reset() for p in self.getPolicy()]
-        if (self._settings['train_forward_dynamics']):
-            [f.reset() for f in self.getForwardDynamics()]
+        [p.reset() for p in self.getAgents()]
         
     def getPolicy(self):
         if self._useLock:
@@ -44,7 +41,7 @@ class LearningMultiAgent(LearningAgent):
     def setPolicy(self, pol):
         if self._useLock:
             self._accesLock.acquire()
-        self._pol = pol
+        [a.setPolicy(pol_) for a, pol_ in zip(self.getAgents(), pol)]
         if (not self._sampler == None ):
             self._sampler.setPolicy(pol)
         if self._useLock:
@@ -88,30 +85,31 @@ class LearningMultiAgent(LearningAgent):
         return self._settings
     
     def getPolicyNetworkParameters(self):
-        return [p.getNetworkParameters() for p in self.getPolicy()]
+        return [a.getPolicy().getNetworkParameters() for a in self.getAgents()]
     def getFDNetworkParameters(self):
-        return [p.getNetworkParameters() for p in self.getForwardDynamics()]
+        return [p.getForwardDynamics().getNetworkParameters() for p in self.getAgents()]
     def getRewardNetworkParameters(self):
-        return [p.getNetworkParameters() for p in self.getRewardModel()]
+        return [p.getRewardModel().getNetworkParameters() for p in self.getAgents()]
     
     def setPolicyNetworkParameters(self, params):
-        return [p.setNetworkParameters(param) for p, param in zip(self.getPolicy(), params)]
+        return [p.getPolicy().setNetworkParameters(param) for p, param in zip(self.getAgents(), params)]
     def setFDNetworkParameters(self, params):
-        return [p.setNetworkParameters(param) for p, param in zip(self.getForwardDynamics(), params)]
+        return [p.getForwardDynamics().setNetworkParameters(param) for p, param in zip(self.getAgents(), params)]
     def setRewardNetworkParameters(self, params):
-        return [p.setNetworkParameters(param) for p, param in zip(self.getRewardModel(), params)]
+        return [p.getRewardModel().setNetworkParameters(param) for p, param in zip(self.getAgents(), params)]
     
     
         
     def setExperience(self, experienceBuffer):
+        [p.setExperience(exp) for p, exp in zip(self.getAgents(), experienceBuffer)]
         self._expBuff = experienceBuffer 
     def getExperience(self):
-        return self._expBuff
+        return [p.getExperience() for p in self.getAgents()]
     
     def setFDExperience(self, experienceBuffer):
-        self._expBuff_FD = experienceBuffer 
+        [p.setFDExperience(exp) for p, exp in zip(self.getAgents(), experienceBuffer)]
     def getFDExperience(self):
-        return self._expBuff_FD  
+        return [p.getFDExperience() for p in self.getAgents()]
     
     def putDataInExpMem(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
               _exp_actions=None, _G_t=None, recomputeRewards=False):
@@ -210,22 +208,7 @@ class LearningMultiAgent(LearningAgent):
     def predict(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False, use_mbrl=False):
         if self._useLock:
             self._accesLock.acquire()
-        # import numpy as np
-        # print ("state: ", np.array(state).shape, state)
-        # print ("state: ", state)
-        state = self.processState(state)
-        # print ("state after: ", np.array(state).shape, state)
-        if (use_mbrl):
-            action = self.getSampler().predict(state, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
-            act = [action]
-        else:
-            """
-            act = []
-            for p_, state_ in zip(self.getPolicy(), state):
-                act_ = p_.predict([state_], evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
-                act.append(act_)
-            """ 
-            act = [p_.predict([state_], evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)[0] for p_, state_ in zip(self.getPolicy(), state)]
+        act = [p_.predict([state_], evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)[0] for p_, state_ in zip(self.getAgents(), state)]
         if self._useLock:
             self._accesLock.release()
         return act
@@ -233,8 +216,7 @@ class LearningMultiAgent(LearningAgent):
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:
             self._accesLock.acquire()
-        state = self.processState(state)
-        std = [p_.predict_std([state_], p=p)[0] for p_, state_ in zip(self.getPolicy(), state) ]
+        std = [p_.predict_std([state_], p=p)[0] for p_, state_ in zip(self.getAgents(), state) ]
         if self._useLock:
             self._accesLock.release()
         return std
@@ -242,9 +224,7 @@ class LearningMultiAgent(LearningAgent):
     def predictWithDropout(self, state):
         if self._useLock:
             self._accesLock.acquire()
-        state = self.processState(state)
-        # act = self.getPolicy().predictWithDropout(state)
-        act = [p_.predictWithDropout([state_])[0] for p_, state_ in zip(self.getPolicy(), state) ]
+        act = [p_.predictWithDropout([state_])[0] for p_, state_ in zip(self.getAgents(), state) ]
         if self._useLock:
             self._accesLock.release()
         return act
@@ -258,9 +238,7 @@ class LearningMultiAgent(LearningAgent):
         """
         if self._useLock:
             self._accesLock.acquire()
-        state = self.processState(state)
-        # q = self.getPolicy().q_value(state)
-        q = [p_.q_value([state_])[0] for p_, state_ in zip(self.getPolicy(), state) ]
+        q = [p_.q_value([state_])[0] for p_, state_ in zip(self.getAgents(), state) ]
         if self._useLock:
             self._accesLock.release()
         return q
@@ -271,17 +249,13 @@ class LearningMultiAgent(LearningAgent):
         """
         if self._useLock:
             self._accesLock.acquire()
-        state = self.processState(state)
-        # q = self.getPolicy().q_values(state)
-        q = [p_.q_values([state_])[0] for p_, state_ in zip(self.getPolicy(), state) ]
+        q = [p_.q_values([state_])[0] for p_, state_ in zip(self.getAgents(), state) ]
         if self._useLock:
             self._accesLock.release()
         return q
     
     def q_values2(self, state):
-        state = self.processState(state)
-        # q = self.getPolicy().q_values2(state)
-        q = [p_.q_values2([state_])[0] for p_, state_ in zip(self.getPolicy(), state) ]
+        q = [p_.q_values2([state_])[0] for p_, state_ in zip(self.getAgents(), state) ]
         if self._useLock:
             self._accesLock.release()
         return q
@@ -302,7 +276,7 @@ class LearningMultiAgent(LearningAgent):
             state = np.array(state)
             state = state[:,:len(self.getStateBounds()[0])]
         # err = self.getPolicy().bellman_error(state, action, reward, result_state, fall)
-        err = [p_.bellman_error(state, action, reward, result_state, fall) for p_, state_, action_, reward_, result_state_, fall_ in zip(self.getPolicy(), state, action, reward, result_state, fall)] 
+        err = [p_.bellman_error(state, action, reward, result_state, fall) for p_, state_, action_, reward_, result_state_, fall_ in zip(self.getAgents(), state, action, reward, result_state, fall)] 
         if self._useLock:
             self._accesLock.release()
         return err
@@ -321,69 +295,34 @@ class LearningMultiAgent(LearningAgent):
             self._sampler.setEnvironment(exp)
             
     def getStateBounds(self):
-        return [p.getStateBounds() for p in self.getPolicy()]
+        return [p.getStateBounds() for p in self.getAgents()]
     def getActionBounds(self):
-        return [p.getActionBounds() for p in self.getPolicy()]
+        return [p.getActionBounds() for p in self.getAgents()]
     def getRewardBounds(self):
-        return [p.getRewardBounds() for p in self.getPolicy()]
+        return [p.getRewardBounds() for p in self.getAgents()]
     
     def getFDStateBounds(self):
-        return [p.getStateBounds() for p in self.getForwardDynamics()]
+        return [p.getFDStateBounds() for p in self.getAgents()]
     def getFDActionBounds(self):
-        return [p.getActionBounds() for p in self.getForwardDynamics()]
+        return [p.getFDActionBounds() for p in self.getAgents()]
     def getFDRewardBounds(self):
-        return [p.getRewardBounds() for p in self.getForwardDynamics()]
+        return [p.getFDRewardBounds() for p in self.getAgents()]
     
     def setStateBounds(self, bounds):
-        import numpy as np
-        bounds = np.array(bounds)
-        [p.setStateBounds(bounds_) for p, bounds_ in zip(self.getPolicy(), bounds)] 
-        if (self._settings['train_forward_dynamics']):
-            if ("use_dual_state_representations" in self._settings
-                and (self._settings["use_dual_state_representations"] == True)):
-                pass
-            else:
-                # self.getForwardDynamics().setStateBounds(bounds)
-                [p.setStateBounds(bounds_) for p, bounds_ in zip(self.getForwardDynamics(), bounds)] 
-                if ( 'keep_seperate_fd_exp_buffer' in self._settings 
-                     and (self._settings['keep_seperate_fd_exp_buffer'] == True)
-                     and (self.getFDExperience() is not None)):
-                    assert False ### Not supported
-                    # self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
-                    # self.getFDExperience().setStateBounds(bounds)
+        [p.setStateBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
 
     def setActionBounds(self, bounds):
-        import numpy as np
-        bounds = np.array(bounds)
-        # self.getPolicy().setActionBounds(bounds)
-        [p.setActionBounds(bounds_) for p, bounds_ in zip(self.getPolicy(), bounds)]
-        if (self._settings['train_forward_dynamics']):
-            
-            if ( 'keep_seperate_fd_exp_buffer' in self._settings 
-                 and (self._settings['keep_seperate_fd_exp_buffer'])
-                 and (self.getFDExperience() is not None)):
-                # self.getFDExperience().setActionBounds(bounds)
-                assert False
-                # self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
-            else:
-                # self.getForwardDynamics().setActionBounds(bounds)
-                [p.setActionBounds(bounds_) for p, bounds_ in zip(self.getForwardDynamics(), bounds)]
+        [p.setActionBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
                 
     def setRewardBounds(self, bounds):
-        import numpy as np
-        bounds = np.array(bounds)
-        # self.getPolicy().setRewardBounds(bounds)
-        [p.setRewardBounds(bounds_) for p, bounds_ in zip(self.getPolicy(), bounds)]
-        if (self._settings['train_forward_dynamics']):
-            # self.getForwardDynamics().setRewardBounds(bounds)
-            [p.setRewardBounds(bounds_) for p, bounds_ in zip(self.getForwardDynamics(), bounds)]
-            if ( 'keep_seperate_fd_exp_buffer' in self._settings 
-                 and (self._settings['keep_seperate_fd_exp_buffer'])
-                 and (self.getFDExperience() is not None)):
-                # self.getFDExperience().setRewardBounds(bounds)
-                assert False
-                # self.getForwardDynamics().setRewardBounds(self.getFDExperience().getRewardBounds())
+        [p.setRewardBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
             
+    def insertTuple(self, tuple):
+        self.getExperience().insertTuple(tuple)
+        
+    def insertTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions):
+        self.getExperience().insertTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
+        
     def saveTo(self, directory, bestPolicy=False, bestFD=False):
         from util.SimulationUtil import getAgentName
         suffix = ""

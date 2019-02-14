@@ -984,6 +984,8 @@ class LearningAgent(AgentInterface):
         import numpy as np
         bounds = np.array(bounds)
         self.getPolicy().setStateBounds(bounds)
+        if (self.getExperience() is not None):
+            self.getExperience().setStateBounds(bounds)
         if (self._settings['train_forward_dynamics']):
             if ("use_dual_state_representations" in self._settings
                 and (self._settings["use_dual_state_representations"] == True)):
@@ -998,10 +1000,13 @@ class LearningAgent(AgentInterface):
                 else:
                     ### Using the same state bounds across models 
                     self.getForwardDynamics().setStateBounds(bounds)
+                    
     def setActionBounds(self, bounds):
         import numpy as np
         bounds = np.array(bounds)
         self.getPolicy().setActionBounds(bounds)
+        if (self.getExperience() is not None):
+            self.getExperience().setActionBounds(bounds)
         if (self._settings['train_forward_dynamics']):
             
             if ( 'keep_seperate_fd_exp_buffer' in self._settings 
@@ -1016,6 +1021,8 @@ class LearningAgent(AgentInterface):
         import numpy as np
         bounds = np.array(bounds)
         self.getPolicy().setRewardBounds(bounds)
+        if (self.getExperience() is not None):
+            self.getExperience().setRewardBounds(bounds)
         if (self._settings['train_forward_dynamics']):
             self.getForwardDynamics().setRewardBounds(bounds)
             if ( 'keep_seperate_fd_exp_buffer' in self._settings 
@@ -1025,7 +1032,19 @@ class LearningAgent(AgentInterface):
                 self.getForwardDynamics().setRewardBounds(self.getFDExperience().getRewardBounds())
             else:
                 self.getForwardDynamics().setRewardBounds(bounds)
-            
+
+    def insertTuple(self, tuple):
+        self.getExperience().insertTuple(tuple)
+        
+    def insertTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions):
+        self.getExperience().insertTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
+        
+    def insertFDTuple(self, tuple):
+        self.getFDExperience().insertTuple(tuple)
+        
+    def insertFDTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions):
+        self.getFDExperience().insertTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
+                    
     def saveTo(self, directory, bestPolicy=False, bestFD=False):
         from util.SimulationUtil import getAgentName
         suffix = ""
@@ -1187,4 +1206,3 @@ class LearningWorker(Process):
         old_poli = self._agent.getPolicy()
         self._agent.setPolicy(self._learningNamespace.model)
         del old_poli
-        

@@ -79,7 +79,10 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
         model.setExperience(experience)
-        experience.setSettings(settings)
+        if ("perform_multiagent_training" in settings):
+            [e.setSettings(settings) for e in experience]
+        else:
+            experience.setSettings(settings)
         
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print ("Collecting bootstrap samples from simulation")
@@ -180,9 +183,9 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             print ("Max Action:" + str(action_bounds[1]))
             print ("Min Action:" + str(action_bounds[0]))
         
-        experience.setStateBounds(state_bounds)
-        experience.setRewardBounds(reward_bounds)
-        experience.setActionBounds(action_bounds)
+        model.setStateBounds(state_bounds)
+        model.setRewardBounds(reward_bounds)
+        model.setActionBounds(action_bounds)
         
         for state, action, resultState, reward, fall, G_t, exp_action, adv in zip(states, actions, resultStates, rewards, falls, G_ts, exp_actions, advantage):
             # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
@@ -211,12 +214,12 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                     resultState = resultState[0]
             if settings['action_space_continuous']:
                 # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
-                experience.insertTuple(([state], [action], [resultState], [reward], [fall], [G_t], [exp_action], [adv]))
+                model.insertTuple(([state], [action], [resultState], [reward], [fall], [G_t], [exp_action], [adv]))
                 if ( "keep_seperate_fd_exp_buffer" in settings 
                      and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                    experiencefd.insertTuple(([statefd], [action], [resultStatefd], [reward], [fall], [G_t], [exp_action], [adv]))
+                    model.insertFDTuple(([statefd], [action], [resultStatefd], [reward], [fall], [G_t], [exp_action], [adv]))
             else:
-                experience.insertTuple(([state], [action], [resultState], [reward], [falls], G_t, [exp_action], [adv]))
+                model.insertTuple(([state], [action], [resultState], [reward], [falls], G_t, [exp_action], [adv]))
             # else:
                 # print ("Tuple with reward: " + str(reward_) + " skipped")
                 
@@ -242,11 +245,11 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                 _result_states_fd = _result_states
                 
         for e in range(len(_states)):
-            experience.insertTrajectory(_states[e], actions_[e], _result_states[e], rewards_[e], 
+            model.insertTrajectory(_states[e], actions_[e], _result_states[e], rewards_[e], 
                                         falls_[e], G_ts_[e], advantage_[e], exp_actions_[e])
             if ( "keep_seperate_fd_exp_buffer" in settings 
                      and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                experiencefd.insertTrajectory(_states_fd[e], actions_[e], _result_states_fd[e], rewards_[e], 
+                model.insertFDTrajectory(_states_fd[e], actions_[e], _result_states_fd[e], rewards_[e], 
                                             falls_[e], G_ts_[e], advantage_[e], exp_actions_[e])
         
         if ('state_normalization' in settings and 
@@ -273,6 +276,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             experience.setStateBounds(model.getStateBounds())
             experience.setRewardBounds(model.getRewardBounds())
             experience.setActionBounds(model.getActionBounds())
+        model.setExperience(experience)
         
         """
         (states, actions, resultStates, rewards_) = collectExperienceActionsContinuous(exp, settings['expereince_length'], settings=settings, action_selection=action_selection)
