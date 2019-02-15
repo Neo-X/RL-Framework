@@ -425,5 +425,5 @@
 	"comment__": "Actor to scale the variance use to init the last layer of the policy",
 "actor_out_init_layer_scale": 0.01,
 	"comment__": "Using a single network for all functions",
-"use_single_network": true,
+"use_single_network": true
 }
