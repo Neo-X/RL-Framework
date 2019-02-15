@@ -183,10 +183,6 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             print ("Max Action:" + str(action_bounds[1]))
             print ("Min Action:" + str(action_bounds[0]))
         
-        model.setStateBounds(state_bounds)
-        model.setRewardBounds(reward_bounds)
-        model.setActionBounds(action_bounds)
-        
         for state, action, resultState, reward, fall, G_t, exp_action, adv in zip(states, actions, resultStates, rewards, falls, G_ts, exp_actions, advantage):
             # if reward_ > settings['reward_lower_bound']: # Skip if reward gets too bad, skips nan too?
             # for j in range(len(state)):
@@ -276,7 +272,11 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             experience.setStateBounds(model.getStateBounds())
             experience.setRewardBounds(model.getRewardBounds())
             experience.setActionBounds(model.getActionBounds())
+            
         model.setExperience(experience)
+        model.setStateBounds(state_bounds)
+        model.setRewardBounds(reward_bounds)
+        model.setActionBounds(action_bounds)
         
         """
         (states, actions, resultStates, rewards_) = collectExperienceActionsContinuous(exp, settings['expereince_length'], settings=settings, action_selection=action_selection)
