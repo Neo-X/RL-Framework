@@ -8,13 +8,14 @@ import json
 import sys
 
 
-class TestTRPO(object):
+class TestMRLAndHRL(object):
 
-    def test_trpo_keras_tensorflow_particleNav_2D_lstm_critic(self):
-        """u
-        Test that PPO can still learn a good policy on 2d particle sim
+    # @pytest.mark.timeout(600)
+    def test_cacla_multiAgentNAv(self):
         """
-        filename = "tests/settings/particleSim/TRPO/RNNCritic_Stateless_2D.json"
+        Test that CACLA can still learn a good policy on 2d particle sim
+        """
+        filename = "tests/settings/navGameMultiAgent/CACLA/On_Policy-v2.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -24,35 +25,18 @@ class TestTRPO(object):
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
         # settings['rounds'] = 2
-        settings['rollouts'] = 4
+        # settings['rollouts'] = 4
+        settings['rollouts'] = 50
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        assert np.mean(simData['mean_reward'][-5:]) > -0.5 
-        
-    def test_trpo_keras_tensorflow_particleNav_2D_lstm_stateful_critic(self):
-        """
-        Test that PPO can still learn a good policy on 2d particle sim
-        """
-        filename = "tests/settings/particleSim/PPO/RNNCritic_5D.json"
-        file = open(filename)
-        settings = json.load(file)
-        file.close()
-        this_function_name = sys._getframe().f_code.co_name
-        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
-        settings['visualize_learning'] = False
-        settings['shouldRender'] = False
-        settings['print_level'] = 'testing_sim'
-        # settings['rounds'] = 2
-        settings['rollouts'] = 4
-        simData = trainModelParallel((filename, settings))
-        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        assert np.mean(simData['mean_reward'][-5:]) > -0.5 
+        assert np.mean(simData['mean_reward'][-5:]) > -1.5
     
-    def test_trpo_keras_tensorflow_hrl_learn_direction(self):
+    # @pytest.mark.timeout(600)
+    def test_trpo_HRL_HLC_navgame2D(self):
         """
-        Test that PPO can still learn a good policy on 2d particle sim
+            Test that PPO can still learn a good policy on 2d gapgame sim
         """
-        filename = "tests/settings/navgame2D/TRPO/Learning_Direction.json"
+        filename = "tests/settings/navgame2D/TRPO/HRL_Learning_32x32.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -62,10 +46,31 @@ class TestTRPO(object):
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
         # settings['rounds'] = 2
-        settings['rollouts'] = 25
+        settings['rollouts'] = 50
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
-        assert np.mean(simData['mean_reward'][-5:]) > -0.5 
+        assert np.mean(simData['mean_reward'][-5:]) > 0.65
+    
+    # @pytest.mark.timeout(600)   
+    def test_ppo_chaseGame2D(self):
+        """
+            Test that PPO can still learn a good policy on 2d gapgame sim
+        """
+        filename = "tests/settings/ChaseGame/PPO/On_Policy_Tensorflow-v2.json"
+        file = open(filename)
+        settings = json.load(file)
+        file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
+        settings['visualize_learning'] = False
+        settings['shouldRender'] = False
+        settings['print_level'] = 'testing_sim'
+        # settings['rounds'] = 2
+        settings['rollouts'] = 50
+        simData = trainModelParallel((filename, settings))
+        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
+        assert np.mean(simData['mean_reward'][-5:]) > -1.0
+            
 
 if __name__ == '__main__':
     pytest.main([__file__])
