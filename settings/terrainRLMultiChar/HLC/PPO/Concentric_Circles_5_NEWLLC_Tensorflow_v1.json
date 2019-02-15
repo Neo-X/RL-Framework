@@ -322,9 +322,9 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "critic_network_layer_sizes": [ {"layer_type": "slice"},
 								{"layer_type": "Reshape", "target_shape": [2,32,32]},
-								{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+								{"layer_type": "sepconv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+								{"layer_type": "sepconv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
 								{"layer_type": "Flatten"},
 								{"layer_type": "Concatenate"}, 
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -336,9 +336,9 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [ {"layer_type": "slice"},
 								{"layer_type": "Reshape", "target_shape": [2,32,32]},
-								{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+								{"layer_type": "sepconv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+								{"layer_type": "sepconv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
 								{"layer_type": "Flatten"},
 								{"layer_type": "Concatenate"},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -408,9 +408,7 @@
 	"comment__": "Network settings",
 "network_settings": {
 		"comment__": "Whether or not the network should include pooling layers between convolutions.",
-	"perform_convolution_pooling": false,
-		"comment__": "Change where the network splits for a single network model",
-	"split_single_net_earlier": true
+	"perform_convolution_pooling": false
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
 "pretrain_critic": 0,
@@ -425,5 +423,7 @@
 	"comment__": "Add a negative reward when the robot falls",
 "use_fall_reward_shaping": true,
 	"comment__": "Actor to scale the variance use to init the last layer of the policy",
-"actor_out_init_layer_scale": 0.01
+"actor_out_init_layer_scale": 0.01,
+	"comment__": "Using a single network for all functions",
+"use_single_network": true,
 }
