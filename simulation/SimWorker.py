@@ -190,8 +190,7 @@ class SimWorker(Process):
         print ("Waiting for initial policy update.", self._message_queue)
         episodeData = self._message_queue.get(timeout=timeout_)
         print ("Received initial policy update.")
-        message = episodeData['type']
-        if (message == None):
+        if (episodeData == None):
             if ("learning_backend" in self._settings and
             (self._settings["learning_backend"] == "tensorflow")):
                 import keras
@@ -204,6 +203,7 @@ class SimWorker(Process):
             self._exp.finish()
             gc.collect()
             return
+        message = episodeData['type']
         if message == "Update_Policy":
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                 print ("First Message: ", message)

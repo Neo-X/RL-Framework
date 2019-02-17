@@ -951,31 +951,31 @@ def validBounds(bounds):
     """
     import numpy as np
     
-    if (type(bounds[0][0]) is list):
+    if (isinstance(bounds[0][0], list) or (isinstance(bounds[0][0], np.ndarray))):
         pass
     else:
         bounds_ = [bounds]
     
-    for bounds_ in bounds:
-        valid = np.all(np.less(bounds_[0], bounds_[1]))
+    for bounds__ in bounds_:
+        valid = np.all(np.less(bounds__[0], bounds__[1]))
         if (not valid):
-            less_ = np.less(bounds_[0], bounds_[1])
+            less_ = np.less(bounds__[0], bounds__[1])
             bad_indecies = np.where(less_ == False)
-            bad_values_low = bounds_[0][bad_indecies]
-            bad_values_high = bounds_[1][bad_indecies]
+            bad_values_low = bounds__[0][bad_indecies]
+            bad_values_high = bounds__[1][bad_indecies]
             print ("Invalid bounds: ", bad_indecies )
             print ("Bad Values:", bad_values_low, bad_values_high)
             
         ##  bounds not too close to each other
         epsilon = 0.01
-        bounds_ = np.array(bounds_)
-        diff = bounds_[1]-bounds_[0]
+        bounds__ = np.array(bounds__)
+        diff = bounds__[1]-bounds__[0]
         valid = valid and np.all(np.greater(diff, epsilon))
         if (not valid):
             less_ = np.greater(diff, epsilon)
             bad_indecies = np.where(less_ == False)
-            bad_values_low = bounds_[0][bad_indecies]
-            bad_values_high = bounds_[1][bad_indecies]
+            bad_values_low = bounds__[0][bad_indecies]
+            bad_values_high = bounds__[1][bad_indecies]
             print ("Invalid bounds, bounds to small: ", bad_indecies )
             print ("Bad Values:", bad_values_low, bad_values_high)
             print ("Bounds to small:", np.greater(diff, epsilon))
@@ -993,8 +993,8 @@ def fixBounds(bounds):
     import numpy as np
     
     ### This could be a numpy array as well...
-    print ("bounds[0][0]: ", bounds[0][0])
-    print ("bounds[0][0]: ", type(bounds[0][0]))
+    # print ("bounds[0][0]: ", bounds[0][0])
+    # print ("bounds[0][0]: ", type(bounds[0][0]))
     if (isinstance(bounds[0][0], list) or (isinstance(bounds[0][0], np.ndarray))):
         bounds_ = []
         for bounds__ in bounds:
@@ -1043,12 +1043,13 @@ def checkDataIsValid(data, verbose=False, scale=1.0, identifier="Data"):
         import numpy as np
         # print(identifier, " data: ", data)
         
-        if (type(data[0][0]) is list):
+        """
+        if (isinstance(data[0][0], list) or (isinstance(bounds[0][0], np.ndarray))):
             ### Multi Agent or multi state simulation
             valid = True
             for data__ in data:
                 valid = valid and checkDataIsValid(data__, verbose=verbose, scale=scale, identifier=identifier)
-        
+        """
         data = np.array(data)
         if (not np.all(np.isfinite(data))):
             if ( verbose ):

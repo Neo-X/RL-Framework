@@ -41,7 +41,7 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/policy_activation_type.json"
 # 				"settings/hyperParamTuning/element/policy_network_layer_sizes.json"	
 #  				"settings/hyperParamTuning/element/ppo_et_factor.json"
-# 				"settings/hyperParamTuning/element/pretrain_critic.json" 
+ 				"settings/hyperParamTuning/element/pretrain_critic.json" 
 # 				"settings/hyperParamTuning/element/reset_on_fall.json" 
 #				"settings/hyperParamTuning/element/state_normalization.json"		
 #  				"settings/hyperParamTuning/element/use_single_network.json"
@@ -52,8 +52,11 @@ declare -a metaExps=(
 
 ## declare an array variable
 declare -a simConfigs=(
- 	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
-	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
+#  	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
+# 	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate/CACLA/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode_BCE_refreshRewards.json"
+	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode_BCE_refreshRewards.json"
+	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode_BCE_refreshRewards.json"
 )
 
 rounds=$1
