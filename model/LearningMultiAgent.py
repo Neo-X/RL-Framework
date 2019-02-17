@@ -314,6 +314,9 @@ class LearningMultiAgent(LearningAgent):
                 
     def setRewardBounds(self, bounds):
         [p.setRewardBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
+        
+    def _updateScaling(self):
+        [p._updateScaling() for p in self.getAgents()]
             
     def insertTuple(self, tuple):
         ([state], [action], [resultState], [reward], [fall], [G_t], [exp_action], [adv]) = tuple

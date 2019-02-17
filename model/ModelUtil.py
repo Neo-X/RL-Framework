@@ -991,8 +991,8 @@ def fixBounds(bounds):
     epsilon = 0.1
     
     import numpy as np
-    bounds_ = np.array(bounds)
-    if (len(bounds_.shape) == 3):
+    
+    if (type(bounds[0][0]) is list):
         bounds_ = []
         for bounds__ in bounds:
             bounds__ = np.array(bounds__)

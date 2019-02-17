@@ -139,8 +139,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             reward_bounds[1] = np.max(rewards_[:settings['bootstrap_samples']], axis=0)
             # action_bounds[0] = np.min(actions[:settings['bootstrap_samples']], axis=0)
             # action_bounds[1] = np.max(actions[:settings['bootstrap_samples']], axis=0)
-        elif (state_normalization == "variance" or
-              state_normalization == "adaptive"):
+        elif (state_normalization == "variance" 
+              ):
             state_avg = np.mean(states[:settings['bootstrap_samples']], axis=0)
             state_stddev = np.std(states[:settings['bootstrap_samples']], axis=0)
             reward_avg = np.mean(rewards[:settings['bootstrap_samples']], axis=0)
@@ -161,14 +161,17 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         elif (state_normalization == "given"):
             # pass # Use bound specified in file
             state_bounds = np.array(settings['state_bounds'], dtype=float)
+        elif ( state_normalization == "adaptive" ):
+            pass # Use bound specified in file
+            # state_bounds = np.array(settings['state_bounds'], dtype=float)
         else:
             print ("State scaling strategy unknown: ", (state_normalization))
             assert False
             
         ## Cast data to the proper type
-        state_bounds = fixBounds(np.array(state_bounds, dtype=settings['float_type']))
-        reward_bounds = fixBounds(np.array(reward_bounds, dtype=settings['float_type']))
-        action_bounds = fixBounds(np.array(action_bounds, dtype=settings['float_type']))
+        state_bounds = fixBounds(state_bounds)
+        reward_bounds = fixBounds(reward_bounds)
+        action_bounds = fixBounds(action_bounds)
 
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):            
             # print ("State Mean:" + str(state_avg))
@@ -252,10 +255,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         if ('state_normalization' in settings and 
             (settings["state_normalization"] == "adaptive")):
-            experience._updateScaling()
-            if ( "keep_seperate_fd_exp_buffer" in settings 
-                     and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                experiencefd._updateScaling()
+            model._updateScaling()
+            
         # sys.exit()
     else: ## Most likely performing continuation learning
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):

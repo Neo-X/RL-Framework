@@ -1059,6 +1059,12 @@ class LearningAgent(AgentInterface):
     
     def get_multitask_trajectory_batch(self, batch_size):
         return self.getExperience().get_multitask_trajectory_batch(batch_size)
+    
+    def _updateScaling(self):
+        self.getExperience()._updateScaling()
+        if ( "keep_seperate_fd_exp_buffer" in self._settings 
+                     and ( self._settings["keep_seperate_fd_exp_buffer"] == True )):
+            self.getFDExperience()._updateScaling()
                     
     def saveTo(self, directory, bestPolicy=False, bestFD=False, suffix=""):
         from util.SimulationUtil import getAgentName
