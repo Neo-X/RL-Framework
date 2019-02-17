@@ -53,6 +53,7 @@ declare -a metaExps=(
 declare -a simConfigs=(
  	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
 	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate3D/CACLA/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode_BCE_refreshRewards.json"
 )
 
 rounds=$1
