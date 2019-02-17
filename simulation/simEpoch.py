@@ -346,7 +346,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 """
                 pass
                 # action=[0.2]
-            # print("exp_action: ", exp_action, " action", action)
+            print("exp_action: ", exp_action, " action", action)
             reward_ = actor.actContinuous(exp,action)
             """
             if ( settings['train_reward_predictor'] and (not bootstrapping)):

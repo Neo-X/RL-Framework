@@ -21,6 +21,7 @@ from model.ModelUtil import *
 
 from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
 from util.SimulationUtil import validateSettings, getFDStateSize
+from util.utils import rlPrint
 
         
 # @profile(precision=5)
@@ -38,9 +39,10 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     print ("Action selection: " + str(action_selection))
     # state_bounds = np.array(settings['state_bounds'])
     # state_bounds = np.array([[0],[0]])
-    reward_bounds=np.array(settings["reward_bounds"])
-    action_bounds = np.array(settings["action_bounds"], dtype=float)
-    state_bounds = np.array(settings['state_bounds'], dtype=float)
+    rlPrint(settings, text="state bounds: " + str(settings['state_bounds']))
+    reward_bounds=settings["reward_bounds"]
+    action_bounds = settings["action_bounds"]
+    state_bounds = settings['state_bounds']
     experiencefd = None
     data__ = ([],[],[],[],[],[],[],[])
     if (settings["bootsrap_with_discrete_policy"]) and (settings['bootstrap_samples'] > 0):

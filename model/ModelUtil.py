@@ -950,30 +950,32 @@ def validBounds(bounds):
         and max - min > epsilon
     """
     import numpy as np
-    bounds_ = np.array(bounds)
-    if (len(bounds_.shape) == 2):
+    
+    if (type(bounds[0][0]) is list):
+        pass
+    else:
         bounds_ = [bounds]
     
-    for bounds in bounds_:
-        valid = np.all(np.less(bounds[0], bounds[1]))
+    for bounds_ in bounds:
+        valid = np.all(np.less(bounds_[0], bounds_[1]))
         if (not valid):
-            less_ = np.less(bounds[0], bounds[1])
+            less_ = np.less(bounds_[0], bounds_[1])
             bad_indecies = np.where(less_ == False)
-            bad_values_low = bounds[0][bad_indecies]
-            bad_values_high = bounds[1][bad_indecies]
+            bad_values_low = bounds_[0][bad_indecies]
+            bad_values_high = bounds_[1][bad_indecies]
             print ("Invalid bounds: ", bad_indecies )
             print ("Bad Values:", bad_values_low, bad_values_high)
             
         ##  bounds not too close to each other
         epsilon = 0.01
-        bounds = np.array(bounds)
-        diff = bounds[1]-bounds[0]
+        bounds_ = np.array(bounds_)
+        diff = bounds_[1]-bounds_[0]
         valid = valid and np.all(np.greater(diff, epsilon))
         if (not valid):
             less_ = np.greater(diff, epsilon)
             bad_indecies = np.where(less_ == False)
-            bad_values_low = bounds[0][bad_indecies]
-            bad_values_high = bounds[1][bad_indecies]
+            bad_values_low = bounds_[0][bad_indecies]
+            bad_values_high = bounds_[1][bad_indecies]
             print ("Invalid bounds, bounds to small: ", bad_indecies )
             print ("Bad Values:", bad_values_low, bad_values_high)
             print ("Bounds to small:", np.greater(diff, epsilon))

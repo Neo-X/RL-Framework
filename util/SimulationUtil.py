@@ -384,7 +384,10 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
     import numpy as np
     import random
     action_bounds = np.array(settings['action_bounds'])
-    networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings, print_info=print_info)
+    if ("perform_multiagent_training" in settings):
+        pass
+    else:
+        networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings, print_info=print_info)
     num_actions= len(discrete_actions) # number of rows
     if settings['action_space_continuous']:
             action_bounds = np.array(settings["action_bounds"], dtype=float)
@@ -550,10 +553,14 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
             if ("perform_multiagent_training" in settings):
                 models = []
                 assert settings["perform_multiagent_training"] == len(state_bounds)
+                settings_ = copy.deepcopy(settings)
                 for m in range(settings["perform_multiagent_training"]):
-                    networkModel = createNetworkModel(settings["model_type"], state_bounds[m], action_bounds[m], reward_bounds[m], settings, print_info=print_info)
+                    settings__ = copy.deepcopy(settings)
+                    settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
+                    settings__["policy_network_layer_sizes"] = settings["policy_network_layer_sizes"][m]
+                    networkModel = createNetworkModel(settings__["model_type"], state_bounds[m], action_bounds[m], reward_bounds[m], settings__, print_info=print_info)
                     models.append(modelAlgorithm(networkModel, n_in=len(state_bounds[m][0]), n_out=len(action_bounds[m][0]), state_bounds=state_bounds[m], 
-                              action_bounds=action_bounds[m], reward_bound=reward_bounds[m], settings_=settings, print_info=print_info))
+                              action_bounds=action_bounds[m], reward_bound=reward_bounds[m], settings_=settings__, print_info=print_info))
                     
                     print("Loaded algorithm: ", models)
                 model = models

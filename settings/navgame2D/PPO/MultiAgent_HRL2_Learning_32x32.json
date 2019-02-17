@@ -59,7 +59,7 @@
     "comment__": "Should the method train on the validation set only",
 "train_on_validation_set":false,
     "comment__": "Name of the type of simulator to use",
-"environment_type": "HRLSimulations",
+"environment_type": "RLSimulations",
     "comment__": "Model type to use for the forward dynamics model",
 "forward_dynamics_predictor": "network",
     "comment__": "Method to be used for the forward dynamics model is the model types uses a simulator",
@@ -274,7 +274,13 @@
 	"comment__": "Use json network description",
 "network_description_type": "json",
 	"comment__": "A list describing the size of the layers for the NN",
-"critic_network_layer_sizes": [ {"layer_type": "slice"},
+"critic_network_layer_sizes": [[  
+								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dense", "units": 32, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
+								],[ 
+								{"layer_type": "slice", "slice_index": 256, "slice_label": "vel_c"},
 								{"layer_type": "Reshape", "target_shape": [1,16,16]},
 								{"layer_type": "coordconv2d"},
 								{"layer_type": "conv2d", "filters": 8, "kernel_size": [3,3], "strides": [2,2], "use_bias": true},
@@ -284,11 +290,17 @@
 								{"layer_type": "Flatten"},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
-								{"layer_type": "Concatenate"}, 
+								{"layer_type": "Concatenate", "slice_label": "vel_c"}, 
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
-								],
+								]],
 	"comment__": "A list describing the size of the layers for the NN",
-"policy_network_layer_sizes": [ {"layer_type": "slice"},
+"policy_network_layer_sizes": [[ 
+								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dense", "units": 32, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
+								],[ 
+								{"layer_type": "slice", "slice_index": 256, "slice_label": "vel_p"},
 								{"layer_type": "Reshape", "target_shape": [1,16,16]},
 								{"layer_type": "coordconv2d"},
 								{"layer_type": "conv2d", "filters": 8, "kernel_size": [3,3], "strides": [2,2], "use_bias": true},
@@ -298,9 +310,9 @@
 								{"layer_type": "Flatten"},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
-								{"layer_type": "Concatenate"}, 
+								{"layer_type": "Concatenate", "slice_label": "vel_p"},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
-								],
+								]],
 	"comment__": "Activation function to use for the std part of the policy",
 "_last_std_policy_layer_activation_type": "sigmoid",
 	"comment__": "type of activation to use",
