@@ -403,18 +403,38 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
             settings_ = copy.deepcopy(settings)
             ### This is faster....
             settings_['load_saved_model'] = False
-            networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings_)
             # modelClass = my_import(path_)
             modelAlgorithm = locate(algorihtm_type)
             if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
-                print ("networkModel: ", networkModel)
-                model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
-                              action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
-                model.setSettings(settings)
-                if (settings['load_saved_model'] == 'last'):
-                    model.loadFrom(directory+getAgentName())
+                if ("perform_multiagent_training" in settings):
+                    models = []
+                    assert settings["perform_multiagent_training"] == len(state_bounds)
+                    for m in range(settings["perform_multiagent_training"]):
+                        settings__ = copy.deepcopy(settings_)
+                        settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
+                        settings__["policy_network_layer_sizes"] = settings["policy_network_layer_sizes"][m]
+                        networkModel = createNetworkModel(settings__["model_type"], state_bounds[m], action_bounds[m], reward_bounds[m], settings__, print_info=print_info)
+                        print ("networkModel: ", networkModel)
+                        model_ = modelAlgorithm(networkModel, n_in=len(state_bounds[m][0]), n_out=len(action_bounds[m][0]), state_bounds=state_bounds[m], 
+                                  action_bounds=action_bounds[m], reward_bound=reward_bounds[m], settings_=settings__, print_info=print_info)
+                        model_.setSettings(settings__) ### Maybe this should be the normal settings...
+                        if (settings['load_saved_model'] == 'last'):
+                            model_.loadFrom(directory+getAgentName()+str(m))
+                        else:
+                            model_.loadFrom(directory+getAgentName()+str(m)+"_Best")
+                        models.append(model_)
+                    print("Loaded algorithm: ", models)
+                    model = models
                 else:
-                    model.loadFrom(directory+getAgentName()+"_Best")
+                    networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings_)
+                    print ("networkModel: ", networkModel)
+                    model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
+                                  action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings)
+                    model.setSettings(settings)
+                    if (settings['load_saved_model'] == 'last'):
+                        model.loadFrom(directory+getAgentName())
+                    else:
+                        model.loadFrom(directory+getAgentName()+"_Best")
                 print("Loaded algorithm: ", model)
                 # return model
             else:

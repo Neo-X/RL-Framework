@@ -352,7 +352,7 @@ class LearningMultiAgent(LearningAgent):
         from util.SimulationUtil import getAgentName
         suffix = ""
         # self.getPolicy().saveTo(directory+getAgentName()+suffix )
-        [self.getAgents()[i].saveTo(directory+getAgentName()+suffix+str(i) ) for i in range(len(self.getAgents()))]
+        [self.getAgents()[i].saveTo(directory, bestPolicy=bestPolicy, bestFD=bestFD, suffix=str(i)  ) for i in range(len(self.getAgents()))]
         
     def loadFrom(self, directory, best=False):
         import dill

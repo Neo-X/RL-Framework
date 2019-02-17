@@ -324,8 +324,12 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     else:
         experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
     # actor = ActorInterface(discrete_actions)
-        
-    masterAgent = LearningAgent(settings_=settings)
+    
+    if ( "perform_multiagent_training" in settings):
+        from model.LearningMultiAgent import LearningMultiAgent
+        masterAgent = LearningMultiAgent(settings_=settings)
+    else:
+        masterAgent = LearningAgent(settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     # print("Loading model: ", file_name)
@@ -338,7 +342,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
         settings["load_saved_model"] = True
     # settings["load_saved_model"] = "network_and_scales"
     model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
-    print ("State Length: ", len(model.getStateBounds()[0]) )
+    # print ("State Length: ", len(model.getStateBounds()[0]) )
     
     if (settings['train_forward_dynamics']):
         if (runLastModel == True):
@@ -384,7 +388,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
         criticLosses = []
         
     masterAgent.setSettings(settings)
-    masterAgent.setExperience(experience)
+    # masterAgent.setExperience(experience)
     masterAgent.setPolicy(model)
     
     # print (masterAgent.getRewardModel())
