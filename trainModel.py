@@ -976,17 +976,18 @@ def trainModelParallel(inputData):
             print("Exp State Bounds: ", masterAgent.getExperience().getStateBounds())
             print("Exp Action Bounds: ", masterAgent.getExperience().getActionBounds())
             
+        if ("pretrain_fd" in settings and (settings["pretrain_fd"] > 0)
+            and (trainData["round"] == 0)):
+            pretrainFD(masterAgent, states, actions, resultStates, rewards_, 
+                           falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
+                           eval_episode_data_queue)
+            
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)
             and (trainData["round"] == 0)):
             pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
                            falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
                            eval_episode_data_queue)
             
-        if ("pretrain_fd" in settings and (settings["pretrain_fd"] > 0)
-            and (trainData["round"] == 0)):
-            pretrainFD(masterAgent, states, actions, resultStates, rewards_, 
-                           falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
-                           eval_episode_data_queue)
         
         print ("Starting first round: ", trainData["round"])
         if (settings['on_policy']):

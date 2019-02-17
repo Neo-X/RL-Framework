@@ -145,13 +145,14 @@ class LearningAgent(AgentInterface):
                     ### timestep, agent, state
                     path["terminated"] = False
                     agent_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in state__])])
-                    print ("agent_traj shape: ", agent_traj.shape)
+                    # print ("agent_traj shape: ", agent_traj.shape)
                     imitation_traj = np.array([np.array([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in next_state__])])
-                    print ("imitation_traj shape: ", imitation_traj.shape)
+                    # print ("imitation_traj shape: ", imitation_traj.shape)
                     reward__ = self.getForwardDynamics().predict_reward_(agent_traj, imitation_traj)
                     # print ("reward__", reward__)
                     path['states'] = state__ # np.array([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in state__])
                     path['reward'] = reward__
+                    path['falls'] = fall__
                     # print ("state__ shape: ", path['states'].shape)
                     paths = compute_advantage_(self, [path], self._settings["discount_factor"], self._settings['GAE_lambda'])
                     advantage__ = paths["advantage"]
@@ -426,6 +427,11 @@ class LearningAgent(AgentInterface):
                 # print("Not Falls: ", _falls)
                 # print("Rewards: ", _rewards)
                 # print ("Actions after: ", _actions)
+            if ( "refresh_rewards" in self._settings
+                 and (self._settings["refresh_rewards"] == "lstm_fd")):
+                rlPrint(self._settings, "train", "Refreshing rewards.")
+                self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
+                                      __exp_actions, __G_t)
             loss = 0
             additional_on_poli_trianing_updates = 1
             if ( "additional_on-poli_trianing_updates" in self._settings 
@@ -628,7 +634,7 @@ class LearningAgent(AgentInterface):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
                         print ("Reward Distance Model training complete in " + str(sim_time_) + " seconds")
                 if ( "refresh_rewards" in self._settings
-                     and (self._settings["refresh_rewards"])):
+                     and (self._settings["refresh_rewards"] == True)):
                     rlPrint(self._settings, "train", "Refreshing rewards.")
                     self.recomputeRewards(__states, __actions, __rewards, __result_states, __falls, __advantage, 
                                           __exp_actions, __G_t)

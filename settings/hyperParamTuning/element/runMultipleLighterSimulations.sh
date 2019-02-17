@@ -20,10 +20,10 @@ declare -a metaExps=(
  				"settings/hyperParamTuning/element/critic_learning_rate.json"
 #				"settings/hyperParamTuning/element/critic_network_layer_sizes.json"
 # 				"settings/hyperParamTuning/element/critic_updates_per_actor_update.json"
- 				"settings/hyperParamTuning/element/dont_use_td_learning.json"
+# 				"settings/hyperParamTuning/element/dont_use_td_learning.json"
 # 				"settings/hyperParamTuning/element/dropout_p.json" 
 # 				"settings/hyperParamTuning/element/exploration_rate.json"
-				"settings/hyperParamTuning/element/fd_algorithm.json"
+# 				"settings/hyperParamTuning/element/fd_algorithm.json"
 				"settings/hyperParamTuning/element/fd_distance_function.json"
  				"settings/hyperParamTuning/element/fd_learning_rate.json" 
 # 				"settings/hyperParamTuning/element/fd_updates_per_actor_update.json" 
@@ -51,10 +51,11 @@ declare -a metaExps=(
 
 ## declare an array variable
 declare -a simConfigs=(
- 	"settings/projectileGame/PPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
+# 	"settings/projectileGame/PPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
 # 	"settings/projectileGame/PPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode_BCE.json"
-	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
-	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode_BCE.json"
+#	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
+#	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode_BCE.json"
+	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode_BCE_refreshRewards.json"
 )
 
 rounds=$1
