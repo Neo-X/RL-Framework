@@ -125,6 +125,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         
         state_ = exp.getState()
         # print ("state_: ", repr(np.array(state_).shape))
+        # print ("state_: ", state_)
         
         states.append(state_)
         states__.extend(state_)
@@ -346,7 +347,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 """
                 pass
                 # action=[0.2]
-            print("exp_action: ", exp_action, " action", action)
+            # print("exp_action: ", exp_action, " action", action)
             reward_ = actor.actContinuous(exp,action)
             """
             if ( settings['train_reward_predictor'] and (not bootstrapping)):
@@ -618,7 +619,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     for a in range(len(states[0])):
         path = {}
         ### timestep, agent, state
-        path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
+        # path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
+        ### In multi-agent sims agents can have different sized state vectors
+        path['states'] = copy.deepcopy(np.array([st[a] for st in states[last_epoch_end:]]))
         path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
         path['falls'] = np.array(np.array(falls[last_epoch_end:])[:,a,:])
         path["terminated"] = False

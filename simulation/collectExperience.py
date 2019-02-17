@@ -125,7 +125,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         scale_factor = 1.0
         
-        state_bounds = np.ones((2,states.shape[1]))
+        # state_bounds = np.ones((2,states.shape[1]))
         
         state_normalization = settings['state_normalization']
         if ( "use_dual_state_representations" in settings
@@ -133,8 +133,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             state_normalization = "given"
         
         if (state_normalization == "minmax"):
-            state_bounds[0] = np.min(states[:settings['bootstrap_samples']], axis=0)
-            state_bounds[1] = np.max(states[:settings['bootstrap_samples']], axis=0)
+            state_bounds = [np.min(states[:settings['bootstrap_samples']], axis=0),
+                            np.max(states[:settings['bootstrap_samples']], axis=0)]
             reward_bounds[0] = np.min(rewards_[:settings['bootstrap_samples']], axis=0)
             reward_bounds[1] = np.max(rewards_[:settings['bootstrap_samples']], axis=0)
             # action_bounds[0] = np.min(actions[:settings['bootstrap_samples']], axis=0)
@@ -145,8 +145,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             state_stddev = np.std(states[:settings['bootstrap_samples']], axis=0)
             reward_avg = np.mean(rewards[:settings['bootstrap_samples']], axis=0)
             reward_stddev = np.std(rewards[:settings['bootstrap_samples']], axis=0)
-            action_avg = np.mean(actions[:settings['bootstrap_samples']], axis=0)
-            action_stddev = np.std(actions[:settings['bootstrap_samples']], axis=0)
+            # action_avg = np.mean(actions[:settings['bootstrap_samples']], axis=0)
+            # action_stddev = np.std(actions[:settings['bootstrap_samples']], axis=0)
             if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                 print("Computed state min bound: ", state_avg - state_stddev)
                 print("Computed state max bound: ", state_avg + state_stddev)
