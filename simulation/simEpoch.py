@@ -665,7 +665,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     tmp_exp_actions = []
     tmp_baselines_ = []
     tmp_advantage = []
-    ### data is in format (state, agent)
+    ### data is in format (state, agent), this "extend" does not work well for multi-agent simulation
+    # print ("states: ", np.array(states).shape)
     for s in range(len(states)):
         tmp_states.extend(states[s])
         tmp_actions.extend(actions[s])

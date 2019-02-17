@@ -201,10 +201,26 @@ class LearningMultiAgent(LearningAgent):
     # @profile(precision=5)
     def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
               _exp_actions=None, _G_t=None, p=1.0):
+        import numpy as np 
         
-        for agent_ in self.getAgents():
-            agent_.train(_states, _actions, _rewards, _result_states, _falls, _advantage=_advantage, 
-              _exp_actions=_exp_actions, _G_t=_G_t, p=p)
+        for agent_ in range(len(self.getAgents())):
+            # print ("_states: ", np.array(_states).shape)
+            # print ("_states[0][0]: ", np.array(_states[0][0]).shape)
+            # print ("_states[0][1]: ", np.array(_states[0][1]).shape)
+            # print ("_states[0][2]: ", np.array(_states[0][2]).shape)
+            ### Pull out the state for each agent, start at agent index and skip every number of agents 
+            states__ = [state_[agent_::len(self.getAgents())] for state_ in _states]
+            actions__ = [state_[agent_::len(self.getAgents())] for state_ in _actions]
+            rewards__ = [state_[agent_::len(self.getAgents())] for state_ in _rewards]
+            result_states__ = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
+            falls__ = [state_[agent_::len(self.getAgents())] for state_ in _falls]
+            advantage__ = [state_[agent_::len(self.getAgents())] for state_ in _advantage]
+            exp_actions__ = [state_[agent_::len(self.getAgents())] for state_ in _exp_actions]
+            G_t__ = [state_[agent_::len(self.getAgents())] for state_ in _G_t]
+            
+            # print ("states__: ", np.array(states__).shape) 
+            self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
+              _exp_actions=exp_actions__, _G_t=G_t__, p=p)
         
     def recomputeRewards(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t):
@@ -274,7 +290,8 @@ class LearningMultiAgent(LearningAgent):
     def bellman_error(self, state, action, reward, result_state, fall):
         if self._useLock:
             self._accesLock.acquire()
-        err = [p_.bellman_error(state, action, reward, result_state, fall) for p_, state_, action_, reward_, result_state_, fall_ in zip(self.getAgents(), state, action, reward, result_state, fall)] 
+        # err = [p_.bellman_error(state, action, reward, result_state, fall) for p_, state_, action_, reward_, result_state_, fall_ in zip(self.getAgents(), state, action, reward, result_state, fall)]
+        err = self.getAgents()[0].bellman_error(state, action, reward, result_state, fall)  
         if self._useLock:
             self._accesLock.release()
         return err[0]

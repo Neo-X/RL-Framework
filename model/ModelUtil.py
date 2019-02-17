@@ -992,7 +992,10 @@ def fixBounds(bounds):
     
     import numpy as np
     
-    if (type(bounds[0][0]) is list):
+    ### This could be a numpy array as well...
+    print ("bounds[0][0]: ", bounds[0][0])
+    print ("bounds[0][0]: ", type(bounds[0][0]))
+    if (isinstance(bounds[0][0], list) or (isinstance(bounds[0][0], np.ndarray))):
         bounds_ = []
         for bounds__ in bounds:
             bounds__ = np.array(bounds__)
@@ -1032,18 +1035,26 @@ def fixBounds(bounds):
         # print("Bounds fixed: ", bounds)
     return bounds
 
-def checkDataIsValid(data, verbose=False, scale=1.0):
+def checkDataIsValid(data, verbose=False, scale=1.0, identifier="Data"):
         """
             Checks to make sure the data going into the exp buffer is not garbage...
             Returns True if the data is valid
         """
         import numpy as np
+        # print(identifier, " data: ", data)
+        
+        if (type(data[0][0]) is list):
+            ### Multi Agent or multi state simulation
+            valid = True
+            for data__ in data:
+                valid = valid and checkDataIsValid(data__, verbose=verbose, scale=scale, identifier=identifier)
+        
         data = np.array(data)
         if (not np.all(np.isfinite(data))):
             if ( verbose ):
                 less_ = np.isfinite(data)
                 bad_indecies = np.where(less_ == False)
-                print ("Data not finite: ", less_ )
+                print (identifier + " not finite: ", less_ )
                 print ("Bad Value indx: ", bad_indecies)
                 bad_values_ = data[bad_indecies]
                 print ("Bad Values: ", bad_values_)
@@ -1053,7 +1064,7 @@ def checkDataIsValid(data, verbose=False, scale=1.0):
             if ( verbose ):
                 less_ = np.less(data, -1000.0*scale)
                 bad_indecies = np.where(less_ == True)
-                print ("Data too negative: ", less_ )
+                print (identifier + " too negative: ", less_ )
                 print ("Bad Value indx: ", bad_indecies)
                 bad_values_ = data[bad_indecies]
                 print ("Bad Values: ", bad_values_)
@@ -1064,7 +1075,7 @@ def checkDataIsValid(data, verbose=False, scale=1.0):
                 less_ = np.greater(data, 1000.0*scale)
                 bad_indecies = np.where(less_ == True)
                 bad_values_ = data[bad_indecies]
-                print ("Data too positive: ", less_ )
+                print (identifier + " too positive: ", less_ )
                 print ("Bad Value indx: ", bad_indecies)
                 bad_values_ = data[bad_indecies]
                 print ("Bad Values: ", bad_values_)
@@ -1076,115 +1087,19 @@ def checkValidData(state, action, nextState, reward, advantage=None, verbose=Fal
         """
             Checks to make sure the data going into the exp buffer is not garbage...
         """
-        import numpy as np
-        state = np.array(state)
-        action = np.array(action)
-        nextState = np.array(nextState)
-        reward = np.array(reward)
         
-        
-        if (not np.all(np.isfinite(state))):
-            if ( verbose ):
-                less_ = np.isfinite(state)
-                bad_indecies = np.where(less_ == False)
-                print ("State not finite: ", less_ )
-                print ("Bad Value indx: ", bad_indecies)
-                bad_values_ = state[bad_indecies]
-                print ("Bad Values: ", bad_values_)
+        if (not checkDataIsValid(state, identifier="State")):
+            return False
+               
+        if (not checkDataIsValid(action, identifier="Action")):
             return False
         
-        # print ("action: ", action)
-        if (not np.all(np.isfinite(action))):
-            if ( verbose ):
-                less_ = np.isfinite(action)
-                bad_indecies = np.where(less_ == False)
-                print ("Action not finite: ", less_ )
-                print ("Bad Value indx: ", bad_indecies)
-                bad_values_ = action[bad_indecies]
-                print ("Bad Values: ", bad_values_)
+        if (not checkDataIsValid(nextState, identifier="Next State")):
             return False
         
-        if (not np.all(np.isfinite(nextState))):
-            if ( verbose ):
-                less_ = np.isfinite(nextState)
-                bad_indecies = np.where(less_ == False)
-                print ("NextState not finite: ", less_)
-                print ("Bad Value indx: ", bad_indecies)
-                bad_values_ = nextState[bad_indecies]
-                print ("Bad Values: ", bad_values_)
+        if (not checkDataIsValid(reward, identifier="Reward")):
             return False
-        
-        if (not np.all(np.isfinite(reward))):
-            if ( verbose ):
-                less_ = np.isfinite(reward)
-                bad_indecies = np.where(less_ == False)
-                bad_values_ = reward[bad_indecies]
-                print ("Reward not finite: ", np.isfinite(state) )
-                print ("Bad Value indx: ", bad_indecies)
-                print ("Bad Values: ", bad_values_)
-            return False
-        
-        if (np.any(np.less(state, -1000.0))):
-            if ( verbose ):
-                less_ = np.less(state, -1000.0)
-                bad_indecies = np.where(less_ == True)
-                print ("State too negative: ", less_)
-                print ("Bad Value indx: ", bad_indecies)
-                bad_values_ = state[bad_indecies]
-                print ("Bad Values: ", bad_values_)
-            return False
-        
-        if (np.any(np.less(nextState, -1000.0))):
-            if ( verbose ):
-                less_ = np.less(nextState, -1000.0)
-                bad_indecies = np.where(less_ == True)
-                print ("nextState too negative: ", less_ )
-                print ("Bad Value indx: ", bad_indecies)
-                bad_values_ = nextState[bad_indecies]
-                print ("Bad Values: ", bad_values_)
-            return False
-        
-        if (np.any(np.less(action, -1000.0))):
-            if ( verbose ):
-                less_ = np.less(action, -1000.0)
-                bad_indecies = np.where(less_ == True)
-                print ("action too negative: ", less_ )
-                print ("Bad Value indx: ", bad_indecies)
-                bad_values_ = action[bad_indecies]
-                print ("Bad Values: ", bad_values_)
-            return False
-        
-        if (np.any(np.greater(state, 1000.0))):
-            if ( verbose ):    
-                less_ = np.greater(state, 1000.0)
-                bad_indecies = np.where(less_ == True)
-                bad_values_ = state[bad_indecies]
-                print ("State too positive: ", less_)
-                print ("Bad Value indx: ", bad_indecies)
-                bad_values_ = state[bad_indecies]
-                print ("Bad Values: ", bad_values_)
-            return False
-        
-        if (np.any(np.greater(nextState, 1000.0))):
-            if ( verbose ):
-                less_ = np.greater(nextState, 1000.0)
-                bad_indecies = np.where(less_ == True)
-                print ("nextState too positive: ", less_ )
-                print ("Bad Value indx: ", bad_indecies)
-                bad_values_ = nextState[bad_indecies]
-                print ("Bad Values: ", bad_values_)
-            return False
-        
-        if (np.any(np.greater(action, 1000.0))):
-            if ( verbose ):
-                less_ = np.greater(action, 1000.0)
-                bad_indecies = np.where(less_ == True)
-                print ("action too positive: ", less_ )
-                print ("Bad Value indx: ", bad_indecies)
-                bad_values_ = action[bad_indecies]
-                print ("Bad Values: ", bad_values_)
-            return False
-        
+                
         return True
     
 
