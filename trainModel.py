@@ -211,15 +211,18 @@ def getLearningData(masterAgent, settings, tmp_p):
     
 def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
                    sim_work_queues, eval_episode_data_queue):
-    from simulation.simEpoch import simModelParrallel
+    from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
     settings__ = copy.deepcopy(masterAgent.getSettings())
     settings__2 = copy.deepcopy(masterAgent.getSettings())
     settings__["train_actor"] = False
     settings__["clear_exp_mem_on_poli"] = True
     ### Protects for the case when they are singular and don't want to skip training the critic and train the policy
     settings__["ppo_use_seperate_nets"] = True
+    """
+    ### This will not change the settings of the simWorkers that will be expecting "fast"
     if (settings__["on_policy"] == "fast"):
         settings__["on_policy"] = True
+    """
     masterAgent.setSettings(settings__)
     masterAgent.getPolicy().setSettings(settings__)
     # masterAgent.getForwardDynamics().setSettings(settings)
@@ -229,12 +232,21 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
                                        _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
                                        _G_t=G_ts_, p=1.0)
         ### Send keep alive to sim processes
-        out = simModelParrallel( sw_message_queues=sim_work_queues,
-                                                   model=masterAgent, settings=settings__, 
-                                                   eval_episode_data_queue=eval_episode_data_queue, 
-                                                   anchors=settings__['num_on_policy_rollouts'],
-                                                   type='keep_alive',
-                                                   p=1)
+        if (masterAgent.getSettings()['on_policy'] == "fast"):
+            out = simModelMoreParrallel( sw_message_queues=sim_work_queues
+                                       ,model=masterAgent, settings=settings__ 
+                                       ,eval_episode_data_queue=eval_episode_data_queue 
+                                       ,anchors=settings['num_on_policy_rollouts']
+                                       ,type='keep_alive'
+                                       ,p=1
+                                       )
+        else:
+            out = simModelParrallel( sw_message_queues=sim_work_queues,
+                                   model=masterAgent, settings=settings__, 
+                                   eval_episode_data_queue=eval_episode_data_queue, 
+                                   anchors=settings__['num_on_policy_rollouts'],
+                                   type='keep_alive',
+                                   p=1)
     ### back to normal settings
     masterAgent.setSettings(settings__2)
     masterAgent.getPolicy().setSettings(settings__2)
@@ -242,7 +254,7 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
     
 def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
                    sim_work_queues, eval_episode_data_queue):
-    from simulation.simEpoch import simModelParrallel
+    from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
     settings__ = copy.deepcopy(masterAgent.getSettings())
     settings__2 = copy.deepcopy(masterAgent.getSettings())
     settings__["train_actor"] = False
@@ -259,12 +271,22 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
                                        _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
                                        _G_t=G_ts_, p=1.0)
         ### Send keep alive to sim processes
-        out = simModelParrallel( sw_message_queues=sim_work_queues,
-                                                   model=masterAgent, settings=settings__, 
-                                                   eval_episode_data_queue=eval_episode_data_queue, 
-                                                   anchors=settings__['num_on_policy_rollouts'],
-                                                   type='keep_alive',
-                                                   p=1)
+        if (masterAgent.getSettings()['on_policy'] == "fast"):
+            out = simModelMoreParrallel( sw_message_queues=sim_work_queues
+                                       ,model=masterAgent, settings=settings__ 
+                                       ,eval_episode_data_queue=eval_episode_data_queue 
+                                       ,anchors=settings['num_on_policy_rollouts']
+                                       ,type='keep_alive'
+                                       ,p=1
+                                       )
+        else:
+            out = simModelParrallel( sw_message_queues=sim_work_queues,
+                                   model=masterAgent, settings=settings__, 
+                                   eval_episode_data_queue=eval_episode_data_queue, 
+                                   anchors=settings__['num_on_policy_rollouts'],
+                                   type='keep_alive',
+                                   p=1)
+
     ### back to normal settings
     masterAgent.setSettings(settings__2)
     masterAgent.getPolicy().setSettings(settings__2)
@@ -978,15 +1000,26 @@ def trainModelParallel(inputData):
             
         if ("pretrain_fd" in settings and (settings["pretrain_fd"] > 0)
             and (trainData["round"] == 0)):
-            pretrainFD(masterAgent, states, actions, resultStates, rewards_, 
+            if (settings['on_policy'] == "fast"):
+                pretrainFD(masterAgent, states, actions, resultStates, rewards_, 
+                           falls_, G_ts_, exp_actions, advantage_, input_anchor_queue, 
+                           eval_episode_data_queue)
+            else:
+                pretrainFD(masterAgent, states, actions, resultStates, rewards_, 
                            falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
                            eval_episode_data_queue)
             
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)
             and (trainData["round"] == 0)):
-            pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
-                           falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
-                           eval_episode_data_queue)
+            ### Send keep alive to sim processes
+            if (settings['on_policy'] == "fast"):
+                pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
+                               falls_, G_ts_, exp_actions, advantage_, input_anchor_queue, 
+                               eval_episode_data_queue)
+            else:
+                pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
+                               falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
+                               eval_episode_data_queue)
             
         
         print ("Starting first round: ", trainData["round"])

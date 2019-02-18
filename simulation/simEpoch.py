@@ -935,14 +935,14 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
             episodeData['type'] = 'bootstrapping'
         # sw_message_queues[j].put(episodeData, timeout=timeout_)
         if (settings['on_policy'] == True):
-            # print ("sw_message_queues[j].maxsize: ", sw_message_queues[j].qsize() )
+            print ("sw_message_queues[j].maxsize: ", sw_message_queues[j].qsize() )
             sw_message_queues[j].put(episodeData, timeout=timeout_)
         else:
             sw_message_queues.put(episodeData, timeout=timeout_)
         j += 1
         # print("j: ", j)
         
-        
+    datas__ = []
     while ( (samples__ < (min_samples) or  (j > 0))
             ):
         
@@ -951,7 +951,10 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         if ( type == "keep_alive"):
             dat =  eval_episode_data_queue.get(timeout=timeout_)
             datas__.append(dat)
-            continue
+            if ( j == 0 ):
+                break
+            else:
+                continue
         (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get(timeout=timeout_)
         
         discounted_values.append(discounted_sum_)
@@ -1051,5 +1054,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         std_eval = np.std(evalDatas)
         return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
             mean_eval, std_eval)
+    elif ( type == "keep_alive"):
+        return datas__
     else:
         return (tuples, discounted_values, values, evalDatas)
