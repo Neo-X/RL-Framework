@@ -34,7 +34,7 @@ declare -a metaExps=(
 #  				"settings/hyperParamTuning/element/ppo_et_factor.json"
 # 				"settings/hyperParamTuning/element/pretrain_critic.json" 
 # 				"settings/hyperParamTuning/element/reset_on_fall.json" 
-#				"settings/hyperParamTuning/element/state_normalization.json"		
+				"settings/hyperParamTuning/element/state_normalization.json"		
 #  				"settings/hyperParamTuning/element/use_single_network.json"
 #  				"settings/hyperParamTuning/element/use_stocastic_policy.json"
 #  				"settings/hyperParamTuning/element/use_target_net_for_critic.json"
@@ -43,10 +43,13 @@ declare -a metaExps=(
 
 ## declare an array variable
 declare -a simExps=(
-	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_5_NEWLLC_Tensorflow_v1.json"
-	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_NEWLLC_Tensorflow_v1.json"
-	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_5_NEWLLC_Tensorflow_v1.json"
-	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_NEWLLC_Tensorflow_v1.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
+	"settings/terrainRLMultiChar/HLC/PPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
+	"settings/terrainRLMultiChar/HLC/TRPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
+#	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_5_NEWLLC_Tensorflow_v1.json"
+#	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_NEWLLC_Tensorflow_v1.json"
+#	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_5_NEWLLC_Tensorflow_v1.json"
+#	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_NEWLLC_Tensorflow_v1.json"
 #	"settings/terrainRLMultiChar/HLC/PPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
 )
 
