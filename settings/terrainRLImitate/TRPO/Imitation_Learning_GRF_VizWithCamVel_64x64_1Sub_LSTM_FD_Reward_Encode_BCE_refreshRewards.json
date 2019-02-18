@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_2D_GRF_Viz3D_64x64_WithCamVel_1Sub_Imitate_30FPS_DualState_v0/LSTM_FD_Reward_BCE_refreshRewards_T128__7",
+"data_folder": "PD_Humanoid_2D_GRF_Viz3D_64x64_WithCamVel_1Sub_Imitate_30FPS_DualState_v0/LSTM_FD_Reward_BCE_refreshRewards_T128__8",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -393,7 +393,7 @@
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "Dropout", "rate": 0.2},
 							{"layer_type": "Flatten"},
-							{"layer_type": "Dense", "units": 256, "use_bias": false},
+							{"layer_type": "Dense", "units": 128, "use_bias": false},
 							{"layer_type": "BatchNormalization"},
 							{"layer_type": "Concatenate"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" }
@@ -402,7 +402,7 @@
 "reward_network_layer_sizes": [
 							{"layer_type": "LayerNormalization"},
 							{"layer_type": "TimeDistributedConv", "net_info": "fd"},
-							{"layer_type": "LSTM", "units": 256, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
+							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
 							],
 		"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -469,7 +469,7 @@
 	"comment__": "Add velocity state to image state",
 "append_camera_velocity_state": "3D",
 	"comment__": "The shortest sequence the RNN network will be trained on",
-"min_sequece_length": 3,
+"min_sequece_length": 1,
 	"comment__": "The type of distance function the fd learning model should use to compute differences.",
 "fd_distance_function": "l1",
 	"comment__": "image noise factor that is added to the frames captured from the simulations",
