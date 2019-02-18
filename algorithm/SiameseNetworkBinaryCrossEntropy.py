@@ -232,7 +232,7 @@ class SiameseNetworkBinaryCrossEntropy(KERASAlgorithm):
             else:
                 sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
             sequences0 = np.array(sequences0)
-            # print ("sequences0 shape: ", sequences0.shape)
+            print ("sequences0 shape: ", sequences0.shape)
             sequences1 = np.array(sequences1)
             targets_ = np.array(targets_)
             

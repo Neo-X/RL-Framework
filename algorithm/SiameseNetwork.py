@@ -369,7 +369,6 @@ def create_sequences(traj0, traj1, settings):
                 sequences1.append(tr0[:-1] + np.random.normal(loc=0, scale=noise_scale, size=tr0[:-1].shape))
                 targets = np.zeros(tar_shape) + compare_adjustment
                 targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
-            
             ### Randomly shuffled sequences
             indicies = range(len(tr1))
             # print ("indicies: ", indicies)
@@ -394,7 +393,6 @@ def create_sequences(traj0, traj1, settings):
                 sequences1.append(np.array(tr0)[np.random.choice(indicies, len(tr0[1:]))] + np.random.normal(loc=0, scale=noise_scale, size=tr1[1:].shape))
                 targets = np.zeros(tar_shape)
                 targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
-            
             if ("include_agent_imitator_pairs" in settings
                 and (settings["include_agent_imitator_pairs"] == True)):
                 ### Versions of two different trajectories

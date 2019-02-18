@@ -282,14 +282,14 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     discount_factor=settings["discount_factor"]
     # max_reward=settings["max_reward"]
     batch_size=settings["batch_size"]
-    state_bounds = np.array(settings['state_bounds'])
+    state_bounds = settings['state_bounds']
     action_space_continuous=settings["action_space_continuous"]  
     discrete_actions = np.array(settings['discrete_actions'])
     num_actions= discrete_actions.shape[0]
     reward_bounds=np.array(settings["reward_bounds"])
     action_space_continuous=settings['action_space_continuous']
     if ( not (settings["action_bounds"] == "ask_env")) and action_space_continuous:
-        action_bounds = np.array(settings["action_bounds"], dtype=float)
+        action_bounds = settings["action_bounds"]
     
     print ("Sim config file name: " + str(settings["sim_config_file"]))
     sim_index=0
@@ -388,7 +388,10 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
         criticLosses = []
         
     masterAgent.setSettings(settings)
-    # masterAgent.setExperience(experience)
+    if ( "perform_multiagent_training" in settings):
+        pass
+    else:
+        masterAgent.setExperience(experience)
     masterAgent.setPolicy(model)
     
     # print (masterAgent.getRewardModel())

@@ -952,7 +952,7 @@ def validBounds(bounds):
     import numpy as np
     
     if (isinstance(bounds[0][0], list) or (isinstance(bounds[0][0], np.ndarray))):
-        pass
+        bounds_ = bounds
     else:
         bounds_ = [bounds]
     
