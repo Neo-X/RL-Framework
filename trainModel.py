@@ -1051,7 +1051,8 @@ def trainModelParallel(inputData):
                                 ## block on full queue
                                 m_q.put(message, timeout=timeout_)
                     
-                    if (True):
+                    if ("test_net_param_propogation" in settings
+                        and (settings["test_net_param_propogation"] == True)):
                         ### Check that the network parameters and scaling values were properly propogated
                         if (settings['on_policy'] == "fast"):
                             out = simModelMoreParrallel( sw_message_queues=input_anchor_queue
@@ -1069,11 +1070,13 @@ def trainModelParallel(inputData):
                                        ,p=p
                                        )
                         # print ("**** Sim network params: ", out)
-                        print ("**** data shape: ", len(data))
-                        print ("**** net_params shape: ", len(out))
-                        for sim_net_params_id in range(len(out)):
-                            print ("**** sim_net_params shape: ", len(out[sim_net_params_id]))
-                            assert compareNetParams(data, out[sim_net_params_id])
+                        # print ("**** data shape: ", len(data))
+                        # print ("**** net_params shape: ", len(out))
+                        for sim_net_params in out:
+                            # print ("**** sim_net_params shape: ", len(out[sim_net_params_id]))
+                            compare_good = compareNetParams(data, sim_net_params)
+                            # print ("compare_good: ", compare_good)
+                            assert compare_good
                     # states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
                 else:

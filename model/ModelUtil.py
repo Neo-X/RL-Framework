@@ -1192,8 +1192,8 @@ def compareNetParams(params1, params2):
     are_equal = True
     assert len(params1) == len(params2), "The number of parameters is not correct"
     for i in range(1, len(params1)): ### Skip first string
-        print ("Shape param1: ", np.array(params1[i]).shape)
-        print ("Shape param2: ", np.array(params2[i]).shape)
+        # print ("Shape param1: ", np.array(params1[i]).shape)
+        # print ("Shape param2: ", np.array(params2[i]).shape)
         # print ("param1: ", param1)
         # print ("param2: ", param2)
         if (i == 5
@@ -1202,21 +1202,21 @@ def compareNetParams(params1, params2):
             # compareNetParams(params1[i], params2[i])
             assert len(params1[i]) == len(params2[i])
             for j in range(len(params1[i])): ### Skip first string
-                print ("Shape param1: ", np.array(params1[i][j]).shape)
-                print ("Shape param2: ", np.array(params2[i][j]).shape)
+                # print ("Shape param1: ", np.array(params1[i][j]).shape)
+                # print ("Shape param2: ", np.array(params2[i][j]).shape)
                 # print ("param1: ", params1[i][j])
                 # print ("param2: ", params2[i][j])
                 assert len(params1[i][j]) == len(params2[i][j])
                 for k in range(len(params1[i][j])): ### Skip first string
-                    print ("Shape param1: ", np.array(params1[i][j][k]).shape)
-                    print ("Shape param2: ", np.array(params2[i][j][k]).shape)
+                    # print ("Shape param1: ", np.array(params1[i][j][k]).shape)
+                    # print ("Shape param2: ", np.array(params2[i][j][k]).shape)
                     # print ("param1: ", params1[i][j])
                     # print ("param2: ", params2[i][j])
                     are_equal = are_equal and np.allclose(params1[i][j][k], params2[i][j][k])
-                    print("Are network parameters the same?: ", np.allclose(params1[i][j][k], params2[i][j][k]))
+                    # print("Are network parameters the same?: ", np.allclose(params1[i][j][k], params2[i][j][k]))
         else:
             are_equal = are_equal and np.allclose(params1[i], params2[i])
-            print("Are params bounds the same?: ", np.allclose(params1[i], params2[i]))
+            # print("Are params bounds the same?: ", np.allclose(params1[i], params2[i]))
         
         
     # print("net params the same?: ", np.allclose(params1, params2))

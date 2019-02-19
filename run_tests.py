@@ -24,7 +24,8 @@ tests_ =[
         ,'test_MultiAgentRL_and_HRL.py'
         ,'test_fd_models.py'
         ,'test_meta_training.py'
-        ,'test_viz_imitation.py',
+        ,'test_viz_imitation.py'
+        ,'test_parallel_learning.py'
          ]
 
 def run_tests(metaSettings, test=False):

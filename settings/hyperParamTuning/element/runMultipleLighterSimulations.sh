@@ -51,10 +51,10 @@ declare -a metaExps=(
 
 ## declare an array variable
 declare -a simConfigs=(
-# 	"settings/projectileGame/PPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
+ 	"settings/projectileGame/PPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
 # 	"settings/projectileGame/PPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode_BCE.json"
-#	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
-#	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode_BCE.json"
+	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
+	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode_BCE.json"
 #	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode_BCE_refreshRewards.json"
 	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_EncodeDecode.json"
 )

@@ -324,18 +324,28 @@ class SimWorker(Process):
                             data = data_
                     # print ("Got updated network parameters:")
                     # print("episodeData: ", episodeData)
-                    if (episodeData != None and (isinstance(episodeData,dict))):
+                    if (data != None and (isinstance(data,dict))):
                         # message = episodeData[0]## Check if any messages in the queue
-                        if episodeData['type'] == "Update_Policy":
+                        if data['type'] == "Update_Policy":
                             data = data['data']
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Message: ", episodeData['type'])
                                 
                             self.updateAgent(data)
-
-                            print ("Need to remember to uncomment this...")
-                            print ("Need to remember to uncomment this...")
-                            print ("Need to remember to uncomment this...")
+                            """
+                            self._model.setStateBounds(data[2])
+                            self._model.setActionBounds(data[3])
+                            self._model.setRewardBounds(data[4])
+                            # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                # print("Scaling State params: ", self._model.getStateBounds())
+                                # print("Scaling Action params: ", self._model.getActionBounds())
+                                # print("Scaling Reward params: ", self._model.getRewardBounds())
+                            self._model.getPolicy().setNetworkParameters(data[5])
+                            if (self._settings['train_forward_dynamics']):
+                                self._model.getForwardDynamics().setNetworkParameters(data[6])
+                            p = data[1]
+                            self._p = p
+                            """
                             
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
