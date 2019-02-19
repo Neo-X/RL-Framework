@@ -18,7 +18,7 @@ from keras.layers import RepeatVector
 # theano.config.mode='FAST_COMPILE'
 from algorithm.KERASAlgorithm import KERASAlgorithm
 
-from algorithm.SiameseNetwork import compute_accuracy, contrastive_loss_np, cosine_distance, cos_dist_output_shape, euclidean_distance, euclidean_distance_np, eucl_dist_output_shape, contrastive_loss, create_sequences, create_multitask_sequences, create_pairs2
+from algorithm.SiameseNetwork import compute_accuracy, contrastive_loss_np, cosine_distance, cos_dist_output_shape, euclidean_distance, euclidean_distance_np, eucl_dist_output_shape, contrastive_loss, create_sequences, create_multitask_sequences, create_pairs2, l1_distance, l1_distance_np
 
 
 class SiameseNetworkEncoderDecorder(KERASAlgorithm):
@@ -30,6 +30,13 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
         self._learning_rate = self.getSettings()["fd_learning_rate"]
         self._regularization_weight = 1e-6
         
+        self._distance_func = euclidean_distance
+        self._distance_func_np = euclidean_distance_np
+        if ( "fd_distance_function" in self.getSettings()
+             and (self.getSettings()["fd_distance_function"] == "l1")):
+            print ("Using ", self.getSettings()["fd_distance_function"], " distance metric for siamese network.")
+            self._distance_func = l1_distance
+            self._distance_func_np = l1_distance_np
         condition_reward_on_result_state = False
         self._train_combined_loss = False
         
@@ -86,7 +93,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
         self._model.processed_b = Model(inputs=[state_copy], outputs=encode_b)
         
         # distance_fd = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-        distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([encode_a, encode_b])
+        distance_r = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([encode_a, encode_b])
         
 
         self._model._forward_dynamics_net = Model(inputs=[self._model._State_
@@ -409,7 +416,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
             h_a = self._model.processed_a.predict([np.array([state])])
             h_b = self._model.processed_b.predict([np.array([state2])])
-            state_ = euclidean_distance_np((h_a, h_b))[0]
+            state_ = self._distance_func_np((h_a, h_b))[0]
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
@@ -445,7 +452,7 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             # print ("State shape: ", np.array([np.array([state])]).shape)
             h_a = self._model.processed_a.predict([np.array([state])])
             h_b = self._model.processed_b.predict([np.array([state2])])
-            reward_ = euclidean_distance_np((h_a, h_b))[0]
+            reward_ = self._distance_func_np((h_a, h_b))[0]
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:

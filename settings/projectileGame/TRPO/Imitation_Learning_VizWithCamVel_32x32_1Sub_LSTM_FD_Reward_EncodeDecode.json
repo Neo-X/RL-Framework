@@ -413,5 +413,7 @@
 	"comment__": "The shortest sequence the RNN network will be trained on",
 "min_sequece_length": 3,
 	"comment__": "Add velocity state to image state",
-"append_camera_velocity_state": true
+"append_camera_velocity_state": true,
+	"comment__": "The type of distance function the fd learning model should use to compute differences.",
+"fd_distance_function": "l1"
 }
