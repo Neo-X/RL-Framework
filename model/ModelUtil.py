@@ -1103,6 +1103,125 @@ def checkValidData(state, action, nextState, reward, advantage=None, verbose=Fal
                 
         return True
     
+    
+def getLearningData(masterAgent, settings, tmp_p):
+    data = ('Update_Policy', tmp_p, 
+            masterAgent.getStateBounds(), 
+            masterAgent.getActionBounds(), 
+            masterAgent.getRewardBounds(), 
+            masterAgent.getPolicyNetworkParameters())
+    if (settings['train_forward_dynamics']):
+        # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
+        data = ('Update_Policy', tmp_p, masterAgent.getStateBounds(), masterAgent.getActionBounds(), masterAgent.getRewardBounds(), 
+                masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
+        if ( "keep_seperate_fd_exp_buffer" in settings 
+             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+            data = ('Update_Policy', tmp_p, 
+                masterAgent.getStateBounds(),
+                masterAgent.getActionBounds(),
+                masterAgent.getRewardBounds(),
+                masterAgent.getPolicyNetworkParameters(),
+                masterAgent.getFDNetworkParameters(),
+                [[0]],
+                masterAgent.getFDStateBounds(),
+                masterAgent.getFDActionBounds(),
+                masterAgent.getFDRewardBounds(),
+                 ) 
+    if (settings['train_forward_dynamics'] and
+        ("train_reward_distance_metric" in settings and
+         (settings["train_reward_distance_metric"] == True))):
+        data = ('Update_Policy', tmp_p, 
+                masterAgent.getStateBounds(),
+                masterAgent.getActionBounds(),
+                masterAgent.getRewardBounds(),
+                masterAgent.getPolicyNetworkParameters(),
+                masterAgent.getFDNetworkParameters(),
+                masterAgent.getRewardNetworkParameters()
+                )
+        if ( "keep_seperate_fd_exp_buffer" in settings
+             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+            data = ('Update_Policy', tmp_p, 
+                masterAgent.getStateBounds(),
+                masterAgent.getActionBounds(),
+                masterAgent.getRewardBounds(),
+                masterAgent.getPolicyNetworkParameters(),
+                masterAgent.getFDNetworkParameters(),
+                masterAgent.getRewardNetworkParameters(),
+                masterAgent.getFDStateBounds(),
+                masterAgent.getFDActionBounds(),
+                masterAgent.getFDRewardBounds(),
+                 )
+    return data
+
+def setLearningData(masterAgent, settings, data):
+        """
+        poli_params = []
+        for i in range(len(data[5])):
+            print ("poli params", data[5][i])
+            net_params=[]
+            for j in range(len(data[5][i])):
+                net_params.append(np.array(data[5][i][j], dtype='float32'))
+            poli_params.append(net_params)
+            """
+        # print("Setting net params")
+        masterAgent.setPolicyNetworkParameters(data[5])
+        # print ("First Message: ", "Updated policy parameters")
+        if (settings['train_forward_dynamics']):
+            masterAgent.setFDNetworkParameters(data[6])
+        if ("train_reward_distance_metric" in settings and
+         (settings["train_reward_distance_metric"] == True)):
+            masterAgent.setRewardNetworkParameters(data[7])
+            
+        if (( "train_forward_dynamics" in settings 
+             and ( settings["train_forward_dynamics"] == True ))
+            and ( "keep_seperate_fd_exp_buffer" in settings 
+             and ( settings["keep_seperate_fd_exp_buffer"] == True ))
+            ):
+            # print ("Updating fd bounds")
+            masterAgent.getForwardDynamics().setStateBounds(data[8])
+            masterAgent.getForwardDynamics().setActionBounds(data[9])
+            masterAgent.getForwardDynamics().setRewardBounds(data[10])
+        # masterAgent._p = data[1]
+        masterAgent.setStateBounds(data[2])
+        masterAgent.setActionBounds(data[3])
+        masterAgent.setRewardBounds(data[4])
+        
+def compareNetParams(params1, params2):
+    import numpy as np
+    
+    are_equal = True
+    assert len(params1) == len(params2), "The number of parameters is not correct"
+    for i in range(1, len(params1)): ### Skip first string
+        print ("Shape param1: ", np.array(params1[i]).shape)
+        print ("Shape param2: ", np.array(params2[i]).shape)
+        # print ("param1: ", param1)
+        # print ("param2: ", param2)
+        if (i == 5
+            or i == 6
+            or i == 7): ### These are sets of network params
+            # compareNetParams(params1[i], params2[i])
+            assert len(params1[i]) == len(params2[i])
+            for j in range(len(params1[i])): ### Skip first string
+                print ("Shape param1: ", np.array(params1[i][j]).shape)
+                print ("Shape param2: ", np.array(params2[i][j]).shape)
+                # print ("param1: ", params1[i][j])
+                # print ("param2: ", params2[i][j])
+                assert len(params1[i][j]) == len(params2[i][j])
+                for k in range(len(params1[i][j])): ### Skip first string
+                    print ("Shape param1: ", np.array(params1[i][j][k]).shape)
+                    print ("Shape param2: ", np.array(params2[i][j][k]).shape)
+                    # print ("param1: ", params1[i][j])
+                    # print ("param2: ", params2[i][j])
+                    are_equal = are_equal and np.allclose(params1[i][j][k], params2[i][j][k])
+                    print("Are network parameters the same?: ", np.allclose(params1[i][j][k], params2[i][j][k]))
+        else:
+            are_equal = are_equal and np.allclose(params1[i], params2[i])
+            print("Are params bounds the same?: ", np.allclose(params1[i], params2[i]))
+        
+        
+    # print("net params the same?: ", np.allclose(params1, params2))
+    
+    return are_equal
 
 if __name__ == '__main__':
     import sys

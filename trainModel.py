@@ -163,52 +163,6 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
 
     return (sim_workers, sim_work_queues)
     
-def getLearningData(masterAgent, settings, tmp_p):
-    data = ('Update_Policy', tmp_p, masterAgent.getStateBounds(), masterAgent.getActionBounds(), masterAgent.getRewardBounds(), 
-            masterAgent.getPolicyNetworkParameters())
-    if (settings['train_forward_dynamics']):
-        # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-        data = ('Update_Policy', tmp_p, masterAgent.getStateBounds(), masterAgent.getActionBounds(), masterAgent.getRewardBounds(), 
-                masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
-        if ( "keep_seperate_fd_exp_buffer" in settings 
-             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-            data = ('Update_Policy', tmp_p, 
-                masterAgent.getStateBounds(),
-                masterAgent.getActionBounds(),
-                masterAgent.getRewardBounds(),
-                masterAgent.getPolicyNetworkParameters(),
-                masterAgent.getFDNetworkParameters(),
-                "blah",
-                masterAgent.getFDStateBounds(),
-                masterAgent.getFDActionBounds(),
-                masterAgent.getFDRewardBounds(),
-                 ) 
-    if (settings['train_forward_dynamics'] and
-        ("train_reward_distance_metric" in settings and
-         (settings["train_reward_distance_metric"] == True))):
-        data = ('Update_Policy', tmp_p, 
-                masterAgent.getStateBounds(),
-                masterAgent.getActionBounds(),
-                masterAgent.getRewardBounds(),
-                masterAgent.getPolicyNetworkParameters(),
-                masterAgent.getFDNetworkParameters(),
-                masterAgent.getRewardNetworkParameters()
-                )
-        if ( "keep_seperate_fd_exp_buffer" in settings
-             and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-            data = ('Update_Policy', tmp_p, 
-                masterAgent.getStateBounds(),
-                masterAgent.getActionBounds(),
-                masterAgent.getRewardBounds(),
-                masterAgent.getPolicyNetworkParameters(),
-                masterAgent.getFDNetworkParameters(),
-                masterAgent.getRewardNetworkParameters(),
-                masterAgent.getFDStateBounds(),
-                masterAgent.getFDActionBounds(),
-                masterAgent.getFDRewardBounds(),
-                 )
-    return data
-    
 def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
                    sim_work_queues, eval_episode_data_queue):
     from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
@@ -484,7 +438,7 @@ def trainModelParallel(inputData):
         from simulation.simEpoch import simEpoch, simModelParrallel, simModelMoreParrallel
         from simulation.evalModel import evalModelParrallel, evalModel, evalModelMoreParrallel
         from simulation.collectExperience import collectExperience
-        from model.ModelUtil import validBounds, fixBounds, anneal_value
+        from model.ModelUtil import validBounds, fixBounds, anneal_value, getLearningData, compareNetParams
         from model.LearningAgent import LearningAgent, LearningWorker
         from util.SimulationUtil import validateSettings, getFDStateSize
         from util.SimulationUtil import createEnvironment
@@ -1097,6 +1051,29 @@ def trainModelParallel(inputData):
                                 ## block on full queue
                                 m_q.put(message, timeout=timeout_)
                     
+                    if (True):
+                        ### Check that the network parameters and scaling values were properly propogated
+                        if (settings['on_policy'] == "fast"):
+                            out = simModelMoreParrallel( sw_message_queues=input_anchor_queue
+                                                       ,model=masterAgent, settings=settings 
+                                                       ,eval_episode_data_queue=eval_episode_data_queue 
+                                                       ,anchors=settings['num_on_policy_rollouts']
+                                                       ,type='Get_Net_Params'
+                                                       ,p=p)
+                        else:
+                            out = simModelParrallel( sw_message_queues=sim_work_queues
+                                       ,model=masterAgent, settings=settings 
+                                       ,eval_episode_data_queue=eval_episode_data_queue 
+                                       ,anchors=settings['num_on_policy_rollouts']
+                                       ,type='Get_Net_Params'
+                                       ,p=p
+                                       )
+                        # print ("**** Sim network params: ", out)
+                        print ("**** data shape: ", len(data))
+                        print ("**** net_params shape: ", len(out))
+                        for sim_net_params_id in range(len(out)):
+                            print ("**** sim_net_params shape: ", len(out[sim_net_params_id]))
+                            assert compareNetParams(data, out[sim_net_params_id])
                     # states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
                 else:
@@ -1262,19 +1239,7 @@ def trainModelParallel(inputData):
                 # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
                 # masterAgent.setExperience(learningNamespace.experience)
                 masterAgent.reset()
-                data = ('Update_Policy', p,
-                        masterAgent.getStateBounds(),
-                        masterAgent.getActionBounds(),
-                        masterAgent.getRewardBounds(),
-                        masterAgent.getPolicy().getNetworkParameters())
-                if (settings['train_forward_dynamics']):
-                    # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-                    data = ('Update_Policy', p, 
-                            masterAgent.getStateBounds(),
-                            masterAgent.getActionBounds(),
-                            masterAgent.getRewardBounds(),
-                            masterAgent.getPolicy().getNetworkParameters(),
-                             masterAgent.getForwardDynamics().getNetworkParameters())
+                data = getLearningData(masterAgent, settings, tmp_p)
                 message['type'] = 'Update_Policy'
                 message['data'] = data
                 for m_q in sim_work_queues:

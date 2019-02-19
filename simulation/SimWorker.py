@@ -90,37 +90,10 @@ class SimWorker(Process):
         self._model.setEnvironment(self._exp)
         
     def updateAgent(self, data):
-        """
-        poli_params = []
-        for i in range(len(data[5])):
-            print ("poli params", data[5][i])
-            net_params=[]
-            for j in range(len(data[5][i])):
-                net_params.append(np.array(data[5][i][j], dtype='float32'))
-            poli_params.append(net_params)
-            """
-        # print("Setting net params")
-        self._model.setPolicyNetworkParameters(data[5])
-        # print ("First Message: ", "Updated policy parameters")
-        if (self._settings['train_forward_dynamics']):
-            self._model.setFDNetworkParameters(data[6])
-        if ("train_reward_distance_metric" in self._settings and
-         (self._settings["train_reward_distance_metric"] == True)):
-            self._model.setRewardNetworkParameters(data[7])
-            
-        if (( "train_forward_dynamics" in self._settings 
-             and ( self._settings["train_forward_dynamics"] == True ))
-            and ( "keep_seperate_fd_exp_buffer" in self._settings 
-             and ( self._settings["keep_seperate_fd_exp_buffer"] == True ))
-            ):
-            # print ("Updating fd bounds")
-            self._model.getForwardDynamics().setStateBounds(data[8])
-            self._model.getForwardDynamics().setActionBounds(data[9])
-            self._model.getForwardDynamics().setRewardBounds(data[10])
+        
+        setLearningData(self._model, self._settings, data)
+        
         self._p = data[1]
-        self._model.setStateBounds(data[2])
-        self._model.setActionBounds(data[3])
-        self._model.setRewardBounds(data[4])
         
         
     # @profile(precision=5)
@@ -244,6 +217,17 @@ class SimWorker(Process):
                 
                     continue
                 
+                elif ( episodeData['type'] == "Get_Net_Params" ):
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print ("Message: ", message)
+                    data = episodeData['data']
+                    # print ("New model parameters: ", data[2][1][0])
+                    ### Update scaling parameters
+                    data = getLearningData(self._model, self._settings, self._p)
+                    self._eval_episode_data_queue.put(data, timeout=timeout_)
+                
+                    continue
+                
                 elif episodeData['type'] == "eval":
                     eval=True
                     episodeData = episodeData['data']
@@ -324,8 +308,38 @@ class SimWorker(Process):
                     pass
             elif (self._settings['on_policy'] == "fast"):
                 ### This will process trajectories in parallel
-                episodeData = self._input_queue.get(timeout=timeout_)
                 ## Check if any messages in the queue
+                episodeData = self._input_queue.get(timeout=timeout_)
+                ### Pull updated network parameters, if there are some
+                if self._message_queue.qsize() > 0:
+                    # print ("Getting updated network parameters:")
+                    while (not self._message_queue.empty()):
+                        ## Don't block
+                        try:
+                            data_ = self._message_queue.get(False)
+                        except Exception as inst:
+                            # print ("SimWorker model parameter message queue empty.")
+                            pass
+                        if (not (data_ is None)):
+                            data = data_
+                    # print ("Got updated network parameters:")
+                    # print("episodeData: ", episodeData)
+                    if (episodeData != None and (isinstance(episodeData,dict))):
+                        # message = episodeData[0]## Check if any messages in the queue
+                        if episodeData['type'] == "Update_Policy":
+                            data = data['data']
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print ("Message: ", episodeData['type'])
+                                
+                            self.updateAgent(data)
+
+                            print ("Need to remember to uncomment this...")
+                            print ("Need to remember to uncomment this...")
+                            print ("Need to remember to uncomment this...")
+                            
+                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                                print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
+                                print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
                 # print ("Worker: got data", episodeData)
                 if episodeData == None:
                     print ("Terminating worker: " , os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
@@ -338,6 +352,16 @@ class SimWorker(Process):
                     sim_on_poli = True
                 elif ( episodeData['type'] == 'bootstrapping'):
                     bootstrapping = True
+                elif ( episodeData['type'] == "Get_Net_Params" ):
+                    if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                        print ("Message: ", message)
+                    data = episodeData['data']
+                    print ("Requesting network parameters: ")
+                    ### Update scaling parameters
+                    data = getLearningData(self._model, self._settings, self._p)
+                    self._eval_episode_data_queue.put(data, timeout=timeout_)
+                
+                    continue
                 elif ( episodeData['type'] == 'keep_alive'):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Keep Sim worker:", os.getpid(), " alive.")
@@ -409,44 +433,6 @@ class SimWorker(Process):
                 else:
                     pass
                 
-                ### Pull updated network parameters, if there are some
-                if self._message_queue.qsize() > 0:
-                    data = None
-                    # print ("Getting updated network parameters:")
-                    while (not self._message_queue.empty()):
-                        ## Don't block
-                        try:
-                            data_ = self._message_queue.get(False)
-                        except Exception as inst:
-                            # print ("SimWorker model parameter message queue empty.")
-                            pass
-                        if (not (data_ is None)):
-                            episodeData = data_
-                    # print ("Got updated network parameters:")
-                    # print("episodeData: ", episodeData)
-                    if (episodeData != None and (isinstance(episodeData,dict))):
-                        # message = episodeData[0]## Check if any messages in the queue
-                        message = episodeData['type']
-                        if message == "Update_Policy":
-                            data = episodeData['data']
-                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                print ("Message: ", message)
-                            # print ("New model parameters: ", data[2][1][0])
-                            self._model.setStateBounds(data[2])
-                            self._model.setActionBounds(data[3])
-                            self._model.setRewardBounds(data[4])
-                            # if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                # print("Scaling State params: ", self._model.getStateBounds())
-                                # print("Scaling Action params: ", self._model.getActionBounds())
-                                # print("Scaling Reward params: ", self._model.getRewardBounds())
-                            self._model.getPolicy().setNetworkParameters(data[5])
-                            if (self._settings['train_forward_dynamics']):
-                                self._model.getForwardDynamics().setNetworkParameters(data[6])
-                            p = data[1]
-                            self._p = p
-                            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
-                                print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
             else: ## off policy, all threads sharing the same queue
                 episodeData = self._input_queue.get(timeout=timeout_)
                 ## Check if any messages in the queue

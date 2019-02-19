@@ -30,6 +30,23 @@ class TestParallelLearning(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > 0.65
+        
+    def test_trpo_keras_fast_parallel_gapGame_2D(self):
+        """
+            Test that PPO can still learn a good policy on 2d gapgame sim
+        """
+        filename = "tests/settings/gapGame2D/PPO/FixedSTD_Tensorflow_FastParallel.json"
+        file = open(filename)
+        settings = json.load(file)
+        file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
+        settings['visualize_learning'] = False
+        settings['shouldRender'] = False
+        settings['print_level'] = 'testing_sim'
+        simData = trainModelParallel((filename, settings))
+        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
+        assert np.mean(simData['mean_reward'][-5:]) > 0.65
 
 if __name__ == '__main__':
     pytest.main([__file__])

@@ -22,7 +22,7 @@ _output_experience_queue = None
 _eval_episode_data_queue = None
 _sim_work_queues = []
 
-from trainModel import getLearningData, collectEmailData, pretrainCritic, pretrainFD
+from trainModel import collectEmailData, pretrainCritic, pretrainFD
 
 def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, default_sim_id=None):
     """
@@ -298,7 +298,7 @@ def trainModelParallel(inputData):
         from simulation.simEpoch import simEpoch, simModelParrallel, simModelMoreParrallel
         from simulation.evalModel import evalModelParrallel, evalModel, evalModelMoreParrallel
         from simulation.collectExperience import collectExperience
-        from model.ModelUtil import validBounds, fixBounds, anneal_value
+        from model.ModelUtil import validBounds, fixBounds, anneal_value, getLearningData
         # from model.LearningMultiAgent import LearningMultiAgent, LearningWorker
         # from model.LearningAgent import LearningMultiAgent, LearningWorker
         from util.SimulationUtil import validateSettings, getFDStateSize

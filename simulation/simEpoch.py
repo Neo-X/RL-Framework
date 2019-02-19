@@ -818,6 +818,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
                 episodeData['type'] = 'sim_on_policy'
             elif ( type == "keep_alive"):
                 episodeData['type'] = 'keep_alive'
+            elif ( type == "Get_Net_Params"):
+                episodeData['type'] = 'Get_Net_Params'
             else:
                 episodeData['type'] = 'bootstrapping'
             # sw_message_queues[j].put(episodeData, timeout=timeout_)
@@ -833,7 +835,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         datas__ = []
         while (j < abs(settings['num_available_threads'])):
             j += 1
-            if ( type == "keep_alive"):
+            if ( type == "keep_alive"
+                 or type == "Get_Net_Params"):
                 dat =  eval_episode_data_queue.get(timeout=timeout_)
                 datas__.append(dat)
                 continue
@@ -859,11 +862,13 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             advantage.append(advantage_)
             exp_actions.append(exp_actions_)
         i += j
-        if ( type == "keep_alive"):
+        if ( type == "keep_alive"
+             or type == "Get_Net_Params"):
             break
         # print("samples collected so far: ", len(states))
     
-    if ( type == "keep_alive"):
+    if ( type == "keep_alive"
+         or type == "Get_Net_Params"):
         return datas__
     tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
     return (tuples, discounted_sum, value, evalData)
@@ -929,6 +934,8 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
             episodeData['type'] = 'sim_on_policy'
         elif( type == 'eval'):
             episodeData['type'] = 'eval'
+        elif ( type == "Get_Net_Params"):
+            episodeData['type'] = 'Get_Net_Params'
         elif ( type == "keep_alive"):
             episodeData['type'] = 'keep_alive'
         else:
@@ -948,7 +955,9 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         
         # while (j < abs(settings['num_available_threads'])):
         j = j - 1
-        if ( type == "keep_alive"):
+        # print("j2: ", j)
+        if ( type == "keep_alive"
+             or type == "Get_Net_Params"):
             dat =  eval_episode_data_queue.get(timeout=timeout_)
             datas__.append(dat)
             if ( j == 0 ):
@@ -1054,7 +1063,8 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         std_eval = np.std(evalDatas)
         return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
             mean_eval, std_eval)
-    elif ( type == "keep_alive"):
+    elif ( type == "keep_alive"
+         or type == "Get_Net_Params"):
         return datas__
     else:
         return (tuples, discounted_values, values, evalDatas)
