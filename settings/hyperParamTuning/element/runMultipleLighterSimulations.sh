@@ -17,7 +17,7 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/CACLA_use_advantage.json"
 # 				"settings/hyperParamTuning/element/CACLA_use_advantage_action_weighting.json"
 # 				"settings/hyperParamTuning/element/clamp_actions_to_stay_inside_bounds.json" 
- 				"settings/hyperParamTuning/element/critic_learning_rate.json"
+# 				"settings/hyperParamTuning/element/critic_learning_rate.json"
 #				"settings/hyperParamTuning/element/critic_network_layer_sizes.json"
 # 				"settings/hyperParamTuning/element/critic_updates_per_actor_update.json"
 # 				"settings/hyperParamTuning/element/dont_use_td_learning.json"
@@ -33,8 +33,8 @@ declare -a metaExps=(
  				"settings/hyperParamTuning/element/imperfect_compare_offset.json" 
 # 				"settings/hyperParamTuning/element/initial_temperature.json" 
 #  				"settings/hyperParamTuning/element/kl_divergence_threshold.json" 
-#  				"settings/hyperParamTuning/element/lstm_batch_size.json" 
-				"settings/hyperParamTuning/element/min_sequece_length.json" 
+  				"settings/hyperParamTuning/element/lstm_batch_size.json" 
+#				"settings/hyperParamTuning/element/min_sequece_length.json" 
 # 				"settings/hyperParamTuning/element/normalize_advantage.json" 
 #  				"settings/hyperParamTuning/element/num_on_policy_rollouts.json" 
 #  				"settings/hyperParamTuning/element/optimizer.json" 
@@ -54,12 +54,12 @@ declare -a metaExps=(
 
 ## declare an array variable
 declare -a simConfigs=(
- 	"settings/projectileGame/PPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
+# 	"settings/projectileGame/PPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
 # 	"settings/projectileGame/PPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode_BCE.json"
-	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
-# 	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode_BCE.json"
+#	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode.json"
+ 	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode_BCE.json"
 #	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_Encode_BCE_refreshRewards.json"
-#	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_EncodeDecode.json"
+	"settings/projectileGame/TRPO/Imitation_Learning_VizWithCamVel_32x32_1Sub_LSTM_FD_Reward_EncodeDecode.json"
 )
 
 rounds=$1

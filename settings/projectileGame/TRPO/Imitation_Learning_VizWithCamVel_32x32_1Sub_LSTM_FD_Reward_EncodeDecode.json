@@ -341,7 +341,7 @@
 	"comment__": "specify the learning algorithm to use for the fd model",
 "fd_algorithm" : "algorithm.SiameseNetworkEncoderDecorder.SiameseNetworkEncoderDecorder",
 	"comment__": "A list describing the size of the layers for the NN",
-"fd_network_layer_sizes": [ ["input", ["none", "none", 1026]], ["TimeDistributedConv", [31, 1, 1026], [["Reshape", [1, 32, 32]], ["conv", 8,[3,3], [2,2], "same"], ["dropout", 0.2], ["conv", 8,[2,2], [2,2], "same"], ["dropout", 0.2],  "flatten_features", 64, "merge_features", "mark_middle", ["Dense", 32, "sigmoid"]] ], ["GRU", 32, 32]],
+"fd_network_layer_sizes": [ ["input", ["none", "none", 1026]], ["TimeDistributedConv", [31, 1, 1026], [["Reshape", [1, 32, 32]], ["conv", 8,[3,3], [2,2], "same"], ["dropout", 0.2], ["conv", 8,[2,2], [2,2], "same"], ["dropout", 0.2],  "flatten_features", 64, "merge_features", "mark_middle", ["Dense", 32, "sigmoid"]] ], ["LSTM", 32, 32]],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [["LSTM", 32, 32, 0.1, true],  ["TimeDistributedConv", true, [["Dense", 66], ["slice_features", 64], ["Dense", 512], ["Reshape", [8, 8, 8]], ["dropout", 0.2], ["deconv", 8, [2, 2], [2, 2], "same"],  ["deconv", 1, [3, 3], [2, 2], "same"], ["dropout", 0.2], ["Reshape", [1024]], "merge_features"]] ],
 		"comment__": "type of activation to use",

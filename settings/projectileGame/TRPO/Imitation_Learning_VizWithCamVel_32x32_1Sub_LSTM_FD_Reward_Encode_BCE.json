@@ -377,7 +377,7 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
 							{"layer_type": "TimeDistributedConv", "net_info": "fd"},
-							{"layer_type": "GRU", "units": 32, "return_sequences": false, "return_state": false, "use_bias": false, "activation": null},
+							{"layer_type": "LSTM", "units": 32, "return_sequences": false, "return_state": false, "use_bias": false, "activation": null},
 							{"layer_type": "LayerNormalization"},
 							{"layer_type": "activation", "activation_type": "tanh" },
 							{"layer_type": "Dense", "units": 32, "use_bias": true},
