@@ -19,11 +19,11 @@ declare -a metaExps=(
 #	"settings/terrainRLImitate3D/Path_Folowing/LargeBlocks_OnPolicy-NEWLLC.json"
 #	"settings/terrainRLImitate3D/Path_Folowing/PPO/LargeBlocks_Tensorflow_NEWLLC.json"
 #	"settings/terrainRLImitate3D/Path_Folowing/PPO/LargeBlocks_Tensorflow_NEWLLC2.json"
-#	"settings/terrainRLImitate3D/Path_Folowing/PPO/Path_Following_NEWLLC.json"
+	"settings/terrainRLImitate3D/Path_Folowing/PPO/Path_Following_NEWLLC_Tensorflow.json"
 #	"settings/terrainRLImitate3D/Path_Folowing/PPO/Dynamic_Obstacles_NEWLLC.json"
 #
 #	"settings/terrainRLImitate3D/Path_Folowing/TRPO/LargeBlocks_Tensorflow_NEWLLC.json"
-#	"settings/terrainRLImitate3D/Path_Folowing/TRPO/Path_Following_NEWLLC.json"
+	"settings/terrainRLImitate3D/Path_Folowing/TRPO/Path_Following_NEWLLC_Tensorflow.json"
 #	"settings/terrainRLImitate3D/Path_Folowing/TRPO/Dynamic_Obstacles_NEWLLC.json"
 #	"settings/terrainRLImitate3D/Path_Folowing/Path_Following.json"
 #	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles.json"
