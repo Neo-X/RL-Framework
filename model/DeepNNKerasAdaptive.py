@@ -458,6 +458,21 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Flatten()(network)
             elif (layer_info[i]["layer_type"] == "Dropout"):
                 network = Dropout(**layer_parms)(network)
+            elif (layer_info[i]["layer_type"] == "Input"):    
+                if ("simulation_model" in self._settings and
+                    (self._settings["simulation_model"] == True)):
+                    if (self._stateful_lstm):
+                        input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(1, 1, self._state_length), name=stateName)
+                    else:
+                        input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
+                else:
+                    if (self._stateful_lstm):
+                        input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
+                    else:
+                        input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
+                network = input_
+                self._State_ = input_   
+                print ("self._State_: ", repr(self._State_))
             elif (layer_info[i]["layer_type"] == "BatchNormalization"):
                 network = keras.layers.BatchNormalization(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "LayerNormalization"):
@@ -495,10 +510,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                         print ("*** net input shape: ", repr(keras.backend.int_shape(network)))
                         input_ = keras.layers.Input(shape=(keras.backend.int_shape(network)[-1],), name="State_Conv")
                         print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
-                        if (layer_sizes[i][1] == True):
-                            subnet = self.createSubNetwork(input_, layer_info[i]["net_info"], isRNN=True)
-                        else:
-                            subnet = self.createSubNetwork(input_, layer_info[i]["net_info"], isRNN=False)
+                        #if (layer_sizes[i]["isRNN"] == True):
+                        #    subnet = self.createSubNetwork(input_, layer_info[i]["net_info"], isRNN=True)
+                        #else:
+                        subnet = self.createSubNetwork(input_, layer_info[i]["net_info"], isRNN=False)
                         subnet = Model(inputs=input_, outputs=subnet)
                         print("Subnet summary")
                         subnet.summary()
@@ -535,6 +550,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                  bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                  data_format=self._data_format_,
                                                  **layer_parms)(network)
+            elif ( layer_info[i]["layer_type"] == "deconv2d" ):
+                network = keras.layers.Conv2DTranspose(
+                                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                                                     data_format=self._data_format_,
+                                                     **layer_parms)(network)
             elif ( layer_info[i]["layer_type"] == "sepconv2d" ):
                 network = keras.layers.SeparableConv2D( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                  bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
