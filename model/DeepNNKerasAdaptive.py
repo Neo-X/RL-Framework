@@ -282,19 +282,6 @@ class DeepNNKerasAdaptive(ModelInterface):
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
             print ("Critic Network layer sizes: ", layer_sizes)
 
-        """
-        if ((self._settings['num_terrain_features'] > 0)):
-            network = self._taskFeatures
-        elif (("use_multimodal_state" in self._settings
-              and (self._settings["use_multimodal_state"] == True))
-        and (("train_LSTM_Reward" in self._settings)
-                and (self._settings["train_LSTM_Reward"] == True))):
-            network = self._taskFeatures
-        
-        else:
-            network = self._stateInput
-        """
-        
         if ("using_encoder_decoder" in self._settings
             and (self._settings["using_encoder_decoder"] == True)):
             print (self._actor)
@@ -307,10 +294,11 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = keras.layers.Input(shape=(None, keras.backend.int_shape(self._actor)[1]), name="Encoding_State")
             print ("Encoder input: ", network)
             self._ResultState = network
-        """
-        if ( self._dropout_p > 0.001 ):
-            network = Dropout(rate=self._dropout_p)(network)
-        """
+            
+        if ( "use_centralized_critic" in self._settings
+             and (self._settings["use_centralized_critic"] == True)):
+            network = keras.layers.Input(shape=(len(self._settings["state_bounds"][0]),), name="Centralized_Critic_State")
+            self._ResultState = network
         network = self.createSubNetwork(network, layer_sizes, isRNN=isRNN, stateName=stateName, resultStateName=resultStateName)
         
             
@@ -414,17 +402,6 @@ class DeepNNKerasAdaptive(ModelInterface):
         else:
             self._critic = network
             
-        """
-        if ( self._settings["agent_name"] == "algorithm.DPGKeras.DPGKeras"
-             or (self._settings["agent_name"] == "algorithm.QPropKeras.QPropKeras") 
-             ):
-            print ( "Creating DPG Keras Model")
-            self._critic = Model(input=[self._stateInput, self._actionInput], output=self._critic)
-        else:
-            self._critic = Model(input=self._stateInput, output=self._critic)
-        """ 
-        # print("Critic summary: ", self._critic.summary())
-        
     def createSubNetwork(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):
     
         if ( "network_description_type" in self._settings and

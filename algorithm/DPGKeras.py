@@ -36,7 +36,13 @@ class DPGKeras(KERASAlgorithm):
         self._model._actor = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=self._model._actor)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Actor summary: ", self._model._actor.summary())
-        self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable(),
+        
+        if ( "use_centralized_critic" in self.getSettings()
+             and (self.getSettings()["use_centralized_critic"] == True)):
+            self._model._critic = Model(inputs=[self._model.getResultStateSymbolicVariable(),
+                                              self._model.getActionSymbolicVariable()], outputs=self._model._critic)
+        else:
+            self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable(),
                                               self._model.getActionSymbolicVariable()], outputs=self._model._critic)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Critic summary: ", self._model._critic.summary())
@@ -45,7 +51,12 @@ class DPGKeras(KERASAlgorithm):
         self._modelTarget._actor = Model(inputs=[self._modelTarget.getStateSymbolicVariable()], outputs=self._modelTarget._actor)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Target Actor summary: ", self._modelTarget._actor.summary())
-        self._modelTarget._critic = Model(inputs=[self._modelTarget.getStateSymbolicVariable(),
+        if ( "use_centralized_critic" in self.getSettings()
+             and (self.getSettings()["use_centralized_critic"] == True)):
+            self._modelTarget._critic = Model(inputs=[self._modelTarget.getResultStateSymbolicVariable(),
+                                                  self._modelTarget.getActionSymbolicVariable()], outputs=self._modelTarget._critic)
+        else:
+            self._modelTarget._critic = Model(inputs=[self._modelTarget.getStateSymbolicVariable(),
                                                   self._modelTarget.getActionSymbolicVariable()], outputs=self._modelTarget._critic)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Target Critic summary: ", self._modelTarget._critic.summary())
@@ -71,15 +82,20 @@ class DPGKeras(KERASAlgorithm):
         
         self._q_valsActA = self._model.getActorNetwork()([self._model.getStateSymbolicVariable()])[:,:self._action_length]
         self._q_valsActTarget_State = self._modelTarget.getActorNetwork()([self._model.getStateSymbolicVariable()])[:,:self._action_length]
-        self._q_valsActTarget_ResultState = self._modelTarget.getActorNetwork()([self._model.getResultStateSymbolicVariable()])[:,:self._action_length]
+        # self._q_valsActTarget_ResultState = self._modelTarget.getActorNetwork()([self._model.getResultStateSymbolicVariable()])[:,:self._action_length]
 
         self._q_valsActASTD = ( K.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         self._q_valsActTargetSTD = (K.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
                 
-        # self._q_function = self._model.getCriticNetwork()(self._model.getStateSymbolicVariable(), self._q_valsActA)
-        self._q_function = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
-        # self._q_function_Target = self._model.getCriticNetwork()([self._model.getResultStateSymbolicVariable(), self._q_valsActTarget_ResultState])
-        self._q_function_Target = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+        if ( "use_centralized_critic" in self.getSettings()
+             and (self.getSettings()["use_centralized_critic"] == True)):
+            self._q_function = self._model.getCriticNetwork()([self._model.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+            self._q_function_Target = self._model.getCriticNetwork()([self._model.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+            self._q_func = K.function([self._model.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()], [self._q_function])
+        else:
+            self._q_function = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+            self._q_function_Target = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+            self._q_func = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()], [self._q_function])
         
         q_vals_b = self._q_function_Target
         target_tmp_ = self._model.getRewardSymbolicVariable() + ((self._discount_factor * q_vals_b ))
@@ -87,28 +103,8 @@ class DPGKeras(KERASAlgorithm):
         self._q_loss = K.mean(K.mean(diff, axis=-1))
         # print ("Initial W " + str(self._w_o.get_value()) )
         
-        """
-            self._act_target = self._modelTarget().getActorNetwork()
-            self._q_val_target = self._modelTarget().getCriticNetwork()
-            
-            self._q_vals_b = self._q_val_target(self._act_target(self._states))
-            
-            self._q_val = self._modelTarget().getCriticNetwork()(self._model().getActorNetwork()(self._states))
-            self._y_target = rewards + ((self._discount_factor * q_vals_b ))
-        """
-        
-        # self._actor_optimizer = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
-        # updates = self._actor_optimizer.get_updates(self._model.getActorNetwork().trainable_weights, loss=-T.mean(self._q_function), constraints=[])
-        # updates= adam_updates(-T.mean(self._q_function), self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
-        # self._trainPolicy = theano.function([self._model._stateInput], 
-        #                                    [self._q_function], 
-        #                                    updates= updates)
-        
-        # gradients = K.gradients(T.mean(self._q_function), [self._model._stateInput]) # gradient tensors
-
         # self._get_gradients = K.function(inputs=[self._model._stateInput], outputs=gradients)
         
-        self._q_func = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()], [self._q_function])
         
         self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
         
@@ -120,11 +116,19 @@ class DPGKeras(KERASAlgorithm):
         
         self._act = self._model.getActorNetwork()(
                                 [self._model.getStateSymbolicVariable()])
-        self._qFunc = (self._model.getCriticNetwork()(
+        if ( "use_centralized_critic" in self.getSettings()
+             and (self.getSettings()["use_centralized_critic"] == True)):
+            self._qFunc = (self._model.getCriticNetwork()(
+                            [self._model.getResultStateSymbolicVariable(), 
+                             self._act]))
+            self._combined = Model(input=[self._model.getStateSymbolicVariable(),
+                                          self._model.getResultStateSymbolicVariable()], 
+                                output=self._qFunc)
+        else:
+            self._qFunc = (self._model.getCriticNetwork()(
                             [self._model.getStateSymbolicVariable(), 
                              self._act]))
-        
-        self._combined = Model(input=[self._model.getStateSymbolicVariable()], 
+            self._combined = Model(input=[self._model.getStateSymbolicVariable()], 
                                 output=self._qFunc)
         
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
