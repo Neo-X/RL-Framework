@@ -577,6 +577,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                 for m in range(settings["perform_multiagent_training"]):
                     settings__ = copy.deepcopy(settings)
                     settings__["policy_network_layer_sizes"] = settings["policy_network_layer_sizes"][m]
+                    """
                     if ( "use_centralized_critic" in settings
                          and (settings["use_centralized_critic"] == True)):
                         state_bounds__ = copy.deepcopy(state_bounds[m])
@@ -592,13 +593,14 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                         print ("state_bounds[m] shape: ", np.array(state_bounds[m]).shape)
                         print 
                         networkModel = createNetworkModel(settings__["model_type"], state_bounds__, action_bounds[m], reward_bounds[m], settings__, print_info=print_info)
-                        models.append(modelAlgorithm(networkModel, n_in=len(state_bounds__[0]), n_out=len(action_bounds[m][0]), state_bounds=state_bounds[m], 
+                        models.append(modelAlgorithm(networkModel, n_in=len(state_bounds__[0]), n_out=len(action_bounds[m][0]), state_bounds=state_bounds__, 
                               action_bounds=action_bounds[m], reward_bound=reward_bounds[m], settings_=settings__, print_info=print_info))
                     else:
-                        settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
-                        networkModel = createNetworkModel(settings__["model_type"], state_bounds[m], action_bounds[m], reward_bounds[m], settings__, print_info=print_info)
-                        models.append(modelAlgorithm(networkModel, n_in=len(state_bounds[m][0]), n_out=len(action_bounds[m][0]), state_bounds=state_bounds[m], 
-                              action_bounds=action_bounds[m], reward_bound=reward_bounds[m], settings_=settings__, print_info=print_info))
+                    """
+                    settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
+                    networkModel = createNetworkModel(settings__["model_type"], state_bounds[m], action_bounds[m], reward_bounds[m], settings__, print_info=print_info)
+                    models.append(modelAlgorithm(networkModel, n_in=len(state_bounds[m][0]), n_out=len(action_bounds[m][0]), state_bounds=state_bounds[m], 
+                          action_bounds=action_bounds[m], reward_bound=reward_bounds[m], settings_=settings__, print_info=print_info))
                     
                     print("Loaded algorithm: ", models)
                 model = models

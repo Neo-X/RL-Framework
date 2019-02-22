@@ -203,24 +203,69 @@ class LearningMultiAgent(LearningAgent):
               _exp_actions=None, _G_t=None, p=1.0):
         import numpy as np 
         
-        for agent_ in range(len(self.getAgents())):
-            # print ("_states: ", np.array(_states).shape)
-            # print ("_states[0][0]: ", np.array(_states[0][0]).shape)
-            # print ("_states[0][1]: ", np.array(_states[0][1]).shape)
-            # print ("_states[0][2]: ", np.array(_states[0][2]).shape)
-            ### Pull out the state for each agent, start at agent index and skip every number of agents 
-            states__ = [state_[agent_::len(self.getAgents())] for state_ in _states]
-            actions__ = [state_[agent_::len(self.getAgents())] for state_ in _actions]
-            rewards__ = [state_[agent_::len(self.getAgents())] for state_ in _rewards]
-            result_states__ = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
-            falls__ = [state_[agent_::len(self.getAgents())] for state_ in _falls]
-            advantage__ = [state_[agent_::len(self.getAgents())] for state_ in _advantage]
-            exp_actions__ = [state_[agent_::len(self.getAgents())] for state_ in _exp_actions]
-            G_t__ = [state_[agent_::len(self.getAgents())] for state_ in _G_t]
+        if ( "use_centralized_critic" in self.getSettings()
+             and (self.getSettings()["use_centralized_critic"] == True)):
             
-            # print ("states__: ", np.array(states__).shape) 
-            self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
-              _exp_actions=exp_actions__, _G_t=G_t__, p=p)
+            for agent_ in range(len(self.getAgents())):
+                # print ("_states: ", np.array(_states).shape)
+                # print ("_states[0][0]: ", np.array(_states[0][0]).shape)
+                # print ("_states[0][1]: ", np.array(_states[0][1]).shape)
+                # print ("_states[0][2]: ", np.array(_states[0][2]).shape)
+                ### Pull out the state for each agent, start at agent index and skip every number of agents 
+                states__ = [state_[agent_::len(self.getAgents())] for state_ in _states]
+                actions__ = [state_[agent_::len(self.getAgents())] for state_ in _actions]
+                rewards__ = [state_[agent_::len(self.getAgents())] for state_ in _rewards]
+                result_states__ = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
+                falls__ = [state_[agent_::len(self.getAgents())] for state_ in _falls]
+                advantage__ = [state_[agent_::len(self.getAgents())] for state_ in _advantage]
+                exp_actions__ = [state_[agent_::len(self.getAgents())] for state_ in _exp_actions]
+                G_t__ = [state_[agent_::len(self.getAgents())] for state_ in _G_t]
+                
+                ### Add other agent data
+                for agent__ in [i for i,x in enumerate(self.getAgents()) if i!=agent_]:
+                    states___ = [state_[agent__::len(self.getAgents())] for state_ in _states]
+                    result_states___ = [state_[agent__::len(self.getAgents())] for state_ in _states]
+                    for tar in range(len(states__)):
+                        for s in range(len(states__[tar])):
+                            states__[tar][s] = np.concatenate((states__[tar][s],states___[tar][s]), axis=0)
+                            result_states__[tar][s] = np.concatenate((result_states__[tar][s],result_states___[tar][s]), axis=0) 
+                            # states__[tar][s] = np.array(list(states__[tar][s]).extend(states___[tar][s]))
+                            # print ("states__[tar][s]: ", np.array(states__[tar][s]).shape)
+                            # print ("states__[tar][s]: ", states__[tar][s])
+                        # print ("states__[s]: ", np.array(states__[tar]).shape)
+                        
+                for agent__ in [i for i,x in enumerate(self.getAgents()) if i!=agent_]:
+                    actions___ = [state_[agent__::len(self.getAgents())] for state_ in _actions]
+                    for tar in range(len(states__)):
+                        for s in range(len(states__[tar])):
+                            # states__[tar][s] = np.array(list(states__[tar][s]).extend(actions___[tar][s]))
+                            states__[tar][s] = np.concatenate((states__[tar][s],actions___[tar][s]), axis=0)
+                            result_states__[tar][s] = np.concatenate((result_states__[tar][s],actions___[tar][s]), axis=0)
+                        # print ("states__[s]: ", np.array(states__[tar]).shape) 
+                
+                print ("states__: ", np.array(states__).shape)
+                print ("result_states__: ", np.array(result_states__).shape) 
+                self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
+                  _exp_actions=exp_actions__, _G_t=G_t__, p=p)
+        else:
+            for agent_ in range(len(self.getAgents())):
+                # print ("_states: ", np.array(_states).shape)
+                # print ("_states[0][0]: ", np.array(_states[0][0]).shape)
+                # print ("_states[0][1]: ", np.array(_states[0][1]).shape)
+                # print ("_states[0][2]: ", np.array(_states[0][2]).shape)
+                ### Pull out the state for each agent, start at agent index and skip every number of agents 
+                states__ = [state_[agent_::len(self.getAgents())] for state_ in _states]
+                actions__ = [state_[agent_::len(self.getAgents())] for state_ in _actions]
+                rewards__ = [state_[agent_::len(self.getAgents())] for state_ in _rewards]
+                result_states__ = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
+                falls__ = [state_[agent_::len(self.getAgents())] for state_ in _falls]
+                advantage__ = [state_[agent_::len(self.getAgents())] for state_ in _advantage]
+                exp_actions__ = [state_[agent_::len(self.getAgents())] for state_ in _exp_actions]
+                G_t__ = [state_[agent_::len(self.getAgents())] for state_ in _G_t]
+                
+                # print ("states__: ", np.array(states__).shape) 
+                self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
+                  _exp_actions=exp_actions__, _G_t=G_t__, p=p)
         
     def recomputeRewards(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t):
@@ -246,7 +291,6 @@ class LearningMultiAgent(LearningAgent):
                 for bounds_ in [x for i,x in enumerate(self.getSettings()["action_bounds"]) if i!=m]:
                     state_.extend(bounds_[0])
                     
-                print ("state_: ", state_)
                 state_ = np.array(state_)
                 act.append(self.getAgents()[m].predict([state_], evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)[0])
         else:
@@ -258,7 +302,24 @@ class LearningMultiAgent(LearningAgent):
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:
             self._accesLock.acquire()
-        std = [p_.predict_std([state_], p=p)[0] for p_, state_ in zip(self.getAgents(), state) ]
+        
+        std = []
+        if ( "use_centralized_critic" in self.getSettings()
+             and (self.getSettings()["use_centralized_critic"] == True)):
+            ### Need to assemble centralized states
+            import numpy as np
+            for m in range(len(state)):
+                state_ = copy.deepcopy(list(state[m]))
+                for bounds_ in [x for i,x in enumerate(state) if i!=m]:
+                    state_.extend(bounds_)
+                ### Add action bounds for other agents
+                for bounds_ in [x for i,x in enumerate(self.getSettings()["action_bounds"]) if i!=m]:
+                    state_.extend(bounds_[0])
+                    
+                state_ = np.array(state_)
+                std.append(self.getAgents()[m].predict_std([state_], evaluation_=evaluation_, p=p)[0])
+        else:
+            std = [p_.predict_std([state_], p=p)[0] for p_, state_ in zip(self.getAgents(), state) ]
         if self._useLock:
             self._accesLock.release()
         return std

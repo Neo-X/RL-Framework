@@ -388,6 +388,7 @@ class DPGKeras(KERASAlgorithm):
         return loss
     
     def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
+        # print ("self._state_bounds shape ", np.array(self._state_bounds).shape)
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
         action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1), self._action_bounds)
@@ -430,8 +431,7 @@ class DPGKeras(KERASAlgorithm):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
         if ( "use_centralized_critic" in self.getSettings()
-             and (self.getSettings()["use_centralized_critic"] == True)
-             and False):
+             and (self.getSettings()["use_centralized_critic"] == True)):
             return np.zeros((states.shape[0], 1))
         states = norm_state(states, self._state_bounds)
         states = np.array(states, dtype=self._settings['float_type'])
