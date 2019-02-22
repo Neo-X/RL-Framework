@@ -591,8 +591,8 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                         print ("state_bounds__ shape: ", np.array(state_bounds__).shape)
                         print ("state_bounds[m] shape: ", np.array(state_bounds[m]).shape)
                         print 
-                        networkModel = createNetworkModel(settings__["model_type"], state_bounds[m], action_bounds[m], reward_bounds[m], settings__, print_info=print_info)
-                        models.append(modelAlgorithm(networkModel, n_in=len(state_bounds[m][0]), n_out=len(action_bounds[m][0]), state_bounds=state_bounds[m], 
+                        networkModel = createNetworkModel(settings__["model_type"], state_bounds__, action_bounds[m], reward_bounds[m], settings__, print_info=print_info)
+                        models.append(modelAlgorithm(networkModel, n_in=len(state_bounds__[0]), n_out=len(action_bounds[m][0]), state_bounds=state_bounds[m], 
                               action_bounds=action_bounds[m], reward_bound=reward_bounds[m], settings_=settings__, print_info=print_info))
                     else:
                         settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]

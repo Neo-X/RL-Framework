@@ -38,7 +38,8 @@ class DPGKeras(KERASAlgorithm):
             print("Actor summary: ", self._model._actor.summary())
         
         if ( "use_centralized_critic" in self.getSettings()
-             and (self.getSettings()["use_centralized_critic"] == True)):
+             and (self.getSettings()["use_centralized_critic"] == True)
+             and False):
             self._model._critic = Model(inputs=[self._model.getResultStateSymbolicVariable(),
                                               self._model.getActionSymbolicVariable()], outputs=self._model._critic)
         else:
@@ -52,7 +53,8 @@ class DPGKeras(KERASAlgorithm):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Target Actor summary: ", self._modelTarget._actor.summary())
         if ( "use_centralized_critic" in self.getSettings()
-             and (self.getSettings()["use_centralized_critic"] == True)):
+             and (self.getSettings()["use_centralized_critic"] == True)
+             and False):
             self._modelTarget._critic = Model(inputs=[self._modelTarget.getResultStateSymbolicVariable(),
                                                   self._modelTarget.getActionSymbolicVariable()], outputs=self._modelTarget._critic)
         else:
@@ -88,7 +90,8 @@ class DPGKeras(KERASAlgorithm):
         self._q_valsActTargetSTD = (K.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
                 
         if ( "use_centralized_critic" in self.getSettings()
-             and (self.getSettings()["use_centralized_critic"] == True)):
+             and (self.getSettings()["use_centralized_critic"] == True)
+             and False):
             self._q_function = self._model.getCriticNetwork()([self._model.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
             self._q_function_Target = self._model.getCriticNetwork()([self._model.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
             self._q_func = K.function([self._model.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()], [self._q_function])
@@ -117,7 +120,8 @@ class DPGKeras(KERASAlgorithm):
         self._act = self._model.getActorNetwork()(
                                 [self._model.getStateSymbolicVariable()])
         if ( "use_centralized_critic" in self.getSettings()
-             and (self.getSettings()["use_centralized_critic"] == True)):
+             and (self.getSettings()["use_centralized_critic"] == True)
+             and False):
             self._qFunc = (self._model.getCriticNetwork()(
                             [self._model.getResultStateSymbolicVariable(), 
                              self._act]))
@@ -384,20 +388,9 @@ class DPGKeras(KERASAlgorithm):
         return loss
     
     def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
-        # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
-        # states[0, ...] = state
-        # state = np.array(state, dtype=self._settings['float_type'])
         state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
-        self._model.setStates(state)
-        # action_ = lasagne.layers.get_output(self._model.getActorNetwork(), state, deterministic=deterministic_).mean()
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
-        # if deterministic_:
         action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1), self._action_bounds)
-        # action_ = scale_action(self._q_action_target()[0], self._action_bounds)
-        # else:
-        # action_ = scale_action(self._q_action()[0], self._action_bounds)
-        # action_ = q_valsActA[0]
         return action_
     
     def predict_std(self, state, deterministic_=True, p=1.0):
@@ -436,6 +429,10 @@ class DPGKeras(KERASAlgorithm):
     def q_values2(self, states):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
+        if ( "use_centralized_critic" in self.getSettings()
+             and (self.getSettings()["use_centralized_critic"] == True)
+             and False):
+            return np.zeros((states.shape[0], 1))
         states = norm_state(states, self._state_bounds)
         states = np.array(states, dtype=self._settings['float_type'])
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]

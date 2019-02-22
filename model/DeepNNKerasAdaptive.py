@@ -296,7 +296,8 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._ResultState = network
             
         if ( "use_centralized_critic" in self._settings
-             and (self._settings["use_centralized_critic"] == True)):
+             and (self._settings["use_centralized_critic"] == True)
+             and False):
             network = keras.layers.Input(shape=(len(self._settings["state_bounds"][0]),), name="Centralized_Critic_State")
             self._ResultState = network
         network = self.createSubNetwork(network, layer_sizes, isRNN=isRNN, stateName=stateName, resultStateName=resultStateName)

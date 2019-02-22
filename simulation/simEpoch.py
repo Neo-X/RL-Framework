@@ -79,10 +79,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # model.initEpoch(exp)
     state_ = exp.getState()
     # pa = model.predict(state_)
+    """
     if (not bootstrapping):
         q_values_ = [model.q_value(state_)]
     else:
         q_values_ = []
+    """
     viz_q_values_ = []
     
     ### Test to make sure the agent initial pose and imitation pose are the same.
