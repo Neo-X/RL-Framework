@@ -601,7 +601,8 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
         # with K.get_session().graph.as_default() as g:
         ### Need to lead the model this way because the learning model's State expects batches...
         forward_dynamics_net = load_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
-        reward_net = load_model(fileName+"_reward"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
+        reward_net = load_model(fileName+"_reward"+suffix, custom_objects={'contrastive_loss': contrastive_loss, 
+                                                                           "LayerNormalization": keras_layer_normalization.LayerNormalization})
         # if ("simulation_model" in self.getSettings() and
         #     (self.getSettings()["simulation_model"] == True)):
         if (True): ### Because the simulation and learning use different model types (statefull vs stateless lstms...)
@@ -619,7 +620,8 @@ class SiameseNetworkEncoderDecorder(KERASAlgorithm):
             print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
         if (self._modelTarget is not None):
             self._modelTarget._forward_dynamics_net = load_model(fileName+"_actor_T"+suffix)
-            self._modelTarget._reward_net = load_model(fileName+"_reward_net_T"+suffix)
+            self._modelTarget._reward_net = load_model(fileName+"_reward_net_T"+suffix, custom_objects={'contrastive_loss': contrastive_loss, 
+                                                                           "LayerNormalization": keras_layer_normalization.LayerNormalization})
         # self._model._actor_train = load_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
         # self._value = K.function([self._model._State_, K.learning_phase()], [self.__value])
         # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
