@@ -403,6 +403,13 @@ class DPGKeras(KERASAlgorithm):
         # print ("Policy std: ", action_std)
         return action_std * p
     
+    def predict_target(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
+        # print ("self._state_bounds shape ", np.array(self._state_bounds).shape)
+        state = norm_state(state, self._state_bounds)
+        state = np.array(state, dtype=self._settings['float_type'])
+        action_ = scale_action(self._modelTarget.getActorNetwork().predict(state, batch_size=state.shape[0]), self._action_bounds)
+        return action_
+    
     def q_value(self, state):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
@@ -453,7 +460,7 @@ class DPGKeras(KERASAlgorithm):
         values =  self._model.getCriticNetwork().predict([states, poli_mean], batch_size=states.shape[0])
         bellman_error = target_ - values
         return bellman_error
-        # return self._bellman_errorTarget()     
+        # return self._bellman_errorTarget()
         
     def get_actor_regularization(self):
         return self._get_actor_regularization([])

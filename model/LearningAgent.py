@@ -879,6 +879,22 @@ class LearningAgent(AgentInterface):
             self._accesLock.release()
         return std
     
+    def predict_target(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False, use_mbrl=False):
+        if self._useLock:
+            self._accesLock.acquire()
+        # import numpy as np
+        # print ("state: ", np.array(state).shape, state)
+        state = self.processState(state)
+        # print ("state after: ", np.array(state).shape, state)
+        if (use_mbrl):
+            action = self.getSampler().predict_target(state, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+            act = [action]
+        else:
+            act = self.getPolicy().predict_target(state, evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+        if self._useLock:
+            self._accesLock.release()
+        return act
+    
     def predictWithDropout(self, state):
         if self._useLock:
             self._accesLock.acquire()

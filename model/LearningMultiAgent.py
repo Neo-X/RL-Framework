@@ -216,35 +216,70 @@ class LearningMultiAgent(LearningAgent):
                 actions__ = [state_[agent_::len(self.getAgents())] for state_ in _actions]
                 rewards__ = [state_[agent_::len(self.getAgents())] for state_ in _rewards]
                 result_states__ = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
+                result_states_tmp = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
                 falls__ = [state_[agent_::len(self.getAgents())] for state_ in _falls]
                 advantage__ = [state_[agent_::len(self.getAgents())] for state_ in _advantage]
                 exp_actions__ = [state_[agent_::len(self.getAgents())] for state_ in _exp_actions]
                 G_t__ = [state_[agent_::len(self.getAgents())] for state_ in _G_t]
                 
-                ### Add other agent data
-                for agent__ in [i for i,x in enumerate(self.getAgents()) if i!=agent_]:
+                ### Add other agent data 
+                for agent__ in [i for i,x in enumerate(self.getAgents()) if i!=agent_]: ### Add the states for other agents
                     states___ = [state_[agent__::len(self.getAgents())] for state_ in _states]
                     result_states___ = [state_[agent__::len(self.getAgents())] for state_ in _states]
+                    ### For each trajectory concatenate the states of the other agents onto this agents state
                     for tar in range(len(states__)):
                         for s in range(len(states__[tar])):
                             states__[tar][s] = np.concatenate((states__[tar][s],states___[tar][s]), axis=0)
-                            result_states__[tar][s] = np.concatenate((result_states__[tar][s],result_states___[tar][s]), axis=0) 
+                            ### Also collect the nextstate state for the other agents
+                            result_states__[tar][s] = np.concatenate((result_states__[tar][s],result_states___[tar][s]), axis=0)
+                            ### Create a tmp next state data structure because we need to ask for the other agent target action later
+                            result_states_tmp[tar][s] = np.concatenate((result_states_tmp[tar][s],result_states___[tar][s]), axis=0) 
                             # states__[tar][s] = np.array(list(states__[tar][s]).extend(states___[tar][s]))
                             # print ("states__[tar][s]: ", np.array(states__[tar][s]).shape)
                             # print ("states__[tar][s]: ", states__[tar][s])
                         # print ("states__[s]: ", np.array(states__[tar]).shape)
                         
+                ### Collect the actions of the other agents as additional state info.
                 for agent__ in [i for i,x in enumerate(self.getAgents()) if i!=agent_]:
                     actions___ = [state_[agent__::len(self.getAgents())] for state_ in _actions]
                     for tar in range(len(states__)):
                         for s in range(len(states__[tar])):
                             # states__[tar][s] = np.array(list(states__[tar][s]).extend(actions___[tar][s]))
-                            states__[tar][s] = np.concatenate((states__[tar][s],actions___[tar][s]), axis=0)
-                            result_states__[tar][s] = np.concatenate((result_states__[tar][s],actions___[tar][s]), axis=0)
-                        # print ("states__[s]: ", np.array(states__[tar]).shape) 
+                            state___ = np.concatenate((states__[tar][s],actions___[tar][s]), axis=0)
+                            # print ("state: ", np.array(state___).shape)
+                            states__[tar][s] = state___
+                            ### Add garbage action to this tmp next state to create corect size state for other agent target action request
+                            result_states_tmp[tar][s] = np.concatenate((result_states_tmp[tar][s],actions___[tar][s]), axis=0)
+                        # print ("states__[s]: ", np.array(states__[tar]).shape)
                 
-                print ("states__: ", np.array(states__).shape)
-                print ("result_states__: ", np.array(result_states__).shape) 
+                ### Now that we have data of the correct size to ask for target actions of other agents, get those target actions.
+                for agent__ in [i for i,x in enumerate(self.getAgents()) if i!=agent_]:
+                    # actions___ = [state_[agent__::len(self.getAgents())] for state_ in _actions]
+                    # result_states___ = [state_[agent__::len(self.getAgents())] for state_ in result_states_tmp]
+                    ### Get result state for this other agent
+                    result_states_tmp_agent = np.array([state_[agent__::len(self.getAgents())] for state_ in _result_states])
+                    result_states_tmp = np.array(result_states_tmp)
+                    # print ("result_states_tmp_agent: ", result_states_tmp_agent.shape)
+                    # result_states_tmp[]
+                    for tar in range(len(result_states_tmp)):
+                        # print ("result_states_tmp_agent[tar,:]: ", result_states_tmp_agent[tar,:].shape)
+                        # print ("result_states_tmp[tar,:,:result_states_tmp_agent.shape[-1]]: ", np.array(result_states_tmp[tar,:,:result_states_tmp_agent.shape[-1]]).shape)
+                        result_states_tmp[tar,:,:result_states_tmp_agent.shape[-1]] = result_states_tmp_agent[tar,:]
+                        # print ("result_states___[tar]: ", np.array(result_states_tmp[tar]).shape)
+                        # print ("result_states__[s] before : ", np.array(result_states__[tar]).shape)
+                        target_actions = self.getAgents()[agent__].predict_target(result_states_tmp[tar])
+                        # print ("target_actions: ", np.array(target_actions).shape)
+                        for s in range(len(result_states___[tar])):
+                            # states__[tar][s] = np.array(list(states__[tar][s]).extend(actions___[tar][s]))
+                            # states__[tar][s] = np.concatenate((states__[tar][s],actions___[tar][s]), axis=0)
+                            target_res_state = np.concatenate((result_states__[tar][s],target_actions[s]), axis=0)
+                            # print ("target_res_state: ", np.array(target_res_state).shape)
+                            # print ("target_res_state: ", target_res_state)
+                            result_states__[tar][s] = np.array(target_res_state)
+                        # print ("result_states__[s]: ", np.array(result_states__[tar]).shape) 
+                
+                # print ("states__: ", np.array(states__).shape)
+                # print ("result_states__: ", np.array(result_states__).shape) 
                 self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
                   _exp_actions=exp_actions__, _G_t=G_t__, p=p)
         else:
