@@ -26,6 +26,7 @@ class TestSimulation(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'hyper_train'
+        settings["simulation_timeout"] = 60
         
         settings['state_bounds'] = [[-1] * 11, [1] * 11]
         agent = DoNothingActor(settings_=settings, experience=None)
@@ -63,6 +64,7 @@ class TestSimulation(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'hyper_train'
+        settings["simulation_timeout"] = 60
         
         settings['state_bounds'] = [[-1] * 11, [1] * 11]
         agent = DoNothingActor(settings_=settings, experience=None)
@@ -95,6 +97,7 @@ class TestSimulation(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'hyper_train'
+        settings["simulation_timeout"] = 60
         
         settings['state_bounds'] = [[-1] * 11, [1] * 11]
         agent = DoNothingActor(settings_=settings, experience=None)
@@ -136,6 +139,7 @@ class TestSimulation(object):
         settings['print_level'] = 'testing_sim'
         settings['rounds'] = 2
         settings['pretrain_critic'] = 0
+        settings["simulation_timeout"] = 60
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None
@@ -154,6 +158,7 @@ class TestSimulation(object):
         settings['print_level'] = 'testing_sim'
         settings['rounds'] = 2
         settings['pretrain_critic'] = 0
+        settings["simulation_timeout"] = 60
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None   

@@ -9,6 +9,12 @@ import time
 import datetime
 
 ### Need to go through them in order to avoid issues with Tensorflow state staying around...
+"""
+tests_ =[
+         'test_simulation.py'
+        ,'test_learning.py'
+         ]
+"""
 tests_ =[
          'test_simulation.py'
         ,'test_learning.py'
@@ -40,7 +46,7 @@ def run_tests(metaSettings, test=False):
             #              '--tests-per-worker=1', '--show-capture=no', '--timeout_method=thread', '--timeout=30']
             # command_ = ['tests/' + test, '--junitxml=' + metaSettings['j_unit_filename'] + test, '--workers='+ str(metaSettings['tuning_threads']), 
             #               '--tests-per-worker=1']
-            command_ = ['tests/' + test, '--junitxml=' + metaSettings['j_unit_filename'] + test, '-n '+ str(metaSettings['tuning_threads'])]
+            command_ = ['tests/' + test, '--junitxml=' + metaSettings['j_unit_filename'] + "_" + test, '-n '+ str(metaSettings['tuning_threads'])]
             print ("Command: ", command_)
             pytest.main(command_)
         # pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])
@@ -65,15 +71,14 @@ if __name__ == '__main__':
     sim_time_ = datetime.timedelta(seconds=(t1-t0))
     print ("Model testing complete in " + str(sim_time_) + " seconds")
     
-    tarFileName = ('_sim_data.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
+    tarFileName = ('test_sim_data.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
     dataTar = tarfile.open(tarFileName, mode='w:gz')
-    # addDataToTarBall(dataTar, settings)
-    dataTar.close()
-    ## Send an email so I know this has completed
     
     contents_ = ""
     for test in tests_: ## Collect test data
-        contents_ = contents_ + JunitParser(hyperSettings_['j_unit_filename'] + test).html()
+        contents_ = contents_ + JunitParser(hyperSettings_['j_unit_filename'] + "_" + test).html()
+        dataTar.add(hyperSettings_['j_unit_filename'] + "_" + test)
+    dataTar.close()
     sendEmail(subject="Simulation complete: " + str(sim_time_), contents="", hyperSettings=hyperSettings_, 
               simSettings="", dataFile=tarFileName,
               pictureFile=None, htmlContent=contents_) 
