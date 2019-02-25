@@ -243,7 +243,7 @@ class LearningAgent(AgentInterface):
             
             batch_size_ = self._settings["batch_size"]        
             if (self._settings["batch_size"] == "all"):
-                batch_size_ = max(self._expBuff.samples(), 0)
+                batch_size_ = max(self._expBuff.samples(), 1)
                 # print ("num_samples_: ", num_samples_)
             ### If for some reason the data was all garbage, skip this training update.
             if ((self._expBuff.samples() < value_function_batch_size 
