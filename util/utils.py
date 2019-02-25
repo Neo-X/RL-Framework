@@ -28,6 +28,13 @@ def checkSettingExists(settings, key):
 def rlPrint(settings=None, level="train", text=""):
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"][level]):
         print (text)
+        
+def load_keras_model(filename, custom_objects):
+    from keras.models import load_model
+    import keras_layer_normalization
+    custom_objects["LayerNormalization"] = keras_layer_normalization.LayerNormalization
+    model = load_model(filename, custom_objects)
+    return model
 
 
 if __name__ == '__main__':
