@@ -17,6 +17,10 @@ from keras.models import Sequential, Model
 # theano.config.mode='FAST_COMPILE'
 from algorithm.KERASAlgorithm import KERASAlgorithm
 
+def eucl_dist_output_shape_seq(shapes):
+    shape1, shape2 = shapes
+    return shape1
+
 def cosine_distance(vests):
     x, y = vests
     x = K.l2_normalize(x, axis=-1)
@@ -577,11 +581,37 @@ class SiameseNetwork(KERASAlgorithm):
         self._model.processed_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a)
         processed_b = self._model._forward_dynamics_net(state_copy)
         self._model.processed_b = Model(inputs=[state_copy], outputs=processed_b)
-        
-        processed_a_r = self._model._reward_net(self._model.getResultStateSymbolicVariable())
-        self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
-        processed_b_r = self._model._reward_net(result_state_copy)
-        self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
+        if ( "return_rnn_sequence" in self.getSettings()
+             and (self.getSettings()["return_rnn_sequence"])):
+                
+            processed_a_r_seq , processed_a_r, processed_a_r_c  = self._model._reward_net(self._model.getResultStateSymbolicVariable())
+            processed_b_r_seq , processed_b_r, processed_b_r_c = self._model._reward_net(result_state_copy)
+            
+            encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(processed_b_r)[1:]
+                                                                              , name="encoding_2"
+                                                                              )
+            last_dense = keras.layers.Dense(64, activation = 'sigmoid')(encode_input__)
+            self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
+            
+            processed_b_r = self._last_dense(processed_b_r)
+            processed_a_r = self._last_dense(processed_a_r)
+            
+
+            self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
+            self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
+
+            processed_b_r_seq = keras.layers.TimeDistributed(self._last_dense)(processed_b_r_seq)
+            processed_a_r_seq = keras.layers.TimeDistributed(self._last_dense)(processed_a_r_seq)
+            # distance_r_weighted_seq = keras.layers.TimeDistributed(self._distance_weighting_)(distance_r_seq)
+            
+            self._model.processed_a_r_seq = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r_seq)
+            self._model.processed_b_r_seq = Model(inputs=[result_state_copy], outputs=processed_b_r_seq)
+        else:
+            processed_a_r = self._model._reward_net(self._model.getResultStateSymbolicVariable())
+            processed_b_r = self._model._reward_net(result_state_copy)
+            
+            self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
+            self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
         
         distance_fd = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
         distance_r = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
@@ -597,6 +627,24 @@ class SiameseNetwork(KERASAlgorithm):
                                                           ]
                                                           , outputs=distance_r
                                                           )
+
+        # print ("encode_input__: ", repr(encode_input__))
+        # distance_r_weighted = keras.layers.Dense(64, activation = 'sigmoid')(encode_input__)
+        # self._distance_weighting_ = Model(inputs=[encode_input__], outputs=distance_r_weighted)
+        # distance_r_weighted = self._distance_weighting_(distance_r)
+        # print ("distance_r_weighted: ", repr(distance_r_weighted))
+        
+        if ( "return_rnn_sequence" in self.getSettings()
+             and (self.getSettings()["return_rnn_sequence"])):
+            distance_r_seq = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_seq)([processed_a_r_seq, processed_b_r_seq])
+            print ("distance_r_seq: ", repr(distance_r_seq))
+            # distance_r_weighted_seq = keras.layers.TimeDistributed(self._distance_weighting_)(distance_r_seq)
+            # print ("distance_r_weighted_seq: ", repr(distance_r_weighted_seq))
+            self._model._reward_net_seq = Model(inputs=[self._model.getResultStateSymbolicVariable()
+                                                              ,result_state_copy
+                                                              ]
+                                                              , outputs=distance_r_seq
+                                                              )
 
         # sgd = SGD(lr=0.0005, momentum=0.9)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
@@ -644,11 +692,19 @@ class SiameseNetwork(KERASAlgorithm):
         params = []
         params.append(copy.deepcopy(self._model._forward_dynamics_net.get_weights()))
         params.append(copy.deepcopy(self._model._reward_net.get_weights()))
+        
+        if ( "return_rnn_sequence" in self.getSettings()
+             and (self.getSettings()["return_rnn_sequence"])):
+            params.append(copy.deepcopy(self._model._reward_net_seq.get_weights()))
+                
         return params
     
     def setNetworkParameters(self, params):
         self._model._forward_dynamics_net.set_weights(params[0])
         self._model._reward_net.set_weights(params[1])
+        if ( "return_rnn_sequence" in self.getSettings()
+             and (self.getSettings()["return_rnn_sequence"])):
+            self._model._reward_net_seq.set_weights(params[2])
         
     def setGradTarget(self, grad):
         self._fd_grad_target_shared.set_value(grad)
@@ -678,6 +734,9 @@ class SiameseNetwork(KERASAlgorithm):
             # rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
         # self.setData(states, actions)
         return self._get_grad_reward([states, actions, 0])[0]
+    
+    def updateTargetModel(self):
+        pass
                 
     def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True):
         """
@@ -901,6 +960,22 @@ class SiameseNetwork(KERASAlgorithm):
         # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
         # states[0, ...] = state
         predicted_reward = self.reward([states, actions, 0])[0]
+        return predicted_reward
+    
+    def predict_reward_(self, states, states2):
+        """
+            This data should already be normalized
+        """
+        # states = np.zeros((self._batch_size, self._self._state_length), dtype=theano.config.floatX)
+        # states[0, ...] = state
+        states = np.array(norm_state(states, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        actions = np.array(norm_state(states2, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        h_a = self._model.processed_a_r_seq.predict([states])
+        h_b = self._model.processed_b_r_seq.predict([states2])
+        # print ("h_b shape: ", h_b.shape) 
+        predicted_reward = np.array([self._distance_func_np((np.array([h_a_]), np.array([h_b_])))[0] for h_a_, h_b_ in zip(h_a[0], h_b[0])])
+        # print ("predicted_reward_: ", predicted_reward)
+        # predicted_reward = self._model._reward_net_seq.predict([states, actions], batch_size=1)[0]
         return predicted_reward
 
     def bellman_error(self, states, actions, result_states, rewards):

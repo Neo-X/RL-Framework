@@ -107,9 +107,9 @@ def compute_advantage_(vf, paths, gamma, lam):
     for path in paths:
         path["advantage"] = (path["advantage"] - mean) / std
     """
-    assert len(paths[0]["states"]) == len(paths[0]["advantage"])
-    assert len(paths[0]["advantage"]) == len(paths[0]["baseline"])
-    assert len(paths[0]["reward"]) == len(paths[0]["baseline"])
+    assert len(paths[0]["states"]) == len(paths[0]["advantage"]), str(len(paths[0]["states"])) + " == " + str(len(paths[0]["advantage"]))
+    assert len(paths[0]["advantage"]) == len(paths[0]["baseline"]), str(len(paths[0]["advantage"])) + " == " + str(len(paths[0]["baseline"]))
+    assert len(paths[0]["reward"]) == len(paths[0]["baseline"]), str(len(paths[0]["reward"])) + " == " + str(len(paths[0]["baseline"]))
     return paths[0]
 
 def btVectorToNumpy(vec):

@@ -214,7 +214,10 @@ class MultiModalEncoderDecoderSiameseNetwork(KERASAlgorithm):
             # rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
         # self.setData(states, actions)
         return self._get_grad_reward([states, actions, 0])[0]
-                
+        
+    def updateTargetModel(self):
+        pass
+          
     def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True):
         """
             states will come for the agent and
