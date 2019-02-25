@@ -103,7 +103,7 @@ class GymMultiCharActor(ActorInterface):
         # else:
         # reward_ = reward_/updates_
         reward_ = [[sim.getEnvironment().calcRewardForAgent(a)] for a in range(sim.getEnvironment().getNumAgents())]
-        print ("sim reward_: ", reward_)
+        # print ("sim reward_: ", reward_)
         self._reward_sum = self._reward_sum + np.mean(reward_)
         return reward_
         
