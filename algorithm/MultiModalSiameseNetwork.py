@@ -538,7 +538,7 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         print ("network_b: ", repr(network_b))
         processed_a_r = self._model._reward_net(network_)
         self._model.processed_a_r = Model(inputs=[self._inputs_aa], outputs=processed_a_r)
-        use_same_rnn_net = True
+        use_same_rnn_net = False
         if (use_same_rnn_net):
             processed_b_r = self._model._reward_net(network_b)
             self._model.processed_b_r = Model(inputs=[self._inputs_bb], outputs=processed_b_r)
