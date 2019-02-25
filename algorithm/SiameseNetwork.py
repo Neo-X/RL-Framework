@@ -587,6 +587,13 @@ class SiameseNetwork(KERASAlgorithm):
             processed_a_r_seq , processed_a_r, processed_a_r_c  = self._model._reward_net(self._model.getResultStateSymbolicVariable())
             processed_b_r_seq , processed_b_r, processed_b_r_c = self._model._reward_net(result_state_copy)
             
+            print ("processed_a_r_c: ", repr(processed_a_r_c))
+            
+            if ("condition_on_rnn_internal_state" in self.getSettings()
+                and (self.getSettings()["condition_on_rnn_internal_state"] == True)):
+                processed_a_r = keras.layers.concatenate(inputs=[processed_a_r, processed_a_r_c], axis=1)
+                processed_b_r = keras.layers.concatenate(inputs=[processed_b_r, processed_b_r_c], axis=1)
+
             encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(processed_b_r)[1:]
                                                                               , name="encoding_2"
                                                                               )

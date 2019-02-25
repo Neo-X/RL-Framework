@@ -392,7 +392,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print ("Writing image to video") 
             movieWriter.append_data(image_)
         if ("use_learned_reward_function" in settings
-            and (settings["use_learned_reward_function"])):
+            and (settings["use_learned_reward_function"])
+            and not ("return_rnn_sequence" in settings
+                     and (settings["return_rnn_sequence"] == True))):
             rewmodel = model.getForwardDynamics()
             w_d = -2.0
             if ("learned_reward_function_norm_weight" in settings):
