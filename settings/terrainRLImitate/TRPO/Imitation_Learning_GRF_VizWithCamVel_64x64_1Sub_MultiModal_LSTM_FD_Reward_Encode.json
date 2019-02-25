@@ -490,7 +490,5 @@
 	"comment__": "image noise factor that is added to the frames captured from the simulations",
 "image_noise_scale": 0.03,
 	"comment__": "Remove these last dense character features",
-"remove_character_state_features": 4,
-	"comment__": "Override the number of computed fd lstm update",
-"rnn_updates": 16
+"remove_character_state_features": 4
 }
