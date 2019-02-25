@@ -32,9 +32,9 @@ def create_sequences(traj0, traj1, settings):
     if ("imperfect_compare_offset" in settings):
         compare_adjustment = settings["imperfect_compare_offset"]
         # print ("compare_adjustment: ", compare_adjustment)
-    noise_scale = 0.05
+    noise_scale = 0.03
     noise_scale_dense = 0.001
-    target_noise_scale = 0.1
+    target_noise_scale = 0.05
     sequences0 = []
     sequences1 = []
     targets_ = []
@@ -367,9 +367,9 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
     class ids are stored in task_ids
     '''
     ### Transform data into poses
-    noise_scale = 0.05
+    noise_scale = 0.03
     noise_scale_dense = 0.001
-    target_noise_scale = 0.1
+    target_noise_scale = 0.05
     compare_adjustment = 0.0
     if ("imperfect_compare_offset" in settings):
         compare_adjustment = settings["imperfect_compare_offset"]
@@ -538,7 +538,7 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         print ("network_b: ", repr(network_b))
         processed_a_r = self._model._reward_net(network_)
         self._model.processed_a_r = Model(inputs=[self._inputs_aa], outputs=processed_a_r)
-        use_same_rnn_net = False
+        use_same_rnn_net = True
         if (use_same_rnn_net):
             processed_b_r = self._model._reward_net(network_b)
             self._model.processed_b_r = Model(inputs=[self._inputs_bb], outputs=processed_b_r)

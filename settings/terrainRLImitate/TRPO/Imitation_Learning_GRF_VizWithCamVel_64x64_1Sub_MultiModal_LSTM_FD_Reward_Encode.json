@@ -388,7 +388,7 @@
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "Dropout", "rate": 0.2},
 							{"layer_type": "coordconv2d"},
-							{"layer_type": "conv2d", "filters": 8, "kernel_size": [4,4], "strides": [2,2], "use_bias": false},
+							{"layer_type": "conv2d", "filters": 16, "kernel_size": [4,4], "strides": [2,2], "use_bias": false},
 							{"layer_type": "BatchNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "Dropout", "rate": 0.2},
@@ -411,7 +411,6 @@
 "fd_use_multimodal_state": true,
 	"comment__": "A list describing the size of the layers for the ssecond FD NN",
 "fd2_network_layer_sizes": [ 
-								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dropout", "rate": 0.2},
