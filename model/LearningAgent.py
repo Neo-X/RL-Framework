@@ -234,7 +234,7 @@ class LearningAgent(AgentInterface):
                 print("Actions std:  ", np.std(_actions__, axis=0) )
             
             ### Update target networks
-            self.getPolicy().updateTargetModel()
+            self.updateTargetModel()
             num_samples_=1
             t0 = time.time()
             
@@ -1059,6 +1059,12 @@ class LearningAgent(AgentInterface):
             else:
                 self.getForwardDynamics().setRewardBounds(bounds)
 
+    def updateTargetModel(self):
+        self.getPolicy().updateTargetModel()
+        if (self._settings['train_forward_dynamics']):
+            self.getForwardDynamics().updateTargetModel()
+        
+    
     def insertTuple(self, tuple):
         self.getExperience().insertTuple(tuple)
         

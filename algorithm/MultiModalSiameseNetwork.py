@@ -483,33 +483,33 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
             settings__["state_bounds"][0] = settings__["state_bounds"][0][:-settings__["remove_character_state_features"]]
             settings__["state_bounds"][1] = settings__["state_bounds"][1][:-settings__["remove_character_state_features"]]
         print ("****** Creating dense pose encoding network")
-        self._modelTarget = createForwardDynamicsNetwork(settings__["state_bounds"], 
+        self._model2 = createForwardDynamicsNetwork(settings__["state_bounds"], 
                                                          settings__["action_bounds"], settings__,
                                                          stateName="State_", resultStateName="ResultState_")
 
         self._inputs_a = self._model.getStateSymbolicVariable()
-        self._inputs_b = self._modelTarget.getStateSymbolicVariable() 
+        self._inputs_b = self._model2.getStateSymbolicVariable() 
         self._model._forward_dynamics_net = Model(inputs=[self._inputs_a], outputs=self._model._forward_dynamics_net)
-        self._modelTarget._forward_dynamics_net = Model(inputs=[self._inputs_b], outputs=self._modelTarget._forward_dynamics_net)
+        self._model2._forward_dynamics_net = Model(inputs=[self._inputs_b], outputs=self._model2._forward_dynamics_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Conv Net summary: ", self._model._forward_dynamics_net.summary())
-                print("FD Target Net summary: ", self._modelTarget._forward_dynamics_net.summary())
+                print("FD Target Net summary: ", self._model2._forward_dynamics_net.summary())
         
         if ("train_LSTM_Reward" in self.getSettings()
             and (self.getSettings()["train_LSTM_Reward"] == True)):
             self._inputs_aa = self._model.getResultStateSymbolicVariable()
-            self._inputs_bb = self._modelTarget.getResultStateSymbolicVariable()
+            self._inputs_bb = self._model2.getResultStateSymbolicVariable()
         else:
             self._inputs_aa = self._model.getStateSymbolicVariable()
-            self._inputs_bb = self._modelTarget.getStateSymbolicVariable()
+            self._inputs_bb = self._model2.getStateSymbolicVariable()
         print ("self._model._State_: ", repr(self._model._State_))
         self._model._reward_net = Model(inputs=[self._model._State_], outputs=self._model._reward_net)
-        self._modelTarget._reward_net = Model(inputs=[self._modelTarget._State_], outputs=self._modelTarget._reward_net)
+        self._model2._reward_net = Model(inputs=[self._model2._State_], outputs=self._model2._reward_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Reward Net summary: ", self._model._reward_net.summary())
-                print("FD Target Reward Net summary: ", self._modelTarget._reward_net.summary())
+                print("FD Target Reward Net summary: ", self._model2._reward_net.summary())
                 
 
         MultiModalSiameseNetwork.compile(self)
@@ -519,8 +519,8 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         
         print ("*** self._model.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getStateSymbolicVariable())))
         print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model.getResultStateSymbolicVariable())))
-        print ("*** self._modelTarget.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._modelTarget.getStateSymbolicVariable())))
-        print ("*** self._modelTarget.getResultStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._modelTarget.getResultStateSymbolicVariable())))
+        print ("*** self._model2.getStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model2.getStateSymbolicVariable())))
+        print ("*** self._model2.getResultStateSymbolicVariable() shape: ", repr(keras.backend.int_shape(self._model2.getResultStateSymbolicVariable())))
         state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._inputs_b)[1:], name="State_2")
         result_state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._inputs_bb)[1:]
                                                                               , name="ResultState_2"
@@ -528,13 +528,13 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         processed_a = self._model._forward_dynamics_net(self._inputs_a)
         print ("processed_a shape: ", repr(processed_a))
         self._model.processed_a = Model(inputs=[self._inputs_a], outputs=processed_a)
-        processed_b = self._modelTarget._forward_dynamics_net(state_copy)
+        processed_b = self._model2._forward_dynamics_net(state_copy)
         print ("processed_a shape: ", repr(processed_b))
         self._model.processed_b = Model(inputs=[state_copy], outputs=processed_b)
         ### Convert sequence input to sequence output
         network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
         print ("network_: ", repr(network_))
-        network_b = keras.layers.TimeDistributed(self._model.processed_b, input_shape=(None, 1, self._state_length))(self._modelTarget.getResultStateSymbolicVariable())
+        network_b = keras.layers.TimeDistributed(self._model.processed_b, input_shape=(None, 1, self._state_length))(self._model2.getResultStateSymbolicVariable())
         print ("network_b: ", repr(network_b))
         processed_a_r = self._model._reward_net(network_)
         self._model.processed_a_r = Model(inputs=[self._inputs_aa], outputs=processed_a_r)
@@ -543,8 +543,11 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
             processed_b_r = self._model._reward_net(network_b)
             self._model.processed_b_r = Model(inputs=[self._inputs_bb], outputs=processed_b_r)
         else:
-            processed_b_r = self._modelTarget._reward_net(network_b)
+            processed_b_r = self._model2._reward_net(network_b)
             self._model.processed_b_r = Model(inputs=[self._inputs_bb], outputs=processed_b_r)
+            
+        self._model.processed_a_r_target = keras.models.clone_model(self._model.processed_a_r)
+        self._model.processed_b_r_target = keras.models.clone_model(self._model.processed_b_r)
         
         distance_fd = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
         distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
@@ -625,22 +628,22 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         self._model._reward_net2.reset_states()
         self._model._reward_net3.reset_states()
         self._model._forward_dynamics_net.reset_states()
-        if not (self._modelTarget is None):
-            self._modelTarget.reset()
+        if not (self._model2 is None):
+            self._model2.reset()
             
     def getNetworkParameters(self):
         params = []
         params.append(copy.deepcopy(self._model._forward_dynamics_net.get_weights()))
         params.append(copy.deepcopy(self._model._reward_net.get_weights()))
-        params.append(copy.deepcopy(self._modelTarget._forward_dynamics_net.get_weights()))
-        params.append(copy.deepcopy(self._modelTarget._reward_net.get_weights()))
+        params.append(copy.deepcopy(self._model2._forward_dynamics_net.get_weights()))
+        params.append(copy.deepcopy(self._model2._reward_net.get_weights()))
         return params
     
     def setNetworkParameters(self, params):
         self._model._forward_dynamics_net.set_weights(params[0])
         self._model._reward_net.set_weights(params[1])
-        self._modelTarget._forward_dynamics_net.set_weights(params[2])
-        self._modelTarget._reward_net.set_weights(params[3])
+        self._model2._forward_dynamics_net.set_weights(params[2])
+        self._model2._reward_net.set_weights(params[3])
         
     def setGradTarget(self, grad):
         self._fd_grad_target_shared.set_value(grad)
@@ -670,6 +673,15 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
             # rewards = np.array(norm_state(rewards, self._reward_bounds), dtype=self.getSettings()['float_type'])
         # self.setData(states, actions)
         return self._get_grad_reward([states, actions, 0])[0]
+    
+    def updateTargetModel(self):
+        print ("Updating fd target model")
+        ### current parameters should be different.
+        assert not np.allclose(self._model.processed_a_r.get_weights()[0], self._model.processed_a_r_target.get_weights()[0])
+        self._model.processed_a_r_target.set_weights(self._model.processed_a_r.get_weights())
+        self._model.processed_b_r_target.set_weights(self._model.processed_b_r_target.get_weights())
+        assert np.allclose(self._model.processed_a_r.get_weights()[0], self._model.processed_a_r_target.get_weights()[0])
+        
                 
     def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True):
         """
@@ -776,14 +788,14 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
                         # print ("score_: ", score_)
                     """
                     # if (np.random.rand() > 0.5):
-                    h_a = self._model.processed_b_r.predict([sequences1])
+                    h_a = self._model.processed_b_r_target.predict([sequences1])
                     score = self._model._reward_net2.fit([sequences0, h_a], [targets__],
                                   epochs=1, 
                                   batch_size=sequences0.shape[0],
                                   verbose=0
                                   )
                     # else:
-                    h_a = self._model.processed_a_r.predict([sequences0])
+                    h_a = self._model.processed_a_r_target.predict([sequences0])
                     # score = self._model._reward_net3.fit([sequences1, (h_a * 0.0)], [(targets__ * 0) + 1],
                     score = self._model._reward_net3.fit([sequences1, h_a], [targets__],
                                   epochs=1, 
@@ -1054,8 +1066,8 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
         self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
-        self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
-        self._modelTarget._reward_net.save(fileName+"_reward_T"+suffix, overwrite=True)
+        self._model2._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
+        self._model2._reward_net.save(fileName+"_reward_T"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
         
     def loadFrom(self, fileName):
@@ -1083,9 +1095,9 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         self._reward_net = self._model._reward_net
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
-        if (self._modelTarget is not None):
-            self._modelTarget._forward_dynamics_net = load_keras_model(fileName+"_FD_T"+suffix)
-            self._modelTarget._reward_net = load_keras_model(fileName+"_reward_T"+suffix)
+        if (self._model2 is not None):
+            self._model2._forward_dynamics_net = load_keras_model(fileName+"_FD_T"+suffix)
+            self._model2._reward_net = load_keras_model(fileName+"_reward_T"+suffix)
         # self._model._actor_train = load_keras_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
         # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
