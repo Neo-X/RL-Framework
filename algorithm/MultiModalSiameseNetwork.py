@@ -13,41 +13,12 @@ import keras.backend as K
 import keras
 from keras.models import Sequential, Model
 from util.SimulationUtil import createForwardDynamicsNetwork
-from algorithm.SiameseNetwork import compute_accuracy, contrastive_loss_np
+from algorithm.SiameseNetwork import *
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 from algorithm.KERASAlgorithm import KERASAlgorithm
 
-def cosine_distance(vests):
-    x, y = vests
-    x = K.l2_normalize(x, axis=-1)
-    y = K.l2_normalize(y, axis=-1)
-    return -K.mean(x * y, axis=-1, keepdims=True)
-
-def cos_dist_output_shape(shapes):
-    shape1, shape2 = shapes
-    return (shape1[0],1)
-
-def euclidean_distance(vects):
-    x, y = vects
-    return K.sqrt(K.sum(K.square(x - y), axis=1, keepdims=True))
-
-def euclidean_distance_np(vects):
-    x, y = vects
-    return np.sqrt(np.sum(np.square(x - y), axis=1, keepdims=True))
-
-def eucl_dist_output_shape(shapes):
-    shape1, shape2 = shapes
-    return (shape1[0], 1)
-
-def contrastive_loss(y_true, y_pred):
-    '''Contrastive loss from Hadsell-et-al.'06
-    http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
-    '''
-    margin = 1
-    ####           Make these smaller               While making these bigger
-    return K.mean((y_true * K.square(y_pred)) + ((1 - y_true) * K.square(K.maximum(margin - y_pred, 0))))
 
 def create_sequences(traj0, traj1, settings):
     '''Positive and negative sequence creation.
