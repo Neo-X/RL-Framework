@@ -14,6 +14,7 @@ import keras
 from keras.models import Sequential, Model
 from util.SimulationUtil import createForwardDynamicsNetwork
 from algorithm.SiameseNetwork import *
+from util.utils import rlPrint
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -675,7 +676,7 @@ class MultiModalSiameseNetwork(KERASAlgorithm):
         return self._get_grad_reward([states, actions, 0])[0]
     
     def updateTargetModel(self):
-        print ("Updating fd target model")
+        rlPrint(self.getSettings(), 'train', "Updating fd target model")
         ### current parameters should be different.
         assert not np.allclose(self._model.processed_a_r.get_weights()[0], self._model.processed_a_r_target.get_weights()[0])
         self._model.processed_a_r_target.set_weights(self._model.processed_a_r.get_weights())
