@@ -28,40 +28,6 @@ from util.coordconv import *
 from model.ModelInterface import ModelInterface
 from pydoc import locate
 
-class CoordConv2D(Layer):
-    """
-        https://gist.github.com/Dref360/b330e75cb121c03a0066d9587a7bfee5
-    """
-    def __init__(self, channel, kernel_size, padding='valid', **kwargs):
-        self.layer = keras.layers.Conv2D(channel, kernel_size, padding=padding)
-        self.name = 'CoordConv2D'
-        super(CoordConv2D, self).__init__(**kwargs)
-
-    def call(self, input):
-        input_shape = tf.unstack(K.shape(input))
-        if K.image_data_format() == 'channel_first':
-            bs, channel, w, h = input_shape
-        else:
-            bs, w, h, channel = input_shape
-
-        # Get indices
-        indices = tf.to_float(tf.where(K.ones([bs, w, h])))
-        canvas = K.reshape(indices, [bs, w, h, 3])[..., 1:]
-        # Normalize the canvas
-        canvas = canvas / tf.to_float(K.reshape([w, h], [1, 1, 1, 2]))
-        canvas = (canvas * 2) - 1
-
-        # If channel_first, we swap
-        if K.image_data_format() == 'channel_first':
-            canvas = K.swap_axes(canvas, [0, 3, 1, 2])
-
-        # Concatenate channel-wise
-        input = K.concatenate([input, canvas], -1)
-        return self.layer(input)
-
-    def compute_output_shape(self, input_shape):
-        return self.layer.compute_output_shape(input_shape)
-
 def getKerasActivation(type_name):
     """
         Compute a particular type of actiation to use
@@ -805,9 +771,6 @@ class DeepNNKerasAdaptive(ModelInterface):
                     if ("use_coordconv_layers" in self._networkSettings 
                             and (self._networkSettings["use_coordconv_layers"] == True)):
                         network = CoordinateChannel2D()(network)
-                        # network = CoordConv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], # strides=stride,
-                        #                                  # kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight'])
-                        #                                  )(network)
                     # else:
                     network = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride,
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
