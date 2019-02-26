@@ -423,7 +423,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                 from keras_layer_normalization import LayerNormalization
                 network = LayerNormalization(**layer_parms)(network)
             elif ( layer_info[i]["layer_type"] == "activation"):
-                network = getKerasActivation(layer_info[i]["activation_type"])(network)                
+                network = getKerasActivation(layer_info[i]["activation_type"])(network)      
+            elif ( layer_info[i]["layer_type"] == "integrate_actor_part"):
+                network = Concatenate()([network, self._actionInput])          
             elif (layer_info[i]["layer_type"] == "Concatenate"):
                 if ("slice_label" in layer_info[i]):
                     network = Concatenate(axis=1)([network, slices[layer_info[i]["slice_label"]]])

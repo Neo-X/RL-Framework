@@ -280,31 +280,7 @@
 	"comment__": "Use json network description",
 "network_description_type": "json",
 	"comment__": "A list describing the size of the layers for the NN",
-"critic_network_layer_sizes": [[  
-								{"layer_type": "slice", "slice_index": 6, "slice_label": "other_agent"},
-								{"layer_type": "Dense", "units": 64, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dense", "units": 32, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "subnet", "input": "other_agent", "output_label": "other_agent",
-									"layer_info": [ {"layer_type": "slice", "slice_index": 256, "slice_label": "vel_c"},
-													{"layer_type": "Reshape", "target_shape": [1,16,16]},
-													{"layer_type": "coordconv2d"},
-													{"layer_type": "conv2d", "filters": 8, "kernel_size": [3,3], "strides": [2,2], "use_bias": true},
-													{"layer_type": "activation", "activation_type": "leaky_rectify" },
-													{"layer_type": "coordconv2d"},
-													{"layer_type": "conv2d", "filters": 8, "kernel_size": [2,2], "strides": [1,1], "use_bias": true},
-													{"layer_type": "Flatten"},
-													{"layer_type": "Concatenate", "slice_label": "vel_c"}, 
-													{"layer_type": "activation", "activation_type": "leaky_rectify" },
-													{"layer_type": "Dense", "units": 64, "use_bias": true},
-													{"layer_type": "activation", "activation_type": "leaky_rectify" }
-													]
-									},
-									{"layer_type": "Concatenate", "slice_label": "other_agent"},
-									{"layer_type": "Dense", "units": 64, "use_bias": true},
-									{"layer_type": "activation", "activation_type": "leaky_rectify" }
-								],[ 
+"critic_network_layer_sizes": [[
 								{"layer_type": "slice", "slice_index": 256, "slice_label": "vel_c"},
 								{"layer_type": "Reshape", "target_shape": [1,16,16]},
 								{"layer_type": "coordconv2d"},
@@ -317,9 +293,8 @@
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
-								]],
-	"comment__": "A list describing the size of the layers for the NN",
-"policy_network_layer_sizes": [[ 
+								],
+								[  
 								{"layer_type": "slice", "slice_index": 6, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -343,7 +318,10 @@
 									{"layer_type": "Concatenate", "slice_label": "other_agent"},
 									{"layer_type": "Dense", "units": 64, "use_bias": true},
 									{"layer_type": "activation", "activation_type": "leaky_rectify" }
-								],[ 
+								]
+								],
+	"comment__": "A list describing the size of the layers for the NN",
+"policy_network_layer_sizes": [[ 
 								{"layer_type": "slice", "slice_index": 256, "slice_label": "vel_p"},
 								{"layer_type": "Reshape", "target_shape": [1,16,16]},
 								{"layer_type": "coordconv2d"},
@@ -354,6 +332,30 @@
 								{"layer_type": "Flatten"},
 								{"layer_type": "Concatenate", "slice_label": "vel_p"},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
+								],[ 
+								{"layer_type": "slice", "slice_index": 6, "slice_label": "other_agent"},
+								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dense", "units": 32, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "subnet", "input": "other_agent", "output_label": "other_agent",
+									"layer_info": [ {"layer_type": "slice", "slice_index": 256, "slice_label": "vel_c"},
+													{"layer_type": "Reshape", "target_shape": [1,16,16]},
+													{"layer_type": "coordconv2d"},
+													{"layer_type": "conv2d", "filters": 8, "kernel_size": [3,3], "strides": [2,2], "use_bias": true},
+													{"layer_type": "activation", "activation_type": "leaky_rectify" },
+													{"layer_type": "coordconv2d"},
+													{"layer_type": "conv2d", "filters": 8, "kernel_size": [2,2], "strides": [1,1], "use_bias": true},
+													{"layer_type": "Flatten"},
+													{"layer_type": "Concatenate", "slice_label": "vel_c"}, 
+													{"layer_type": "activation", "activation_type": "leaky_rectify" },
+													{"layer_type": "Dense", "units": 64, "use_bias": true},
+													{"layer_type": "activation", "activation_type": "leaky_rectify" }
+													]
+									},
+								{"layer_type": "Concatenate", "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								]],
