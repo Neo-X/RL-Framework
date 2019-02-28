@@ -914,7 +914,7 @@ def trainModelParallel(inputData):
                 error = 0
                 rewards = 0
                 if masterAgent.samples() >= batch_size:
-                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.get_batch(batch_size)
+                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.get_batch(batch_size, 0)
                     # print ("Batch size: " + str(batch_size))
                     masterAgent.reset()
                     if ((("train_LSTM" in settings)
@@ -927,7 +927,7 @@ def trainModelParallel(inputData):
                         states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_ = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
                         error = masterAgent.bellman_error(states_, actions_, rewards_, result_states_, falls_)
                     else:
-                        error = masterAgent.bellman_error(states, actions, rewards, result_states, falls)
+                        error = masterAgent.bellman_error(batch_size)
                     # print ("Error: ", error)
                     # bellman_errors.append(np.mean(np.fabs(error)))
                     bellman_errors.append(error)
@@ -961,14 +961,14 @@ def trainModelParallel(inputData):
                         regularizationCost__ = masterAgent.getPolicy().get_actor_regularization()
                         actorRegularizationCosts.append(regularizationCost__)
                     
-                    if not all(np.isfinite(error)):
+                    if not all(np.isfinite(np.mean(error, axis=0))):
                         print ("Bellman Error is Nan: " + str(error) + str(np.isfinite(error)))
                         # if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                         print ("States: " + str(states) + " ResultsStates: " + str(result_states) + " Rewards: " + str(rewards) + " Actions: " + str(actions) + " Falls: ", str(falls))
                         sys.exit()
                     
-                    error = np.mean(np.fabs(error))
-                    if error > 10000:
+                    error = np.mean(np.fabs(error), axis=1)
+                    if np.mean(error) > 10000:
                         print ("Error to big: ")
                         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                             print (states, actions, rewards, result_states)

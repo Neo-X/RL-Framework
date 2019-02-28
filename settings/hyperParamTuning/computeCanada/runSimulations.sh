@@ -44,12 +44,12 @@ declare -a metaExps=(
 #	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_NEWLLC_Tensorflow_v1.json"
 #	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_5_NEWLLC_Tensorflow_v1.json"
 ### Different reawrd function
-	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v1.json"
-	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v1.json"
-	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v1.json"
-	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v1.json"
-	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v1.json"
-	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v1.json"
+	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v2.json"
+	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v2.json"
+	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v2.json"
+	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v2.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v2.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v2.json"
 )
 
 metaConfigFile=$1

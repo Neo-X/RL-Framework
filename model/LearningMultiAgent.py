@@ -407,14 +407,17 @@ class LearningMultiAgent(LearningAgent):
             self._accesLock.release()
         return q
     
-    def bellman_error(self, state, action, reward, result_state, fall):
+    def bellman_error(self):
         if self._useLock:
             self._accesLock.acquire()
+        errors_ = []
+        for m in range(len(self.getAgents())):
         # err = [p_.bellman_error(state, action, reward, result_state, fall) for p_, state_, action_, reward_, result_state_, fall_ in zip(self.getAgents(), state, action, reward, result_state, fall)]
-        err = self.getAgents()[0].bellman_error(state, action, reward, result_state, fall)  
+            err = self.getAgents()[m].bellman_error()
+            errors_.append(err)  
         if self._useLock:
             self._accesLock.release()
-        return err[0]
+        return errors_
         
     def initEpoch(self, exp_):
         if (not (self._sampler == None ) ):
@@ -465,8 +468,8 @@ class LearningMultiAgent(LearningAgent):
     def samples(self):
         return self.getAgents()[0].samples()
     
-    def get_batch(self, size_):
-        return self.getAgents()[0].get_batch(size_)
+    def get_batch(self, size_, m):
+        return self.getAgents()[m].get_batch(size_)
         
     def saveTo(self, directory, bestPolicy=False, bestFD=False, suffix=""):
         from util.SimulationUtil import getAgentName
