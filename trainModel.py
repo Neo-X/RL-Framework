@@ -204,7 +204,7 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
     ### back to normal settings
     masterAgent.setSettings(settings__2)
     masterAgent.getPolicy().setSettings(settings__2)
-    print ("Done pretraining fd")
+    print ("Done pretraining critic")
     
 def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
                    sim_work_queues, eval_episode_data_queue):
