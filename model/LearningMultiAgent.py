@@ -309,6 +309,18 @@ class LearningMultiAgent(LearningAgent):
         """
         self.putDataInExpMem(_states, _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, recomputeRewards=True)
         
+    def getcentralizedPolicyState(self, m, state):
+        import numpy as np
+        state_ = copy.deepcopy(list(state[m]))
+        for bounds_ in [x for i,x in enumerate(state) if i!=m]:
+            state_.extend(bounds_)
+        ### Add action bounds for other agents
+        for bounds_ in [x for i,x in enumerate(self.getSettings()["action_bounds"]) if i!=m]:
+            state_.extend(bounds_[0])
+                    
+        state_ = np.array(state_)
+        return state_
+        
     def predict(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False, use_mbrl=False):
         if self._useLock:
             self._accesLock.acquire()
@@ -317,16 +329,8 @@ class LearningMultiAgent(LearningAgent):
         if ( "use_centralized_critic" in self.getSettings()
              and (self.getSettings()["use_centralized_critic"] == True)):
             ### Need to assemble centralized states
-            import numpy as np
             for m in range(len(state)):
-                state_ = copy.deepcopy(list(state[m]))
-                for bounds_ in [x for i,x in enumerate(state) if i!=m]:
-                    state_.extend(bounds_)
-                ### Add action bounds for other agents
-                for bounds_ in [x for i,x in enumerate(self.getSettings()["action_bounds"]) if i!=m]:
-                    state_.extend(bounds_[0])
-                    
-                state_ = np.array(state_)
+                state_ = self.getcentralizedPolicyState(m, state)
                 act.append(self.getAgents()[m].predict([state_], evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)[0])
         else:
             act = [p_.predict([state_], evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)[0] for p_, state_ in zip(self.getAgents(), state)]
@@ -344,14 +348,7 @@ class LearningMultiAgent(LearningAgent):
             ### Need to assemble centralized states
             import numpy as np
             for m in range(len(state)):
-                state_ = copy.deepcopy(list(state[m]))
-                for bounds_ in [x for i,x in enumerate(state) if i!=m]:
-                    state_.extend(bounds_)
-                ### Add action bounds for other agents
-                for bounds_ in [x for i,x in enumerate(self.getSettings()["action_bounds"]) if i!=m]:
-                    state_.extend(bounds_[0])
-                    
-                state_ = np.array(state_)
+                state_ = self.getcentralizedPolicyState(m, state)
                 std.append(self.getAgents()[m].predict_std([state_], evaluation_=evaluation_, p=p)[0])
         else:
             std = [p_.predict_std([state_], p=p)[0] for p_, state_ in zip(self.getAgents(), state) ]
@@ -376,7 +373,16 @@ class LearningMultiAgent(LearningAgent):
         """
         if self._useLock:
             self._accesLock.acquire()
-        q = [p_.q_value([state_])[0] for p_, state_ in zip(self.getAgents(), state) ]
+        q = []
+        if ( "use_centralized_critic" in self.getSettings()
+             and (self.getSettings()["use_centralized_critic"] == True)):
+            ### Need to assemble centralized states
+            import numpy as np
+            for m in range(len(state)):
+                state_ = self.getcentralizedPolicyState(m, state)
+                q.append(self.getAgents()[m].q_value([state_])[0])
+        else:
+            q = [p_.q_value([state_])[0] for p_, state_ in zip(self.getAgents(), state) ]
         if self._useLock:
             self._accesLock.release()
         return q
