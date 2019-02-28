@@ -25,7 +25,7 @@ declare -a metaExps=(
  				"settings/hyperParamTuning/element/exploration_rate.json"
 #				"settings/hyperParamTuning/element/fd_algorithm.json"
 # 				"settings/hyperParamTuning/element/fd_distance_function.json"
- 				"settings/hyperParamTuning/element/fd_learning_rate.json" 
+# 				"settings/hyperParamTuning/element/fd_learning_rate.json" 
 # 				"settings/hyperParamTuning/element/fd_updates_per_actor_update.json" 
 #				"settings/hyperParamTuning/element/GAE_lambda.json"
 # 				"settings/hyperParamTuning/element/image_noise_scale.json" 
@@ -52,7 +52,7 @@ declare -a metaExps=(
 ## declare an array variable
 declare -a simConfigs=(
  	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
-	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_EncodeDecode.json"
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
 #	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
 #	"settings/terrainRLImitate3D/CACLA/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode_BCE_refreshRewards.json"
 )
