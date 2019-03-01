@@ -71,19 +71,18 @@ class RLVisualize(object):
     def updateBellmanError(self, error, std):
         
         # self._bellman_error.set_data(error)
-        print ("error: ", error)
-        print ("std: ", std)
         if ( self._agents > 1):
             
             for j in range(self._agents):
                 self._bellman_errors[j].set_data(np.arange(len(error[:,j])), error[:,j])
                 self._bellman_error_ax.collections.remove(self._bellman_error_stds[j])
-                self._bellman_error_stds[j] = self._bellman_error_ax.fill_between(np.arange(len(error[:,j])), error[:,j] - std[:,j], error[:,j] + std[:,j], facecolor='blue', alpha=0.5)
+                # print ("self._bellman_errors[j]: ", self._bellman_errors[j])
+                self._bellman_error_stds[j] = self._bellman_error_ax.fill_between(np.arange(len(error[:,j])), error[:,j] - std[:,j], error[:,j] + std[:,j], facecolor=self._bellman_errors[j].get_color(), alpha=0.4)
         else:
             self._bellman_error.set_data(np.arange(len(error)), error)
             # self._bellman_error.set_data(error)
             self._bellman_error_ax.collections.remove(self._bellman_error_std)
-            self._bellman_error_std = self._bellman_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor='blue', alpha=0.5)
+            self._bellman_error_std = self._bellman_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor=self._bellman_error.get_color(), alpha=0.5)
         
         self._bellman_error_ax.relim()      # make sure all the data fits
         self._bellman_error_ax.autoscale()
