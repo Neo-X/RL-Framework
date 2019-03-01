@@ -1137,10 +1137,11 @@ def trainModelParallel(inputData):
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     # trainData["mean_bellman_error"].append(np.mean(np.fabs(mean_bellman_error)))
                     # trainData["mean_bellman_error"].append(np.mean(bellman_errors, axis=0))
-                    errors___ = np.mean([np.mean(er_, axis=1) for er_ in bellman_errors], axis=0)
-                    trainData["mean_bellman_error"].extend(errors___)
+                    # errors____ = [np.mean(er_, axis=1) for er_ in bellman_errors[0]]
+                    # errors___ = np.mean(errors____, axis=1)
+                    trainData["mean_bellman_error"].append(np.mean([np.mean(er_, axis=1) for er_ in bellman_errors[0]], axis=1))
                     # error = np.mean(np.fabs(error), axis=1)
-                    trainData["std_bellman_error"].append(np.mean([np.std(er_, axis=1) for er_ in bellman_errors], axis=0)[0])
+                    trainData["std_bellman_error"].append(np.mean([np.std(er_, axis=1) for er_ in bellman_errors[0]], axis=1))
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     bellman_errors=[]
                     trainData["mean_discount_error"].append(mean_discount_error)

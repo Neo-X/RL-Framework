@@ -76,9 +76,9 @@ class RLVisualize(object):
         if ( self._agents > 1):
             
             for j in range(self._agents):
-                self._bellman_errors[j].set_data(np.arange(len(error[j])), error[j])
+                self._bellman_errors[j].set_data(np.arange(len(error[:,j])), error[:,j])
                 self._bellman_error_ax.collections.remove(self._bellman_error_stds[j])
-                self._bellman_error_std[j] = self._bellman_error_ax.fill_between(np.arange(len(error[j])), error[j] - std[j], error[j] + std[j], facecolor='blue', alpha=0.5)
+                self._bellman_error_stds[j] = self._bellman_error_ax.fill_between(np.arange(len(error[:,j])), error[:,j] - std[:,j], error[:,j] + std[:,j], facecolor='blue', alpha=0.5)
         else:
             self._bellman_error.set_data(np.arange(len(error)), error)
             # self._bellman_error.set_data(error)
