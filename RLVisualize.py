@@ -15,93 +15,95 @@ class RLVisualize(object):
             average reward
             discounted reward error
         """
-        if (settings != None):
-            self._sim_iteration_scale = (settings['plotting_update_freq_num_rounds']*settings['max_epoch_length']*settings['epochs'])
-            self._iteration_scale = ((self._sim_iteration_scale * settings['training_updates_per_sim_action']) / 
-                                     settings['sim_action_per_training_update'])
-            if ('on_policy' in settings and (settings['on_policy'])):
-                self._sim_iteration_scale = self._sim_iteration_scale * settings['num_on_policy_rollouts']
-                self._iteration_scale = ((self._sim_iteration_scale / (settings['max_epoch_length'] )) *
-                                     settings['critic_updates_per_actor_update'])
+        self._settings = settings
+        self._title = title
+        self._agents = 1
+        if ("perform_multiagent_training" in self._settings):
+            self._agents = self._settings["perform_multiagent_training"]
+        
+        
+    def init(self):
+        if (self._settings != None):
+            self._sim_iteration_scale = (self._settings['plotting_update_freq_num_rounds']*self._settings['max_epoch_length']*self._settings['epochs'])
+            self._iteration_scale = ((self._sim_iteration_scale * self._settings['training_updates_per_sim_action']) / 
+                                     self._settings['sim_action_per_training_update'])
+            if ('on_policy' in self._settings and (self._settings['on_policy'])):
+                self._sim_iteration_scale = self._sim_iteration_scale * self._settings['num_on_policy_rollouts']
+                self._iteration_scale = ((self._sim_iteration_scale / (self._settings['max_epoch_length'] )) *
+                                     self._settings['critic_updates_per_actor_update'])
         else:
             self._iteration_scale = 1
             self._sim_iteration_scale = 1
-        self._title=title
+        
         self._fig, (self._bellman_error_ax, self._reward_ax, self._discount_error_ax) = plt.subplots(3, 1, sharey=False, sharex=True)
-        self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
-        self._bellman_error_std = self._bellman_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
-        self._bellman_error_ax.set_title('Bellman Error', fontsize=16)
-        self._bellman_error_ax.set_ylabel("Absolute Error", fontsize=16)
-        self._bellman_error_ax.grid(b=True, which='major', color='black', linestyle='--')
-        self._reward, = self._reward_ax.plot([], [], linewidth=2.0)
-        self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
-        self._reward_ax.set_title('Mean Reward', fontsize=16)
-        self._reward_ax.set_ylabel("Reward", fontsize=16)
-        self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')
-        self._discount_error, = self._discount_error_ax.plot([], [], linewidth=2.0)
-        self._discount_error_std = self._discount_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
-        self._discount_error_ax.set_title('Discount Error', fontsize=16)
-        self._discount_error_ax.set_ylabel("Absolute Error", fontsize=16)
-        self._discount_error_ax.grid(b=True, which='major', color='black', linestyle='--')
+        self._bellman_errors = []
+        self._bellman_error_stds = []
+        self._rewards = []
+        self._reward_stds = []
+        self._discount_errors = []
+        self._discount_error_stds = []
+        for j in range(self._agents):
+            self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
+            self._bellman_error_std = self._bellman_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
+            self._bellman_error_ax.set_title('Bellman Error', fontsize=16)
+            self._bellman_error_ax.set_ylabel("Absolute Error", fontsize=16)
+            self._bellman_error_ax.grid(b=True, which='major', color='black', linestyle='--')
+            self._reward, = self._reward_ax.plot([], [], linewidth=2.0)
+            self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
+            self._reward_ax.set_title('Mean Reward', fontsize=16)
+            self._reward_ax.set_ylabel("Reward", fontsize=16)
+            self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')
+            self._discount_error, = self._discount_error_ax.plot([], [], linewidth=2.0)
+            self._discount_error_std = self._discount_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
+            self._discount_error_ax.set_title('Discount Error', fontsize=16)
+            self._discount_error_ax.set_ylabel("Absolute Error", fontsize=16)
+            self._discount_error_ax.grid(b=True, which='major', color='black', linestyle='--')
+            self._bellman_errors.append(self._bellman_error)
+            self._bellman_error_stds.append(self._bellman_error_std)
+            self._rewards.append(self._reward)
+            self._reward_stds.append(self._reward_std)
+            self._discount_errors.append(self._discount_error)
+            self._discount_error_stds.append(self._discount_error_std)
+            
         plt.xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale), fontsize=16)
-        
-        self._fig.set_size_inches(8.0, 12.5, forward=True)
-        
-    def init(self):
-        """
-            Three plots
-            bellman error
-            average reward
-            discounted reward error
-        """
-        self._fig, (self._bellman_error_ax, self._reward_ax, self._discount_error_ax) = plt.subplots(3, 1, sharey=False, sharex=True)
-        self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
-        self._bellman_error_std = self._bellman_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
-        self._bellman_error_ax.set_title('Bellman Error', fontsize=16)
-        self._bellman_error_ax.set_ylabel("Absolute Error", fontsize=16)
-        self._bellman_error_ax.grid(b=True, which='major', color='black', linestyle='--')
-        self._reward, = self._reward_ax.plot([], [], linewidth=2.0)
-        self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
-        self._reward_ax.set_title('Mean Reward', fontsize=16)
-        self._reward_ax.set_ylabel("Reward", fontsize=16)
-        self._reward_ax.grid(b=True, which='major', color='black', linestyle='--')
-        self._discount_error, = self._discount_error_ax.plot([], [], linewidth=2.0)
-        self._discount_error_std = self._discount_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
-        self._discount_error_ax.set_title('Discount Error', fontsize=16)
-        self._discount_error_ax.set_ylabel("Absolute Error", fontsize=16)
-        self._discount_error_ax.grid(b=True, which='major', color='black', linestyle='--')
-        plt.xlabel("Simulated Actions x" + str(self._sim_iteration_scale) + ", Training Updates x" + str(self._iteration_scale), fontsize=16)
-        self._fig.suptitle(self._title, fontsize=18)
-        
-        # plt.grid(b=True, which='major', color='black', linestyle='--')
-        # plt.grid(b=True, which='minor', color='g', linestyle='--'
-        
         self._fig.set_size_inches(8.0, 12.5, forward=True)
         
     def updateBellmanError(self, error, std):
-        self._bellman_error.set_data(np.arange(len(error)), error)
-        # self._bellman_error.set_data(error)
-        # self._bellman_error_ax.collections.remove(self._bellman_error_std)
-        # self._bellman_error_std = self._bellman_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor='blue', alpha=0.5)
         
+        # self._bellman_error.set_data(error)
+        if ( self._agents > 1):
+            
+            for j in range(self._agents):
+                self._bellman_errors[j].set_data(np.arange(len(error[j])), error[j])
+                self._bellman_error_ax.collections.remove(self._bellman_error_stds[j])
+                self._bellman_error_std[j] = self._bellman_error_ax.fill_between(np.arange(len(error[j])), error[j] - std[j], error[j] + std[j], facecolor='blue', alpha=0.5)
+        else:
+            self._bellman_error.set_data(np.arange(len(error)), error)
+            self._bellman_error.set_data(error)
+            self._bellman_error_ax.collections.remove(self._bellman_error_std)
+            self._bellman_error_std = self._bellman_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor='blue', alpha=0.5)
         
         self._bellman_error_ax.relim()      # make sure all the data fits
         self._bellman_error_ax.autoscale()
         
     def updateReward(self, reward, std):
-        self._reward.set_xdata(np.arange(len(reward)))
-        self._reward.set_ydata(reward)
-        self._reward_ax.collections.remove(self._reward_std)
-        self._reward_std = self._reward_ax.fill_between(np.arange(len(reward)), reward - std, reward + std, facecolor='blue', alpha=0.5)
+        
+        for j in range(self._agents):
+            self._rewards[j].set_xdata(np.arange(len(reward)))
+            self._rewards[j].set_ydata(reward)
+            self._reward_ax.collections.remove(self._reward_stds[j])
+            self._reward_stds[j] = self._reward_ax.fill_between(np.arange(len(reward)), reward - std, reward + std, facecolor='blue', alpha=0.5)
         
         self._reward_ax.relim()      # make sure all the data fits
         self._reward_ax.autoscale()  # auto-scale
         
     def updateDiscountError(self, error, std):
-        self._discount_error.set_xdata(np.arange(len(error)) )
-        self._discount_error.set_ydata(error)
-        self._discount_error_ax.collections.remove(self._discount_error_std)
-        self._discount_error_std = self._discount_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor='blue', alpha=0.5)
+        
+        for j in range(self._agents):
+            self._discount_errors[j].set_xdata(np.arange(len(error)) )
+            self._discount_errors[j].set_ydata(error)
+            self._discount_error_ax.collections.remove(self._discount_error_std[j])
+            self._discount_error_stds[j] = self._discount_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor='blue', alpha=0.5)
         
         
         self._discount_error_ax.relim()      # make sure all the data fits
