@@ -36,6 +36,17 @@ def load_keras_model(filename, custom_objects={}):
     model = load_model(filename, custom_objects)
     return model
 
+import json
+class NumpyEncoder(json.JSONEncoder):
+    """
+        Allows json to serialize numpy arrays
+    """
+    def default(self, obj):
+        import numpy as np
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
 
 if __name__ == '__main__':
     

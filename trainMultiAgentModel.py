@@ -917,17 +917,8 @@ def trainModelParallel(inputData):
                     states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.get_batch(batch_size, 0)
                     # print ("Batch size: " + str(batch_size))
                     masterAgent.reset()
-                    if ((("train_LSTM" in settings)
-                        and (settings["train_LSTM"] == True))
-                        or (("train_LSTM_Critic" in settings)
-                        and (settings["train_LSTM_Critic"] == True))):
-                        batch_size_lstm = 4
-                        if ("lstm_batch_size" in settings):
-                            batch_size_lstm = settings["lstm_batch_size"][1]
-                        states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_ = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
-                        error = masterAgent.bellman_error(states_, actions_, rewards_, result_states_, falls_)
-                    else:
-                        error = masterAgent.bellman_error(batch_size)
+                    error = masterAgent.bellman_error()
+                    # error = np.mean(np.fabs(error), axis=1)
                     # print ("Error: ", error)
                     # bellman_errors.append(np.mean(np.fabs(error)))
                     bellman_errors.append(error)
@@ -1125,7 +1116,7 @@ def trainModelParallel(inputData):
                                                     """
                 print ("round_, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
                 print (trainData["round"], mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
-                if mean_bellman_error > 10000:
+                if np.mean(mean_bellman_error) > 10000:
                     print ("Error to big: ")
                 else:
                     if (settings['train_forward_dynamics']):
@@ -1145,8 +1136,10 @@ def trainModelParallel(inputData):
                     # trainData["mean_bellman_error"].append(mean_bellman_error)
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     # trainData["mean_bellman_error"].append(np.mean(np.fabs(mean_bellman_error)))
-                    trainData["mean_bellman_error"].append(np.mean([np.mean(np.fabs(er_)) for er_ in bellman_errors]))
-                    trainData["std_bellman_error"].append(np.mean([np.std(er_) for er_ in bellman_errors]))
+                    # trainData["mean_bellman_error"].append(np.mean(bellman_errors, axis=0))
+                    trainData["mean_bellman_error"].append(np.mean([np.mean(er_, axis=1) for er_ in bellman_errors], axis=0))
+                    # error = np.mean(np.fabs(error), axis=1)
+                    trainData["std_bellman_error"].append(np.mean([np.std(er_, axis=1) for er_ in bellman_errors], axis=0))
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     bellman_errors=[]
                     trainData["mean_discount_error"].append(mean_discount_error)
@@ -1291,6 +1284,7 @@ def trainModelParallel(inputData):
                 fp = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", 'w')
                 # print ("Train data: ", trainData)
                 ## because json does not serialize np.float32 
+                """
                 for key in trainData:
                     if (key == 'error'):
                         continue
@@ -1299,7 +1293,9 @@ def trainModelParallel(inputData):
                         trainData[key] = [float(i) for i in trainData[key]]
                     else:
                         trainData[key] = float(trainData[key])
-                json.dump(trainData, fp)
+                """
+                from util.utils import NumpyEncoder 
+                json.dump(trainData, fp, cls=NumpyEncoder)
                 fp.close()
                 # draw data
                 

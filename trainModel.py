@@ -1091,20 +1091,7 @@ def trainModelParallel(inputData):
                 error = 0
                 rewards = 0
                 if masterAgent.getExperience().samples() >= batch_size:
-                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getExperience().get_batch(batch_size)
-                    # print ("Batch size: " + str(batch_size))
-                    masterAgent.reset()
-                    if ((("train_LSTM" in settings)
-                        and (settings["train_LSTM"] == True))
-                        or (("train_LSTM_Critic" in settings)
-                        and (settings["train_LSTM_Critic"] == True))):
-                        batch_size_lstm = 4
-                        if ("lstm_batch_size" in settings):
-                            batch_size_lstm = settings["lstm_batch_size"][1]
-                        states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_ = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
-                        error = masterAgent.bellman_error(states_, actions_, rewards_, result_states_, falls_)
-                    else:
-                        error = masterAgent.bellman_error(states, actions, rewards, result_states, falls)
+                    error = masterAgent.bellman_error()
                     # print ("Error: ", error)
                     # bellman_errors.append(np.mean(np.fabs(error)))
                     bellman_errors.append(error)
@@ -1290,7 +1277,7 @@ def trainModelParallel(inputData):
                                                     """
                 print ("round_, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
                 print (trainData["round"], mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
-                if mean_bellman_error > 10000:
+                if np.mean(mean_bellman_error) > 10000:
                     print ("Error to big: ")
                 else:
                     if (settings['train_forward_dynamics']):

@@ -81,8 +81,8 @@ class RLVisualize(object):
     def updateBellmanError(self, error, std):
         self._bellman_error.set_data(np.arange(len(error)), error)
         # self._bellman_error.set_data(error)
-        self._bellman_error_ax.collections.remove(self._bellman_error_std)
-        self._bellman_error_std = self._bellman_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor='blue', alpha=0.5)
+        # self._bellman_error_ax.collections.remove(self._bellman_error_std)
+        # self._bellman_error_std = self._bellman_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor='blue', alpha=0.5)
         
         
         self._bellman_error_ax.relim()      # make sure all the data fits
