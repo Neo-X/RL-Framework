@@ -825,6 +825,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             episodeData['data'] = i
             if ( (type is None) ):
                 episodeData['type'] = 'sim_on_policy'
+            elif( type == 'eval'):
+                episodeData['type'] = 'eval'
             elif ( type == "keep_alive"):
                 episodeData['type'] = 'keep_alive'
             elif ( type == "Get_Net_Params"):
