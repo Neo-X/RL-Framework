@@ -228,11 +228,6 @@ class LearningAgent(AgentInterface):
             if ( ('clear_exp_mem_on_poli' in self._settings) 
                  and (self._settings['clear_exp_mem_on_poli'] == True)):
                 self._expBuff.clear()
-            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
-                print("Start of Learning Agent Update")
-                _actions__ = np.array(_actions)
-                print("Actions:     ", np.mean(_actions__, axis=0), " shape: ", _actions__.shape)
-                print("Actions std:  ", np.std(_actions__, axis=0) )
             
             ### Update target networks
             self.updateTargetModel()

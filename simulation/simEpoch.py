@@ -769,17 +769,23 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 
 # @profile(precision=5)
 def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None, type=None, p=1):
+    import numpy as np
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
         print ("Simulating epochs in Parallel:")
     j=0
     timeout_ = 60 * 10 ### 10 min timeout
     if ("simulation_timeout" in settings):
         timeout_ = settings["simulation_timeout"]
+        
+    if ( 'value_function_batch_size' in settings):
+        batch_size=settings["value_function_batch_size"]
+    else:
+        batch_size=settings["batch_size"]
+        
     discounted_values = []
     bellman_errors = []
     reward_over_epocs = []
-    values = []
-    evalDatas = []
+    
     epoch_=0
     states = []
     actions = []
@@ -789,9 +795,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     G_ts = []
     advantage = [] 
     exp_actions = []
-    discounted_sum = []
-    value = []
-    evalData = []
+    values = []
+    evalDatas = []
     i = 0 
     
     if ("num_on_policy_rollouts" in settings):
@@ -845,9 +850,9 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
                 datas__.append(dat)
                 continue
             (tuples, discounted_sum_, value_, evalData_) =  eval_episode_data_queue.get(timeout=timeout_)
-            discounted_sum.append(discounted_sum_)
-            value.append(value_)
-            evalData.append(evalData_)
+            discounted_values.append(discounted_sum_)
+            values.append(value_)
+            evalDatas.append(evalData_)
             """
             simEpoch(actor, exp, 
                     model, discount_factor, anchors=anchs, action_space_continuous=action_space_continuous, 
@@ -865,17 +870,53 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             G_ts.append(G_ts_)
             advantage.append(advantage_)
             exp_actions.append(exp_actions_)
+            if( type == 'eval'):
+            
+                if model.samples() >= batch_size:
+                    error = model.bellman_error()
+                    # print("Episode bellman error: ", error)
+                else :
+                    error = [[0]]
+                    print ("Error: not enough samples in experience to check bellman error: ", model.samples(), " needed " , batch_size)
+                error = np.mean(np.fabs(error))
+                # This works better because epochs can terminate early, which is bad.
+                # print ("rewards: ", np.array(rewards_).shape)
+                reward_over_epocs.append(np.mean(np.array(rewards_)))
+                bellman_errors.append(error)
         i += j
         if ( type == "keep_alive"
              or type == "Get_Net_Params"):
             break
         # print("samples collected so far: ", len(states))
     
+    if( type == 'eval'):
+        
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
+            print ("Reward for best epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
+            print ("reward_over_epocs" + str(reward_over_epocs))
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
+            print ("Discounted sum: ", np.array(discounted_values))
+            print ("Initial values: ", np.array(values))
+            for i in range(len(discounted_values)):
+                print ("len(discounted_values[",i,"]): ", np.array(discounted_values[i]).shape, " len(values[",i,"]): ", 
+                       np.array(values[i]).shape)
+            
+        mean_reward = np.mean(reward_over_epocs)
+        std_reward = np.std(reward_over_epocs)
+        mean_bellman_error = np.mean(bellman_errors)
+        std_bellman_error = np.std(bellman_errors)
+        mean_discount_error = np.mean([np.array(dis) - np.array(v) for dis, v in zip(discounted_values, values)])
+        std_discount_error = np.std([np.array(dis) - np.array(v) for dis, v in zip(discounted_values, values)])
+        mean_eval = np.mean(evalDatas)
+        std_eval = np.std(evalDatas)
+        return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
+            mean_eval, std_eval)
+        
     if ( type == "keep_alive"
          or type == "Get_Net_Params"):
         return datas__
     tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
-    return (tuples, discounted_sum, value, evalData)
+    return (tuples, discounted_values, values, evalDatas)
 
 # @profile(precision=5)
 def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, settings, anchors=None, type=None, p=1):
@@ -1011,28 +1052,13 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
             
         if( type == 'eval'):
             
-            if model.getExperience().samples() >= batch_size:
-                if (("train_LSTM_Critic" in settings)
-                and (settings["train_LSTM_Critic"] == True)):
-                    # _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = model.getExperience().get_batch(batch_size)
-                    batch_size_lstm = 4
-                    if ("lstm_batch_size" in settings):
-                        batch_size_lstm = settings["lstm_batch_size"][1]
-                    states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions_, advantages_ = model.getExperience().get_multitask_trajectory_batch(batch_size=batch_size_lstm)
-                    error = model.bellman_error(states_, actions_, rewards_, result_states_, falls_)
-                else:
-                    _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = model.getExperience().get_batch(batch_size)
-                    error = model.bellman_error(_states, _actions, _rewards, _result_states, _falls)
+            if model.samples() >= batch_size:
+                error = model.bellman_error()
                 # print("Episode bellman error: ", error)
             else :
                 error = [[0]]
-                print ("Error: not enough samples in experience to check bellman error: ", model.getExperience().samples(), " needed " , batch_size)
-            # states, actions, result_states, rewards = experience.get_batch(64)
-            # error = model.bellman_error(states, actions, rewards, result_states)
-            # print (states, actions, rewards, result_states, discounted_sum, value)
+                print ("Error: not enough samples in experience to check bellman error: ", model.samples(), " needed " , batch_size)
             error = np.mean(np.fabs(error))
-            # print ("Round: " + str(round_) + " Epoch: " + str(epoch) + " With reward_sum: " + str(np.sum(rewards)) + " bellman error: " + str(error))
-            # print ("Rewards over eval epoch: ", rewards_)
             # This works better because epochs can terminate early, which is bad.
             # print ("rewards: ", np.array(rewards_).shape)
             reward_over_epocs.append(np.mean(np.array(rewards_)))

@@ -43,11 +43,14 @@ class RLVisualize(object):
         self._discount_errors = []
         self._discount_error_stds = []
         for j in range(self._agents):
-            self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
+            self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0, label="agent_"+str(j))
             self._bellman_error_std = self._bellman_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
             self._bellman_error_ax.set_title('Bellman Error', fontsize=16)
             self._bellman_error_ax.set_ylabel("Absolute Error", fontsize=16)
             self._bellman_error_ax.grid(b=True, which='major', color='black', linestyle='--')
+            leng = self._bellman_error_ax.legend(loc="upper right",
+                         ncol=1, shadow=True, fancybox=True)
+            leng.get_frame().set_alpha(0.3)
             self._reward, = self._reward_ax.plot([], [], linewidth=2.0)
             self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
             self._reward_ax.set_title('Mean Reward', fontsize=16)
@@ -93,7 +96,7 @@ class RLVisualize(object):
             self._rewards[j].set_xdata(np.arange(len(reward)))
             self._rewards[j].set_ydata(reward)
             self._reward_ax.collections.remove(self._reward_stds[j])
-            self._reward_stds[j] = self._reward_ax.fill_between(np.arange(len(reward)), reward - std, reward + std, facecolor='blue', alpha=0.5)
+            self._reward_stds[j] = self._reward_ax.fill_between(np.arange(len(reward)), reward - std, reward + std, facecolor=self._rewards[j].get_color(), alpha=0.5)
         
         self._reward_ax.relim()      # make sure all the data fits
         self._reward_ax.autoscale()  # auto-scale
@@ -104,7 +107,7 @@ class RLVisualize(object):
             self._discount_errors[j].set_xdata(np.arange(len(error)) )
             self._discount_errors[j].set_ydata(error)
             self._discount_error_ax.collections.remove(self._discount_error_stds[j])
-            self._discount_error_stds[j] = self._discount_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor='blue', alpha=0.5)
+            self._discount_error_stds[j] = self._discount_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor=self._discount_errors[j].get_color(), alpha=0.5)
         
         
         self._discount_error_ax.relim()      # make sure all the data fits
