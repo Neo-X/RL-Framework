@@ -636,15 +636,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             adv__ = paths["advantage"]
             baselines_.append(np.array(paths["baseline"]))
             advantage.append(np.array(adv__))
-    """
-    else:
-        ### This does not seem to work anymore
-        if (len(states[last_epoch_end:]) > 0):
-            for a in range(states[0].shape[0]):
-                advantage.append(np.array(discounted_rewards(np.array(rewards[last_epoch_end:])[:,a,:], discount_factor)))
-        # if (len(rewards[last_epoch_end:]) > 0):
-        #     advantage.append(discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor))
-    """
+
     # print ("base diff: ", np.array(baseline) - np.array(baselines_))
     # G_t_rewards.append(0)
     if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
@@ -883,7 +875,10 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
                 error = np.mean(np.fabs(error))
                 # This works better because epochs can terminate early, which is bad.
                 # print ("rewards: ", np.array(rewards_).shape)
-                reward_over_epocs.append(np.mean(np.array(rewards_)))
+                rewards__=[]
+                for agent_ in range(len(model.getAgents())): 
+                    rewards__.append(np.array(rewards_).flatten()[agent_::len(model.getAgents())])
+                reward_over_epocs.append(np.mean(np.array(rewards__), axis=1))
                 bellman_errors.append(error)
         i += j
         if ( type == "keep_alive"
@@ -903,8 +898,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
                 print ("len(discounted_values[",i,"]): ", np.array(discounted_values[i]).shape, " len(values[",i,"]): ", 
                        np.array(values[i]).shape)
             
-        mean_reward = np.mean(reward_over_epocs)
-        std_reward = np.std(reward_over_epocs)
+        mean_reward = np.mean(reward_over_epocs, axis=0)
+        std_reward = np.std(reward_over_epocs, axis=0)
         mean_bellman_error = np.mean(bellman_errors)
         std_bellman_error = np.std(bellman_errors)
         mean_discount_error = np.mean([np.array(dis) - np.array(v) for dis, v in zip(discounted_values, values)])

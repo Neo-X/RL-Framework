@@ -212,6 +212,8 @@ class LearningAgent(AgentInterface):
         """
         self.putDataInExpMem(_states, _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, recomputeRewards=True)
         
+    def getAgents(self):
+        return [self]
     # @profile(precision=5)
     def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
               _exp_actions=None, _G_t=None, p=1.0):
