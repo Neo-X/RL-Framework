@@ -1091,6 +1091,7 @@ def trainModelParallel(inputData):
                 error = 0
                 rewards = 0
                 if masterAgent.getExperience().samples() >= batch_size:
+                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.get_batch(batch_size)
                     error = masterAgent.bellman_error()
                     # print ("Error: ", error)
                     # bellman_errors.append(np.mean(np.fabs(error)))
