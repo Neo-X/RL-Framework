@@ -1302,8 +1302,8 @@ def trainModelParallel(inputData):
                     trainData["std_bellman_error"].append(np.mean([np.std(er_) for er_ in bellman_errors]))
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     bellman_errors=[]
-                    trainData["mean_discount_error"].append(mean_discount_error)
-                    trainData["std_discount_error"].append(std_discount_error)
+                    trainData["mean_discount_error"].append(np.mean(mean_discount_error))
+                    trainData["std_discount_error"].append(np.mean(std_discount_error))
                     trainData["mean_eval"].append(mean_eval)
                     trainData["std_eval"].append(std_eval)
                     if (settings['train_forward_dynamics']):

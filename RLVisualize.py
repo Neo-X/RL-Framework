@@ -85,29 +85,43 @@ class RLVisualize(object):
             self._bellman_error.set_data(np.arange(len(error)), error)
             # self._bellman_error.set_data(error)
             self._bellman_error_ax.collections.remove(self._bellman_error_std)
-            self._bellman_error_std = self._bellman_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor=self._bellman_error.get_color(), alpha=0.5)
+            self._bellman_error_std = self._bellman_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor=self._bellman_error.get_color(), alpha=0.4)
         
         self._bellman_error_ax.relim()      # make sure all the data fits
         self._bellman_error_ax.autoscale()
         
     def updateReward(self, reward, std):
         
-        for j in range(self._agents):
-            self._rewards[j].set_xdata(np.arange(len(reward)))
-            self._rewards[j].set_ydata(reward)
-            self._reward_ax.collections.remove(self._reward_stds[j])
-            self._reward_stds[j] = self._reward_ax.fill_between(np.arange(len(reward)), reward - std, reward + std, facecolor=self._rewards[j].get_color(), alpha=0.5)
-        
+        if ( self._agents > 1):
+            for j in range(self._agents):
+                self._rewards[j].set_data(np.arange(len(reward[:,j])), reward[:,j])
+                # self._rewards[j].set_ydata(reward[:,j])
+                self._reward_ax.collections.remove(self._reward_stds[j])
+                self._reward_stds[j] = self._reward_ax.fill_between(np.arange(len(reward[:,j])), reward[:,j] - std[:,j], reward[:,j] + std[:,j], facecolor=self._rewards[j].get_color(), alpha=0.4)
+        else:
+            for j in range(self._agents):
+                self._rewards[j].set_data(np.arange(len(reward)), reward)
+                # self._rewards[j].set_ydata(reward)
+                self._reward_ax.collections.remove(self._reward_stds[j])
+                self._reward_stds[j] = self._reward_ax.fill_between(np.arange(len(reward)), reward - std, reward + std, facecolor=self._rewards[j].get_color(), alpha=0.4)
+            
         self._reward_ax.relim()      # make sure all the data fits
         self._reward_ax.autoscale()  # auto-scale
         
     def updateDiscountError(self, error, std):
-        
-        for j in range(self._agents):
-            self._discount_errors[j].set_xdata(np.arange(len(error)) )
-            self._discount_errors[j].set_ydata(error)
-            self._discount_error_ax.collections.remove(self._discount_error_stds[j])
-            self._discount_error_stds[j] = self._discount_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor=self._discount_errors[j].get_color(), alpha=0.5)
+       
+        if ( self._agents > 1):
+            for j in range(self._agents):
+                self._discount_errors[j].set_data(np.arange(len(error[:,j])), error[:,j] )
+                # self._discount_errors[j].set_ydata(error[:,j])
+                self._discount_error_ax.collections.remove(self._discount_error_stds[j])
+                self._discount_error_stds[j] = self._discount_error_ax.fill_between(np.arange(len(error[:,j])), error[:,j] - std[:,j], error[:,j] + std[:,j], facecolor=self._discount_errors[j].get_color(), alpha=0.4)
+        else:
+            for j in range(self._agents):
+                self._discount_errors[j].set_data(np.arange(len(error)), error )
+                # self._discount_errors[j].set_ydata(error)
+                self._discount_error_ax.collections.remove(self._discount_error_stds[j])
+                self._discount_error_stds[j] = self._discount_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor=self._discount_errors[j].get_color(), alpha=0.4)
         
         
         self._discount_error_ax.relim()      # make sure all the data fits

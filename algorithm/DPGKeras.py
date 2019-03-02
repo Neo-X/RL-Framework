@@ -437,9 +437,11 @@ class DPGKeras(KERASAlgorithm):
     def q_values2(self, states):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         # states[0, ...] = state
+        """
         if ( "use_centralized_critic" in self.getSettings()
              and (self.getSettings()["use_centralized_critic"] == True)):
             return np.zeros((states.shape[0], 1))
+        """
         states = norm_state(states, self._state_bounds)
         states = np.array(states, dtype=self._settings['float_type'])
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]

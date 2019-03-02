@@ -625,7 +625,20 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         ### timestep, agent, state
         # path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
         ### In multi-agent sims agents can have different sized state vectors
-        path['states'] = copy.deepcopy(np.array([st[a] for st in states[last_epoch_end:]]))
+        if ( "use_centralized_critic" in settings
+             and (settings["use_centralized_critic"] == True)):
+            states__ = copy.deepcopy(np.array([st[a] for st in states[last_epoch_end:]]))
+            ### Add states from other agents
+            for l in [i for i in range(len(states[0])) if i!=a]:
+                other_states__ = copy.deepcopy(np.array([st[l] for st in states[last_epoch_end:]]))
+                states__ = [np.concatenate((states__[k], other_states__[k])) for k in range(len(states__))]
+            ### Add actions from other agents
+            for l in [i for i in range(len(states[0])) if i!=a]:
+                other_actions__ = copy.deepcopy(np.array([st[l] for st in actions[last_epoch_end:]]))
+                states__ = [np.concatenate((states__[k], other_actions__[k])) for k in range(len(states__))]
+            path['states'] = copy.deepcopy(np.array(states__))
+        else:
+            path['states'] = copy.deepcopy(np.array([st[a] for st in states[last_epoch_end:]]))
         path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
         path['falls'] = np.array(np.array(falls[last_epoch_end:])[:,a,:])
         path["terminated"] = False
@@ -777,6 +790,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     discounted_values = []
     bellman_errors = []
     reward_over_epocs = []
+    mean_discount_error = []
+    std_discount_error = []
     
     epoch_=0
     states = []
@@ -876,10 +891,18 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
                 # This works better because epochs can terminate early, which is bad.
                 # print ("rewards: ", np.array(rewards_).shape)
                 rewards__=[]
+                discounted_sum__=[]
+                value__=[]
+                discount_error__ = []
                 for agent_ in range(len(model.getAgents())): 
                     rewards__.append(np.array(rewards_).flatten()[agent_::len(model.getAgents())])
+                    discounted_sum__.append(np.array(discounted_sum_).flatten()[agent_::len(model.getAgents())])
+                    value__.append(np.array(value_).flatten()[agent_::len(model.getAgents())])
+                    discount_error__.append(discounted_sum__[agent_] - value__[agent_])
                 reward_over_epocs.append(np.mean(np.array(rewards__), axis=1))
                 bellman_errors.append(error)
+                mean_discount_error.append(np.mean(np.fabs(discount_error__), axis=1))
+                std_discount_error.append(np.std(discount_error__, axis=1))
         i += j
         if ( type == "keep_alive"
              or type == "Get_Net_Params"):
@@ -902,8 +925,8 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         std_reward = np.std(reward_over_epocs, axis=0)
         mean_bellman_error = np.mean(bellman_errors)
         std_bellman_error = np.std(bellman_errors)
-        mean_discount_error = np.mean([np.array(dis) - np.array(v) for dis, v in zip(discounted_values, values)])
-        std_discount_error = np.std([np.array(dis) - np.array(v) for dis, v in zip(discounted_values, values)])
+        mean_discount_error = np.mean(mean_discount_error, axis=0)
+        std_discount_error = np.std(std_discount_error, axis=0)
         mean_eval = np.mean(evalDatas)
         std_eval = np.std(evalDatas)
         return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,

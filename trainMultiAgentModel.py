@@ -1160,7 +1160,7 @@ def trainModelParallel(inputData):
                         rlv_ = RLVisualize(title=str(settings['sim_config_file']) + " agent on " + str(settings['environment_type']), settings=settings)
                         rlv_.init()
                         rlv_.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
-                        rlv_.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
+                        rlv_.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
                         rlv_.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
                         rlv_.redraw()
                         rlv_.saveVisual(directory+getAgentName())
@@ -1168,7 +1168,7 @@ def trainModelParallel(inputData):
                         del rlv_
                     if settings['visualize_learning']:
                         rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
-                        rlv.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
+                        rlv.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["mean_reward"]))
                         rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
                         rlv.redraw()
                         rlv.setInteractiveOff()
