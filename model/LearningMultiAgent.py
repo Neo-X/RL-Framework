@@ -198,6 +198,28 @@ class LearningMultiAgent(LearningAgent):
                     
         return ( num_samples_, (tmp_states, tmp_actions, tmp_result_states, tmp_rewards, tmp_falls, tmp_G_t, tmp_advantage, tmp_exp_action))
     
+    def dataSkip(self, states__, actions__, rewards__, result_states__, falls__, _advantage, 
+                  _exp_actions, _G_t, skip_num):
+        """
+            For things like HRL I am using a cheap trick to throw out extra data samples
+            This will most likely mess up the advantage estimation and G_t
+        """
+        # import numpy as np
+        for tar in range(len(states__)):
+            # print ("states__[tar] shape before: ", np.array(states__[tar]).shape)
+            states__[tar] = states__[tar][0::skip_num]
+            # print ("states__[tar] shape after: ", np.array(states__[tar]).shape)
+            actions__[tar] =  actions__[tar][0::skip_num]
+            rewards__[tar] =  rewards__[tar][0::skip_num]
+            result_states__[tar] =  result_states__[tar][0::skip_num]
+            falls__[tar] =  falls__[tar][0::skip_num]
+            _advantage[tar] =  _advantage[tar][0::skip_num]
+            _exp_actions[tar] =  _exp_actions[tar][0::skip_num]
+            _G_t[tar] =  _G_t[tar][0::skip_num]
+            
+        return  (states__, actions__, rewards__, result_states__, falls__, _advantage, 
+                  _exp_actions, _G_t)
+        
     # @profile(precision=5)
     def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
               _exp_actions=None, _G_t=None, p=1.0):
@@ -280,6 +302,10 @@ class LearningMultiAgent(LearningAgent):
                 
                 # print ("states__: ", np.array(states__).shape)
                 # print ("result_states__: ", np.array(result_states__).shape) 
+                if ("hlc_index" in self.getSettings()
+                    and (self.getSettings()["hlc_index"] == agent_)):
+                    (states__, actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__) = self.dataSkip(states__, 
+                                            actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__, self.getSettings()["hlc_timestep"]) 
                 self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
                   _exp_actions=exp_actions__, _G_t=G_t__, p=p)
         else:

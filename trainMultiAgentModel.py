@@ -1432,16 +1432,8 @@ def trainModelParallel(inputData):
     masterAgent.finish()
     
     f = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", "w")
-    for key in trainData:
-        if (key == 'error'):
-            continue
-        # print ("trainData[",key,"]", trainData[key])
-        elif (type(trainData[key]) is list):
-            trainData[key] = [float(i) for i in trainData[key]]
-        else:
-            trainData[key] = float(trainData[key])
-            
-    json.dump(trainData, f, sort_keys=True, indent=4)
+    from util.utils import NumpyEncoder 
+    json.dump(trainData, f, sort_keys=True, indent=4, cls=NumpyEncoder)
     f.close()
     
     """except: # catch *all* exceptions
