@@ -77,6 +77,26 @@ def setupEnvironmentVariable(settings):
         os.environ["OMP_NUM_THREADS"] = "1"
         os.environ["OMP_THREAD_LIMIT"] = "1"
         os.environ["LD_PRELOAD"] = "/opt/borgy/libpretend/libpretend.so"
+    else:
+        ### Only do this in the main thread
+        pass
+        """
+        ### log training via commet.ml
+        try:
+            # import comet_ml in the top of your file
+            from comet_ml import Experiment
+            
+            # Add the following code anywhere in your machine learning file
+            print ("Tracking training via commet.ml")
+            experiment = Experiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu",
+                                    project_name="general", workspace="glenb")
+            experiment.log_parameters(settings)
+            return experiment
+        except Exception as inst:
+            print ("Not tracking training via commet.ml")
+            print ("Error: ", inst)
+            sys.exit()
+        """
         
 def setupLearningBackend(settings):
     import keras

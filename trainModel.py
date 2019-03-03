@@ -254,7 +254,8 @@ def trainModelParallel(inputData):
     settings = inputData[1]
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     from simulation.LoggingWorker import LoggingWorker
-    setupEnvironmentVariable(settings)
+    experiment = None
+    experiment = setupEnvironmentVariable(settings)
     settingsFileName = inputData[0]
     settings['sample_single_trajectories'] = True
     # settings['shouldRender'] = True
@@ -544,7 +545,7 @@ def trainModelParallel(inputData):
             
         experience.setSettings(settings)
         """
-
+        
         # mgr = multiprocessing.Manager()
         # namespace = mgr.Namespace()
         ## This needs to be done after the simulation worker processes are created
@@ -1290,6 +1291,8 @@ def trainModelParallel(inputData):
                             std_dynamicsRewardLosses = np.std(dynamicsRewardLosses)
                             dynamicsRewardLosses = []
                         
+                    if experiment is not None:
+                        experiment.log_metrics({"mean_reward_": mean_reward})
                     trainData["mean_reward"].append(mean_reward)
                     # print ("Mean Rewards: " + str(mean_rewards))
                     trainData["std_reward"].append(std_reward)
@@ -1421,6 +1424,8 @@ def trainModelParallel(inputData):
                     ): # This is okay if there is one thread only...
                     exp_val.updateViz(actor, masterAgent, directory, p=p)
                 
+                if experiment is not None:
+                    experiment.log_metrics(trainData)
                 
             if (trainData["round"] % settings['saving_update_freq_num_rounds']) == 0:
             
