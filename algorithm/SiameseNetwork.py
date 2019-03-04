@@ -441,6 +441,9 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
     compare_adjustment = 0.0
     if ("imperfect_compare_offset" in settings):
         compare_adjustment = settings["imperfect_compare_offset"]
+    use_agent_multitask_data = False
+    if ("use_agent_multitask_data" in settings):
+        compare_adjustment = settings["use_agent_multitask_data"]
     sequences0 = []
     sequences1 = []
     targets_ = []
@@ -452,12 +455,14 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
         for j in range(len(traj0)):
         # for tr1, task_tr1 in zip(traj0, task_ids): ### for each trajectory pair
         
-            ### Noisy versions of the same trajectories
+            ### Noisy versions of imitation trajectories
             sequences0.append(traj0[i] + np.random.normal(loc=0, scale=noise_scale, size=traj0[i].shape))
             sequences1.append(traj0[j] + np.random.normal(loc=0, scale=noise_scale, size=traj0[j].shape))
             
-            sequences0.append(traj1[i] + np.random.normal(loc=0, scale=noise_scale, size=traj0[i].shape))
-            sequences1.append(traj1[j] + np.random.normal(loc=0, scale=noise_scale, size=traj0[j].shape))
+            ### Noisy versions of agent trajectories
+            if (use_agent_multitask_data):
+                sequences0.append(traj1[i] + np.random.normal(loc=0, scale=noise_scale, size=traj0[i].shape))
+                sequences1.append(traj1[j] + np.random.normal(loc=0, scale=noise_scale, size=traj0[j].shape))
             # print ("task_tr0[0][0] == task_tr1[0][0]", task_tr0[0][0], " == ", task_tr1[0][0])
             # print ("settings['worker_to_task_mapping'][task_tr0[0]] == settings['worker_to_task_mapping'][task_tr1[0]]", 
             #        settings["worker_to_task_mapping"][task_tr0[0][0]]," == ", settings["worker_to_task_mapping"][task_tr1[0][0]])
@@ -471,7 +476,8 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
             # print ("task_ids[i][0][0]: ", task_ids[i][0][0], " task_ids[j][0][0]: ", task_ids[j][0][0])
             # print ("multitask targets", np.mean(targets))
             targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
-            targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
+            if (use_agent_multitask_data):
+                targets_.append(np.clip(targets + np.random.normal(loc=0, scale=target_noise_scale, size=tar_shape), 0.01, 0.98))
         
         
     

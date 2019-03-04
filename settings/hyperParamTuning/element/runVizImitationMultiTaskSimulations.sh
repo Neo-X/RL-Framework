@@ -28,12 +28,12 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/fd_learning_rate.json" 
 #  				"settings/hyperParamTuning/element/fd_updates_per_actor_update.json" 
 #				"settings/hyperParamTuning/element/GAE_lambda.json"
-# 				"settings/hyperParamTuning/element/image_noise_scale.json" 
+ 				"settings/hyperParamTuning/element/image_noise_scale.json" 
 #  				"settings/hyperParamTuning/element/imperfect_compare_offset.json" 
 # 				"settings/hyperParamTuning/element/initial_temperature.json" 
 #  				"settings/hyperParamTuning/element/kl_divergence_threshold.json" 
-#  				"settings/hyperParamTuning/element/learned_reward_smoother.json" 
-#  				"settings/hyperParamTuning/element/lstm_batch_size.json" 
+  				"settings/hyperParamTuning/element/learned_reward_smoother.json" 
+  				"settings/hyperParamTuning/element/lstm_batch_size.json" 
 # 				"settings/hyperParamTuning/element/min_sequece_length.json" 
 # 				"settings/hyperParamTuning/element/normalize_advantage.json" 
 #  				"settings/hyperParamTuning/element/num_on_policy_rollouts.json" 
@@ -43,8 +43,7 @@ declare -a metaExps=(
 #  				"settings/hyperParamTuning/element/ppo_et_factor.json"
 # 				"settings/hyperParamTuning/element/pretrain_critic.json" 
 # 				"settings/hyperParamTuning/element/reset_on_fall.json" 
-#				"settings/hyperParamTuning/element/state_normalization.json"
-				"settings/hyperParamTuning/element/use_agent_multitask_data.json"		
+#				"settings/hyperParamTuning/element/state_normalization.json"		
 #  				"settings/hyperParamTuning/element/use_single_network.json"
 #  				"settings/hyperParamTuning/element/use_stocastic_policy.json"
 #  				"settings/hyperParamTuning/element/use_target_net_for_critic.json"
@@ -53,15 +52,12 @@ declare -a metaExps=(
 
 ## declare an array variable
 declare -a simConfigs=(
+ 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
 # 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
-# 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
-#	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
 #	"settings/terrainRLImitate3D/CACLA/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode_BCE_refreshRewards.json"
-#	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
-#	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
-#
-	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_MultiTask_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
-	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_MultiTask_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
 )
 
 rounds=$1
