@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.DPGKeras.DPGKeras",
     "comment__": "Folder to store the training data in.",
-"data_folder": "NavGameHRL2D_v0/MADDPG_2",
+"data_folder": "NavGameHRL2D_NoVision_v0/MADDPG_2",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -14,7 +14,7 @@
     "comment__": "Learning rate for the actor/policy",
 "learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
-"sim_config_file": "NavGameHRL2D_v0",
+"sim_config_file": "NavGameHRL2D_NoVision_v0",
     "comment__": "A different config file for the forward dynamics simulator",
 "forwardDynamics_config_file": "NavGameMultiAgent_10D-v0",
     "comment__": "Exploration distance use when randomly generating new actions",
@@ -41,12 +41,12 @@
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [
   				  [
-					[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -5.0, -5.0], 
-					[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  5.0,  5.0]
+					[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2.0, -2.0], 
+					[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  2.0,  2.0]
 				  ], 
 				  [
-					[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -5.0, -5.0], 
-					[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  5.0,  5.0]
+					[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -2.0, -2.0], 
+					[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,  2.0,  2.0]
 				  ]
 				],
     "comment__": "Action scaling values to be used to scale values for the network",
@@ -173,7 +173,7 @@
     "comment__": "epsilon lower limit",
 "min_epsilon": 0.10,
     "comment__": "Whether or not to draw/render the simulation",
-"shouldRender": true,
+"shouldRender": false,
     "comment__": "Learning rate use for model based action exploration",
 "action_learning_rate": 0.5,
     "comment__": "During model-based action exloration, Probability of a random action being generated from MBAE,",
@@ -281,85 +281,31 @@
 "network_description_type": "json",
 	"comment__": "A list describing the size of the layers for the NN",
 "critic_network_layer_sizes": [[
-								{"layer_type": "slice", "slice_index": 256, "slice_label": "vel_c"},
-								{"layer_type": "Reshape", "target_shape": [1,16,16]},
-								{"layer_type": "coordconv2d"},
-								{"layer_type": "conv2d", "filters": 8, "kernel_size": [3,3], "strides": [2,2], "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "coordconv2d"},
-								{"layer_type": "conv2d", "filters": 8, "kernel_size": [2,2], "strides": [1,1], "use_bias": true},
-								{"layer_type": "Flatten"},
-								{"layer_type": "Concatenate", "slice_label": "vel_c"},
-								{"layer_type": "integrate_actor_part"}, 
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dense", "units": 64, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" }
-								],
-								[  
-								{"layer_type": "slice", "slice_index": 6, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
+								],
+								[  
+								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "subnet", "input": "other_agent", "output_label": "other_agent",
-									"layer_info": [ {"layer_type": "slice", "slice_index": 256, "slice_label": "vel_c"},
-													{"layer_type": "Reshape", "target_shape": [1,16,16]},
-													{"layer_type": "coordconv2d"},
-													{"layer_type": "conv2d", "filters": 8, "kernel_size": [3,3], "strides": [2,2], "use_bias": true},
-													{"layer_type": "activation", "activation_type": "leaky_rectify" },
-													{"layer_type": "coordconv2d"},
-													{"layer_type": "conv2d", "filters": 8, "kernel_size": [2,2], "strides": [1,1], "use_bias": true},
-													{"layer_type": "Flatten"},
-													{"layer_type": "Concatenate", "slice_label": "vel_c"}, 
-													{"layer_type": "activation", "activation_type": "leaky_rectify" },
-													{"layer_type": "Dense", "units": 64, "use_bias": true},
-													{"layer_type": "activation", "activation_type": "leaky_rectify" }
-													]
-									},
-									{"layer_type": "Concatenate", "slice_label": "other_agent"},
-									{"layer_type": "integrate_actor_part"},
-									{"layer_type": "Dense", "units": 64, "use_bias": true},
-									{"layer_type": "activation", "activation_type": "leaky_rectify" }
+								{"layer_type": "Dense", "units": 32, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								]
 								],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [[ 
-								{"layer_type": "slice", "slice_index": 256, "slice_label": "vel_p"},
-								{"layer_type": "Reshape", "target_shape": [1,16,16]},
-								{"layer_type": "coordconv2d"},
-								{"layer_type": "conv2d", "filters": 8, "kernel_size": [3,3], "strides": [2,2], "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "coordconv2d"},
-								{"layer_type": "conv2d", "filters": 8, "kernel_size": [2,2], "strides": [1,1], "use_bias": true},
-								{"layer_type": "Flatten"},
-								{"layer_type": "Concatenate", "slice_label": "vel_p"},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "slice", "slice_index": 6, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],[ 
 								{"layer_type": "slice", "slice_index": 6, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "subnet", "input": "other_agent", "output_label": "other_agent",
-									"layer_info": [ {"layer_type": "slice", "slice_index": 256, "slice_label": "vel_c"},
-													{"layer_type": "Reshape", "target_shape": [1,16,16]},
-													{"layer_type": "coordconv2d"},
-													{"layer_type": "conv2d", "filters": 8, "kernel_size": [3,3], "strides": [2,2], "use_bias": true},
-													{"layer_type": "activation", "activation_type": "leaky_rectify" },
-													{"layer_type": "coordconv2d"},
-													{"layer_type": "conv2d", "filters": 8, "kernel_size": [2,2], "strides": [1,1], "use_bias": true},
-													{"layer_type": "Flatten"},
-													{"layer_type": "Concatenate", "slice_label": "vel_c"}, 
-													{"layer_type": "activation", "activation_type": "leaky_rectify" },
-													{"layer_type": "Dense", "units": 64, "use_bias": true},
-													{"layer_type": "activation", "activation_type": "leaky_rectify" }
-													]
-									},
-									{"layer_type": "Concatenate", "slice_label": "other_agent"},
-									{"layer_type": "Dense", "units": 64, "use_bias": true},
-									{"layer_type": "activation", "activation_type": "leaky_rectify" }
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								]],
 	"comment__": "Activation function to use for the std part of the policy",
 "_last_std_policy_layer_activation_type": "sigmoid",
