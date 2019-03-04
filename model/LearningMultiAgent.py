@@ -244,6 +244,10 @@ class LearningMultiAgent(LearningAgent):
                 exp_actions__ = [state_[agent_::len(self.getAgents())] for state_ in _exp_actions]
                 G_t__ = [state_[agent_::len(self.getAgents())] for state_ in _G_t]
                 
+                # print ("states__: ", np.array(states__).shape)
+                # print ("result_states__: ", np.array(result_states__).shape)
+                # print ("result_states_tmp: ", np.array(result_states_tmp).shape)
+                
                 ### Add other agent data 
                 for agent__ in [i for i,x in enumerate(self.getAgents()) if i!=agent_]: ### Add the states for other agents
                     states___ = [state_[agent__::len(self.getAgents())] for state_ in _states]
@@ -274,6 +278,10 @@ class LearningMultiAgent(LearningAgent):
                             result_states_tmp[tar][s] = np.concatenate((result_states_tmp[tar][s],actions___[tar][s]), axis=0)
                         # print ("states__[s]: ", np.array(states__[tar]).shape)
                 
+                # print ("states__ again: ", np.array(states__).shape)
+                # print ("result_states__: ", np.array(result_states__).shape)
+                # print ("result_states_tmp: ", np.array(result_states_tmp).shape)
+                
                 ### Now that we have data of the correct size to ask for target actions of other agents, get those target actions.
                 for agent__ in [i for i,x in enumerate(self.getAgents()) if i!=agent_]:
                     # actions___ = [state_[agent__::len(self.getAgents())] for state_ in _actions]
@@ -283,10 +291,13 @@ class LearningMultiAgent(LearningAgent):
                     result_states_tmp = np.array(result_states_tmp)
                     # print ("result_states_tmp_agent: ", result_states_tmp_agent.shape)
                     # result_states_tmp[]
-                    for tar in range(len(result_states_tmp)):
-                        # print ("result_states_tmp_agent[tar,:]: ", result_states_tmp_agent[tar,:].shape)
-                        # print ("result_states_tmp[tar,:,:result_states_tmp_agent.shape[-1]]: ", np.array(result_states_tmp[tar,:,:result_states_tmp_agent.shape[-1]]).shape)
-                        result_states_tmp[tar,:,:result_states_tmp_agent.shape[-1]] = result_states_tmp_agent[tar,:]
+                    for tar in range(len(result_states_tmp_agent)):
+                        concat_index = np.array(result_states_tmp_agent[tar][:]).shape[-1]
+                        # print ("result_states_tmp_agent[tar,:]: ", np.array(result_states_tmp_agent[tar][:]).shape)
+                        # print ("result_states_tmp[tar,:,:result_states_tmp_agent.shape[-1]]: ", np.array(result_states_tmp[tar][:,:concat_index]).shape)
+                        replace_data = np.array(result_states_tmp[tar])
+                        replace_data[:,:concat_index] = np.array(result_states_tmp_agent[tar][:])
+                        result_states_tmp[tar] = replace_data
                         # print ("result_states___[tar]: ", np.array(result_states_tmp[tar]).shape)
                         # print ("result_states__[s] before : ", np.array(result_states__[tar]).shape)
                         target_actions = self.getAgents()[agent__].predict_target(result_states_tmp[tar])
