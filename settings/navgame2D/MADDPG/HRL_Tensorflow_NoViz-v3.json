@@ -283,15 +283,15 @@
 "critic_network_layer_sizes": [[
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "integrate_actor_part"}, 
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
+								{"layer_type": "integrate_actor_part"}, 
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],
 								[  
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "integrate_actor_part"}, 
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
+								{"layer_type": "integrate_actor_part"}, 
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								]
 								],
