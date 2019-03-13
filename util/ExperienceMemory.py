@@ -420,6 +420,7 @@ class ExperienceMemory(object):
         assert batch_size <= self.samples(), "batch_size <= self.samples(): " + str(batch_size) +" <=  " + str(self.samples())
         # indices = list(nprnd.randint(low=0, high=len(experience), size=batch_size))
         max_size = min(self._history_size, self.samples())
+        assert max_size >= batch_size, "max_size >= batch_size " + str(max_size) + " >= " + str(batch_size) + " self._history_size, self.samples()" + str(self._history_size) + "," + str(self.samples())
         # print ("Indicies: " , indices)
         # print("Exp buff state bounds: ", self.getStateBounds())
 
