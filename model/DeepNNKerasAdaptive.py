@@ -402,6 +402,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Flatten()(network)
             elif (layer_info[i]["layer_type"] == "Dropout"):
                 network = Dropout(**layer_parms)(network)
+            elif (layer_info[i]["layer_type"] == "GaussianNoise"):
+                network = keras.layers.GaussianNoise(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Input"):    
                 if ("simulation_model" in self._settings and
                     (self._settings["simulation_model"] == True)):

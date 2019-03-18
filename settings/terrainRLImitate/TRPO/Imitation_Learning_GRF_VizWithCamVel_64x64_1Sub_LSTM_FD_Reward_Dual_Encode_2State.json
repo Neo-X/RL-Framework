@@ -382,6 +382,7 @@
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice"},
 							{"layer_type": "Reshape", "target_shape": [1,64,64]},
+							{"layer_type": "GaussianNoise", "stddev": 0.03},
 							{"layer_type": "coordconv2d"},
 							{"layer_type": "conv2d", "filters": 8, "kernel_size": [6,6], "strides": [3,3], "use_bias": false},
 							{"layer_type": "BatchNormalization"},
@@ -473,7 +474,7 @@
 	"comment__": "The type of distance function the fd learning model should use to compute differences.",
 "fd_distance_function": "l1",
 	"comment__": "image noise factor that is added to the frames captured from the simulations",
-"image_noise_scale": 0.03,
+"image_noise_scale": 0.00,
 	"comment__": "Return sequences from lstm training",
 "return_rnn_sequence": false,
 	"comment__": "condition siamese network on RNN internal state as well.",
