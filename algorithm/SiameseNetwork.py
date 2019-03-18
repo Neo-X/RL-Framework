@@ -1,5 +1,3 @@
-import theano
-from theano import tensor as T
 import numpy as np
 # import lasagne
 import sys
@@ -652,7 +650,15 @@ class SiameseNetwork(KERASAlgorithm):
                                                   , outputs=distance_fd
                                                   )
         
-        self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable()
+        if (("train_lstm_fd_and_reward_together" in self._settings)
+            and (self._settings["train_lstm_fd_and_reward_together"] == True)):
+            self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable()
+                                                          ,result_state_copy
+                                                          ]
+                                                          , outputs=distance_r
+                                                          )
+        else:
+            self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable()
                                                           ,result_state_copy
                                                           ]
                                                           , outputs=distance_r
@@ -856,11 +862,20 @@ class SiameseNetwork(KERASAlgorithm):
                     
                 if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
-                    score = self._model._reward_net.fit([sequences0, sequences1], [targets__],
-                                  epochs=1, 
-                                  batch_size=sequences0.shape[0],
-                                  verbose=0
-                                  )
+                    
+                    if (("train_lstm_fd_and_reward_together" in self._settings)
+                        and (self._settings["train_lstm_fd_and_reward_together"] == True)):
+                        score = self._model._reward_net.fit([sequences0, sequences1], [targets__, targets_],
+                                      epochs=1, 
+                                      batch_size=sequences0.shape[0],
+                                      verbose=0
+                                      )
+                    else:
+                        score = self._model._reward_net.fit([sequences0, sequences1], [targets__],
+                                      epochs=1, 
+                                      batch_size=sequences0.shape[0],
+                                      verbose=0
+                                      )
                     loss_.append(np.mean(score.history['loss']))
             
             return np.mean(loss_)

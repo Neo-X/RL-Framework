@@ -16,7 +16,7 @@ docker exec -ti {container id} bash
 
 To login while using a GPU [you need to reserve a GPU first](https://elementai.atlassian.net/wiki/spaces/DEV/pages/6698906/Using+GPU+nodes)
 ```
-NV_GPU=0 nvidia-docker run -v /mnt/home/${USER}:/home/glen -v /usr/lib/nvidia-390:/usr/lib/nvidia-390 -it images.borgy.elementai.lan/glen:latest bash
+NV_GPU=0 nvidia-docker run -v /mnt/home/${USER}:/home/glen -v ~/nvidia-390:/usr/lib/nvidia-390 -it images.borgy.elementai.lan/glen:latest bash
 ```
 
 
