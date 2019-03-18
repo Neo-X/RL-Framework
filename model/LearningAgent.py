@@ -369,7 +369,7 @@ class LearningAgent(AgentInterface):
                         # dynamicsLoss = self._fd.train(states=_states_fd[e], actions=_actions[e], result_states=_result_states_fd[e], rewards=_rewards[e])
                     updates___ = max(1, int((len(_states)/batch_size_lstm_fd) * self._settings["fd_updates_per_actor_update"]))
                     if ( "rnn_updates" in self._settings ):
-                        updates___ = self._settings["rnn_updates"]
+                        updates___ = int(self._settings["rnn_updates"])
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("num trajectories: ", len(_states), " num updates: ", updates___)
                 

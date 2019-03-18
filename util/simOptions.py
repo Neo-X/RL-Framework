@@ -80,6 +80,13 @@ def getOptions(_args=None):
               metavar="INTEGER", 
               help="The number of GPUs the simulation will have access to.")
     
+    parser.add_option("--rnn_updates",
+              action="store", dest="rnn_updates", default=None,
+              # type='choice',
+              # choices=['true', 'false', None],
+              metavar="INTEGER", 
+              help="Override the number of FD RNN updates.")
+    
     parser.add_option("--GPU_BUS_Index",
               action="store", dest="GPU_BUS_Index", default=None,
               # type='choice',
