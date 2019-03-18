@@ -620,8 +620,25 @@ class SiameseNetwork(KERASAlgorithm):
             self._model.processed_a_r_seq = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r_seq)
             self._model.processed_b_r_seq = Model(inputs=[result_state_copy], outputs=processed_b_r_seq)
         else:
-            processed_a_r = self._model._reward_net(self._model.getResultStateSymbolicVariable())
-            processed_b_r = self._model._reward_net(result_state_copy)
+            if ("condition_on_rnn_internal_state" in self.getSettings()
+                and (self.getSettings()["condition_on_rnn_internal_state"] == True)):
+                _, processed_a_r, processed_a_r_c  = self._model._reward_net(self._model.getResultStateSymbolicVariable())
+                _, processed_b_r, processed_b_r_c = self._model._reward_net(result_state_copy)
+                processed_a_r = keras.layers.concatenate(inputs=[processed_a_r, processed_a_r_c], axis=1)
+                processed_b_r = keras.layers.concatenate(inputs=[processed_b_r, processed_b_r_c], axis=1)
+                
+                encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(processed_b_r)[1:]
+                                                                              , name="encoding_2"
+                                                                              )
+                last_dense = keras.layers.Dense(64, activation = 'sigmoid')(encode_input__)
+                self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
+                
+                processed_b_r = self._last_dense(processed_b_r)
+                processed_a_r = self._last_dense(processed_a_r)
+                
+            else:
+                processed_a_r = self._model._reward_net(self._model.getResultStateSymbolicVariable())
+                processed_b_r = self._model._reward_net(result_state_copy)
             
             self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
             self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
@@ -1095,6 +1112,15 @@ class SiameseNetwork(KERASAlgorithm):
         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
         self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
+        try:
+            from keras.utils import plot_model
+            ### Save model design as image
+            plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.svg', show_shapes=True)
+            plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
+        except Exception as inst:
+            ### Maybe the needed libraries are not available
+            print ("Error saving diagrams for rl models.")
+            print (inst)
         
     def loadFrom(self, fileName):
         import h5py
