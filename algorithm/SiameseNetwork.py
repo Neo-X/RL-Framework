@@ -512,10 +512,10 @@ def create_pairs2(x, settings):
     for i in range(n):
         ### Identical pair
         i = indices[i]
-        noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
-        x1 = [x[i] + noise]
-        noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
-        x2 = [x[i] + noise]
+        # noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
+        x1 = [add_noise(noise_scale, x[i])]
+        # noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
+        x2 = [add_noise(noise_scale, x[i])]
         if (np.random.rand() > 0.5):
             pair1 += x1
             pair2 += x2
@@ -526,10 +526,10 @@ def create_pairs2(x, settings):
         z=i
         while (z == i): ## get result that is not the same
             z = np.random.randint(low=0, high=n)
-        noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
-        x1 = [x[i] + noise]
-        noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
-        x2 = [x[z] + noise]
+        # noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
+        x1 = [add_noise(noise_scale, x[i] )]
+        # noise = np.random.normal(loc=0, scale=noise_scale, size=x[i].shape)
+        x2 = [add_noise(noise_scale, x[z] )]
         if (np.random.rand() > 0.5):
             pair1 += x1
             pair2 += x2
