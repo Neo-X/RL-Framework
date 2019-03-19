@@ -77,7 +77,10 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
                 
         if ("using_encoder_decoder_fd" in settings_ ):
             settings_["using_encoder_decoder"] = settings_["using_encoder_decoder_fd"]
-            
+        
+        ### Don't pass this parameter to FD model    
+        settings_["use_single_network"] = False
+        
         print ("FD net n_out: ", n_out)
         print ("FD net n_in: ", n_in)
         super(FDNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info, stateName=stateName, resultStateName=resultStateName)

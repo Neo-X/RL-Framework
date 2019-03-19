@@ -173,7 +173,7 @@ class SiameseNetworkMultiHead(SiameseNetwork):
         if (("train_lstm_fd_and_reward_together" in self._settings)
             and (self._settings["train_lstm_fd_and_reward_together"] == True)):
             self._model._reward_net.compile(loss=[contrastive_loss, contrastive_loss], optimizer=sgd,
-                                            loss_weights=[0.75, 0.25])
+                                            loss_weights=[0.5, 0.5])
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
         
@@ -277,7 +277,7 @@ class SiameseNetworkMultiHead(SiameseNetwork):
             ### result states can be from the imitation agent.
             # print ("falls: ", falls)
             if (falls is None):
-                sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
+                sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
             else:
                 sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
             sequences0 = np.array(sequences0)
@@ -509,7 +509,7 @@ class SiameseNetworkMultiHead(SiameseNetwork):
         self.reset()
         if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
-            sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
+            sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
             sequences0 = np.array(sequences0)
             sequences1 = np.array(sequences1)
             targets_ = np.array(targets_)
@@ -552,7 +552,7 @@ class SiameseNetworkMultiHead(SiameseNetwork):
         self.reset()
         if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
-            sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
+            sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
             sequences0 = np.array(sequences0)
             sequences1 = np.array(sequences1)
             targets_ = np.array(targets_)

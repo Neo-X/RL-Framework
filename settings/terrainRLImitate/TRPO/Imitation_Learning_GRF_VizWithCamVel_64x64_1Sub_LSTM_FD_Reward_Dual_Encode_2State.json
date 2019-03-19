@@ -382,6 +382,7 @@
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice"},
 							{"layer_type": "Reshape", "target_shape": [1,64,64]},
+							{"layer_type": "GaussianNoise", "stddev": 0.05},
 							{"layer_type": "coordconv2d"},
 							{"layer_type": "conv2d", "filters": 8, "kernel_size": [6,6], "strides": [3,3], "use_bias": false},
 							{"layer_type": "BatchNormalization"},
@@ -399,7 +400,6 @@
 							{"layer_type": "Dropout", "rate": 0.2},
 							{"layer_type": "Flatten"},
 							{"layer_type": "Dense", "units": 64, "use_bias": false},
-							{"layer_type": "BatchNormalization"},
 							{"layer_type": "Concatenate"},
 							{"layer_type": "activation", "activation_type": "sigmoid" }
 							],
@@ -407,7 +407,7 @@
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 67]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "GRU", "units": 256, "return_sequences": false, "return_state": false, "use_bias": true}
+							{"layer_type": "GRU", "units": 128, "return_sequences": false, "return_state": false, "use_bias": true}
 							],
 		"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -516,8 +516,8 @@
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes2": [
-							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "activation": null},
 							{"layer_type": "LayerNormalization"},
+							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "activation": null},
 							{"layer_type": "activation", "activation_type": "tanh" }
 							]
 }
