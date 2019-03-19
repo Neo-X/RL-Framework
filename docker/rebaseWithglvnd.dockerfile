@@ -1,3 +1,6 @@
+
+# docker build --build-arg from=images.borgy.elementai.lan/glen:latest - < rebaseWithglvnd.dockerfile
+
 ARG from
 FROM nvidia/opengl:1.0-glvnd-runtime-ubuntu16.04 as nvidia
 FROM ${from}
