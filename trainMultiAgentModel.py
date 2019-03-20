@@ -116,6 +116,9 @@ def trainModelParallel(inputData):
     settings = inputData[1]
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     from simulation.LoggingWorker import LoggingWorker
+    from util.SimulationUtil import validateSettings, getFDStateSize
+    if (not validateSettings(settings)):
+        return False
     setupEnvironmentVariable(settings)
     settingsFileName = inputData[0]
     settings['sample_single_trajectories'] = True
@@ -301,7 +304,6 @@ def trainModelParallel(inputData):
         from model.ModelUtil import validBounds, fixBounds, anneal_value, getLearningData
         # from model.LearningMultiAgent import LearningMultiAgent, LearningWorker
         # from model.LearningAgent import LearningMultiAgent, LearningWorker
-        from util.SimulationUtil import validateSettings, getFDStateSize
         from util.SimulationUtil import createEnvironment
         from util.SimulationUtil import createRLAgent, createNewFDModel
         from util.SimulationUtil import createActor, getAgentName, updateSettings
@@ -312,7 +314,6 @@ def trainModelParallel(inputData):
         from sim.PendulumEnvState import PendulumEnvState
         from sim.PendulumEnv import PendulumEnv
         from sim.BallGame2DEnv import BallGame2DEnv
-        settings = validateSettings(settings)
         
         model_type= settings["model_type"]
         directory= getDataDirectory(settings)
@@ -1168,7 +1169,7 @@ def trainModelParallel(inputData):
                         del rlv_
                     if settings['visualize_learning']:
                         rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
-                        rlv.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["mean_reward"]))
+                        rlv.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
                         rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
                         rlv.redraw()
                         rlv.setInteractiveOff()

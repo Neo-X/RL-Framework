@@ -387,8 +387,9 @@ class DeepNNKerasAdaptive(ModelInterface):
         slices = {}
         for i in range(len(layer_info)):
             # layer_desc = dict(layer_info[i])
-            print ("Layer info: ", type(layer_info[i]))
-            print ("input: ", repr(network))
+            if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
+                print ("Layer info: ", type(layer_info[i]))
+                print ("input: ", repr(network))
             layer_parms = copy.deepcopy(layer_info[i])
             layer_parms.pop("layer_type", None)
             layer_parms.pop("activation_type", None) 

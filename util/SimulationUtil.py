@@ -266,7 +266,12 @@ def validateSettings(settings):
         settings['visulaize_forward_dynamics'] = False
         settings['visualize_learning'] = False
     """
-    return settings
+    if ("perform_multiagent_training" in settings and
+        ("on_policy" in settings and
+         settings["on_policy"] == "fast")):
+        print ("MultiAgent training does not support fast on policy simulation yet.")
+        return False
+    return True
 
 def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, settings, print_info=False):
     if settings['action_space_continuous']:

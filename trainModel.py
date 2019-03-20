@@ -254,6 +254,9 @@ def trainModelParallel(inputData):
     settings = inputData[1]
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     from simulation.LoggingWorker import LoggingWorker
+    from util.SimulationUtil import validateSettings, getFDStateSize
+    if (not validateSettings(settings)):
+        return False
     experiment = None
     experiment = setupEnvironmentVariable(settings)
     settingsFileName = inputData[0]
@@ -441,7 +444,6 @@ def trainModelParallel(inputData):
         from simulation.collectExperience import collectExperience
         from model.ModelUtil import validBounds, fixBounds, anneal_value, getLearningData, compareNetParams
         from model.LearningAgent import LearningAgent, LearningWorker
-        from util.SimulationUtil import validateSettings, getFDStateSize
         from util.SimulationUtil import createEnvironment
         from util.SimulationUtil import createRLAgent, createNewFDModel
         from util.SimulationUtil import createActor, getAgentName, updateSettings
@@ -452,7 +454,6 @@ def trainModelParallel(inputData):
         from sim.PendulumEnvState import PendulumEnvState
         from sim.PendulumEnv import PendulumEnv
         from sim.BallGame2DEnv import BallGame2DEnv
-        settings = validateSettings(settings)
         
         model_type= settings["model_type"]
         directory= getDataDirectory(settings)
