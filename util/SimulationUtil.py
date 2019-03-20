@@ -257,20 +257,34 @@ def getFDStateSize(settings):
 
 def validateSettings(settings):
     """
-        This method is used to check and overwrite any settings that are not going to work properly
-        for example, check if there is a display screen
-    """
-    """
-    ## This doesn't work as well as I was hoping...
-    if ( not ( "DISPLAY" in os.environ)): # No screen on this computer
-        settings['visulaize_forward_dynamics'] = False
-        settings['visualize_learning'] = False
+        This method is used to check for special conditions in the settings file that 
+        are known to conflict. Meaning any simulation with this combination of settings
+        will only produce garbage.
     """
     if ("perform_multiagent_training" in settings and
         ("on_policy" in settings and
          settings["on_policy"] == "fast")):
         print ("MultiAgent training does not support fast on policy simulation yet.")
         return False
+    
+    if ("use_fall_reward_shaping" in settings and
+        (settings["use_fall_reward_shaping"] == True)
+        and
+        (type(settings["sim_config_file"]) is list)):
+        ### The use of the "fall" data is overloaded and conflicts here
+        print ("Basic fall reward shaping does not work with multi task simulation.")
+        return False
+    
+    if ("use_fall_reward_shaping" in settings and
+        (settings["use_fall_reward_shaping"] == True)
+        and
+        ("learned_reward_smoother" in settings 
+         and
+         (settings["learned_reward_smoother"]) == False)):
+        ### The use of the "fall" data is overloaded and conflicts here
+        print ("Basic fall reward shaping does not work with a non gaussian learned_reward_smoother.")
+        return False
+    
     return True
 
 def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, settings, print_info=False):
