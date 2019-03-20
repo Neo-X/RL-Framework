@@ -15,12 +15,13 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/CACLA_use_advantage.json"
 # 				"settings/hyperParamTuning/element/CACLA_use_advantage_action_weighting.json"
 # 				"settings/hyperParamTuning/element/clamp_actions_to_stay_inside_bounds.json" 
- 				"settings/hyperParamTuning/element/critic_learning_rate.json"
+#  				"settings/hyperParamTuning/element/critic_learning_rate.json"
 #				"settings/hyperParamTuning/element/critic_network_layer_sizes.json"
 # 				"settings/hyperParamTuning/element/critic_updates_per_actor_update.json"
 #  				"settings/hyperParamTuning/element/dont_use_td_learning.json"
 #  				"settings/hyperParamTuning/element/dropout_p.json" 
-				"settings/hyperParamTuning/element/exploration_rate.json" 
+#				"settings/hyperParamTuning/element/exploration_rate.json" 
+				"settings/hyperParamTuning/computeCanada/exploration_rate.json"
 #				"settings/hyperParamTuning/element/GAE_lambda.json"
 # 				"settings/hyperParamTuning/element/initial_temperature.json" 
 # 				"settings/hyperParamTuning/element/kl_divergence_threshold.json" 
@@ -30,11 +31,13 @@ declare -a metaExps=(
 #  				"settings/hyperParamTuning/element/num_on_policy_rollouts.json" 
 #  				"settings/hyperParamTuning/element/optimizer.json" 
 # 				"settings/hyperParamTuning/element/policy_activation_type.json"
-# 				"settings/hyperParamTuning/element/policy_network_layer_sizes.json"	
+# 				"settings/hyperParamTuning/element/policy_network_layer_sizes.json"
+				"settings/hyperParamTuning/computeCanada/policy_network_layer_sizes.json"
+				"settings/hyperParamTuning/computeCanada/policy_network_layer_sizes2.json"	
 #  				"settings/hyperParamTuning/element/ppo_et_factor.json"
 # 				"settings/hyperParamTuning/element/pretrain_critic.json" 
 # 				"settings/hyperParamTuning/element/reset_on_fall.json" 
-				"settings/hyperParamTuning/element/state_normalization.json"		
+#				"settings/hyperParamTuning/element/state_normalization.json"		
 #  				"settings/hyperParamTuning/element/use_single_network.json"
 #  				"settings/hyperParamTuning/element/use_stocastic_policy.json"
 #  				"settings/hyperParamTuning/element/use_target_net_for_critic.json"
@@ -43,14 +46,17 @@ declare -a metaExps=(
 
 ## declare an array variable
 declare -a simExps=(
-	"settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
-	"settings/terrainRLMultiChar/HLC/PPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
-	"settings/terrainRLMultiChar/HLC/TRPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
+#	"settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
+#	"settings/terrainRLMultiChar/HLC/PPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
+#	"settings/terrainRLMultiChar/HLC/TRPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
 #	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_5_NEWLLC_Tensorflow_v1.json"
 #	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_NEWLLC_Tensorflow_v1.json"
 #	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_5_NEWLLC_Tensorflow_v1.json"
 #	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_NEWLLC_Tensorflow_v1.json"
 #	"settings/terrainRLMultiChar/HLC/PPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
+	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v2.json"
+	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v2.json"
+	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v2.json"
 )
 
 rounds=$1
@@ -66,7 +72,7 @@ do
 		# echo "$metaConfig"
 		# or do whatever with individual element of the array
 		# echo "$simConfigFile"
-		command="SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments sbatch --time=50:00:00 --mem=65536M --cpus-per-task=32 ./settings/hyperParamTuning/computeCanada/test_run.sh 'singularity exec --cleanenv --home /home/gberseth/playground/RL-Framework/:/opt/RL-Framework /scratch/gberseth/playground/singularity/ubuntu_learning.img python3.6 tuneHyperParameters.py --config="$simConfig" -p 8 --on_policy=fast --save_experience_memory=continual --num_rounds="$rounds" --continue_training=last --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig="$metaExp" --email_log_data_periodically=true --shouldRender=false "$opts"'"
+		command="SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments sbatch --time=50:00:00 --mem=65536M --cpus-per-task=28 ./settings/hyperParamTuning/computeCanada/test_run.sh 'singularity exec --cleanenv --home /home/gberseth/playground/RL-Framework/:/opt/RL-Framework /scratch/gberseth/playground/singularity/ubuntu_learning.img python3.6 tuneHyperParameters.py --config="$simConfig" -p 7 --on_policy=fast --save_experience_memory=continual --num_rounds="$rounds" --continue_training=last --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig="$metaExp" --email_log_data_periodically=true --shouldRender=false --max_epoch_length=64 --rollouts=16 "$opts"'"
 		echo $command
 		eval $command
 	done
