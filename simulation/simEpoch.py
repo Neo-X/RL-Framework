@@ -818,7 +818,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         p_ = max(float(settings['anneal_exploration']), settings['epsilon'] * p)
         min_samples = min_samples * (1.0/p_)
     
-        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print("Updated min sample from collection is: ", min_samples)
     samples__ = 0
     while ( (samples__ < (min_samples))
@@ -984,7 +984,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
     
 
         anchors
-        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
+        if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print("Updated min sample from collection is: ", min_samples)
     
     if( type == 'eval'): ### for number of eval epochs

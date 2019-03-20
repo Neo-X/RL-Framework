@@ -1,6 +1,5 @@
 
 
-from trainModel import trainModelParallel
 from ModelEvaluation import modelEvaluation, _modelEvaluation
 import sys
 import json
@@ -111,6 +110,11 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         # print ("Settings: " + str(json.dumps(settings)))
         file.close()
     
+    if ( "perform_multiagent_training" in settings):
+        from trainMultiAgentModel import trainModelParallel
+    else:
+        from trainModel import trainModelParallel
+        
     print ( "Running ", samples, " simulation(s) over ", numThreads, " Thread(s)")
     settings_original = copy.deepcopy(settings)
     
