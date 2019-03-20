@@ -436,6 +436,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 else:
                     reward__ = exp.computeImitationReward(rewmodel.predict)
                 
+                # print ("Reward: ", reward__)
                 if ("learned_reward_smoother" in settings
                     and (settings["learned_reward_smoother"] == False)):
                     reward_ = reward__
