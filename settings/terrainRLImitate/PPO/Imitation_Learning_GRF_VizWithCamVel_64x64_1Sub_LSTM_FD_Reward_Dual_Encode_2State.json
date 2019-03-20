@@ -438,7 +438,7 @@
 	"comment__": "replace the viz state in the next state with the state from the imitation agent",
 "replace_next_state_with_imitation_viz_state": true,
 	"comment__": "Type of smoothing funtion to filter the learned distance metric by",
-"learned_reward_smoother": false,
+"learned_reward_smoother": "gaussian",
 	"comment__": "Just train the fd model in an LSTM fashion",
 "train_LSTM_FD": false,
 	"comment__": "Use a stateful LSTM",
