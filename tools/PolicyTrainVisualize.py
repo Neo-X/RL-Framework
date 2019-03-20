@@ -164,10 +164,18 @@ class PolicyTrainVisualize(object):
                     new_length = new_shape[0]*new_shape[1]
                     x_range_ = list(range(int(new_shape[0])))
                     # self._length = self._length/self._bin_size
-                    mean = np.mean(np.reshape(self._otherDatas[j][i]['data'][self._key_][:new_length], new_shape), axis=1)
+                    print (self._otherDatas[j][i]['data'][self._key_][:new_length])
+                    print (np.mean(self._otherDatas[j][i]['data'][self._key_][:new_length], axis=-1))
+                    if (len(np.array(self._otherDatas[j][i]['data'][self._key_][:new_length]).shape) > 1 ):
+                    # mean = np.mean(np.reshape(np.mean(self._otherDatas[j][i]['data'][self._key_][:new_length], axis=-1), new_shape), axis=1)
+                        mean = np.mean(self._otherDatas[j][i]['data'][self._key_][:new_length], axis=-1)
+                        std = np.mean(self._otherDatas[j][i]['data'][self._key_std_][:new_length], axis=-1)
+                    else:
+                        mean = self._otherDatas[j][i]['data'][self._key_][:new_length]
+                        std = self._otherDatas[j][i]['data'][self._key_std_][:new_length]
                     # mean_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
                     # std_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_discount_error"][:new_length], new_shape), axis=1)
-                    std = np.mean(np.reshape(self._otherDatas[j][i]['data'][self._key_std_][:new_length], new_shape), axis=1)
+                    # std = np.mean(np.reshape(np.mean(self._otherDatas[j][i]['data'][self._key_std_][:new_length], axis=-1), new_shape), axis=1)
                     if (np.all(np.isfinite(mean))):
                         means_.append(mean)
                         # mean_values_.append(mean_value)

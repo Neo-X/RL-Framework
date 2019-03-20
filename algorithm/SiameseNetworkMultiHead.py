@@ -173,7 +173,7 @@ class SiameseNetworkMultiHead(SiameseNetwork):
         if (("train_lstm_fd_and_reward_together" in self._settings)
             and (self._settings["train_lstm_fd_and_reward_together"] == True)):
             self._model._reward_net.compile(loss=[contrastive_loss, contrastive_loss], optimizer=sgd,
-                                            loss_weights=[0.5, 0.5])
+                                            loss_weights=[0.75, 0.25])
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
         

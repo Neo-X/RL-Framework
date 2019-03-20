@@ -59,8 +59,10 @@ def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
                          figure_file_name + "Training_curves_reward.png"]
     except Exception as e:
         dataTar.close()
+        import traceback
         print("Error plotting data there my not be a DISPLAY available.")
         print("Error: ", e)
+        print (traceback.format_exc())
     dataTar.close()
     
     
