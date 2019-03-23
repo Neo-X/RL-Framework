@@ -401,13 +401,17 @@
 							{"layer_type": "Flatten"},
 							{"layer_type": "Dense", "units": 64, "use_bias": false},
 							{"layer_type": "Concatenate"},
-							{"layer_type": "activation", "activation_type": "sigmoid" }
+							{"layer_type": "activation", "activation_type": "linear" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 67]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "GRU", "units": 128, "return_sequences": false, "return_state": false, "use_bias": true}
+							{"layer_type": "LSTM", "units": 256, "return_sequences": false, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null},
+							{"layer_type": "LayerNormalization"},
+							{"layer_type": "activation", "activation_type": "tanh" },
+							{"layer_type": "Dense", "units": 64, "use_bias": true},
+							{"layer_type": "activation", "activation_type": "linear" }
 							],
 		"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",

@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_2D_GRF_Viz3D_64x64_WithCamVel_1Sub_Imitate_30FPS_DualState_v0/LSTM_FD_Dual_Reward_2State_T128__10",
+"data_folder": "PD_Humanoid_2D_GRF_Viz3D_64x64_WithCamVel_1Sub_Imitate_30FPS_DualState_v0/LSTM_FD_Dual_Reward_2State_FallReward2_T128__10",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -400,8 +400,9 @@
 							{"layer_type": "Dropout", "rate": 0.2},
 							{"layer_type": "Flatten"},
 							{"layer_type": "Dense", "units": 64, "use_bias": false},
+							{"layer_type": "LayerNormalization"},
 							{"layer_type": "Concatenate"},
-							{"layer_type": "activation", "activation_type": "sigmoid" }
+							{"layer_type": "activation", "activation_type": "linear" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [

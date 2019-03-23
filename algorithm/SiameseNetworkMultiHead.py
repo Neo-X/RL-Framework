@@ -98,7 +98,7 @@ class SiameseNetworkMultiHead(SiameseNetwork):
             encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(processed_b_r)[1:]
                                                                           , name="encoding_2"
                                                                           )
-            last_dense = keras.layers.Dense(64, activation = 'sigmoid')(encode_input__)
+            last_dense = keras.layers.Dense(64, activation = 'linear')(encode_input__)
             self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
             
             processed_b_r = self._last_dense(processed_b_r)
