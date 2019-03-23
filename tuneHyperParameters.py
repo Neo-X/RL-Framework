@@ -218,13 +218,15 @@ def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, sa
     sim_data = []
     data_name = settings['data_folder']
     meta_thread_index = 0
-    for params in param_settings: ## Loop over each setting of parameters
+    for param__ in range(len(param_settings)): ## Loop over each setting of parameters
+        params = param_settings[param__]
         data_name_tmp = ""
         for par in range(len(params)): ## Assemble the vector of parameters and data folder name
             param_of_interest = hyper_settings['param_to_tune'][par]
             ### limit file name lengths
             f_name_ = str(params[par])
-            f_name_ = f_name_[-min(64, len(f_name_)):]
+            ### To shorten the name and prevent naming conflicts
+            f_name_ = f_name_[-min(64, len(f_name_)):]+"_"+str(param__)
             data_name_tmp = data_name_tmp + "/_" + param_of_interest + "_"+ str(f_name_) + "/"
             settings[param_of_interest] = params[par]
         

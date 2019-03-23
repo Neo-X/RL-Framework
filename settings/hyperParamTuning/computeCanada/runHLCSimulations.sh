@@ -8,7 +8,7 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/activation_type.json" 
 # 				"settings/hyperParamTuning/element/additional_on-poli_trianing_updates.json" 
 #				"settings/hyperParamTuning/element/advantage_scaling.json" 
- 				"settings/hyperParamTuning/element/anneal_exploration.json" 
+# 				"settings/hyperParamTuning/element/anneal_exploration.json" 
 #				"settings/hyperParamTuning/element/anneal_learning_rate.json" 	
 # 				"settings/hyperParamTuning/element/anneal_policy_std.json" 	
 #				"settings/hyperParamTuning/element/batch_size.json"
@@ -21,7 +21,7 @@ declare -a metaExps=(
 #  				"settings/hyperParamTuning/element/dont_use_td_learning.json"
 #  				"settings/hyperParamTuning/element/dropout_p.json" 
 #				"settings/hyperParamTuning/element/exploration_rate.json" 
-				"settings/hyperParamTuning/computeCanada/exploration_rate.json"
+#				"settings/hyperParamTuning/computeCanada/exploration_rate.json"
 #				"settings/hyperParamTuning/element/GAE_lambda.json"
 # 				"settings/hyperParamTuning/element/initial_temperature.json" 
 # 				"settings/hyperParamTuning/element/kl_divergence_threshold.json" 
@@ -47,6 +47,7 @@ declare -a metaExps=(
 ## declare an array variable
 declare -a simExps=(
 #	"settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v2.json"
 #	"settings/terrainRLMultiChar/HLC/PPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
 #	"settings/terrainRLMultiChar/HLC/TRPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
 #	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_5_NEWLLC_Tensorflow_v1.json"

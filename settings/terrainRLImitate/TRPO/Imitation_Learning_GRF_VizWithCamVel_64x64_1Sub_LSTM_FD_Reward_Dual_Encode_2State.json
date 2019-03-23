@@ -407,7 +407,7 @@
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 67]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "LSTM", "units": 256, "return_sequences": false, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
+							{"layer_type": "LSTM", "units": 256, "return_sequences": false, "return_state": false, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -482,7 +482,7 @@
 	"comment__": "Return sequences from lstm training",
 "return_rnn_sequence": false,
 	"comment__": "condition siamese network on RNN internal state as well.",
-"condition_on_rnn_internal_state": true,
+"condition_on_rnn_internal_state": false,
 	"comment__": "Train the fd network as well",
 "train_lstm_fd_and_reward_together": true,
 "comment__": "A list describing the size of the layers for the NN",
