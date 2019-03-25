@@ -408,7 +408,7 @@
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 67]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "LSTM", "units": 256, "return_sequences": false, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
+							{"layer_type": "LSTM", "units": 256, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -515,11 +515,14 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes2": [
 							{"layer_type": "Input", "shape": ["none", "none", 64]},
-							{"layer_type": "LSTM", "units": 256, "return_sequences": true, "return_state": false, "use_bias": false, "activation": null},
+							{"layer_type": "LSTM", "units": 256, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null},
 							{"layer_type": "LayerNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dense", "units": 67, "use_bias": true},
-							{"layer_type": "activation", "activation_type": "linear" }
+							{"layer_type": "TimeDistributedConv", "net_info":
+							[ 
+								{"layer_type": "Dense", "units": 67, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "linear" }
+							]}
 							],
 	"comment__": "The encoding vector size used for the fd models",
 "encoding_vector_size": 64

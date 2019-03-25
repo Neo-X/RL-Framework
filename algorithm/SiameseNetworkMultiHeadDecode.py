@@ -111,8 +111,8 @@ class SiameseNetworkMultiHeadDecode(SiameseNetwork):
         
         if ("condition_on_rnn_internal_state" in self.getSettings()
             and (self.getSettings()["condition_on_rnn_internal_state"] == True)):
-            processed_a_r_seq, processed_a_r, processed_a_r_c  = self._model._reward_net(network_)
-            processed_b_r_seq, processed_b_r, processed_b_r_c = self._model._reward_net(network_b)
+            _, processed_a_r, processed_a_r_c  = self._model._reward_net(network_)
+            _, processed_b_r, processed_b_r_c = self._model._reward_net(network_b)
             processed_a_r = keras.layers.concatenate(inputs=[processed_a_r, processed_a_r_c], axis=1)
             processed_b_r = keras.layers.concatenate(inputs=[processed_b_r, processed_b_r_c], axis=1)
             
@@ -146,22 +146,24 @@ class SiameseNetworkMultiHeadDecode(SiameseNetwork):
             sequence_layer = args[1]
             return RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
         ### Get a sequence as long as the state input
-        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([processed_a_r, processed_a_r_seq])
-        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([processed_b_r, processed_b_r_seq])
+        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_a_r, self._model.getResultStateSymbolicVariable()])
+        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_b_r, result_state_copy])
         print ("Encoder a output shape: ", encoder_a_outputs)
         print ("Encoder b output shape: ", encoder_b_outputs)
         
         ### Decode the sequence into another sequence
         decode_a_r = self._modelTarget._reward_net(encoder_a_outputs)
+        print ("decode_a_r: ", repr(decode_a_r))
         # self._model.decode_a_r = Model(inputs=[encoder_a_outputs], outputs=decode_a_r)
         decode_b_r = self._modelTarget._reward_net(encoder_b_outputs)
+        print ("decode_b_r: ", repr(decode_b_r))
         # self._model.decode_b_r = Model(inputs=[encoder_b_outputs], outputs=decode_b_r)
         
         ### Decode sequences into images
         # state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
-        decode_a = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, self._state_length))(decode_a_r)
+        decode_a = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_a_r)
         print ("decode_a: ", repr(decode_a))
-        decode_b = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, self._state_length))(decode_b_r)
+        decode_b = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_b_r)
         print ("decode_b: ", repr(decode_b))
 
         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
