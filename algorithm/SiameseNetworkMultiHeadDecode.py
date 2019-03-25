@@ -396,8 +396,8 @@ class SiameseNetworkMultiHeadDecode(SiameseNetwork):
                 if (("train_LSTM_Reward" in self._settings)
                     and (self._settings["train_LSTM_Reward"] == True)):
                     
-                    if (("train_lstm_fd_and_reward_together" in self._settings)
-                        and (self._settings["train_lstm_fd_and_reward_together"] == True)):
+                    if (("train_lstm_fd_and_reward_and_decoder_together" in self._settings)
+                        and (self._settings["train_lstm_fd_and_reward_and_decoder_together"] == True)):
                         # print ("sequences0 shape: ", sequences0.shape)
                         # print ("sequences1 shape: ", sequences1.shape)
                         # print ("targets__ shape: ", targets__.shape)
@@ -628,8 +628,8 @@ class SiameseNetworkMultiHeadDecode(SiameseNetwork):
                     errors.append( compute_accuracy(predicted_y, y0) )
             else:
                 predicted_y = self._model._reward_net.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
-                if (("train_lstm_fd_and_reward_together" in self._settings)
-                    and (self._settings["train_lstm_fd_and_reward_together"] == True)):
+                if (("train_lstm_fd_and_reward_and_decoder_together" in self._settings)
+                    and (self._settings["train_lstm_fd_and_reward_and_decoder_together"] == True)):
                     predicted_y = predicted_y[0]
                 # print ("fd error, predicted_y: ", predicted_y)
                 targets__ = np.mean(targets_, axis=1)
