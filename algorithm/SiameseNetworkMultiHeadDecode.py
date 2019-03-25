@@ -111,8 +111,8 @@ class SiameseNetworkMultiHeadDecode(SiameseNetwork):
         
         if ("condition_on_rnn_internal_state" in self.getSettings()
             and (self.getSettings()["condition_on_rnn_internal_state"] == True)):
-            _, processed_a_r, processed_a_r_c  = self._model._reward_net(network_)
-            _, processed_b_r, processed_b_r_c = self._model._reward_net(network_b)
+            processed_a_r_seq, processed_a_r, processed_a_r_c  = self._model._reward_net(network_)
+            processed_b_r_seq, processed_b_r, processed_b_r_c = self._model._reward_net(network_b)
             processed_a_r = keras.layers.concatenate(inputs=[processed_a_r, processed_a_r_c], axis=1)
             processed_b_r = keras.layers.concatenate(inputs=[processed_b_r, processed_b_r_c], axis=1)
             
@@ -146,8 +146,8 @@ class SiameseNetworkMultiHeadDecode(SiameseNetwork):
             sequence_layer = args[1]
             return RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
         ### Get a sequence as long as the state input
-        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([processed_a_r, self._model.getStateSymbolicVariable()])
-        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([processed_b_r, self._modelTarget.getStateSymbolicVariable()])
+        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([processed_a_r, processed_a_r_seq])
+        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([processed_b_r, processed_b_r_seq])
         print ("Encoder a output shape: ", encoder_a_outputs)
         print ("Encoder b output shape: ", encoder_b_outputs)
         
@@ -223,7 +223,9 @@ class SiameseNetworkMultiHeadDecode(SiameseNetwork):
             
         if (("train_lstm_fd_and_reward_and_decoder_together" in self._settings)
             and (self._settings["train_lstm_fd_and_reward_and_decoder_together"] == True)):
-            self._model._reward_net.compile(loss=[contrastive_loss, contrastive_loss], optimizer=sgd,
+            self._model._reward_net.compile(loss=[contrastive_loss, contrastive_loss,
+                                                  "mse", "mse"], 
+                                            optimizer=sgd,
                                             loss_weights=[0.7, 0.1, 0.1, 0.1])
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
