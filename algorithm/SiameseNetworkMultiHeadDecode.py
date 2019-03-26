@@ -228,7 +228,7 @@ class SiameseNetworkMultiHeadDecode(SiameseNetwork):
             self._model._reward_net.compile(loss=[contrastive_loss, contrastive_loss,
                                                   "mse", "mse"], 
                                             optimizer=sgd,
-                                            loss_weights=[0.7, 0.1, 0.1, 0.1])
+                                            loss_weights=[0.6, 0.2, 0.1, 0.1])
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
         
