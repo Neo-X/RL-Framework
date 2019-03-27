@@ -81,13 +81,6 @@ class LearningAgent(AgentInterface):
         if self._useLock:
             self._accesLock.release()
         
-    def setSettings(self, settings):
-        self._settings = settings
-        # self.getPolicy().setSettings(settings)
-        # self.getForwardDynamics().setSettings(settings)
-    def getSettings(self):
-        return self._settings
-    
     def getPolicyNetworkParameters(self):
         return self.getPolicy().getNetworkParameters()
     def getFDNetworkParameters(self):
@@ -440,7 +433,7 @@ class LearningAgent(AgentInterface):
                  and (self._settings["additional_on-poli_trianing_updates"] != False)):
                 additional_on_poli_trianing_updates = self._settings["additional_on-poli_trianing_updates"]
             ### The data should be seen ~ 4 times
-            additional_on_poli_trianing_updates = int(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / batch_size_) * additional_on_poli_trianing_updates)
+            additional_on_poli_trianing_updates = int(np.ceil(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / batch_size_) * additional_on_poli_trianing_updates))
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                 print ("additional_on_poli_trianing_updates: ", additional_on_poli_trianing_updates)
             

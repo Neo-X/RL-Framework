@@ -204,9 +204,11 @@ class LearningMultiAgent(LearningAgent):
             For things like HRL I am using a cheap trick to throw out extra data samples
             This will most likely mess up the advantage estimation and G_t
         """
-        # import numpy as np
+        import numpy as np
+        
         for tar in range(len(states__)):
             # print ("states__[tar] shape before: ", np.array(states__[tar]).shape)
+            tmp_len = len(states__[tar])
             states__[tar] = states__[tar][0::skip_num]
             # print ("states__[tar] shape after: ", np.array(states__[tar]).shape)
             actions__[tar] =  actions__[tar][0::skip_num]
@@ -216,7 +218,7 @@ class LearningMultiAgent(LearningAgent):
             _advantage[tar] =  _advantage[tar][0::skip_num]
             _exp_actions[tar] =  _exp_actions[tar][0::skip_num]
             _G_t[tar] =  _G_t[tar][0::skip_num]
-            
+            assert np.ceil(tmp_len/skip_num) == len(states__[tar]), "np.ceil(tmp_len/skip_num) == len(states__[tar])" + str(np.ceil(tmp_len/skip_num)) + " == " + str(len(states__[tar]))            
         return  (states__, actions__, rewards__, result_states__, falls__, _advantage, 
                   _exp_actions, _G_t)
         
@@ -316,7 +318,9 @@ class LearningMultiAgent(LearningAgent):
                 if ("hlc_index" in self.getSettings()
                     and (self.getSettings()["hlc_index"] == agent_)):
                     (states__, actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__) = self.dataSkip(states__, 
-                                            actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__, self.getSettings()["hlc_timestep"]) 
+                                            actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__, skip_num=self.getSettings()["hlc_timestep"])
+                    ### Adjust the max_epoch length to match the true length for the HLC
+                    self.getAgents()[agent_]._settings["max_epoch_length"] = np.ceil(self.getSettings()["max_epoch_length"]/self.getSettings()["hlc_timestep"])  
                 self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
                   _exp_actions=exp_actions__, _G_t=G_t__, p=p)
         else:

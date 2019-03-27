@@ -12,7 +12,7 @@
     "comment__": "Batch size used for learning",
 "batch_size": 256,
     "comment__": "Learning rate for the actor/policy",
-"learning_rate": 0.00001,
+"learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
 "sim_config_file": "NavGameHRL2D_NoVision_v0",
     "comment__": "A different config file for the forward dynamics simulator",
@@ -37,7 +37,7 @@
 "reward_bounds": [[[-3.0],[3.0]],
 					[[-30.0],[0.0]]],
     "comment__": "Max length of the Experience memory",
-"expereince_length": 25000,
+"expereince_length": [50000, 10000],
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [
   				  [
@@ -123,7 +123,7 @@
     "comment__": "What method to use to select actions during bootstrapping",
 "bootsrap_with_discrete_policy": false,
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
-"max_epoch_length": 512,
+"max_epoch_length": 256,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
 "reward_lower_bound": -10.5,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",
@@ -265,7 +265,7 @@
 "std_entropy_weight": 0.01,
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
-	"comment__": "number of on policy rollouts to perform per epoch",
+	"comment__": "number of on policy F to perform per epoch",
 "num_on_policy_rollouts": 16,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": false,
@@ -346,7 +346,7 @@
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
 "train_critic_with_fd_data": true,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 0.5,
+"additional_on-poli_trianing_updates": 1,
 	"comment__": "Use average of policy std as mbae learning rate",
 "use_std_avg_as_mbae_learning_rate": true,
 	"comment__": "Use the on-policy value function to compute state gradients instead of off-policy one for SMBAE.",
@@ -368,7 +368,7 @@
 	"comment__": "Use a centralized critics (each one kind of has full information)",
 "use_centralized_critic": true,
 	"comment__": "higher level controller timestep",
-"hlc_timestep": 10,
+"hlc_timestep": 5,
 	"comment__": "The index of the multiagent simulation for the hlc",
 "hlc_index": 0
 }

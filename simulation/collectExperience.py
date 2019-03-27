@@ -265,7 +265,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         if settings['action_space_continuous']:
             if ("perform_multiagent_training" in settings):
                 experience = [ExperienceMemory(len(model.getStateBounds()[i][0]), len(model.getActionBounds()[i][0]), 
-                                               settings['expereince_length'], continuous_actions=True, settings = settings)
+                                               settings['expereince_length'][i], continuous_actions=True, settings = settings)
                              for i in range(settings["perform_multiagent_training"])]
             else:
                 experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['expereince_length'], continuous_actions=True, settings = settings)

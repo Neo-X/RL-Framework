@@ -11,7 +11,7 @@ class AgentInterface(object):
         AgentInterface.setRewardBounds(self, reward_bound)    
         self._state_length = n_in
         self._action_length = n_out
-        self._settings = settings_ 
+        self.setSettings(settings_) 
     
     def train(self, states, actions, rewards, result_states):
         pass
@@ -40,6 +40,11 @@ class AgentInterface(object):
     def init(state_length, action_length, state_bounds, action_bounds, actor, exp, settings):
         pass
     
+    def setSettings(self, settings):
+        import copy
+        self._settings = copy.deepcopy(settings)
+        # self.getPolicy().setSettings(settings)
+        # self.getForwardDynamics().setSettings(settings)
     def getSettings(self):
         return self._settings
     
