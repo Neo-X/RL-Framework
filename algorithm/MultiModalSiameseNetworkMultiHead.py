@@ -43,32 +43,49 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         
         ### Need to create a new model that uses a different network
         settings__ = copy.deepcopy(self.getSettings())
-        settings__["fd_network_layer_sizes"] = settings__["encoder_network_layer_sizes"]
-        settings__["reward_network_layer_sizes"] = settings__["decoder_network_layer_sizes"]
+        settings__["fd_network_layer_sizes"] = settings__["fd_network_layer_sizes2"]
+        settings__["reward_network_layer_sizes"] = settings__["reward_network_layer_sizes2"]
         settings__["fd_num_terrain_features"] = 0
         print ("****** Creating dense pose encoding network")
-        if ("remove_character_state_features" in settings__):
-            settings__["state_bounds"][0] = settings__["state_bounds"][0][:-settings__["remove_character_state_features"]]
-            settings__["state_bounds"][1] = settings__["state_bounds"][1][:-settings__["remove_character_state_features"]]
-        self._modelTarget = createForwardDynamicsNetwork(settings__["state_bounds"], 
+        self._modelDense = createForwardDynamicsNetwork(settings__["state_bounds"], 
                                                          settings__["action_bounds"], settings__,
                                                          stateName="State_", resultStateName="ResultState_")
+        
+        settings__["fd_network_layer_sizes"] = settings__["fd_decoder_network_layer_sizes"]
+        settings__["reward_network_layer_sizes"] = settings__["reward_decoder_network_layer_sizes"]
+        settings__["fd_num_terrain_features"] = 0
+        print ("****** Creating dense pose encoding network")
+        self._modelDecode = createForwardDynamicsNetwork(settings__["state_bounds"], 
+                                                         settings__["action_bounds"], settings__,
+                                                         stateName="State__", resultStateName="ResultState__")
+        
+        settings__["fd_network_layer_sizes"] = settings__["fd_decoder_network_layer_sizes2"]
+        settings__["reward_network_layer_sizes"] = settings__["reward_decoder_network_layer_sizes2"]
+        settings__["fd_num_terrain_features"] = 0
+        print ("****** Creating dense pose encoding network")
+        self._modelDenseDecode = createForwardDynamicsNetwork(settings__["state_bounds"], 
+                                                         settings__["action_bounds"], settings__,
+                                                         stateName="State___", resultStateName="ResultState___")
 
         self._inputs_a = self._model.getStateSymbolicVariable()
-        self._inputs_b = self._modelTarget.getStateSymbolicVariable() 
-        self._model._forward_dynamics_net = Model(inputs=[self._inputs_a], outputs=self._model._forward_dynamics_net)
-        self._modelTarget._forward_dynamics_net = Model(inputs=[self._inputs_b], outputs=self._modelTarget._forward_dynamics_net)
+        self._inputs_b = self._modelDense.getStateSymbolicVariable() 
+        self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=self._model._forward_dynamics_net)
+        self._modelDense._forward_dynamics_net = Model(inputs=[self._modelDense.getStateSymbolicVariable()], outputs=self._modelDense._forward_dynamics_net)
+        self._modelDecode._forward_dynamics_net = Model(inputs=[self._modelDecode.getStateSymbolicVariable()], outputs=self._modelDecode._forward_dynamics_net)
+        self._modelDenseDecode._forward_dynamics_net = Model(inputs=[self._modelDenseDecode.getStateSymbolicVariable()], outputs=self._modelDenseDecode._forward_dynamics_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Conv Net summary: ", self._model._forward_dynamics_net.summary())
-                print("FD Target Net summary: ", self._modelTarget._forward_dynamics_net.summary())
+                print("FD Target Net summary: ", self._modelDense._forward_dynamics_net.summary())
         
-        self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=self._model._reward_net)
-        self._modelTarget._reward_net = Model(inputs=[self._modelTarget.getResultStateSymbolicVariable()], outputs=self._modelTarget._reward_net)
+        self._model._reward_net = Model(inputs=[self._model._State_], outputs=self._model._reward_net)
+        self._modelDense._reward_net = Model(inputs=[self._modelDense._State_], outputs=self._modelDense._reward_net)
+        self._modelDecode._reward_net = Model(inputs=[self._modelDecode._State_], outputs=self._modelDecode._reward_net)
+        self._modelDenseDecode._reward_net = Model(inputs=[self._modelDenseDecode._State_], outputs=self._modelDenseDecode._reward_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Reward Net summary: ", self._model._reward_net.summary())
-                print("FD Target Reward Net summary: ", self._modelTarget._reward_net.summary())
+                print("FD Target Reward Net summary: ", self._modelDense._reward_net.summary())
                 
 
         MultiModalSiameseNetworkMultiHead.compile(self)
@@ -78,8 +95,8 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         
         print ("*** self._model.getStateSymbolicVariable() shape: ", repr(self._model.getStateSymbolicVariable()))
         print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(self._model.getResultStateSymbolicVariable()))
-        print ("*** self._modelTarget.getStateSymbolicVariable() shape: ", repr(self._modelTarget.getStateSymbolicVariable()))
-        print ("*** self._modelTarget.getResultStateSymbolicVariable() shape: ", repr(self._modelTarget.getResultStateSymbolicVariable()))
+        print ("*** self._modelDense.getStateSymbolicVariable() shape: ", repr(self._modelDense.getStateSymbolicVariable()))
+        print ("*** self._modelDense.getResultStateSymbolicVariable() shape: ", repr(self._modelDense.getResultStateSymbolicVariable()))
         # state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._inputs_b)[1:], name="State_2")
         # result_state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._inputs_bb)[1:]
         #                                                                       , name="ResultState_2"
@@ -87,8 +104,8 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         
         encode_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
         self._model.encode_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=encode_a)
-        encode_b = self._modelTarget._forward_dynamics_net(self._modelTarget.getStateSymbolicVariable())
-        self._model.encode_b = Model(inputs=[self._modelTarget.getStateSymbolicVariable()], outputs=encode_b)
+        encode_b = self._modelDense._forward_dynamics_net(self._modelDense.getStateSymbolicVariable())
+        self._model.encode_b = Model(inputs=[self._modelDense.getStateSymbolicVariable()], outputs=encode_b)
         
         # distance_fd = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
         # distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([encode_a, encode_b])
@@ -115,20 +132,20 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
             return RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
 
         encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encode_a, self._model.getStateSymbolicVariable()])
-        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encode_b, self._modelTarget.getStateSymbolicVariable()])
+        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encode_b, self._modelDense.getStateSymbolicVariable()])
         print ("Encoder a output shape: ", encoder_a_outputs)
         print ("Encoder b output shape: ", encoder_b_outputs)
         
         decode_a_r = self._model._reward_net(encoder_a_outputs)
         # self._model.decode_a_r = Model(inputs=[encoder_a_outputs], outputs=decode_a_r)
-        decode_b_r = self._modelTarget._reward_net(encoder_b_outputs)
+        decode_b_r = self._modelDense._reward_net(encoder_b_outputs)
         # self._model.decode_b_r = Model(inputs=[encoder_b_outputs], outputs=decode_b_r)
         
         self._model._reward_net_a = Model(inputs=[self._model.getStateSymbolicVariable()
                                                           ]
                                                           , outputs=decode_a_r
                                                           )
-        self._model._reward_net_b = Model(inputs=[self._modelTarget.getStateSymbolicVariable()
+        self._model._reward_net_b = Model(inputs=[self._modelDense.getStateSymbolicVariable()
                                                           ]
                                                           , outputs=decode_b_r 
                                                           )
@@ -136,7 +153,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([encode_a, encode_b])
         
         self._model._combination = Model(inputs=[self._model.getStateSymbolicVariable(),
-                                                 self._modelTarget.getStateSymbolicVariable()
+                                                 self._modelDense.getStateSymbolicVariable()
                                                           ]
                                                           , outputs=[decode_a_r,
                                                                      decode_b_r,
@@ -176,15 +193,15 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         params = []
         params.append(copy.deepcopy(self._model._forward_dynamics_net.get_weights()))
         params.append(copy.deepcopy(self._model._reward_net.get_weights()))
-        params.append(copy.deepcopy(self._modelTarget._forward_dynamics_net.get_weights()))
-        params.append(copy.deepcopy(self._modelTarget._reward_net.get_weights()))
+        params.append(copy.deepcopy(self._modelDense._forward_dynamics_net.get_weights()))
+        params.append(copy.deepcopy(self._modelDense._reward_net.get_weights()))
         return params
     
     def setNetworkParameters(self, params):
         self._model._forward_dynamics_net.set_weights(params[0])
         self._model._reward_net.set_weights(params[1])
-        self._modelTarget._forward_dynamics_net.set_weights(params[2])
-        self._modelTarget._reward_net.set_weights(params[3])
+        self._modelDense._forward_dynamics_net.set_weights(params[2])
+        self._modelDense._reward_net.set_weights(params[3])
         
     def setGradTarget(self, grad):
         self._fd_grad_target_shared.set_value(grad)
@@ -556,8 +573,8 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
         self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
-        self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
-        self._modelTarget._reward_net.save(fileName+"_reward_T"+suffix, overwrite=True)
+        self._modelDense._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
+        self._modelDense._reward_net.save(fileName+"_reward_T"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
         """
         from keras.utils import plot_model
@@ -592,9 +609,9 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         self._reward_net = self._model._reward_net
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
-        if (self._modelTarget is not None):
-            self._modelTarget._forward_dynamics_net = load_keras_model(fileName+"_FD_T"+suffix)
-            self._modelTarget._reward_net = load_keras_model(fileName+"_reward_T"+suffix)
+        if (self._modelDense is not None):
+            self._modelDense._forward_dynamics_net = load_keras_model(fileName+"_FD_T"+suffix)
+            self._modelDense._reward_net = load_keras_model(fileName+"_reward_T"+suffix)
         # self._model._actor_train = load_keras_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
         # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])

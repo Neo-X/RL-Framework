@@ -405,21 +405,24 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Dropout(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "GaussianNoise"):
                 network = keras.layers.GaussianNoise(**layer_parms)(network)
-            elif (layer_info[i]["layer_type"] == "Input"):    
-                if ("simulation_model" in self._settings and
-                    (self._settings["simulation_model"] == True)):
-                    if (self._stateful_lstm):
-                        input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(1, 1, self._state_length), name=stateName)
+            elif (layer_info[i]["layer_type"] == "Input"):
+                if ("slice_name" in layer_info[i]):  
+                    network = slices[layer_info[i]["slice_name"]]
+                else:   
+                    if ("simulation_model" in self._settings and
+                        (self._settings["simulation_model"] == True)):
+                        if (self._stateful_lstm):
+                            input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(1, 1, self._state_length), name=stateName)
+                        else:
+                            input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
                     else:
-                        input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
-                else:
-                    if (self._stateful_lstm):
-                        input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
-                    else:
-                        input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
-                network = input_
-                self._State_ = input_   
-                print ("self._State_: ", repr(self._State_))
+                        if (self._stateful_lstm):
+                            input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
+                        else:
+                            input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
+                    network = input_
+                    self._State_ = input_   
+                print ("self._State_: ", repr(network))
             elif (layer_info[i]["layer_type"] == "BatchNormalization"):
                 network = keras.layers.BatchNormalization(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "LayerNormalization"):
