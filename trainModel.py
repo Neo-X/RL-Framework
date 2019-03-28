@@ -1278,8 +1278,8 @@ def trainModelParallel(inputData):
                 mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error = evalModelParrallel(input_anchor_queue, output_experience_queue, discount_factor, 
                                                     anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings)
                                                     """
-                print ("round_, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
-                print (trainData["round"], mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
+                print ("round_, p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
+                print (trainData["round"], p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
                 if np.mean(mean_bellman_error) > 10000:
                     print ("Error to big: ")
                 else:
