@@ -53,8 +53,11 @@ def getKerasActivation(type_name):
         sys.exit()
         
 ### It is complicated to serialize lambda functions, better to define a function
-def keras_slice(x, begin,end):
-    return x[:,begin:end]
+def keras_slice(x, begin, end):
+    if (len(keras.backend.int_shape(x)) > 2):
+        return x[:, :, begin:end]
+    else:
+        return x[:,begin:end]
 
 class DeepNNKerasAdaptive(ModelInterface):
     
@@ -477,14 +480,18 @@ class DeepNNKerasAdaptive(ModelInterface):
             elif (layer_info[i]["layer_type"] == "slice"):
                 ### Need to make sure to create end slice first to not overwrite network then try and slice from it again...
                 if ("slice_index" in layer_info[i]):
-                    state_length_ = keras.backend.int_shape(network)[1]
-                    print ("slice, state_length_: ", state_length_)
+                    state_length_ = keras.backend.int_shape(network)[-1]
                     # sys.exit()
-                    slices[layer_info[i]["slice_label"]] = Lambda(keras_slice, output_shape=(state_length_-layer_info[i]["slice_index"],),
+                    output_shape_ = list(keras.backend.int_shape(network))
+                    print ("slice, output_shape_: ", output_shape_)
+                    print ("slice, output_shape_: ", output_shape_[-1], output_shape_[-1] - int(layer_info[i]["slice_index"]))
+                    output_shape_[-1] = output_shape_[-1] - layer_info[i]["slice_index"]
+                    slices[layer_info[i]["slice_label"]] = Lambda(keras_slice, output_shape=output_shape_,
                                        arguments={'begin': layer_info[i]["slice_index"], 
                                                   'end': state_length_})(network)
                     print ("new slice network shape: ", repr(slices[layer_info[i]["slice_label"]]))
-                    network = Lambda(keras_slice, output_shape=(layer_info[i]["slice_index"],),
+                    output_shape_[-1] = layer_info[i]["slice_index"]
+                    network = Lambda(keras_slice, output_shape=output_shape_,
                                   arguments={'begin': 0, 'end': layer_info[i]["slice_index"]})(network)
                     print ("new network shape: ", repr(network))
                     # sys.exit()
