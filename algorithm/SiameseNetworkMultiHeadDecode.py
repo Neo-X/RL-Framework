@@ -67,6 +67,7 @@ class SiameseNetworkMultiHeadDecode(SiameseNetwork):
         settings__["reward_network_layer_sizes"] = settings__["decoder_network_layer_sizes2"]
         settings__["fd_num_terrain_features"] = settings__["encoding_vector_size"]
         print ("****** Creating dense pose encoding network")
+        print ("settings__[state_bounds]: ", len(settings__["state_bounds"][0]))
         if ("remove_character_state_features" in settings__):
             settings__["state_bounds"][0] = settings__["state_bounds"][0][:-settings__["remove_character_state_features"]]
             settings__["state_bounds"][1] = settings__["state_bounds"][1][:-settings__["remove_character_state_features"]]

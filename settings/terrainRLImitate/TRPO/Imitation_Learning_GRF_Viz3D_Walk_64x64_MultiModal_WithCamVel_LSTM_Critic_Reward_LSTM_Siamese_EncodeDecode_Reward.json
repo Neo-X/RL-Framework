@@ -481,7 +481,7 @@
 "force_use_result_state_for_critic": false,
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes2": [ 
-							{"layer_type": "slice", "slice_index": 5048, "slice_label": "data" },
+							{"layer_type": "slice", "slice_index": 4148, "slice_label": "data" },
 							{"layer_type": "slice", "slice_index": 4099, "slice_label": "robot_pose" },
 							{"layer_type": "Input", "slice_label": "robot_pose"},
 							{"layer_type": "Dense", "units": 64, "use_bias": true},
@@ -537,8 +537,9 @@
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_decoder_network_layer_sizes2": [ 
+								{"layer_type": "slice", "slice_index": 64, "slice_label": "out_vel" },
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
-								{"layer_type": "slice", "slice_index": 64, "slice_label": "out_vel" }
+								{"layer_type": "Concatenate", "slice_label": "out_vel"}
 								
 							],
 	"comment__": "A list describing the size of the layers for the NN",

@@ -461,7 +461,7 @@
 	"comment__": "Episode simulation time out",
 "simulation_timeout": 1800,
 	"comment__": "Include some randomly sized sequences when training lstms",
-"use_random_sequence_length_for_lstm": true,
+"use_random_sequence_length_for_lstm": false,
 	"comment__": "Use a sparse sequence based reward",
 "use_sparse_sequence_based_reward": false,
 	"comment__": "Add label noise to Discriminator/Simease network training",

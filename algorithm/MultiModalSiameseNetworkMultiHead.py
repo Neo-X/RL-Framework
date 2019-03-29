@@ -22,6 +22,17 @@ from algorithm.MultiModalSiameseNetwork import cosine_distance, cos_dist_output_
 # theano.config.mode='FAST_COMPILE'
 from algorithm.KERASAlgorithm import KERASAlgorithm
 
+def euclidean_distance_fd2(vects):
+    x, y = vects
+    return K.sqrt(K.sum(K.square(x - y), axis=-1, keepdims=True))
+
+def l1_distance_fd2(vects):
+    x, y = vects
+    return K.sum(K.abs(x - y), axis=-1, keepdims=True)
+
+def eucl_dist_output_shape_fd2(shapes):
+    shape1, shape2 = shapes
+    return (shape1[0], shape1[1], 1)
 
 class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
     """
@@ -41,13 +52,23 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         condition_reward_on_result_state = False
         self._train_combined_loss = False
         
+        self._distance_func = euclidean_distance
+        self._distance_func_np = euclidean_distance_np
+        if ( "fd_distance_function" in self.getSettings()
+             and (self.getSettings()["fd_distance_function"] == "l1")):
+            print ("Using ", self.getSettings()["fd_distance_function"], " distance metric for siamese network.")
+            self._distance_func = l1_distance
+            self._distance_func_np = l1_distance_np
+        
         ### Need to create a new model that uses a different network
         settings__ = copy.deepcopy(self.getSettings())
         settings__["fd_network_layer_sizes"] = settings__["fd_network_layer_sizes2"]
         settings__["reward_network_layer_sizes"] = settings__["reward_network_layer_sizes2"]
         # settings__["fd_num_terrain_features"] = 0
         print ("****** Creating dense pose encoding network")
-        self._modelDense = createForwardDynamicsNetwork(settings__["state_bounds"], 
+        print ("settings__[state_bounds]: ", len(settings__["state_bounds"][0]))
+        print ("self.getStateBounds(): ", len(self.getStateBounds()[0]))
+        self._modelDense = createForwardDynamicsNetwork(self.getStateBounds(), 
                                                          settings__["action_bounds"], settings__,
                                                          stateName="State_", resultStateName="ResultState_")
         
@@ -55,7 +76,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         settings__["reward_network_layer_sizes"] = settings__["reward_decoder_network_layer_sizes"]
         # settings__["fd_num_terrain_features"] = 0
         print ("****** Creating dense pose encoding network")
-        self._modelDecode = createForwardDynamicsNetwork(settings__["state_bounds"], 
+        self._modelDecode = createForwardDynamicsNetwork(self.getStateBounds(), 
                                                          settings__["action_bounds"], settings__,
                                                          stateName="State__", resultStateName="ResultState__")
         
@@ -63,7 +84,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         settings__["reward_network_layer_sizes"] = settings__["reward_decoder_network_layer_sizes2"]
         # settings__["fd_num_terrain_features"] = 0
         print ("****** Creating dense pose encoding network")
-        self._modelDenseDecode = createForwardDynamicsNetwork(settings__["state_bounds"], 
+        self._modelDenseDecode = createForwardDynamicsNetwork(self.getStateBounds(), 
                                                          settings__["action_bounds"], settings__,
                                                          stateName="State___", resultStateName="ResultState___")
 
@@ -76,7 +97,9 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Conv Net summary: ", self._model._forward_dynamics_net.summary())
-                print("FD Target Net summary: ", self._modelDense._forward_dynamics_net.summary())
+                print("FD Dense Net summary: ", self._modelDense._forward_dynamics_net.summary())
+                print("FD decoder Net summary: ", self._modelDecode._forward_dynamics_net.summary())
+                print("FD DenseDecoder Net summary: ", self._modelDenseDecode._forward_dynamics_net.summary())
         
         self._model._reward_net = Model(inputs=[self._model._State_], outputs=self._model._reward_net)
         self._modelDense._reward_net = Model(inputs=[self._modelDense._State_], outputs=self._modelDense._reward_net)
@@ -85,7 +108,9 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Reward Net summary: ", self._model._reward_net.summary())
-                print("FD Target Reward Net summary: ", self._modelDense._reward_net.summary())
+                print("FD Dense Reward Net summary: ", self._modelDense._reward_net.summary())
+                print("FD Decode Reward Net summary: ", self._modelDecode._reward_net.summary())
+                print("FD Dense Decode Target Reward Net summary: ", self._modelDenseDecode._reward_net.summary())
                 
 
         MultiModalSiameseNetworkMultiHead.compile(self)
@@ -102,27 +127,47 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         #                                                                       , name="ResultState_2"
         #                                                                       )
         
-        encode_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
-        self._model.encode_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=encode_a)
-        encode_b = self._modelDense._forward_dynamics_net(self._modelDense.getStateSymbolicVariable())
-        self._model.encode_b = Model(inputs=[self._modelDense.getStateSymbolicVariable()], outputs=encode_b)
+        processed_a = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())
+        self._model.processed_a = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a)
+        processed_b = self._modelDense._forward_dynamics_net(self._modelDense.getStateSymbolicVariable())
+        self._model.processed_b = Model(inputs=[self._modelDense.getStateSymbolicVariable()], outputs=processed_b)
         
-        # distance_fd = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-        # distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([encode_a, encode_b])
-        """
-        self._model._forward_dynamics_net = Model(inputs=[self._inputs_a
-                                                          ,state_copy
-                                                          ]
-                                                  , outputs=distance_fd
-                                                  )
-        """
-        """
-        self._model._reward_net = Model(inputs=[self._inputs_aa
-                                              ,result_state_copy
-                                              ]
-                                              , outputs=distance_r
-                                              )
-        """                                       
+        network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
+        print ("network_: ", repr(network_))
+        network_b = keras.layers.TimeDistributed(self._model.processed_b, input_shape=(None, 1, self._state_length))(self._modelDense.getResultStateSymbolicVariable())
+        print ("network_b: ", repr(network_b))
+        
+        if ("condition_on_rnn_internal_state" in self.getSettings()
+            and (self.getSettings()["condition_on_rnn_internal_state"] == True)):
+            _, processed_a_r, processed_a_r_c  = self._model._reward_net(network_)
+            _, processed_b_r, processed_b_r_c = self._modelDense._reward_net(network_b)
+            processed_a_r = keras.layers.concatenate(inputs=[processed_a_r, processed_a_r_c], axis=1)
+            processed_b_r = keras.layers.concatenate(inputs=[processed_b_r, processed_b_r_c], axis=1)
+            
+            encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(processed_b_r)[1:]
+                                                                          , name="encoding_2"
+                                                                          )
+            last_dense_a = keras.layers.Dense(64, activation = 'linear')(encode_input__)
+            self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
+            last_dense_b = keras.layers.Dense(64, activation = 'linear')(encode_input__)
+            self._last_dense_b = Model(inputs=[encode_input__], outputs=last_dense)
+            
+            processed_a_r = self._last_dense_a(processed_a_r)
+            processed_b_r = self._last_dense_b(processed_b_r)
+            
+        else:
+            processed_a_r = self._model._reward_net(network_)
+            processed_b_r = self._modelDense._reward_net(network_b)
+        
+        self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
+        self._model.processed_b_r = Model(inputs=[self._modelDense.getResultStateSymbolicVariable()], outputs=processed_b_r)
+        
+        distance_fd = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
+        distance_fd2 = keras.layers.Lambda(l1_distance_fd2, output_shape=eucl_dist_output_shape_fd2)([network_, network_b])
+        print ("distance_fd2: ", repr(distance_fd2))
+        distance_r = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
+        
+        ### Decoding models
         ### https://github.com/keras-team/keras/issues/7949
         def repeat_vector(args):
             # import keras
@@ -130,16 +175,26 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
             layer_to_repeat = args[0]
             sequence_layer = args[1]
             return RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
-
-        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encode_a, self._model.getStateSymbolicVariable()])
-        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 32)) ([encode_b, self._modelDense.getStateSymbolicVariable()])
+        ### Get a sequence as long as the state input
+        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_a_r, self._model.getResultStateSymbolicVariable()])
+        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_b_r, self._modelDense.getResultStateSymbolicVariable()])
         print ("Encoder a output shape: ", encoder_a_outputs)
         print ("Encoder b output shape: ", encoder_b_outputs)
         
-        decode_a_r = self._model._reward_net(encoder_a_outputs)
+        ### Decode the sequence into another sequence
+        decode_a_r = self._modelDecode._reward_net(encoder_a_outputs)
+        print ("decode_a_r: ", repr(decode_a_r))
         # self._model.decode_a_r = Model(inputs=[encoder_a_outputs], outputs=decode_a_r)
-        decode_b_r = self._modelDense._reward_net(encoder_b_outputs)
+        decode_b_r = self._modelDenseDecode._reward_net(encoder_b_outputs)
+        print ("decode_b_r: ", repr(decode_b_r))
         # self._model.decode_b_r = Model(inputs=[encoder_b_outputs], outputs=decode_b_r)
+        
+        ### Decode sequences into images
+        # state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
+        decode_a = keras.layers.TimeDistributed(self._modelDecode._forward_dynamics_net, input_shape=(None, 1, 67))(decode_a_r)
+        print ("decode_a: ", repr(decode_a))
+        decode_b = keras.layers.TimeDistributed(self._modelDenseDecode._forward_dynamics_net, input_shape=(None, 1, 67))(decode_b_r)
+        print ("decode_b: ", repr(decode_b))
         
         self._model._reward_net_a = Model(inputs=[self._model.getStateSymbolicVariable()
                                                           ]
@@ -188,7 +243,29 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                                             [distance_r])
         """
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
+    
+    def reset(self):
+        """
+            Reset any state for the agent model
+        """
+        self._model.reset()
+        self._model._reward_net.reset_states()
+        self._model._forward_dynamics_net.reset_states()
+        # self._model.processed_a.reset_states()
+        # self._model.processed_b.reset_states()
+        # self._model.processed_a_r.reset_states()
+        # self._model.processed_b_r.reset_states()
         
+        self._model._forward_dynamics_net.reset_states()
+        self._modelDense._forward_dynamics_net.reset_states()
+        self._modelDecode._forward_dynamics_net.reset_states()
+        self._modelDenseDecode._forward_dynamics_net.reset_states()
+        self._model._reward_net.reset_states() 
+        self._modelDense._reward_net.reset_states() 
+        self._modelDecode._reward_net.reset_states() 
+        self._modelDenseDecode._reward_net.reset_states() 
+            # self._modelTarget.reset()
+            
     def getNetworkParameters(self):
         params = []
         params.append(copy.deepcopy(self._model._forward_dynamics_net.get_weights()))
@@ -368,11 +445,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                     # settings["use_learned_reward_function"] == "dual"
                     ):
             
-            state2 = state[:, :self._settings["dense_state_size"]]
             
-            if ("remove_character_state_features" in self._settings):
-                ### Remove ground reaction forces from state
-                state2 = state2[:, :-self._settings["remove_character_state_features"]]
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
             h_a = self._model.encode_a.predict([np.array([state])])
             h_b = self._model.encode_b.predict([np.array([state2])])
@@ -382,8 +455,8 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         else:
             # print ("State shape: ", state.shape, " state2 shape: ", state2.shape)
             # state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
-            state2 = state[:, :self._settings["dense_state_size"]]
-            state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
+            state_ = self._model._forward_dynamics_net.predict([state])[0]
+            state_ = self._modelDense._forward_dynamics_net.predict([state])[0]
         # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
         # print("state_ shape: ", np.array(state_).shape)
         return state_
@@ -412,19 +485,14 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         if (("train_LSTM_Reward" in self._settings)
             and (self._settings["train_LSTM_Reward"] == True)):
             # print ("state shape: ", state.shape)
-            state2 = state[:, :self._settings["dense_state_size"]]
-            if ("remove_character_state_features" in self._settings):
-                ### Remove ground reaction forces from state
-                state2 = state2[:, :-self._settings["remove_character_state_features"]]
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
             h_a = self._model.encode_a.predict([np.array([state])])
-            h_b = self._model.encode_b.predict([np.array([state2])])
+            h_b = self._model.encode_b.predict([np.array([state])])
             reward_ = euclidean_distance_np((h_a, h_b))[0]
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
-            state2 = state[:, :self._settings["dense_state_size"]]
-            predicted_reward = self._model._reward_net.predict([state, state2])[0]
+            predicted_reward = self._modelDense._reward_net.predict([state])[0]
             # reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
             reward_ = predicted_reward
             
