@@ -54,10 +54,10 @@ def getKerasActivation(type_name):
         
 ### It is complicated to serialize lambda functions, better to define a function
 def keras_slice(x, begin, end):
-    if (len(keras.backend.int_shape(x)) > 2):
-        return x[:, :, begin:end]
-    else:
-        return x[:,begin:end]
+    # if (len(keras.backend.int_shape(x)) > 2):
+    #     return x[:, :, begin:end]
+    # else:
+    return x[:,begin:end]
 
 class DeepNNKerasAdaptive(ModelInterface):
     
@@ -409,8 +409,8 @@ class DeepNNKerasAdaptive(ModelInterface):
             elif (layer_info[i]["layer_type"] == "GaussianNoise"):
                 network = keras.layers.GaussianNoise(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Input"):
-                if ("slice_name" in layer_info[i]):  
-                    network = slices[layer_info[i]["slice_name"]]
+                if ("slice_label" in layer_info[i]):  
+                    network = slices[layer_info[i]["slice_label"]]
                 else:   
                     if ("simulation_model" in self._settings and
                         (self._settings["simulation_model"] == True)):
@@ -436,10 +436,13 @@ class DeepNNKerasAdaptive(ModelInterface):
             elif ( layer_info[i]["layer_type"] == "integrate_actor_part"):
                 network = Concatenate()([network, self._actionInput])          
             elif (layer_info[i]["layer_type"] == "Concatenate"):
+                print ("concatenating: ", repr(network))
                 if ("slice_label" in layer_info[i]):
-                    network = Concatenate(axis=1)([network, slices[layer_info[i]["slice_label"]]])
+                    print ("concatenating slice: ", repr(slices[layer_info[i]["slice_label"]]))
+                    network = Concatenate(axis=-1)([network, slices[layer_info[i]["slice_label"]]])
                 else:
-                    network = Concatenate(axis=1)([network, _characterFeatures])
+                    print ("concatenating _characterFeatures: ", repr(_characterFeatures))
+                    network = Concatenate(axis=-1)([network, _characterFeatures])
             elif (layer_info[i]["layer_type"] == "GRU"):
                 network = GRU(
                               kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
@@ -480,18 +483,14 @@ class DeepNNKerasAdaptive(ModelInterface):
             elif (layer_info[i]["layer_type"] == "slice"):
                 ### Need to make sure to create end slice first to not overwrite network then try and slice from it again...
                 if ("slice_index" in layer_info[i]):
-                    state_length_ = keras.backend.int_shape(network)[-1]
+                    state_length_ = keras.backend.int_shape(network)[1]
+                    print ("slice, state_length_: ", state_length_)
                     # sys.exit()
-                    output_shape_ = list(keras.backend.int_shape(network))
-                    print ("slice, output_shape_: ", output_shape_)
-                    print ("slice, output_shape_: ", output_shape_[-1], output_shape_[-1] - int(layer_info[i]["slice_index"]))
-                    output_shape_[-1] = output_shape_[-1] - layer_info[i]["slice_index"]
-                    slices[layer_info[i]["slice_label"]] = Lambda(keras_slice, output_shape=output_shape_,
+                    slices[layer_info[i]["slice_label"]] = Lambda(keras_slice, output_shape=(state_length_-layer_info[i]["slice_index"],),
                                        arguments={'begin': layer_info[i]["slice_index"], 
                                                   'end': state_length_})(network)
                     print ("new slice network shape: ", repr(slices[layer_info[i]["slice_label"]]))
-                    output_shape_[-1] = layer_info[i]["slice_index"]
-                    network = Lambda(keras_slice, output_shape=output_shape_,
+                    network = Lambda(keras_slice, output_shape=(layer_info[i]["slice_index"],),
                                   arguments={'begin': 0, 'end': layer_info[i]["slice_index"]})(network)
                     print ("new network shape: ", repr(network))
                     # sys.exit()
@@ -500,8 +499,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                                            arguments={'begin': self._settings['num_terrain_features'], 
                                                       'end': self._state_length})(network)
                     network = Lambda(keras_slice, output_shape=(self._settings['num_terrain_features'],),
-                                      arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(network)
-                                  
+                                            arguments={'begin': 0, 'end': self._settings['num_terrain_features']})(network)
+                    # sys.exit()
             elif ( layer_info[i]["layer_type"] == "coordconv2d" ):
                   network = CoordinateChannel2D()(network)
             elif ( layer_info[i]["layer_type"] == "conv2d" ):

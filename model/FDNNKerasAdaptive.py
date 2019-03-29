@@ -43,9 +43,14 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
                  and (settings_["replace_next_state_with_pose_state"] == True))
                 or
                 ("fd_use_multimodal_state" in settings_ 
-                 and (settings_["fd_use_multimodal_state"] == True))
+                 and (settings_["fd_use_multimodal_state"] == True)
+                 )
                 ):
-                n_out = settings_["dense_state_size"]
+                if (("fd_use_full_multimodal_state" in settings_ and
+                          (settings_["fd_use_full_multimodal_state"] == True))):
+                    pass
+                else: 
+                    n_out = settings_["dense_state_size"]
             else:
                 if ("append_camera_velocity_state" in settings_
                     and (settings_["append_camera_velocity_state"] == True)):
