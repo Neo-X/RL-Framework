@@ -181,6 +181,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                  and ("use_dropout_in_actor" in self._settings 
                       and (self._settings["use_dropout_in_actor"] == True)) ):
                 networkAct = Dropout(rate=self._dropout_p)(networkAct)
+                
+            if ( "use_decoder_fd" in self._settings
+                  and (self._settings["use_decoder_fd"] == True) ):
+                networkAct = keras.layers.Input(shape=(self._settings["encoding_vector_size"],), name="FD_Encoding_State")
+                # networkAct = Dropout(rate=self._dropout_p)(networkAct)
+                networkAct
             
             networkAct = self.createSubNetwork(networkAct, layer_sizes, isRNN=isRNN, stateName=stateName, resultStateName=resultStateName)
             
@@ -412,19 +418,25 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if ("slice_label" in layer_info[i]):  
                     network = slices[layer_info[i]["slice_label"]]
                 else:   
-                    if ("simulation_model" in self._settings and
-                        (self._settings["simulation_model"] == True)):
-                        if (self._stateful_lstm):
-                            input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(1, 1, self._state_length), name=stateName)
-                        else:
-                            input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
+                    if ("flag" in layer_info[i] and
+                        layer_info[i]["flag"] == "fd_input"):
+                        input_ = keras.layers.Input(shape=(layer_info[i]["shape"][-1],), name=stateName)
+                        network = input_
+                        self._State_FD = input_
                     else:
-                        if (self._stateful_lstm):
-                            input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
+                        if ("simulation_model" in self._settings and
+                            (self._settings["simulation_model"] == True)):
+                            if (self._stateful_lstm):
+                                input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(1, 1, self._state_length), name=stateName)
+                            else:
+                                input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
                         else:
-                            input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
-                    network = input_
-                    self._State_ = input_   
+                            if (self._stateful_lstm):
+                                input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
+                            else:
+                                input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
+                        network = input_
+                        self._State_ = input_   
                 print ("self._State_: ", repr(network))
             elif (layer_info[i]["layer_type"] == "BatchNormalization"):
                 network = keras.layers.BatchNormalization(**layer_parms)(network)
@@ -462,8 +474,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                         print ("self._State_backup: ", self._State_backup)
                         print ("*** subnet input shape: ", repr(keras.backend.int_shape(self._State_backup)))
                         subnet = Model(inputs=self._State_backup, outputs=subnet)
-                        print("Subnet summary")
-                        subnet.summary()
+                        # print("Subnet summary")
+                        # subnet.summary()
                     else:
                         print ("*** net input shape: ", repr(keras.backend.int_shape(network)))
                         input_ = keras.layers.Input(shape=(keras.backend.int_shape(network)[-1],), name="State_Conv")
@@ -473,8 +485,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                         #else:
                         subnet = self.createSubNetwork(input_, layer_info[i]["net_info"], isRNN=False)
                         subnet = Model(inputs=input_, outputs=subnet)
-                        print("Subnet summary")
-                        subnet.summary()
+                        # print("Subnet summary")
+                        # subnet.summary()
                         
                     ### Create a model (set of layers to distribute) pass in the original input to that model
                     print ("*** subnet input ", network, " shape: ", repr(keras.backend.int_shape(network)))

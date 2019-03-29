@@ -64,27 +64,31 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         settings__ = copy.deepcopy(self.getSettings())
         settings__["fd_network_layer_sizes"] = settings__["fd_network_layer_sizes2"]
         settings__["reward_network_layer_sizes"] = settings__["reward_network_layer_sizes2"]
-        # settings__["fd_num_terrain_features"] = 0
+        settings__["fd_num_terrain_features"] = 0
         print ("****** Creating dense pose encoding network")
         print ("settings__[state_bounds]: ", len(settings__["state_bounds"][0]))
         print ("self.getStateBounds(): ", len(self.getStateBounds()[0]))
-        self._modelDense = createForwardDynamicsNetwork(self.getStateBounds(), 
+        self._modelDense = createForwardDynamicsNetwork(settings__["state_bounds"], 
                                                          settings__["action_bounds"], settings__,
                                                          stateName="State_", resultStateName="ResultState_")
         
+        settings__ = copy.deepcopy(self.getSettings())
         settings__["fd_network_layer_sizes"] = settings__["fd_decoder_network_layer_sizes"]
         settings__["reward_network_layer_sizes"] = settings__["reward_decoder_network_layer_sizes"]
+        settings__["using_encoder_decoder_fd"] = True
         # settings__["fd_num_terrain_features"] = 0
         print ("****** Creating dense pose encoding network")
         self._modelDecode = createForwardDynamicsNetwork(self.getStateBounds(), 
                                                          settings__["action_bounds"], settings__,
                                                          stateName="State__", resultStateName="ResultState__")
         
+        settings__ = copy.deepcopy(self.getSettings())
         settings__["fd_network_layer_sizes"] = settings__["fd_decoder_network_layer_sizes2"]
         settings__["reward_network_layer_sizes"] = settings__["reward_decoder_network_layer_sizes2"]
-        # settings__["fd_num_terrain_features"] = 0
+        settings__["fd_num_terrain_features"] = 0
+        settings__["using_encoder_decoder_fd"] = True
         print ("****** Creating dense pose encoding network")
-        self._modelDenseDecode = createForwardDynamicsNetwork(self.getStateBounds(), 
+        self._modelDenseDecode = createForwardDynamicsNetwork(np.zeros((2,settings__["encoding_vector_size"])), 
                                                          settings__["action_bounds"], settings__,
                                                          stateName="State___", resultStateName="ResultState___")
 
@@ -92,7 +96,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         self._inputs_b = self._modelDense.getStateSymbolicVariable() 
         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=self._model._forward_dynamics_net)
         self._modelDense._forward_dynamics_net = Model(inputs=[self._modelDense.getStateSymbolicVariable()], outputs=self._modelDense._forward_dynamics_net)
-        self._modelDecode._forward_dynamics_net = Model(inputs=[self._modelDecode.getStateSymbolicVariable()], outputs=self._modelDecode._forward_dynamics_net)
+        self._modelDecode._forward_dynamics_net = Model(inputs=[self._modelDecode._State_FD], outputs=self._modelDecode._forward_dynamics_net)
         self._modelDenseDecode._forward_dynamics_net = Model(inputs=[self._modelDenseDecode.getStateSymbolicVariable()], outputs=self._modelDenseDecode._forward_dynamics_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -119,9 +123,9 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         # sgd = SGD(lr=0.001, momentum=0.9)
         
         print ("*** self._model.getStateSymbolicVariable() shape: ", repr(self._model.getStateSymbolicVariable()))
-        print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(self._model.getResultStateSymbolicVariable()))
+        print ("*** self._model._State_ shape: ", repr(self._model._State_))
         print ("*** self._modelDense.getStateSymbolicVariable() shape: ", repr(self._modelDense.getStateSymbolicVariable()))
-        print ("*** self._modelDense.getResultStateSymbolicVariable() shape: ", repr(self._modelDense.getResultStateSymbolicVariable()))
+        print ("*** self._modelDense._State_ shape: ", repr(self._modelDense._State_))
         # state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._inputs_b)[1:], name="State_2")
         # result_state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._inputs_bb)[1:]
         #                                                                       , name="ResultState_2"
@@ -132,9 +136,9 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         processed_b = self._modelDense._forward_dynamics_net(self._modelDense.getStateSymbolicVariable())
         self._model.processed_b = Model(inputs=[self._modelDense.getStateSymbolicVariable()], outputs=processed_b)
         
-        network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
+        network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length))(self._model._State_)
         print ("network_: ", repr(network_))
-        network_b = keras.layers.TimeDistributed(self._model.processed_b, input_shape=(None, 1, self._state_length))(self._modelDense.getResultStateSymbolicVariable())
+        network_b = keras.layers.TimeDistributed(self._model.processed_b, input_shape=(None, 1, self._state_length))(self._modelDense._State_)
         print ("network_b: ", repr(network_b))
         
         if ("condition_on_rnn_internal_state" in self.getSettings()
@@ -176,8 +180,8 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
             sequence_layer = args[1]
             return RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
         ### Get a sequence as long as the state input
-        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_a_r, self._model.getResultStateSymbolicVariable()])
-        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_b_r, self._modelDense.getResultStateSymbolicVariable()])
+        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_a_r, self._model._State_])
+        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_b_r, self._modelDense._State_])
         print ("Encoder a output shape: ", encoder_a_outputs)
         print ("Encoder b output shape: ", encoder_b_outputs)
         

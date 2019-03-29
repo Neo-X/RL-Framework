@@ -406,7 +406,7 @@
 							{"layer_type": "Input", "shape": ["none", "none", 64]},
 							{"layer_type": "LSTM", "units": 128, "return_sequences": false, "return_state": false, "use_bias": false, "activation": null},
 							{"layer_type": "activation", "activation_type": "tanh" },
-							{"layer_type": "Dense", "units": 64, "use_bias": true},
+							{"layer_type": "Dense", "units": 67, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "linear" }
 							],
 		"comment__": "type of activation to use",
@@ -481,10 +481,7 @@
 "force_use_result_state_for_critic": false,
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes2": [ 
-							{"layer_type": "slice", "slice_index": 4148, "slice_label": "data" },
-							{"layer_type": "slice", "slice_index": 4099, "slice_label": "robot_pose" },
-							{"layer_type": "Input", "slice_label": "robot_pose"},
-							{"layer_type": "Dense", "units": 64, "use_bias": true},
+							{"layer_type": "Dense", "units": 67, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "sigmoid" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
@@ -492,7 +489,7 @@
 							{"layer_type": "Input", "shape": ["none", "none", 64]},
 							{"layer_type": "LSTM", "units": 128, "return_sequences": false, "return_state": false, "use_bias": false, "activation": null},
 							{"layer_type": "activation", "activation_type": "tanh" },
-							{"layer_type": "Dense", "units": 64, "use_bias": true},
+							{"layer_type": "Dense", "units": 67, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "linear" }
 							],
 	"comment__": "Inform the system that a encoder decoder model is being used",
@@ -501,6 +498,7 @@
 "reward_network_leave_off_end": true,
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_decoder_network_layer_sizes": [ 
+								{"layer_type": "Input", "shape": ["none", 67], "flag": "fd_input"},
 								{"layer_type": "slice", "slice_index": 64, "slice_label": "out_vel" },
 								{"layer_type": "Dense", "units": 512, "use_bias": false},
 								{"layer_type": "BatchNormalization"},
@@ -525,7 +523,7 @@
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_decoder_network_layer_sizes": [
-							{"layer_type": "Input", "shape": ["none", "none", 64]},
+							{"layer_type": "Input", "shape": ["none", "none", 67]},
 							{"layer_type": "LSTM", "units": 256, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null},
 							{"layer_type": "LayerNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -537,9 +535,7 @@
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_decoder_network_layer_sizes2": [ 
-								{"layer_type": "slice", "slice_index": 64, "slice_label": "out_vel" },
-								{"layer_type": "Dense", "units": 64, "use_bias": true},
-								{"layer_type": "Concatenate", "slice_label": "out_vel"}
+								{"layer_type": "Dense", "units": 64, "use_bias": true}
 								
 							],
 	"comment__": "A list describing the size of the layers for the NN",
@@ -550,10 +546,18 @@
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "TimeDistributedConv", "net_info":
 							[ 
-								{"layer_type": "Dense", "units": 67, "use_bias": true},
+								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "linear" }
 							]}
 							],
 	"comment": "Force the use of the full state for the multi-model network",
-"fd_use_full_multimodal_state": true
+"fd_use_full_multimodal_state": true,
+	"comment__": "The encoding vector size used for the fd models",
+"encoding_vector_size": 64,
+	"comment__": "condition siamese network on RNN internal state as well.",
+"condition_on_rnn_internal_state": false,
+	"comment__": "Train the fd network as well",
+"train_lstm_fd_and_reward_together": false,
+	"comment__": "Train the fd network as well",
+"train_lstm_fd_and_reward_and_decoder_together": true
 }
