@@ -212,7 +212,16 @@ class LearningMultiAgent(LearningAgent):
             states__[tar] = states__[tar][0::skip_num]
             # print ("states__[tar] shape after: ", np.array(states__[tar]).shape)
             actions__[tar] =  actions__[tar][0::skip_num]
-            rewards__[tar] =  rewards__[tar][0::skip_num]
+            axis = 0
+            split_indices = [i for i  in range(skip_num, len(rewards__[tar]), skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
+            print ("split_indices: ", split_indices)
+            first_split = np.array_split(rewards__[tar], split_indices, axis=0)
+            print ("first_split: ", first_split)
+            print ("reward_average: ", np.mean(first_split, axis=-2))
+            print ("rewards__[tar]: ", rewards__[tar])
+            assert len(rewards__[tar][0::skip_num]) == len(first_split), "len(rewards__[tar][0::skip_num]) == len(first_split): " + str(len(rewards__[tar][0::skip_num])) + " == " + str(len(first_split))
+            # rewards__[tar] =  rewards__[tar][0::skip_num]
+            rewards__[tar] =  np.mean(first_split, axis=-2)
             result_states__[tar] =  result_states__[tar][0::skip_num]
             falls__[tar] =  falls__[tar][0::skip_num]
             _advantage[tar] =  _advantage[tar][0::skip_num]
@@ -327,7 +336,8 @@ class LearningMultiAgent(LearningAgent):
                     self.getAgents()[agent_]._settings["train_actor"] = False
                     self.getAgents()[agent_]._settings["train_critic"] = False
                     # pass ### Skip agent
-                # print ("self.getAgents()[",agent_,"].getStateBounds(): ", repr(self.getAgents()[agent_].getStateBounds()) )
+                print ("self.getAgents()[",agent_,"].getStateBounds(): ", repr(self.getAgents()[agent_].getStateBounds()) )
+                print ("self.getAgents()[",agent_,"].getRewardBounds(): ", repr(self.getAgents()[agent_].getRewardBounds()) )
                 self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
                   _exp_actions=exp_actions__, _G_t=G_t__, p=p)
         else:
