@@ -45,7 +45,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         settings__ = copy.deepcopy(self.getSettings())
         settings__["fd_network_layer_sizes"] = settings__["fd_network_layer_sizes2"]
         settings__["reward_network_layer_sizes"] = settings__["reward_network_layer_sizes2"]
-        settings__["fd_num_terrain_features"] = 0
+        # settings__["fd_num_terrain_features"] = 0
         print ("****** Creating dense pose encoding network")
         self._modelDense = createForwardDynamicsNetwork(settings__["state_bounds"], 
                                                          settings__["action_bounds"], settings__,
@@ -53,7 +53,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         
         settings__["fd_network_layer_sizes"] = settings__["fd_decoder_network_layer_sizes"]
         settings__["reward_network_layer_sizes"] = settings__["reward_decoder_network_layer_sizes"]
-        settings__["fd_num_terrain_features"] = 0
+        # settings__["fd_num_terrain_features"] = 0
         print ("****** Creating dense pose encoding network")
         self._modelDecode = createForwardDynamicsNetwork(settings__["state_bounds"], 
                                                          settings__["action_bounds"], settings__,
@@ -61,7 +61,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         
         settings__["fd_network_layer_sizes"] = settings__["fd_decoder_network_layer_sizes2"]
         settings__["reward_network_layer_sizes"] = settings__["reward_decoder_network_layer_sizes2"]
-        settings__["fd_num_terrain_features"] = 0
+        # settings__["fd_num_terrain_features"] = 0
         print ("****** Creating dense pose encoding network")
         self._modelDenseDecode = createForwardDynamicsNetwork(settings__["state_bounds"], 
                                                          settings__["action_bounds"], settings__,

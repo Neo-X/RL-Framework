@@ -496,7 +496,7 @@
 							{"layer_type": "activation", "activation_type": "linear" }
 							],
 	"comment__": "Inform the system that a encoder decoder model is being used",
-"using_encoder_decoder_fd": true,
+"using_encoder_decoder_fd": false,
 	"comment__": "Leave off the final layer of the reward network that would result in a state sized output",
 "reward_network_leave_off_end": true,
 	"comment__": "A list describing the size of the layers for the NN",
