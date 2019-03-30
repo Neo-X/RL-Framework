@@ -97,7 +97,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=self._model._forward_dynamics_net)
         self._modelDense._forward_dynamics_net = Model(inputs=[self._modelDense.getStateSymbolicVariable()], outputs=self._modelDense._forward_dynamics_net)
         self._modelDecode._forward_dynamics_net = Model(inputs=[self._modelDecode._State_FD], outputs=self._modelDecode._forward_dynamics_net)
-        self._modelDenseDecode._forward_dynamics_net = Model(inputs=[self._modelDenseDecode.getStateSymbolicVariable()], outputs=self._modelDenseDecode._forward_dynamics_net)
+        self._modelDenseDecode._forward_dynamics_net = Model(inputs=[self._modelDenseDecode._State_FD], outputs=self._modelDenseDecode._forward_dynamics_net)
         if (print_info):
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print("FD Conv Net summary: ", self._model._forward_dynamics_net.summary())
@@ -123,9 +123,9 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         # sgd = SGD(lr=0.001, momentum=0.9)
         
         print ("*** self._model.getStateSymbolicVariable() shape: ", repr(self._model.getStateSymbolicVariable()))
-        print ("*** self._model._State_ shape: ", repr(self._model._State_))
+        print ("*** self._model.getResultStateSymbolicVariable() shape: ", repr(self._model.getResultStateSymbolicVariable()))
         print ("*** self._modelDense.getStateSymbolicVariable() shape: ", repr(self._modelDense.getStateSymbolicVariable()))
-        print ("*** self._modelDense._State_ shape: ", repr(self._modelDense._State_))
+        print ("*** self._modelDense.getResultStateSymbolicVariable() shape: ", repr(self._modelDense.getResultStateSymbolicVariable()))
         # state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._inputs_b)[1:], name="State_2")
         # result_state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._inputs_bb)[1:]
         #                                                                       , name="ResultState_2"
@@ -136,9 +136,9 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         processed_b = self._modelDense._forward_dynamics_net(self._modelDense.getStateSymbolicVariable())
         self._model.processed_b = Model(inputs=[self._modelDense.getStateSymbolicVariable()], outputs=processed_b)
         
-        network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length))(self._model._State_)
+        network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
         print ("network_: ", repr(network_))
-        network_b = keras.layers.TimeDistributed(self._model.processed_b, input_shape=(None, 1, self._state_length))(self._modelDense._State_)
+        network_b = keras.layers.TimeDistributed(self._model.processed_b, input_shape=(None, 1, self._state_length))(self._modelDense.getResultStateSymbolicVariable())
         print ("network_b: ", repr(network_b))
         
         if ("condition_on_rnn_internal_state" in self.getSettings()
