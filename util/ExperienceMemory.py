@@ -158,12 +158,12 @@ class ExperienceMemory(object):
                 and (self._settings["shorter_smaller_rnn_batches"] == True)):
                 ### Make shorter sequence more probable
                 shortest_traj = np.random.choice(inds, p=np.array(list(reversed(inds)), dtype='float64')/np.sum(inds))
-                # print ("To shortest_traj:", shortest_traj)
             else:
                 shortest_traj = random.sample(set(inds), 1)[0]
+                print ("To shortest_traj:", shortest_traj)
         
         
-        # print ("shortest_traj: ", shortest_traj, " traj_start: ", traj_start)    
+        print ("shortest_traj: ", shortest_traj, " traj_start: ", traj_start)    
         ### Make all trajectories as long as the shortest one...
         for t in range(len(state_)):
             state_[t] = state_[t][traj_start:shortest_traj]

@@ -180,8 +180,8 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
             sequence_layer = args[1]
             return RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
         ### Get a sequence as long as the state input
-        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_a_r, self._model._State_])
-        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_b_r, self._modelDense._State_])
+        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_a_r, self._model.getResultStateSymbolicVariable()])
+        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_b_r, self._modelDense.getResultStateSymbolicVariable()])
         print ("Encoder a output shape: ", encoder_a_outputs)
         print ("Encoder b output shape: ", encoder_b_outputs)
         
@@ -200,19 +200,19 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         decode_b = keras.layers.TimeDistributed(self._modelDenseDecode._forward_dynamics_net, input_shape=(None, 1, 67))(decode_b_r)
         print ("decode_b: ", repr(decode_b))
         
-        self._model._reward_net_a = Model(inputs=[self._model.getStateSymbolicVariable()
+        self._model._reward_net_a = Model(inputs=[self._model.getResultStateSymbolicVariable()
                                                           ]
                                                           , outputs=decode_a_r
                                                           )
-        self._model._reward_net_b = Model(inputs=[self._modelDense.getStateSymbolicVariable()
+        self._model._reward_net_b = Model(inputs=[self._modelDense.getResultStateSymbolicVariable()
                                                           ]
                                                           , outputs=decode_b_r 
                                                           )
         
-        distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([encode_a, encode_b])
+        # distance_r = keras.layers.Lambda(euclidean_distance, output_shape=eucl_dist_output_shape)([encode_a, encode_b])
         
-        self._model._combination = Model(inputs=[self._model.getStateSymbolicVariable(),
-                                                 self._modelDense.getStateSymbolicVariable()
+        self._model._combination = Model(inputs=[self._model.getResultStateSymbolicVariable(),
+                                                 self._modelDense.getResultStateSymbolicVariable()
                                                           ]
                                                           , outputs=[decode_a_r,
                                                                      decode_b_r,
@@ -257,8 +257,8 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         self._model._forward_dynamics_net.reset_states()
         # self._model.processed_a.reset_states()
         # self._model.processed_b.reset_states()
-        # self._model.processed_a_r.reset_states()
-        # self._model.processed_b_r.reset_states()
+        self._model.processed_a_r.reset_states()
+        self._model.processed_b_r.reset_states()
         
         self._model._forward_dynamics_net.reset_states()
         self._modelDense._forward_dynamics_net.reset_states()
@@ -453,14 +453,16 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
             h_a = self._model.encode_a.predict([np.array([state])])
             h_b = self._model.encode_b.predict([np.array([state2])])
-            state_ = euclidean_distance_np((h_a, h_b))[0]
+            state_ = self._distance_func_np((h_a, h_b))[0]
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
             # print ("State shape: ", state.shape, " state2 shape: ", state2.shape)
             # state2 = np.array(norm_state(state2, self._state_bounds), dtype=self.getSettings()['float_type'])
-            state_ = self._model._forward_dynamics_net.predict([state])[0]
-            state_ = self._modelDense._forward_dynamics_net.predict([state])[0]
+            state2 = state[:, :self._settings["dense_state_size"]]
+            h_a = self._model._forward_dynamics_net.predict([state])[0]
+            h_b = self._modelDense._forward_dynamics_net.predict([state2])[0]
+            state_ = self._distance_func_np((np.array([h_a]), np.array([h_b])))[0]
         # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
         # print("state_ shape: ", np.array(state_).shape)
         return state_
@@ -490,13 +492,16 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
             and (self._settings["train_LSTM_Reward"] == True)):
             # print ("state shape: ", state.shape)
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
-            h_a = self._model.encode_a.predict([np.array([state])])
-            h_b = self._model.encode_b.predict([np.array([state])])
-            reward_ = euclidean_distance_np((h_a, h_b))[0]
+            state2 = state[:, :self._settings["dense_state_size"]]
+            h_a = self._model.processed_a_r.predict([np.array([state])])
+            h_b = self._model.processed_b_r.predict([np.array([state2])])
+            reward_ = self._distance_func_np((h_a, h_b))[0]
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
-            predicted_reward = self._modelDense._reward_net.predict([state])[0]
+            state2 = state[:, :self._settings["dense_state_size"]]
+            predicted_reward = self._model._reward_net.predict([state])[0]
+            predicted_reward = self._modelDense._reward_net.predict([state2])[0]
             # reward_ = scale_reward(predicted_reward, self.getRewardBounds()) # * (1.0 / (1.0- self.getSettings()['discount_factor']))
             reward_ = predicted_reward
             
