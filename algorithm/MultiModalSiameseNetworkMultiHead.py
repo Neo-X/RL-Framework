@@ -214,9 +214,9 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         self._model._combination = Model(inputs=[self._model.getResultStateSymbolicVariable(),
                                                  self._modelDense.getResultStateSymbolicVariable()
                                                           ]
-                                                          , outputs=[decode_a_r,
-                                                                     decode_b_r,
-                                                                     distance_r] 
+                                                          , outputs=[distance_r, 
+                                                                     decode_a,
+                                                                     decode_b] 
                                                           )
         
         # sgd = SGD(lr=0.0005, momentum=0.9)
@@ -234,7 +234,10 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
-        self._model._combination.compile(loss=['mse', 'mse', contrastive_loss], loss_weights=[0.01, 0.01, 0.98],optimizer=sgd)
+        self._model._combination.compile(loss=[ contrastive_loss, 'mse', 'mse'], loss_weights=[0.7, 0.15, 0.15],optimizer=sgd)
+        
+        from keras.utils import plot_model
+        plot_model(self._model._combination, to_file="_fd_combination"+'.svg', show_shapes=True)
         """
         self._contrastive_loss = K.function([self._inputs_a, 
                                              self._inputs_b,
@@ -394,8 +397,10 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                 vid_targets = sequences0[:,:, self._settings["dense_state_size"]:]
                 if ("remove_character_state_features" in self._settings):
                     ### Remove ground reaction forces from state
-                    sequences1 = sequences1[:, :, :-self._settings["remove_character_state_features"]]
-                score = self._model._combination.fit([sequences0, sequences1], [vid_targets, sequences1, targets__],
+                    pose_targets = sequences1[:, :, :-self._settings["remove_character_state_features"]]
+                print ("sequences0 shape: ", sequences0.shape)
+                print ("sequences1 shape: ", sequences1.shape)
+                score = self._model._combination.fit([sequences0, sequences1], [targets__, vid_targets, pose_targets],
                               epochs=1, 
                               batch_size=sequences0.shape[0],
                               verbose=0
@@ -559,12 +564,16 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                 if ("remove_character_state_features" in self._settings):
                     ### Remove ground reaction forces from state
                     sequences1 = sequences1[:, :, :-self._settings["remove_character_state_features"]]
-                predicted_y = self._model._combination.predict([sequences0, sequences1], batch_size=sequences0.shape[0])
+                
+                _forward_dynamics_net
+                predicted_y = self._model._forward_dynamics_net.predict([sequences0], batch_size=sequences0.shape[0])
+                predicted_y1 = self._modelDense._forward_dynamics_net.predict([sequences1], batch_size=sequences0.shape[0])
                 # print ("fd error, predicted_y: ", predicted_y)
                 targets__ = np.mean(targets_, axis=1)
                 # print ("fd error, targets_ : ", targets_)
                 # print ("fd error, targets__: ", targets__)
-                errors.append( compute_accuracy(predicted_y[2], targets__) )
+                y = self._distance_func_np(predicted_y[0], predicted_y1[0])
+                errors.append( compute_accuracy(y, targets__) )
             # predicted_y = self._model._forward_dynamics_net.predict([np.array([[sequences0[0]]]), np.array([[sequences1[0]]])])
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
             te_acc = np.mean(errors)
@@ -617,7 +626,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                 # print ("predicted_y: ", predicted_y[0].shape, predicted_y[1].shape, predicted_y[2].shape)
                 # print ("predicted_y: ", predicted_y[2])
                 # print ("targets__: ", targets__)
-                error = contrastive_loss_np(predicted_y[2], targets__)
+                error = contrastive_loss_np(predicted_y[0], targets__)
                 # error = compute_accuracy(predicted_y[2], targets__)
                 print ("error: ", error)
                 errors.append(error )
