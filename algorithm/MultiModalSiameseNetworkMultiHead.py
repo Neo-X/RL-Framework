@@ -718,6 +718,17 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         self._modelDense._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
         self._modelDense._reward_net.save(fileName+"_reward_T"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
+        try:
+            from keras.utils import plot_model
+            ### Save model design as image
+            plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.svg', show_shapes=True)
+            plot_model(self._modelDense._forward_dynamics_net, to_file=fileName+"_FD_Dense"+'.svg', show_shapes=True)
+            plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
+            plot_model(self._model._combination, to_file=fileName+"_combination"+'.svg', show_shapes=True)
+        except Exception as inst:
+            ### Maybe the needed libraries are not available
+            print ("Error saving diagrams for rl models.")
+            print (inst)
         """
         from keras.utils import plot_model
         ### Save model design as image
