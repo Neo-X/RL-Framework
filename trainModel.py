@@ -229,7 +229,7 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
             out = simModelMoreParrallel( sw_message_queues=sim_work_queues
                                        ,model=masterAgent, settings=settings__ 
                                        ,eval_episode_data_queue=eval_episode_data_queue 
-                                       ,anchors=settings['num_on_policy_rollouts']
+                                       ,anchors=settings__['num_on_policy_rollouts']
                                        ,type='keep_alive'
                                        ,p=1
                                        )
