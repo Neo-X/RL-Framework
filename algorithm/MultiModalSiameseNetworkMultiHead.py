@@ -166,8 +166,13 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
         self._model.processed_b_r = Model(inputs=[self._modelDense.getResultStateSymbolicVariable()], outputs=processed_b_r)
         
-        self._model.processed_a_r_target = keras.models.clone_model(self._model.processed_a_r)
-        self._model.processed_b_r_target = keras.models.clone_model(self._model.processed_b_r)
+        use_target_network = False
+        if (use_target_network):
+            self._model.processed_a_r_target = keras.models.clone_model(self._model.processed_a_r)
+            self._model.processed_b_r_target = keras.models.clone_model(self._model.processed_b_r)
+        else:
+            self._model.processed_a_r_target = self._model.processed_a_r
+            self._model.processed_b_r_target = self._model.processed_b_r
         
         distance_fd = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
         distance_fd2 = keras.layers.Lambda(l1_distance_fd2, output_shape=eucl_dist_output_shape_fd2)([network_, network_b])
@@ -428,25 +433,27 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                 if ("remove_character_state_features" in self._settings):
                     ### Remove ground reaction forces from state
                     pose_targets = sequences1[:, :, :-self._settings["remove_character_state_features"]]
-                print ("sequences0 shape: ", sequences0.shape)
-                print ("sequences1 shape: ", sequences1.shape)
-                train_modes_sperately = False
+                # print ("sequences0 shape: ", sequences0.shape)
+                # print ("sequences1 shape: ", sequences1.shape)
+                train_modes_sperately = True
                 if (train_modes_sperately):
-                    score = self._model._combination.fit([sequences0, sequences1], [targets__, vid_targets, pose_targets],
-                              epochs=1, 
-                              batch_size=sequences0.shape[0],
-                              verbose=0
-                              )
-                else:
-                    h_a = self._model.processed_b_r_target.predict([sequences1])
+                    self._model.processed_b_r_target.reset_states()
+                    encode_b = self._model.processed_b_r_target.predict([sequences1])
                     score = self._model._combination_a.fit([sequences0, encode_b], [targets__, vid_targets],
                               epochs=1, 
                               batch_size=sequences0.shape[0],
                               verbose=0
                               )
                     
-                    h_a = self._model.processed_a_r_target.predict([sequences0])
+                    self._model.processed_a_r_target.reset_states()
+                    encode_a = self._model.processed_a_r_target.predict([sequences0])
                     score = self._model._combination_b.fit([sequences1, encode_a], [targets__, pose_targets],
+                              epochs=1, 
+                              batch_size=sequences0.shape[0],
+                              verbose=0
+                              )
+                else:
+                    score = self._model._combination.fit([sequences0, sequences1], [targets__, vid_targets, pose_targets],
                               epochs=1, 
                               batch_size=sequences0.shape[0],
                               verbose=0
