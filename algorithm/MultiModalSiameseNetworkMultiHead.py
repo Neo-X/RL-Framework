@@ -271,8 +271,8 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                                     clipnorm=1.0)
         self._model._combination_b.compile(loss=[ contrastive_loss, 'mse'], loss_weights=[0.85, 0.15],optimizer=sgd)
         
-        from keras.utils import plot_model
-        plot_model(self._model._combination, to_file="_fd_combination"+'.svg', show_shapes=True)
+        # from keras.utils import plot_model
+        # plot_model(self._model._combination, to_file="_fd_combination"+'.svg', show_shapes=True)
         """
         self._contrastive_loss = K.function([self._inputs_a, 
                                              self._inputs_b,
