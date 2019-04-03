@@ -142,6 +142,9 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         network_b = keras.layers.TimeDistributed(self._model.processed_b, input_shape=(None, 1, self._state_length))(self._modelDense.getResultStateSymbolicVariable())
         print ("network_b: ", repr(network_b))
         
+        self._model.processed_aa = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=network_)
+        self._model.processed_bb = Model(inputs=[self._modelDense.getResultStateSymbolicVariable()], outputs=network_b)
+        
         if ("condition_on_rnn_internal_state" in self.getSettings()
             and (self.getSettings()["condition_on_rnn_internal_state"] == True)):
             _, processed_a_r, processed_a_r_c  = self._model._reward_net(network_)
@@ -180,6 +183,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         distance_fd = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
         distance_fd2 = keras.layers.Lambda(l1_distance_fd2, output_shape=eucl_dist_output_shape_fd2)([network_, network_b])
         print ("distance_fd2: ", repr(distance_fd2))
+        print ("distance_fd2: ", repr(distance_fd2))
         distance_r = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
         encode_input__tmp = keras.layers.Input(shape=keras.backend.int_shape(processed_a_r)[1:]
                                                                           , name="encoding_3"
@@ -187,10 +191,13 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         encode_input__fd = keras.layers.Input(shape=keras.backend.int_shape(network_)[1:]
                                                                           , name="encoding_fd"
                                                                           )
+        print("encode_input__fd: ", repr(encode_input__fd))
         distance_r_a = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a_r, encode_input__tmp])
         distance_r_b = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_b_r, encode_input__tmp])
-        distance_fd_a = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([network_, encode_input__fd])
-        distance_fd_b = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([network_b, encode_input__fd])
+        distance_fd_a = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_fd2)([network_, encode_input__fd])
+        print ("distance_fd_a: ", repr(distance_fd_a))
+        distance_fd_b = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_fd2)([network_b, encode_input__fd])
+        print ("distance_fd_b: ", repr(distance_fd_b))
         
         ### Decoding models
         ### https://github.com/keras-team/keras/issues/7949
@@ -242,16 +249,20 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                                                           )
         
         self._model._combination_a = Model(inputs=[self._model.getResultStateSymbolicVariable(),
-                                                 encode_input__tmp
+                                                 encode_input__tmp,
+                                                 encode_input__fd
                                                           ]
-                                                          , outputs=[distance_r_a, 
+                                                          , outputs=[distance_r_a,
+                                                                     distance_fd_a, 
                                                                      decode_a] 
                                                           )
         
         self._model._combination_b = Model(inputs=[self._modelDense.getResultStateSymbolicVariable(),
-                                                 encode_input__tmp
+                                                 encode_input__tmp,
+                                                 encode_input__fd
                                                           ]
-                                                          , outputs=[distance_r_b, 
+                                                          , outputs=[distance_r_b,
+                                                                     distance_fd_b, 
                                                                      decode_b] 
                                                           )
         
@@ -271,15 +282,17 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
         self._model._combination.compile(loss=[ contrastive_loss, contrastive_loss, 'mse', 'mse'], 
-                                         loss_weights=[0.7, 0.1, 0.1, 0.1],optimizer=sgd)
+                                         loss_weights=[0.6, 0.2, 0.1, 0.1],optimizer=sgd)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
                                     clipnorm=1.0)
-        self._model._combination_a.compile(loss=[ contrastive_loss, 'mse'], loss_weights=[0.85, 0.15],optimizer=sgd)
+        self._model._combination_a.compile(loss=[ contrastive_loss, contrastive_loss, 'mse'], 
+                                           loss_weights=[0.7, 0.2, 0.1],optimizer=sgd)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
                                     clipnorm=1.0)
-        self._model._combination_b.compile(loss=[ contrastive_loss, 'mse'], loss_weights=[0.85, 0.15],optimizer=sgd)
+        self._model._combination_b.compile(loss=[ contrastive_loss, contrastive_loss, 'mse'], 
+                                           loss_weights=[0.7, 0.2, 0.1],optimizer=sgd)
         
         # from keras.utils import plot_model
         # plot_model(self._model._combination, to_file="_fd_combination"+'.svg', show_shapes=True)
@@ -451,11 +464,13 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                     pose_targets = sequences1[:, :, :-self._settings["remove_character_state_features"]]
                 # print ("sequences0 shape: ", sequences0.shape)
                 # print ("sequences1 shape: ", sequences1.shape)
-                train_modes_sperately = False
+                train_modes_sperately = True
                 if (train_modes_sperately):
                     self._model.processed_b_r_target.reset_states()
                     encode_b = self._model.processed_b_r_target.predict([sequences1])
-                    score = self._model._combination_a.fit([sequences0, encode_b], [targets__, vid_targets],
+                    encode_bb = self._model.processed_bb.predict([sequences1])
+                    score = self._model._combination_a.fit([sequences0, encode_b, encode_bb], 
+                                                           [targets__, targets_, vid_targets],
                               epochs=1, 
                               batch_size=sequences0.shape[0],
                               verbose=0
@@ -463,13 +478,16 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                     
                     self._model.processed_a_r_target.reset_states()
                     encode_a = self._model.processed_a_r_target.predict([sequences0])
-                    score = self._model._combination_b.fit([sequences1, encode_a], [targets__, pose_targets],
+                    encode_aa = self._model.processed_aa.predict([sequences0])
+                    score = self._model._combination_b.fit([sequences1, encode_a, encode_aa], 
+                                                           [targets__, targets_, pose_targets],
                               epochs=1, 
                               batch_size=sequences0.shape[0],
                               verbose=0
                               )
                 else:
-                    score = self._model._combination.fit([sequences0, sequences1], [targets__, targets_, vid_targets, pose_targets],
+                    score = self._model._combination.fit([sequences0, sequences1], 
+                                                         [targets__, targets_, vid_targets, pose_targets],
                               epochs=1, 
                               batch_size=sequences0.shape[0],
                               verbose=0

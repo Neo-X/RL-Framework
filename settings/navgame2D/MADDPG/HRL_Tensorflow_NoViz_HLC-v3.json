@@ -376,5 +376,7 @@
 	"comment__": "The index of the multiagent simulation for the hlc",
 "hlc_index": 0,
 	"comment__": "Ignore training some of the agents in a multi agent sim",
-"ignore_MRL_agents": []
+"ignore_MRL_agents": [],
+	"comment__": "The index of the multiagent simulation for the hlc",
+"llc_index": 1
 }

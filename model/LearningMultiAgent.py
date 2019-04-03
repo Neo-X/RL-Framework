@@ -205,29 +205,29 @@ class LearningMultiAgent(LearningAgent):
             This will most likely mess up the advantage estimation and G_t
         """
         import numpy as np
-        
-        for tar in range(len(states__)):
-            # print ("states__[tar] shape before: ", np.array(states__[tar]).shape)
-            tmp_len = len(states__[tar])
-            states__[tar] = states__[tar][0::skip_num]
-            # print ("states__[tar] shape after: ", np.array(states__[tar]).shape)
-            actions__[tar] =  actions__[tar][0::skip_num]
-            axis = 0
-            split_indices = [i for i  in range(skip_num, len(rewards__[tar]), skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
-            # print ("split_indices: ", split_indices)
-            first_split = np.array_split(rewards__[tar], split_indices, axis=0)
-            # print ("first_split: ", first_split)
-            # print ("reward_average: ", [[np.mean(rs)] for rs in first_split])
-            # print ("rewards__[tar]: ", rewards__[tar])
-            assert len(rewards__[tar][0::skip_num]) == len(first_split), "len(rewards__[tar][0::skip_num]) == len(first_split): " + str(len(rewards__[tar][0::skip_num])) + " == " + str(len(first_split))
-            # rewards__[tar] =  rewards__[tar][0::skip_num]
-            rewards__[tar] =  [[np.mean(rs)] for rs in first_split]
-            result_states__[tar] =  result_states__[tar][0::skip_num]
-            falls__[tar] =  falls__[tar][0::skip_num]
-            _advantage[tar] =  _advantage[tar][0::skip_num]
-            _exp_actions[tar] =  _exp_actions[tar][0::skip_num]
-            _G_t[tar] =  _G_t[tar][0::skip_num]
-            assert np.ceil(tmp_len/skip_num) == len(states__[tar]), "np.ceil(tmp_len/skip_num) == len(states__[tar])" + str(np.ceil(tmp_len/skip_num)) + " == " + str(len(states__[tar]))            
+        if (skip_num > 1):
+            for tar in range(len(states__)):
+                # print ("states__[tar] shape before: ", np.array(states__[tar]).shape)
+                tmp_len = len(states__[tar])
+                states__[tar] = states__[tar][0::skip_num]
+                # print ("states__[tar] shape after: ", np.array(states__[tar]).shape)
+                actions__[tar] =  actions__[tar][0::skip_num]
+                axis = 0
+                split_indices = [i for i  in range(skip_num, len(rewards__[tar]), skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
+                # print ("split_indices: ", split_indices)
+                first_split = np.array_split(rewards__[tar], split_indices, axis=0)
+                # print ("first_split: ", first_split)
+                # print ("reward_average: ", [[np.mean(rs)] for rs in first_split])
+                # print ("rewards__[tar]: ", rewards__[tar])
+                assert len(rewards__[tar][0::skip_num]) == len(first_split), "len(rewards__[tar][0::skip_num]) == len(first_split): " + str(len(rewards__[tar][0::skip_num])) + " == " + str(len(first_split))
+                # rewards__[tar] =  rewards__[tar][0::skip_num]
+                rewards__[tar] =  [[np.mean(rs)] for rs in first_split]
+                result_states__[tar] =  result_states__[tar][0::skip_num]
+                falls__[tar] =  falls__[tar][0::skip_num]
+                _advantage[tar] =  _advantage[tar][0::skip_num]
+                _exp_actions[tar] =  _exp_actions[tar][0::skip_num]
+                _G_t[tar] =  _G_t[tar][0::skip_num]
+                assert np.ceil(tmp_len/skip_num) == len(states__[tar]), "np.ceil(tmp_len/skip_num) == len(states__[tar])" + str(np.ceil(tmp_len/skip_num)) + " == " + str(len(states__[tar]))            
         return  (states__, actions__, rewards__, result_states__, falls__, _advantage, 
                   _exp_actions, _G_t)
         

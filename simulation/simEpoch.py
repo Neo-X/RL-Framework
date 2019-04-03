@@ -76,6 +76,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     exp.initEpoch()
     # print ("sim EXP: ", exp)
     actor.initEpoch()
+    if ("llc_index" in settings): ### Bad hack for now to use llc in env
+        exp.getEnvironment().getEnv().setLLC(model.getAgents()[settings["llc_index"]])
     # model.initEpoch(exp)
     state_ = exp.getState()
     # pa = model.predict(state_)
