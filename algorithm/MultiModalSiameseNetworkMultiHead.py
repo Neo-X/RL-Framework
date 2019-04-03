@@ -184,8 +184,13 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         encode_input__tmp = keras.layers.Input(shape=keras.backend.int_shape(processed_a_r)[1:]
                                                                           , name="encoding_3"
                                                                           )
+        encode_input__fd = keras.layers.Input(shape=keras.backend.int_shape(network_)[1:]
+                                                                          , name="encoding_fd"
+                                                                          )
         distance_r_a = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a_r, encode_input__tmp])
         distance_r_b = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_b_r, encode_input__tmp])
+        distance_fd_a = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([network_, encode_input__fd])
+        distance_fd_b = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([network_b, encode_input__fd])
         
         ### Decoding models
         ### https://github.com/keras-team/keras/issues/7949
@@ -230,7 +235,8 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         self._model._combination = Model(inputs=[self._model.getResultStateSymbolicVariable(),
                                                  self._modelDense.getResultStateSymbolicVariable()
                                                           ]
-                                                          , outputs=[distance_r, 
+                                                          , outputs=[distance_r,
+                                                                     distance_fd2, 
                                                                      decode_a,
                                                                      decode_b] 
                                                           )
@@ -264,7 +270,8 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
-        self._model._combination.compile(loss=[ contrastive_loss, 'mse', 'mse'], loss_weights=[0.7, 0.15, 0.15],optimizer=sgd)
+        self._model._combination.compile(loss=[ contrastive_loss, contrastive_loss, 'mse', 'mse'], 
+                                         loss_weights=[0.7, 0.1, 0.1, 0.1],optimizer=sgd)
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
                                     clipnorm=1.0)
@@ -444,7 +451,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                     pose_targets = sequences1[:, :, :-self._settings["remove_character_state_features"]]
                 # print ("sequences0 shape: ", sequences0.shape)
                 # print ("sequences1 shape: ", sequences1.shape)
-                train_modes_sperately = True
+                train_modes_sperately = False
                 if (train_modes_sperately):
                     self._model.processed_b_r_target.reset_states()
                     encode_b = self._model.processed_b_r_target.predict([sequences1])
@@ -462,7 +469,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                               verbose=0
                               )
                 else:
-                    score = self._model._combination.fit([sequences0, sequences1], [targets__, vid_targets, pose_targets],
+                    score = self._model._combination.fit([sequences0, sequences1], [targets__, targets_, vid_targets, pose_targets],
                               epochs=1, 
                               batch_size=sequences0.shape[0],
                               verbose=0

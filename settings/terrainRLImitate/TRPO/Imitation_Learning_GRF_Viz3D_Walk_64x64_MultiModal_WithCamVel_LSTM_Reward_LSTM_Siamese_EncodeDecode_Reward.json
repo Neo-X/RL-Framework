@@ -158,7 +158,7 @@
     "comment__": "draw/render the next state suggested by the forward dynamics model",
 "visualize_forward_dynamics": false,
     "comment__": "Learning rate for the forward dynamics model",
-"fd_learning_rate": 0.001,
+"fd_learning_rate": 0.0002,
     "comment__": "Whether or not to train the policy. Used for debugging",
 "train_actor": true,
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
@@ -392,23 +392,15 @@
 							{"layer_type": "conv2d", "filters": 8, "kernel_size": [4,4], "strides": [2,2], "use_bias": false},
 							{"layer_type": "BatchNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "coordconv2d"},
-							{"layer_type": "conv2d", "filters": 8, "kernel_size": [2,2], "strides": [1,1], "use_bias": false},
-							{"layer_type": "BatchNormalization"},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "Flatten"},
-							{"layer_type": "Dense", "units": 256, "use_bias": false},
-							{"layer_type": "BatchNormalization"},
-							{"layer_type": "activation", "activation_type": "sigmoid" },
-							{"layer_type": "Dense", "units": 32, "use_bias": false},
-							{"layer_type": "BatchNormalization"},
+							{"layer_type": "Dense", "units": 32, "use_bias": true},
 							{"layer_type": "Concatenate", "slice_label": "out_vel"},
-							{"layer_type": "activation", "activation_type": "sigmoid" }
+							{"layer_type": "activation", "activation_type": "linear" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 35]},
-							{"layer_type": "GRU", "units": 128, "return_sequences": false, "return_state": false, "use_bias": false, "activation": null},
+							{"layer_type": "GRU", "units": 32, "return_sequences": false, "return_state": false, "use_bias": false, "activation": null},
 							{"layer_type": "activation", "activation_type": "tanh" },
 							{"layer_type": "Dense", "units": 35, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "linear" }
@@ -476,7 +468,7 @@
 	"comment__": "Add a negative reward when the robot falls",
 "use_fall_reward_shaping2": true,
 	"comment__": "The type of distance function the fd learning model should use to compute differences.",
-"fd_distance_function": "l1",
+"fd_distance_function": "l2",
 	"comment__": "image noise factor that is added to the frames captured from the simulations",
 "image_noise_scale": 0.00,
 	"comment__": "pretrain the fd model",
@@ -492,18 +484,14 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes2": [ 
 							{"layer_type": "slice", "slice_index": 49, "slice_label": "ground_reaction_forces" },
-							{"layer_type": "GaussianNoise", "stddev": 0.05},
-							{"layer_type": "Dense", "units": 256, "use_bias": true},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dense", "units": 128, "use_bias": true},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "GaussianNoise", "stddev": 0.02},
 							{"layer_type": "Dense", "units": 35, "use_bias": true},
-							{"layer_type": "activation", "activation_type": "sigmoid" }
+							{"layer_type": "activation", "activation_type": "linear" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes2": [
 							{"layer_type": "Input", "shape": ["none", "none", 35]},
-							{"layer_type": "GRU", "units": 128, "return_sequences": false, "return_state": false, "use_bias": false, "activation": null},
+							{"layer_type": "GRU", "units": 32, "return_sequences": false, "return_state": false, "use_bias": false, "activation": null},
 							{"layer_type": "activation", "activation_type": "tanh" },
 							{"layer_type": "Dense", "units": 35, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "linear" }
@@ -532,7 +520,7 @@
 								{"layer_type": "coordconv2d"},
 								{"layer_type": "deconv2d", "filters": 1, "kernel_size": [6,6], "strides": [4,4], "use_bias": false, "padding": "same"},
 								{"layer_type": "BatchNormalization"},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "activation", "activation_type": "linear" },
 								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Reshape", "target_shape": [4096]},
 								{"layer_type": "Concatenate", "slice_label": "out_vel"}
@@ -540,9 +528,9 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_decoder_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 35]},
-							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null},
+							{"layer_type": "GRU", "units": 32, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "activation", "activation_type": "tanh" },
 							{"layer_type": "TimeDistributedConv", "net_info":
 							[ 
 								{"layer_type": "Dense", "units": 35, "use_bias": true},
@@ -552,10 +540,6 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_decoder_network_layer_sizes2": [ 
 								{"layer_type": "Input", "shape": ["none", 35], "flag": "fd_input"},
-								{"layer_type": "Dense", "units": 256, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dense", "units": 256, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 49, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "linear" }
 								
@@ -563,9 +547,9 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_decoder_network_layer_sizes2": [
 							{"layer_type": "Input", "shape": ["none", "none", 35]},
-							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null},
+							{"layer_type": "GRU", "units": 32, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "activation", "activation_type": "tanh" },
 							{"layer_type": "TimeDistributedConv", "net_info":
 							[ 
 								{"layer_type": "Dense", "units": 35, "use_bias": true},
@@ -585,5 +569,5 @@
 	"comment__": "Remove the GRF character features from the dense state",
 "remove_character_state_features": 4,
 	"comment__": "Use target networks for the FD model.",
-"use_fd_target_network": true
+"use_fd_target_network": false
 }
