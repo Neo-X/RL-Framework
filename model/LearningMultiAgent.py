@@ -236,29 +236,27 @@ class LearningMultiAgent(LearningAgent):
               _exp_actions=None, _G_t=None, p=1.0):
         import numpy as np 
         
-        if ( "use_centralized_critic" in self.getSettings()
-             and (self.getSettings()["use_centralized_critic"] == True)):
+        for agent_ in range(len(self.getAgents())):
+            # print ("_states: ", np.array(_states).shape)
+            # print ("_states[0][0]: ", np.array(_states[0][0]).shape)
+            # print ("_states[0][1]: ", np.array(_states[0][1]).shape)
+            # print ("_states[0][2]: ", np.array(_states[0][2]).shape)
+            ### Pull out the state for each agent, start at agent index and skip every number of agents 
+            states__ = [state_[agent_::len(self.getAgents())] for state_ in _states]
+            actions__ = [state_[agent_::len(self.getAgents())] for state_ in _actions]
+            rewards__ = [state_[agent_::len(self.getAgents())] for state_ in _rewards]
+            result_states__ = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
+            result_states_tmp = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
+            falls__ = [state_[agent_::len(self.getAgents())] for state_ in _falls]
+            advantage__ = [state_[agent_::len(self.getAgents())] for state_ in _advantage]
+            exp_actions__ = [state_[agent_::len(self.getAgents())] for state_ in _exp_actions]
+            G_t__ = [state_[agent_::len(self.getAgents())] for state_ in _G_t]
             
-            for agent_ in range(len(self.getAgents())):
-                # print ("_states: ", np.array(_states).shape)
-                # print ("_states[0][0]: ", np.array(_states[0][0]).shape)
-                # print ("_states[0][1]: ", np.array(_states[0][1]).shape)
-                # print ("_states[0][2]: ", np.array(_states[0][2]).shape)
-                ### Pull out the state for each agent, start at agent index and skip every number of agents 
-                states__ = [state_[agent_::len(self.getAgents())] for state_ in _states]
-                actions__ = [state_[agent_::len(self.getAgents())] for state_ in _actions]
-                rewards__ = [state_[agent_::len(self.getAgents())] for state_ in _rewards]
-                result_states__ = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
-                result_states_tmp = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
-                falls__ = [state_[agent_::len(self.getAgents())] for state_ in _falls]
-                advantage__ = [state_[agent_::len(self.getAgents())] for state_ in _advantage]
-                exp_actions__ = [state_[agent_::len(self.getAgents())] for state_ in _exp_actions]
-                G_t__ = [state_[agent_::len(self.getAgents())] for state_ in _G_t]
-                
-                # print ("states__: ", np.array(states__).shape)
-                # print ("result_states__: ", np.array(result_states__).shape)
-                # print ("result_states_tmp: ", np.array(result_states_tmp).shape)
-                
+            # print ("states__: ", np.array(states__).shape)
+            # print ("result_states__: ", np.array(result_states__).shape)
+            # print ("result_states_tmp: ", np.array(result_states_tmp).shape)
+            if ( "use_centralized_critic" in self.getSettings()
+                 and (self.getSettings()["use_centralized_critic"] == True)):
                 ### Add other agent data 
                 for agent__ in [i for i,x in enumerate(self.getAgents()) if i!=agent_]: ### Add the states for other agents
                     states___ = [state_[agent__::len(self.getAgents())] for state_ in _states]
@@ -321,44 +319,25 @@ class LearningMultiAgent(LearningAgent):
                             # print ("target_res_state: ", target_res_state)
                             result_states__[tar][s] = np.array(target_res_state)
                         # print ("result_states__[s]: ", np.array(result_states__[tar]).shape) 
-                
-                # print ("states__: ", np.array(states__).shape)
-                # print ("result_states__: ", np.array(result_states__).shape) 
-                if ("hlc_index" in self.getSettings()
-                    and (self.getSettings()["hlc_index"] == agent_)):
-                    (states__, actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__) = self.dataSkip(states__, 
-                                            actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__, skip_num=self.getSettings()["hlc_timestep"])
-                    ### Adjust the max_epoch length to match the true length for the HLC
-                    self.getAgents()[agent_]._settings["max_epoch_length"] = np.ceil(self.getSettings()["max_epoch_length"]/self.getSettings()["hlc_timestep"])
-                if ( "ignore_MRL_agents" in self.getSettings()
-                     and (agent_ in self.getSettings()["ignore_MRL_agents"])):
-                    print ("Skipping agent: ", agent_)
-                    self.getAgents()[agent_]._settings["train_actor"] = False
-                    self.getAgents()[agent_]._settings["train_critic"] = False
-                    # pass ### Skip agent
-                print ("self.getAgents()[",agent_,"].getStateBounds(): ", repr(self.getAgents()[agent_].getStateBounds()) )
-                print ("self.getAgents()[",agent_,"].getRewardBounds(): ", repr(self.getAgents()[agent_].getRewardBounds()) )
-                self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
-                  _exp_actions=exp_actions__, _G_t=G_t__, p=p)
-        else:
-            for agent_ in range(len(self.getAgents())):
-                # print ("_states: ", np.array(_states).shape)
-                # print ("_states[0][0]: ", np.array(_states[0][0]).shape)
-                # print ("_states[0][1]: ", np.array(_states[0][1]).shape)
-                # print ("_states[0][2]: ", np.array(_states[0][2]).shape)
-                ### Pull out the state for each agent, start at agent index and skip every number of agents 
-                states__ = [state_[agent_::len(self.getAgents())] for state_ in _states]
-                actions__ = [state_[agent_::len(self.getAgents())] for state_ in _actions]
-                rewards__ = [state_[agent_::len(self.getAgents())] for state_ in _rewards]
-                result_states__ = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
-                falls__ = [state_[agent_::len(self.getAgents())] for state_ in _falls]
-                advantage__ = [state_[agent_::len(self.getAgents())] for state_ in _advantage]
-                exp_actions__ = [state_[agent_::len(self.getAgents())] for state_ in _exp_actions]
-                G_t__ = [state_[agent_::len(self.getAgents())] for state_ in _G_t]
-                
-                # print ("states__: ", np.array(states__).shape) 
-                self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
-                  _exp_actions=exp_actions__, _G_t=G_t__, p=p)
+            
+            # print ("states__: ", np.array(states__).shape)
+            # print ("result_states__: ", np.array(result_states__).shape) 
+            if ("hlc_index" in self.getSettings()
+                and (self.getSettings()["hlc_index"] == agent_)):
+                (states__, actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__) = self.dataSkip(states__, 
+                                        actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__, skip_num=self.getSettings()["hlc_timestep"])
+                ### Adjust the max_epoch length to match the true length for the HLC
+                self.getAgents()[agent_]._settings["max_epoch_length"] = np.ceil(self.getSettings()["max_epoch_length"]/self.getSettings()["hlc_timestep"])
+            if ( "ignore_MRL_agents" in self.getSettings()
+                 and (agent_ in self.getSettings()["ignore_MRL_agents"])):
+                print ("Skipping agent: ", agent_)
+                self.getAgents()[agent_]._settings["train_actor"] = False
+                self.getAgents()[agent_]._settings["train_critic"] = False
+                # pass ### Skip agent
+            print ("self.getAgents()[",agent_,"].getStateBounds(): ", repr(self.getAgents()[agent_].getStateBounds()) )
+            print ("self.getAgents()[",agent_,"].getRewardBounds(): ", repr(self.getAgents()[agent_].getRewardBounds()) )
+            self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
+              _exp_actions=exp_actions__, _G_t=G_t__, p=p)
         
     def recomputeRewards(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t):

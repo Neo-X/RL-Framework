@@ -13,9 +13,10 @@ import keras.backend as K
 import keras
 from keras.models import Sequential, Model
 from keras.layers import RepeatVector
+from util.utils import rlPrint
 
 from util.SimulationUtil import createForwardDynamicsNetwork
-from algorithm.SiameseNetwork import compute_accuracy, contrastive_loss_np
+from algorithm.SiameseNetwork import compute_accuracy, contrastive_loss_np, create_sequences2, l1_distance, l1_distance_np
 from algorithm.MultiModalSiameseNetwork import cosine_distance, cos_dist_output_shape, euclidean_distance, euclidean_distance_np, eucl_dist_output_shape, contrastive_loss, create_sequences, create_multitask_sequences, create_pairs2
 
 # For debugging
@@ -167,6 +168,8 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         self._model.processed_b_r = Model(inputs=[self._modelDense.getResultStateSymbolicVariable()], outputs=processed_b_r)
         
         use_target_network = False
+        if ("use_fd_target_network" in self.getSettings()):
+            use_target_network = self.getSettings()["use_fd_target_network"]
         if (use_target_network):
             self._model.processed_a_r_target = keras.models.clone_model(self._model.processed_a_r)
             self._model.processed_b_r_target = keras.models.clone_model(self._model.processed_b_r)
@@ -352,7 +355,12 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         return self._get_grad_reward([states, actions, 0])[0]
         
     def updateTargetModel(self):
-        pass
+        rlPrint(self.getSettings(), 'train', "Updating fd target model")
+        ### current parameters should be different.
+        # assert not np.allclose(self._model.processed_a_r.get_weights()[0], self._model.processed_a_r_target.get_weights()[0])
+        self._model.processed_a_r_target.set_weights(self._model.processed_a_r.get_weights())
+        self._model.processed_b_r_target.set_weights(self._model.processed_b_r_target.get_weights())
+        assert np.allclose(self._model.processed_a_r.get_weights()[0], self._model.processed_a_r_target.get_weights()[0])
           
     def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True):
         """
@@ -375,7 +383,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
             and lstm):
             ### result states can be from the imitation agent.
             if (falls is None):
-                sequences0, sequences1, targets_ = create_sequences(states, result_states, self._settings)
+                sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
             else:
                 sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
             """
@@ -430,6 +438,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
                 # print ("sequences0 shape: ", np.array(sequences0).shape)
                 ### subtract dense state off
                 vid_targets = sequences0[:,:, self._settings["dense_state_size"]:]
+                sequences1 = sequences1[:,:, :self._settings["dense_state_size"]]
                 if ("remove_character_state_features" in self._settings):
                     ### Remove ground reaction forces from state
                     pose_targets = sequences1[:, :, :-self._settings["remove_character_state_features"]]
