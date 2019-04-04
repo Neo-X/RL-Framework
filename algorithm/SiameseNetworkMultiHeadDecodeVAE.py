@@ -26,6 +26,14 @@ def eucl_dist_output_shape_fd2(shapes):
     shape1, shape2 = shapes
     return (shape1[0], shape1[1], 1)
 
+def vae_loss(y_true, y_pred):
+    reconstruction_loss_a = mse(y_true, y_pred)
+    reconstruction_loss_a *= 4096
+    kl_loss = 1 + network_vae_log_var - K.square(network_vae) - K.exp(network_vae_log_var)
+    kl_loss = K.sum(kl_loss, axis=-1)
+    kl_loss *= -0.5
+    vae_loss_a = K.mean(reconstruction_loss_a + kl_loss)
+
 
 # reparameterization trick from Keras example
 # https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
@@ -282,39 +290,38 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             
             from keras.losses import mse, binary_crossentropy
             
-            self._model._reward_net.add_loss(contrastive_loss([self._model.getResultStateSymbolicVariable(), result_state_copy],
-                                                               distance_r))
-            self._model._reward_net.add_loss(contrastive_loss([self._model.getResultStateSymbolicVariable(), result_state_copy],
-                                                               distance_fd2))
-            self._model._reward_net.add_loss(mse(self._model.getResultStateSymbolicVariable(), decode_a))
-            self._model._reward_net.add_loss(mse(result_state_copy, decode_b))
+            # self._model._reward_net.add_loss(contrastive_loss([self._model.getResultStateSymbolicVariable(), result_state_copy],
+            #                                                   distance_r))
+            # self._model._reward_net.add_loss(contrastive_loss([self._model.getResultStateSymbolicVariable(), result_state_copy],
+            #                                                   distance_fd2))
+            #self._model._reward_net.add_loss(mse(self._model.getResultStateSymbolicVariable(), decode_a))
+            #self._model._reward_net.add_loss(mse(result_state_copy, decode_b))
             # VAE loss = mse_loss or xent_loss + kl_loss
-            reconstruction_loss_a = mse(self._model.getResultStateSymbolicVariable(), decode_a_vae)
-            reconstruction_loss_a *= 4096
-            kl_loss = 1 + network_vae_log_var - K.square(network_vae) - K.exp(network_vae_log_var)
-            kl_loss = K.sum(kl_loss, axis=-1)
-            kl_loss *= -0.5
-            vae_loss_a = K.mean(reconstruction_loss_a + kl_loss)
-            print ("reconstruction_loss_a: ", repr(reconstruction_loss_a))
-            print ("kl_loss: ", repr(kl_loss))
-            print ("vae_loss_a: ", repr(vae_loss_a))
-            self._model._reward_net.add_loss(vae_loss_a)
-            
-            reconstruction_loss_b = mse(result_state_copy, decode_b_vae)
-            reconstruction_loss_b *= 4096
-            kl_loss = 1 + network_b_vae_log_var - K.square(network_b_vae) - K.exp(network_b_vae_log_var)
-            kl_loss = K.sum(kl_loss, axis=-1)
-            kl_loss *= -0.5
-            vae_loss_b = K.mean(reconstruction_loss_b + kl_loss)
-            self._model._reward_net.add_loss(vae_loss_b)
+            def vae_loss(network_vae, network_vae_log_var):
+                
+                def loss2(action_true, action_pred):
+                    reconstruction_loss = mse(action_true, action_pred)
+                    # reconstruction_loss *= 4096
+                    kl_loss = 1 + network_vae_log_var - K.square(network_vae) - K.exp(network_vae_log_var)
+                    kl_loss = K.sum(kl_loss, axis=-1)
+                    kl_loss *= -0.5
+                    vae_loss_a = K.mean(reconstruction_loss_a + kl_loss)
+                    return vae_loss_a
+
+                return loss2
             
             self._model._reward_net.compile(
-                                            #loss=[contrastive_loss, contrastive_loss
-                                             #     ,"mse", "mse"
-                                                  # ,vae_loss_a, vae_loss_b
-                                            #      ], 
+                                            loss=[contrastive_loss, contrastive_loss
+                                                 ,"mse", "mse"
+                                                 ,vae_loss(network_vae=network_vae,
+                                                           network_vae_log_var=network_vae_log_var
+                                                           ),
+                                                  vae_loss(network_vae=network_b_vae,
+                                                           network_vae_log_var=network_b_vae_log_var
+                                                           )
+                                                  ], 
                                             optimizer=sgd
-                                            # ,loss_weights=[0.6, 0.2, 0.1, 0.1, 0.1, 0.1]
+                                            ,loss_weights=[0.6, 0.2, 0.1, 0.1, 0.1, 0.1]
                                             )
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
