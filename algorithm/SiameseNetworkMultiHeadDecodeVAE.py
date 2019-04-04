@@ -282,8 +282,10 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             
             from keras.losses import mse, binary_crossentropy
             
-            self._model._reward_net.add_loss(contrastive_loss(self._model.getResultStateSymbolicVariable(), ))
-            self._model._reward_net.add_loss(contrastive_loss)
+            self._model._reward_net.add_loss(contrastive_loss([self._model.getResultStateSymbolicVariable(), result_state_copy],
+                                                               distance_r))
+            self._model._reward_net.add_loss(contrastive_loss([self._model.getResultStateSymbolicVariable(), result_state_copy],
+                                                               distance_fd2))
             self._model._reward_net.add_loss(mse(self._model.getResultStateSymbolicVariable(), decode_a))
             self._model._reward_net.add_loss(mse(result_state_copy, decode_b))
             # VAE loss = mse_loss or xent_loss + kl_loss
