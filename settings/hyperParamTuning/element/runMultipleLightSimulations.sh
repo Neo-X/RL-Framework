@@ -29,7 +29,7 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/fd_learning_rate.json" 
  				"settings/hyperParamTuning/element/fd_updates_per_actor_update.json" 
 #				"settings/hyperParamTuning/element/GAE_lambda.json"
-  				"settings/hyperParamTuning/element/image_noise_scale.json" 
+#  				"settings/hyperParamTuning/element/image_noise_scale.json" 
 #  				"settings/hyperParamTuning/element/imperfect_compare_offset.json" 
 # 				"settings/hyperParamTuning/element/initial_temperature.json" 
 #  				"settings/hyperParamTuning/element/kl_divergence_threshold.json"
@@ -43,6 +43,7 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/policy_network_layer_sizes.json"	
 #  				"settings/hyperParamTuning/element/ppo_et_factor.json"
 #  				"settings/hyperParamTuning/element/pretrain_critic.json" 
+  				"settings/hyperParamTuning/element/pretrain_fd.json" 
 # 				"settings/hyperParamTuning/element/reset_on_fall.json" 
 				"settings/hyperParamTuning/element/shorter_smaller_rnn_batches.json"
 #				"settings/hyperParamTuning/element/state_normalization.json"
@@ -67,7 +68,8 @@ declare -a simConfigs=(
 #	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_2State.json"
 #	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_2State_2.json"
 #	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_2State_2.json"
-	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_Viz3D_Walk_64x64_MultiModal_WithCamVel_LSTM_Reward_LSTM_Siamese_EncodeDecode_Reward.json"
+#	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_Viz3D_Walk_64x64_MultiModal_WithCamVel_LSTM_Reward_LSTM_Siamese_EncodeDecode_Reward.json"
+	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2.json"
 #
 #  	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
 #	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode_BCE_refreshRewards.json"
@@ -75,7 +77,8 @@ declare -a simConfigs=(
 #	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_2State.json"
 #	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_2State_2.json"
 #	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_2State_2.json"
-	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_Viz3D_Walk_64x64_MultiModal_WithCamVel_LSTM_Reward_LSTM_Siamese_EncodeDecode_Reward.json"
+#	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_Viz3D_Walk_64x64_MultiModal_WithCamVel_LSTM_Reward_LSTM_Siamese_EncodeDecode_Reward.json"
+	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2.json"
 #
 #	"settings/terrainRLImitate/DDPG/Imitation_Learning_GRF_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
 

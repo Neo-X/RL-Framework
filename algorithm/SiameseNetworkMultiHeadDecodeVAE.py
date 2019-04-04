@@ -322,7 +322,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                                            )
                                                   ], 
                                             optimizer=sgd
-                                            ,loss_weights=[0.6, 0.2, 0.1, 0.1, 0.1, 0.1]
+                                            ,loss_weights=[0.6, 0.1, 0.1, 0.1, 0.05, 0.05]
                                             )
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
@@ -495,8 +495,8 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                     
                     if (("train_lstm_fd_and_reward_and_decoder_together" in self._settings)
                         and (self._settings["train_lstm_fd_and_reward_and_decoder_together"] == True)):
-                        print ("sequences0 shape: ", sequences0.shape)
-                        print ("sequences1 shape: ", sequences1.shape)
+                        # print ("sequences0 shape: ", sequences0.shape)
+                        # print ("sequences1 shape: ", sequences1.shape)
                         # print ("targets__ shape: ", targets__.shape)
                         # print ("targets_ shape: ", targets_.shape)
                         score = self._model._reward_net.fit([sequences0, sequences1], 
