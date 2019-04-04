@@ -399,10 +399,9 @@
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "Dropout", "rate": 0.2},
 							{"layer_type": "Flatten"},
-							{"layer_type": "Dense", "units": 258, "use_bias": false},
-							{"layer_type": "LayerNormalization"},
+							{"layer_type": "Dense", "units": 258, "use_bias": true},
 							{"layer_type": "Concatenate"},
-							{"layer_type": "activation", "activation_type": "linear" }
+							{"layer_type": "activation", "activation_type": "leaky_rectify" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
@@ -507,7 +506,7 @@
 								{"layer_type": "coordconv2d"},
 								{"layer_type": "deconv2d", "filters": 1, "kernel_size": [6,6], "strides": [4,4], "use_bias": false, "padding": "same"},
 								{"layer_type": "BatchNormalization"},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "activation", "activation_type": "linear" },
 								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Reshape", "target_shape": [4096]},
 								{"layer_type": "Concatenate", "slice_label": "out_vel"}
