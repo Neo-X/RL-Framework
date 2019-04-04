@@ -301,13 +301,13 @@
 								],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [[ 
-								{"layer_type": "slice", "slice_index": 6, "slice_label": "other_agent"},
+								{"layer_type": "slice", "slice_index": 4, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],[ 
-								{"layer_type": "slice", "slice_index": 6, "slice_label": "other_agent"},
+								{"layer_type": "slice", "slice_index": 4, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
@@ -370,5 +370,9 @@
 	"comment__": "higher level controller timestep",
 "hlc_timestep": 5,
 	"comment__": "The index of the multiagent simulation for the hlc",
-"hlc_index": 0
+"hlc_index": 0,
+	"comment__": "The index of the multiagent simulation for the hlc",
+"llc_index": 1,
+	"comment__": "Ignore training some of the agents in a multi agent sim",
+"ignore_MRL_agents": []
 }
