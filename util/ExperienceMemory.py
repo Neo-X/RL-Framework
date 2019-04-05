@@ -280,7 +280,7 @@ class ExperienceMemory(object):
             state = state[:,:len(self.getStateBounds()[0])]
             nextState = np.array(nextState)
             nextState = nextState[:,:len(self.getResultStateBounds()[0])]
-        assert self._state_length == len(state[0]), "len(state[0]) == self._state_length: " + str(self._state_length) + " state shape: " + str(np.asarray(state).shape) 
+        assert self._state_length == len(state[0]), "self._state_length == len(state[0]): " + str(self._state_length) + " state shape: " + str(np.asarray(state).shape) 
         assert len(action[0]) == self._action_length, "len(action[0]) == self._action_length: " + str(action)
         assert len(nextState[0]) == self._result_state_length, "len(nextState[0]) == self._result_state shape: " + str(np.asarray(nextState).shape) + " == " + str(self._result_state_length)
         assert len(reward[0]) == 1

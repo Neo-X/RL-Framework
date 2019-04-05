@@ -504,7 +504,11 @@
 	"comment__": "The encoding vector size used for the fd models",
 "encoding_vector_size": 64,
 	"comment__": "Inform the system that a encoder decoder model is being used",
-"using_encoder_decoder_fd": true,
+"using_encoder_decoder_fd": false,
 	"comment__": "Inform the system that a encoder decoder model is being used",
-"use_decoder_fd": true
+"use_decoder_fd": false,
+	"comment__": "Replace the results state for the data with the dense pose",
+"replace_next_state_with_pose_state": true,
+	"comment__": "Using two different visual states",
+"use_dual_dense_state_representations": true
 }

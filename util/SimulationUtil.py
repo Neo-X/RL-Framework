@@ -250,8 +250,8 @@ def getFDStateSize(settings):
     if ("use_dual_dense_state_representations" in settings
         and (settings["use_dual_dense_state_representations"] == True)):
         # state_bounds__ = np.array(settings['state_bounds'])
-        state_bounds__ = np.array([[0] * settings["dense_state_size"], 
-                         [1] * settings["dense_state_size"]])
+        state_bounds__ = [[0] * settings["dense_state_size"], 
+                         [1] * settings["dense_state_size"]]
         # experiencefd.setStateBounds(state_bounds__)
     return state_bounds__
 
