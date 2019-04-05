@@ -13,6 +13,7 @@ from keras.layers import RepeatVector
 from keras.models import Sequential, Model
 from algorithm.SiameseNetwork import *
 from util.SimulationUtil import createForwardDynamicsNetwork
+from keras.losses import mse, binary_crossentropy
 
 def euclidean_distance_fd2(vects):
     x, y = vects
@@ -26,14 +27,16 @@ def eucl_dist_output_shape_fd2(shapes):
     shape1, shape2 = shapes
     return (shape1[0], shape1[1], 1)
 
-def vae_loss(y_true, y_pred):
-    reconstruction_loss_a = mse(y_true, y_pred)
-    reconstruction_loss_a *= 4096
-    kl_loss = 1 + network_vae_log_var - K.square(network_vae) - K.exp(network_vae_log_var)
-    kl_loss = K.sum(kl_loss, axis=-1)
-    kl_loss *= -0.5
-    vae_loss_a = K.mean(reconstruction_loss_a + kl_loss)
 
+def vae_loss(network_vae, network_vae_log_var):
+    def _vae_loss(y_true, y_pred):
+        reconstruction_loss_a = mse(y_true, y_pred)
+        reconstruction_loss_a *= 4096
+        kl_loss = 1 + network_vae_log_var - K.square(network_vae) - K.exp(network_vae_log_var)
+        kl_loss = K.sum(kl_loss, axis=-1)
+        kl_loss *= -0.5
+        vae_loss = K.mean(reconstruction_loss_a + kl_loss)
+        return vae_loss
 
 # reparameterization trick from Keras example
 # https://github.com/keras-team/keras/blob/master/examples/variational_autoencoder.py
@@ -75,7 +78,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
         
         inputs_ = [self._model.getStateSymbolicVariable()] 
         self._model._forward_dynamics_z_mean = keras.layers.Dense(64, activation = 'linear')(self._model._forward_dynamics_net)
-        self._model._forward_dynamics_z_log_var = keras.layers.Dense(64, activation = 'linear')(self._model._forward_dynamics_net)
+        self._model._forward_dynamics_z_log_var = keras.layers.Dense(64, activation = 'sigmoid')(self._model._forward_dynamics_net)
         self._model._forward_dynamics_z = keras.layers.Lambda(sampling, output_shape=(self.getSettings()["encoding_vector_size"],), name='z')([self._model._forward_dynamics_z_mean, 
                                                                    self._model._forward_dynamics_z_log_var])
         
@@ -154,13 +157,13 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
         network_b = keras.layers.TimeDistributed(self._model.processed_b, input_shape=(None, 1, self._state_length))(result_state_copy)
         print ("network_b: ", repr(network_b))
         
-        network_vae_log_var = keras.layers.TimeDistributed(self._model.processed_a_log_var, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
+        self._network_vae_log_var = keras.layers.TimeDistributed(self._model.processed_a_log_var, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
         print ("network_vae: ", repr(network_))
-        network_b_vae_log_var = keras.layers.TimeDistributed(self._model.processed_b_log_var, input_shape=(None, 1, self._state_length))(result_state_copy)
+        self._network_b_vae_log_var = keras.layers.TimeDistributed(self._model.processed_b_log_var, input_shape=(None, 1, self._state_length))(result_state_copy)
         print ("network_vae: ", repr(network_b))
-        network_vae = keras.layers.TimeDistributed(self._model.processed_a_vae, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
+        self._network_vae = keras.layers.TimeDistributed(self._model.processed_a_vae, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
         print ("network_vae: ", repr(network_))
-        network_b_vae = keras.layers.TimeDistributed(self._model.processed_b_vae, input_shape=(None, 1, self._state_length))(result_state_copy)
+        self._network_b_vae = keras.layers.TimeDistributed(self._model.processed_b_vae, input_shape=(None, 1, self._state_length))(result_state_copy)
         print ("network_vae: ", repr(network_b))
         
         
@@ -229,9 +232,9 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
         print ("decode_a: ", repr(decode_a))
         decode_b = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_b_r)
         print ("decode_b: ", repr(decode_b))
-        decode_a_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(network_vae)
+        decode_a_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_vae)
         print ("decode_a: ", repr(decode_a))
-        decode_b_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(network_b_vae)
+        decode_b_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_b_vae)
         print ("decode_b: ", repr(decode_b))
 
         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
@@ -286,6 +289,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
         self._model._forward_dynamics_net.compile(loss=contrastive_loss, optimizer=sgd)
+        self._modelTarget._forward_dynamics_net.compile(loss=contrastive_loss, optimizer=sgd)
 
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
@@ -297,8 +301,6 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
         if (("train_lstm_fd_and_reward_and_decoder_together" in self._settings)
             and (self._settings["train_lstm_fd_and_reward_and_decoder_together"] == True)):
             
-            from keras.losses import mse, binary_crossentropy
-            
             # self._model._reward_net.add_loss(contrastive_loss([self._model.getResultStateSymbolicVariable(), result_state_copy],
             #                                                   distance_r))
             # self._model._reward_net.add_loss(contrastive_loss([self._model.getResultStateSymbolicVariable(), result_state_copy],
@@ -306,29 +308,16 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             #self._model._reward_net.add_loss(mse(self._model.getResultStateSymbolicVariable(), decode_a))
             #self._model._reward_net.add_loss(mse(result_state_copy, decode_b))
             # VAE loss = mse_loss or xent_loss + kl_loss
-            def vae_loss(network_vae, network_vae_log_var):
-                
-                def loss2(action_true, action_pred):
-                    reconstruction_loss = mse(action_true, action_pred)
-                    # reconstruction_loss *= 4096
-                    kl_loss = 1 + network_vae_log_var - K.square(network_vae) - K.exp(network_vae_log_var)
-                    ### Using mean 
-                    kl_loss = K.mean(kl_loss, axis=-1)
-                    kl_loss *= -0.5
-                    vae_loss_a = K.mean(reconstruction_loss + kl_loss)
-                    return vae_loss_a
-
-                return loss2
             
             self._model._reward_net.compile(
                                             loss=[contrastive_loss, contrastive_loss
                                                  ,"mse", "mse"
-                                                 ,vae_loss(network_vae=network_vae,
-                                                           network_vae_log_var=network_vae_log_var
-                                                           ),
-                                                  vae_loss(network_vae=network_b_vae,
-                                                           network_vae_log_var=network_b_vae_log_var
-                                                           )
+                                                 # ,vae_loss(network_vae=self._network_vae, 
+                                                 #          network_vae_log_var=self._network_vae_log_var)
+                                                 #,vae_loss(network_vae=self._network_vae_b, 
+                                                 #          network_vae_log_var=self._network_vae_b_log_var) 
+                                                 ,self.vae_loss_a
+                                                 ,self.vae_loss_b
                                                   ], 
                                             optimizer=sgd
                                             ,loss_weights=[0.6, 0.1, 0.1, 0.1, 0.05, 0.05]
@@ -346,7 +335,28 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                              K.learning_phase()], 
                                             [distance_r])
         # self.reward = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable(), K.learning_phase()], [self._reward])
+    def vae_loss_a(self, action_true, action_pred):
         
+        reconstruction_loss = mse(action_true, action_pred)
+        # reconstruction_loss *= 4096
+        kl_loss = 1 + self._network_vae_log_var - K.square(self._network_vae) - K.exp(self._network_vae_log_var)
+        ### Using mean 
+        kl_loss = K.mean(kl_loss, axis=-1)
+        kl_loss *= -0.5
+        vae_loss_a = K.mean(reconstruction_loss + kl_loss)
+        return vae_loss_a
+
+    def vae_loss_b(self, action_true, action_pred):
+        
+        reconstruction_loss = mse(action_true, action_pred)
+        # reconstruction_loss *= 4096
+        kl_loss = 1 + self._network_b_vae_log_var - K.square(self._network_b_vae) - K.exp(self._network_b_vae_log_var)
+        ### Using mean 
+        kl_loss = K.mean(kl_loss, axis=-1)
+        kl_loss *= -0.5
+        vae_loss_a = K.mean(reconstruction_loss + kl_loss)
+        return vae_loss_a
+
     def reset(self):
         """
             Reset any state for the agent model
@@ -774,7 +784,11 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
         ### Save models
         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
-        self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+        # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+        self._model._reward_net.save_weights(fileName+"_reward"+suffix, overwrite=True)
+        self._modelTarget._forward_dynamics_net.save(fileName+"_FD_T"+suffix, overwrite=True)
+        # self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+        self._modelTarget._reward_net.save_weights(fileName+"_reward_T"+suffix, overwrite=True)
         # print ("self._model._actor_train: ", self._model._actor_train)
         try:
             from keras.utils import plot_model
@@ -789,20 +803,24 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
     def loadFrom(self, fileName):
         import h5py
         from util.utils import load_keras_model
+        # from keras.models import load_weights
         suffix = ".h5"
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Loading agent: ", fileName)
         # with K.get_session().graph.as_default() as g:
         ### Need to lead the model this way because the learning model's State expects batches...
         forward_dynamics_net = load_keras_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
-        reward_net = load_keras_model(fileName+"_reward"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
+        #reward_net = load_keras_model(fileName+"_reward"+suffix, custom_objects={'contrastive_loss': contrastive_loss,
+        #                                                                         "vae_loss_a": self.vae_loss_a,
+        #                                                                         "vae_loss_b": self.vae_loss_b})
         # if ("simulation_model" in self.getSettings() and
         #     (self.getSettings()["simulation_model"] == True)):
         if (True): ### Because the simulation and learning use different model types (statefull vs stateless lstms...)
             self._model._forward_dynamics_net.set_weights(forward_dynamics_net.get_weights())
             self._model._forward_dynamics_net.optimizer = forward_dynamics_net.optimizer
-            self._model._reward_net.set_weights(reward_net.get_weights())
-            self._model._reward_net.optimizer = reward_net.optimizer
+            # self._model._reward_net.set_weights(reward_net.get_weights())
+            self._model._reward_net.load_weights(fileName+"_reward"+suffix)
+            # self._model._reward_net.optimizer = reward_net.optimizer
         else:
             self._model._forward_dynamics_net = forward_dynamics_net
             self._model._reward_net = reward_net
@@ -812,8 +830,9 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
         if (self._modelTarget is not None):
-            self._modelTarget._forward_dynamics_net = load_keras_model(fileName+"_actor_T"+suffix)
-            self._modelTarget._reward_net = load_keras_model(fileName+"_reward_net_T"+suffix)
+            self._modelTarget._forward_dynamics_net = load_keras_model(fileName+"_FD_T"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
+            # self._modelTarget._reward_net = load_keras_model(fileName+"_reward_net_T"+suffix)
+            self._modelTarget._reward_net.load_weights(fileName+"_reward_T"+suffix)
         # self._model._actor_train = load_keras_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
         # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
