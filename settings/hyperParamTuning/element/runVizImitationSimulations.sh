@@ -22,7 +22,7 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/critic_updates_per_actor_update.json"
 #				"settings/hyperParamTuning/element/dont_use_td_learning.json"
 # 				"settings/hyperParamTuning/element/dropout_p.json" 
-# 				"settings/hyperParamTuning/element/exploration_rate.json"
+ 				"settings/hyperParamTuning/element/exploration_rate.json"
 #				"settings/hyperParamTuning/element/fd_algorithm.json"
 #  				"settings/hyperParamTuning/element/fd_distance_function.json"
 # 				"settings/hyperParamTuning/element/fd_expereince_length.json"
@@ -62,9 +62,11 @@ declare -a simConfigs=(
 #	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
 #
 #	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_MultiTask_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
-	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_2State_2.json"
-	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_2State_2.json"
-	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Run_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_2State_2.json"
+#	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_2State_2.json"
+#	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_2State_2.json"
+#	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Run_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_2State_2.json"
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2.json"
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2.json"
 
 #	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_MultiTask_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Encode.json"
 )
