@@ -402,13 +402,19 @@ class SiameseNetworkMultiHeadDecode(SiameseNetwork):
                     
                     if (("train_lstm_fd_and_reward_and_decoder_together" in self._settings)
                         and (self._settings["train_lstm_fd_and_reward_and_decoder_together"] == True)):
-                        print ("sequences0 shape: ", sequences0.shape)
-                        print ("sequences1 shape: ", sequences1.shape)
+                        # print ("sequences0 shape: ", sequences0.shape)
+                        # print ("sequences1 shape: ", sequences1.shape)
+                        sequences_targets0 = sequences0
+                        sequences_targets1 = sequences1
+                        if ("remove_character_state_features" in self._settings):
+                            ### Remove ground reaction forces from state
+                            sequences_targets0 = sequences0[:, :, :-self._settings["remove_character_state_features"]]
+                            sequences_targets1 = sequences1[:, :, :-self._settings["remove_character_state_features"]]
                         # print ("targets__ shape: ", targets__.shape)
                         # print ("targets_ shape: ", targets_.shape)
                         score = self._model._reward_net.fit([sequences0, sequences1], 
                                       [targets__, targets_,
-                                       sequences0, sequences1],
+                                       sequences_targets0, sequences_targets1],
                                       epochs=1, 
                                       batch_size=sequences0.shape[0],
                                       verbose=0

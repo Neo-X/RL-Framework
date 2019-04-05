@@ -510,5 +510,7 @@
 	"comment__": "Replace the results state for the data with the dense pose",
 "replace_next_state_with_pose_state": true,
 	"comment__": "Using two different visual states",
-"use_dual_dense_state_representations": true
+"use_dual_dense_state_representations": true,
+	"comment__": "Remove the GRF character features from the dense state",
+"remove_character_state_features": 4
 }
