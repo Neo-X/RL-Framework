@@ -174,15 +174,24 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(processed_b_r)[1:]
                                                                           , name="encoding_2"
                                                                           )
-            last_dense = keras.layers.Dense(64, activation = 'linear')(encode_input__)
+            last_dense = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear')(encode_input__)
             self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
             
             processed_a_r = self._last_dense(processed_a_r)
             processed_b_r = self._last_dense(processed_b_r)
             
         else:
+            
             processed_a_r = self._model._reward_net(network_)
             processed_b_r = self._model._reward_net(network_b)
+            
+            encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(processed_a_r)[1:]
+                                                                          , name="encoding_2"
+                                                                          )
+            last_dense = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear')(encode_input__)
+            self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
+            processed_a_r = self._last_dense(processed_a_r)
+            processed_b_r = self._last_dense(processed_b_r)
         
         self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
         self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
