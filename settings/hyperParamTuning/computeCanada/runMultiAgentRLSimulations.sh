@@ -8,13 +8,13 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/activation_type.json" 
 # 				"settings/hyperParamTuning/element/additional_on-poli_trianing_updates.json" 
 #				"settings/hyperParamTuning/element/advantage_scaling.json" 
-# 				"settings/hyperParamTuning/element/anneal_exploration.json" 
-#				"settings/hyperParamTuning/element/anneal_learning_rate.json" 	
-# 				"settings/hyperParamTuning/element/anneal_policy_std.json" 	
+ 				"settings/hyperParamTuning/element/anneal_exploration.json" 
+				"settings/hyperParamTuning/element/anneal_learning_rate.json" 	
+ 				"settings/hyperParamTuning/element/anneal_policy_std.json" 	
 #				"settings/hyperParamTuning/element/batch_size.json"
 # 				"settings/hyperParamTuning/element/CACLA_use_advantage.json"
 # 				"settings/hyperParamTuning/element/CACLA_use_advantage_action_weighting.json"
-# 				"settings/hyperParamTuning/element/clamp_actions_to_stay_inside_bounds.json" 
+ 				"settings/hyperParamTuning/element/clamp_actions_to_stay_inside_bounds.json" 
   				"settings/hyperParamTuning/element/critic_learning_rate.json"
 #				"settings/hyperParamTuning/element/critic_network_layer_sizes.json"
 # 				"settings/hyperParamTuning/element/critic_updates_per_actor_update.json"
@@ -26,7 +26,7 @@ declare -a metaExps=(
 #				"settings/hyperParamTuning/element/GAE_lambda.json"
 # 				"settings/hyperParamTuning/element/initial_temperature.json" 
 # 				"settings/hyperParamTuning/element/kl_divergence_threshold.json" 
-#  				"settings/hyperParamTuning/element/last_policy_layer_activation_type.json"
+  				"settings/hyperParamTuning/element/last_policy_layer_activation_type.json"
 #  				"settings/hyperParamTuning/element/learning_rate.json" 
   				"settings/hyperParamTuning/element/learning_rate_ddpg.json" 
 # 				"settings/hyperParamTuning/element/normalize_advantage.json" 
@@ -50,7 +50,7 @@ declare -a metaExps=(
 ## declare an array variable
 declare -a simExps=(
 	"settings/navgame2D/MADDPG/HRL_Tensorflow_NoViz-v3.json"
-	"settings/ChaseGame/MADDPG/Tensorflow-v2.json"
+# 	"settings/ChaseGame/MADDPG/Tensorflow-v2.json"
 )
 
 rounds=$1
