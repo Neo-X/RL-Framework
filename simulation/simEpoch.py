@@ -543,8 +543,14 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         rewards.append(reward_)
         result_states___.append(resultState_)
         if (worker_id is not None):
-            # Pushing working id as fall value
-            falls.append([[worker_id]] * len(state_))
+            # Pushing working id as fall value for multi task training
+            if ("ask_env_for_multitask_id" in settings 
+                and (settings["ask_env_for_multitask_id"] == True)):
+                worker_id = exp.getTaskID()
+                print ("Task ID: ", worker_id)
+                falls.append([[worker_id]] * len(state_))
+            else:
+                falls.append([[worker_id]] * len(state_))
         elif ("perform_multiagent_training" in settings
               and (settings["perform_multiagent_training"] > 1)):
             falls_ = []
