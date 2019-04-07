@@ -221,3 +221,6 @@ class GymMultiCharEnv(SimInterface):
         print ( "class ", self, " Setting random seed: ", seed )
         self.getEnvironment().setRandomSeed(seed)
         # sys.exit()
+        
+    def getTaskID(self):
+        return self.getEnvironment().getTaskID()

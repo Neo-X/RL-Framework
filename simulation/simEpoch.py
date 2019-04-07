@@ -547,7 +547,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if ("ask_env_for_multitask_id" in settings 
                 and (settings["ask_env_for_multitask_id"] == True)):
                 worker_id = exp.getTaskID()
-                print ("Task ID: ", worker_id)
+                # print ("Task ID: ", worker_id)
                 falls.append([[worker_id]] * len(state_))
             else:
                 falls.append([[worker_id]] * len(state_))
