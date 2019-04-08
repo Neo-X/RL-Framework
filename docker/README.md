@@ -16,7 +16,7 @@ docker exec -ti {container id} bash
 
 To login while using a GPU [you need to reserve a GPU first](https://elementai.atlassian.net/wiki/spaces/DEV/pages/6698906/Using+GPU+nodes)
 ```
-NV_GPU=0 nvidia-docker run -v /mnt/home/${USER}:/home/glen -v ~/nvidia-390:/usr/lib/nvidia-390 -it images.borgy.elementai.lan/glen:latest bash
+NV_GPU=0 nvidia-docker run -v /mnt/home/${USER}:/home/glen -v ~/nvidia-390:/usr/lib/nvidia-390 -it images.borgy.elementai.lan/glen:latest2 bash
 ```
 
 
@@ -142,7 +142,7 @@ sudo docker push images.borgy.elementai.lan/glen:latest
 ```
 As one command
 ```
-docker commit d4aad5674841 glen:latest; docker tag glen:latest images.borgy.elementai.lan/glen:latest; docker push images.borgy.elementai.lan/glen:latest
+docker commit d4aad5674841 glen:latest2; docker tag glen:latest2 images.borgy.elementai.lan/glen:latest2; docker push images.borgy.elementai.lan/glen:latest2
 ```
 
 open images as iteractive container

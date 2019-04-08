@@ -434,7 +434,7 @@ class ExperienceMemory(object):
         advantage = []
         indices = set([])
         trys = 0
-        ### collect batch and try at most 3 times the batch size for valid tuples
+        ### collect batch and try at most 5 times the batch size for valid tuples
         while len(indices) <  batch_size and (trys < batch_size*5):
         # for i in indices:
             trys = trys + 1
@@ -446,16 +446,19 @@ class ExperienceMemory(object):
             # print ("self._fall_history[i]: ", self._fall_history[i])
             if ( (type(self._settings["sim_config_file"]) is list)):
                  
-                if (
-                    (not ("multitask_learning" in self._settings
+                if  (not ("multitask_learning" in self._settings
                           and (self._settings["multitask_learning"] == True))
-                     )
-                    and
-                    ("worker_to_task_mapping" in self._settings
-                     and (self._settings["worker_to_task_mapping"][self._fall_history[i][0]] is not 0))
-                    ): ### Only use training data for the task of interest
+                     ):
+                     
+                    if ("ask_env_for_multitask_id" in self._settings 
+                        and (self._settings["ask_env_for_multitask_id"] == True)
+                        and (self._fall_history[i][0] != 0)): 
+                        # print ("Skipping: ", self._fall_history[i][0])
+                        continue
+                    elif ("worker_to_task_mapping" in self._settings
+                        and (self._settings["worker_to_task_mapping"][self._fall_history[i][0]] != 0)): ### Only use training data for the task of interest
                     # print ("skipping non desired task tuple")
-                    continue
+                        continue
             indices.add(i)
             
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
@@ -511,6 +514,7 @@ class ExperienceMemory(object):
         fall = np.array(fall, dtype='int8')
         exp_actions = np.array(exp_actions, dtype='int8')
         
+        assert len(indices) > 0, "empty batch"
         assert state.shape == (len(indices), self._state_length), "state.shape == (len(indices), self._state_length): " + str(state.shape) + " == " + str((len(indices), self._state_length))
         assert action.shape == (len(indices), self._action_length), "action.shape == (len(indices), self._action_length): " + str(action.shape) + " == " + str((len(indices), self._action_length))
         assert resultState.shape == (len(indices), self._result_state_length), "resultState.shape == (len(indices), self._result_state_length): " + str(resultState.shape) + " == " + str((len(indices), self._result_state_length))

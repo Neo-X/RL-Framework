@@ -475,7 +475,16 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
             # print ("task_tr0[0][0] == task_tr1[0][0]", task_tr0[0][0], " == ", task_tr1[0][0])
             # print ("settings['worker_to_task_mapping'][task_tr0[0]] == settings['worker_to_task_mapping'][task_tr1[0]]", 
             #        settings["worker_to_task_mapping"][task_tr0[0][0]]," == ", settings["worker_to_task_mapping"][task_tr1[0][0]])
-            if (settings["worker_to_task_mapping"][task_ids[i][0][0]] == settings["worker_to_task_mapping"][task_ids[j][0][0]]): ### same task
+            if ("ask_env_for_multitask_id" in settings 
+                and (settings["ask_env_for_multitask_id"] == True)):
+                if  (task_ids[i][0][0] == task_ids[j][0][0]):
+                    if ( i == j ): ### same trajectory
+                        targets = np.ones(tar_shape)
+                    else:
+                        targets = np.ones(tar_shape) - compare_adjustment
+                else:
+                    targets = np.zeros(tar_shape) 
+            elif (settings["worker_to_task_mapping"][task_ids[i][0][0]] == settings["worker_to_task_mapping"][task_ids[j][0][0]]): ### same task
                 if ( i == j ): ### same trajectory
                     targets = np.ones(tar_shape)
                 else:
@@ -488,8 +497,6 @@ def create_multitask_sequences(traj0, traj1, task_ids, settings):
             if (use_agent_multitask_data):
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
         
-        
-    
     return sequences0, sequences1, targets_
 
 def create_sequences(traj0, traj1, settings):
