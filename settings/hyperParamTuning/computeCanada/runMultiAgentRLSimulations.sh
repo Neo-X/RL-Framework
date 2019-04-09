@@ -14,7 +14,7 @@ declare -a metaExps=(
 #				"settings/hyperParamTuning/element/batch_size.json"
 # 				"settings/hyperParamTuning/element/CACLA_use_advantage.json"
 # 				"settings/hyperParamTuning/element/CACLA_use_advantage_action_weighting.json"
- 				"settings/hyperParamTuning/element/clamp_actions_to_stay_inside_bounds.json" 
+#  				"settings/hyperParamTuning/element/clamp_actions_to_stay_inside_bounds.json" 
   				"settings/hyperParamTuning/element/critic_learning_rate.json"
 #				"settings/hyperParamTuning/element/critic_network_layer_sizes.json"
 # 				"settings/hyperParamTuning/element/critic_updates_per_actor_update.json"
@@ -66,7 +66,7 @@ do
 		# echo "$metaConfig"
 		# or do whatever with individual element of the array
 		# echo "$simConfigFile"
-		command="SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments sbatch --time=20:00:00 --mem=8536M --cpus-per-task=12 ./settings/hyperParamTuning/computeCanada/test_run.sh 'singularity exec --cleanenv --home /home/gberseth/playground/RL-Framework/:/opt/RL-Framework /scratch/gberseth/playground/singularity/ubuntu_learning.img python3.6 tuneHyperParameters.py --config="$simConfig" -p 2 --num_rounds="$rounds" --continue_training=false --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig="$metaExp" --email_log_data_periodically=true --shouldRender=false --bootstrap_samples=0 "$opts"'"
+		command="SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments sbatch --time=25:00:00 --mem=8536M --cpus-per-task=12 ./settings/hyperParamTuning/computeCanada/test_run.sh 'singularity exec --cleanenv --home /home/gberseth/playground/RL-Framework/:/opt/RL-Framework /scratch/gberseth/playground/singularity/ubuntu_learning.img python3.6 tuneHyperParameters.py --config="$simConfig" -p 2 --num_rounds="$rounds" --continue_training=false --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig="$metaExp" --email_log_data_periodically=true --shouldRender=false --bootstrap_samples=0 "$opts"'"
 		echo $command
 		eval $command
 	done
