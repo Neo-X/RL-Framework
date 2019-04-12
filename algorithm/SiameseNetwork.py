@@ -266,6 +266,7 @@ def create_sequences2(traj0, traj1, settings):
             ### basic for now
             
             ### Noisy versions of the same trajectories
+            
             sequences0.append(add_noise(noise_scale, tr0[1:]))
             sequences1.append(add_noise(noise_scale, tr0[1:]))
             targets = np.ones(tar_shape)
@@ -275,7 +276,6 @@ def create_sequences2(traj0, traj1, settings):
             sequences1.append(add_noise(noise_scale, tr1[1:]))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            
             sequences0.append(add_noise(noise_scale, tr0[:-1]))
             sequences1.append(add_noise(noise_scale, tr0[:-1]))
             targets = np.ones(tar_shape)
@@ -335,6 +335,7 @@ def create_sequences2(traj0, traj1, settings):
                 targets = np.zeros(tar_shape)
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             
+            """
             ### Random frozen frame versions of sequences
             if (np.random.rand() > 0.5):
                 sequences0.append(add_noise(noise_scale, tr1[1:]))
@@ -382,30 +383,40 @@ def create_sequences2(traj0, traj1, settings):
                 sequences1.append(add_noise(noise_scale, tr0[:-1] ))
                 targets = np.zeros(tar_shape) + compare_adjustment
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+            """
             ### Randomly shuffled sequences
             indicies = range(len(tr1))
             # print ("indicies: ", indicies)
             # print ("choice: ", np.random.choice(indicies, len(tr1[1:])))
             if (np.random.rand() > 0.5):
+                rand_ind = np.random.choice(indicies, len(tr1[1:]))
                 sequences0.append(add_noise(noise_scale, tr1[1:]))
-                sequences1.append(add_noise(noise_scale, np.array(tr1)[np.random.choice(indicies, len(tr1[1:]))]))
-                targets = np.zeros(tar_shape)
+                sequences1.append(add_noise(noise_scale, np.array(tr1)[rand_ind]))
+                targets = [[int(g)] for g in (rand_ind == indicies[1:])]
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             else:
+                rand_ind = np.random.choice(indicies, len(tr0[1:]))
                 sequences0.append(add_noise(noise_scale, tr0[1:]))
-                sequences1.append(add_noise(noise_scale, np.array(tr0)[np.random.choice(indicies, len(tr0[1:]))] ))
-                targets = np.zeros(tar_shape)
+                sequences1.append(add_noise(noise_scale, np.array(tr0)[rand_ind] ))
+                targets = [[int(g)] for g in (rand_ind == indicies[1:])]
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                
             if (np.random.rand() > 0.5):
-                sequences0.append(add_noise(noise_scale, np.array(tr1)[np.random.choice(indicies, len(tr1[1:]))] ))
-                sequences1.append(add_noise(noise_scale, np.array(tr1)[np.random.choice(indicies, len(tr1[1:]))] ))
+                rand_ind0 = np.random.choice(indicies, len(tr1[1:]))
+                rand_ind1 = np.random.choice(indicies, len(tr1[1:]))
+                sequences0.append(add_noise(noise_scale, np.array(tr1)[rand_ind0] ))
+                sequences1.append(add_noise(noise_scale, np.array(tr1)[rand_ind1] ))
                 targets = np.zeros(tar_shape)
+                targets = [[int(g)] for g in (rand_ind0 == rand_ind1)]
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             else:
-                sequences0.append(add_noise(noise_scale, np.array(tr0)[np.random.choice(indicies, len(tr0[1:]))] ))
-                sequences1.append(add_noise(noise_scale, np.array(tr0)[np.random.choice(indicies, len(tr0[1:]))] ))
-                targets = np.zeros(tar_shape)
+                rand_ind0 = np.random.choice(indicies, len(tr0[1:]))
+                rand_ind1 = np.random.choice(indicies, len(tr0[1:]))
+                sequences0.append(add_noise(noise_scale, np.array(tr0)[rand_ind0] ))
+                sequences1.append(add_noise(noise_scale, np.array(tr0)[rand_ind1] ))
+                targets = [[int(g)] for g in (rand_ind0 == rand_ind1)]
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+            """
             if ("include_agent_imitator_pairs" in settings
                 and (settings["include_agent_imitator_pairs"] == True)):
                 ### Versions of two different trajectories
@@ -430,7 +441,7 @@ def create_sequences2(traj0, traj1, settings):
                 sequences1.append(add_noise(noise_scale, tr1[1:]))
                 targets = np.zeros(tar_shape) + compare_adjustment
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-
+            """
         # print ("Created trajectories: ", len(targets_))
     
     return sequences0, sequences1, targets_

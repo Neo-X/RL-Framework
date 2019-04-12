@@ -497,7 +497,7 @@
 "fd_algorithm" : "algorithm.SiameseNetworkMultiHeadDecode.SiameseNetworkMultiHeadDecode",
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [ 
-							{"layer_type": "slice", "slice_index": 49, "slice_label": "grf" },
+							{"layer_type": "slice", "slice_index": 196, "slice_label": "grf" },
 							{"layer_type": "GaussianNoise", "stddev": 0.025},
 							{"layer_type": "Dropout", "rate": 0.2},
 							{"layer_type": "Dense", "units": 256, "use_bias": true},
