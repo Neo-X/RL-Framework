@@ -392,13 +392,13 @@ def create_sequences2(traj0, traj1, settings):
                 rand_ind = np.random.choice(indicies, len(tr1[1:]))
                 sequences0.append(add_noise(noise_scale, tr1[1:]))
                 sequences1.append(add_noise(noise_scale, np.array(tr1)[rand_ind]))
-                targets = [[int(g)] for g in (rand_ind == indicies[1:])]
+                targets = np.array([[int(g)] for g in (rand_ind == indicies[1:])])
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             else:
                 rand_ind = np.random.choice(indicies, len(tr0[1:]))
                 sequences0.append(add_noise(noise_scale, tr0[1:]))
                 sequences1.append(add_noise(noise_scale, np.array(tr0)[rand_ind] ))
-                targets = [[int(g)] for g in (rand_ind == indicies[1:])]
+                targets = np.array([[int(g)] for g in (rand_ind == indicies[1:])])
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
                 
             if (np.random.rand() > 0.5):
@@ -407,14 +407,14 @@ def create_sequences2(traj0, traj1, settings):
                 sequences0.append(add_noise(noise_scale, np.array(tr1)[rand_ind0] ))
                 sequences1.append(add_noise(noise_scale, np.array(tr1)[rand_ind1] ))
                 targets = np.zeros(tar_shape)
-                targets = [[int(g)] for g in (rand_ind0 == rand_ind1)]
+                targets = np.array([[int(g)] for g in (rand_ind0 == rand_ind1)])
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             else:
                 rand_ind0 = np.random.choice(indicies, len(tr0[1:]))
                 rand_ind1 = np.random.choice(indicies, len(tr0[1:]))
                 sequences0.append(add_noise(noise_scale, np.array(tr0)[rand_ind0] ))
                 sequences1.append(add_noise(noise_scale, np.array(tr0)[rand_ind1] ))
-                targets = [[int(g)] for g in (rand_ind0 == rand_ind1)]
+                targets = np.array([[int(g)] for g in (rand_ind0 == rand_ind1)])
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             """
             if ("include_agent_imitator_pairs" in settings
