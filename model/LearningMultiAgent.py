@@ -245,6 +245,7 @@ class LearningMultiAgent(LearningAgent):
             states__ = [state_[agent_::len(self.getAgents())] for state_ in _states]
             actions__ = [state_[agent_::len(self.getAgents())] for state_ in _actions]
             rewards__ = [state_[agent_::len(self.getAgents())] for state_ in _rewards]
+            # print ("rewards__: ", rewards__)
             result_states__ = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
             result_states_tmp = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
             falls__ = [state_[agent_::len(self.getAgents())] for state_ in _falls]
@@ -333,6 +334,7 @@ class LearningMultiAgent(LearningAgent):
                 print ("Skipping agent: ", agent_)
                 self.getAgents()[agent_]._settings["train_actor"] = False
                 self.getAgents()[agent_]._settings["train_critic"] = False
+                # continue
                 # pass ### Skip agent
             print ("self.getAgents()[",agent_,"].getStateBounds(): ", repr(self.getAgents()[agent_].getStateBounds()) )
             print ("self.getAgents()[",agent_,"].getRewardBounds(): ", repr(self.getAgents()[agent_].getRewardBounds()) )
