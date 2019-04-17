@@ -188,6 +188,7 @@ class SimContainer(object):
             print("Resetting Epoch")
             # self._exp.initEpoch()   
             self._exp.initEpoch()
+            # print (self._exp._num_updates_since_last_action)
         elif c == 'M':
             if ( self._settings["use_parameterized_control"] ):
                 # self._exp.getActor()._target_vel += 0.1
