@@ -51,7 +51,7 @@ do
 	# echo "$metaConfig"
 	# or do whatever with individual element of the array
 	# echo "$simConfigFile"
-	command="SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments sbatch --time=20:00:00 --mem=32768M --cpus-per-task=24 ./settings/hyperParamTuning/computeCanada/test_run.sh 'singularity exec --cleanenv --home /home/gberseth/playground/RL-Framework/:/opt/RL-Framework /scratch/gberseth/playground/singularity/ubuntu_learning.img python3.6 tuneHyperParameters.py --config="$simConfig" -p 6 --rollouts=12 --on_policy=fast --save_experience_memory=continual --num_rounds="$rounds" --continue_training=false --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig="$metaConfig" --email_log_data_periodically=true --shouldRender=false "$extraOpts"'"
+	command="SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments sbatch --time=20:00:00 --mem=32768M --cpus-per-task=24 ./settings/hyperParamTuning/computeCanada/test_run.sh 'singularity exec --cleanenv --home /home/gberseth/projects/def-vandepan/gberseth/playground/RL-Framework:/opt/RL-Framework /scratch/gberseth/playground/singularity/ubuntu_learning.img python3.6 tuneHyperParameters.py --config="$simConfig" -p 6 --rollouts=12 --on_policy=fast --save_experience_memory=continual --num_rounds="$rounds" --continue_training=false --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig="$metaConfig" --email_log_data_periodically=true --shouldRender=false "$extraOpts"'"
 	echo $command
 	eval $command
 done
