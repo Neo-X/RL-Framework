@@ -146,6 +146,7 @@ class SimContainer(object):
                 if ( self._settings['environment_type'] == 'terrainRLHLCBiped3D'
                      or (self._settings['environment_type'] == 'GymMultiChar') ):
                     self._exp.getActor().updateActor(self._exp, self._action)
+                    print (self._exp.getEnvironment().calcRewards())
                 else:
                     self._exp.update()
                 
