@@ -48,6 +48,7 @@ declare -a metaExps=(
 declare -a simExps=(
 #	"settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
 	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v2.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_Humanoid3d_SimpleReward_5_NEWLLC_v0.json"
 #	"settings/terrainRLMultiChar/HLC/PPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
 #	"settings/terrainRLMultiChar/HLC/TRPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
 #	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_5_NEWLLC_Tensorflow_v1.json"
@@ -56,8 +57,11 @@ declare -a simExps=(
 #	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_NEWLLC_Tensorflow_v1.json"
 #	"settings/terrainRLMultiChar/HLC/PPO/Dynamic_Obstacles_Tensorflow_NEWLLC.json"
 	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v2.json"
+	"settings/terrainRLMultiChar/HLC/TRPO/Concentric_Circles_Humanoid3d_SimpleReward_NEWLLC_v0.json"
 	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v2.json"
+	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_Humanoid3d_SimpleReward_NEWLLC_v0.json"
 	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v2.json"
+	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_Humanoid3d_SimpleReward_5_NEWLLC_v0.json"
 )
 
 rounds=$1
