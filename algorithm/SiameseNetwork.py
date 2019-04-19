@@ -271,16 +271,15 @@ def create_sequences2(traj0, traj1, settings):
             sequences1.append(add_noise(noise_scale, tr0[1:]))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            
             sequences0.append(add_noise(noise_scale, tr1[1:]))
             sequences1.append(add_noise(noise_scale, tr1[1:]))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+            
             sequences0.append(add_noise(noise_scale, tr0[:-1]))
             sequences1.append(add_noise(noise_scale, tr0[:-1]))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            
             sequences0.append(add_noise(noise_scale, tr1[:-1]))
             sequences1.append(add_noise(noise_scale, tr1[:-1]))
             targets = np.ones(tar_shape)
@@ -292,7 +291,6 @@ def create_sequences2(traj0, traj1, settings):
             targets = np.ones(tar_shape) - compare_adjustment
             targets[0] = 0
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            
             sequences0.append(add_noise(noise_scale, tr0[:-1]))
             sequences1.append(add_noise(noise_scale,  np.concatenate((tr0[:-2], [tr0[-2]]), axis=0) ))
             targets = np.ones(tar_shape) - compare_adjustment
@@ -305,7 +303,6 @@ def create_sequences2(traj0, traj1, settings):
             targets = np.ones(tar_shape) - compare_adjustment
             targets[0] = 0
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            
             sequences0.append(add_noise(noise_scale, tr1[:-1]))
             sequences1.append(add_noise(noise_scale, np.concatenate((tr1[:-2], [tr1[-2]]), axis=0) ))
             targets = np.ones(tar_shape) - compare_adjustment
@@ -313,15 +310,20 @@ def create_sequences2(traj0, traj1, settings):
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             
             ### reversed versions of the same trajectories
+            indicies = np.array(list(range(len(tr1))))
+            rand_ind = np.array(list(reversed(range(len(tr1)))))
+            # print ("indicies: ", indicies)
+            # print ("rand_ind: ", rand_ind)
+            # print ("rand_ind == indicies[1:]: ", rand_ind[1:] == indicies[1:])
             if (np.random.rand() > 0.5):
                 sequences0.append(list(reversed(add_noise(noise_scale, tr1[1:]))))
                 sequences1.append(add_noise(noise_scale, tr1[:-1]))
                 targets = np.zeros(tar_shape)
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             else:
-                sequences0.append(add_noise(noise_scale, tr1[1:]))
-                sequences1.append(list(reversed(add_noise(noise_scale, tr1[1:]))))
-                targets = np.zeros(tar_shape)
+                sequences0.append(add_noise(noise_scale, tr1[:-1]))
+                sequences1.append(list(reversed(add_noise(noise_scale, tr1[:-1]))))
+                targets = np.array([[int(g)] for g in (rand_ind[:-1] == indicies[:-1])])
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             
             if (np.random.rand() > 0.5):
@@ -330,9 +332,9 @@ def create_sequences2(traj0, traj1, settings):
                 targets = np.zeros(tar_shape)
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             else:
-                sequences0.append(add_noise(noise_scale, tr0[1:]))
-                sequences1.append(list(reversed(add_noise(noise_scale, tr0[1:]))))
-                targets = np.zeros(tar_shape)
+                sequences0.append(add_noise(noise_scale, tr0[:-1]))
+                sequences1.append(list(reversed(add_noise(noise_scale, tr0[:-1]))))
+                targets = np.array([[int(g)] for g in (rand_ind[:-1] == indicies[:-1])])
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             
             """
