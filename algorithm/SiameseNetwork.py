@@ -309,6 +309,7 @@ def create_sequences2(traj0, traj1, settings):
             targets[-1] = 0
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             
+            
             ### reversed versions of the same trajectories
             indicies = np.array(list(range(len(tr1))))
             rand_ind = np.array(list(reversed(range(len(tr1)))))
