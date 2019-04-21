@@ -38,13 +38,37 @@ print ("embedding: ", embedding)
 print ("targets: ", y_) 
 x = embedding
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from matplotlib.path import Path
+
+fig, ax = plt.subplots()
 
 unique = list(set(y_))
 colors = [plt.cm.jet(float(i)/max(unique)) for i in unique]
+encodings = []
 for i, u in enumerate(unique):
+    print("plotting: ", u)
     xi = [x_[j][0] for j  in range(len(x)) if y_[j] == u]
     yi = [x_[j][1] for j  in range(len(x)) if y_[j] == u]
-    plt.scatter(xi, yi, c=colors[i], label=str(u))
-plt.legend()
+    print ("xi: ", xi)
+    ax.scatter(xi, yi, c=colors[i], label=str(u))
+    # ax.plot(xi, yi, c=colors[i], label=str(u))
+    encodings.append([xi, yi, u])
 
+print ("encodings[0][0]: ", encodings[0][0])
+
+for i in range(len(encodings[0][0])):
+    point0 = [encodings[0][0][i], encodings[0][1][i]]
+    point1 = [encodings[1][0][i], encodings[1][1][i]]
+    line_ = [[point0[0], point1[0]], [point0[1], point1[1]]]
+    print ("line_: ", line_)
+    # verts = [(x1,y1), (x2,y2)]
+    verts = line_
+    codes = [Path.MOVETO,Path.LINETO]
+    path = Path(verts, codes)
+    ax.add_patch(patches.PathPatch(path, color='green', lw=0.5))
+    # plt.plot(line_, 
+    #           color = 'black')
+
+# plt.legend()
 plt.show()

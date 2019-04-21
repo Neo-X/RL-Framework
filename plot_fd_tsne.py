@@ -187,6 +187,7 @@ def trainForwardDynamics(settings):
     encoding['class2'] = []
     encoding['code'] = []
     encoding['code2'] = []
+    ### Get all the trajectories
     state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_trajectory_batch(batch_size=min(experience.history_size_Trajectory(), experience.samplesTrajectory()), cast=False)
     for l in range(len(state_)):
         forwardDynamicsModel.reset()
