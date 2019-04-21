@@ -156,6 +156,7 @@ def trainForwardDynamics(settings):
         
         # print("res_state_bounds__: ", np.array(res_state_bounds__).shape)
         
+    print ("state_bounds: ", state_bounds)
     runLastModel = True
     settings["load_saved_model"] = True
     forwardDynamicsModel = createNewFDModel(settings, None, None)
@@ -181,30 +182,29 @@ def trainForwardDynamics(settings):
     _result_states = theano.shared(np.array(_result_states, dtype=theano.config.floatX))
     _rewards = theano.shared(np.array(_rewards, dtype=theano.config.floatX))
     """
-    if (save_embedding == True):
-        encoding = {}
-        encoding['class'] = []
-        encoding['class2'] = []
-        encoding['code'] = []
-        encoding['code2'] = []
-        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_trajectory_batch(batch_size=min(experience.history_size_Trajectory(), experience.samplesTrajectory()), cast=False)
-        for l in range(len(state_)):
-            forwardDynamicsModel.reset()
-            h_a = forwardDynamicsModel.predict_reward_encoding(state_[l])
-            forwardDynamicsModel.reset()
-            h_a_2 = forwardDynamicsModel.predict_reward_encoding(resultState_[l])
-            # print ("state: ", state_[l])
-            clas = settings["worker_to_task_mapping"][fall_[l][0][0]]
-            # print ("Encoding ", l, ": ", h_a)
-            # print ("class: ", clas)
-            encoding['class'].append(clas)
-            encoding['class2'].append(clas)
-            encoding['code'].append([float(i) for i in h_a[0]])
-            encoding['code2'].append([float(i) for i in h_a_2[0]])
-        
-        tsne_data = open("tsne_data.json", "w")
-        json.dump(encoding, tsne_data)
-        tsne_data.close()
+    encoding = {}
+    encoding['class'] = []
+    encoding['class2'] = []
+    encoding['code'] = []
+    encoding['code2'] = []
+    state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = experience.get_trajectory_batch(batch_size=min(experience.history_size_Trajectory(), experience.samplesTrajectory()), cast=False)
+    for l in range(len(state_)):
+        forwardDynamicsModel.reset()
+        h_a = forwardDynamicsModel.predict_reward_encoding(state_[l])
+        forwardDynamicsModel.reset()
+        h_a_2 = forwardDynamicsModel.predict_reward_encoding(resultState_[l])
+        # print ("state: ", state_[l])
+        clas = settings["worker_to_task_mapping"][fall_[l][0][0]]
+        # print ("Encoding ", l, ": ", h_a)
+        # print ("class: ", clas)
+        encoding['class'].append(0)
+        encoding['class2'].append(1)
+        encoding['code'].append([float(i) for i in h_a[0]])
+        encoding['code2'].append([float(i) for i in h_a_2[0]])
+    
+    tsne_data = open("tsne_data.json", "w")
+    json.dump(encoding, tsne_data)
+    tsne_data.close()
                 
 
 if __name__ == '__main__':

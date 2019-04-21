@@ -105,11 +105,15 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
         settings__["fd_network_layer_sizes"] = settings__["decoder_network_layer_sizes"]
         settings__["reward_network_layer_sizes"] = settings__["decoder_network_layer_sizes2"]
         settings__["fd_num_terrain_features"] = settings__["encoding_vector_size"] - 3
+        settings__["dense_state_size"] = settings__["encoding_vector_size"]
         print ("****** Creating dense pose encoding network")
         print ("settings__[state_bounds]: ", len(settings__["state_bounds"][0]))
         if ("remove_character_state_features" in settings__):
-            settings__["state_bounds"][0] = settings__["state_bounds"][0][:-settings__["remove_character_state_features"]]
-            settings__["state_bounds"][1] = settings__["state_bounds"][1][:-settings__["remove_character_state_features"]]
+            # settings__["state_bounds"][0] = settings__["state_bounds"][0][:-settings__["remove_character_state_features"]]
+            # settings__["state_bounds"][1] = settings__["state_bounds"][1][:-settings__["remove_character_state_features"]]
+            settings__["state_bounds"][0] = settings__["state_bounds"][0][:settings__["encoding_vector_size"]]
+            print ("settings__[\"state_bounds\"][0]: ", len(settings__["state_bounds"][0]) )
+            settings__["state_bounds"][1] = settings__["state_bounds"][1][:settings__["encoding_vector_size"]]
         self._modelTarget = createForwardDynamicsNetwork(settings__["state_bounds"], 
                                                          settings__["action_bounds"], settings__,
                                                          stateName="State_", resultStateName="ResultState_")
@@ -514,14 +518,20 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                     
                     if (("train_lstm_fd_and_reward_and_decoder_together" in self._settings)
                         and (self._settings["train_lstm_fd_and_reward_and_decoder_together"] == True)):
+                        
+                        sequences0_ = sequences0
+                        sequences1_ = sequences1
+                        if ("remove_character_state_features" in self._settings):
+                            sequences0_ = sequences0_[:, :, :-self._settings["remove_character_state_features"]]
+                            sequences1_ = sequences1_[:, :, :-self._settings["remove_character_state_features"]]
                         # print ("sequences0 shape: ", sequences0.shape)
                         # print ("sequences1 shape: ", sequences1.shape)
                         # print ("targets__ shape: ", targets__.shape)
                         # print ("targets_ shape: ", targets_.shape)
                         score = self._model._reward_net.fit([sequences0, sequences1], 
                                       [targets__, targets_,
-                                       sequences0, sequences1,
-                                       sequences0, sequences1],
+                                       sequences0_, sequences1_,
+                                       sequences0_, sequences1_],
                                       epochs=1, 
                                       batch_size=sequences0.shape[0],
                                       verbose=0

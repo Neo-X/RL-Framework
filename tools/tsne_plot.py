@@ -25,11 +25,11 @@ y_ = np.array(y_)
 print ("x: ", x)
 print ("y: ", y)
 tsne = TSNE(
-    n_components=2, perplexity=30, learning_rate=100, early_exaggeration=10,
+    n_components=2, perplexity=20, learning_rate=100, early_exaggeration=10,
     n_jobs=10, initialization='random', metric='euclidean',
     n_iter=10000, early_exaggeration_iter=25, neighbors='exact',
     negative_gradient_method='bh', min_num_intervals=20,
-    late_exaggeration_iter=1000, late_exaggeration=4,
+    late_exaggeration_iter=1000, late_exaggeration=5,
 )
 
 embedding = tsne.fit(x_)
