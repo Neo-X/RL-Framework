@@ -403,45 +403,11 @@ def create_sequences2(traj0, traj1, settings):
                 targets = np.array([[int(g)] for g in (rand_ind0 == rand_ind1)])
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
                 
-            if ("include_agent_imitator_pairs" in settings
-                and (settings["include_agent_imitator_pairs"] == True)):
-                ### Versions of two different trajectories
-                advisarial_swap_prob = 0.95
-                sequences0.append(add_noise(noise_scale, tr0[1:]))
-                sequences1.append(add_noise(noise_scale, tr1[1:]))
-                targets = np.zeros(tar_shape) + compare_adjustment
-                if (np.random.rand(0) > advisarial_swap_prob):
-                    targets = targets + 1.0
-                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-                
-                sequences0.append(add_noise(noise_scale, tr0[:-1]))
-                sequences1.append(add_noise(noise_scale, tr1[:-1]))
-                targets = np.zeros(tar_shape) + compare_adjustment
-                if (np.random.rand(0) > advisarial_swap_prob):
-                    targets = targets + 1.0
-                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-                
-                
-                ### More Out of sync versions of two different trajectories
-                sequences0.append(add_noise(noise_scale, tr0[1:]))
-                sequences1.append(add_noise(noise_scale, tr1[:-1]))
-                targets = np.zeros(tar_shape) + compare_adjustment
-                if (np.random.rand(0) > advisarial_swap_prob):
-                    targets = targets + 1.0
-                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-                
-                sequences0.append(add_noise(noise_scale, tr0[:-1]))
-                sequences1.append(add_noise(noise_scale, tr1[1:]))
-                targets = np.zeros(tar_shape) + compare_adjustment
-                if (np.random.rand(0) > advisarial_swap_prob):
-                    targets = targets + 1.0
-                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-        # print ("Created trajectories: ", len(targets_))
-    
     return sequences0, sequences1, targets_
 
 
 def create_advisarial_sequences(traj0, traj1, settings):
+    import random
     '''Positive and negative sequence creation.
     Alternates between positive and negative pairs.
     produces N sequences from two
@@ -461,7 +427,10 @@ def create_advisarial_sequences(traj0, traj1, settings):
     sequences0 = []
     sequences1 = []
     targets_ = []
-    for tr0, tr1 in zip(traj0, traj1): ### for each trajectory pair
+    indx = list(range(len(traj0)))
+    for i in range(len(traj0)): ### for each trajectory pair
+        tr0 = traj0[i]
+        tr1 = traj1[i]
         tar_shape = (len(tr0)-1, 1)
         if (len(tr0) == 1):
             tar_shape = (len(tr0), 1)
@@ -469,18 +438,17 @@ def create_advisarial_sequences(traj0, traj1, settings):
             sequences1.append(add_noise(noise_scale, tr0))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            
             sequences0.append(add_noise(noise_scale, tr1))
             sequences1.append(add_noise(noise_scale, tr1))
             targets = np.ones(tar_shape)
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             
             sequences0.append(add_noise(noise_scale, tr0))
-            sequences1.append(add_noise(noise_scale, tr1))
+            sequences1.append(add_noise(noise_scale, traj0[random.sample(set(indx), 1)[0]]))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             
-            sequences0.append(add_noise(noise_scale, tr1))
+            sequences0.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]]))
             sequences1.append(add_noise(noise_scale, tr0))
             targets = np.zeros(tar_shape)
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
@@ -515,12 +483,12 @@ def create_advisarial_sequences(traj0, traj1, settings):
             #     and (settings["include_agent_imitator_pairs"] == True)):
             ### Versions of two different trajectories
             sequences0.append(add_noise(noise_scale, tr0))
-            sequences1.append(add_noise(noise_scale, tr1))
+            sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]]))
             targets = np.zeros(tar_shape) + compare_adjustment
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             
             sequences0.append(add_noise(noise_scale, tr1))
-            sequences1.append(add_noise(noise_scale, tr0))
+            sequences1.append(add_noise(noise_scale, traj0[random.sample(set(indx), 1)[0]]))
             targets = np.zeros(tar_shape) + compare_adjustment
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             # print ("sequences0: ", np.array(sequences0).shape)
@@ -548,43 +516,17 @@ def create_advisarial_sequences(traj0, traj1, settings):
             targets = np.ones(tar_shape)
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             
-            ### Out of sync versions of the same trajectories
-            sequences0.append(add_noise(noise_scale, tr0[1:]))
-            sequences1.append(add_noise(noise_scale, np.concatenate(([tr0[2]], tr0[2:]), axis=0) ))
-            targets = np.ones(tar_shape) - compare_adjustment
-            targets[0] = 0
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            sequences0.append(add_noise(noise_scale, tr0[:-1]))
-            sequences1.append(add_noise(noise_scale,  np.concatenate((tr0[:-2], [tr0[-2]]), axis=0) ))
-            targets = np.ones(tar_shape) - compare_adjustment
-            targets[-1] = 0
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            
-            ### Out of sync versions of the same trajectories
-            sequences0.append(add_noise(noise_scale, tr1[1:]))
-            sequences1.append(add_noise(noise_scale, np.concatenate(([tr1[2]], tr1[2:]), axis=0) ))
-            targets = np.ones(tar_shape) - compare_adjustment
-            targets[0] = 0
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            sequences0.append(add_noise(noise_scale, tr1[:-1]))
-            sequences1.append(add_noise(noise_scale, np.concatenate((tr1[:-2], [tr1[-2]]), axis=0) ))
-            targets = np.ones(tar_shape) - compare_adjustment
-            targets[-1] = 0
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            
-            
-                
             ### Versions of two different trajectories
             advisarial_swap_prob = 0.99
             sequences0.append(add_noise(noise_scale, tr0[1:]))
-            sequences1.append(add_noise(noise_scale, tr1[1:]))
+            sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]][1:]))
             targets = np.zeros(tar_shape) + compare_adjustment
             if (np.random.rand(0) > advisarial_swap_prob):
                 targets = targets + 1.0
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             
             sequences0.append(add_noise(noise_scale, tr0[:-1]))
-            sequences1.append(add_noise(noise_scale, tr1[:-1]))
+            sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]][:-1]))
             targets = np.zeros(tar_shape) + compare_adjustment
             if (np.random.rand(0) > advisarial_swap_prob):
                 targets = targets + 1.0
@@ -593,19 +535,19 @@ def create_advisarial_sequences(traj0, traj1, settings):
             
             ### More Out of sync versions of two different trajectories
             sequences0.append(add_noise(noise_scale, tr0[1:]))
-            sequences1.append(add_noise(noise_scale, tr1[:-1]))
+            sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]][:-1]))
             targets = np.zeros(tar_shape) + compare_adjustment
             if (np.random.rand(0) > advisarial_swap_prob):
                 targets = targets + 1.0
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             
             sequences0.append(add_noise(noise_scale, tr0[:-1]))
-            sequences1.append(add_noise(noise_scale, tr1[1:]))
+            sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]][1:]))
             targets = np.zeros(tar_shape) + compare_adjustment
             if (np.random.rand(0) > advisarial_swap_prob):
                 targets = targets + 1.0
             targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-        # print ("Created trajectories: ", len(targets_))
+    print ("Created advisarial trajectories: ")
     
     return sequences0, sequences1, targets_
 

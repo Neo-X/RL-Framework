@@ -1,6 +1,7 @@
 import numpy as np
 # import lasagne
 import sys
+from dill.settings import settings
 sys.path.append('../')
 from model.ModelUtil import *
 from model.LearningUtil import loglikelihood, loglikelihoodMEAN, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat, likelihood, loglikelihoodMEAN
@@ -452,7 +453,12 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             ### result states can be from the imitation agent.
             # print ("falls: ", falls)
             if (falls is None):
-                sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
+                if ("include_agent_imitator_pairs" in self._settings
+                    and (self._settings["include_agent_imitator_pairs"] == True)):
+                    sequences0, sequences1, targets_ = create_advisarial_sequences(states, result_states, self._settings)
+                else:
+                    print ("blah")
+                    sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
             else:
                 sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
             sequences0 = np.array(sequences0)

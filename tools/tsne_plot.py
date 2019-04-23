@@ -76,7 +76,7 @@ for i in range(len(xs[0])):
     path = Path(verts, codes)
     # ax.add_patch(patches.PathPatch(path, color='green', lw=0.5))
     ax.plot(line_[0], line_[1], 
-              color = 'black', lw=0.5, alpha=0.5)
+              color = 'green', lw=0.5, alpha=0.5)
 
 # plt.legend()
 plt.show()
