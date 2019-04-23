@@ -46,29 +46,37 @@ fig, ax = plt.subplots()
 unique = list(set(y_))
 colors = [plt.cm.jet(float(i)/max(unique)) for i in unique]
 encodings = []
+xs = []
+ys = []
 for i, u in enumerate(unique):
     print("plotting: ", u)
-    xi = [x_[j][0] for j  in range(len(x)) if y_[j] == u]
-    yi = [x_[j][1] for j  in range(len(x)) if y_[j] == u]
+    xi = [float(x_[j][0]) for j  in range(len(x)) if y_[j] == u]
+    yi = [float(x_[j][1]) for j  in range(len(x)) if y_[j] == u]
     print ("xi: ", xi)
     ax.scatter(xi, yi, c=colors[i], label=str(u))
     # ax.plot(xi, yi, c=colors[i], label=str(u))
     encodings.append([xi, yi, u])
+    xs.append(xi)
+    ys.append(yi)
 
 print ("encodings[0][0]: ", encodings[0][0])
+print ("ys[0]: ", ys[0])
 
-for i in range(len(encodings[0][0])):
-    point0 = [encodings[0][0][i], encodings[0][1][i]]
-    point1 = [encodings[1][0][i], encodings[1][1][i]]
-    line_ = [[point0[0], point1[0]], [point0[1], point1[1]]]
+for i in range(len(xs[0])):
+    # point0 = [encodings[0][0][i], encodings[0][1][i]]
+    # point1 = [encodings[1][0][i], encodings[1][1][i]]
+    point0 = [xs[0][i], ys[0][i]]
+    point1 = [xs[1][i], ys[1][i]]
+    # line_ = [[point0[0], point1[0]], [point0[1], point1[1]]]
+    line_ = [[xs[0][i], xs[1][i]], [ys[0][i], ys[1][i]]]
     print ("line_: ", line_)
     # verts = [(x1,y1), (x2,y2)]
     verts = line_
     codes = [Path.MOVETO,Path.LINETO]
     path = Path(verts, codes)
-    ax.add_patch(patches.PathPatch(path, color='green', lw=0.5))
-    # plt.plot(line_, 
-    #           color = 'black')
+    # ax.add_patch(patches.PathPatch(path, color='green', lw=0.5))
+    ax.plot(line_[0], line_[1], 
+              color = 'black', lw=0.5, alpha=0.5)
 
 # plt.legend()
 plt.show()
