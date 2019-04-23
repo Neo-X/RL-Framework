@@ -237,7 +237,7 @@
     "comment__": "Initial factor epsilon in multiplied by (This value will slowly be reduced during training)",
 "epsilon_annealing": 0.8,
     "comment__": "Different ways of calculating the scaling method used normalize the input and outputs of the network from the bootstrapping samples. minmax, input and output are -mean/max-min. variance, input and output are -mean/(std*2), given, use the bounds provided in this file",
-"state_normalization": "adaptive",
+"state_normalization": "given",
     "comment__": "load a pretrained model for the controller",
 "load_saved_model": false,
 	"comment__": "Number of updates the critic should perform per actor update",
@@ -498,7 +498,7 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice", "slice_index": 196, "slice_label": "grf" },
-							{"layer_type": "GaussianNoise", "stddev": 0.01},
+							{"layer_type": "GaussianNoise", "stddev": 0.03},
 							{"layer_type": "Dense", "units": 512, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "Dense", "units": 256, "use_bias": true},
@@ -579,7 +579,7 @@
 	"comment__": "The shortest sequence the RNN network will be trained on",
 "min_sequece_length": 3,
 	"comment__": "The type of distance function the fd learning model should use to compute differences.",
-"fd_distance_function": "l2",
+"fd_distance_function": "l1",
 	"comment__": "image noise factor that is added to the frames captured from the simulations",
 "image_noise_scale": 0.00,
 	"comment__": "Return sequences from lstm training",
@@ -597,7 +597,7 @@
 								{"layer_type": "Dense", "units": 256, "use_bias": false},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 196, "use_bias": false},
-								{"layer_type": "activation", "activation_type": "linear" },
+								{"layer_type": "activation", "activation_type": "linear" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes2": [

@@ -58,7 +58,7 @@ for i, u in enumerate(unique):
     encodings.append([xi, yi, u])
     xs.append(xi)
     ys.append(yi)
-
+plt.legend()
 print ("encodings[0][0]: ", encodings[0][0])
 print ("ys[0]: ", ys[0])
 
@@ -78,5 +78,4 @@ for i in range(len(xs[0])):
     ax.plot(line_[0], line_[1], 
               color = 'green', lw=0.5, alpha=0.5)
 
-# plt.legend()
 plt.show()

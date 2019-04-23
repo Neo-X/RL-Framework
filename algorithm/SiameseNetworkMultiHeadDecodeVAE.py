@@ -254,7 +254,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                                           ,result_state_copy
                                                           ]
                                                           , outputs=[distance_r, 
-                                                                     distance_fd2, 
+                                                                     # distance_fd2, 
                                                                      decode_a, 
                                                                      decode_b,
                                                                      decode_a_vae,
@@ -315,7 +315,8 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             # VAE loss = mse_loss or xent_loss + kl_loss
             
             self._model._reward_net.compile(
-                                            loss=[contrastive_loss, contrastive_loss
+                                            loss=[contrastive_loss
+                                                  #, contrastive_loss
                                                  ,"mse", "mse"
                                                  # ,vae_loss(network_vae=self._network_vae, 
                                                  #          network_vae_log_var=self._network_vae_log_var)
@@ -325,7 +326,9 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                                  ,self.vae_loss_b
                                                   ], 
                                             optimizer=sgd
-                                            ,loss_weights=[0.6, 0.1, 0.1, 0.1, 0.05, 0.05]
+                                            ,loss_weights=[0.6, 
+                                                           # 0.1, 
+                                                           0.1, 0.1, 0.05, 0.05]
                                             )
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
@@ -535,7 +538,8 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                         # print ("targets__ shape: ", targets__.shape)
                         # print ("targets_ shape: ", targets_.shape)
                         score = self._model._reward_net.fit([sequences0, sequences1], 
-                                      [targets__, targets_,
+                                      [targets__, 
+                                       # targets_,
                                        sequences0_, sequences1_,
                                        sequences0_, sequences1_],
                                       epochs=1, 
