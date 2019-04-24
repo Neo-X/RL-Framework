@@ -496,7 +496,7 @@ def create_advisarial_sequences(traj0, traj1, settings):
             
         else:
             
-            if (False):
+            if (pos_batch):
                 ### Noisy versions of the same trajectories
                 sequences0.append(add_noise(noise_scale, tr0[1:]))
                 sequences1.append(add_noise(noise_scale, tr0[:-1]))
@@ -517,6 +517,7 @@ def create_advisarial_sequences(traj0, traj1, settings):
                 targets = np.ones(tar_shape)
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
                 """ 
+                
                 ### trajectories from sim and real env should be similar
                 sequences0.append(add_noise(noise_scale, tr0[:-1]))
                 sequences1.append(add_noise(noise_scale, traj0[random.sample(set(indx) - set([i]), 1)[0]][:-1]))
@@ -526,6 +527,7 @@ def create_advisarial_sequences(traj0, traj1, settings):
                 sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx) - set([i]), 1)[0]][:-1]))
                 targets = np.ones(tar_shape) - compare_adjustment
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                
             
             else:
                 ### Versions of two different adversarial trajectories
@@ -539,7 +541,6 @@ def create_advisarial_sequences(traj0, traj1, settings):
                 targets = np.zeros(tar_shape)
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
                 ### Versions of two different adversarial trajectories from different classes
-                """
                 sequences0.append(add_noise(noise_scale, tr0[1:]))
                 sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]][1:]))
                 targets = np.zeros(tar_shape)
@@ -548,7 +549,7 @@ def create_advisarial_sequences(traj0, traj1, settings):
                 sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]][:-1]))
                 targets = np.zeros(tar_shape)
                 targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-                """
+                
                 ### More Out of sync versions of two adversarial trajectories
                 """
                 sequences0.append(add_noise(noise_scale, traj0[random.sample(set(indx), 1)[0]][1:]))

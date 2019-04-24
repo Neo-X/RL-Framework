@@ -189,7 +189,7 @@ class LearningAgent(AgentInterface):
                                 ### Want viz for input and dense for output to condition the preception part of the network
                                 tup = ([state__[j][1]], [action__[j]], [next_state__[j][0]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
                             else:
-                                # print ("self.getFDExperience().getStateBounds() shape : ", self.getFDExperience().getStateBounds().shape)
+                                # print ("self.getFDExperience().getStateBounds() shape : ", self.getFDExperience().getStateBounds())
                                 # print ("fd exp state shape: ", state__[j][1].shape)
                                 tup = ([state__[j][1]], [action__[j]], [next_state__[j][1]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]])
                         ### This is always done and works well for computing the adaptive state bounds.
@@ -295,6 +295,7 @@ class LearningAgent(AgentInterface):
                         _states.append([np.array(np.array(tmp_states__[0]), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
                         _result_states.append([np.array(np.array(tmp_result_states__[0]), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
                         
+                        # print ("use_dual_state_representations")
                         _states_fd.append([np.array(np.array(tmp_states__[1]), dtype=self._settings['float_type']) for tmp_states__ in tmp_states[i]])
                         _result_states_fd.append([np.array(np.array(tmp_result_states__[1]), dtype=self._settings['float_type']) for tmp_result_states__ in tmp_result_states[i]])
                     else:
