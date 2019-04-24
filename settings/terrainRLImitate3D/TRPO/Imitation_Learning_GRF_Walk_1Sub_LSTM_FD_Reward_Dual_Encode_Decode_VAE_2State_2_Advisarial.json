@@ -237,7 +237,7 @@
     "comment__": "Initial factor epsilon in multiplied by (This value will slowly be reduced during training)",
 "epsilon_annealing": 0.8,
     "comment__": "Different ways of calculating the scaling method used normalize the input and outputs of the network from the bootstrapping samples. minmax, input and output are -mean/max-min. variance, input and output are -mean/(std*2), given, use the bounds provided in this file",
-"state_normalization": "given",
+"state_normalization": "adaptive",
     "comment__": "load a pretrained model for the controller",
 "load_saved_model": false,
 	"comment__": "Number of updates the critic should perform per actor update",
@@ -499,16 +499,14 @@
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice", "slice_index": 196, "slice_label": "grf" },
 							{"layer_type": "GaussianNoise", "stddev": 0.03},
-							{"layer_type": "Dense", "units": 512, "use_bias": true},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "Dense", "units": 256, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dense", "units": 64, "use_bias": true},
+							{"layer_type": "Dense", "units": 32, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "linear" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
-							{"layer_type": "Input", "shape": ["none", "none", 64]},
+							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.0, "recurrent_dropout": 0.0}
 							],
 	"comment__": "type of activation to use",
@@ -546,7 +544,7 @@
 	"comment__": "Use a stateful LSTM",
 "train_LSTM_FD_stateful": false,
 	"comment__": "batch size for lstm fd models",
-"lstm_batch_size": [8, 32],
+"lstm_batch_size": [32, 32],
 	"comment__": "experience size for fd network",
 "fd_expereince_length": 2500,
 	"comment__": "A mapping from working_id to task id",
@@ -593,24 +591,22 @@
 "decoder_network_layer_sizes": [ 
 								{"layer_type": "Dense", "units": 256, "use_bias": false},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dense", "units": 256, "use_bias": false},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 196, "use_bias": false},
 								{"layer_type": "activation", "activation_type": "linear" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes2": [
-							{"layer_type": "Input", "shape": ["none", "none", 64]},
+							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.0, "recurrent_dropout": 0.0, "activation": null},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "TimeDistributedConv", "net_info":
 							[ 
-								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "linear" }
 							]}
 							],
 	"comment__": "The encoding vector size used for the fd models",
-"encoding_vector_size": 64,
+"encoding_vector_size": 32,
 	"comment__": "Inform the system that a encoder decoder model is being used",
 "using_encoder_decoder_fd": false,
 	"comment__": "Inform the system that a encoder decoder model is being used",

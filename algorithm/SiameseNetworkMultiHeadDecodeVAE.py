@@ -78,8 +78,8 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
         self._train_combined_loss = False
         
         inputs_ = [self._model.getStateSymbolicVariable()] 
-        self._model._forward_dynamics_z_mean = keras.layers.Dense(64, activation = 'linear')(self._model._forward_dynamics_net)
-        self._model._forward_dynamics_z_log_var = keras.layers.Dense(64, activation = 'sigmoid')(self._model._forward_dynamics_net)
+        self._model._forward_dynamics_z_mean = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear')(self._model._forward_dynamics_net)
+        self._model._forward_dynamics_z_log_var = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid')(self._model._forward_dynamics_net)
         self._model._forward_dynamics_z = keras.layers.Lambda(sampling, output_shape=(self.getSettings()["encoding_vector_size"],), name='z')([self._model._forward_dynamics_z_mean, 
                                                                    self._model._forward_dynamics_z_log_var])
         
@@ -218,8 +218,8 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             sequence_layer = args[1]
             return RepeatVector(K.shape(sequence_layer)[1])(layer_to_repeat)
         ### Get a sequence as long as the state input
-        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_a_r, self._model.getResultStateSymbolicVariable()])
-        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, 64)) ([processed_b_r, result_state_copy])
+        encoder_a_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, self.getSettings()["encoding_vector_size"])) ([processed_a_r, self._model.getResultStateSymbolicVariable()])
+        encoder_b_outputs = keras.layers.Lambda(repeat_vector, output_shape=(None, self.getSettings()["encoding_vector_size"])) ([processed_b_r, result_state_copy])
         print ("Encoder a output shape: ", encoder_a_outputs)
         print ("Encoder b output shape: ", encoder_b_outputs)
         
@@ -254,7 +254,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                                           ,result_state_copy
                                                           ]
                                                           , outputs=[distance_r, 
-                                                                     # distance_fd2, 
+                                                                     distance_fd2, 
                                                                      decode_a, 
                                                                      decode_b,
                                                                      decode_a_vae,
@@ -316,7 +316,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             
             self._model._reward_net.compile(
                                             loss=[contrastive_loss
-                                                  #, contrastive_loss
+                                                  , contrastive_loss
                                                  ,"mse", "mse"
                                                  # ,vae_loss(network_vae=self._network_vae, 
                                                  #          network_vae_log_var=self._network_vae_log_var)
@@ -327,7 +327,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                                   ], 
                                             optimizer=sgd
                                             ,loss_weights=[0.6, 
-                                                           # 0.1, 
+                                                           0.1, 
                                                            0.1, 0.1, 0.05, 0.05]
                                             )
         else:
@@ -539,7 +539,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                         # print ("targets_ shape: ", targets_.shape)
                         score = self._model._reward_net.fit([sequences0, sequences1], 
                                       [targets__, 
-                                       # targets_,
+                                       targets_,
                                        sequences0_, sequences1_,
                                        sequences0_, sequences1_],
                                       epochs=1, 

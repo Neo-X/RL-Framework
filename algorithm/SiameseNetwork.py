@@ -428,6 +428,12 @@ def create_advisarial_sequences(traj0, traj1, settings):
     sequences1 = []
     targets_ = []
     indx = list(range(len(traj0)))
+    
+    ### Method to separate batches of positive and negative pairs.
+    pos_batch = False
+    if (np.random.rand() > 0.5):
+        pos_batch = True
+        
     for i in range(len(traj0)): ### for each trajectory pair
         tr0 = traj0[i]
         tr1 = traj1[i]
@@ -490,75 +496,70 @@ def create_advisarial_sequences(traj0, traj1, settings):
             
         else:
             
-            ### Noisy versions of the same trajectories
-            sequences0.append(add_noise(noise_scale, tr0[1:]))
-            sequences1.append(add_noise(noise_scale, tr0[:-1]))
-            targets = np.ones(tar_shape)
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            sequences0.append(add_noise(noise_scale, tr1[1:]))
-            sequences1.append(add_noise(noise_scale, tr1[:-1]))
-            targets = np.ones(tar_shape)
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            """
-            sequences0.append(add_noise(noise_scale, tr0[:-1]))
-            sequences1.append(add_noise(noise_scale, tr0[:-1]))
-            targets = np.ones(tar_shape)
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            sequences0.append(add_noise(noise_scale, tr1[:-1]))
-            sequences1.append(add_noise(noise_scale, tr1[:-1]))
-            targets = np.ones(tar_shape)
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            """ 
-            ### Versions of two different adversarial trajectories
+            if (False):
+                ### Noisy versions of the same trajectories
+                sequences0.append(add_noise(noise_scale, tr0[1:]))
+                sequences1.append(add_noise(noise_scale, tr0[:-1]))
+                targets = np.ones(tar_shape)
+                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                sequences0.append(add_noise(noise_scale, tr1[1:]))
+                sequences1.append(add_noise(noise_scale, tr1[:-1]))
+                targets = np.ones(tar_shape)
+                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                
+                """
+                sequences0.append(add_noise(noise_scale, tr0[:-1]))
+                sequences1.append(add_noise(noise_scale, tr0[:-1]))
+                targets = np.ones(tar_shape)
+                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                sequences0.append(add_noise(noise_scale, tr1[:-1]))
+                sequences1.append(add_noise(noise_scale, tr1[:-1]))
+                targets = np.ones(tar_shape)
+                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                """ 
+                ### trajectories from sim and real env should be similar
+                sequences0.append(add_noise(noise_scale, tr0[:-1]))
+                sequences1.append(add_noise(noise_scale, traj0[random.sample(set(indx) - set([i]), 1)[0]][:-1]))
+                targets = np.ones(tar_shape) - compare_adjustment
+                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                sequences0.append(add_noise(noise_scale, tr1[:-1]))
+                sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx) - set([i]), 1)[0]][:-1]))
+                targets = np.ones(tar_shape) - compare_adjustment
+                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
             
-            advisarial_swap_prob = 0.99
-            sequences0.append(add_noise(noise_scale, tr0[1:]))
-            sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]][1:]))
-            targets = np.zeros(tar_shape)
-            if (np.random.rand(0) > advisarial_swap_prob):
-                targets = targets + 1.0
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            sequences0.append(add_noise(noise_scale, tr0[:-1]))
-            sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]][:-1]))
-            targets = np.zeros(tar_shape)
-            if (np.random.rand(0) > advisarial_swap_prob):
-                targets = targets + 1.0
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            
-            sequences0.append(add_noise(noise_scale, tr0[1:]))
-            sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]][1:]))
-            targets = np.zeros(tar_shape)
-            if (np.random.rand(0) > advisarial_swap_prob):
-                targets = targets + 1.0
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            sequences0.append(add_noise(noise_scale, tr0[:-1]))
-            sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]][:-1]))
-            targets = np.zeros(tar_shape)
-            if (np.random.rand(0) > advisarial_swap_prob):
-                targets = targets + 1.0
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            
-            ### More Out of sync versions of two adversarial trajectories
-            """
-            sequences0.append(add_noise(noise_scale, traj0[random.sample(set(indx), 1)[0]][1:]))
-            sequences1.append(add_noise(noise_scale, tr1[:-1]))
-            targets = np.zeros(tar_shape)
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            sequences0.append(add_noise(noise_scale, traj0[random.sample(set(indx), 1)[0]][:-1]))
-            sequences1.append(add_noise(noise_scale, tr1[1:]))
-            targets = np.zeros(tar_shape)
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            """
-            ### trajectories from sim and real env should be similar
-            sequences0.append(add_noise(noise_scale, tr0[:-1]))
-            sequences1.append(add_noise(noise_scale, traj0[random.sample(set(indx) - set([i]), 1)[0]][:-1]))
-            targets = np.ones(tar_shape) - compare_adjustment
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            sequences0.append(add_noise(noise_scale, tr1[:-1]))
-            sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx) - set([i]), 1)[0]][:-1]))
-            targets = np.ones(tar_shape) - compare_adjustment
-            targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
-            
+            else:
+                ### Versions of two different adversarial trajectories
+                advisarial_swap_prob = 0.999
+                sequences0.append(add_noise(noise_scale, tr0[1:]))
+                sequences1.append(add_noise(noise_scale, tr1[1:]))
+                targets = np.zeros(tar_shape)
+                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                sequences0.append(add_noise(noise_scale, tr0[:-1]))
+                sequences1.append(add_noise(noise_scale, tr1[:-1]))
+                targets = np.zeros(tar_shape)
+                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                ### Versions of two different adversarial trajectories from different classes
+                """
+                sequences0.append(add_noise(noise_scale, tr0[1:]))
+                sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]][1:]))
+                targets = np.zeros(tar_shape)
+                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                sequences0.append(add_noise(noise_scale, tr0[:-1]))
+                sequences1.append(add_noise(noise_scale, traj1[random.sample(set(indx), 1)[0]][:-1]))
+                targets = np.zeros(tar_shape)
+                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                """
+                ### More Out of sync versions of two adversarial trajectories
+                """
+                sequences0.append(add_noise(noise_scale, traj0[random.sample(set(indx), 1)[0]][1:]))
+                sequences1.append(add_noise(noise_scale, tr1[:-1]))
+                targets = np.zeros(tar_shape)
+                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                sequences0.append(add_noise(noise_scale, traj0[random.sample(set(indx), 1)[0]][:-1]))
+                sequences1.append(add_noise(noise_scale, tr1[1:]))
+                targets = np.zeros(tar_shape)
+                targets_.append(np.clip(add_noise(target_noise_scale, targets), 0.01, 0.98))
+                """
             
     # print ("Created advisarial trajectories: ")
     
