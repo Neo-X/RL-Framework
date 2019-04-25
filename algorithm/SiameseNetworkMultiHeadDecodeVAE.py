@@ -326,9 +326,10 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                                  ,self.vae_loss_b
                                                   ], 
                                             optimizer=sgd
-                                            ,loss_weights=[0.99, 
+                                            ,loss_weights=[0.7, 
                                                            0.001, 
-                                                           0.001, 0.001, 0.0005, 0.0005]
+                                                           0.05, 0.05, 
+                                                           0.10, 0.10]
                                             )
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
@@ -456,12 +457,23 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             ### result states can be from the imitation agent.
             # print ("falls: ", falls)
             if (falls is None):
+                sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
                 if ("include_agent_imitator_pairs" in self._settings
                     and (self._settings["include_agent_imitator_pairs"] == True)):
+                    """
+                    sequences0_, sequences1_, targets___ = create_advisarial_sequences(states, result_states, self._settings)
+                    sequences0.extend(sequences0_)
+                    sequences1.extend(sequences1_)
+                    targets_.extend(targets___)
+                    sequences0_, sequences1_, targets___ = create_advisarial_sequences(states, result_states, self._settings)
+                    sequences0.extend(sequences0_)
+                    sequences1.extend(sequences1_)
+                    targets_.extend(targets___)
+                    """
                     sequences0, sequences1, targets_ = create_advisarial_sequences(states, result_states, self._settings)
-                else:
-                    print ("blah")
-                    sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
+                    # sequences0.extend(sequences0_)
+                    # sequences1.extend(sequences1_)
+                    # targets_.extend(targets___)
             else:
                 sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
             sequences0 = np.array(sequences0)
@@ -537,15 +549,45 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                         # print ("sequences1 shape: ", sequences1.shape)
                         # print ("targets__ shape: ", targets__.shape)
                         # print ("targets_ shape: ", targets_.shape)
-                        score = self._model._reward_net.fit([sequences0, sequences1], 
-                                      [targets__, 
-                                       targets_,
-                                       sequences0_, sequences1_,
-                                       sequences0_, sequences1_],
+                        ### separate data into positive and negative batches
+                        # for k in range(len(sequences0)):
+                        indecies_ = list(range(len(targets__)))
+                        print ("targets__: ", targets__)
+                        print("indecies_: ", indecies_)
+                        if ("seperate_posandneg_pairs" in self._settings
+                            and (self._settings["seperate_posandneg_pairs"] == True)):
+                            less_ = np.less(targets__, 0.5)
+                            negative_indecies = np.where(less_ == True)[0]
+                            positive_indecies = np.where(less_ == False)[0]
+                            print ("negative_indecies: ", negative_indecies)
+                            indecies_ = negative_indecies 
+                        
+                        score = self._model._reward_net.fit([sequences0[indecies_], sequences1[indecies_]], 
+                                      [targets__[indecies_], 
+                                       targets_[indecies_],
+                                       sequences0_[indecies_], sequences1_[indecies_],
+                                       sequences0_[indecies_], sequences1_[indecies_]],
                                       epochs=1, 
                                       batch_size=sequences0.shape[0],
                                       verbose=0
                                       )
+                        
+                        if ("seperate_posandneg_pairs" in self._settings
+                            and (self._settings["seperate_posandneg_pairs"] == True)):
+                            less_ = np.less(targets__, 0.5)
+                            positive_indecies = np.where(less_ == False)[0]
+                            # print ("negative_indecies: ", negative_indecies)
+                            indecies_ = positive_indecies
+                            score_ = self._model._reward_net.fit([sequences0[indecies_], sequences1[indecies_]], 
+                                      [targets__[indecies_], 
+                                       targets_[indecies_],
+                                       sequences0_[indecies_], sequences1_[indecies_],
+                                       sequences0_[indecies_], sequences1_[indecies_]],
+                                      epochs=1, 
+                                      batch_size=sequences0.shape[0],
+                                      verbose=0
+                                      )
+                            score.history['loss'].extend(score_.history['loss'])
                     else:
                         score = self._model._reward_net.fit([sequences0, sequences1], [targets__],
                                       epochs=1, 

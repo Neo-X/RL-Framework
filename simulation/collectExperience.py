@@ -235,7 +235,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                 and (settings["use_dual_state_representations"] == True)):
                 _states.append([np.array(np.array(tmp_states__[0]), dtype=settings['float_type']) for tmp_states__ in states_[i]])
                 _result_states.append([np.array(np.array(tmp_result_states__[0]), dtype=settings['float_type']) for tmp_result_states__ in resultStates_[i]])
-                print ("Grabbing dual fd trajectory")
+                # print ("Grabbing dual fd trajectory")
                 _states_fd.append([np.array(np.array(tmp_states__[1]), dtype=settings['float_type']) for tmp_states__ in states_[i]])
                 _result_states_fd.append([np.array(np.array(tmp_result_states__[1]), dtype=settings['float_type']) for tmp_result_states__ in resultStates_[i]])
             else:
