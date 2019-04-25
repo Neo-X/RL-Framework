@@ -552,15 +552,18 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                         ### separate data into positive and negative batches
                         # for k in range(len(sequences0)):
                         indecies_ = list(range(len(targets__)))
-                        print ("targets__: ", targets__)
-                        print("indecies_: ", indecies_)
+                        # print ("targets__: ", targets__)
+                        # print("indecies_: ", indecies_)
                         if ("seperate_posandneg_pairs" in self._settings
                             and (self._settings["seperate_posandneg_pairs"] == True)):
                             less_ = np.less(targets__, 0.5)
                             negative_indecies = np.where(less_ == True)[0]
                             positive_indecies = np.where(less_ == False)[0]
-                            print ("negative_indecies: ", negative_indecies)
-                            indecies_ = negative_indecies 
+                            # print ("negative_indecies: ", negative_indecies)
+                            indecies_ = negative_indecies
+                            # if (np.random.rand() > 0.5):
+                            #     indecies_ = positive_indecies 
+                                
                         
                         score = self._model._reward_net.fit([sequences0[indecies_], sequences1[indecies_]], 
                                       [targets__[indecies_], 
@@ -588,6 +591,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                       verbose=0
                                       )
                             score.history['loss'].extend(score_.history['loss'])
+                        
                     else:
                         score = self._model._reward_net.fit([sequences0, sequences1], [targets__],
                                       epochs=1, 
