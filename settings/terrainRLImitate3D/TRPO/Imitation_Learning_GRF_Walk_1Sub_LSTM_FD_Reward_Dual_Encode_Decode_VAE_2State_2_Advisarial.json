@@ -502,7 +502,7 @@
 							{"layer_type": "Dense", "units": 256, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "Dense", "units": 32, "use_bias": true},
-							{"layer_type": "activation", "activation_type": "linear" }
+							{"layer_type": "activation", "activation_type": "relu" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [

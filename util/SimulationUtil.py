@@ -285,8 +285,9 @@ def validateSettings(settings):
         print ("Basic fall reward shaping does not work with a non gaussian learned_reward_smoother.")
         return False
     
-    if (settings["use_single_network"] == True and
-        (settings["agent_name"] == "algorithm.TRPO_KERAS.TRPO_KERAS")):
+    if ("use_single_network" in settings 
+        and (settings["use_single_network"] == True)
+         and (settings["agent_name"] == "algorithm.TRPO_KERAS.TRPO_KERAS")):
         ### A single network model does not work well for TRPO
         print ("A single network model does not work well for TRPO.")
         return False
