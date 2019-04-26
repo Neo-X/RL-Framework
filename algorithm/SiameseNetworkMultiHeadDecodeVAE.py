@@ -460,7 +460,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                 sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
                 if ("include_agent_imitator_pairs" in self._settings
                     and (self._settings["include_agent_imitator_pairs"] == True)):
-                    """
+                    
                     sequences0_, sequences1_, targets___ = create_advisarial_sequences(states, result_states, self._settings)
                     sequences0.extend(sequences0_)
                     sequences1.extend(sequences1_)
@@ -469,11 +469,15 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                     sequences0.extend(sequences0_)
                     sequences1.extend(sequences1_)
                     targets_.extend(targets___)
-                    """
-                    sequences0, sequences1, targets_ = create_advisarial_sequences(states, result_states, self._settings)
+                    
+                    # sequences0, sequences1, targets_ = create_advisarial_sequences(states, result_states, self._settings)
                     # sequences0.extend(sequences0_)
                     # sequences1.extend(sequences1_)
                     # targets_.extend(targets___)
+                if ("target_invert_prob" in self._settings
+                    and (np.random.rand(1)[0] < self._settings["target_invert_prob"] )):
+                    targets_ = np.fabs(np.array(targets_) - 1.0)
+                
             else:
                 sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
             sequences0 = np.array(sequences0)
@@ -525,6 +529,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             else:
                 # print ("targets_[:,:,0]: ", np.mean(targets_, axis=1))
                 targets__ = np.mean(targets_, axis=1)
+                # print ("targets__: ", targets__)
                 if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
                     score = self._model._forward_dynamics_net.fit([sequences0, sequences1], [targets__],
