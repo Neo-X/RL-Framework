@@ -190,8 +190,8 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             
         else:
             
-            processed_a_r = self._model._reward_net(network_)
-            processed_b_r = self._model._reward_net(network_b)
+            processed_a_r_seq, processed_a_r = self._model._reward_net(network_)
+            processed_b_r_seq, processed_b_r = self._model._reward_net(network_b)
             
             encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(processed_a_r)[1:]
                                                                           , name="encoding_2"
@@ -460,7 +460,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                 sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
                 if ("include_agent_imitator_pairs" in self._settings
                     and (self._settings["include_agent_imitator_pairs"] == True)):
-                    
+                    """
                     sequences0_, sequences1_, targets___ = create_advisarial_sequences(states, result_states, self._settings)
                     sequences0.extend(sequences0_)
                     sequences1.extend(sequences1_)
@@ -469,8 +469,8 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                     sequences0.extend(sequences0_)
                     sequences1.extend(sequences1_)
                     targets_.extend(targets___)
-                    
-                    # sequences0, sequences1, targets_ = create_advisarial_sequences(states, result_states, self._settings)
+                    """
+                    sequences0, sequences1, targets_ = create_advisarial_sequences(states, result_states, self._settings)
                     # sequences0.extend(sequences0_)
                     # sequences1.extend(sequences1_)
                     # targets_.extend(targets___)

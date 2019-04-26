@@ -499,15 +499,18 @@
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice", "slice_index": 196, "slice_label": "grf" },
 							{"layer_type": "GaussianNoise", "stddev": 0.03},
-							{"layer_type": "Dense", "units": 256, "use_bias": true},
+							{"layer_type": "Dense", "units": 256, "use_bias": false},
+							{"layer_type": "BatchNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dense", "units": 32, "use_bias": true},
+							{"layer_type": "Dense", "units": 32, "use_bias": false},
+							{"layer_type": "BatchNormalization"},
 							{"layer_type": "activation", "activation_type": "relu" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 32]},
-							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.0, "recurrent_dropout": 0.0}
+							{"layer_type": "LayerNormalization"},
+							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.0, "recurrent_dropout": 0.0}
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -544,7 +547,7 @@
 	"comment__": "Use a stateful LSTM",
 "train_LSTM_FD_stateful": false,
 	"comment__": "batch size for lstm fd models",
-"lstm_batch_size": [6, 32],
+"lstm_batch_size": [32, 32],
 	"comment__": "experience size for fd network",
 "fd_expereince_length": 5000,
 	"comment__": "A mapping from working_id to task id",
@@ -582,7 +585,7 @@
 	"comment__": "Return sequences from lstm training",
 "return_rnn_sequence": false,
 	"comment__": "condition siamese network on RNN internal state as well.",
-"condition_on_rnn_internal_state": true,
+"condition_on_rnn_internal_state": false,
 	"comment__": "Train the fd network as well",
 "train_lstm_fd_and_reward_together": false,
 	"comment__": "Train the fd network as well",
@@ -590,17 +593,21 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [ 
 								{"layer_type": "Dense", "units": 256, "use_bias": false},
+								{"layer_type": "BatchNormalization"},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 196, "use_bias": false},
+								{"layer_type": "BatchNormalization"},
 								{"layer_type": "activation", "activation_type": "linear" }
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes2": [
 							{"layer_type": "Input", "shape": ["none", "none", 32]},
-							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.0, "recurrent_dropout": 0.0, "activation": null},
+							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.0, "recurrent_dropout": 0.0, "activation": null},
+							{"layer_type": "LayerNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "TimeDistributedConv", "net_info":
 							[ 
+								{"layer_type": "BatchNormalization"},
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "linear" }
 							]}
