@@ -474,10 +474,6 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                     # sequences0.extend(sequences0_)
                     # sequences1.extend(sequences1_)
                     # targets_.extend(targets___)
-                if ("target_invert_prob" in self._settings
-                    and (np.random.rand(1)[0] < self._settings["target_invert_prob"] )):
-                    targets_ = np.fabs(np.array(targets_) - 1.0)
-                
             else:
                 sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
             sequences0 = np.array(sequences0)
