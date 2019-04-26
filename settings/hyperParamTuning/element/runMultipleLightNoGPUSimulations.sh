@@ -30,7 +30,8 @@ declare -a metaExps=(
  				"settings/hyperParamTuning/element/fd_updates_per_actor_update.json" 
 #				"settings/hyperParamTuning/element/GAE_lambda.json"
 #  				"settings/hyperParamTuning/element/image_noise_scale.json" 
-#  				"settings/hyperParamTuning/element/imperfect_compare_offset.json" 
+#  				"settings/hyperParamTuning/element/imperfect_compare_offset.json"
+				"settings/hyperParamTuning/element/include_agent_imitator_pairs.json" 
 # 				"settings/hyperParamTuning/element/initial_temperature.json" 
 #  				"settings/hyperParamTuning/element/kl_divergence_threshold.json"
 #				"settings/hyperParamTuning/element/learned_reward_smoother.json" 
@@ -45,6 +46,7 @@ declare -a metaExps=(
 #  				"settings/hyperParamTuning/element/pretrain_critic.json" 
   				"settings/hyperParamTuning/element/pretrain_fd.json" 
 # 				"settings/hyperParamTuning/element/reset_on_fall.json" 
+				"settings/hyperParamTuning/element/seperate_posandneg_pairs.json"
 				"settings/hyperParamTuning/element/shorter_smaller_rnn_batches.json"
 #				"settings/hyperParamTuning/element/state_normalization.json"
 #				"settings/hyperParamTuning/element/use_random_sequence_length_for_lstm.json"		
@@ -60,7 +62,8 @@ declare -a simConfigs=(
 
 #	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_2State_2.json"
 
-"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+	"settings/terrainRLImitate3D/TRPO/MultiTask_Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
 
 #
