@@ -370,6 +370,11 @@ class LearningAgent(AgentInterface):
                     batch_size_lstm_fd = 4
                     if ("lstm_batch_size" in self._settings):
                         batch_size_lstm_fd = self._settings["lstm_batch_size"][0]
+                        
+                    ### Hack so that I can hyper tune without changing the batch_size as well.
+                    if ("include_agent_imitator_pairs" in self._settings
+                        and (self._settings["include_agent_imitator_pairs"] == True)):
+                        batch_size_lstm_fd = batch_size_lstm_fd* batch_size_lstm_fd
                     if (("train_LSTM_FD" in self._settings)
                         and (self._settings["train_LSTM_FD"] == True)):
                         for e in range(updates___):   

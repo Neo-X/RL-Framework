@@ -316,7 +316,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             
             self._model._reward_net.compile(
                                             loss=[contrastive_loss
-                                                  , contrastive_loss
+                                                  ,contrastive_loss
                                                  ,"mse", "mse"
                                                  # ,vae_loss(network_vae=self._network_vae, 
                                                  #          network_vae_log_var=self._network_vae_log_var)
@@ -477,7 +477,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
             else:
                 sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
             sequences0 = np.array(sequences0)
-            # print ("sequences0 shape: ", sequences0.shape)
+            print ("sequences0 shape: ", sequences0.shape)
             sequences1 = np.array(sequences1)
             targets_ = np.array(targets_)
             

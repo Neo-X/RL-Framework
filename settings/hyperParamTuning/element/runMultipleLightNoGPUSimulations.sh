@@ -35,7 +35,7 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/initial_temperature.json" 
 #  				"settings/hyperParamTuning/element/kl_divergence_threshold.json"
 #				"settings/hyperParamTuning/element/learned_reward_smoother.json" 
-  				"settings/hyperParamTuning/element/lstm_batch_size.json" 
+#  				"settings/hyperParamTuning/element/lstm_batch_size.json" 
 # 				"settings/hyperParamTuning/element/min_sequece_length.json" 
 # 				"settings/hyperParamTuning/element/normalize_advantage.json" 
 #  				"settings/hyperParamTuning/element/num_on_policy_rollouts.json" 
@@ -44,12 +44,12 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/policy_network_layer_sizes.json"	
 #  				"settings/hyperParamTuning/element/ppo_et_factor.json"
 #  				"settings/hyperParamTuning/element/pretrain_critic.json" 
-  				"settings/hyperParamTuning/element/pretrain_fd.json" 
+#   				"settings/hyperParamTuning/element/pretrain_fd.json" 
 # 				"settings/hyperParamTuning/element/reset_on_fall.json" 
 				"settings/hyperParamTuning/element/seperate_posandneg_pairs.json"
 				"settings/hyperParamTuning/element/shorter_smaller_rnn_batches.json"
 #				"settings/hyperParamTuning/element/state_normalization.json"
-#				"settings/hyperParamTuning/element/use_random_sequence_length_for_lstm.json"		
+				"settings/hyperParamTuning/element/use_random_sequence_length_for_lstm.json"		
 #  				"settings/hyperParamTuning/element/use_single_network.json"
 #  				"settings/hyperParamTuning/element/use_stocastic_policy.json"
 #  				"settings/hyperParamTuning/element/use_target_net_for_critic.json"
@@ -59,11 +59,13 @@ declare -a metaExps=(
 ## declare an array variable
 declare -a simConfigs=(
 #	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_2State_2.json"
+	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
 #	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_2State_2.json"
+	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
-	"settings/terrainRLImitate3D/TRPO/MultiTask_Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+#	"settings/terrainRLImitate3D/TRPO/MultiTask_Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
 
 #
