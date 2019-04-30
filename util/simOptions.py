@@ -24,6 +24,12 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Folder instance name. This is some suffix to help prevent folder name clashes when running new simulations")
     
+    parser.add_option("--extra_opts",
+              action="store", dest="opts",
+              default=None,
+              metavar="STRING", 
+              help="Extra options that are given to the simulation when executed on the command line.")
+    
     parser.add_option("--train_actor",
               action="store", dest="train_actor", default=None,
               type='choice',
