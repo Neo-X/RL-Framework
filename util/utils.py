@@ -36,6 +36,10 @@ def load_keras_model(filename, custom_objects={}):
     model = load_model(filename, custom_objects)
     return model
 
+def split(a, n):
+    k, m = divmod(len(a), n)
+    return (a[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(n))
+
 import json
 class NumpyEncoder(json.JSONEncoder):
     """

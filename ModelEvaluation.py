@@ -488,7 +488,7 @@ if __name__ == "__main__":
     print ("Settings: " + str(json.dumps(settings, indent=4)))
     
     if (settings['shouldRender'] == 'yes'):
-        modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render='yes')
+        sim = modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render='yes')
     else:
-        modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render=True)
+        sim = modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render=True)
     
