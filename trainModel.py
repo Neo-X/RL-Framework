@@ -467,7 +467,7 @@ def trainModelParallel(inputData):
         settings['git_revision_short_hash'] = get_git_revision_short_hash()     
         ### copy settings file
         out_file_name=directory+os.path.basename(settingsFileName)
-        print ("Saving settings file with data: ", out_file_name)
+        # print ("Saving settings file with data: ", out_file_name)
         out_file = open(out_file_name, 'w')
         out_file.write(json.dumps(settings, indent=4))
         out_file.close()

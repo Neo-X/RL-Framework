@@ -134,6 +134,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     sim_settings=[]
     sim_settingFileNames=[]
     sim_data = []
+    sim_data_files = []
     for i in range(samples):
         settings['data_folder'] = settings_original['data_folder'] + "_" + str(i)
         settings['random_seed'] = int(settings['random_seed']) + ((int(settings['num_available_threads']) + 1) * i)
@@ -160,6 +161,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         sim_settings.append(copy.deepcopy(settings))
         sim_settingFileNames.append(settingsFileName)
         sim_data.append((settingsFileName,copy.deepcopy(settings)))
+        sim_data_files.append(getDataDirectory(settings)+os.path.basename(settingsFileName))
         
         ## Create data directory and copy any desired files to these folders .
         if ( not (hyperSettings is None) ):
@@ -207,6 +209,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
     result_data['raw_sim_time_in_seconds'] = t1-t0
     result_data['Number_of_simulations_sampled'] = samples
     result_data['Number_of_threads_used'] = numThreads
+    result_data['sim_file_locations'] = sim_data_files
     
     if (("email_log_data_periodically" in settings_original)
             and (settings_original["email_log_data_periodically"] == True)):

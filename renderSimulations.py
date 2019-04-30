@@ -40,11 +40,18 @@ if __name__ == "__main__":
 			
 			result = tuneHyperParameters(simsettingsFileName=simConfigFile, 
 										simSettings=simSettings_, hyperSettings=hyperSettings_)
-			print('code: ' + str(result["hyper_param_settings_files"]))
 			
 			### Render simulation result
-			simSettings_["save_video_to_file"] = "eval_movie2.mp4"
-			simSettings_["visualize_expected_value"] = False
-			modelEvaluation(sys.argv[1], runLastModel=False, settings=simSettings_, render=True)
+			for result in result["meta_sim_result"]:
+				
+				for file_ in result["sim_file_locations"]:
+					print ("")
+					print('file: ' + str(file_))
+					file = open(file_)
+					simSettings_ = json.load(file)
+					file.close()
+					simSettings_["save_video_to_file"] = "eval_movie2.mp4"
+					simSettings_["visualize_expected_value"] = False
+					modelEvaluation(sys.argv[1], runLastModel=False, settings=simSettings_, render=True)
 
 

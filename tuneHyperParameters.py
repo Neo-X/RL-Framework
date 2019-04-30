@@ -63,7 +63,7 @@ def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     dataTar = tarfile.open(tarFileName, mode='w:gz')
     if "meta_sim_result" in simData: 
         for meta_result in simData['meta_sim_result']:
-            print (meta_result)
+            # print (meta_result)
             for simsettings_tmp in meta_result['settings_files']:
                 addDataToTarBall(dataTar, simsettings_tmp)
     polt_settings_files = []    
@@ -242,7 +242,7 @@ def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, sa
         # file = open(settingsFileName, 'r')
         
         out_file_name=directory+os.path.basename(simsettingsFileName)
-        result_data['hyper_param_settings_files'].append(out_file_name)
+        # result_data['hyper_param_settings_files'].append(out_file_name)
         print ("Saving settings file with data to: ", out_file_name)
         print ("settings['data_folder']: ", settings['data_folder'])
         out_file = open(out_file_name, 'w')
@@ -271,7 +271,7 @@ def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, sa
     result_data['raw_sim_time_in_seconds'] = t1-t0
     result_data['Number_of_simulations_sampled'] = len(param_settings)
     result_data['Number_of_threads_used'] = hyper_settings['tuning_threads'] 
-    print (result)
+    # print (result)
     
     if (("email_log_data_periodically" in simSettings)
             and (simSettings["email_log_data_periodically"] == True)):
