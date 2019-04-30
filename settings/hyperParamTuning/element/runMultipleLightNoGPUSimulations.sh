@@ -59,12 +59,13 @@ declare -a metaExps=(
 ## declare an array variable
 declare -a simConfigs=(
 #	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_2State_2.json"
-	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+#	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
 #	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_2State_2.json"
-	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+#	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 #	"settings/terrainRLImitate3D/TRPO/MultiTask_Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
 
