@@ -63,6 +63,7 @@ if __name__ == "__main__":
 					simSettings_["save_video_to_file"] = "eval_movie2.mp4"
 					simSettings_["visualize_expected_value"] = False
 					simSettings_["eval_epochs"] = 2
+					simSettings_["shouldRender"] = True
 					sim_data.append((sys.argv[1], copy.deepcopy(simSettings_)))
 					# modelEvaluation(sys.argv[1], runLastModel=False, settings=simSettings_, render=True)
 

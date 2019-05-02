@@ -54,7 +54,7 @@ declare -a simExps=(
 #	"settings/terrainRLImitate3D/PPO/Humanoid1_Flat_Tensorflow_LLC.json"
 	"settings/terrainRLImitate3D/PPO/Humanoid1_Flat_Tensorflow_MultiAgent_LLC.json"
 #	"settings/terrainRLImitate3D/TRPO/Humanoid1_Flat_Tensorflow_LLC.json"
-	"settings/terrainRLImitate3D/TRPO/Humanoid1_Flat_Tensorflow_MultiAgent_LLC.json"
+	"settings/terrainRLImitate3D/CACLA/Humanoid1_Flat_Tensorflow_MultiAgent_LLC.json"
 )
 
 rounds=$1
