@@ -22,9 +22,9 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/critic_updates_per_actor_update.json"
 #				"settings/hyperParamTuning/element/dont_use_td_learning.json"
 # 				"settings/hyperParamTuning/element/dropout_p.json" 
-# 				"settings/hyperParamTuning/element/exploration_rate.json"
+ 				"settings/hyperParamTuning/element/exploration_rate.json"
 # 				"settings/hyperParamTuning/element/fd_algorithm.json"
- 				"settings/hyperParamTuning/element/fd_distance_function.json"
+#  				"settings/hyperParamTuning/element/fd_distance_function.json"
 # 				"settings/hyperParamTuning/element/fd_expereince_length.json" 
 # 				"settings/hyperParamTuning/element/fd_learning_rate.json" 
  				"settings/hyperParamTuning/element/fd_updates_per_actor_update.json" 
@@ -44,10 +44,10 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/policy_network_layer_sizes.json"	
 #  				"settings/hyperParamTuning/element/ppo_et_factor.json"
 #  				"settings/hyperParamTuning/element/pretrain_critic.json" 
-#   				"settings/hyperParamTuning/element/pretrain_fd.json" 
+#   			"settings/hyperParamTuning/element/pretrain_fd.json" 
 # 				"settings/hyperParamTuning/element/reset_on_fall.json" 
 				"settings/hyperParamTuning/element/seperate_posandneg_pairs.json"
-				"settings/hyperParamTuning/element/shorter_smaller_rnn_batches.json"
+#				"settings/hyperParamTuning/element/shorter_smaller_rnn_batches.json"
 #				"settings/hyperParamTuning/element/state_normalization.json"
 				"settings/hyperParamTuning/element/use_fall_reward_shaping.json"
 				"settings/hyperParamTuning/element/use_fall_reward_shaping2.json"
@@ -61,13 +61,17 @@ declare -a metaExps=(
 ## declare an array variable
 declare -a simConfigs=(
 #	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_2State_2.json"
-	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+# 	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
 # 	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_2State_2.json"
-	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+# 	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
-# 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
-# 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+ 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+ 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+
+ 	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+ 	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_ZombieWalk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+
 #	"settings/terrainRLImitate3D/TRPO/MultiTask_Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
 
@@ -92,7 +96,7 @@ do
 	### GPU training
 # 	 	arg="source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --num_rounds=${rounds} --plot=false --on_policy=fast --shouldRender=false --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 4 --rollouts=16 --simulation_timeout=1200 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --force_sim_net_to_cpu=true ${opts}"
 		arg=$arg$output
-		command=(borgy submit --restartable --cpu=24 --mem=64 --max-run-time-secs=100000 -w /home/"$USER" -v /mnt/home/"$USER":/home/"$USER" --image=images.borgy.elementai.lan/glen:latest2 -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/"$USER" -- /bin/bash -c "$arg")
+		command=(borgy submit --restartable --cpu=24 --mem=64 --max-run-time-secs=200000 -w /home/"$USER" -v /mnt/home/"$USER":/home/"$USER" --image=images.borgy.elementai.lan/glen:latest2 -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/"$USER" -- /bin/bash -c "$arg")
 		echo "${command[@]}"
 		# eval $command
 		"${command[@]}"
