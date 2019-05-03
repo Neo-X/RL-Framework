@@ -4,10 +4,10 @@
 				"settings/hyperParamTuning/element/exploration_rate.json"	
 ],
 "simConfigs": [
-	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v4.json",
-	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v4.json",
-	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v4.json",
-	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v4.json"
+	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v3.json",
+	"settings/terrainRLMultiChar/HLC/CACLA/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v3.json",
+	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_SimpleReward_NEWLLC_Tensorflow_v3.json",
+	"settings/terrainRLMultiChar/HLC/PPO/Concentric_Circles_SimpleReward_5_NEWLLC_Tensorflow_v3.json"
 ],
 "rounds": 1000,
 "opts": "",
