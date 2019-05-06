@@ -56,16 +56,19 @@ if __name__ == "__main__":
 				
 				for file_ in result["sim_file_locations"]:
 					print ("")
-					print('file: ' + str(file_))
-					file = open(file_)
-					simSettings_ = json.load(file)
-					file.close()
-					simSettings_["save_video_to_file"] = "eval_movie2.mp4"
-					simSettings_["visualize_expected_value"] = False
-					simSettings_["eval_epochs"] = 2
-					simSettings_["shouldRender"] = True
-					sim_data.append((sys.argv[1], copy.deepcopy(simSettings_)))
+					try:
+						print('file: ' + str(file_))
+						file = open(file_)
+						simSettings_ = json.load(file)
+						file.close()
+						simSettings_["save_video_to_file"] = "eval_movie2.mp4"
+						simSettings_["visualize_expected_value"] = False
+						simSettings_["eval_epochs"] = 2
+						simSettings_["shouldRender"] = True
+						sim_data.append((sys.argv[1], copy.deepcopy(simSettings_)))
 					# modelEvaluation(sys.argv[1], runLastModel=False, settings=simSettings_, render=True)
+					except:
+						print ("Simulation config missing.")
 
 	numThreads = simulationsSettings_["render_threads"]
 	p = ProcessingPool(numThreads, maxtasksperchild=1)

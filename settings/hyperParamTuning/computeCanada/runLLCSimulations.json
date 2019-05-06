@@ -1,0 +1,19 @@
+{
+"metaExps": [
+ 				"settings/hyperParamTuning/element/anneal_policy_std.json",
+				"settings/hyperParamTuning/element/exploration_rate.json",
+				"settings/hyperParamTuning/element/kl_divergence_threshold.json"	
+],
+"simConfigs": [
+	"settings/terrainRLImitate3D/CACLA/Flat_Tensorflow_MultiAgent_LLC.json",
+	"settings/terrainRLImitate3D/PPO/Flat_Tensorflow_MultiAgent_LLC.json",
+	"settings/terrainRLImitate3D/PPO/Humanoid1_Flat_Tensorflow_MultiAgent_LLC.json",
+	"settings/terrainRLImitate3D/CACLA/Humanoid1_Flat_Tensorflow_MultiAgent_LLC.json"
+],
+"rounds": 1000,
+"opts": "",
+"meta_sim_samples": 2,
+"meta_sim_threads": 2,
+"tuning_threads": 2,
+"render_threads": 4
+}

@@ -237,7 +237,12 @@ def modelEvaluationParallel(settings_file_name):
         sw.join()
         
 def _modelEvaluation(inputData):
-    modelEvaluation(settings_file_name=inputData[0], settings=inputData[1])
+    try:
+        modelEvaluation(settings_file_name=inputData[0], settings=inputData[1])
+    except:
+        print ("model evaluation failed")
+        
+    return True
 
 def modelEvaluation(settings_file_name, settings=None, runLastModel=False, render=True, exp=None):
     
