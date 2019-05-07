@@ -224,3 +224,12 @@ class GymMultiCharEnv(SimInterface):
         
     def getTaskID(self):
         return self.getEnvironment().getTaskID()
+    
+    def setMovieWriter(self, mw):
+        """
+            Set an object that can be used to record frames for writing out a video of the simulation
+        """
+        self._mv = mw
+    
+    def movieWriterSupport(self):
+        return True

@@ -17,6 +17,7 @@ class SimInterface(object):
         # super(BallGame1DChoiceState,self).__init__()
         self._exp = exp
         self._settings = settings_
+        self._mv = None
         self._actor = DoNothingActor(settings_=settings_, experience=None)
         
     def getSettings(self):
@@ -122,3 +123,14 @@ class SimInterface(object):
             compute the reward in the simulation 
         """
         return self.getEnvironment().computeImitationReward(reward_func)
+    
+    def setMovieWriter(self, mw):
+        """
+            Set an object that can be used to record frames for writing out a video of the simulation
+        """
+        self._mv = mw
+    def getMovieWriter(self):
+        return self._mv
+        
+    def movieWriterSupport(self):
+        return False

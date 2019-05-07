@@ -96,6 +96,18 @@ class GymMultiCharActor(ActorInterface):
             self.updateActor(sim, action_)
             updates_+=1
             reward_ = reward_ + np.array(sim.getEnvironment().calcRewards())
+            if (sim.getMovieWriter() is not None
+                and (sim.movieWriterSupport())):
+                ### If the sim does not have it's own writing support
+                vizData = sim.getEnvironment().getFullViewData()
+                # movie_writer.append_data(np.transpose(vizData))
+                # print ("sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
+                image_ = np.zeros((vizData.shape))
+                for row in range(len(vizData)):
+                    image_[row] = vizData[len(vizData)-row - 1]
+                # print ("Writing image to video") 
+                sim.getMovieWriter().append_data(image_)
+            
             # print("Update #: ", updates_)
         if (updates_ == 0): #Something went wrong...
             print("There were no updates... This is bad")

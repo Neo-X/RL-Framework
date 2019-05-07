@@ -5,6 +5,11 @@ This folder contains some scripts and files to run simulations in a singularity 
 
 ```
 ssh -i ~/.ssh/id_rsa gberseth_gmail_com@34.83.188.132
+ssh -i ~/.ssh/id_rsa gberseth_gmail_com@35.203.130.126
+```
+or
+```
+gcloud compute --project "glen-rl-framework" ssh --zone "us-west1-c" "instance-default"
 ```
 
 ## Getting Started
@@ -73,7 +78,7 @@ SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL  singularity exec --cleanenv --bind
 
 - Start a training simulation for training a multichar model
 ```
-SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments singularity exec --cleanenv --home /Cluster/playground/RL-Framework/:/opt/RL-Framework /Cluster/SingularityBuilding/ubuntu_learning.img python3.6 trainModel.py --config=settings/terrainRLMultiChar/HLC/CACLA/LargeBlocks_Multi_Char_On_Policy.json -p 2 --bootstrap_samples=1000 --rollouts=2 --max_epoch_length=64 --on_policy=fast --save_experience_memory=continual --num_rounds=10 --print_level=train --continue_training=false --saving_update_freq_num_rounds=1 --epochs=4 --eval_epochs=8 --plot=false --meta_sim_samples=2 --meta_sim_threads=2 --plotting_update_freq_num_rounds=1 --metaConfig=settings/hyperParamTuning/deepCrowds.json --additional_on-poli_trianing_updates=2 
+SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments singularity exec --cleanenv --home /Cluster/playground/RL-Framework/:/opt/RL-Framework /Cluster/playground/SingularityBuilding/ubuntu_learning.img python3.6 trainModel.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow_NoPhase.json -p 2 --bootstrap_samples=1000 --rollouts=2 --max_epoch_length=64 --on_policy=fast --save_experience_memory=continual --num_rounds=10 --print_level=train --continue_training=false --saving_update_freq_num_rounds=1 --epochs=4 --eval_epochs=8 --plot=false --meta_sim_samples=2 --meta_sim_threads=2 --plotting_update_freq_num_rounds=1 --metaConfig=settings/hyperParamTuning/deepCrowds.json --additional_on-poli_trianing_updates=2 
 ```
 - Version with velocity field input
 ```

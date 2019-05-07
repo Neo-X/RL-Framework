@@ -53,6 +53,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         settings = copy.deepcopy(settings)
         settings["exploration_method"] = "gaussian_network"
         settings["evalaute_with_MBRL"] = False
+        
+    if (movieWriter is not None):
+        exp.setMovieWriter(movieWriter)
     # print("bootstrapping: ", bootstrapping, " settings[exploration_method]: ", settings["exploration_method"])
     # print ("Start sim state bounds: ", model.getStateBounds())
     action_selection = range(len(settings["discrete_actions"]))   
@@ -384,7 +387,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print ("Reward: ", reward_)
         resultState_ = exp.getState()
         # print ("resultState_: ", np.array(resultState_).shape)
-        if (movieWriter is not None):
+        if (movieWriter is not None
+            and (not exp.movieWriterSupport())):
+            ### If the sim does not have it's own writing support
             vizData = exp.getEnvironment().getFullViewData()
             # movie_writer.append_data(np.transpose(vizData))
             # print ("sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
