@@ -24,7 +24,7 @@ declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/dropout_p.json" 
  				"settings/hyperParamTuning/element/exploration_rate.json"
 # 				"settings/hyperParamTuning/element/fd_algorithm.json"
-#  				"settings/hyperParamTuning/element/fd_distance_function.json"
+  				"settings/hyperParamTuning/element/fd_distance_function.json"
 # 				"settings/hyperParamTuning/element/fd_expereince_length.json" 
 # 				"settings/hyperParamTuning/element/fd_learning_rate.json" 
  				"settings/hyperParamTuning/element/fd_updates_per_actor_update.json" 
@@ -34,7 +34,7 @@ declare -a metaExps=(
 				"settings/hyperParamTuning/element/include_agent_imitator_pairs.json" 
 # 				"settings/hyperParamTuning/element/initial_temperature.json" 
 #  				"settings/hyperParamTuning/element/kl_divergence_threshold.json"
-#				"settings/hyperParamTuning/element/learned_reward_smoother.json" 
+				"settings/hyperParamTuning/element/learned_reward_smoother.json" 
 #  				"settings/hyperParamTuning/element/lstm_batch_size.json" 
 # 				"settings/hyperParamTuning/element/min_sequece_length.json" 
 # 				"settings/hyperParamTuning/element/normalize_advantage.json" 
@@ -49,7 +49,7 @@ declare -a metaExps=(
 				"settings/hyperParamTuning/element/seperate_posandneg_pairs.json"
 #				"settings/hyperParamTuning/element/shorter_smaller_rnn_batches.json"
 #				"settings/hyperParamTuning/element/state_normalization.json"
-				"settings/hyperParamTuning/element/use_fall_reward_shaping.json"
+# 				"settings/hyperParamTuning/element/use_fall_reward_shaping.json"
 				"settings/hyperParamTuning/element/use_fall_reward_shaping2.json"
 # 				"settings/hyperParamTuning/element/use_random_sequence_length_for_lstm.json"		
 #  				"settings/hyperParamTuning/element/use_single_network.json"
@@ -68,6 +68,9 @@ declare -a simConfigs=(
 
  	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
  	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+ 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_1Sub_GRU_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+ 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_1Sub_GRU_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+
 
  	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
  	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_ZombieWalk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"

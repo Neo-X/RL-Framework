@@ -3,6 +3,13 @@
 
 This folder contains some scripts and files to run simulations in a singularity image.
 
+## start instance
+
+```
+gcloud compute instances start --project "glen-rl-framework" --zone "us-west1-c" "instance-default"
+```
+
+## Login to Instance
 ```
 ssh -i ~/.ssh/id_rsa gberseth_gmail_com@34.83.188.132
 ssh -i ~/.ssh/id_rsa gberseth_gmail_com@35.203.130.126
@@ -10,6 +17,11 @@ ssh -i ~/.ssh/id_rsa gberseth_gmail_com@35.203.130.126
 or
 ```
 gcloud compute --project "glen-rl-framework" ssh --zone "us-west1-c" "instance-default"
+```
+
+### Mount data folder
+```
+gcsfuse rl-framework-cluster-bucket /Cluster_Bucket/
 ```
 
 ## Getting Started
@@ -80,6 +92,7 @@ SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL  singularity exec --cleanenv --bind
 ```
 SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments singularity exec --cleanenv --home /Cluster/playground/RL-Framework/:/opt/RL-Framework /Cluster/playground/SingularityBuilding/ubuntu_learning.img python3.6 trainModel.py --config=settings/terrainRLImitate/PPO/Flat_Tensorflow_NoPhase.json -p 2 --bootstrap_samples=1000 --rollouts=2 --max_epoch_length=64 --on_policy=fast --save_experience_memory=continual --num_rounds=10 --print_level=train --continue_training=false --saving_update_freq_num_rounds=1 --epochs=4 --eval_epochs=8 --plot=false --meta_sim_samples=2 --meta_sim_threads=2 --plotting_update_freq_num_rounds=1 --metaConfig=settings/hyperParamTuning/deepCrowds.json --additional_on-poli_trianing_updates=2 
 ```
+
 - Version with velocity field input
 ```
 SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments singularity exec --cleanenv --home ~/playground/RL-Framework/:/opt/RL-Framework deepcrowds python3.6 trainModel.py --config=settings/terrainRLMultiChar/HLC/CACLA/Dynamic_Obstacles_NEWLLC.json -p 8 --bootstrap_samples=10000 --rollouts=16 --max_epoch_length=128 --on_policy=fast --save_experience_memory=continual --num_rounds=1000 --print_level=train --continue_training=false --saving_update_freq_num_rounds=1 --epochs=4 --eval_epochs=8 --plot=false --meta_sim_samples=2 --meta_sim_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig=settings/hyperParamTuning/deepCrowds.json --additional_on-poli_trianing_updates=2

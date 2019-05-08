@@ -21,12 +21,11 @@ if __name__ == "__main__":
 			elif ( options[option] == 'false'):
 				simSettings_[option] = False
 	
-	for simConfigFile in simSettings_["metaExps"]:
+	for simConfigFile in simSettings_["simConfigs"]:
 		## now loop through the above array
-		for metaConfig in simSettings_["simConfigs"]:
+		for metaConfig in simSettings_["metaExps"]:
 			arg = ( 
-				"pushd /home/glen/playground/RL-Framework;" 
-		 		"python3 tuneHyperParameters.py --config=${simConfigFile}" 
+		 		" python3.6 tuneHyperParameters.py --config="+simConfigFile + 
 		 		" --metaConfig=" + str(metaConfig) + 
 		 		" --meta_sim_samples=" + str(simSettings_["meta_sim_samples"]) +
 		 		" --meta_sim_threads=" + str(simSettings_["meta_sim_threads"]) +
@@ -39,10 +38,15 @@ if __name__ == "__main__":
 		### GPU training
 	# 	 	arg="source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --num_rounds=${rounds} --plot=false --on_policy=fast --shouldRender=false --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 4 --rollouts=16 --simulation_timeout=1200 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --force_sim_net_to_cpu=true ${opts}"
 			arg= arg + " " + output
-			command=("submit --restartable --cpu=24 --mem=64 --max-run-time-secs=100000" 
-			" -w /home/glen -v /mnt/home/glen:/home/glen --image=images.borgy.elementai.lan/glen:latest2" 
-			" -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments" 
-			" -e HOME=/home/glen -- /bin/bash -c ") + arg
+			# command=("submit --restartable --cpu=24 --mem=64 --max-run-time-secs=100000" 
+			# " -w /home/glen -v /mnt/home/glen:/home/glen --image=images.borgy.elementai.lan/glen:latest2" 
+			# " -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments" 
+			# " -e HOME=/home/glen -- /bin/bash -c ") + arg
+			### Singularity command
+			command=("SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments"
+			" singularity exec --cleanenv --home /Cluster/playground/RL-Framework/:/opt/RL-Framework"
+			" /Cluster/playground/SingularityBuilding/ubuntu_learning.img") + arg
+			
 			print ("")
 			print("command: " + command)
 			# eval $command

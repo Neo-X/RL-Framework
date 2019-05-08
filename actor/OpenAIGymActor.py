@@ -21,12 +21,23 @@ class OpenAIGymActor(ActorInterface):
         return reward
     
     # @profile(precision=5)
-    def actContinuous(self, exp, action_, bootstrapping=False):
+    def actContinuous(self, sim, action_, bootstrapping=False):
         import numpy as np
         # Actor should be FIRST here
         # print ("Action: " + str(action_))
         # dist = exp.getEnvironment().step(action_, bootstrapping=bootstrapping)
-        reward = exp.step(action_)
+        reward = sim.step(action_)
+        if (sim.getMovieWriter() is not None
+            and (sim.movieWriterSupport())):
+            ### If the sim does not have it's own writing support
+            vizData = sim.getEnvironment().getFullViewData()
+            # movie_writer.append_data(np.transpose(vizData))
+            # print ("sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
+            image_ = np.zeros((vizData.shape))
+            for row in range(len(vizData)):
+                image_[row] = vizData[len(vizData)-row - 1]
+            # print ("Writing image to video") 
+            sim.getMovieWriter().append_data(image_)
         self._reward_sum = self._reward_sum + np.mean(reward)
         return reward
         
