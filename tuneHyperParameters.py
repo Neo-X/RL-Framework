@@ -153,7 +153,6 @@ def get_param_values(hyper_settings):
             samples = hyper_settings['num_param_samples'][par] - 1
         # data_name = settings['data_folder']
         # sim_data = []
-        # result_data['hyper_param_settings_files'] = []
         params_tmp = []
         for i in range(samples+1):
             if (hyper_settings['param_data_type'][par] == "int"):
@@ -242,7 +241,7 @@ def tuneHyperParameters(simsettingsFileName, simSettings, hyperSettings=None, sa
         # file = open(settingsFileName, 'r')
         
         out_file_name=directory+os.path.basename(simsettingsFileName)
-        # result_data['hyper_param_settings_files'].append(out_file_name)
+        result_data['hyper_param_settings_files'].append(out_file_name)
         print ("Saving settings file with data to: ", out_file_name)
         print ("settings['data_folder']: ", settings['data_folder'])
         out_file = open(out_file_name, 'w')
