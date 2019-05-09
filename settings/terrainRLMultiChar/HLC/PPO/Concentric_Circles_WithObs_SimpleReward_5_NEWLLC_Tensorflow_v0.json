@@ -398,7 +398,7 @@
 	"comment__": "Data ordering format for convolutions",
 "image_data_format": "channels_first",
 	"comment__": "Path to LLC to load",
-"llc_policy_model_path":  "./terrainRLSim/algorithm.PPO_KERAS.PPO_KERAS/PD_Biped3D_LLC_Symetric_Step_MultiAgent_Terrain_v2/Tensorflow_Pushes_4/_anneal_policy_std_True_0/_1/model.DeepNNKerasAdaptive.DeepNNKerasAdaptive/Flat_Tensorflow_MultiAgent_LLC.json",
+"llc_policy_model_path":  "./terrainRLSim/algorithm.PPO_KERAS.PPO_KERAS/PD_Biped3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_v0/Tensorflow_Pushes_5/model.DeepNNKerasAdaptive.DeepNNKerasAdaptive/Flat_Tensorflow_MultiAgent_WithObs_LLC.json",
 	"comment__": "higher level controller timestep",
 "hlc_timestep": 15,
 	"comment__": "anneal the probability of performing explorative actions, set to >= 1.0 to perform only exploration actions",
