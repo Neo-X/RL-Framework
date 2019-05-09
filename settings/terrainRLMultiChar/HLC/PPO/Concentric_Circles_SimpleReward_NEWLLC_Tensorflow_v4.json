@@ -13,7 +13,6 @@
 "batch_size": 256,
     "comment__": "Learning rate for the actor/policy",
 "learning_rate": 0.0001,
-    "comment__": "Config file for the simulator",
 "sim_config_file": "PD_Biped3D_MutliChar_ConcentricCircle_OnlyVel_SimpleReward_v2",
 	"comment__": "Data use to create anchors for pendulum",
 "anchor_file": "../data/anchorData/paperGibbonAnchors.json",
