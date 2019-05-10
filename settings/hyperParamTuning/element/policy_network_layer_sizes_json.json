@@ -1,6 +1,6 @@
 {
     "comment__": "Number of threads to use for hyper parameter tuning",
-"tuning_threads": 1,
+"tuning_threads": 2,
 	"comment__": "Number of threads to use for Meta simulation, running a number of simulations and taking the average of them",
 "meta_sim_threads": 2,
 	"comment__": "Number of simulation samples to compute to use for Meta simulation, running a number of simulations and taking the average of them",
@@ -21,7 +21,7 @@
 						[ 
 							{"layer_type": "Dense", "units": 1024, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dense", "units": 256, "use_bias": true},
+							{"layer_type": "Dense", "units": 512, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" }
 						]]],
 	"comment__": "The fully qualified name of the mail server to use",
