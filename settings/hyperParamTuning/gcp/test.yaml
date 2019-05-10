@@ -2,19 +2,17 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   # Unique key of the Job instance
-  name: example-job4
-
+  name: example-9-fuse
+#   namespace: mem-example
 spec:
-  activeDeadlineSeconds: 100
+  activeDeadlineSeconds: 1000
   template:
     metadata:
       name: example-job
     spec:
       containers:
       - name: pi
-        image: perl
-        command: ["ls"]
-        args: ["-l", "-a"]
+        image: us.gcr.io/glen-rl-framework/glen:latest
         securityContext:
           privileged: true
           capabilities:
@@ -23,9 +21,19 @@ spec:
         lifecycle:
           postStart:
             exec:
-              command: ["gcsfuse", "-o", "nonempty", "rl-framework-cluster-bucket ", "~/bucket"]
+              command: ["mkdir", "/bucket"]
+              command: ["gcsfuse", "-o", "nonempty", "rl-framework-cluster-bucket ", "/bucket"]
           preStop:
             exec:
-              command: ["fusermount", "-u", "~/bucket"]
+              command: ["fusermount", "-u", "/bucket"]
+        resources:
+          limits:
+            cpu: 0.5
+            memory: "1Gi"
+          requests:
+            cpu: 0.5
+            memory: "1Gi"
+        command: ["ls"]
+        args: ["-l", "-a"]
       # Do not restart containers after they exit
       restartPolicy: Never

@@ -154,3 +154,12 @@ kubectl logs example-job2-45cs9
 https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/installing.md
 
 
+### Mounting shared storage in VM
+```
+mkdir /Cluster_Bucket
+sudo chmod a+w /Cluster_Bucket/
+```
+Need to get /etc/fuse.conf, uncomment user_allow_other
+```
+gcsfuse --dir-mode "777" -o allow_other rl-framework-cluster-bucket /Cluster_Bucket/
+```

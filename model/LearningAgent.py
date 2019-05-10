@@ -399,7 +399,8 @@ class LearningAgent(AgentInterface):
                                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                     print ("Forward Dynamics Loss: ", dynamicsLoss)
                     
-                    if (("train_LSTM_Reward" in self._settings)
+                    if (self._settings['train_forward_dynamics']
+                        and ("train_LSTM_Reward" in self._settings)
                         and (self._settings["train_LSTM_Reward"] == True)):
                         
                         for e in range(updates___):   
