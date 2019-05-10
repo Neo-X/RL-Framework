@@ -1,0 +1,31 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  # Unique key of the Job instance
+  name: example-job4
+
+spec:
+  activeDeadlineSeconds: 100
+  template:
+    metadata:
+      name: example-job
+    spec:
+      containers:
+      - name: pi
+        image: perl
+        command: ["ls"]
+        args: ["-l", "-a"]
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+              - SYS_ADMIN
+        lifecycle:
+          postStart:
+            exec:
+              command: ["gcsfuse", "-o", "nonempty", "rl-framework-cluster-bucket ", "~/bucket"]
+          preStop:
+            exec:
+              command: ["fusermount", "-u", "~/bucket"]
+      # Do not restart containers after they exit
+      restartPolicy: Never

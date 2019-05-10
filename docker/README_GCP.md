@@ -116,7 +116,41 @@ on compute canada
 ```
 
 
-## Create kubectl cluster
+## Setting up a private cluster on GCP Kubernetes
 
+https://www.bogotobogo.com/DevOps/Docker/Docker-setting-up-private-cluster-on-GCP-Kubernetes.php
+
+
+### Pushing docker containers to registry
+
+https://cloud.google.com/kubernetes-engine/docs/tutorials/hello-app
+
+
+### Kubernetes Commands
+
+Run a job
+```
+kubectl apply -f test.yaml
+```
+Where test.yaml is a manifest file that dictates most of the job details.
+
+Describe the state of a current joc
+```
+kubectl describe job example-job2
+```
+
+List the current pods
+```
+kubectl get pods -a
+```
+
+Get the log from a "pod"
+```
+kubectl logs example-job2-45cs9
+```
+
+### Installing fuse in the docker container
+
+https://github.com/GoogleCloudPlatform/gcsfuse/blob/master/docs/installing.md
 
 

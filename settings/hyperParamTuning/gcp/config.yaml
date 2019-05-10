@@ -1,0 +1,8 @@
+image: images.borgy.elementai.net/level-up-ml/learn_fast_ai:v6
+command: ['bash', '-c', 'cd /fastai && jupyter notebook']
+name: mich_fast_ai
+reqCores: 4
+reqGpus: 1
+reqRamGbytes: 20
+volumes:
+  - /mnt/home/fmlheureux/fastai:/fastai
