@@ -16,14 +16,18 @@ spec:
       requests:
         cpu: 0.5
         memory: "1Gi"
-    command: ["ls"]
-    args: ["-l", "-a"]
+    # Write to a file inside our NFS
+    command: ["/bin/sh"]
+    args: ["-c", "while true; do date >> /mnt/test/dates.txt; sleep 5; done"]
     volumeMounts:
     - mountPath: /mnt/test
-      name: test-volume
+      name: nfs-volume
   # Do not restart containers after they exit
   restartPolicy: Never
+    # Add the server as an NFS volume for the pod
   volumes:
-  - name: test-volume
-    hostPath:
-      path: /mnt/test
+    - name: nfs-volume
+      nfs: 
+        # URL for the NFS server
+        server: 10.108.211.244 # Change this!
+		path: /data

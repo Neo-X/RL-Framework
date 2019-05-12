@@ -43,7 +43,7 @@ declare -a metaExps=(
 #  				"settings/hyperParamTuning/element/optimizer.json" 
 # 				"settings/hyperParamTuning/element/policy_activation_type.json"
 # 				"settings/hyperParamTuning/element/policy_network_layer_sizes.json"	
-# 				"settings/hyperParamTuning/element/policy_network_layer_sizes_json.json"	
+ 				"settings/hyperParamTuning/element/policy_network_layer_sizes_json.json"	
 #  				"settings/hyperParamTuning/element/ppo_et_factor.json"
 #  				"settings/hyperParamTuning/element/pretrain_critic.json" 
 #   			"settings/hyperParamTuning/element/pretrain_fd.json" 

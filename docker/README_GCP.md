@@ -10,20 +10,36 @@ gcloud compute instances start --project "glen-rl-framework" --zone "us-west1-c"
 ```
 
 ## Login to Instance
+
 ```
-ssh -i ~/.ssh/id_rsa gberseth_gmail_com@34.83.188.132
-ssh -i ~/.ssh/id_rsa gberseth_gmail_com@35.203.130.126
+gcloud compute ssh "instance-default"
 ```
-or
+
+### Setup property security certificates to allow for ssh access
+
 ```
-gcloud compute --project "glen-rl-framework" ssh --zone "us-west1-c" "instance-default"
+gcloud compute instances add-metadata [INSTANCE_NAME] --metadata enable-oslogin=TRUE
 ```
 
 ### Mount data folder
-```
-gcsfuse rl-framework-cluster-bucket /Cluster_Bucket/
-```
 
+  1. Create a filestore (https://cloud.google.com/filestore/)
+  ```
+  gcloud filestore instances create nfs-server --zone=us-west1-c --tier=STANDARD --file-share=name="vol1",capacity=1TB --network=name="default"
+  ```
+  2. Install nfs library on instance
+  ```
+    sudo apt-get -y update
+    sudo apt-get -y install nfs-common
+    sudo mkdir /mnt/test
+  ```
+  3. Find the mount location, which can be foud in the instance info for the filestore
+  4. Mount the file store
+  ```
+    sudo mount 10.0.0.2:/vol1 /mnt/test
+    sudo chmod go+rw /mnt/test
+  ```
+  
 ## Getting Started
 
 
