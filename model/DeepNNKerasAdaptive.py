@@ -410,7 +410,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             elif (layer_info[i]["layer_type"] == "Reshape"):
                 network = Reshape(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Flatten"):
-                network = Flatten()(network)
+                network = Flatten(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Dropout"):
                 network = Dropout(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "GaussianNoise"):
