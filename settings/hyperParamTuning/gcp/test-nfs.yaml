@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   # Unique key of the Job instance
-  name: example-14-nfs
+  name: example-15-nfs
 #   namespace: mem-example
 spec:
   template:
@@ -11,8 +11,8 @@ spec:
     spec:
       activeDeadlineSeconds: 1000
       containers:
-      - name: pi
-        image: perl
+      - name: terrainrlgym
+        image: us.gcr.io/glen-rl-framework/glen:latest
         # Write to a file inside our NFS
         command: ["/bin/sh"]
         args: ["-c", "date >> /mnt/test/dates.txt; cat /mnt/test/dates.txt"]
