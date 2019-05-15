@@ -592,7 +592,11 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                       batch_size=sequences0.shape[0],
                                       verbose=0
                                       )
-                            score.history['loss'].extend(score_.history['loss'])
+                            loss_ = score_.history['loss']
+                            if 'loss' in score.history:
+                                score.history['loss'].extend(loss_)
+                            else:
+                                score.history['loss']= loss_
                         
                     else:
                         score = self._model._reward_net.fit([sequences0, sequences1], [targets__],

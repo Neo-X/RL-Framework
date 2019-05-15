@@ -195,11 +195,19 @@ def trainForwardDynamics(settings):
         forwardDynamicsModel.reset()
         h_a_2 = forwardDynamicsModel.predict_reward_encoding(resultState_[l])
         # print ("state: ", state_[l])
-        clas = settings["worker_to_task_mapping"][fall_[l][0][0]]
+        #### Lazy hack, the number of types is greater than the number of threads, now.
+        if (  "ask_env_for_multitask_id" in settings
+              and (settings["ask_env_for_multitask_id"] == True)):
+            clas = fall_[l][0][0]
+        else:
+            clas = settings["worker_to_task_mapping"][fall_[l][0][0]]
+        # print ("fall_[l][0][0]: ", fall_[l][0][0])
         # print ("Encoding ", l, ": ", h_a)
-        # print ("class: ", clas)
-        encoding['class'].append(0)
-        encoding['class2'].append(1)
+        print ("class: ", clas)
+        # encoding['class'].append(0)
+        # encoding['class2'].append(1)
+        encoding['class'].append(int(clas))
+        encoding['class2'].append(int(clas))
         encoding['code'].append([float(i) for i in h_a[0]])
         encoding['code2'].append([float(i) for i in h_a_2[0]])
     

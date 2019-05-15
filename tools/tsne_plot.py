@@ -10,9 +10,10 @@ tsne_data = open(sys.argv[1])
 data = json.load(tsne_data)
 x = data["code"]
 y = data["class"]
+class_count = max(y)
 
 x2 = data["code2"]
-y2 = [x__ + 4 for x__ in data["class2"]]
+y2 = [x__ + class_count for x__ in data["class2"]]
 
 x_ = copy.deepcopy(x)
 y_ = copy.deepcopy(y)

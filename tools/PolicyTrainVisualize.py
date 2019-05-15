@@ -288,6 +288,7 @@ class PolicyTrainVisualize(object):
        
         
     def show(self):
+        plt.tight_layout()
         plt.show()
         
     def redraw(self):
@@ -301,8 +302,10 @@ class PolicyTrainVisualize(object):
         plt.ioff()
     """ 
     def saveVisual(self, fileName):
-        self._fig.savefig(fileName+".svg")
-        self._fig.savefig(fileName+".png")
+        self._fig.savefig(fileName+".svg", bbox_inches = 'tight',
+    pad_inches = 0)
+        self._fig.savefig(fileName+".png", bbox_inches = 'tight',
+    pad_inches = 0)
         # self._fig_value.savefig(fileName+"_discounted_error.svg")
         # self._fig_value.savefig(fileName+"_discounted_error.png")
         
