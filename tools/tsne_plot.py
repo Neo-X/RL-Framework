@@ -63,6 +63,7 @@ plt.legend()
 print ("encodings[0][0]: ", encodings[0][0])
 print ("ys[0]: ", ys[0])
 
+"""
 for i in range(len(xs[0])):
     # point0 = [encodings[0][0][i], encodings[0][1][i]]
     # point1 = [encodings[1][0][i], encodings[1][1][i]]
@@ -78,5 +79,6 @@ for i in range(len(xs[0])):
     # ax.add_patch(patches.PathPatch(path, color='green', lw=0.5))
     ax.plot(line_[0], line_[1], 
               color = 'green', lw=0.5, alpha=0.5)
-
+"""
+# plt.tight_layout()
 plt.show()
