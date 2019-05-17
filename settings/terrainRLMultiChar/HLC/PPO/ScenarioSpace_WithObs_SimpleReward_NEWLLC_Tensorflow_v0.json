@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Biped3D_MutliChar_ScenarioSpace_WithObstacles_OnlyVel_SimpleReward_v1/Tensorflow_TRUE-v0_NewLLC_16",
+"data_folder": "PD_Biped3D_MutliChar_ScenarioSpace_WithObstacles_OnlyVel_SimpleReward_v1/Tensorflow_TRUE-v0_NewLLC_17",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -18,7 +18,7 @@
 	"comment__": "Data use to create anchors for pendulum",
 "anchor_file": "../data/anchorData/paperGibbonAnchors.json",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.20,
+"exploration_rate": 0.25,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 1000,
     "comment__": "Number of epochs to perform per round",
@@ -153,7 +153,7 @@
     "comment__": "Initial factor epsilon in multiplied by (This value will slowly be reduced during training)",
 "epsilon_annealing": 0.8,
     "comment__": "Different ways of calculating the scaling method used normalize the input and outputs of the network from the bootstrapping samples. minmax, input and output are -mean/max-min. variance, input and output are -mean/(std*2), given, use the bounds provided in this file",
-"state_normalization": "adaptive",
+"state_normalization": "given",
     "comment__": "load a pretrained model for the controller",
 "load_saved_model": false,
 	"comment__": "Number of updates the critic should perform per actor update",
@@ -330,8 +330,7 @@
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dense", "units": 128, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" }
+								{"layer_type": "Dense", "units": 128, "use_bias": true}
 								],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [ {"layer_type": "slice"},
@@ -344,8 +343,7 @@
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dense", "units": 128, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" }
+								{"layer_type": "Dense", "units": 128, "use_bias": true}
 								],
 	"comment__": "Activation function to use for the std part of the policy",
 "_last_std_policy_layer_activation_type": "sigmoid",
