@@ -30,7 +30,7 @@ exp=None
 fps=30
 class SimContainer(object):
     
-    def __init__(self, exp, agent, settings, expected_value_viz):
+    def __init__(self, exp, agent, settings, expected_value_viz, movieWriter=None):
         self._exp = exp
         self._agent = agent
         self._episode=0
@@ -41,10 +41,22 @@ class SimContainer(object):
         self._viz_q_values_ = []
         self._action=None
         self._paused=False
+        self._movieWriter = movieWriter
         
     def animate(self, callBackVal=-1):
         # print ("Animating: ", callBackVal)
         current_time = glutGet(GLUT_ELAPSED_TIME);
+        if (self._movieWriter is not None):
+            ### If the size of the window is changed at any time this will probably get messed up...
+            vizData = self._exp.getEnvironment().getFullViewData()
+            # movie_writer.append_data(np.transpose(vizData))
+            # print ("sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
+            image_ = np.zeros((vizData.shape))
+            for row in range(len(vizData)):
+                image_[row] = vizData[len(vizData)-row - 1]
+            # print ("Writing image to video") 
+            self._movieWriter.append_data(image_)
+            
         if (self._paused):
             pass
         else:
@@ -127,8 +139,8 @@ class SimContainer(object):
                     """
                     self._action = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
                     # self._action = np.array([0.0, 0.0, 0.0, -1.0, 0.0], dtype='float64')
-                    # grad_ = self._agent.getPolicy().getGrads(state_)[0]
-                    grad_ = [0]
+                    grad_ = self._agent.getPolicy().getGrads(state_)[0]
+                    # grad_ = [0]
                     self._grad_sum += np.abs(grad_)
                     self._num_actions +=1
                     print ("Input grad: ", repr(self._grad_sum/self._num_actions))
@@ -190,6 +202,9 @@ class SimContainer(object):
             # self._exp.initEpoch()   
             self._exp.initEpoch()
             # print (self._exp._num_updates_since_last_action)
+            if ( settings['environment_type'] == 'terrainRLHLCBiped3D' or
+                 (settings['environment_type'] == 'GymMultiChar') ): 
+                self._exp._num_updates_since_last_action=1000000
         elif c == 'M':
             if ( self._settings["use_parameterized_control"] ):
                 # self._exp.getActor()._target_vel += 0.1
@@ -237,6 +252,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
     from model.LearningAgent import LearningAgent, LearningWorker
     from RLVisualize import RLVisualize
     from NNVisualize import NNVisualize
+    import imageio
     
     model_type= settings["model_type"]
     directory= getDataDirectory(settings)
@@ -296,6 +312,10 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         f = open(file_name, 'wb')
         dill.dump(model, f)
         f.close()
+        
+    movieWriter = None
+    if ("save_video_to_file" in settings):
+        movieWriter = imageio.get_writer(settings["save_video_to_file"], mode='I',  fps=30)
     
 
     """
@@ -380,12 +400,13 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
     exp.getActor().initEpoch()   
     exp.initEpoch()
     fps=30
-    if ( settings['environment_type'] == 'terrainRLHLCBiped3D' ): 
+    if ( settings['environment_type'] == 'terrainRLHLCBiped3D' or
+         (settings['environment_type'] == 'GymMultiChar') ): 
         exp._num_updates_since_last_action=1000000
     # state_ = exp.getState()
     # action_ = np.array(masterAgent.predict(state_, evaluation_=True), dtype='float64')
     # exp.updateAction(action_)
-    sim = SimContainer(exp, masterAgent, settings, expected_value_viz)
+    sim = SimContainer(exp, masterAgent, settings, expected_value_viz, movieWriter=movieWriter)
     # sim._grad_sum = np.zeros_like(state_)
     # glutInitWindowPosition(x, y);
     # glutInitWindowSize(width, height);

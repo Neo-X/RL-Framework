@@ -333,7 +333,7 @@ class PPO_KERAS(KERASAlgorithm):
                                   )
         
         gradients = K.gradients(K.mean(self.__value), [self._model.getStateSymbolicVariable()]) # gradient tensors
-        # self._get_gradients = K.function(inputs=[self._model.getStateSymbolicVariable(),  K.learning_phase()], outputs=gradients)
+        self._get_gradients = K.function(inputs=[self._model.getStateSymbolicVariable(),  K.learning_phase()], outputs=gradients)
         
         if ("force_use_result_state_for_critic" in self._settings
             and (self._settings["force_use_result_state_for_critic"] == True)):
