@@ -1124,8 +1124,13 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         std_reward = np.std(reward_over_epocs)
         mean_bellman_error = np.mean(bellman_errors)
         std_bellman_error = np.std(bellman_errors)
-        mean_discount_error = np.mean(np.array(discounted_values) - np.array(values))
-        std_discount_error = np.std(np.array(discounted_values) - np.array(values))
+        mean_discount_error = 0
+        std_discount_error = 0
+        for d in range(len(discounted_values)):
+            mean_discount_error = mean_discount_error + np.mean(np.array(discounted_values[d]) - np.array(values[d]))
+            std_discount_error =  std_discount_error + np.std(np.array(discounted_values[d]) - np.array(values[d]))
+        mean_discount_error = mean_discount_error / float(len(discounted_values))
+        std_discount_error = std_discount_error / float(len(discounted_values))
         mean_eval = np.mean(evalDatas)
         std_eval = np.std(evalDatas)
         return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
