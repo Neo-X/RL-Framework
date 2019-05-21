@@ -36,6 +36,7 @@ if __name__ == "__main__":
 		for simConfigFile in simulationsSettings_["simConfigs"]:
 			metaConfig_ = copy.deepcopy(metaConfig)
 			
+			print ("simConfigFile: ", simConfigFile)
 			file = open(simConfigFile)
 			simSettings_ = json.load(file)
 			file.close()

@@ -327,8 +327,8 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                                  ,self.vae_loss_b
                                                   ], 
                                             optimizer=sgd
-                                            ,loss_weights=[0.7, 
-                                                           0.001, 
+                                            ,loss_weights=[0.6, 
+                                                           0.10, 
                                                            0.05, 0.05, 
                                                            0.10, 0.10]
                                             )

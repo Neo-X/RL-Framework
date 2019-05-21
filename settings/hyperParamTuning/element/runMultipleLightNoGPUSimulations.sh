@@ -64,21 +64,26 @@ declare -a metaExps=(
 ## declare an array variable
 declare -a simConfigs=(
 #	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_2State_2.json"
-# 	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+ 	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
 # 	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_2State_2.json"
 # 	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Run_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
  	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
- 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_1Sub_GRU_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
- 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_1Sub_GRU_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Jog_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Dance_A_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Dance_B_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Jump_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+# 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_1Sub_GRU_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+# 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_ZombieWalk_1Sub_GRU_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 #	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk.json"
 #	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Run.json"
 #	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_BackFlip.json"
 
- 	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
- 	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_ZombieWalk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+# 	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
+# 	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_ZombieWalk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
 #	"settings/terrainRLImitate3D/TRPO/MultiTask_Imitation_Learning_GRF_Walk_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advisarial.json"
 
@@ -100,11 +105,11 @@ do
 		# or do whatever with individual element of the array
 		# echo "$simConfigFile"
 		output=' | tee -a $BORGY_JOB_ID.out'
-	 	arg="pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --num_rounds=${rounds} --plot=false --on_policy=fast --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 6 --simulation_timeout=1200 --email_log_data_periodically=true ${opts}"
+	 	arg="pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=3 --num_rounds=${rounds} --plot=false --on_policy=fast --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 6 --simulation_timeout=1200 --email_log_data_periodically=true ${opts}"
 	### GPU training
 # 	 	arg="source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --num_rounds=${rounds} --plot=false --on_policy=fast --shouldRender=false --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 4 --rollouts=16 --simulation_timeout=1200 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --force_sim_net_to_cpu=true ${opts}"
 		arg=$arg$output
-		command=(borgy submit --restartable --cpu=24 --mem=64 --max-run-time-secs=200000 -w /home/"$USER" -v /mnt/home/"$USER":/home/"$USER" --image=images.borgy.elementai.net/glen:latest2 -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/"$USER" -- /bin/bash -c "$arg")
+		command=(borgy submit --restartable --cpu=36 --mem=96 --max-run-time-secs=200000 -w /home/"$USER" -v /mnt/home/"$USER":/home/"$USER" --image=images.borgy.elementai.net/glen:latest2 -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -e HOME=/home/"$USER" -- /bin/bash -c "$arg")
 		echo "${command[@]}"
 		# eval $command
 		"${command[@]}"
