@@ -327,10 +327,10 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                                  ,self.vae_loss_b
                                                   ], 
                                             optimizer=sgd
-                                            ,loss_weights=[0.6, 
+                                            ,loss_weights=[0.7, 
                                                            0.10, 
                                                            0.05, 0.05, 
-                                                           0.10, 0.10]
+                                                           0.05, 0.05]
                                             )
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
@@ -576,7 +576,7 @@ class SiameseNetworkMultiHeadDecodeVAE(SiameseNetwork):
                                       batch_size=sequences0.shape[0],
                                       verbose=0
                                       )
-                        
+                        # print("score: ", score.history)
                         if ("seperate_posandneg_pairs" in self._settings
                             and (self._settings["seperate_posandneg_pairs"] == True)):
                             less_ = np.less(targets__, 0.5)
