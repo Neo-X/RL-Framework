@@ -235,12 +235,11 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         
         
         distance_r = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_)([processed_a_r, processed_b_r])
-        encode_input_r_ = keras.layers.Input(shape=keras.backend.int_shape(distance_r)
-                                                                          , name="encoding_r_2"
-                                                                          )
-        print ("encode_input_r_: ", repr(encode_input_r_))
-        distance_r_weighted = keras.layers.Dense(1, activation = 'sigmoid')(encode_input_r_)
-        self._distance_r_weighting_ = Model(inputs=[encode_input_r_], outputs=distance_r_weighted)
+        # encode_input_r_ = keras.layers.Input(shape=(self.getSettings()["encoding_vector_size"],)
+        #                                                                   , name="encoding_r_2")
+        # print ("encode_input_r_: ", repr(encode_input_r_))
+        distance_r_weighted = keras.layers.Dense(1, activation = 'sigmoid')(encode_input_fd_)
+        self._distance_r_weighting_ = Model(inputs=[encode_input_fd_], outputs=distance_r_weighted)
         distance_r_weighted = self._distance_r_weighting_(distance_r)
         
         ### Decoding models
@@ -730,7 +729,8 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             # h_a = self._model.processed_a_r.predict([np.array([state])])
             # h_b = self._model.processed_b_r.predict([np.array([state2])])
             # reward_ = self._distance_func_np((h_a, h_b))[0]
-            reward_ = self._model._reward_net([np.array([state]), np.array([state2])])
+            # reward_ = [0]
+            reward_ = self._model._reward_net.predict([np.array([state]), np.array([state2])])
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
