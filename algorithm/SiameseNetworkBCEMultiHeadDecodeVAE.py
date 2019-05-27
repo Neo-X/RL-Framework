@@ -16,6 +16,10 @@ from algorithm.SiameseNetwork import *
 from util.SimulationUtil import createForwardDynamicsNetwork
 from keras.losses import mse, binary_crossentropy
 
+def l2_distance_fd_(vects):
+    x, y = vects
+    return K.sqrt(K.square(x - y))
+
 def euclidean_distance_fd2(vects):
     x, y = vects
     return K.sqrt(K.sum(K.square(x - y), axis=-1, keepdims=True))
@@ -26,7 +30,12 @@ def l1_distance_fd2(vects):
 
 def eucl_dist_output_shape_fd2(shapes):
     shape1, shape2 = shapes
-    return (shape1[0], shape1[1], 1)
+    return (shape1[0], shape1[1], shape1[2])
+
+def eucl_dist_output_shape_(shapes):
+    shape1, shape2 = shapes
+    return (shape1[0], shape2[1])
+
 
 
 def vae_loss(network_vae, network_vae_log_var):
@@ -74,6 +83,9 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             print ("Using ", self.getSettings()["fd_distance_function"], " distance metric for siamese network.")
             self._distance_func = l1_distance
             self._distance_func_np = l1_distance_np
+            
+        self._distance_func = l2_distance_fd_
+        
         condition_reward_on_result_state = False
         self._train_combined_loss = False
         
@@ -205,23 +217,31 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
         self._model.processed_b_r = Model(inputs=[result_state_copy], outputs=processed_b_r)
         
-        distance_fd = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
-        distance_fd2 = keras.layers.Lambda(l1_distance_fd2, output_shape=eucl_dist_output_shape_fd2)([network_, network_b])
-        print ("encode_input__: ", repr(encode_input__))
-        encode_input_fd_ = keras.layers.Input(shape=keras.backend.int_shape(distance_fd)
+        distance_fd = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_)([processed_a, processed_b])
+        distance_fd2 = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_fd2)([network_, network_b])
+        encode_input_fd_ = keras.layers.Input(shape=(self.getSettings()["encoding_vector_size"],)
                                                                           , name="encoding_fd_2"
                                                                           )
+        print ("distance_fd:  ", repr(distance_fd))
+        print ("distance_fd2:  ", repr(distance_fd2))
+        print ("encode_input_fd_: ", repr(encode_input_fd_))
         distance_fd_weighted = keras.layers.Dense(1, activation = 'sigmoid')(encode_input_fd_)
         self._distance_fd_weighting_ = Model(inputs=[encode_input_fd_], outputs=distance_fd_weighted)
-        
+        self._distance_fd_weighting_.summary()
         distance_fd_weighted = self._distance_fd_weighting_(distance_fd)
-        distance_fd2_weighted = keras.layers.TimeDistributed(self._distance_fd_weighting_, input_shape=(None, 1, self._state_length))(distance_fd2)
+        distance_fd2_weighted = keras.layers.TimeDistributed(self._distance_fd_weighting_, input_shape=(None, None, self._state_length))(distance_fd2)
+        # distance_fd2_weighted = self._distance_fd_weighting_(distance_fd2)
         # distance_fd2_weighted = self._distance_fd_weighting_(distance_fd2)
         
         
-        print ("distance_fd2: ", repr(distance_fd2))
-        distance_r = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a_r, processed_b_r])
-        distance_r_weighted = keras.layers.Dense(1, activation = 'sigmoid')(distance_r)
+        distance_r = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape_)([processed_a_r, processed_b_r])
+        encode_input_r_ = keras.layers.Input(shape=keras.backend.int_shape(distance_r)
+                                                                          , name="encoding_r_2"
+                                                                          )
+        print ("encode_input_r_: ", repr(encode_input_r_))
+        distance_r_weighted = keras.layers.Dense(1, activation = 'sigmoid')(encode_input_r_)
+        self._distance_r_weighting_ = Model(inputs=[encode_input_r_], outputs=distance_r_weighted)
+        distance_r_weighted = self._distance_r_weighting_(distance_r)
         
         ### Decoding models
         ### https://github.com/keras-team/keras/issues/7949
@@ -342,6 +362,9 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         else:
             self._model._reward_net.compile(loss=contrastive_loss, optimizer=sgd)
         
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print("Reward Net summary: ", self._model._reward_net.summary())
+                
         self._contrastive_loss = K.function([self._model.getStateSymbolicVariable(), 
                                              state_copy,
                                              K.learning_phase()], 
@@ -704,9 +727,10 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             and (self._settings["train_LSTM_Reward"] == True)):
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
             # print ("State shape: ", np.array([np.array([state])]).shape)
-            h_a = self._model.processed_a_r.predict([np.array([state])])
-            h_b = self._model.processed_b_r.predict([np.array([state2])])
-            reward_ = self._distance_func_np((h_a, h_b))[0]
+            # h_a = self._model.processed_a_r.predict([np.array([state])])
+            # h_b = self._model.processed_b_r.predict([np.array([state2])])
+            # reward_ = self._distance_func_np((h_a, h_b))[0]
+            reward_ = self._model._reward_net([np.array([state]), np.array([state2])])
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
