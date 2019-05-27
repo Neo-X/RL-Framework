@@ -251,6 +251,7 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
 # def trainModelParallel(settingsFileName, settings):
 def trainModelParallel(inputData):
     # (sys.argv[1], settings)
+    profileCode = True
     settings = inputData[1]
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     from simulation.LoggingWorker import LoggingWorker
@@ -262,8 +263,9 @@ def trainModelParallel(inputData):
     settingsFileName = inputData[0]
     settings['sample_single_trajectories'] = True
     # settings['shouldRender'] = True
-    # pr = cProfile.Profile()
-    # pr.enable()
+    if profileCode:
+        pr = cProfile.Profile()
+        pr.enable()
     trainData = {}
     trainData["mean_reward"]=[]
     trainData["std_reward"]=[]
@@ -1234,13 +1236,6 @@ def trainModelParallel(inputData):
                         
                 # experience = learningNamespace.experience
                 # actor.setExperience(experience)
-                """
-                pr.disable()
-                f = open('x.prof', 'a')
-                pstats.Stats(pr, stream=f).sort_stats('time').print_stats()
-                f.close()
-                """
-            
                 # this->_actor->iterate();
             ## This will let me know which part of learning is going slower training updates or simulation
             if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
@@ -1525,6 +1520,13 @@ def trainModelParallel(inputData):
         # print ("Discounted reward difference Avg: " +  str(np.mean(np.fabs(discounted_values - values))))
         # print ("Discounted reward difference STD: " +  str(np.std(np.fabs(discounted_values - values))))
         # reward_over_epoc = np.array(reward_over_epoc)
+        
+    if profileCode:
+        pr.disable()
+        f = open('x.prof', 'a')
+        pstats.Stats(pr, stream=f).sort_stats('time').print_stats()
+        f.close()
+
     print ("Terminating Workers")
     if (settings['on_policy'] == True):
         for m_q in sim_work_queues:

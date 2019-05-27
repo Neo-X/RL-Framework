@@ -432,7 +432,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     reward__0 = exp.computeImitationReward(rewmodel.predict)
                     reward__1 = exp.computeImitationReward(rewmodel.predict_reward)
                     reward__ = ((reward__0 * 0.5) + (reward__1 * 0.5))
-                    print ("reward__: ", reward__, " reward__0: ", reward__0, " reward__1: ", reward__1)
+                    # print ("reward__: ", reward__, " reward__0: ", reward__0, " reward__1: ", reward__1)
                 elif ( (("train_LSTM_Reward" in settings)
                         and (settings["train_LSTM_Reward"] == True))
                     and 
@@ -540,7 +540,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         ## For testing remove later
         if (settings["use_back_on_track_forcing"] and (not evaluation)):
             exp.getControllerBackOnTrack()
-        print ("reward_: ", reward_)
+        # print ("reward_: ", reward_)
         if print_data:
             # print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward_))
             # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) + " Discounted Sum: " + str(discounted_sum) )
