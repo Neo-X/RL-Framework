@@ -18,11 +18,15 @@ from keras.losses import mse, binary_crossentropy
 
 def l2_distance_fd_(vects):
     x, y = vects
-    return K.sqrt(K.square(x - y))
+    return K.square(x - y)
+
+def l1_distance_fd_(vects):
+    x, y = vects
+    return K.abs(x - y)
 
 def euclidean_distance_fd2(vects):
     x, y = vects
-    return K.sqrt(K.sum(K.square(x - y), axis=-1, keepdims=True))
+    return K.sum(K.square(x - y), axis=-1, keepdims=True)
 
 def l1_distance_fd2(vects):
     x, y = vects
@@ -76,12 +80,12 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
         self._learning_rate = self.getSettings()["fd_learning_rate"]
         self._regularization_weight = 1e-6
         
-        self._distance_func = euclidean_distance
+        self._distance_func = l2_distance_fd_
         self._distance_func_np = euclidean_distance_np
         if ( "fd_distance_function" in self.getSettings()
              and (self.getSettings()["fd_distance_function"] == "l1")):
             print ("Using ", self.getSettings()["fd_distance_function"], " distance metric for siamese network.")
-            self._distance_func = l1_distance
+            self._distance_func = l1_distance_fd_
             self._distance_func_np = l1_distance_np
             
         self._distance_func = l2_distance_fd_
@@ -195,7 +199,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(processed_b_r)[1:]
                                                                           , name="encoding_2"
                                                                           )
-            last_dense = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear')(encode_input__)
+            last_dense = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid')(encode_input__)
             self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
             
             processed_a_r = self._last_dense(processed_a_r)
@@ -209,7 +213,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
             encode_input__ = keras.layers.Input(shape=keras.backend.int_shape(processed_a_r)[1:]
                                                                           , name="encoding_2"
                                                                           )
-            last_dense = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear')(encode_input__)
+            last_dense = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'sigmoid')(encode_input__)
             self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
             processed_a_r = self._last_dense(processed_a_r)
             processed_b_r = self._last_dense(processed_b_r)

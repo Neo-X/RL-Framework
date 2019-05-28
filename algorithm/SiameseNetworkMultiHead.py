@@ -14,7 +14,7 @@ from algorithm.SiameseNetwork import *
 
 def euclidean_distance_fd2(vects):
     x, y = vects
-    return K.sqrt(K.sum(K.square(x - y), axis=-1, keepdims=True))
+    return K.sum(K.square(x - y), axis=-1, keepdims=True)
 
 def l1_distance_fd2(vects):
     x, y = vects

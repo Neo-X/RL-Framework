@@ -31,15 +31,15 @@ def cos_dist_output_shape(shapes):
 
 def euclidean_distance(vects):
     x, y = vects
-    return K.sqrt(K.sum(K.square(x - y), axis=1, keepdims=True))
+    return K.sum(K.square(x - y), axis=1, keepdims=True)
 
 def euclidean_distance_(vects):
     x, y = vects
-    return K.sqrt(K.square(x - y))
+    return K.square(x - y)
 
 def euclidean_distance_np(vects):
     x, y = vects
-    return np.sqrt(np.sum(np.square(x - y), axis=1, keepdims=True))
+    return np.sum(np.square(x - y), axis=1, keepdims=True)
 
 def l1_distance(vects):
     x, y = vects
