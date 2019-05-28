@@ -251,7 +251,7 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
 # def trainModelParallel(settingsFileName, settings):
 def trainModelParallel(inputData):
     # (sys.argv[1], settings)
-    profileCode = True
+    profileCode = False
     settings = inputData[1]
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     from simulation.LoggingWorker import LoggingWorker
