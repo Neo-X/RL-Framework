@@ -51,9 +51,9 @@ declare -a metaExps=(
 #				"settings/hyperParamTuning/element/seperate_posandneg_pairs.json"
 #				"settings/hyperParamTuning/element/shorter_smaller_rnn_batches.json"
 #				"settings/hyperParamTuning/element/state_normalization.json"
-# 				"settings/hyperParamTuning/element/use_fall_reward_shaping.json"
-				"settings/hyperParamTuning/element/use_fall_reward_shaping2.json"
-#				"settings/hyperParamTuning/element/use_learned_reward_function.json"
+ 				"settings/hyperParamTuning/element/use_fall_reward_shaping.json"
+# 				"settings/hyperParamTuning/element/use_fall_reward_shaping2.json"
+				"settings/hyperParamTuning/element/use_learned_reward_function.json"
 # 				"settings/hyperParamTuning/element/use_random_sequence_length_for_lstm.json"		
 #  				"settings/hyperParamTuning/element/use_single_network.json"
 #  				"settings/hyperParamTuning/element/use_stocastic_policy.json"
@@ -65,13 +65,13 @@ declare -a metaExps=(
 declare -a simConfigs=(
 
 
-#	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advasarial.json"
+	"settings/terrainRLImitate/TRPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64x1_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_BCE.json"
 #	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advasarial.json"
 #	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Run_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advasarial.json"
 
 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Jog_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advasarial.json"
-	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Jab_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advasarial.json"
-	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_BalanceBeam_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advasarial.json"
+# 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_Jab_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advasarial.json"
+# 	"settings/terrainRLImitate3D/TRPO/Imitation_Learning_GRF_BalanceBeam_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advasarial.json"
 
 #	"settings/terrainRLImitate/PPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advasarial.json"
 #	"settings/terrainRLImitate3D/PPO/Imitation_Learning_GRF_Walk_VizWithCamVel_64x64_1Sub_LSTM_FD_Reward_Dual_Encode_Decode_VAE_2State_2_Advasarial.json"
