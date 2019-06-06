@@ -516,20 +516,15 @@ def trainModelParallel(inputData):
                            eval_episode_data_queue=None)
             
         else:
-            if (settings["load_saved_model"] == True):
-                # settings["bootstrap_samples"] = 0
-                # settings["bootsrap_with_discrete_policy"] = False
-                experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['expereince_length'], continuous_actions=True, settings = settings) 
+            if (settings['on_policy'] == True):
+                
+                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, masterAgent, settings,
+                           sim_work_queues=sim_work_queues, 
+                           eval_episode_data_queue=eval_episode_data_queue)
             else:
-                if (settings['on_policy'] == True):
-                    
-                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, masterAgent, settings,
-                               sim_work_queues=sim_work_queues, 
-                               eval_episode_data_queue=eval_episode_data_queue)
-                else:
-                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, masterAgent, settings,
-                               sim_work_queues=input_anchor_queue, 
-                               eval_episode_data_queue=eval_episode_data_queue)
+                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, masterAgent, settings,
+                           sim_work_queues=input_anchor_queue, 
+                           eval_episode_data_queue=eval_episode_data_queue)
             masterAgent.setExperience(experience)
         fd_epxerience_length = settings['expereince_length']
         if ("fd_expereince_length" in settings):
@@ -591,9 +586,9 @@ def trainModelParallel(inputData):
             model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         """
         if ( settings['load_saved_model'] or (settings['load_saved_model'] == 'network_and_scales') ): ## Transfer learning
-            masterAgent.setStateBounds(copy.deepcopy(model.getStateBounds()))
-            masterAgent.setRewardBounds(copy.deepcopy(model.getRewardBounds()))
-            masterAgent.setActionBounds(copy.deepcopy(model.getActionBounds()))
+            masterAgent.setStateBounds(state_bounds)
+            masterAgent.setRewardBounds(reward_bounds)
+            masterAgent.setActionBounds(action_bounds)
             masterAgent.setSettings(settings)
         else: ## Normal
             # model.setStateBounds(state_bounds)
