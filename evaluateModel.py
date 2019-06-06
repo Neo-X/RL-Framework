@@ -99,6 +99,7 @@ class SimContainer(object):
             num_substeps = 1
             for i in range(num_substeps):
                 # print ("End of Epoch: ", self._exp.getEnvironment().endOfEpoch())
+                """
                 if (self._exp.getEnvironment().endOfEpoch() and 
                        self._exp.needUpdatedAction()):
                     self._exp.getActor().initEpoch()
@@ -108,7 +109,7 @@ class SimContainer(object):
                     print("*******")
                     print("New eposide: ")
                     print("*******")
-                    
+                """ 
                 """
                 simData = self._exp.getEnvironment().getActor().getSimData()
                 # print("Average Speed: ", simData.avgSpeed)

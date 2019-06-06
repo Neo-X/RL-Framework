@@ -1,5 +1,6 @@
 {
 "metaExps": [
+				 "settings/hyperParamTuning/element/use_fall_reward_shaping.json",
 				"settings/hyperParamTuning/element/use_learned_reward_function.json"
 ],
 "simConfigs": [
