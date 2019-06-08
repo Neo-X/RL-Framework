@@ -84,7 +84,7 @@ class ModelDummy(AlgorithmInterface):
         return action_
     
     def q_value(self, state):
-        value = [[0]]
+        value = [np.array([0])]
         return value
         # return self._q_val()[0]
     
@@ -92,14 +92,16 @@ class ModelDummy(AlgorithmInterface):
         """
             For returning a vector of q values, state should already be normalized
         """
-        values_ = [[0.8]]
+        values_ = np.ones((states.shape[0], 1))
         return values_
     
     def q_values2(self, states, wrap=True):
         """
             For returning a vector of q values, state should already be normalized
         """
-        values_ = [[0.8]]
+        # print ("len(states) shape: ", np.array(states).shape)
+        values_ = np.ones((states.shape[0], 1))
+        # print ("values_ shape: ", np.array(values_).shape)
         return values_
     
     def q_valueWithDropout(self, state):

@@ -26,7 +26,7 @@ class TestSimulation(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'hyper_train'
-        settings["simulation_timeout"] = 60
+        settings["simulation_timeout"] = 600
         
         settings['state_bounds'] = [[-1] * 11, [1] * 11]
         agent = DoNothingActor(settings_=settings, experience=None)
@@ -51,7 +51,8 @@ class TestSimulation(object):
         assert ( len(tmp_G_ts) == settings['max_epoch_length'])
         assert ( len(tmp_advantage) == settings['max_epoch_length'])
         assert ( len(tmp_exp_actions) == settings['max_epoch_length'])
-        
+       
+     
     
     # @pytest.mark.timeout(600)    
     def test_collect_tuples_discount_sum(self):
@@ -162,6 +163,8 @@ class TestSimulation(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None   
+        
+    
 
 if __name__ == '__main__':
     pytest.main([__file__])

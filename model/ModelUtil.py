@@ -95,7 +95,7 @@ def compute_advantage_(vf, paths, gamma, lam):
         # print("Baseline: ", b.shape)
         b1 = np.append(b, 0 if path["terminated"] else b[-1])
         b1 = np.reshape(b1, (-1,1))
-        # print ("b1: ", b1.shape)
+        print ("b1: ", b1.shape)
         deltas = path["reward"] + gamma*b1[1:] - b1[:-1]
         # print ("deltas: ", deltas.shape) 
         path["advantage"] = discounted_rewards(deltas, gamma * lam)
@@ -107,6 +107,9 @@ def compute_advantage_(vf, paths, gamma, lam):
     for path in paths:
         path["advantage"] = (path["advantage"] - mean) / std
     """
+    # print ('paths[0]["states"]: ', paths[0]["states"])
+    # print ('paths[0]["baseline"]: ', paths[0]["baseline"])
+    # print ('paths[0]["advantage"]: ', paths[0]["advantage"])
     assert len(paths[0]["states"]) == len(paths[0]["advantage"]), str(len(paths[0]["states"])) + " == " + str(len(paths[0]["advantage"]))
     assert len(paths[0]["advantage"]) == len(paths[0]["baseline"]), str(len(paths[0]["advantage"])) + " == " + str(len(paths[0]["baseline"]))
     assert len(paths[0]["reward"]) == len(paths[0]["baseline"]), str(len(paths[0]["reward"])) + " == " + str(len(paths[0]["baseline"]))
