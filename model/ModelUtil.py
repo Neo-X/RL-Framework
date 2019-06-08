@@ -95,7 +95,7 @@ def compute_advantage_(vf, paths, gamma, lam):
         # print("Baseline: ", b.shape)
         b1 = np.append(b, 0 if path["terminated"] else b[-1])
         b1 = np.reshape(b1, (-1,1))
-        print ("b1: ", b1.shape)
+        # print ("b1: ", b1.shape)
         deltas = path["reward"] + gamma*b1[1:] - b1[:-1]
         # print ("deltas: ", deltas.shape) 
         path["advantage"] = discounted_rewards(deltas, gamma * lam)

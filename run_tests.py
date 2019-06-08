@@ -46,7 +46,7 @@ def run_tests(metaSettings, test=False):
             #              '--tests-per-worker=1', '--show-capture=no', '--timeout_method=thread', '--timeout=30']
             # command_ = ['tests/' + test, '--junitxml=' + metaSettings['j_unit_filename'] + test, '--workers='+ str(metaSettings['tuning_threads']), 
             #               '--tests-per-worker=1']
-            command_ = ['tests/' + test, '--junitxml=' + metaSettings['j_unit_filename'] + "_" + test, '-n '+ str(metaSettings['tuning_threads'])]
+            command_ = ['tests/' + test, '--junitxml=' + metaSettings['j_unit_filename'] + "_" + test + ".xml", '-n '+ str(metaSettings['tuning_threads'])]
             print ("Command: ", command_)
             pytest.main(command_)
         # pytest.main(['tests/', '--junitxml=' + jUnitFileName, '-n', '4'])

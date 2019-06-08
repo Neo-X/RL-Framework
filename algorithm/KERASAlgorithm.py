@@ -95,8 +95,10 @@ class KERASAlgorithm(AlgorithmInterface):
         """
             Target model updates
         """
-        self._modelTarget.getCriticNetwork().set_weights( copy.deepcopy(self._model.getCriticNetwork().get_weights()))
-        self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
+        ### Some models don't have target networks. Mostly FD models.
+        if (self._model is not None and (self._modelTarget is not None)):
+            self._modelTarget.getCriticNetwork().set_weights( copy.deepcopy(self._model.getCriticNetwork().get_weights()))
+            self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
 
     def printWeights(self):
         
