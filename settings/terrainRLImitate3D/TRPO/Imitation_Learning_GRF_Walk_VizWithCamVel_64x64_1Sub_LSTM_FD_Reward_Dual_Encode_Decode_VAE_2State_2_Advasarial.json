@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_GRF_3D_Walk_Viz3D_WithCamVel_64x64_1Sub_Imitate_30FPS_DualState_v1/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128__12",
+"data_folder": "PD_Humanoid_GRF_3D_Walk_Viz3D_WithCamVel_64x64_1Sub_Imitate_30FPS_DualState_v1/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128__13",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -513,7 +513,8 @@
 							{"layer_type": "Flatten"},
 							{"layer_type": "Dense", "units": 258, "use_bias": true},
 							{"layer_type": "Concatenate"},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" }
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dropout", "rate": 0.2}
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
@@ -580,7 +581,7 @@
 	"comment__": "Make earlier and shorter lstm training batches more probable.",
 "shorter_smaller_rnn_batches": true,
 	"comment__": "When the agent falls give it a bad reward 1/(1-discount_fator)",
-"use_fall_reward_shaping2": true,
+"use_fall_reward_shaping": false,
 	"comment__": "Run some initial training steps to pretrain the fd before starting policy training",
 "pretrain_fd": 0,
 	"comment__": "Add velocity state to image state",
@@ -601,6 +602,7 @@
 "train_lstm_fd_and_reward_and_decoder_together": true,
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [ 
+								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 256, "use_bias": false},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "slice", "slice_index": 253, "slice_label": "out_vel" },

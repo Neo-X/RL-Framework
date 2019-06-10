@@ -24,6 +24,7 @@ for pytest
 
 1. pip3 install --user pytest-parallel
 1. pip3 install --user pytest-timeout
+1. pip3 install --user pytest-xdist
 
 ### Email test results
 
