@@ -978,7 +978,7 @@ class LearningAgent(AgentInterface):
                     # if ( ('print_level' in self.getSettings()) and (self.getSettings()["print_level"]== 'debug') ):
                         # print("MBAE action:")
             # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
-        return (action, [exp_action])
+        return (action, [[exp_action]])
     
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:

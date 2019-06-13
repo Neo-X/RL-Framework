@@ -45,11 +45,11 @@ class TestSaveAndLoad(object):
         assert np.allclose(simData['masterAgent'].getStateBounds(), evalData['masterAgent'].getStateBounds())
         
         # @pytest.mark.timeout(600)
-    def test_ppo_keras_gapGame_2D_save_and_load_network_singleNet(self):
+    def test_trpo_keras_gapGame_2D_save_and_load_network_singleNet(self):
         ###    Test that PPO can still learn a good policy on 2d gapgame sim
         ###    If this does not crash, things are good..
 
-        filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow-v2.json"
+        filename = "tests/settings/gapGame2D/TRPO/FixedSTD_Tensorflow.json"
         file = open(filename)
         settings = json.load(file)
         file.close()

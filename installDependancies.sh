@@ -24,6 +24,8 @@ pip3 install --user imageio
 pip3 install --user pytest
 pip3 install --user dask
 pip3 install --user toolz
+### For rendering network models to svg files from keras
+pip2 install --user pydot
 
 ### For rendering interactive metplotlib figures during training
 apt-get -y install python3-tk
