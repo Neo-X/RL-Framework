@@ -62,10 +62,8 @@ class ExperienceMemory(object):
                 self._action_history = (np.zeros((self._history_size, self._action_length), dtype='int8'))
             self._nextState_history = (np.zeros((self._history_size, self._result_state_length), dtype='float32'))
             self._reward_history = (np.zeros((self._history_size, 1), dtype='float32'))
-            self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
             self._discounted_sum_history = (np.zeros((self._history_size, 1), dtype='float32'))
             self._advantage_history = (np.zeros((self._history_size, 1), dtype='float32'))
-            self._exp_action_history = (np.zeros((self._history_size, 1), dtype='int8'))
         else:
             self._state_history = (np.zeros((self._history_size, self._state_length), dtype='float64'))
             if self._continuous_actions:
@@ -74,9 +72,13 @@ class ExperienceMemory(object):
                 self._action_history = (np.zeros((self._history_size, self._action_length), dtype='int8'))
             self._nextState_history = (np.zeros((self._history_size, self._result_state_length), dtype='float64'))
             self._reward_history = (np.zeros((self._history_size, 1), dtype='float64'))
-            self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
             self._discounted_sum_history = (np.zeros((self._history_size, 1), dtype='float64'))
             self._advantage_history = (np.zeros((self._history_size, 1), dtype='float64'))
+            
+        self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
+        if ("perform_multiagent_training" in self._settings):
+            self._exp_action_history = (np.zeros((self._history_size, self._settings["perform_multiagent_training"]), dtype='int8'))
+        else:
             self._exp_action_history = (np.zeros((self._history_size, 1), dtype='int8'))
             
         self._trajectory_history = [None] * self._trajectory_size
@@ -286,7 +288,7 @@ class ExperienceMemory(object):
         assert len(reward[0]) == 1
         assert len(fall[0]) == 1
         assert len(G_t[0]) == 1
-        assert len(exp_action[0]) == 1
+        assert len(exp_action[0]) == len(action[0]), "len(exp_action[0]) == self._result_state shape: " + str(np.asarray(exp_action[0]).shape) + " == " + str(np.array(action[0]).shape)
         """
         state = list(state)
         action = list(action)

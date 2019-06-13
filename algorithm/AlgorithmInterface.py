@@ -371,6 +371,8 @@ class AlgorithmInterface(object):
         # action_ = q_valsActA[0]
         return action_
     
+    
+    
     def predict_batch(self, states, deterministic_=True):
         """
             These input and output do not need to be normalized/scalled

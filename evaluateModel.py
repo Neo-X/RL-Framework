@@ -22,7 +22,7 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 
 import numpy as np
-np.set_printoptions(threshold=np.nan)
+# np.set_printoptions(threshold=np.nan)
 
 exp=None
 

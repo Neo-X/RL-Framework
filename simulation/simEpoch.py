@@ -184,110 +184,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                         )
                     )
                 ): # explore random actions
-                exp_action = int(1)
-                r2 = np.random.rand(1)[0]
-                if ((r2 < (omega * p))) and (not sampling) :
-                    ### explore hand crafted actions
-                    # return ra2
-                    # randomAction = randomUniformExporation(action_bounds) # Completely random action
-                    # action = randomAction
-                    if ((settings['exploration_method'] == 'sampling') or
-                        (settings['exploration_method'] == 'gaussian_network')): 
-                        action = [randomUniformExporation(action_bounds)] # Completely random action
-                    else:
-                        action = np.random.choice(action_selection)
-                        action__ = actor.getActionParams(action)
-                        action = [action__]
-                    ### off policy
-                    exp_action = int(0)
-                    # print ("Discrete action choice: ", action, " epsilon * p: ", omega * p)
-                else : 
-                    ### add noise to current policy
-                    pa_ = model.predict(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
-                    if ( ((settings['exploration_method'] == 'OrnsteinUhlenbeck') 
-                          # or (bootstrapping)
-                          ) 
-                         and (not sampling)):
-                        # print ("Random Guassian sample, state bounds", model.getStateBounds())
-                        # print ("Exploration Action: ", pa)
-                        # action = randomExporation(settings["exploration_rate"], pa)
-                        if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
-                            noise_ = OUNoise(theta=0.15, sigma=settings["exploration_rate"] * p, previousNoise=noise_)
-                            action = pa_ + (noise_ * action_bound_std(action_bounds)) 
-                        else:
-                            noise_ = OUNoise(theta=0.15, sigma=settings["exploration_rate"], previousNoise=noise_)
-                            action = pa_ + (noise_ * action_bound_std(action_bounds))
-                    elif ( (settings['exploration_method'] == 'gaussian_network' or 
-                          (settings['use_stochastic_policy'] == True))
-                          or (settings['exploration_method'] == 'gaussian_random')
-                           ):
-                        # action = randomExporation(settings["exploration_rate"], pa)
-                        if ( 'anneal_policy_std' in settings and (settings['anneal_policy_std'])):
-                            std_ = model.predict_std(state_, p=p)
-                        else:
-                            std_ = model.predict_std(state_, p=1.0)
-                        # print("Action: ", pa)
-                        # print ("Action std: ", std)
-                        stds.append(std_)
-                        action = randomExporationSTD(pa_, std_, action_bounds)
-                        # print("Action2: ", action)
-                    elif ((settings['exploration_method'] == 'thompson')):
-                        # print ('Using Thompson sampling')
-                        action = thompsonExploration(model, settings["exploration_rate"], state_)
-                    elif ((settings['exploration_method'] == 'sampling')):
-                        ## Use a sampling method to find a good action
-                        if (settings["forward_dynamics_predictor"] == "simulator"
-                            or (settings["forward_dynamics_predictor"] == "simulator_parallel")):
-                            sim_state_ = exp.getSimState()
-                        else:
-                            sim_state_ = state_
-                        # print ("explore on state: ", sim_state_)
-                        action = model.getSampler().predict(sim_state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
-                        action = [action]
-                        # print("samples action: ", action)
-                    else:
-                        print ("Exploration method unknown: " + str(settings['exploration_method']))
-                        sys.exit(1)
-                    # randomAction = randomUniformExporation(action_bounds) # Completely random action
-                    # randomAction = random.choice(action_selection)
-                    if (settings["use_model_based_action_optimization"] and settings["train_forward_dynamics"] ):
-                        """
-                        if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
-                            mbae_omega = p * settings["model_based_action_omega"]
-                        else:
-                        """
-                        mbae_omega = settings["model_based_action_omega"]
-                        # print ("model_based_action_omega", settings["model_based_action_omega"])
-                        if (np.random.rand(1)[0] < mbae_omega):
-                            ## Need to be learning a forward dynamics deep network for this
-                            mbae_lr = settings["action_learning_rate"]
-                            std_p = 1.0
-                            use_rand_act = False
-                            if ( ('use_std_avg_as_mbae_learning_rate' in settings) 
-                                 and (settings['use_std_avg_as_mbae_learning_rate'] == True )
-                                 ):
-                                ### Need to normalize this learning space
-                                avg_policy_std = np.mean(model.predict_std(state_)/action_bound_std(action_bounds))
-                                # print ("avg_policy_std: ", avg_policy_std)
-                                mbae_lr = avg_policy_std
-                            if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
-                                mbae_lr = p * mbae_lr
-                                # print("MBAE p: ", p)
-                            if ( 'MBAE_anneal_policy_std' in settings and (settings['MBAE_anneal_policy_std'])):
-                                std_p = p
-                            if ( 'use_random_actions_for_MBAE' in settings):
-                                use_rand_act = settings['use_random_actions_for_MBAE']
-                                
-                            # print ("old action:", action)
-                            (action, value_diff) = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), state_, action_lr=mbae_lr, use_random_action=use_rand_act, p=std_p)
-                            # print ("new action:", action)
-                            # if ( 'give_mbae_actions_to_critic' in settings and 
-                            #      (settings['give_mbae_actions_to_critic'] == False)):
-                            exp_action = int(2)
-                            # print ("Using MBAE: ", state_)
-                            # if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
-                                # print("MBAE action:")
-                    # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
+                
+                
+                # print ("state_", repr(state_))
+                (action, exp_action) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                # print ("action", repr(action))
             else: 
                 ### exploit policy
                 exp_action = int(0) 
@@ -586,7 +487,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             else:
                 falls.append([[agent_not_fell]])
                 
-        exp_act = [[exp_action]]  * len(state_)
+        exp_act = [np.array(exp_action)]
         exp_actions.append(exp_act)
         if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
             for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1], actions[-1], result_states___[-1], rewards[-1],  falls[-1], exp_actions[-1]):

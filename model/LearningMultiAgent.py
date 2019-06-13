@@ -398,6 +398,32 @@ class LearningMultiAgent(LearningAgent):
             self._accesLock.release()
         return act
     
+    def sample(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False, use_mbrl=False):
+        if self._useLock:
+            self._accesLock.acquire()
+        # print ("MARL sample: ", repr(state))
+        act = []
+        exp_action = []
+        if ( "use_centralized_critic" in self.getSettings()
+             and (self.getSettings()["use_centralized_critic"] == True)):
+            ### Need to assemble centralized states
+            for m in range(len(state)):
+                state_ = self.getcentralizedPolicyState(m, state)
+                (action, exp_act) = self.getAgents()[m].sample([state_], evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+                act.append(action[0])
+                exp_action.append(exp_act)
+        else:
+            for m in range(len(state)):
+                state_ = state[m]
+                (action, exp_act) = self.getAgents()[m].sample([state_], evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+                act.append(action[0])
+                exp_action.append(exp_act)
+        if self._useLock:
+            self._accesLock.release()
+        # print ("act: ", repr(act))
+        print ("exp_action: ", repr(exp_action))
+        return (act, exp_action)
+    
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:
             self._accesLock.acquire()
