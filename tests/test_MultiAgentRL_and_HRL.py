@@ -110,6 +110,26 @@ class TestMRLAndHRL(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -1.0
+        
+    # @pytest.mark.timeout(600)   
+    def test_multiagentRL_madTRPO_navgame2D(self):
+        """
+            Test that PPO can still learn a good policy on 2d gapgame sim
+        """
+        filename = "tests/settings/navgame2D/MADDPG/HRL_TRPO_Tensorflow_NoViz_HLC-v4.json"
+        file = open(filename)
+        settings = json.load(file)
+        file.close()
+        this_function_name = sys._getframe().f_code.co_name
+        settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
+        settings['visualize_learning'] = False
+        settings['shouldRender'] = False
+        settings['print_level'] = 'testing_sim'
+        # settings['rounds'] = 2
+        # settings['rounds'] = 100
+        simData = trainModelParallel((filename, settings))
+        # assert np.mean(simData['mean_reward'][-5:]) > -0.5
+        assert np.mean(simData['mean_reward'][-5:]) > -1.0
             
 
 if __name__ == '__main__':

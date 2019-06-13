@@ -1087,9 +1087,9 @@ class LearningAgent(AgentInterface):
         and (self.getSettings()["train_LSTM_Critic"] == True)):
             # _states, _actions, _result_states, _rewards, _falls, _G_ts, _exp_actions, _advantage = model.getExperience().get_batch(batch_size)
             batch_size_lstm = 4
-            if ("lstm_batch_size" in settings):
-                batch_size_lstm = settings["lstm_batch_size"][1]
-            state, action, result_state, reward, fall, G_ts_, exp_actions_, advantages_ = self.get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, model.getExperience().samplesTrajectory()))
+            if ("lstm_batch_size" in self.getSettings()):
+                batch_size_lstm = self.getSettings()["lstm_batch_size"][1]
+            state, action, result_state, reward, fall, G_ts_, exp_actions_, advantages_ = self.get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, self.getExperience().samplesTrajectory()))
         else:
             state, action, result_state, reward, fall, _G_ts, exp_actions, advantage = self.get_batch(batch_size)
         if ("use_hack_state_trans" in self.getSettings()
