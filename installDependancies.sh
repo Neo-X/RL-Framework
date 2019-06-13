@@ -8,11 +8,6 @@ pip3 install --user numpy
 pip3 install --user theano==1.0.1
 # pip install matplotlib
 pip3 install --user matplotlib
-pip3 install --user --upgrade https://github.com/Lasagne/Lasagne/archive/master.zip
-### One of these should work... Curse you Lasagne...
-cp patches/pool.py ~/.local/lib/python3.5/site-packages/lasagne/layers/
-cp patches/pool.py ~/.local/lib/python3.6/site-packages/lasagne/layers/
-cp patches/pool.py ~/.local/lib/python2.7/site-packages/lasagne/layers/
 pip3 install --user dill
 pip3 install --user pathos
 pip3 install --user pyOpenGL
