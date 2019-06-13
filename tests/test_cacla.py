@@ -23,6 +23,7 @@ class TestCACLA(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings["simulation_timeout"] = 60
         this_function_name = sys._getframe().f_code.co_name
         settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         # settings['rounds'] = 1
@@ -42,6 +43,7 @@ class TestCACLA(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
+        settings["simulation_timeout"] = 60
         this_function_name = sys._getframe().f_code.co_name
         settings['data_folder'] = settings['data_folder'] + '/' + this_function_name
         # settings['rounds'] = 1

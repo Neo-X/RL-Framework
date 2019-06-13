@@ -1,4 +1,3 @@
-from nose.tools import timed
 from numpy.testing import assert_allclose
 import numpy as np
 import pytest
