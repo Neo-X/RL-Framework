@@ -191,7 +191,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # print ("action", repr(action))
             else: 
                 ### exploit policy
-                exp_action = int(0) 
+                exp_action = [[0]* len(state_)]
                 ## For sampling method to skip sampling during evaluation.
                 use_MBRL = False
                 if ("evalaute_with_MBRL" in settings and
@@ -487,7 +487,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             else:
                 falls.append([[agent_not_fell]])
                 
-        exp_act = [np.array(exp_action)]
+        exp_act = exp_action
         exp_actions.append(exp_act)
         if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
             for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1], actions[-1], result_states___[-1], rewards[-1],  falls[-1], exp_actions[-1]):
@@ -518,13 +518,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     evalData = [np.mean(evalDatas)]
     # G_ts.extend(copy.deepcopy(G_t))
     G_ts.extend(copy.deepcopy(discounted_rewards(np.array(rewards), discount_factor)))
-    # baseline = np.array(baseline)
-    # baselines_.extend(copy.deepcopy(np.reshape(baseline, newshape=(baseline.size, 1))))
-    # baselines_.extend(copy.deepcopy(baseline))
-    # print ("baseline: ", repr(np.array(baseline)))
-    # print ("G_t, rewards: ", repr(np.concatenate((discounted_rewards(np.array(rewards), discount_factor), rewards), axis=1)) )
-    # print ("states: ", repr(np.array(states)))
-    # baselines_ = np.transpose(model.q_values(states ))[0]
     discounted_sum = G_ts
     # q_value = baselines_
     
@@ -533,20 +526,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         print ("Eval Datas: ", evalDatas) 
     # print ("Evaluation Data: ", evalData)
         # print ("Current Tuple: " + str(experience.current()))
-    ## Compute Advantage
-    """
-    discounted_reward = discounted_rewards(np.array(G_t_rewards), discount_factor)
-    baseline.append(0)
-    baseline = np.array(baseline)
-    # print (" G_t_rewards: ", G_t_rewards)
-    # print (" baseline: ", baseline)
-    deltas = (G_t_rewards + discount_factor*baseline[1:]) - baseline[:-1]
-    if ('use_GAE' in settings and ( settings['use_GAE'] )): 
-        advantage.extend(discounted_rewards(deltas, discount_factor * settings['GAE_lambda']))
-    else:
-        advantage.extend(compute_advantage(discounted_reward, np.array(G_t_rewards), discount_factor))
-    advantage.append(0.0)
-    """
     ### Reset before predicting values for trajectory
     model.reset()
     # if (len(states[last_epoch_end:]) > 0):
@@ -607,6 +586,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     ### data is in format (state, agent), this "extend" does not work well for multi-agent simulation
     # print ("states: ", np.array(states).shape)
     for s in range(len(states)):
+        # print ("State shape: ", np.array(states[s]).shape)
+        # print ("actions shape: ", np.array(actions[s]).shape)
         tmp_states.extend(states[s])
         tmp_actions.extend(actions[s])
         tmp_res_states.extend(result_states___[s])
@@ -615,6 +596,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_G_ts.extend(G_ts[s])
         # print ("falls[s], rewards[s]: ", falls[s], rewards[s])
         tmp_falls.extend(falls[s])
+        # print ("exp_actions[",s,"]: ", np.array(exp_actions[s]).shape, repr(exp_actions[s][0]))
         tmp_exp_actions.extend(exp_actions[s])
         ### Advantage is in a different format (agent , state)
         adv__ = []
@@ -626,23 +608,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_advantage.extend(adv__)
     tmp_advantage = np.array(tmp_advantage)
     
-    # print("tmp_rewards: ", repr(np.array(tmp_rewards)))
         
-    # print ("tmp_states: ", np.array(tmp_states).shape)
-    # print ("advantage: ", np.array(advantage).shape)
-    # print ("tmp_falls: ", np.array(falls))
     tuples = (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions)
-    """
-    if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['debug']):
-        print("End of episode")
-        actions_ = np.array(actions)
-        print("Actions:     ", np.mean(actions_, axis=0), " shape: ", actions_.shape)
-        print("Actions std:  ", np.std(actions_, axis=0) )
-        if ( len(stds) > 0):
-            print("Mean actions std:  ", np.mean(stds, axis=0) )
-    """
-    # print ("tmp_actions: ", tmp_actions)
-    # print ("tmp_states: ", np.array(tmp_states).shape)
     
     ### Doesn't work with simulations that have multiple state types/definitions
     # if ( len(np.array(tmp_states).shape) == 2):

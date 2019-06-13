@@ -411,17 +411,17 @@ class LearningMultiAgent(LearningAgent):
                 state_ = self.getcentralizedPolicyState(m, state)
                 (action, exp_act) = self.getAgents()[m].sample([state_], evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
                 act.append(action[0])
-                exp_action.append(exp_act)
+                exp_action.append([exp_act])
         else:
             for m in range(len(state)):
                 state_ = state[m]
                 (action, exp_act) = self.getAgents()[m].sample([state_], evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
                 act.append(action[0])
-                exp_action.append(exp_act)
+                exp_action.append([exp_act])
         if self._useLock:
             self._accesLock.release()
         # print ("act: ", repr(act))
-        print ("exp_action: ", repr(exp_action))
+        # print ("exp_action: ", repr(exp_action))
         return (act, exp_action)
     
     def predict_std(self, state, evaluation_=False, p=1.0):

@@ -76,10 +76,12 @@ class ExperienceMemory(object):
             self._advantage_history = (np.zeros((self._history_size, 1), dtype='float64'))
             
         self._fall_history = (np.zeros((self._history_size, 1), dtype='int8'))
+        """
         if ("perform_multiagent_training" in self._settings):
             self._exp_action_history = (np.zeros((self._history_size, self._settings["perform_multiagent_training"]), dtype='int8'))
         else:
-            self._exp_action_history = (np.zeros((self._history_size, 1), dtype='int8'))
+        """
+        self._exp_action_history = (np.zeros((self._history_size, 1), dtype='int8'))
             
         self._trajectory_history = [None] * self._trajectory_size
         self._samplesTrajectory = 0
@@ -288,7 +290,7 @@ class ExperienceMemory(object):
         assert len(reward[0]) == 1
         assert len(fall[0]) == 1
         assert len(G_t[0]) == 1
-        assert len(exp_action[0]) == len(action[0]), "len(exp_action[0]) == self._result_state shape: " + str(np.asarray(exp_action[0]).shape) + " == " + str(np.array(action[0]).shape)
+        assert len(exp_action[0]) == 1, "len(exp_action[0]) == 1: " + str(np.asarray(exp_action[0]).shape) + " == " + str(1)
         """
         state = list(state)
         action = list(action)

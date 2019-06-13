@@ -30,4 +30,5 @@ pip3 install --user pytest
 pip3 install --user dask
 pip3 install --user toolz
 
+### For rendering interactive metplotlib figures during training
 apt-get -y install python3-tk
