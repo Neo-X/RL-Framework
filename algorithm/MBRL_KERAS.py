@@ -1,3 +1,12 @@
+
+## Nothing for now...
+
+# from modular_rl import *
+
+# ================================================================
+# Model Based Policy Optimization
+# ================================================================
+
 import numpy as np
 # import lasagne
 import h5py
