@@ -81,9 +81,9 @@ def modelEvaluationParallel(settings_file_name):
     
     ### Using a wrapper for the type of actor now
     if action_space_continuous:
-        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
+        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['experience_length'], continuous_actions=True, settings=settings)
     else:
-        experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+        experience = ExperienceMemory(len(state_bounds[0]), 1, settings['experience_length'])
     # actor = ActorInterface(discrete_actions)
     actor = createActor(str(settings['environment_type']),settings, experience)
     masterAgent = LearningAgent(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
@@ -325,9 +325,9 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     
     ### Using a wrapper for the type of actor now
     if action_space_continuous:
-        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
+        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['experience_length'], continuous_actions=True, settings=settings)
     else:
-        experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+        experience = ExperienceMemory(len(state_bounds[0]), 1, settings['experience_length'])
     # actor = ActorInterface(discrete_actions)
     
     if ( "perform_multiagent_training" in settings):

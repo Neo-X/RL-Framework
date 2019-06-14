@@ -542,9 +542,9 @@ def trainModelParallel(inputData):
         
         """
         if settings['action_space_continuous']:
-            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
+            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['experience_length'], continuous_actions=True, settings=settings)
         else:
-            experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+            experience = ExperienceMemory(len(state_bounds[0]), 1, settings['experience_length'])
             
         experience.setSettings(settings)
         """
@@ -662,7 +662,7 @@ def trainModelParallel(inputData):
             if (settings["load_saved_model"] == True):
                 # settings["bootstrap_samples"] = 0
                 # settings["bootsrap_with_discrete_policy"] = False
-                experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['expereince_length'], continuous_actions=True, settings = settings) 
+                experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['experience_length'], continuous_actions=True, settings = settings)
             else:
                 if (settings['on_policy'] == True):
                     
@@ -674,9 +674,9 @@ def trainModelParallel(inputData):
                                sim_work_queues=input_anchor_queue, 
                                eval_episode_data_queue=eval_episode_data_queue)
             masterAgent.setExperience(experience)
-        fd_epxerience_length = settings['expereince_length']
-        if ("fd_expereince_length" in settings):
-            fd_epxerience_length = settings["fd_expereince_length"]
+        fd_epxerience_length = settings['experience_length']
+        if ("fd_experience_length" in settings):
+            fd_epxerience_length = settings["fd_experience_length"]
         if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
             # masterAgent.setFDExperience(copy.deepcopy(masterAgent.getExperience()))
             # experiencefd = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), fd_epxerience_length, 

@@ -26,7 +26,7 @@ declare -a metaExps=(
 #  				"settings/hyperParamTuning/element/exploration_rate.json"
 # 				"settings/hyperParamTuning/element/fd_algorithm.json"
 #  				"settings/hyperParamTuning/element/fd_distance_function.json"
-# 				"settings/hyperParamTuning/element/fd_expereince_length.json" 
+# 				"settings/hyperParamTuning/element/fd_experience_length.json"
 # 				"settings/hyperParamTuning/element/fd_learning_rate.json" 
 # 				"settings/hyperParamTuning/element/fd_updates_per_actor_update.json" 
 #				"settings/hyperParamTuning/element/GAE_lambda.json"

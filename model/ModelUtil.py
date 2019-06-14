@@ -877,7 +877,7 @@ def getModelPredictionUncertanty(model, state, length=4.1, num_samples=32):
     """
     lSquared =(length**2)
     modelPrecsionInv = ((lSquared * (1.0 - model.getSettings()['dropout_p'])) / 
-                        (2*model.getSettings()['expereince_length']*
+                        (2*model.getSettings()['experience_length']*
                          model.getSettings()['regularization_weight'] ))**-1
     # print "Model Precision Inverse:" + str(modelPrecsionInv)
     predictions_ = []
@@ -898,7 +898,7 @@ def getFDModelPredictionUncertanty(model, state, action, length=4.1, num_samples
     import numpy as np
     lSquared =(length**2)
     modelPrecsionInv = ((lSquared * (1.0 - model.getSettings()['dropout_p'])) / 
-                        (2*model.getSettings()['expereince_length']*
+                        (2*model.getSettings()['experience_length']*
                          model.getSettings()['regularization_weight'] ))**-1
     # print "Model Precision Inverse:" + str(modelPrecsionInv)
     predictions_ = []
@@ -917,7 +917,7 @@ def getModelValueUncertanty(model, state, length=4.1, num_samples=32):
     """
     lSquared =(length**2)
     modelPrecsionInv = ((lSquared * (1.0 - model.getSettings()['dropout_p'])) / 
-                        (2*model.getSettings()['expereince_length']*
+                        (2*model.getSettings()['experience_length']*
                          model.getSettings()['regularization_weight'] ))**-1
     # print "Model Precision Inverse:" + str(modelPrecsionInv)
     predictions_ = []

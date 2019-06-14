@@ -20,7 +20,7 @@
 "train_forward_dynamics": true,
 "visulaize_forward_dynamics": false,
 "reward_bounds": [[0.0],[1.0]],
-"expereince_length": 10000,
+"experience_length": 10000,
 "state_bounds": [[ -6.34096220e-01,   9.42412945e-01,  -2.77025047e+00,
           5.99883344e-01,  -5.19683588e-01,  -5.19683588e-01,
          -3.42888109e-01,  -5.23556180e-01,   7.76794216e-02,
