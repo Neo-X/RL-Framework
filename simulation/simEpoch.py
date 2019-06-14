@@ -191,7 +191,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # print ("action", repr(action))
             else: 
                 ### exploit policy
-                exp_action = [[0]* len(state_)]
+                exp_action = [[0]] *  len(state_)
                 ## For sampling method to skip sampling during evaluation.
                 use_MBRL = False
                 if ("evalaute_with_MBRL" in settings and
