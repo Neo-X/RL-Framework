@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=8
 #SBATCH --partition=savio2
 
-#SBATCH --mail-user=gberseth@gberseth@gmail.com
+#SBATCH --mail-user=gberseth@gmail.com
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
