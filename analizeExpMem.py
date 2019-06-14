@@ -109,9 +109,9 @@ def trainForwardDynamics(settings):
     print ("action_bounds: ", action_bounds)
     
     if action_space_continuous:
-        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
+        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['experience_length'], continuous_actions=True, settings=settings)
     else:
-        experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+        experience = ExperienceMemory(len(state_bounds[0]), 1, settings['experience_length'])
     experience.setSettings(settings)
     if ("keep_seperate_fd_exp_buffer" in settings
         and (settings["keep_seperate_fd_exp_buffer"] == True)):
@@ -132,7 +132,7 @@ def trainForwardDynamics(settings):
                              [1] * settings["dense_state_size"]])
         experience.setResultStateBounds(res_state_bounds__)
         """
-        _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(min(experience.samples(), settings["expereince_length"]))
+        _states, _actions, _result_states, _rewards, _falls, _G_ts, exp_actions__, _advantage = experience.get_batch(min(experience.samples(), settings["experience_length"]))
         
         ### Usually the state and next state are the same size, not in this case...
         # s_mean_ = np.mean(_states, axis=0)

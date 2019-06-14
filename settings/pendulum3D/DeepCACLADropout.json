@@ -21,7 +21,7 @@
 "train_forward_dynamics": true,
 "visulaize_forward_dynamics": true,
 "max_reward": 10.0,
-"expereince_length": 1000,
+"experience_length": 1000,
 "state_bounds": [[-3.14, 1.0,-8.05, -1.0, -1.0, -8.5, -5.0, -5.5, -5.0, -2.5, -5.0],
 				 [ 3.14, 8.5, 5.00, 1.0, 1.0, 10.0, 5.0, 15.0,  5.0, 20.0, 5.0]],
 "action_bounds": [[0.2,-0.5,0.25, 0.0, -0.15],

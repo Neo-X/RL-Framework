@@ -96,9 +96,9 @@ class LearnWorkerr(Process):
             action_bounds = np.array(settings["action_bounds"], dtype=float)
         
         if action_space_continuous:
-            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
+            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['experience_length'], continuous_actions=True, settings=settings)
         else:
-            experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+            experience = ExperienceMemory(len(state_bounds[0]), 1, settings['experience_length'])
         experience.setSettings(settings)
         file_name=directory+getAgentName()+"_expBufferInit.hdf5"
         # experience.saveToFile(file_name)
@@ -265,7 +265,7 @@ def trainForwardDynamics(settings):
     action_bounds = np.array(settings["action_bounds"], dtype=float)
     forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model,
                                                                   reward_bounds=reward_bounds)
-    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
+    experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['experience_length'], continuous_actions=True, settings=settings)
     experience.setSettings(settings)
     file_name=directory+getAgentName()+"_expBufferInit.hdf5"
     # experience.saveToFile(file_name)

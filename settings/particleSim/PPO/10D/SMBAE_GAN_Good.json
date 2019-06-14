@@ -253,7 +253,7 @@
         ]
     ],
     "float_type": "float64",
-    "expereince_length": 10000,
+    "experience_length": 10000,
     "randomize_MBAE_action_length": true,
     "dyna_update_lag_steps": 5,
     "exploration_rate": 1.0,

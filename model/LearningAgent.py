@@ -318,7 +318,7 @@ class LearningAgent(AgentInterface):
                     batch_size_lstm = 4
                     if ("lstm_batch_size" in self._settings):
                         batch_size_lstm = self._settings["lstm_batch_size"][1]
-                    updates___ = max(1, int((len(_states)/batch_size_lstm) * self._settings["additional_on-poli_trianing_updates"]))
+                    updates___ = max(1, int((len(_states)/batch_size_lstm) * self._settings["additional_on_policy_training_updates"]))
                     print ("Performing lstm policy training")
                     if (("train_LSTM_Critic" in self._settings)
                         and (self._settings["train_LSTM_Critic"] == True)
@@ -436,9 +436,9 @@ class LearningAgent(AgentInterface):
                                       __exp_actions, __G_t)
             loss = 0
             additional_on_poli_trianing_updates = 1
-            if ( "additional_on-poli_trianing_updates" in self._settings 
-                 and (self._settings["additional_on-poli_trianing_updates"] != False)):
-                additional_on_poli_trianing_updates = self._settings["additional_on-poli_trianing_updates"]
+            if ( "additional_on_policy_training_updates" in self._settings
+                 and (self._settings["additional_on_policy_training_updates"] != False)):
+                additional_on_poli_trianing_updates = self._settings["additional_on_policy_training_updates"]
             ### The data should be seen ~ 4 times
             additional_on_poli_trianing_updates = int(np.ceil(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / batch_size_) * additional_on_poli_trianing_updates))
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -458,11 +458,11 @@ class LearningAgent(AgentInterface):
                 batch_ratio = batch_ratio * data_ratio
                 
                 
-                additional_on_poli_trianing_updates_ = self._settings["additional_on-poli_trianing_updates"]
+                additional_on_poli_trianing_updates_ = self._settings["additional_on_policy_training_updates"]
                 if ( additional_on_poli_trianing_updates_ < 1 ): ## should have at least one training update
                     additional_on_poli_trianing_updates_ = 1
                 if (self._settings['train_critic']):
-                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(self._expBuff.samples(), self._settings["expereince_length"]))
+                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(self._expBuff.samples(), self._settings["experience_length"]))
                     vf_updates = int(additional_on_poli_trianing_updates_ * batch_ratio)
                     if ("critic_updates_per_actor_update" in self._settings 
                         and (self._settings['critic_updates_per_actor_update'] > 1)):
@@ -477,11 +477,11 @@ class LearningAgent(AgentInterface):
                 if (self._settings['train_forward_dynamics']):
                     if ( 'keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'])):
                         # print ("Using seperate (off-policy) exp mem for FD model")
-                        # states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(min(self.getFDExperience().samples(), self._settings["expereince_length"]))
+                        # states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(min(self.getFDExperience().samples(), self._settings["experience_length"]))
                         ### The FD model data grows rather large...
-                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(min(self._expBuff.samples(), self._settings["expereince_length"]))
+                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(min(self._expBuff.samples(), self._settings["experience_length"]))
                     else:
-                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getExperience().get_batch(min(self._expBuff.samples(), self._settings["expereince_length"]))
+                        states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getExperience().get_batch(min(self._expBuff.samples(), self._settings["experience_length"]))
                     fd_updates = int(additional_on_poli_trianing_updates_ * batch_ratio)
                     if ("fd_updates_per_actor_update" in self._settings 
                         and (self._settings['fd_updates_per_actor_update'] > 1)):
@@ -500,7 +500,7 @@ class LearningAgent(AgentInterface):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Performing ", int(additional_on_poli_trianing_updates_), " policy epoch(s)")
                         
-                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(self._expBuff.samples(), self._settings["expereince_length"]))
+                    states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(self._expBuff.samples(), self._settings["experience_length"]))
                     loss_ = self.getPolicy().trainActor(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__, 
                                                      advantage=advantage__, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
                                                      p=p, updates=int(additional_on_poli_trianing_updates_), batch_size=batch_size_)

@@ -289,9 +289,9 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
     ### Using a wrapper for the type of actor now
     """
     if action_space_continuous:
-        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
+        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['experience_length'], continuous_actions=True, settings=settings)
     else:
-        experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+        experience = ExperienceMemory(len(state_bounds[0]), 1, settings['experience_length'])
     """
     experience=None
     # actor = ActorInterface(discrete_actions)

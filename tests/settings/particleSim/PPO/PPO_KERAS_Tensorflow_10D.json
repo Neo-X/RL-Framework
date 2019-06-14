@@ -36,7 +36,7 @@
     "comment__": "Bounds used for scaling rewards for networks",
 "reward_bounds": [[-5.0],[5.0]],
         "comment__": "Max length of the Experience memory",
-"expereince_length": 100000,
+"experience_length": 100000,
  "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [[ -8.0, -8.0, -8.0, -8.0, -8.0, -8.0, -8.0, -8.0, -8.0, -8.0],
        			 [  8.0,  8.0,  8.0,  8.0,  8.0,  8.0,  8.0,  8.0,  8.0,  8.0 ]],
@@ -285,7 +285,7 @@
 	"comment__": "Batch size for the value function network",
 "value_function_batch_size": 64,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 2.0,
+"additional_on_policy_training_updates": 2.0,
 	"comment__": "Process batches fast. Might lead to smaller batch sizes",
 "Use_fast_batch_computation": true,
 

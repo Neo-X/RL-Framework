@@ -35,13 +35,13 @@ class GANKeras(AlgorithmInterface):
         # if settings['action_space_continuous']:
         if ( 'size_of_result_state' in self.getSettings()):
             self._experience = ExperienceMemory(state_length, action_length, 
-                                                self.getSettings()['expereince_length'], 
+                                                self.getSettings()['experience_length'],
                                                 continuous_actions=True, 
                                                 settings=self.getSettings(), 
                                                 result_state_length=self.getSettings()['size_of_result_state'])
         else:
             self._experience = ExperienceMemory(state_length, action_length, 
-                                                self.getSettings()['expereince_length'], 
+                                                self.getSettings()['experience_length'],
                                                 continuous_actions=True, 
                                                 settings=self.getSettings())
             

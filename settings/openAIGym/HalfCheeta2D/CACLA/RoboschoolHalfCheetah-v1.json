@@ -36,7 +36,7 @@
     "comment__": "Bounds used for scaling rewards for networks",
 "reward_bounds": [[-10.5],[10.5]],
     "comment__": "Max length of the Experience memory",
-"expereince_length": 10000,
+"experience_length": 10000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [[ -1.09601474e+00,  -1.18591349e-00,  -9.37756777e-01,  -2.38867331e+00,
 				   -2.59276520e-00,  -2.47832203e+00,  -1.33170605e-01,  -1.01503074e+00,
@@ -303,7 +303,7 @@
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
 "train_critic_with_fd_data": false,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 4,
+"additional_on_policy_training_updates": 4,
 	"comment__": "Use average of policy std as mbae learning rate",
 "use_std_avg_as_mbae_learning_rate": true 
 }
