@@ -1,4 +1,3 @@
-from nose.tools import timed
 from numpy.testing import assert_allclose
 import numpy as np
 import pytest
@@ -68,7 +67,7 @@ class TestMRLAndHRL(object):
         settings['print_level'] = 'testing_sim'
         # settings['rounds'] = 2
         settings['rounds'] = 100
-        simData = trainModelParallel((filename, settings))
+        simData = trainMultiAgentModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -1.0
         

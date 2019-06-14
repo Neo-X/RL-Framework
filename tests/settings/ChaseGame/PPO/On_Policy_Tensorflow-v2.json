@@ -18,7 +18,7 @@
     "comment__": "A different config file for the forward dynamics simulator",
 "forwardDynamics_config_file": "NavGameMultiAgent_10D-v0",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.5,
+"exploration_rate": [0.5, 0.5],
     "comment__": "Number of rounds to perform before termination",
 "rounds": 100,
     "comment__": "Number of epochs to perform per round",
@@ -276,21 +276,33 @@
 	"comment__": "Use json network description",
 "network_description_type": "json",
 	"comment__": "A list describing the size of the layers for the NN",
-"critic_network_layer_sizes": [ 
+"critic_network_layer_sizes": [[ 
 								{"layer_type": "Dense", "units": 128, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dropout", "rate": 0.2}
-								],
+								],[ 
+								{"layer_type": "Dense", "units": 128, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dropout", "rate": 0.2},
+								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dropout", "rate": 0.2}
+								]],
 	"comment__": "A list describing the size of the layers for the NN",
-"policy_network_layer_sizes": [ 
+"policy_network_layer_sizes": [[ 
 								{"layer_type": "Dense", "units": 128, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
-								],
+								],[ 
+								{"layer_type": "Dense", "units": 128, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
+								]],
 	"comment__": "Activation function to use for the std part of the policy",
 "_last_std_policy_layer_activation_type": "sigmoid",
 	"comment__": "type of activation to use",
