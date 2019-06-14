@@ -572,7 +572,9 @@ class LearningAgent(AgentInterface):
                             states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(value_function_batch_size)
                             dynamicsLoss = self._fd.train(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, lstm=False)
                         else:
-                            dynamicsLoss = self._fd.train(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, lstm=False)
+                            print ("tmp_states:", np.array(tmp_states).shape)
+                            states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getExperience().get_batch(value_function_batch_size)
+                            dynamicsLoss = self._fd.train(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, lstm=False)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Forward Dynamics Loss: ", dynamicsLoss)
                                 

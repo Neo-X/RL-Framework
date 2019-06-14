@@ -368,7 +368,7 @@ class GANKeras(AlgorithmInterface):
         
     def train(self, states, actions, result_states, rewards, updates=1, batch_size=None,
               lstm=False):
-        # print ("states: ", states)
+        print ("states: ", np.array(states).shape)
         if (batch_size is None):
             batch_size_ = states.shape[0]
         else:
