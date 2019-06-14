@@ -7,7 +7,7 @@
 ## declare an array variable
 declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/activation_type.json" 
-#  				"settings/hyperParamTuning/element/additional_on-poli_trianing_updates.json" 
+#  				"settings/hyperParamTuning/element/additional_on_policy_training_updates.json"
 # 				"settings/hyperParamTuning/element/advantage_scaling.json" 
  				"settings/hyperParamTuning/element/anneal_exploration.json"
  				"settings/hyperParamTuning/element/anneal_policy_std.json" 

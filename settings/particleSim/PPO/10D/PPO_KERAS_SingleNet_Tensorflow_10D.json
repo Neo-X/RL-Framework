@@ -303,5 +303,5 @@
 	"comment__": "anneal the probability of performing explorative actions, set to >= 1.0 to perform only exploration actions",
 "anneal_exploration": false,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 2
+"additional_on_policy_training_updates": 2
 }

@@ -285,7 +285,7 @@
 	"comment__": "Batch size for the value function network",
 "value_function_batch_size": 64,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 2.0,
+"additional_on_policy_training_updates": 2.0,
 	"comment__": "Process batches fast. Might lead to smaller batch sizes",
 "Use_fast_batch_computation": true,
 

@@ -303,5 +303,5 @@
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
 "train_critic_with_fd_data": true,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 4,	
+"additional_on_policy_training_updates": 4,
 }

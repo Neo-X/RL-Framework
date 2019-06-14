@@ -169,7 +169,7 @@
             0.2
         ]
     ],
-    "additional_on-poli_trianing_updates": 4,
+    "additional_on_policy_training_updates": 4,
     "normalize_advantage": true,
     "load_saved_fd_model": false,
     "training_processor_type": "cpu",

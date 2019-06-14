@@ -318,7 +318,7 @@ class LearningAgent(AgentInterface):
                     batch_size_lstm = 4
                     if ("lstm_batch_size" in self._settings):
                         batch_size_lstm = self._settings["lstm_batch_size"][1]
-                    updates___ = max(1, int((len(_states)/batch_size_lstm) * self._settings["additional_on-poli_trianing_updates"]))
+                    updates___ = max(1, int((len(_states)/batch_size_lstm) * self._settings["additional_on_policy_training_updates"]))
                     print ("Performing lstm policy training")
                     if (("train_LSTM_Critic" in self._settings)
                         and (self._settings["train_LSTM_Critic"] == True)
@@ -436,9 +436,9 @@ class LearningAgent(AgentInterface):
                                       __exp_actions, __G_t)
             loss = 0
             additional_on_poli_trianing_updates = 1
-            if ( "additional_on-poli_trianing_updates" in self._settings 
-                 and (self._settings["additional_on-poli_trianing_updates"] != False)):
-                additional_on_poli_trianing_updates = self._settings["additional_on-poli_trianing_updates"]
+            if ( "additional_on_policy_training_updates" in self._settings
+                 and (self._settings["additional_on_policy_training_updates"] != False)):
+                additional_on_poli_trianing_updates = self._settings["additional_on_policy_training_updates"]
             ### The data should be seen ~ 4 times
             additional_on_poli_trianing_updates = int(np.ceil(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / batch_size_) * additional_on_poli_trianing_updates))
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -458,7 +458,7 @@ class LearningAgent(AgentInterface):
                 batch_ratio = batch_ratio * data_ratio
                 
                 
-                additional_on_poli_trianing_updates_ = self._settings["additional_on-poli_trianing_updates"]
+                additional_on_poli_trianing_updates_ = self._settings["additional_on_policy_training_updates"]
                 if ( additional_on_poli_trianing_updates_ < 1 ): ## should have at least one training update
                     additional_on_poli_trianing_updates_ = 1
                 if (self._settings['train_critic']):

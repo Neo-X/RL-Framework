@@ -152,8 +152,8 @@ def getOptions(_args=None):
               type=int,
               metavar="INTEGER", help="The number of seconds between policy progress emails are sent")
     
-    parser.add_option("--additional_on-poli_trianing_updates",
-              action="store", dest="additional_on-poli_trianing_updates", default=None,
+    parser.add_option("--additional_on_policy_training_updates",
+              action="store", dest="additional_on_policy_training_updates", default=None,
               type=int,
               metavar="INTEGER", help="Additional on-policy training updates")
     
