@@ -36,7 +36,7 @@
     "comment__": "Bounds used for scaling rewards for networks",
 "reward_bounds": [[-25.5],[-5.5]],
     "comment__": "Max length of the Experience memory",
-"expereince_length": 20000,
+"experience_length": 20000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [[ -0.81866979, -0.66666667, -0.89268049, -0.87219093, -0.68015503,
 			       -1.03331779, -1.2373618 , -1.24605237, -1.2468427 , -1.20778947,
@@ -303,7 +303,7 @@
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
 "train_critic_with_fd_data": true,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 4,
+"additional_on_policy_training_updates": 4,
 	"comment__": "Use the on-policy value function to compute state gradients instead of off-policy one for SMBAE."
 "use_extra_value_for_MBAE_state_grads": true
 }

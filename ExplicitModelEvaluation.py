@@ -52,9 +52,9 @@ def modelSampling(settings):
             action_bounds = np.array(settings["action_bounds"], dtype=float)
             
         if action_space_continuous:
-            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
+            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['experience_length'], continuous_actions=True, settings=settings)
         else:
-            experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+            experience = ExperienceMemory(len(state_bounds[0]), 1, settings['experience_length'])
         ### Using a wrapper for the type of actor now
         actor = createActor(str(settings['environment_type']),settings, experience)
         # this is the process that selects which game to play

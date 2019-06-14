@@ -36,7 +36,7 @@
     "comment__": "Bounds used for scaling rewards for networks",
 "reward_bounds": [[-3.0],[3.0]],
         "comment__": "Max length of the Experience memory",
-"expereince_length": 10000,
+"experience_length": 10000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [[ -10.0, -10.0, -10.0, -10.0, -10.0, -10.0, -10.0, -10.0, -10.0, -10.0],
        			 [  10.0,  10.0,  10.0,  10.0,  10.0,  10.0,  10.0,  10.0,  10.0,  10.0 ]],
@@ -303,5 +303,5 @@
 	"comment__": "anneal the probability of performing explorative actions, set to >= 1.0 to perform only exploration actions",
 "anneal_exploration": false,
 	"comment__": "Additional on-policy training updates",
-"additional_on-poli_trianing_updates": 1
+"additional_on_policy_training_updates": 1
 }

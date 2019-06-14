@@ -29,8 +29,8 @@ class ExperienceMemory(object):
         
         self._history_size=memory_length
         self._trajectory_size=int(np.mean(memory_length)/100)
-        if ("fd_expereince_length" in self._settings):
-            self._trajectory_size=int(self._settings["fd_expereince_length"])
+        if ("fd_experience_length" in self._settings):
+            self._trajectory_size=int(self._settings["fd_experience_length"])
         self._state_length = state_length
         self._action_length = action_length
         self._continuous_actions = continuous_actions

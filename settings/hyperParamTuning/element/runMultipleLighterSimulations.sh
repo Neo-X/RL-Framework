@@ -8,7 +8,7 @@
 declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/activation_type.json" 
 				"settings/hyperParamTuning/element/add_label_noise.json" 
-#  				"settings/hyperParamTuning/element/additional_on-poli_trianing_updates.json" 
+#  				"settings/hyperParamTuning/element/additional_on_policy_training_updates.json"
 # 				"settings/hyperParamTuning/element/advantage_scaling.json" 
 #  				"settings/hyperParamTuning/element/anneal_exploration.json"
 #  				"settings/hyperParamTuning/element/anneal_policy_std.json" 
@@ -25,7 +25,7 @@ declare -a metaExps=(
  				"settings/hyperParamTuning/element/exploration_rate.json"
 # 				"settings/hyperParamTuning/element/fd_algorithm.json"
 				"settings/hyperParamTuning/element/fd_distance_function.json"
- 				"settings/hyperParamTuning/element/fd_expereince_length.json" 
+ 				"settings/hyperParamTuning/element/fd_experience_length.json"
  				"settings/hyperParamTuning/element/fd_learning_rate.json" 
 # 				"settings/hyperParamTuning/element/fd_updates_per_actor_update.json" 
 #				"settings/hyperParamTuning/element/GAE_lambda.json"

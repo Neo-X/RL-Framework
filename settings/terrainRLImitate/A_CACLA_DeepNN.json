@@ -38,7 +38,7 @@
     "comment__": "Bounds used for scaling rewards for networks",
 "reward_bounds": [[0.0],[1.0]],
     "comment__": "Max length of the Experience memory",
-"expereince_length": 20000,
+"experience_length": 20000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [[ 0.29544723, -0.19075078,  0.06202744, -0.08982029, -0.22154082,
         -0.364867  , -0.5661909 , -0.60907245, -0.88264793, -0.13868065,

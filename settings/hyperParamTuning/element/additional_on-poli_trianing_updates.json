@@ -6,7 +6,7 @@
 	"comment__": "Number of simulation samples to compute to use for Meta simulation, running a number of simulations and taking the average of them",
 "meta_sim_samples": 3,
 	"comment__": "Name of the parameters that we want to tune",
-"param_to_tune": ["additional_on-poli_trianing_updates"],
+"param_to_tune": ["additional_on_policy_training_updates"],
 	"comment__": "Parameter bounds, for which values will be sampled",
 "param_bounds": [[2, 4]],
 	"comment__": "parameter value type [int|float|bool]",

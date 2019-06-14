@@ -104,9 +104,9 @@ def fitModelToData(settingsFileName):
         action_bounds = np.array(settings["action_bounds"], dtype=float)
     
     if action_space_continuous:
-        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['expereince_length'], continuous_actions=True, settings=settings)
+        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['experience_length'], continuous_actions=True, settings=settings)
     else:
-        experience = ExperienceMemory(len(state_bounds[0]), 1, settings['expereince_length'])
+        experience = ExperienceMemory(len(state_bounds[0]), 1, settings['experience_length'])
     file_name=directory+getAgentName()+"expBufferInit.hdf5"
     # experience.saveToFile(file_name)
     experience.loadFromFile(file_name)
