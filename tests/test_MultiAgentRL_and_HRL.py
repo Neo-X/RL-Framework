@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 import warnings
 from trainModel import trainModelParallel
+from trainMultiAgentModel import trainModelParallel as trainMultiAgentModelParallel  
 import json
 import sys
 
@@ -87,7 +88,7 @@ class TestMRLAndHRL(object):
         settings['print_level'] = 'testing_sim'
         # settings['rounds'] = 2
         # settings['rounds'] = 100
-        simData = trainModelParallel((filename, settings))
+        simData = trainMultiAgentModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -1.0
         
@@ -107,7 +108,7 @@ class TestMRLAndHRL(object):
         settings['print_level'] = 'testing_sim'
         # settings['rounds'] = 2
         # settings['rounds'] = 100
-        simData = trainModelParallel((filename, settings))
+        simData = trainMultiAgentModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -1.0
         
@@ -127,7 +128,7 @@ class TestMRLAndHRL(object):
         settings['print_level'] = 'testing_sim'
         # settings['rounds'] = 2
         # settings['rounds'] = 100
-        simData = trainModelParallel((filename, settings))
+        simData = trainMultiAgentModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert np.mean(simData['mean_reward'][-5:]) > -1.0
             
