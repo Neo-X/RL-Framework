@@ -66,6 +66,17 @@ singularity exec --bind ~/playground/RL-Framework/terrainRLSim/:/opt/RL-Framewor
 SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL  singularity exec --cleanenv --bind ~/playground/RL-Framework/terrainRLSim/:/opt/RL-Framework/terrainRLSim deepcrowds ls /opt/RL-Framework/terrainRLSim
 ```
 
+Run a simulation on the laptop
+
+```
+SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRLSim SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments singularity exec --cleanenv /media/gberseth/Cluster_Port/playground/SingularityBuilding/ubuntu_learning.img python3.6 trainModel.py --config=tests/settings/particleSim/PPO/PPO_KERAS_Tensorflow-v2_5D.json -p 2 --num_rounds=10 --continue_training=false --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig=settings/hyperParamTuning/element/learning_rate_ddpg.json --email_log_data_periodically=true --shouldRender=false --bootstrap_samples=0
+```
+or
+
+```
+SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRLSim SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments singularity exec --cleanenv /media/gberseth/Cluster_Port/playground/SingularityBuilding/ubuntu_learning.img python3.6 trainMultiAgentModel.py --config=settings/navgame2D/MADDPG/HRL_TRPO_Tensorflow_NoViz_HLC-v4.json -p 2 --num_rounds=10 --continue_training=false --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig=settings/hyperParamTuning/element/learning_rate_ddpg.json --email_log_data_periodically=true --shouldRender=false --bootstrap_samples=0
+```
+
 - Start a training simulation for training a multichar model
 ```
 SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments singularity exec --cleanenv --home ~/playground/RL-Framework/:/opt/RL-Framework deepcrowds python3.6 trainModel.py --config=settings/terrainRLMultiChar/HLC/CACLA/LargeBlocks_Multi_Char_On_Policy.json -p 8 --bootstrap_samples=10000 --rollouts=16 --max_epoch_length=64 --on_policy=fast --save_experience_memory=continual --num_rounds=1000 --print_level=train --continue_training=false --saving_update_freq_num_rounds=1 --epochs=4 --eval_epochs=8 --plot=false --meta_sim_samples=2 --meta_sim_threads=2 --plotting_update_freq_num_rounds=1 --metaConfig=settings/hyperParamTuning/deepCrowds.json --additional_on_policy_training_updates=2 
