@@ -5,12 +5,12 @@
     functions. However, the methods in this file tend to need Theano as a dependency.
 
 """
-import theano
-from theano import tensor as T
+# import theano
+# from theano import tensor as T
 import keras.backend as K
-from lasagne.layers import get_all_params
+# from lasagne.layers import get_all_params
 import numpy as np
-import lasagne
+# import lasagne
 import sys
 import copy
 sys.path.append('../')
