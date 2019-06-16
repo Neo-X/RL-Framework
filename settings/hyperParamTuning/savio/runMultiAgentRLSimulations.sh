@@ -50,7 +50,7 @@ declare -a metaExps=(
 ## declare an array variable
 declare -a simExps=(
 	"settings/navgame2D/MADDPG/HRL_Tensorflow_NoViz-v3.json"
-# 	"settings/ChaseGame/MADDPG/Tensorflow-v2.json"
+ 	"settings/navgame2D/MADDPG/HRL_TRPO_Tensorflow_NoViz_HLC-v4.json"
 )
 
 rounds=$1
@@ -66,9 +66,11 @@ do
 		# echo "$metaConfig"
 		# or do whatever with individual element of the array
 		# echo "$simConfigFile"
-		command="SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments sbatch --time=25:00:00 --mem=8536M --cpus-per-task=12 ./settings/hyperParamTuning/savio/test_run.sh 'singularity exec --cleanenv --home ~/playground/RL-Framework:/opt/RL-Framework /global/scratch/gberseth/SingularityBuilding/ubuntu_learning.img python3.6 tuneHyperParameters.py --config="$simConfig" -p 2 --num_rounds="$rounds" --continue_training=false --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig="$metaExp" --email_log_data_periodically=true --shouldRender=false --bootstrap_samples=0 "$opts"'"
-		echo $command
-		eval $command
+		arg="pushd /opt/RL-Framework2; python3.6 tuneHyperParameters.py --config=${simConfig} -p 2 --num_rounds=${rounds} --continue_training=false --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig=${metaExp} --email_log_data_periodically=true --shouldRender=false --bootstrap_samples=0 ${opts}"
+		command=(sbatch --time=25:00:00 --mem=8536M --cpus-per-task=12 ./settings/hyperParamTuning/savio/test_run.sh singularity exec --cleanenv -B /global/home/users/gberseth/playground/RL-Framework:/opt/RL-Framework2 /global/scratch/gberseth/SingularityBuilding/ubuntu_learning.img -c "$arg")
+		echo "SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRLSim SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments ${command[@]}"
+		# eval $command
+		"SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRLSim SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments ${command[@]}"
 	done
 done
 
