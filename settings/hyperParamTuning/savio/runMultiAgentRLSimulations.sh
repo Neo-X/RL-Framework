@@ -70,7 +70,7 @@ do
 		command=(sbatch --time=25:00:00 --mem=8536M --cpus-per-task=12 ./settings/hyperParamTuning/savio/test_run.sh singularity exec --cleanenv -B /global/home/users/gberseth/playground/RL-Framework:/opt/RL-Framework2 /global/scratch/gberseth/SingularityBuilding/ubuntu_learning.img -c "$arg")
 		echo "SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRLSim SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments ${command[@]}"
 		# eval $command
-		"SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRLSim SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments ${command[@]}"
+		SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRLSim SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments "${command[@]}"
 	done
 done
 
