@@ -56,6 +56,8 @@ declare -a simExps=(
 rounds=$1
 opts=$2
 
+sbatchFlags="--account=fc_rail --partition=savio2 --mem=16384M --time=24:00:00 --job-name=test --output=%x-%j.out --cpus-per-task=8 --mail-user=gberseth@gmail.com --mail-type=BEGIN,END,FAIL,REQUEUE,ALL"
+
 ### For each sim sonfig
 for metaExp in "${metaExps[@]}"
 do
@@ -67,10 +69,12 @@ do
 		# or do whatever with individual element of the array
 		# echo "$simConfigFile"
 		arg="pushd /opt/RL-Framework2; python3.6 tuneHyperParameters.py --config=${simConfig} -p 2 --num_rounds=${rounds} --continue_training=false --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --plotting_update_freq_num_rounds=5 --metaConfig=${metaExp} --email_log_data_periodically=true --shouldRender=false --bootstrap_samples=0 ${opts}"
-		command=(sbatch --time=25:00:00 --mem=8536M --cpus-per-task=12 ./settings/hyperParamTuning/savio/test_run.sh singularity shell --cleanenv -B /global/home/users/gberseth/playground/RL-Framework:/opt/RL-Framework2 /global/scratch/gberseth/SingularityBuilding/ubuntu_learning.img -c "$arg")
-		echo SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRLSim SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments "${command[@]}"
-		# eval $command
-		SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRLSim SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments "${command[@]}"
+		# command=(sbatch --time=25:00:00 --mem=8536M --cpus-per-task=12 ./settings/hyperParamTuning/savio/test_run.sh singularity shell --cleanenv -B /global/home/users/gberseth/playground/RL-Framework:/opt/RL-Framework2 /global/scratch/gberseth/SingularityBuilding/ubuntu_learning.img -c "$arg")
+		command="SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRLSim SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments sbatch --time=25:00:00 --mem=8536M --cpus-per-task=12 ./settings/hyperParamTuning/savio/test_run.sh 'singularity shell --cleanenv -B /global/home/users/gberseth/playground/RL-Framework:/opt/RL-Framework2 /global/scratch/gberseth/SingularityBuilding/ubuntu_learning.img -c "${arg}"'"
+		echo $command 
+		# echo SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRLSim SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments "${command[@]}"
+		eval $command
+		# SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRLSim SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments "${command[@]}"
 	done
 done
 

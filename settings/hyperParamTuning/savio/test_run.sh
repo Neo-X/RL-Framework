@@ -8,11 +8,7 @@
 #SBATCH --partition=savio2
 
 #SBATCH --mail-user=gberseth@gmail.com
-#SBATCH --mail-type=BEGIN
-#SBATCH --mail-type=END
-#SBATCH --mail-type=FAIL
-#SBATCH --mail-type=REQUEUE
-#SBATCH --mail-type=ALL
+#SBATCH --mail-type=BEGIN,END,FAIL,REQUEUE,ALL
 
 # The arguments should always start with the keyword SBATCH
 # The arguments must immediately follow the first line (i.e. `!/bin/bash`)
