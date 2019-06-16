@@ -13,30 +13,6 @@ from model.ModelUtil import *
 def elu_mine(x):
     return theano.tensor.switch(x > 0, x, theano.tensor.expm1(x))
 
-def getActivationType(type_name):
-    # try:
-    import lasagne.nonlinearities
-    if ((type_name == 'leaky_rectify')):
-        activation_type = lasagne.nonlinearities.leaky_rectify
-    elif (type_name == 'relu'):
-        activation_type = lasagne.nonlinearities.rectify
-    elif (type_name == 'tanh'):
-        activation_type = lasagne.nonlinearities.tanh
-    elif ( type_name == 'linear'):
-        activation_type = lasagne.nonlinearities.linear
-    elif (type_name == 'sigmoid'):
-        activation_type = lasagne.nonlinearities.sigmoid
-    elif (type_name == 'softplus'):
-        activation_type = theano.tensor.nnet.softplus
-    elif (type_name == 'elu'):
-        activation_type = elu_mine
-    else:
-        print("Activation type: ", type_name, " not recognized")
-    return activation_type
-    """
-    except Exception as inst:
-        return leaky_relu
-    """
 def linear(x):
     return x
 
@@ -62,26 +38,50 @@ class ModelInterface(object):
         self._dropout_p=settings_['dropout_p']
         print("Model dropout: ", self._dropout_p)
         ### Get a type of activation to use
-        self._activation_type=leaky_relu
-        self._policy_activation_type=leaky_relu
+        self._activation_type=self.getActivationType("leaky_rectify")
+        self._policy_activation_type=self.getActivationType("leaky_rectify")
         if ("activation_type" in settings_ ):
-            self._activation_type = getActivationType(settings_['activation_type'])
+            self._activation_type = self.getActivationType(settings_['activation_type'])
             self._policy_activation_type = self._activation_type
         if ("policy_activation_type" in settings_ ):
-            self._policy_activation_type = getActivationType(settings_['policy_activation_type'])
+            self._policy_activation_type = self.getActivationType(settings_['policy_activation_type'])
             
-        self._last_policy_layer_activation_type = linear
+        self._last_policy_layer_activation_type = self.getActivationType("linear")
         if ('last_policy_layer_activation_type' in settings_ ):
-            self._last_policy_layer_activation_type = getActivationType(settings_['last_policy_layer_activation_type'])
+            self._last_policy_layer_activation_type = self.getActivationType(settings_['last_policy_layer_activation_type'])
         
-        self._last_std_policy_layer_activation_type = theano.tensor.nnet.softplus
+        self._last_std_policy_layer_activation_type = self.getActivationType("softplus")
         if ('_last_std_policy_layer_activation_type' in settings_ ):
-            self._last_std_policy_layer_activation_type = getActivationType(settings_['_last_std_policy_layer_activation_type'])
+            self._last_std_policy_layer_activation_type = self.getActivationType(settings_['_last_std_policy_layer_activation_type'])
 
-        self._last_critic_layer_activation_type = linear
+        self._last_critic_layer_activation_type = self.getActivationType("linear")
         if ('last_critic_layer_activation_type' in settings_ and (settings_['last_critic_layer_activation_type']) == 'linear'):
-            self._last_critic_layer_activation_type = getActivationType(settings_['last_critic_layer_activation_type'])
-        
+            self._last_critic_layer_activation_type = self.getActivationType(settings_['last_critic_layer_activation_type'])
+    
+    def getActivationType(self, type_name):
+        # try:
+        import lasagne.nonlinearities
+        if ((type_name == 'leaky_rectify')):
+            activation_type = lasagne.nonlinearities.leaky_rectify
+        elif (type_name == 'relu'):
+            activation_type = lasagne.nonlinearities.rectify
+        elif (type_name == 'tanh'):
+            activation_type = lasagne.nonlinearities.tanh
+        elif ( type_name == 'linear'):
+            activation_type = lasagne.nonlinearities.linear
+        elif (type_name == 'sigmoid'):
+            activation_type = lasagne.nonlinearities.sigmoid
+        elif (type_name == 'softplus'):
+            activation_type = theano.tensor.nnet.softplus
+        elif (type_name == 'elu'):
+            activation_type = elu_mine
+        else:
+            print("Activation type: ", type_name, " not recognized")
+        return activation_type
+        """
+        except Exception as inst:
+            return leaky_relu
+        """
     def getNetworkParameters(self):
         pass
     

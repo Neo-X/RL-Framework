@@ -28,29 +28,6 @@ from util.coordconv import *
 from model.ModelInterface import ModelInterface
 from pydoc import locate
 
-def getKerasActivation(type_name):
-    """
-        Compute a particular type of actiation to use
-    """
-    import keras.layers
-    
-    if (type_name == 'leaky_rectify'):
-        return keras.layers.LeakyReLU(alpha=0.1)
-    if (type_name == 'relu'):
-        return Activation('relu')
-    if (type_name == 'tanh'):
-        return Activation('tanh')
-    if (type_name == 'linear'):
-        return Activation('linear')
-    if (type_name == 'elu'):
-        return keras.layers.ELU(alpha=1.0)
-    if (type_name == 'sigmoid'):
-        return Activation('sigmoid')
-    if (type_name == 'softplus'):
-        return Activation('softplus')
-    else:
-        print ("Activation type unknown: ", type_name)
-        sys.exit()
         
 ### It is complicated to serialize lambda functions, better to define a function
 def keras_slice(x, begin, end):
@@ -206,7 +183,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                    # , kernel_initializer=(keras.initializers.VarianceScaling(scale=actor_out_init_layer_scale,
                                    # mode='fan_avg', distribution='uniform', seed=None) )
                                    )(networkAct)
-                networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
+                networkAct = self.getActivationType(self._settings['last_policy_layer_activation_type'])(networkAct)
             """
             if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
@@ -220,7 +197,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     self._second_last_layer = Dense(layer_sizes[len(layer_sizes)-1], 
                                        kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                        bias_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._second_last_layer)
-                    self._second_last_layer = getKerasActivation(self._settings['policy_activation_type'])(self._second_last_layer)
+                    self._second_last_layer = self.getActivationType(self._settings['policy_activation_type'])(self._second_last_layer)
                     with_std = Dense(n_out, 
                                 kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                 bias_regularizer=regularizers.l2(self._settings['regularization_weight']),
@@ -234,7 +211,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                 kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
                                 mode='fan_avg', distribution='uniform', seed=None) )
                                      )(networkAct_)
-                with_std = getKerasActivation(self._settings['_last_std_policy_layer_activation_type'])(with_std)
+                with_std = self.getActivationType(self._settings['_last_std_policy_layer_activation_type'])(with_std)
                 # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 self._actor = keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
                 
@@ -287,20 +264,20 @@ class DeepNNKerasAdaptive(ModelInterface):
                 self._second_last_layer_ = Dense(layer_sizes[len(layer_sizes)-1],
                                 kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                 bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(self._second_last_layer)
-                self._second_last_layer_ = getKerasActivation(self._settings['activation_type'])(self._second_last_layer_)
+                self._second_last_layer_ = self.getActivationType(self._settings['activation_type'])(self._second_last_layer_)
                 networkAct = self._second_last_layer_       
                 # networkAct_ = networkAct
                 networkAct = Dense(self._action_length, 
                                    kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                    bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(self._second_last_layer_)
-                networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
+                networkAct = self.getActivationType(self._settings['last_policy_layer_activation_type'])(networkAct)
             else:
                 networkAct = network       
                 networkAct_ = networkAct
                 networkAct = Dense(self._action_length, 
                                    kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                    bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(networkAct)
-                networkAct = getKerasActivation(self._settings['last_policy_layer_activation_type'])(networkAct)
+                networkAct = self.getActivationType(self._settings['last_policy_layer_activation_type'])(networkAct)
     
             self._actor = networkAct
                     
@@ -310,7 +287,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     self._second_last_layer = Dense(layer_sizes[len(layer_sizes)-1],
                                 kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                 bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(self._second_last_layer)
-                    self._second_last_layer = getKerasActivation(self._settings['activation_type'])(self._second_last_layer)
+                    self._second_last_layer = self.getActivationType(self._settings['activation_type'])(self._second_last_layer)
                     
                     with_std = Dense(self._action_length, 
                                 kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
@@ -323,7 +300,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                     kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
                                    mode='fan_avg', distribution='uniform', seed=None) ))(networkAct_)
-                with_std = getKerasActivation(self._settings['_last_std_policy_layer_activation_type'])(with_std)
+                with_std = self.getActivationType(self._settings['_last_std_policy_layer_activation_type'])(with_std)
                 # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
                 self._actor = keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
                 
@@ -332,7 +309,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 self._trans = Dense(self._settings["dense_state_size"],
                                 kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                 bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(self._networkMiddle)
-                self._trans = getKerasActivation(self._settings['last_fd_layer_activation_type'])(self._trans)
+                self._trans = self.getActivationType(self._settings['last_fd_layer_activation_type'])(self._trans)
                 
             if ("forward_dynamics_model_type" in self._settings 
                 and (self._settings["forward_dynamics_model_type"] == "SingleNet")
@@ -340,12 +317,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                 self._forward_dynamics_net = Dense(self._settings["fd_network_layer_sizes"][-1],
                                 kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                 bias_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._networkMiddle)
-                self._forward_dynamics_net = getKerasActivation(self._settings['last_fd_layer_activation_type'])(self._forward_dynamics_net)
+                self._forward_dynamics_net = self.getActivationType(self._settings['last_fd_layer_activation_type'])(self._forward_dynamics_net)
                 
                 self._reward_net = Dense(self._settings["fd_network_layer_sizes"][-1],
                                 kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                 bias_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._networkMiddle)
-                self._reward_net = getKerasActivation(self._settings['last_fd_layer_activation_type'])(self._reward_net)
+                self._reward_net = self.getActivationType(self._settings['last_fd_layer_activation_type'])(self._reward_net)
                 
             # self._actor = Model(input=self._stateInput, output=self._actor)
             # print("Actor summary: ", self._actor.summary())
@@ -372,12 +349,36 @@ class DeepNNKerasAdaptive(ModelInterface):
                            bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
             
             if ("last_critic_layer_activation_type" in self._settings):
-                self._critic = getKerasActivation(self._settings['last_critic_layer_activation_type'])(network)
+                self._critic = self.getActivationType(self._settings['last_critic_layer_activation_type'])(network)
             else:
                 self._critic = Activation('linear')(network)
         else:
             self._critic = network
-            
+    
+    def getActivationType(self, type_name):
+        """
+            Compute a particular type of actiation to use
+        """
+        import keras.layers
+        print ("Getting keras activation")
+        if (type_name == 'leaky_rectify'):
+            return keras.layers.LeakyReLU(alpha=0.1)
+        if (type_name == 'relu'):
+            return Activation('relu')
+        if (type_name == 'tanh'):
+            return Activation('tanh')
+        if (type_name == 'linear'):
+            return Activation('linear')
+        if (type_name == 'elu'):
+            return keras.layers.ELU(alpha=1.0)
+        if (type_name == 'sigmoid'):
+            return Activation('sigmoid')
+        if (type_name == 'softplus'):
+            return Activation('softplus')
+        else:
+            print ("Activation type unknown: ", type_name)
+            sys.exit()
+                
     def createSubNetwork(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):
     
         if ( "network_description_type" in self._settings and
@@ -445,7 +446,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 from keras_layer_normalization import LayerNormalization
                 network = LayerNormalization(**layer_parms)(network)
             elif ( layer_info[i]["layer_type"] == "activation"):
-                network = getKerasActivation(layer_info[i]["activation_type"])(network)      
+                network = self.getActivationType(layer_info[i]["activation_type"])(network)      
             elif ( layer_info[i]["layer_type"] == "integrate_actor_part"):
                 network = Concatenate()([network, self._actionInput])          
             elif (layer_info[i]["layer_type"] == "Concatenate"):
@@ -651,9 +652,9 @@ class DeepNNKerasAdaptive(ModelInterface):
                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                                         
                     if (len(layer_sizes[i]) > 2):
-                        network = getKerasActivation(layer_sizes[i][2])(network)
+                        network = self.getActivationType(layer_sizes[i][2])(network)
                     else:
-                        network = getKerasActivation(self._settings['activation_type'])(network)
+                        network = self.getActivationType(self._settings['activation_type'])(network)
                 elif (layer_sizes[i][0] == "TimeDistributedConv"):
                     ### https://machinelearningmastery.com/timedistributed-layer-for-long-short-term-memory-networks-in-python/
                     # input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name="State_Conv")
@@ -688,7 +689,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     print ("self._state_length: ", self._state_length)
                     network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
                     
-                    # network = keras.layers.TimeDistributed(getKerasActivation(self._settings['activation_type'])(network))
+                    # network = keras.layers.TimeDistributed(self.getActivationType(self._settings['activation_type'])(network))
                 elif (layer_sizes[i][0] == "TimeDistributed"):
                     
                     if ("fd" == layer_sizes[i][2]):
@@ -803,7 +804,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      data_format=self._data_format_)(network)
-                    network = getKerasActivation(self._settings['activation_type'])(network)
+                    network = self.getActivationType(self._settings['activation_type'])(network)
                     if ('split_terrain_input' in self._networkSettings 
                             and self._networkSettings['split_terrain_input']):
                         if ("use_coordconv_layers" in self._networkSettings 
@@ -814,12 +815,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      data_format=self._data_format_)(networkVel_x)
-                        networkVel_x = getKerasActivation(self._settings['activation_type'])(networkVel_x)
+                        networkVel_x = self.getActivationType(self._settings['activation_type'])(networkVel_x)
                         networkVel_y = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride,
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']), 
                                                      data_format=self._data_format_)(networkVel_y)   
-                        networkVel_y = getKerasActivation(self._settings['activation_type'])(networkVel_y)         
+                        networkVel_y = self.getActivationType(self._settings['activation_type'])(networkVel_y)         
                     if (self._perform_pooling):
                         network = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
                                                             data_format=self._data_format_)(network)
@@ -842,7 +843,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     network = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride_,
                                                   kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                   bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
-                    network = getKerasActivation(self._settings['activation_type'])(network)
+                    network = self.getActivationType(self._settings['activation_type'])(network)
                     if (self._perform_pooling):
                         network = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(network)
                 # network = keras.layers.Conv2D(4, (8,1), strides=(1, 1))(network)
@@ -878,17 +879,17 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = Dense(layer_sizes[i],
                                 kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                 bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
-                network = getKerasActivation(self._settings['activation_type'])(network)
+                network = self.getActivationType(self._settings['activation_type'])(network)
                 if ('split_terrain_input' in self._networkSettings 
                     and self._networkSettings['split_terrain_input']):
                     networkVel_x = Dense(layer_sizes[i],
                                 kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                 bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(networkVel_x)
-                    networkVel_x = getKerasActivation(self._settings['activation_type'])(networkVel_x)
+                    networkVel_x = self.getActivationType(self._settings['activation_type'])(networkVel_x)
                     networkVel_y = Dense(layer_sizes[i],
                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(networkVel_y)
-                    networkVel_y = getKerasActivation(self._settings['activation_type'])(networkVel_y)
+                    networkVel_y = self.getActivationType(self._settings['activation_type'])(networkVel_y)
             if ( self._dropout_p > 0.001 ):
                 network = Dropout(rate=self._dropout_p)(network)
                 
