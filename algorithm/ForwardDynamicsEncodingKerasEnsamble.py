@@ -1,9 +1,5 @@
-import theano
-from theano import tensor as T
 import numpy as np
-# import lasagne
 import sys
-sys.path.append('../')
 from model.ModelUtil import *
 from model.LearningUtil import loglikelihood, loglikelihoodMEAN, kl, entropy, flatgrad, zipsame, get_params_flat, setFromFlat, likelihood, loglikelihoodMEAN
 from keras.optimizers import SGD

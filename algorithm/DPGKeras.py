@@ -1,11 +1,6 @@
-import theano
-from theano import tensor as T
-from lasagne.layers import get_all_params
 import numpy as np
-# import lasagne
 import sys
 import copy
-sys.path.append('../')
 from model.ModelUtil import *
 from algorithm.KERASAlgorithm import KERASAlgorithm
 from model.LearningUtil import loglikelihood, kl, entropy, change_penalty

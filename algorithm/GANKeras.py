@@ -1,9 +1,5 @@
-import theano
-from theano import tensor as T
 import numpy as np
-import lasagne
 import sys
-sys.path.append('../')
 from model.ModelUtil import *
 from algorithm.AlgorithmInterface import AlgorithmInterface
 

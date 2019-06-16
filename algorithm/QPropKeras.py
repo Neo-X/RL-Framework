@@ -1,11 +1,6 @@
-import theano
-from theano import tensor as T
-
 import numpy as np
-# import lasagne
 import sys
 import copy
-sys.path.append('../')
 from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward
 from algorithm.AlgorithmInterface import AlgorithmInterface
 from model.LearningUtil import loglikelihood, likelihood, likelihoodMEAN, kl, kl_D, entropy, flatgrad, zipsame, get_params_flat, setFromFlat

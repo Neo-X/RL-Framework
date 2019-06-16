@@ -7,13 +7,10 @@
 # ================================================================
 
 
-import theano
-from theano import tensor as T
 from collections import OrderedDict
 import numpy as np
 import sys
 import copy
-sys.path.append('../')
 from model.ModelUtil import norm_state, scale_state, norm_action, scale_action, action_bound_std, scale_reward, randomExporationSTD
 from model.LearningUtil import loglikelihood_keras, likelihood_keras, kl_keras, kl_D_keras, entropy_keras, flatgrad_keras, zipsame, get_params_flat, setFromFlat
 from algorithm.KERASAlgorithm import *
