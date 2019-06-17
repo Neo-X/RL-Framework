@@ -76,7 +76,7 @@ class MultiworldHRLEnv(MultiworldEnv):
 
         llc_obs = np.concatenate([self._previous_observation, self._llc_target], 0)
         hlc_obs = np.concatenate([self._previous_observation, np.zeros([self._llc_target.size])])
-        state_ = np.stack([llc_obs, hlc_obs])
+        state_ = np.stack([hlc_obs, llc_obs])
         return state_
 
     def getObservation(self):
