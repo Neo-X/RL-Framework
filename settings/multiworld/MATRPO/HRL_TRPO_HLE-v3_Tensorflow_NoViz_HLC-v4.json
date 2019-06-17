@@ -12,7 +12,7 @@
     "comment__": "Batch size used for learning",
 "batch_size": "all",
     "comment__": "Learning rate for the actor/policy",
-"learning_rate": 0.0001,
+"learning_rate": 0.001,
     "comment__": "Config file for the simulator",
 "sim_config_file": "SawyerReachXYZEnv-v1",
     "comment__": "A different config file for the forward dynamics simulator",
@@ -34,8 +34,8 @@
     "comment__": "Whether or not to train a forward dynamics model as well",
 "train_forward_dynamics": false,
     "comment__": "Bounds used for scaling rewards for networks",
-"reward_bounds": [[[0.0],[1.0]],
-					[[0.0],[1.0]]],
+"reward_bounds": [[[-1.0],[0.0]],
+					[[-1.0],[0.0]]],
     "comment__": "Max length of the Experience memory",
 "experience_length": [50000, 20000],
     "comment__": "Possible state bounds to be used for scaling states for networks",
@@ -72,7 +72,6 @@
 "action_space_continuous":true,
     "comment__": "Should the method train on the validation set only",
 "train_on_validation_set":false,
-
     "comment__": "Name of the type of simulator to use",
 "environment_type": "MultiworldHRL",
 	"comment__": "Key into the observation dictionary of Multiworld",
@@ -164,7 +163,7 @@
     "comment__": "critic regularization weight",
 "critic_regularization_weight": 0.00001,
     "comment__": "Critic learning rate",
-"critic_learning_rate": 0.0002,
+"critic_learning_rate": 0.002,
     "comment__": "During evaluation plot of value function",
 "visualize_expected_value": true,
     "comment__": "exponential decay value for use in reward function",
@@ -261,7 +260,7 @@
 	"comment__": "generalized advantage estimation lambda in [0,1], when =0, this is just a one step return (lots of bias), when =1, use only data no variance reduction",
 "GAE_lambda": 0.95,
 	"comment__": "Whether or not to take a couple of on policy updates",
-"use_multiple_policy_updates": false,	
+"use_multiple_policy_updates": false,
 	"comment__": "Whether or not to clear the experience memory after each update is done, for pure on policy methods",
 "clear_exp_mem_on_poli": true,
 	"comment__": "Using a single network for all functions",
@@ -297,7 +296,7 @@
 								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],
-								[  
+								[
 								{"layer_type": "Dense", "units": 128, "use_bias": false},
 								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -307,13 +306,13 @@
 								]
 								],
 	"comment__": "A list describing the size of the layers for the NN",
-"policy_network_layer_sizes": [[ 
+"policy_network_layer_sizes": [[
 								{"layer_type": "slice", "slice_index": 4, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
-								],[ 
+								],[
 								{"layer_type": "slice", "slice_index": 4, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -382,8 +381,6 @@
 "hlc_timestep": 5,
 	"comment__": "The index of the multiagent simulation for the hlc",
 "hlc_index": 0,
-	"comment__": "The number of samples to use when performing high level exploration",
-"high_level_exploration_samples": 10,
 	"comment__": "Should high level exploration be used",
 "use_high_level_exploration": true
 }
