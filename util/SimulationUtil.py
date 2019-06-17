@@ -1097,6 +1097,8 @@ def createActor(env_type, settings, experience):
         actor = ActorInterface(settings, experience)
     elif (env_type == 'open_AI_Gym'
           or (env_type == 'RLSimulations')
+          or (env_type == 'Multiworld')
+          or (env_type == 'MultiworldHRL')
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
