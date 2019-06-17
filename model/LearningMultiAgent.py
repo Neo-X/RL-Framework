@@ -13,6 +13,7 @@ import os
 import copy
 import time
 import datetime
+import numpy as np
 # np.set_printoptions(threshold=np.nan)
 
 class LearningMultiAgent(LearningAgent):
@@ -402,26 +403,52 @@ class LearningMultiAgent(LearningAgent):
         if self._useLock:
             self._accesLock.acquire()
         # print ("MARL sample: ", repr(state))
+
         act = []
         exp_action = []
-        if ( "use_centralized_critic" in self.getSettings()
-             and (self.getSettings()["use_centralized_critic"] == True)):
-            ### Need to assemble centralized states
-            for m in range(len(state)):
+        for m in range(len(state)):
+            if ( "use_centralized_critic" in self.getSettings()
+                 and (self.getSettings()["use_centralized_critic"] == True)):
+                ### Need to assemble centralized states
                 state_ = self.getcentralizedPolicyState(m, state)
-                (action, exp_act) = self.getAgents()[m].sample([state_], evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
-                act.append(action[0])
-                exp_action.append([exp_act])
-        else:
-            for m in range(len(state)):
+
+            else:
                 state_ = state[m]
-                (action, exp_act) = self.getAgents()[m].sample([state_], evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
-                act.append(action[0])
-                exp_action.append([exp_act])
+
+            use_hle = ( "hlc_index" in self.getSettings()
+                and "llc_index" in self.getSettings()
+                and "high_level_exploration_samples" in self.getSettings()
+                and self.getSettings()["hlc_index"] == m
+                and "use_high_level_exploration" in self.getSettings()
+                and self.getSettings()["use_high_level_exploration"] == True)
+
+            if use_hle:
+                num_samples = self.getSettings()["high_level_exploration_samples"]
+                state_ = np.array([state_ for i in range(num_samples)])
+                candidate_actions, candidate_exp_acts = self.getAgents()[m].sample(
+                    state_,
+                    evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+
+                # Assume that z_k is at the end of the state
+                llc_states = np.hstack([state_[:, :len(candidate_actions[0])], candidate_actions])
+                llc_values = self.getAgents()[self.getSettings()["llc_index"]].getPolicy()._value([llc_states])
+                best_idx = np.argmax(llc_values)
+                action = [candidate_actions[best_idx]]
+                exp_act = [candidate_exp_acts[best_idx]]
+
+            else:
+                (action, exp_act) = self.getAgents()[m].sample(
+                    [state_],
+                    evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+
+            act.append(action[0])
+            exp_action.append([exp_act])
+
         if self._useLock:
             self._accesLock.release()
         # print ("act: ", repr(act))
         # print ("exp_action: ", repr(exp_action))
+
         return (act, exp_action)
     
     def predict_std(self, state, evaluation_=False, p=1.0):

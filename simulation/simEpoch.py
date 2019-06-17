@@ -79,8 +79,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     exp.initEpoch()
     # print ("sim EXP: ", exp)
     actor.initEpoch()
-    if ("llc_index" in settings): ### Bad hack for now to use llc in env
-        exp.getEnvironment().getEnv().setLLC(model.getAgents()[settings["llc_index"]])
+    if ("llc_index" in settings):
+        ### Bad hack for now to use llc in env
+        if (settings["environment_type"] == "Multiworld"
+            or settings["environment_type"] == "MultiworldHRL"):
+            exp.setLLC(model.getAgents()[settings["llc_index"]])
+        else:
+            exp.getEnvironment().getEnv().setLLC(model.getAgents()[settings["llc_index"]])
     # model.initEpoch(exp)
     state_ = exp.getState()
     # pa = model.predict(state_)
@@ -667,6 +672,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     # print("***** Sim Actions std:  ", np.std((actions), axis=0) )
     # print("***** Sim State mean:  ", np.mean((states), axis=0) )
     # print("***** Sim Next State mean:  ", np.mean((result_states___), axis=0) )
+
     return (tuples, tmp_discounted_sum, tmp_baselines_, evalData)
 
 # @profile(precision=5)
