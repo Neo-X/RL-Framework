@@ -817,7 +817,36 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         conf = copy.deepcopy(settings)
         conf['render'] = render
         exp = OpenAIGymEnv(env, conf)
-        exp = exp
+        return exp
+
+    elif env_type == 'Multiworld':
+        import gym
+        import multiworld
+        from sim.MultiworldEnv import MultiworldEnv
+
+        multiworld.register_all_envs()
+        env_name = config_file
+        env = gym.make(env_name)
+
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = MultiworldEnv(env, conf, observation_key=conf['observation_key'])
+
+        return exp
+
+    elif env_type == 'MultiworldHRL':
+        import gym
+        import multiworld
+        from sim.MultiworldHRLEnv import MultiworldHRLEnv
+
+        multiworld.register_all_envs()
+        env_name = config_file
+        env = gym.make(env_name)
+
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = MultiworldHRLEnv(env, conf, observation_key=conf['observation_key'])
+
         return exp
     
     elif ((env_type == 'RLSimulations')):
