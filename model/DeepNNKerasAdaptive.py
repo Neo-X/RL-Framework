@@ -6,7 +6,6 @@ import numpy as np
 import sys
 from dill.settings import settings
 from tensorflow.python.layers.normalization import BatchNorm
-sys.path.append('../')
 from model.ModelUtil import *
 from keras.models import Sequential, Model
 from keras.optimizers import SGD
