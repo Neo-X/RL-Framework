@@ -826,7 +826,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         multiworld.register_all_envs()
         env_name = config_file
-        env = gym.make(env_name)
+        env = gym.make(env_name, fix_goal=True)
 
         conf = copy.deepcopy(settings)
         conf['render'] = render
@@ -841,7 +841,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         multiworld.register_all_envs()
         env_name = config_file
-        env = gym.make(env_name)
+        env = gym.make(env_name, fix_goal=True)
 
         conf = copy.deepcopy(settings)
         conf['render'] = render
