@@ -798,6 +798,12 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         except:
             print ("pybullet not installed")
             pass
+        try:
+            import multiworld
+            multiworld.register_all_envs()
+        except:
+            print ("multiworld not installed")
+            pass
         # from OpenGL import GL
         # load_roboschool
         # print(envs.registry.all())
@@ -811,7 +817,36 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         conf = copy.deepcopy(settings)
         conf['render'] = render
         exp = OpenAIGymEnv(env, conf)
-        exp = exp
+        return exp
+
+    elif env_type == 'Multiworld':
+        import gym
+        import multiworld
+        from sim.MultiworldEnv import MultiworldEnv
+
+        multiworld.register_all_envs()
+        env_name = config_file
+        env = gym.make(env_name, fix_goal=True)
+
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = MultiworldEnv(env, conf, observation_key=conf['observation_key'])
+
+        return exp
+
+    elif env_type == 'MultiworldHRL':
+        import gym
+        import multiworld
+        from sim.MultiworldHRLEnv import MultiworldHRLEnv
+
+        multiworld.register_all_envs()
+        env_name = config_file
+        env = gym.make(env_name, fix_goal=True)
+
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = MultiworldHRLEnv(env, conf, observation_key=conf['observation_key'])
+
         return exp
     
     elif ((env_type == 'RLSimulations')):
@@ -1062,6 +1097,8 @@ def createActor(env_type, settings, experience):
         actor = ActorInterface(settings, experience)
     elif (env_type == 'open_AI_Gym'
           or (env_type == 'RLSimulations')
+          or (env_type == 'Multiworld')
+          or (env_type == 'MultiworldHRL')
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
