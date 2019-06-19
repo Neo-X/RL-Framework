@@ -382,5 +382,7 @@
 	"comment__": "The index of the multiagent simulation for the hlc",
 "hlc_index": 0,
 	"comment__": "Should high level exploration be used",
-"use_high_level_exploration": false
+"use_high_level_exploration": false,
+	"comment__": "Seed is different every time and appended to data dir name",
+"randomize_and_record_seed": true
 }

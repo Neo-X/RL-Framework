@@ -1773,6 +1773,19 @@ if (__name__ == "__main__"):
                 settings[option] = False
         # settings['num_available_threads'] = options['num_available_threads']
 
+    if ('randomize_and_record_seed' in settings
+            and settings['randomize_and_record_seed']):
+        import random
+        import numpy as np
+        import tensorflow as tf
+        seed = random.randint(0, 999999)
+        random.seed(seed)
+        np.random.seed(seed)
+        tf.set_random_seed(seed)
+        if ('data_folder' in settings
+                and settings['data_folder'] is not None):
+            settings['data_folder'] += "_s{:012d}".format(seed)
+
     # print ("Settings: " + str(json.dumps(settings, indent=4)))
     metaSettings = None
     if ( 'metaConfigFile' in settings and (settings['metaConfigFile'] is not None)):
