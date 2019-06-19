@@ -251,6 +251,19 @@ def trainMetaModel_(args):
         
         # simSettings_['configFile'] = options['configFile']
         simSettings_['data_folder'] = simSettings_['data_folder'] + "/"
+
+        if ('randomize_and_record_seed' in simSettings_
+                and simSettings_['randomize_and_record_seed']):
+            import random
+            import numpy as np
+            import tensorflow as tf
+            seed = random.randint(0, 999999)
+            random.seed(seed)
+            np.random.seed(seed)
+            tf.set_random_seed(seed)
+            if ('data_folder' in simSettings_
+                    and simSettings_['data_folder'] is not None):
+                simSettings_['data_folder'] += "_s{:012d}".format(seed)
         
         for option in options:
             if ( not (options[option] is None) ):
