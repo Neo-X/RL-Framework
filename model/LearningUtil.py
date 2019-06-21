@@ -163,3 +163,7 @@ def zipsame(*seqs):
     L = len(seqs[0])
     assert all(len(seq) == L for seq in seqs[1:])
     return zip(*seqs)
+
+
+def tanh_loglikelihood_keras(a, mean0, std0, d):
+    return loglikelihood_keras(a, mean0, std0, d) - K.sum(K.log(1 - K.square(K.tanh(a))), axis=1)
