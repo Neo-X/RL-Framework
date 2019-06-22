@@ -166,4 +166,12 @@ def zipsame(*seqs):
 
 
 def tanh_loglikelihood_keras(a, mean0, std0, d):
-    return loglikelihood_keras(a, mean0, std0, d) - K.sum(K.log(1 - K.square(K.tanh(a))), axis=1)
+    return loglikelihood_keras(a, mean0, std0, d) - K.reshape(K.sum(K.log(1 - K.square(K.tanh(a))), axis=1), shape=(-1, 1))
+
+
+def loglikelihood_np(a, mean0, std0, d):
+    return np.reshape(- 0.5 * np.sum(np.square(a - mean0) / std0, axis=1) - 0.5 * np.log(2.0 * np.pi) * d - np.sum(np.log(std0), axis=1), (-1, 1))
+
+
+def tanh_loglikelihood_np(a, mean0, std0, d):
+    return loglikelihood_np(a, mean0, std0, d) - np.reshape(np.sum(np.log(1 - np.square(np.tanh(a))), axis=1), (-1, 1))
