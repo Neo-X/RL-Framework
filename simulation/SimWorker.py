@@ -205,14 +205,11 @@ class SimWorker(Process):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Message: ", message)
                     data = episodeData['data']
+                    # print ("Recieves p: ", data[1])
                     # print ("New model parameters: ", data[2][1][0])
                     ### Update scaling parameters
                     self.updateAgent(data)
                     
-                    p = data[1]
-                    # if p < 0.1:
-                    #     p = 0.1
-                    self._p = p
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
                         print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
@@ -253,7 +250,7 @@ class SimWorker(Process):
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=0.0, validation=True, evaluation=eval)
-                elif (sim_on_poli):
+                elif (sim_on_poli): ### Normal trajectory rollout with noise
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         print("Simulating a normal episode ??with exploration?? on policy")
                     settings_ = copy.deepcopy(self._settings)
@@ -272,7 +269,7 @@ class SimWorker(Process):
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=settings_, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
-                elif (bootstrapping):
+                elif (bootstrapping): ### Special bootstrapping case
                     out = self.simEpochParallel(actor=self._actor, exp=self._exp, model=self._model, discount_factor=self._discount_factor, 
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=self._settings, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=False,

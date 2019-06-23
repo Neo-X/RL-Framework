@@ -880,7 +880,7 @@ def trainModelParallel(inputData):
                                            _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_)
                     masterAgent.reset()
                     
-                    data = getLearningData(masterAgent, settings, tmp_p)
+                    data = getLearningData(masterAgent, settings, p)
                     message['data'] = data
                     
                     if ("skip_rollouts" in settings and 

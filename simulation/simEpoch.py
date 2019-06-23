@@ -159,6 +159,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 0 <= e < omega < 1.0
             """
             r = np.random.rand(1)[0]
+            # print ("float(settings['anneal_exploration']), epsilon * p: ", float(settings['anneal_exploration']), epsilon * p)
             if ((not evaluation) ### This logic has gotten far to complicated.... 
                 and 
                 (

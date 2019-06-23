@@ -1059,7 +1059,7 @@ def trainModelParallel(inputData):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
                                            _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_)
                     masterAgent.reset()
-                    data = getLearningData(masterAgent, settings, tmp_p)
+                    data = getLearningData(masterAgent, settings, p)
                     message['data'] = data
                     
                     if ("skip_rollouts" in settings and 
@@ -1247,7 +1247,7 @@ def trainModelParallel(inputData):
                 # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
                 # masterAgent.setExperience(learningNamespace.experience)
                 masterAgent.reset()
-                data = getLearningData(masterAgent, settings, tmp_p)
+                data = getLearningData(masterAgent, settings, p)
                 message['type'] = 'Update_Policy'
                 message['data'] = data
                 for m_q in sim_work_queues:
