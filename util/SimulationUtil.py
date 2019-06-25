@@ -429,15 +429,11 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
     import math
     import numpy as np
     import random
-    action_bounds = np.array(settings['action_bounds'])
+    action_bounds = settings['action_bounds']
     if ("perform_multiagent_training" in settings):
         pass
     else:
-        networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings, print_info=print_info)
-    num_actions= len(discrete_actions) # number of rows
-    if settings['action_space_continuous']:
-            action_bounds = np.array(settings["action_bounds"], dtype=float)
-            num_actions = len(action_bounds[0])
+        networkModel = createNetworkModel(settings["model_type"], state_bounds, np.array(action_bounds), reward_bounds, settings, print_info=print_info)
     
     directory= getDataDirectory(settings)
     if (settings['load_saved_model']):
@@ -460,10 +456,11 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                         settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
                         settings__["policy_network_layer_sizes"] = settings["policy_network_layer_sizes"][m]
                         settings__["exploration_rate"] = settings["exploration_rate"][m]
-                        networkModel = createNetworkModel(settings__["model_type"], state_bounds[m], action_bounds[m], reward_bounds[m], settings__, print_info=print_info)
+                        networkModel = createNetworkModel(settings__["model_type"], np.array(state_bounds[m]), np.array(action_bounds[m]), np.array(reward_bounds[m]),
+                                                           settings__, print_info=print_info)
                         print ("networkModel: ", networkModel)
-                        model_ = modelAlgorithm(networkModel, n_in=len(state_bounds[m][0]), n_out=len(action_bounds[m][0]), state_bounds=state_bounds[m], 
-                                  action_bounds=action_bounds[m], reward_bound=reward_bounds[m], settings_=settings__, print_info=print_info)
+                        model_ = modelAlgorithm(networkModel, n_in=len(state_bounds[m][0]), n_out=len(action_bounds[m][0]), state_bounds=np.array(state_bounds[m]), 
+                                  action_bounds=np.array(action_bounds[m]), reward_bound=np.array(reward_bounds[m]), settings_=settings__, print_info=print_info)
                         model_.setSettings(settings__) ### Maybe this should be the normal settings...
                         if (settings['load_saved_model'] == 'last'):
                             model_.loadFrom(directory+getAgentName()+str(m))
@@ -502,14 +499,6 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                 model.loadFrom(directory+getAgentName())
             else:
                 model.loadFrom(directory+getAgentName()+"_Best")
-    elif ( "Deep_NN2" == algorihtm_type):
-        from model.RLDeepNet import RLDeepNet
-        model = RLDeepNet(n_in=len(state_bounds[0]), n_out=num_actions, state_bounds=state_bounds, 
-                          action_bounds=None, reward_bound=reward_bounds, settings_=settings)
-    elif (algorihtm_type == "Deep_NN3" ):
-        from model.DeepRLNet3 import DeepRLNet3
-        model = DeepRLNet3(n_in=len(state_bounds[0]), n_out=num_actions, state_bounds=state_bounds, 
-                          action_bounds=None, reward_bound=reward_bounds, settings_=settings)
     elif (algorihtm_type == "Deep_CACLA" ):
         from model.DeepCACLA import DeepCACLA
         model = DeepCACLA(n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 

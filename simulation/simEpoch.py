@@ -44,9 +44,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     ### Maybe the model has state
     model.reset()
     if action_space_continuous:
-        action_bounds = np.array(model.getActionBounds(), dtype=float)
+        action_bounds = model.getActionBounds()
         omega = settings["omega"]
-        noise_ = action_bounds[0] * 0.0
+        # noise_ = action_bounds[0] * 0.0
         
     if ( (bootstrapping == True) and 
          (settings["exploration_method"] == "sampling") ):

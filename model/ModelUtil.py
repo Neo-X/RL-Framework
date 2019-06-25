@@ -298,7 +298,7 @@ def randomExporationSTD(actionV, std, bounds=None):
             
             out_.append(actionV[j][i] + n)
         out.append(out_)
-    return out
+    return np.array(out)
 
 def OUNoise(theta, sigma, previousNoise):
     import numpy as np
