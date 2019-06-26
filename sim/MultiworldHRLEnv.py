@@ -11,6 +11,7 @@ class MultiworldHRLEnv(MultiworldEnv):
         MultiworldEnv.__init__(self, exp, settings, multiAgent=multiAgent)
         self._observation_key = observation_key
         assert self._observation_key in self.getEnvironment().observation_space.spaces
+        self.observation_space = self.getEnvironment().observation_space.spaces[observation_key]
         if ("ignore_hlc_actions" in self.getSettings()
                 and (self.getSettings()["ignore_hlc_actions"] == True)):
             self._ran = 0.6  ## Ignore HLC action and have env generate them if > 0.5.
@@ -72,7 +73,7 @@ class MultiworldHRLEnv(MultiworldEnv):
         # self._fallen = done
         self._previous_observation = observation[self._observation_key]
         distance = self._previous_observation - self._llc_target
-        llc_reward = -(distance*distance).sum()
+        llc_reward = -(distance * distance).sum()
         self.__reward = np.array([[reward], [llc_reward]])
         return self.__reward
 

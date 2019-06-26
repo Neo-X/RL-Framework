@@ -323,13 +323,6 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
         settings['action_bounds'] = [s_min,s_max]
         action_bounds = settings['state_bounds']
     
-    ### Using a wrapper for the type of actor now
-    if action_space_continuous:
-        experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['experience_length'], continuous_actions=True, settings=settings)
-    else:
-        experience = ExperienceMemory(len(state_bounds[0]), 1, settings['experience_length'])
-    # actor = ActorInterface(discrete_actions)
-    
     if ( "perform_multiagent_training" in settings):
         from model.LearningMultiAgent import LearningMultiAgent
         masterAgent = LearningMultiAgent(settings_=settings)
@@ -391,12 +384,23 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
         expected_value_viz.setInteractive()
         expected_value_viz.init()
         criticLosses = []
+
+    if ("perform_multiagent_training" in settings):
+        experience = [ExperienceMemory(len(state_bounds[i][0]), len(action_bounds[i][0]),
+                                       settings['experience_length'][i], continuous_actions=True, settings=settings)
+                      for i in range(settings["perform_multiagent_training"])]
+    else:
+        ### Using a wrapper for the type of actor now
+        if action_space_continuous:
+            experience = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), settings['experience_length'],
+                                          continuous_actions=True, settings=settings)
+        else:
+            experience = ExperienceMemory(len(state_bounds[0]), 1, settings['experience_length'])
+        # actor = ActorInterface(discrete_actions)
+
         
     masterAgent.setSettings(settings)
-    if ( "perform_multiagent_training" in settings):
-        pass
-    else:
-        masterAgent.setExperience(experience)
+    masterAgent.setExperience(experience)
     masterAgent.setPolicy(model)
     
     # print (masterAgent.getRewardModel())

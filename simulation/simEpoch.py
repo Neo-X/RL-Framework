@@ -4,6 +4,7 @@
 import dill
 import sys
 import gc
+import cv2
 # from theano.compile.io import Out
 sys.setrecursionlimit(50000)
 # from sim.PendulumEnvState import PendulumEnvState
@@ -478,6 +479,38 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("Predicted reward: ", predicted_reward) 
                 print ("Agent has fallen: ", not agent_not_fell )
                 # print ("Python Reward: " + str(reward(state_, resultState)))
+                if (settings["environment_type"] == "MultiworldHRL"):
+                    a = exp._llc_target
+                    b = exp.observation_space.low
+                    c = exp.observation_space.high
+                    x = (a[0] - b[0]) / (c[0] - b[0])
+                    y = (a[1] - b[1]) / (c[1] - b[1])
+                    z = (a[2] - b[2]) / (c[2] - b[2])
+                    x_size = 500
+                    y_size = 500
+                    x_var = 1.0
+                    y_var = 1.0
+                    np.zeros([y_size, x_size, 3])
+                    x = x * x_size
+                    y = y * y_size
+                    z = z * 3
+
+                    print(x, y, z)
+
+                    y = y_size - y
+
+                    x_coords = np.arange(x_size)
+                    y_coords = np.arange(y_size)
+                    z_coords = np.arange(3)
+
+                    x_coords, y_coords, z_coords = np.meshgrid(x_coords, y_coords, z_coords)
+
+                    image = np.exp(-1.0 * ((y_coords - y)**2 / y_size / y_var +
+                                           (x_coords - x)**2 / x_size / x_var +
+                                           (z_coords - z)**2))
+
+                    cv2.imshow("goal image", image)
+                    cv2.waitKey(10)
                 
             
         ### I can't just unpack the vector of states here in a multi char sim because the 
