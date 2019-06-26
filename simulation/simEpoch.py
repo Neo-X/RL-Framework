@@ -263,6 +263,23 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 # action=[0.2]
             # print("exp_action: ", exp_action, " action", action)
             reward_ = actor.actContinuous(exp,action)
+            a = 0
+
+            # support for mixing rewards across levels
+            if ("hlc_index" in settings
+                    and "llc_index" in settings
+                    and "hlc_intrinsic_weight" in settings):
+                a = reward_[settings["llc_index"]] * settings["hlc_intrinsic_weight"]
+            b = 0
+            if ("hlc_index" in settings
+                    and "llc_index" in settings
+                    and "llc_task_weight" in settings):
+                b = reward_[settings["hlc_index"]] * settings["llc_task_weight"]
+            if ("hlc_index" in settings
+                    and "llc_index" in settings):
+                reward_[settings["hlc_index"]] += a
+                reward_[settings["llc_index"]] += b
+
             """
             if ( settings['train_reward_predictor'] and (not bootstrapping)):
                 predicted_reward = model.getForwardDynamics().predict_reward(state_, [action])
