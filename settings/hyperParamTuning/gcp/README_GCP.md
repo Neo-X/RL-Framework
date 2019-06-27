@@ -96,6 +96,15 @@ sudo singularity shell --writable ubuntu_learning
 sudo singularity shell --writable deepcrowds
 ```
 
+### Example learning commands Docker
+
+docker run -e TERRAINRL_PATH=/opt/playground/TerrainRL/ -e RLSIMENV_PATH=/opt/playground/RLSimulationEnvironments --rm -d  -it us.gcr.io/glen-rl-framework/glen:latest bash
+
+
+### Example learning commands Docker
+
+
+
 - Start a training simulation for training a multichar model
 ```
 SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments singularity exec --cleanenv --home /mnt/test/playground/RL-Framework/:/opt/RL-Framework /mnt/test/playground/SingularityBuilding/ubuntu_learning.img python3.6 trainModel.py --config=settings/terrainRLMultiChar/HLC/PPO/ScenarioSpace_WithObs_SimpleReward_NEWLLC_Tensorflow_v0.json -p 16 --bootstrap_samples=10000 --rollouts=16 --on_policy=fast --save_experience_memory=continual --num_rounds=2500 --continue_training=last --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=2 --meta_sim_threads=2 --plotting_update_freq_num_rounds=1 --metaConfig=settings/hyperParamTuning/deepCrowds.json 
@@ -103,6 +112,7 @@ SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/R
 - Train LLC
 ```
 SINGULARITYENV_TERRAINRL_PATH=/opt/TerrainRL SINGULARITYENV_RLSIMENV_PATH=/opt/RLSimulationEnvironments singularity exec --cleanenv --home /mnt/test/playground/RL-Framework/:/opt/RL-Framework /mnt/test/playground/SingularityBuilding/ubuntu_learning.img python3.6 trainModel.py --config=settings/terrainRLImitate3D/PPO/Humanoid_Flat_Tensorflow_MultiAgent_WithObs_LLC.json -p 16 --bootstrap_samples=10000 --rollouts=16 --on_policy=fast --save_experience_memory=continual --num_rounds=2500 --continue_training=last --saving_update_freq_num_rounds=1 --plot=false --meta_sim_samples=2 --meta_sim_threads=2 --plotting_update_freq_num_rounds=1 --metaConfig=settings/hyperParamTuning/deepCrowds.json
+
 ```
 
 ## Setting up a private cluster on GCP Kubernetes
