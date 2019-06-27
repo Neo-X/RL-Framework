@@ -12,7 +12,7 @@
 	"comment__": "parameter value type [int|float|bool]",
 "param_data_type": ["set"],
 	"comment__": "Number of samples to evaluation between the given bounds",
-"num_param_samples": [[0.01, 0.1, 0.5, 1.0, 2.0], [0.01, 0.1, 0.5, 1.0, 2.0]],
+"num_param_samples": [[0.01, 0.1, 0.5, 1.0, 2.0], [[0.01, 0.01], [0.1, 0.1], [0.5, 0.5], [1.0, 1.0], [2.0, 2.0]]],
 	"comment__": "The fully qualified name of the mail server to use",
 "mail_server_name": "smtp.gmail.com:587",
 	"comment__": "from email address",
