@@ -73,7 +73,7 @@ class MultiworldHRLEnv(MultiworldEnv):
         # self._fallen = done
         self._previous_observation = observation[self._observation_key]
         distance = self._previous_observation - self._llc_target
-        llc_reward = -(distance * distance).sum()
+        llc_reward = -np.sqrt((distance * distance).sum())
         self.__reward = np.array([[reward], [llc_reward]])
         return self.__reward
 
