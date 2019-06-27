@@ -508,10 +508,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     image = np.exp(-1.0 * ((y_coords - y)**2 / y_size / y_var +
                                            (x_coords - x)**2 / x_size / x_var +
                                            (z_coords - z)**2))
-
-                    cv2.imshow("goal image", image)
-                    cv2.waitKey(10)
-                
+                    try:
+                        cv2.imshow("goal image", image)
+                        cv2.waitKey(10)
+                    except:
+                        pass
             
         ### I can't just unpack the vector of states here in a multi char sim because the 
         ### Order needs to be preserved for computing the advantage.
