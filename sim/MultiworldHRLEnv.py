@@ -8,9 +8,10 @@ class MultiworldHRLEnv(MultiworldEnv):
     def __init__(self, exp, settings, multiAgent=False, observation_key="observation"):
         #------------------------------------------------------------
         # set up initial state
-        OpenAIGymEnv.__init__(self, exp, settings, multiAgent=multiAgent)
+        MultiworldEnv.__init__(self, exp, settings, multiAgent=multiAgent)
         self._observation_key = observation_key
         assert self._observation_key in self.getEnvironment().observation_space.spaces
+        self.observation_space = self.getEnvironment().observation_space.spaces[observation_key]
         if ("ignore_hlc_actions" in self.getSettings()
                 and (self.getSettings()["ignore_hlc_actions"] == True)):
             self._ran = 0.6  ## Ignore HLC action and have env generate them if > 0.5.
@@ -49,8 +50,15 @@ class MultiworldHRLEnv(MultiworldEnv):
         self._hlc_timestep = self._hlc_timestep + 1
         if (self._hlc_timestep >= self._hlc_skip
                 and (self._ran < 0.5)):
-            action_ = np.array(action[0])
-            self._llc_target = np.array(action_)
+
+            # Flag that controls whether the HLC produces the goals
+            if ("use_environment_goals" in self.getSettings()
+                    and self.getSettings()["use_environment_goals"]):
+                self._llc_target = self.getEnvironment().sample_goals(1)["desired_goal"][0, :]
+            else:
+                action_ = np.array(action[0])
+                self._llc_target = np.array(action_)
+
             self._hlc_timestep = 0
             llc_obs = np.concatenate([self._previous_observation, self._llc_target], 0)
             action[1] = self._llc.predict([llc_obs])[0, :]
@@ -65,7 +73,7 @@ class MultiworldHRLEnv(MultiworldEnv):
         # self._fallen = done
         self._previous_observation = observation[self._observation_key]
         distance = self._previous_observation - self._llc_target
-        llc_reward = -(distance*distance).sum()
+        llc_reward = -(distance * distance).sum()
         self.__reward = np.array([[reward], [llc_reward]])
         return self.__reward
 

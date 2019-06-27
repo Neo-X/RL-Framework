@@ -383,6 +383,6 @@
 "hlc_index": 0,
 	"comment__": "Should high level exploration be used",
 "use_high_level_exploration": false,
-	"comment__": "Seed is different every time and appended to data dir name",
-"randomize_and_record_seed": true
+	"comment__": "The keyword arguments to pass to multiworld",
+"multiworld_kwargs": {"fix_goal":  true}
 }

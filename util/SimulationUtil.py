@@ -815,7 +815,11 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         multiworld.register_all_envs()
         env_name = config_file
-        env = gym.make(env_name, fix_goal=True)
+        if "multiworld_kwargs" in settings:
+            multiworld_kwargs = settings["multiworld_kwargs"]
+        else:
+            multiworld_kwargs = {}
+        env = gym.make(env_name, **multiworld_kwargs)
 
         conf = copy.deepcopy(settings)
         conf['render'] = render
@@ -830,7 +834,11 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         multiworld.register_all_envs()
         env_name = config_file
-        env = gym.make(env_name, fix_goal=True)
+        if "multiworld_kwargs" in settings:
+            multiworld_kwargs = settings["multiworld_kwargs"]
+        else:
+            multiworld_kwargs = {}
+        env = gym.make(env_name, **multiworld_kwargs)
 
         conf = copy.deepcopy(settings)
         conf['render'] = render

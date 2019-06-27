@@ -9,7 +9,8 @@ class MultiworldEnv(OpenAIGymEnv):
         # set up initial state
         OpenAIGymEnv.__init__(self, exp, settings, multiAgent=multiAgent)
         self._observation_key = observation_key
-        assert self._observation_key in self.getEnvironment().observation_space
+        assert self._observation_key in self.getEnvironment().observation_space.spaces
+        self.observation_space = self.getEnvironment().observation_space.spaces[observation_key]
 
     def reset(self):
         # self.getEnvironment().init()
