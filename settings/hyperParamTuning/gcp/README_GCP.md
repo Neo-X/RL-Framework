@@ -96,12 +96,18 @@ sudo singularity shell --writable ubuntu_learning
 sudo singularity shell --writable deepcrowds
 ```
 
-### Example learning commands Docker
+## Docker
 
-docker run -e TERRAINRL_PATH=/opt/playground/TerrainRL/ -e RLSIMENV_PATH=/opt/playground/RLSimulationEnvironments --rm -d  -it us.gcr.io/glen-rl-framework/glen:latest bash
+### Push docker update
+
+docker commit d0fb7d3cea01 glen:latest; docker tag glen:latest us.gcr.io/glen-rl-framework/glen:latest; docker push us.gcr.io/glen-rl-framework/glen:latest
+
+### Run example
+
+docker run -e TERRAINRL_PATH=/opt/playground/TerrainRL/ -e RLSIMENV_PATH=/opt/RLSimulationEnvironments --mount type=bind,src=/home/gberseth/playground/RL-Framework,dst=/opt/RL-Framework --mount type=bind,src=/home/gberseth/playground/TerrainRLSim,dst=/opt/TerrainRLSim --mount type=bind,src=/home/gberseth/playground/RLSimulationEnvironments,dst=/opt/RLSimulationEnvironments --rm  -it us.gcr.io/glen-rl-framework/glen:latest bash -c "pushd /opt/RL-Framework; python3 trainModel.py --config=tests/settings/particleSim/TRPO/FixedSTD_Tensorflow_KERAS.json --plot=false --shouldRender=false"
 
 
-### Example learning commands Docker
+### Example learning commands Singularity
 
 
 
