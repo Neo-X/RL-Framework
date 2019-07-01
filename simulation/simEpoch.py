@@ -4,7 +4,6 @@
 import dill
 import sys
 import gc
-import cv2
 # from theano.compile.io import Out
 sys.setrecursionlimit(50000)
 # from sim.PendulumEnvState import PendulumEnvState
@@ -276,12 +275,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     and "llc_index" in settings
                     and "llc_task_weight" in settings):
                 b = reward_[settings["hlc_index"]][0] * settings["llc_task_weight"]
-
             if ("hlc_index" in settings
                     and "llc_index" in settings):
                 reward_[settings["hlc_index"]][0] += a
                 reward_[settings["llc_index"]][0] += b
-
 
             """
             if ( settings['train_reward_predictor'] and (not bootstrapping)):
@@ -511,6 +508,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                                            (x_coords - x)**2 / x_size / x_var +
                                            (z_coords - z)**2))
                     try:
+                        import cv2
                         cv2.imshow("goal image", image)
                         cv2.waitKey(10)
                     except:
