@@ -382,7 +382,7 @@
 	"comment__": "Should high level exploration be used",
 "use_high_level_exploration": false,
 	"comment__": "The keyword arguments to pass to multiworld",
-"multiworld_kwargs": {"fix_goal":  true},
+"multiworld_kwargs": {"fix_goal":  false},
 	"comment__": "Should environment goals be used instead of HLC goals",
 "use_environment_goals": true
 }
