@@ -19,11 +19,11 @@ spec:
     command: ["ls"]
     args: ["-l", "-a"]
     volumeMounts:
-    - mountPath: /mnt/test
+    - mountPath: /mnt/Cluster_Shared
       name: test-volume
   # Do not restart containers after they exit
   restartPolicy: Never
   volumes:
   - name: test-volume
     hostPath:
-      path: /mnt/test
+      path: /mnt/Cluster_Shared

@@ -4,7 +4,7 @@ metadata:
   # Unique key of the Job instance
   name: example-job3
 spec:
-  activeDeadlineSeconds: 100
+  activeDeadlineSeconds: 1000
   template:
     metadata:
       name: example-job
