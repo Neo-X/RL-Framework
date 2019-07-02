@@ -269,18 +269,17 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if ("hlc_index" in settings
                     and "llc_index" in settings
                     and "hlc_intrinsic_weight" in settings):
-                a = reward_[settings["llc_index"]] * settings["hlc_intrinsic_weight"]
+                a = reward_[settings["llc_index"]][0] * settings["hlc_intrinsic_weight"]
             b = 0
             if ("hlc_index" in settings
                     and "llc_index" in settings
                     and "llc_task_weight" in settings):
-                b = reward_[settings["hlc_index"]] * settings["llc_task_weight"]
-            """
+                b = reward_[settings["hlc_index"]][0] * settings["llc_task_weight"]
             if ("hlc_index" in settings
                     and "llc_index" in settings):
-                reward_[settings["hlc_index"]] += a
-                reward_[settings["llc_index"]] += b
-            """
+                reward_[settings["hlc_index"]][0] += a
+                reward_[settings["llc_index"]][0] += b
+
             """
             if ( settings['train_reward_predictor'] and (not bootstrapping)):
                 predicted_reward = model.getForwardDynamics().predict_reward(state_, [action])
