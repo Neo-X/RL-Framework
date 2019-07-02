@@ -293,7 +293,7 @@ if (__name__ == "__main__"):
     
     if ((options['configFile'] == None) 
         or (options['metaConfigFile'] == None)):
-        print("Please include sim settings file: ", len(sys.args))
+        print("Please include sim settings file and metaConfig file: ", len(sys.argv))
         print("python tuneHyperParameters.py --config=<sim_settings_file> --metaConfig=<hyper_settings_file> --meta_sim_samples=<num_samples> --meta_sim_threads<num_threads>")
         sys.exit()
     else:

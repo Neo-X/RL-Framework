@@ -54,24 +54,6 @@ sudo apt-get update
 sudo apt-get install -y singularity-container
 ```
 
-
-### Get latest ubuntu image with cuda/nvidia drivers
-```
-singularity pull shub://ucr-singularity/cuda-9.0-base:latest
-```
-or
-```
-sudo singularity build --writable ubuntu_learning.img shub://ucr-singularity/cuda-9.0-base:latest
-```
-
-You should now have a usable singularity image
-
-Now lets do some things with it.
-
-```
-sudo singularity shell --writable ubuntu.img
-```
-
 Having issues installing some of the libraries in Ubuntu. 
 In particular ```apt-get install freeglut3-dev libgles2-mesa-dev libglew1.6-dev``` is causing issues where old libraries are not getting overwitten.
 I needed to specifically run the above command to install the libraries needed even though the proper versions of the dependancies were not updated.
@@ -104,7 +86,9 @@ docker commit d0fb7d3cea01 glen:latest; docker tag glen:latest us.gcr.io/glen-rl
 
 ### Run example
 
-docker run -e TERRAINRL_PATH=/opt/playground/TerrainRL/ -e RLSIMENV_PATH=/opt/RLSimulationEnvironments --mount type=bind,src=/home/gberseth/playground/RL-Framework,dst=/opt/RL-Framework --mount type=bind,src=/home/gberseth/playground/TerrainRLSim,dst=/opt/TerrainRLSim --mount type=bind,src=/home/gberseth/playground/RLSimulationEnvironments,dst=/opt/RLSimulationEnvironments --rm  -it us.gcr.io/glen-rl-framework/glen:latest bash -c "pushd /opt/RL-Framework; python3 trainModel.py --config=tests/settings/particleSim/TRPO/FixedSTD_Tensorflow_KERAS.json --plot=false --shouldRender=false"
+docker run -e TERRAINRL_PATH=/opt/playground/TerrainRL/ -e RLSIMENV_PATH=/opt/RLSimulationEnvironments --mount type=bind,src=/nfs/kun1/users/gberseth/playground/RL-Framework,dst=/opt/RL-Framework --mount type=bind,src=/nfs/kun1/users/gberseth/playground/TerrainRLSim,dst=/opt/TerrainRLSim --mount type=bind,src=/nfs/kun1/users/gberseth/playground/RLSimulationEnvironments,dst=/opt/RLSimulationEnvironments --rm  -it us.gcr.io/glen-rl-framework/glen:latest bash -c "pushd /opt/RL-Framework; python3 trainModel.py --config=tests/settings/particleSim/TRPO/FixedSTD_Tensorflow_KERAS.json --plot=false --shouldRender=false"
+
+docker run -e TERRAINRL_PATH=/opt/playground/TerrainRL/ -e RLSIMENV_PATH=/opt/RLSimulationEnvironments --mount type=bind,src=/nfs/kun1/users/gberseth/playground/RL-Framework,dst=/opt/RL-Framework --mount type=bind,src=/nfs/kun1/users/gberseth/playground/TerrainRLSim,dst=/opt/TerrainRLSim --mount type=bind,src=/nfs/kun1/users/gberseth/playground/RLSimulationEnvironments,dst=/opt/RLSimulationEnvironments --rm  -it us.gcr.io/glen-rl-framework/glen:latest bash -c "pushd /opt/RL-Framework; python3 tuneHyperParameters.py --config=settings/navgame2D/MADDPG/HRL_TRPO_Tensorflow_NoViz_HLC-v4.json --plot=false --shouldRender=false --metaConfig=settings/hyperParamTuning/element/state_normalization.json --meta_sim_samples=3 --meta_sim_threads=3 --tunning_threads=3 -p 2 --bootstrap_samples=10000"
 
 
 ### Example learning commands Singularity
