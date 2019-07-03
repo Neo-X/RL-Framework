@@ -390,5 +390,7 @@
 	"comment__": "Weight factor for goal conditioned reward added to hlc task reward",
 "hlc_intrinsic_weight": 0.1,
 	"comment__": "whether emailing of final plots is disabled",
-"disable_final_emailing": true
+"disable_final_emailing": true,
+	"comment__": "which agents to skip training for if any (eg, fix the weights)",
+"skip_training_agents": [1]
 }

@@ -244,6 +244,11 @@ class LearningMultiAgent(LearningAgent):
         import numpy as np 
         
         for agent_ in range(len(self.getAgents())):
+
+            if ("skip_training_agents" in self.getSettings() and
+                    agent_ in self.getSettings()["skip_training_agents"]):
+                print("Skipping training for agent {}".format(agent_))
+
             # print ("_states: ", np.array(_states).shape)
             # print ("_states[0][0]: ", np.array(_states[0][0]).shape)
             # print ("_states[0][1]: ", np.array(_states[0][1]).shape)
