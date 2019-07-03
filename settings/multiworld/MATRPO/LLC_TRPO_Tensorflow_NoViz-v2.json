@@ -384,5 +384,7 @@
 	"comment__": "The keyword arguments to pass to multiworld",
 "multiworld_kwargs": {"fix_goal":  false},
 	"comment__": "Should environment goals be used instead of HLC goals",
-"use_environment_goals": true
+"use_environment_goals": true,
+	"comment__": "whether emailing of final plots is disabled",
+"disable_final_emailing": true
 }

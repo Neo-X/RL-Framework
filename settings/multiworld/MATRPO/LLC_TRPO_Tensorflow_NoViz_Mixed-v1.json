@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "SawyerReachXYZEnv-v1/MATRPO_LLC",
+"data_folder": "SawyerReachXYZEnv-v1/MATRPO_LLC_Mixed",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -388,5 +388,7 @@
 	"comment__": "Weight factor for llc task reward added to goal conditioned reward",
 "llc_task_weight": 0.1,
 	"comment__": "Weight factor for goal conditioned reward added to hlc task reward",
-"hlc_intrinsic_weight": 0.1
+"hlc_intrinsic_weight": 0.1,
+	"comment__": "whether emailing of final plots is disabled",
+"disable_final_emailing": true
 }
