@@ -278,8 +278,9 @@ def trainMetaModel_(args):
             result = trainMetaModel(args[1], samples=int(args[3]), settings=copy.deepcopy(simSettings_), numThreads=int(args[4]), hyperSettings=hyperSettings_)
         else:
             result = trainMetaModel(args[1], samples=int(simSettings_['meta_sim_samples']), settings=copy.deepcopy(simSettings_), numThreads=int(simSettings_['meta_sim_threads']), hyperSettings=hyperSettings_)
-        
-        emailSimData(simSettings_, hyperSettings_, sim_time_=result['sim_time'], simData=result)
+
+        if not ("disable_final_emailing" in simSettings_ and simSettings_["disable_final_emailing"]):
+            emailSimData(simSettings_, hyperSettings_, sim_time_=result['sim_time'], simData=result)
 
 if (__name__ == "__main__"):
         

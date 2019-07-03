@@ -21,7 +21,7 @@ class MultiworldHRLEnv(MultiworldEnv):
     def reset(self):
         # self.getEnvironment().init()
         self._previous_observation = self.getEnvironment().reset()[self._observation_key]
-        self._llc_target = np.zeros(self.getEnvironment().observation_space[self._observation_key].shape)
+        self._llc_target = np.zeros(self.observation_space.shape)
         self._end_of_episode = False
         self._fallen=[False]
         self._hlc_timestep = 1000000
