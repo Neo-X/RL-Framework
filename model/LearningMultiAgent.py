@@ -199,7 +199,7 @@ class LearningMultiAgent(LearningAgent):
                     
         return ( num_samples_, (tmp_states, tmp_actions, tmp_result_states, tmp_rewards, tmp_falls, tmp_G_t, tmp_advantage, tmp_exp_action))
     
-    def dataSkip(self, states__, actions__, rewards__, result_states__, falls__, _advantage, 
+    def dataSkip(self, model, states__, actions__, rewards__, result_states__, falls__, _advantage, 
                   _exp_actions, _G_t, skip_num):
         """
             For things like HRL I am using a cheap trick to throw out extra data samples
@@ -208,26 +208,32 @@ class LearningMultiAgent(LearningAgent):
         import numpy as np
         if (skip_num > 1):
             for tar in range(len(states__)):
-                # print ("states__[tar] shape before: ", np.array(states__[tar]).shape)
                 tmp_len = len(states__[tar])
                 states__[tar] = states__[tar][0::skip_num]
-                # print ("states__[tar] shape after: ", np.array(states__[tar]).shape)
                 actions__[tar] =  actions__[tar][0::skip_num]
                 axis = 0
                 split_indices = [i for i  in range(skip_num, len(rewards__[tar]), skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
-                # print ("split_indices: ", split_indices)
                 first_split = np.array_split(rewards__[tar], split_indices, axis=0)
-                # print ("first_split: ", first_split)
-                # print ("reward_average: ", [[np.mean(rs)] for rs in first_split])
-                # print ("rewards__[tar]: ", rewards__[tar])
                 assert len(rewards__[tar][0::skip_num]) == len(first_split), "len(rewards__[tar][0::skip_num]) == len(first_split): " + str(len(rewards__[tar][0::skip_num])) + " == " + str(len(first_split))
-                # rewards__[tar] =  rewards__[tar][0::skip_num]
+                ### Average reward over LLP steps.
                 rewards__[tar] =  [[np.mean(rs)] for rs in first_split]
                 result_states__[tar] =  result_states__[tar][0::skip_num]
                 falls__[tar] =  falls__[tar][0::skip_num]
                 _advantage[tar] =  _advantage[tar][0::skip_num]
                 _exp_actions[tar] =  _exp_actions[tar][0::skip_num]
                 _G_t[tar] =  _G_t[tar][0::skip_num]
+                
+                path = {"states": np.array(states__[tar]),
+                        "reward": np.array(rewards__[tar]),
+                        "falls": np.array(falls__[tar]), 
+                        "terminated": False}
+                # print ("path: ", path)
+                paths = compute_advantage_(model, [path], model._settings["discount_factor"], model._settings['GAE_lambda'])
+                adv__ = paths["advantage"]
+                # print ("advantage diff: ", _advantage[tar] - adv__)
+                _advantage[tar] = adv__
+                # baselines_.append(np.array(paths["baseline"]))
+                
                 assert np.ceil(tmp_len/skip_num) == len(states__[tar]), "np.ceil(tmp_len/skip_num) == len(states__[tar])" + str(np.ceil(tmp_len/skip_num)) + " == " + str(len(states__[tar]))            
         return  (states__, actions__, rewards__, result_states__, falls__, _advantage, 
                   _exp_actions, _G_t)
@@ -326,7 +332,7 @@ class LearningMultiAgent(LearningAgent):
             # print ("result_states__: ", np.array(result_states__).shape) 
             if ("hlc_index" in self.getSettings()
                 and (self.getSettings()["hlc_index"] == agent_)):
-                (states__, actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__) = self.dataSkip(states__, 
+                (states__, actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__) = self.dataSkip(self.getAgents()[agent_], states__, 
                                         actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__, skip_num=self.getSettings()["hlc_timestep"])
                 ### Adjust the max_epoch length to match the true length for the HLC
                 self.getAgents()[agent_]._settings["max_epoch_length"] = np.ceil(self.getSettings()["max_epoch_length"]/self.getSettings()["hlc_timestep"])

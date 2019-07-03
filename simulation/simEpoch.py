@@ -556,40 +556,27 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         pa = None
         i_ += 1
         ### Don't reset during evaluation...
-        # print ("exp.endOfEpoch(): ", exp.endOfEpoch())
         if (((exp.endOfEpoch() and settings['reset_on_fall'] and ((not evaluation)))
              and (reset_prop_tmp <= reset_prop) ) ### Allow option to collect some full trajectories  
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
                 ):
-            # falls[-1] = [[0]]
             break
                 
         
         
-    """
-    if (settings['on_policy']):
-        evalDatas.append(np.sum(rewards[last_epoch_end:])/float(settings['max_epoch_length']))
-    else:
-    """
     evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
     evalData = [np.mean(evalDatas)]
-    # G_ts.extend(copy.deepcopy(G_t))
     G_ts.extend(copy.deepcopy(discounted_rewards(np.array(rewards), discount_factor)))
     discounted_sum = G_ts
-    # q_value = baselines_
     
     if print_data:
         print ("Evaluation: ", str(evalData))
         print ("Eval Datas: ", evalDatas) 
-    # print ("Evaluation Data: ", evalData)
-        # print ("Current Tuple: " + str(experience.current()))
     ### Reset before predicting values for trajectory
     model.reset()
-    # if (len(states[last_epoch_end:]) > 0):
     for a in range(len(states[0])):
         path = {}
         ### timestep, agent, state
-        # path['states'] = copy.deepcopy(np.array(states[last_epoch_end:])[:,a,:])
         ### In multi-agent sims agents can have different sized state vectors
         if ( "use_centralized_critic" in settings
              and (settings["use_centralized_critic"] == True)):
@@ -608,7 +595,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
         path['falls'] = np.array(np.array(falls[last_epoch_end:])[:,a,:])
         path["terminated"] = False
-        # print ("path['states']", path['states'].shape)
         ## Append so that we can preserve the paths/trajectory structure.
         if (len(rewards[last_epoch_end:]) > 0):
             paths = compute_advantage_(model, [path], discount_factor, settings['GAE_lambda'])
@@ -616,18 +602,14 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             baselines_.append(np.array(paths["baseline"]))
             advantage.append(np.array(adv__))
 
-    # print ("base diff: ", np.array(baseline) - np.array(baselines_))
-    # G_t_rewards.append(0)
     if ( ('print_level' in settings) and (settings["print_level"]== 'debug') ):
         adv_r = [ [x, y] for x,y in zip(advantage, G_t_rewards)]
         R_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(path['reward'], rewards[last_epoch_end:], G_t)]
         A_r = [ [x_r, y_r, z_r] for x_r,y_r,z_r in zip(advantage, discounted_rewards(np.array(rewards[last_epoch_end:]), discount_factor), baseline)]
-        # print ("Adv: ", advantage)
         print ("last_epoch_end: ", last_epoch_end, " i_ ", i_)
         print ("Advantage, R: ", adv_r)
         print ("Rewards: ", R_r)
         print ("Advantage, discounted Reward, baseline: ", np.array(A_r))
-        # print("Advantage, rewards, baseline: ", np.concatenate((advantage, G_t_rewards, baseline), axis=1))
     
     ### Fix data, Might need to unpack some vectors
     tmp_states = []
@@ -641,19 +623,14 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     tmp_baselines_ = []
     tmp_advantage = []
     ### data is in format (state, agent), this "extend" does not work well for multi-agent simulation
-    # print ("states: ", np.array(states).shape)
     for s in range(len(states)):
-        # print ("State shape: ", np.array(states[s]).shape)
-        # print ("actions shape: ", np.array(actions[s]).shape)
         tmp_states.extend(states[s])
         tmp_actions.extend(actions[s])
         tmp_res_states.extend(result_states___[s])
         tmp_rewards.extend(rewards[s])
         tmp_discounted_sum.extend(discounted_sum[s])
         tmp_G_ts.extend(G_ts[s])
-        # print ("falls[s], rewards[s]: ", falls[s], rewards[s])
         tmp_falls.extend(falls[s])
-        # print ("exp_actions[",s,"]: ", np.array(exp_actions[s]).shape, repr(exp_actions[s]))
         tmp_exp_actions.extend(exp_actions[s])
         ### Advantage is in a different format (agent , state)
         adv__ = []
@@ -669,7 +646,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     tuples = (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions)
     
     ### Doesn't work with simulations that have multiple state types/definitions
-    # if ( len(np.array(tmp_states).shape) == 2):
     if ("perform_multiagent_training" in settings):
         pass
         ### This will be a little complex because agents can have different state dimensions
@@ -721,10 +697,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         assert np.array(tmp_baselines_).shape == np.array(tmp_discounted_sum).shape, "np.array(tmp_baselines_).shape == np.array(tmp_discounted_sum).shape: " + str(np.array(tmp_baselines_).shape) + " == " + str(np.array(tmp_discounted_sum).shape)
         """
     
-    # print("***** Sim Actions std:  ", np.std((actions), axis=0) )
-    # print("***** Sim State mean:  ", np.mean((states), axis=0) )
-    # print("***** Sim Next State mean:  ", np.mean((result_states___), axis=0) )
-
     return (tuples, tmp_discounted_sum, tmp_baselines_, evalData)
 
 # @profile(precision=5)
