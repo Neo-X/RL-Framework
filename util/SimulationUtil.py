@@ -845,6 +845,45 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         exp = MultiworldHRLEnv(env, conf, observation_key=conf['observation_key'])
 
         return exp
+
+    elif env_type == 'MultiworldGoal':
+        import gym
+        import multiworld
+        from sim.MultiworldGoalEnv import MultiworldGoalEnv
+
+        multiworld.register_all_envs()
+        env_name = config_file
+        if "multiworld_kwargs" in settings:
+            multiworld_kwargs = settings["multiworld_kwargs"]
+        else:
+            multiworld_kwargs = {}
+        env = gym.make(env_name, **multiworld_kwargs)
+
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = MultiworldGoalEnv(env, conf, observation_key=conf['observation_key'])
+
+        return exp
+
+    elif env_type == 'MultiworldFixedLLC':
+        import gym
+        import multiworld
+        from sim.MultiworldEnv import MultiworldEnv
+
+        multiworld.register_all_envs()
+        env_name = config_file
+        if "multiworld_kwargs" in settings:
+            multiworld_kwargs = settings["multiworld_kwargs"]
+        else:
+            multiworld_kwargs = {}
+        env = gym.make(env_name, **multiworld_kwargs)
+
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = MultiworldEnv(env, conf, observation_key=conf['observation_key'])
+
+        return exp
+
     
     elif ((env_type == 'RLSimulations')):
         from rlsimenv.EnvWrapper import getEnv
@@ -1096,6 +1135,7 @@ def createActor(env_type, settings, experience):
           or (env_type == 'RLSimulations')
           or (env_type == 'Multiworld')
           or (env_type == 'MultiworldHRL')
+          or (env_type == 'MultiworldGoal')
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
@@ -1108,7 +1148,8 @@ def createActor(env_type, settings, experience):
           ):
         from actor.OpenAIGymActor2 import OpenAIGymActor2
         actor = OpenAIGymActor2(settings, experience)
-    elif env_type == 'GymMultiChar':
+    elif (env_type == 'GymMultiChar'
+            or env_type == 'MultiworldFixedLLC'):
         from actor.GymMultiCharActor import GymMultiCharActor
         actor = GymMultiCharActor(settings, experience)
     else:
