@@ -26,7 +26,7 @@ class PolicyTrainVisualize(object):
         self._title=title
         self._length = 0
         self._bin_size = 1
-        self._key_ = "mean_eval"
+        self._key_ = "mean_reward"
         self._key_std_ = "std_eval"
         self._y_label = y_lable
         
@@ -81,6 +81,8 @@ class PolicyTrainVisualize(object):
                 new_length = new_shape[0]*new_shape[1]
                 x_range_ = range(int(new_shape[0]))
                 # self._length = self._length/self._bin_size
+                mean = np.reshape(self._trainingDatas[i]['data'][self._key_][:new_length], new_shape)
+                print ("mean: ", mean)
                 mean = np.mean(np.reshape(self._trainingDatas[i]['data'][self._key_][:new_length], new_shape), axis=1)
                 std = np.mean(np.reshape(self._trainingDatas[i]['data'][self._key_std_][:new_length], new_shape), axis=1)
                 
@@ -166,16 +168,15 @@ class PolicyTrainVisualize(object):
                     # self._length = self._length/self._bin_size
                     print (self._otherDatas[j][i]['data'][self._key_][:new_length])
                     print (np.mean(self._otherDatas[j][i]['data'][self._key_][:new_length], axis=-1))
+                    """
                     if (len(np.array(self._otherDatas[j][i]['data'][self._key_][:new_length]).shape) > 1 ):
-                    # mean = np.mean(np.reshape(np.mean(self._otherDatas[j][i]['data'][self._key_][:new_length], axis=-1), new_shape), axis=1)
+                        ### the case for multi-agent learning
                         mean = np.mean(self._otherDatas[j][i]['data'][self._key_][:new_length], axis=-1)
                         std = np.mean(self._otherDatas[j][i]['data'][self._key_std_][:new_length], axis=-1)
                     else:
-                        mean = self._otherDatas[j][i]['data'][self._key_][:new_length]
-                        std = self._otherDatas[j][i]['data'][self._key_std_][:new_length]
-                    # mean_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["mean_discount_error"][:new_length], new_shape), axis=1)
-                    # std_value = np.mean(np.reshape(self._otherDatas[j][i]['data']["std_discount_error"][:new_length], new_shape), axis=1)
-                    # std = np.mean(np.reshape(np.mean(self._otherDatas[j][i]['data'][self._key_std_][:new_length], axis=-1), new_shape), axis=1)
+                """
+                    mean = self._otherDatas[j][i]['data'][self._key_][:new_length]
+                    std = self._otherDatas[j][i]['data'][self._key_std_][:new_length]
                     if (np.all(np.isfinite(mean))):
                         means_.append(mean)
                         # mean_values_.append(mean_value)
@@ -207,6 +208,7 @@ class PolicyTrainVisualize(object):
                 print ("x_range_:", x_range_)
                 mean = np.mean(means_, axis=0)
                 std = np.std(means_, axis=0)
+                print ("mean: ", type(mean[0]), mean)
                 # mean_value = np.mean(mean_values_, axis=0)
                 # std_value = np.std(mean_values_, axis=0)
                 colour_ = cmap(j)
@@ -214,22 +216,43 @@ class PolicyTrainVisualize(object):
                 if ('colour' in self._otherDatas[j][i]):
                     colour_ = self._otherDatas[j][i]['colour']
                     
+                """
+                ### Plot individual runs
                 for m in means_:
+                    print ("m: ", m)
                     self._reward, = self._reward_ax.plot(range(len(m)), m, 
                                                      linewidth=2.0, 
                                                      alpha=0.5,
                                                      c=colour_,
                                                      linestyle='--')
-                self._reward, = self._reward_ax.plot(x_range_, mean, 
+                """
+                markers=[ 'o' , '^' , 's' , '+', ',', '.', '1' , '2' , '3' , '4' ]
+                if (type(mean[0]) in (list, np.ndarray)):
+                    print ("Multi-agent learning, plotting agents individually.")
+                    for k in range(len(mean[0])):
+                        print ("agent mean: ", np.transpose(mean)[k])
+                        self._reward, = self._reward_ax.plot(x_range_, np.transpose(mean)[k], 
                                                      linewidth=3.0, 
                                                      c=colour_,
-                                                     label=(self._otherDatas[j][i]['name'] + " samples: " + str(len(means_)))[64:])
-                print("Line colour: ", self._reward.get_color())
-                self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
-                                                                              np.array(mean) - std, 
-                                                                              np.array(mean) + std,
+                                                     label=(self._otherDatas[j][i]['name'] + " agent: " + str(k) + " samples: " + str(len(means_))),
+                                                     marker=markers[k])
+                        print("Line colour: ", self._reward.get_color())
+                        self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
+                                                                              np.transpose(np.array(mean))[k] - np.transpose(std)[k], 
+                                                                              np.transpose(np.array(mean))[k] + np.transpose(std)[k],
                                                                               facecolor=self._reward.get_color(),
                                                                               alpha=0.25)
+                else:
+                    self._reward, = self._reward_ax.plot(x_range_, mean, 
+                                                     linewidth=3.0, 
+                                                     c=colour_,
+                                                     label=(self._otherDatas[j][i]['name'] + " samples: " + str(len(means_))))
+                    print("Line colour: ", self._reward.get_color())
+                    self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
+                                                                                  np.array(mean) - std, 
+                                                                                  np.array(mean) + std,
+                                                                                  facecolor=self._reward.get_color(),
+                                                                                  alpha=0.25)
                 """
                 for v in mean_values_:
                     self._value, = self._value_ax.plot(x_range_, v, 
