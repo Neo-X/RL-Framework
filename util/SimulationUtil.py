@@ -1139,6 +1139,9 @@ def createActor(env_type, settings, experience):
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
+    elif (env_type == 'MultiworldFixedLLC'):
+        from actor.MultiworldMultiCharActor import MultiworldMultiCharActor
+        actor = MultiworldMultiCharActor(settings, experience)
     elif ( (env_type == 'HRLSimulations')
           ):
         from actor.OpenAIGymHRLActor import OpenAIGymHRLActor
@@ -1148,8 +1151,7 @@ def createActor(env_type, settings, experience):
           ):
         from actor.OpenAIGymActor2 import OpenAIGymActor2
         actor = OpenAIGymActor2(settings, experience)
-    elif (env_type == 'GymMultiChar'
-            or env_type == 'MultiworldFixedLLC'):
+    elif (env_type == 'GymMultiChar'):
         from actor.GymMultiCharActor import GymMultiCharActor
         actor = GymMultiCharActor(settings, experience)
     else:

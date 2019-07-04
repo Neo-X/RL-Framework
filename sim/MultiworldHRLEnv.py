@@ -60,7 +60,7 @@ class MultiworldHRLEnv(MultiworldEnv):
                 self._llc_target = np.array(action_)
 
             self._hlc_timestep = 0
-            llc_obs = np.concatenate([self._previous_observation, self._llc_target], 0)
+            llc_obs = np.concatenate([self._previous_observation, self._llc_target], -1)
             action[1] = self._llc.predict([llc_obs])[0, :]
         action_ = np.array(action[1])
         if ("use_hlc_action_directly" in self.getSettings()

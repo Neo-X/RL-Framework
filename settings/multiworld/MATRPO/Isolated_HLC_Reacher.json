@@ -18,7 +18,7 @@
     "comment__": "A different config file for the forward dynamics simulator",
 "forwardDynamics_config_file": "SawyerReachXYZEnv-v1",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": [0.5, 0.5],
+"exploration_rate": [[0.1, 0.1, 0.1]],
     "comment__": "Number of rounds to perform before termination",
 "rounds": 250,
     "comment__": "Number of epochs to perform per round",
@@ -34,22 +34,15 @@
     "comment__": "Whether or not to train a forward dynamics model as well",
 "train_forward_dynamics": false,
     "comment__": "Bounds used for scaling rewards for networks",
-"reward_bounds": [[[-0.10],[0.0]],
-					[[-0.10],[0.0]]],
+"reward_bounds": [[-0.10],[0.0]],
     "comment__": "Max length of the Experience memory",
-"experience_length": [50000, 20000],
+"experience_length": 20000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
-"state_bounds": [
-  				  [[-0.2, 0.55, 0.05, -0.2, 0.55, 0.05],
-				   [0.2,  0.75, 0.3,   0.2, 0.75, 0.3 ]],
-				  [[-0.2, 0.55, 0.05, -0.2, 0.55, 0.05],
-				   [0.2,  0.75, 0.3,   0.2, 0.75, 0.3 ]]
-				],
+"state_bounds": [[-0.2, 0.55, 0.05],
+				   [0.2,  0.75, 0.3]],
     "comment__": "Action scaling values to be used to scale values for the network",
-"action_bounds": [[[-0.2, 0.55, 0.05],
+"action_bounds": [[-0.2, 0.55, 0.05],
                    [ 0.2, 0.75, 0.3 ]],
-                  [[-1.0, -1.0, -1.0],
-                   [ 1.0,  1.0,  1.0]]],
     "comment__": "Set of discrete actions that can be sampled from",
 "discrete_actions": [[0.0, 0.0, 0.0],
                      [0.5, 0.0, 0.0],
@@ -200,7 +193,7 @@
 "use_parameterized_control": false,
 	"comment__": "parameter bounds for parameterized controller",
 "controller_parameter_settings": {
-		"velocity_bounds": [[0.5],[2.5]]
+		"velocity_bounds": [[0.1, 0.1, 0.1]]
 		},
 	"comment__": "The parameter used to control the average change in the control parameters",
 "average_parameter_change": 0.25,
@@ -288,35 +281,21 @@
 	"comment__": "Use json network description",
 "network_description_type": "json",
 	"comment__": "A list describing the size of the layers for the NN",
-"critic_network_layer_sizes": [[
+"critic_network_layer_sizes": [
 								{"layer_type": "Dense", "units": 128, "use_bias": false},
 								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 64, "use_bias": false},
 								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
-								],
-								[  
-								{"layer_type": "Dense", "units": 128, "use_bias": false},
-								{"layer_type": "Dropout", "rate": 0.2},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dense", "units": 64, "use_bias": false},
-								{"layer_type": "Dropout", "rate": 0.2},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" }
-								]
 								],
 	"comment__": "A list describing the size of the layers for the NN",
-"policy_network_layer_sizes": [[
+"policy_network_layer_sizes": [
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
-								],[
-								{"layer_type": "Dense", "units": 64, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dense", "units": 32, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" }
-								]],
+								],
 	"comment__": "Activation function to use for the std part of the policy",
 "_last_std_policy_layer_activation_type": "sigmoid",
 	"comment__": "type of activation to use",
@@ -367,30 +346,16 @@
 "anneal_exploration": 0.25,
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
 "learning_backend": "tensorflow",
-	"comment__": "Perform multi agent training using different policies, number of agents",
-"perform_multiagent_training": 2,
 	"comment__": "Use a centralized critics (each one kind of has full information)",
 "use_centralized_critic": false,
 	"comment__": "Ignore training some of the agents in a multi agent sim",
 "ignore_MRL_agents": [],
-	"comment__": "The index of the multiagent simulation for the hlc",
-"llc_index": 1,
 	"comment__": "higher level controller timestep",
 "hlc_timestep": 20,
-	"comment__": "The index of the multiagent simulation for the hlc",
-"hlc_index": 0,
-	"comment__": "Should high level exploration be used",
-"use_high_level_exploration": false,
 	"comment__": "The keyword arguments to pass to multiworld",
 "multiworld_kwargs": {"fix_goal":  false},
-	"comment__": "Should environment goals be used instead of HLC goals",
-"use_environment_goals": false,
-	"comment__": "Weight factor for llc task reward added to goal conditioned reward",
-"llc_task_weight": 0.0,
-	"comment__": "Weight factor for goal conditioned reward added to hlc task reward",
-"hlc_intrinsic_weight": 0.0,
 	"comment__": "whether emailing of final plots is disabled",
 "disable_final_emailing": true,
 	"comment__": "Path to LLC to load",
-"llc_policy_model_path": "/home/btrabucco/research/RL-Framework/MultiworldHRL/algorithm.TRPO_KERAS.TRPO_KERAS/SawyerReachXYZEnv-v1/2019_07_01_MATRPO_LLC_many_goals/_2/model.DeepNNKerasAdaptive.DeepNNKerasAdaptive/LLC_TRPO_Tensorflow_NoViz-v2.json"
+"llc_policy_model_path": "/home/btrabucco/research/RL-Framework/MultiworldGoal/algorithm.TRPO_KERAS.TRPO_KERAS/SawyerReachXYZEnv-v1/Isolated_LLC/model.DeepNNKerasAdaptive.DeepNNKerasAdaptive/model.json"
 }
