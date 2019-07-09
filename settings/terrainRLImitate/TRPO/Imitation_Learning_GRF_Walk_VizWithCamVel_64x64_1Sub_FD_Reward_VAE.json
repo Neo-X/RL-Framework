@@ -419,7 +419,7 @@
 	"comment__": "Dropout for fd network",
 "fd_network_dropout": 0.0,
 	"comment__": "Use learned reward function",
-"use_learned_reward_function": "dual",
+"use_learned_reward_function": true,
 	"comment__": "Mix different state description types, used for debugging visual imitation learning",
 "use_dual_state_representations": true,
 	"comment__": "Use vis state for policy instead of dense state",

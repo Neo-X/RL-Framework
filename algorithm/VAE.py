@@ -580,8 +580,9 @@ class VAE(SiameseNetwork):
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
             # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
-            h_a = self._model._forward_dynamics_net.predict([np.array([state])])
-            h_b = self._model._forward_dynamics_net.predict([np.array([state2])])
+            ### Want the mean of the forward model
+            h_a = self._model._forward_dynamics_net.predict([np.array(state)])[0]
+            h_b = self._model._forward_dynamics_net.predict([np.array(state2)])[0]
             state_ = self._distance_func_np((h_a, h_b))[0]
         # dist_ = np.array(self._contrastive_loss([te_pair1, te_pair2, 0]))[0]
         # print("state_ shape: ", np.array(state_).shape)
@@ -614,9 +615,9 @@ class VAE(SiameseNetwork):
             and (self._settings["train_LSTM_Reward"] == True)):
             ### Used because we need to keep two separate RNN networks and not mix the hidden states
             # print ("State shape: ", np.array([np.array([state])]).shape)
-            h_a = self._model.processed_a_r.predict([np.array([state])])
-            h_b = self._model.processed_b_r.predict([np.array([state2])])
-            reward_ = self._distance_func_np((h_a, h_b))[0]
+            # h_a = self._model.processed_a_r.predict([np.array([state])])
+            # h_b = self._model.processed_b_r.predict([np.array([state2])])
+            reward_ = [0]
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
