@@ -235,7 +235,7 @@
 	"comment__": "KL divergence threshold between policy updates",
 "kl_divergence_threshold": 0.1,
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy [true|fast]",
-"on_policy": "fast",
+"on_policy": true,
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
 "use_stochastic_policy": false,
 	"comment__": "Whether or  not to train the critic at all. Usually used for debugging",
@@ -377,7 +377,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
 	"comment__": "specify the learning algorithm to use for the fd model",
-"fd_algorithm" : "algorithm.VAE.VAE",
+"fd_algorithm" : "algorithm.SiameseNetworkMultiHeadDecodeVAE.SiameseNetworkMultiHeadDecodeVAE",
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice"},
