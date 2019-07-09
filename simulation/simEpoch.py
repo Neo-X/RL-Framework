@@ -478,8 +478,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     # print ("Predicted reward: ", predicted_reward) 
                 print ("Agent has fallen: ", not agent_not_fell )
                 # print ("Python Reward: " + str(reward(state_, resultState)))
-                if (settings["environment_type"] == "MultiworldHRL"):
-                    a = exp._llc_target
+                if ("MultiworldHRL" == settings["environment_type"] or
+                        "MultiworldGoal" == settings["environment_type"]):
+                    a = exp._goal
                     b = exp.observation_space.low
                     c = exp.observation_space.high
                     x = (a[0] - b[0]) / (c[0] - b[0])
