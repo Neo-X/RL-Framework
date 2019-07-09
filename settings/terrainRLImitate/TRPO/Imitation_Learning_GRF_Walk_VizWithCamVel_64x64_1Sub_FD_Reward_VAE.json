@@ -377,7 +377,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
 	"comment__": "specify the learning algorithm to use for the fd model",
-"fd_algorithm" : "algorithm.SiameseNetworkMultiHeadDecodeVAE.SiameseNetworkMultiHeadDecodeVAE",
+"fd_algorithm" : "algorithm.VAE.VAE",
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice"},
@@ -481,7 +481,7 @@
 	"comment__": "Train the fd network as well",
 "train_lstm_fd_and_reward_together": false,
 	"comment__": "Train the fd network as well",
-"train_lstm_fd_and_reward_and_decoder_together": true,
+"train_lstm_fd_and_reward_and_decoder_together": false,
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [ 
 								{"layer_type": "Dense", "units": 256, "use_bias": false},
