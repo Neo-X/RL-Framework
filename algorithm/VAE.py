@@ -554,7 +554,7 @@ class VAE(SiameseNetwork):
         # print("Distance.shape, targets.shape: ", dist_.shape, te_y.shape)
         # print("Distance, targets: ", np.concatenate((dist_, te_y), axis=1))
         # if ( dist > 0):
-        score = self._model._forward_dynamics_net.fit([te_pair1, te_pair2], te_y,
+        score = self._modelTarget._forward_dynamics_net.fit([states], states,
           epochs=updates, batch_size=batch_size_,
           verbose=0,
           shuffle=True
@@ -632,7 +632,7 @@ class VAE(SiameseNetwork):
             # print ("State shape: ", np.array([np.array([state])]).shape)
             # h_a = self._model.processed_a_r.predict([np.array([state])])
             # h_b = self._model.processed_b_r.predict([np.array([state2])])
-            reward_ = [0]
+            reward_ = [states0]
             # print ("siamese dist: ", state_)
             # state_ = self._model._forward_dynamics_net.predict([np.array([state]), np.array([state2])])[0]
         else:
@@ -717,12 +717,13 @@ class VAE(SiameseNetwork):
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
             te_acc = np.mean(errors)
         else:
-            states = np.concatenate((states, result_states), axis=0)
-            te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
+            # states = np.concatenate((states, result_states), axis=0)
+            # te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
         
             # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
-            predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
-            te_acc = compute_accuracy(predicted_y, te_y)
+            predicted_y1 = self._model._forward_dynamics_net.predict([states])[0]
+            predicted_y2 = self._model._forward_dynamics_net.predict([result_states])[0]
+            te_acc = self._distance_func_np((predicted_y1, predicted_y2))[0]
             
         # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
         return te_acc
@@ -763,12 +764,15 @@ class VAE(SiameseNetwork):
             # te_acc = compute_accuracy(predicted_y, np.array([targets_[0]]) )
             te_acc = np.mean(errors)
         else:
+            """
             states = np.concatenate((states, result_states), axis=0)
             te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
         
             # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
             predicted_y = self._model._reward_net.predict([te_pair1, te_pair2])
             te_acc = compute_accuracy(predicted_y, te_y)
+            """
+            te_acc = [0]
             
         # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
         return te_acc
