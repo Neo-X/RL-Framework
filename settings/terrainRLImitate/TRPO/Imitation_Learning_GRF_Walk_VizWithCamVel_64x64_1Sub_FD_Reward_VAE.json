@@ -449,7 +449,7 @@
 	"comment__": "Force the simulation workers to use the CPU only for network models",
 "force_sim_net_to_cpu": false,
 	"comment__": "Just train the fd model in an LSTM fashion",
-"train_LSTM_Reward": true,
+"train_LSTM_Reward": false,
 	"comment__": "Leave off the final layer of the reward network that would result in a state sized output",
 "reward_network_leave_off_end": true,
 	"comment__": "Episode simulation time out",

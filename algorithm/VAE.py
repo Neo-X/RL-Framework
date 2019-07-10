@@ -155,15 +155,24 @@ class VAE(SiameseNetwork):
         processed_a_vae = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())[2]
         self._model.processed_a_vae = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_vae)
         
-        network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
-        print ("network_: ", repr(network_))
+        if ("train_LSTM_Reward" in self.getSettings()
+            and (self.getSettings()["train_LSTM_Reward"] == True)):
+            network_ = keras.layers.TimeDistributed(self._model.processed_a, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
+            print ("network_: ", repr(network_))
+            self._network_vae_log_var = keras.layers.TimeDistributed(self._model.processed_a_log_var, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
+            print ("_network_vae_log_var: ", repr(self._network_vae_log_var))
+            self._network_vae = keras.layers.TimeDistributed(self._model.processed_a_vae, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
+            print ("network_vae: ", repr(self._network_vae))
+        else:
+            network_ = processed_a
+            print ("network_mean: ", repr(network_))
+            self._network_vae_log_var = processed_a_log_var
+            print ("_network_vae_log_var: ", repr(self._network_vae_log_var))
+            self._network_vae = processed_a_vae
+            print ("_network_vae: ", repr(self._network_vae))
         
-        self._network_vae_log_var = keras.layers.TimeDistributed(self._model.processed_a_log_var, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
-        print ("network_vae: ", repr(network_))
-        self._network_vae = keras.layers.TimeDistributed(self._model.processed_a_vae, input_shape=(None, 1, self._state_length))(self._model.getResultStateSymbolicVariable())
-        print ("network_vae: ", repr(network_))
         
-        
+        """
         if ("condition_on_rnn_internal_state" in self.getSettings()
             and (self.getSettings()["condition_on_rnn_internal_state"] == True)):
             _, processed_a_r, processed_a_r_c  = self._model._reward_net(network_)
@@ -190,8 +199,8 @@ class VAE(SiameseNetwork):
             last_dense = keras.layers.Dense(self.getSettings()["encoding_vector_size"], activation = 'linear')(encode_input__)
             self._last_dense = Model(inputs=[encode_input__], outputs=last_dense)
             processed_a_r = self._last_dense(processed_a_r)
-        
         self._model.processed_a_r = Model(inputs=[self._model.getResultStateSymbolicVariable()], outputs=processed_a_r)
+        """
         
         # distance_fd = keras.layers.Lambda(self._distance_func, output_shape=eucl_dist_output_shape)([processed_a, processed_b])
         # distance_fd2 = keras.layers.Lambda(l1_distance_fd2, output_shape=eucl_dist_output_shape_fd2)([network_, network_b])
@@ -221,31 +230,37 @@ class VAE(SiameseNetwork):
         print ("decode_b_r: ", repr(decode_b_r))
         # self._model.decode_b_r = Model(inputs=[encoder_b_outputs], outputs=decode_b_r)
         
+        """
         ### Decode sequences into images
         # state_copy = keras.layers.Input(shape=keras.backend.int_shape(self._model.getStateSymbolicVariable())[1:], name="State_2")
-        decode_a = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_a_r)
-        print ("decode_a: ", repr(decode_a))
-        decode_b = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_b_r)
-        print ("decode_b: ", repr(decode_b))
-        """
-        decode_a_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_vae)
-        print ("decode_a_vae: ", repr(decode_a_vae))
+        if ("train_LSTM_Reward" in self.getSettings()
+            and (self.getSettings()["train_LSTM_Reward"] == True)):
+            decode_a = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(processed_a_vae)
+            print ("decode_a: ", repr(decode_a))
+        else:
+            decode_a = self._modelTarget._forward_dynamics_net(processed_a_vae)
+            print ("decode_a: ", repr(decode_a))
+        # decode_b = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_b_r)
+        # print ("decode_b: ", repr(decode_b))
+        # decode_a_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_vae)
+        # print ("decode_a_vae: ", repr(decode_a_vae))
 
         """
         self._model._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()
-                                                          ,state_copy 
                                                           ]
-                                                  , outputs=distance_fd
+                                                  , outputs=processed_a_vae
                                                   )
         """
-        
+        self._modelTarget._forward_dynamics_net = Model(inputs=[self._model.getStateSymbolicVariable()], 
+                                                        outputs=decode_a)
+        """
         self._model._reward_net = Model(inputs=[self._model.getResultStateSymbolicVariable()
                                                           ]
                                                           , outputs=[
                                                                      decode_a_vae
                                                                      ]
                                                           )
-
+        """
         # print ("encode_input__: ", repr(encode_input__))
         # distance_r_weighted = keras.layers.Dense(64, activation = 'sigmoid')(encode_input__)
         # self._distance_weighting_ = Model(inputs=[encode_input__], outputs=distance_r_weighted)
@@ -271,8 +286,8 @@ class VAE(SiameseNetwork):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
-        self._model._forward_dynamics_net.compile(loss=contrastive_loss, optimizer=sgd)
-        self._modelTarget._forward_dynamics_net.compile(loss=contrastive_loss, optimizer=sgd)
+        # self._model._forward_dynamics_net.compile(loss=self.vae_loss_a, optimizer=sgd)
+        self._modelTarget._forward_dynamics_net.compile(loss=self.vae_loss_a, optimizer=sgd)
 
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['fd_learning_rate']), beta_1=np.float32(0.95), 
                                     beta_2=np.float32(0.999), epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0),
@@ -281,7 +296,7 @@ class VAE(SiameseNetwork):
             print("sgd, actor: ", sgd)
             print ("Clipping: ", sgd.decay)
             
-        self._model._reward_net.compile(loss=self.vae_loss_a, optimizer=sgd)
+        # self._model._reward_net.compile(loss=self.vae_loss_a, optimizer=sgd)
         
     def vae_loss_a(self, action_true, action_pred):
         
@@ -312,9 +327,9 @@ class VAE(SiameseNetwork):
         self._model.reset()
         self._model._reward_net.reset_states()
         self._model._forward_dynamics_net.reset_states()
-        self._model.processed_a.reset_states()
-        self._model.processed_b.reset_states()
-        self._model.processed_a_r.reset_states()
+        # self._model.processed_a.reset_states()
+        # self._model.processed_b.reset_states()
+        # self._model.processed_a_r.reset_states()
         # self._model.processed_b_r.reset_states()
         if not (self._modelTarget is None):
             self._modelTarget._forward_dynamics_net.reset_states()
