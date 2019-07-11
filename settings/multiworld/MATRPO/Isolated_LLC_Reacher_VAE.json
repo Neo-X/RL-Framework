@@ -31,10 +31,8 @@
 "visualize_learning": false,
     "comment__": "Whether or not to save the plotted data while learning",
 "save_trainData": true,
-    "comment__": "Whether or not to train a forward dynamics model as well",
-"train_forward_dynamics": false,
     "comment__": "Bounds used for scaling rewards for networks",
-"reward_bounds": [[-0.50],[0.0]],
+"reward_bounds": [[-2000.0],[0.0]],
     "comment__": "Max length of the Experience memory",
 "experience_length": 50000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
@@ -120,7 +118,7 @@
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
 "max_epoch_length": 256,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
-"reward_lower_bound": -1.0,
+"reward_lower_bound": -1000000.0,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",
 "use_guided_policy_search" : false,
     "comment__": "The number of training updates to perform for every action that is simulated",
@@ -162,7 +160,7 @@
     "comment__": "Number of terrain features for which convolutinoal filters should be used",
 "num_terrain_features": 0,
 	"comment__": "Data ordering format for convolutions",
-"image_data_format": "channels_first",
+"image_data_format": "channels_last",
     "comment__": "Initial temperature for anealling of e-greedy exploration",
 "initial_temperature": 10.0,
     "comment__": "epsilon lower limit",
@@ -347,7 +345,8 @@
 	"comment__": "whether emailing of final plots is disabled",
 "disable_final_emailing": true,
   "comment__": "A list describing the size of the layers for the NN",
-"encoder_network_layer_sizes": [
+"fd_network_layer_sizes": [
+  {"layer_type": "slice", "slice_index": 6912, "slice_label": "other_image" },
   {"layer_type": "Reshape", "target_shape": [48, 48, 3]},
   {"layer_type": "conv2d", "filters": 16, "kernel_size": [5, 5],
       "strides": [2,2], "use_bias": true, "padding": "same"},
@@ -368,13 +367,19 @@
   {"layer_type": "Dropout", "rate": 0.2},
   {"layer_type": "Reshape", "target_shape": [6, 6, 64]},
   {"layer_type": "Flatten"},
-  {"layer_type": "Dense", "units": 128, "use_bias": true},
+  {"layer_type": "Dense", "units": 256, "use_bias": true},
   {"layer_type": "activation", "activation_type": "linear" },
-  {"layer_type": "Reshape", "target_shape": [128]}
+  {"layer_type": "Reshape", "target_shape": [256]}
 ],
+	"comment__": "A list describing the size of the layers for the NN",
+"reward_network_layer_sizes": [
+							{"layer_type": "Input", "shape": ["none", "none", 64]},
+							{"layer_type": "LayerNormalization"},
+							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
+							],
   "comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [
-  {"layer_type": "Reshape", "target_shape": [128]},
+  {"layer_type": "Reshape", "target_shape": [256]},
   {"layer_type": "Dense", "units": 2304, "use_bias": true},
   {"layer_type": "BatchNormalization"},
   {"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -397,6 +402,12 @@
   {"layer_type": "activation", "activation_type": "tanh" },
   {"layer_type": "Reshape", "target_shape": [48, 48, 3]}
 ],
-  "using_encoder_decoder_fd": true
-
+    "comment__": "Network type to use for the forward dynamics model",
+"forward_dynamics_model_type": "model.FDNNKerasAdaptive.FDNNKerasAdaptive",
+	"comment__": "specify the learning algorithm to use for the fd model",
+"fd_algorithm" : "algorithm.VAE.VAE",
+    "comment__": "Whether or not to train a forward dynamics model as well",
+"train_forward_dynamics": true,
+  	"comment__": "The encoding vector size used for the fd models",
+"encoding_vector_size": 64
 }
