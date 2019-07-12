@@ -116,8 +116,13 @@ class VAE(SiameseNetwork):
             settings__["state_bounds"][0] = settings__["state_bounds"][0][:settings__["encoding_vector_size"]]
             print ("settings__[\"state_bounds\"][0]: ", len(settings__["state_bounds"][0]) )
             settings__["state_bounds"][1] = settings__["state_bounds"][1][:settings__["encoding_vector_size"]]
-        self._modelTarget = createForwardDynamicsNetwork(settings__["state_bounds"], 
-                                                         settings__["action_bounds"], settings__,
+
+        upper_bound = np.ones(settings__["encoding_vector_size"])
+        lower_bound = -1.0 * np.ones(settings__["encoding_vector_size"])
+        latent_bounds = [upper_bound.tolist(), lower_bound.tolist()]
+
+        self._modelTarget = createForwardDynamicsNetwork(latent_bounds,
+                                                         settings__["state_bounds"], settings__,
                                                          stateName="State_", resultStateName="ResultState_")
         # self._decode_state = keras.layers.Input(shape=(None,67), name="State_2")
         self._modelTarget._forward_dynamics_net = Model(inputs=[self._modelTarget.getStateSymbolicVariable()], outputs=self._modelTarget._forward_dynamics_net)
