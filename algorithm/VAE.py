@@ -302,6 +302,16 @@ class VAE(SiameseNetwork):
             print ("Clipping: ", sgd.decay)
             
         # self._model._reward_net.compile(loss=self.vae_loss_a, optimizer=sgd)
+
+        self._get_latent_variable = K.function(
+            [self._model.getStateSymbolicVariable()],
+            [processed_a_vae])
+        self._get_reconstructed_image = K.function(
+            [self._model.getStateSymbolicVariable()],
+            [decode_a])
+        self._get_latent_variable_reconstructed_image = K.function(
+            [self._model.getStateSymbolicVariable()],
+            [processed_a_vae, decode_a])
         
     def vae_loss_a(self, action_true, action_pred):
         
@@ -845,7 +855,11 @@ class VAE(SiameseNetwork):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
         if (self._modelTarget is not None):
-            self._modelTarget._forward_dynamics_net = load_keras_model(fileName+"_FD_T"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
+            self._modelTarget._forward_dynamics_net = load_keras_model(
+                fileName+"_FD_T"+suffix, custom_objects={
+                    'contrastive_loss': contrastive_loss,
+                    "vae_loss_a": self.vae_loss_a,
+                    "vae_loss_b": self.vae_loss_b})
             # self._modelTarget._reward_net = load_keras_model(fileName+"_reward_net_T"+suffix)
             self._modelTarget._reward_net.load_weights(fileName+"_reward_T"+suffix)
         # self._model._actor_train = load_keras_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
