@@ -126,13 +126,11 @@
     "comment__": "Use The forward dynamics simulator as a way of sampling suggested actions for exploration",
 "use_sampling_exploration": false,
     "comment__": "Use the forward dyanmics model to perform action exploration wrt to V -> fd > delta Action gradients",
-"use_model_based_action_optimization": true,
+"use_model_based_action_optimization": false,
     "comment__": "Flag for policy evaluation to swap in the task network from one model and the character/robot network from another",
 "use_transfer_task_network": false,
     "comment__": "Add a large cost to actions that are suggested to be outside the action bounds.",
 "penalize_actions_outside_bounds": false,
-    "comment__": "Network type to use for the forward dynamics model",
-"forward_dynamics_model_type": "model.ForwardDynamicsDenseNetworkDropoutTesting.ForwardDynamicsDenseNetworkDropoutTesting",
     "comment__": "Whether or not to save the Experience memory after bootstrapping",
 "save_experience_memory": false,
     "comment__": "Whether or not to train the policy and critic?",
@@ -142,8 +140,6 @@
     "comment__": "draw/render the next state suggested by the forward dynamics model",
 "visualize_forward_dynamics": false,
     "comment__": "Learning rate for the forward dynamics model",
-"fd_learning_rate": 0.001,
-    "comment__": "Whether or not to train the policy. Used for debugging",
 "train_actor": true,
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
 "debug_critic": false,
@@ -233,7 +229,7 @@
 	"comment__": "Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occured",
 "reset_on_fall": true,
 	"comment__": "Whether a model of the reward r <- R(s,a) should be trained",
-"train_reward_predictor": true,
+"train_reward_predictor": false,
 	"comment__": "How many gradient steps model based action exploration should take",
 "num_mbae_steps": 1,
     "comment__": "Whether or not the actor buffer should be fixed to process batches of a certain size",
@@ -304,8 +300,6 @@
 "annealing_schedule": "log",
 	"comment__": "Use the annealing schedule in on policy learning",
 "anneal_on_policy": true,
-	"comment__": "Use a different off-policy experience memory for the fd learning",
-"keep_seperate_fd_exp_buffer": false,
 	"comment__": "Train a GAN to do something....",
 "train_gan": false,
 	"comment__": "Train GAN with gaussian noise",
@@ -346,6 +340,7 @@
 "disable_final_emailing": true,
   "comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [
+  {"layer_type": "Reshape", "target_shape": [13824]},
   {"layer_type": "slice", "slice_index": 6912, "slice_label": "other_image" },
   {"layer_type": "Reshape", "target_shape": [48, 48, 3]},
   {"layer_type": "conv2d", "filters": 16, "kernel_size": [5, 5],
@@ -375,7 +370,7 @@
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 64]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
+							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": false, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
 							],
   "comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [
@@ -400,8 +395,20 @@
   {"layer_type": "deconv2d", "filters": 3, "kernel_size": [5, 5],
       "strides": [2,2], "use_bias": true, "padding": "same"},
   {"layer_type": "activation", "activation_type": "tanh" },
-  {"layer_type": "Reshape", "target_shape": [48, 48, 3]}
+  {"layer_type": "Reshape", "target_shape": [6912]},
+  {"layer_type": "Padding", "before_pad_size": 0, "after_pad_size": 6912}
 ],
+"decoder_network_layer_sizes2": [
+							{"layer_type": "Input", "shape": ["none", "none", 64]},
+							{"layer_type": "GRU", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null},
+							{"layer_type": "LayerNormalization"},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "TimeDistributedConv", "net_info":
+							[
+								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "linear" }
+							]}
+							],
     "comment__": "Network type to use for the forward dynamics model",
 "forward_dynamics_model_type": "model.FDNNKerasAdaptive.FDNNKerasAdaptive",
 	"comment__": "specify the learning algorithm to use for the fd model",
@@ -409,5 +416,14 @@
     "comment__": "Whether or not to train a forward dynamics model as well",
 "train_forward_dynamics": true,
   	"comment__": "The encoding vector size used for the fd models",
-"encoding_vector_size": 64
+"encoding_vector_size": 256,
+      "comment__": "Number of initial actions to sample before calculating input/output scaling and starting to train.",
+"bootstrap_samples": 10000,
+    "comment__": "What method to use to select actions during bootstrapping",
+"bootsrap_with_discrete_policy": true,
+"fd_learning_rate": 0.001,
+	"comment__": "Use a different off-policy experience memory for the fd learning",
+"keep_seperate_fd_exp_buffer": true,
+	"comment__": "Leave off the final layer of the network that would result in a state sized output",
+"fd_network_leave_off_end": true
 }

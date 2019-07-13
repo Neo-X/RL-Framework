@@ -494,26 +494,36 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     x = x * x_size
                     y = y * y_size
                     z = z * 3
-
-                    print(x, y, z)
-
                     y = y_size - y
-
                     x_coords = np.arange(x_size)
                     y_coords = np.arange(y_size)
                     z_coords = np.arange(3)
-
                     x_coords, y_coords, z_coords = np.meshgrid(x_coords, y_coords, z_coords)
-
                     image = np.exp(-1.0 * ((y_coords - y)**2 / y_size / y_var +
                                            (x_coords - x)**2 / x_size / x_var +
                                            (z_coords - z)**2))
+
                     try:
                         import cv2
-                        cv2.imshow("goal image", image)
+                        cv2.imshow("Goal", image)
                         cv2.waitKey(10)
                     except:
                         pass
+
+                    if "fd_algorithm" in settings and settings["fd_algorithm"] == "algorithm.VAE.VAE":
+
+                        fd = model.getForwardDynamics()
+                        __x = fd._get_reconstructed_image([state_])[0]
+                        __x = __x[0, :13824 // 2].reshape(48, 48, 3) * 0.5 + 0.5
+                        __y = state_[0, :13824 // 2].reshape(48, 48, 3)
+
+                        try:
+                            import cv2
+                            cv2.imshow("Decoded VAE Image", __x)
+                            cv2.imshow("Target VAE Image", __y)
+                            cv2.waitKey(10)
+                        except:
+                            pass
             
         ### I can't just unpack the vector of states here in a multi char sim because the 
         ### Order needs to be preserved for computing the advantage.
