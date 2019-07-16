@@ -250,17 +250,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 exp.getEnvironment().visualizeAction(action__)
                 
             
-            if (not settings["train_actor"]): # hack to use debug critic only
-                """
-                    action = np.random.choice(action_selection)
-                    action__ = actor.getActionParams(action)
-                    action = action__
-                    
-                    pa = model.predict(state_)
-                    action = pa
-                """
-                pass
-                # action=[0.2]
             # print("exp_action: ", exp_action, " action", action)
             reward_ = actor.actContinuous(exp,action)
             a = 0

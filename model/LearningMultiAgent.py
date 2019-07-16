@@ -343,6 +343,8 @@ class LearningMultiAgent(LearningAgent):
                 self.getAgents()[agent_]._settings["train_critic"] = False
                 # continue
                 # pass ### Skip agent
+            else:
+                print ("Training agent: ", agent_)
             # print ("self.getAgents()[",agent_,"].getStateBounds(): ", repr(self.getAgents()[agent_].getStateBounds()) )
             # print ("self.getAgents()[",agent_,"].getRewardBounds(): ", repr(self.getAgents()[agent_].getRewardBounds()) )
             self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 

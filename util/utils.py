@@ -25,6 +25,36 @@ def checkSettingExists(settings, key):
     else:
         return False
     
+def saveVAEBatch(directory, model):
+    """
+        Used to produce and save VAE outputs from the model
+    """
+    # import scipy.misc
+    from model.ModelUtil import scale_state
+    
+    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = model.getFDExperience().get_batch(32)
+    vae_out = model.getForwardDynamics().predict_batch(states, actions)
+    # vae_out = scale_state(vae_out, model.getForwardDynamics().getStateBounds())
+    print("vae_out: ", vae_out)
+    import matplotlib
+    import numpy as np
+
+    for i in range ( len(vae_out)):
+        # print ("states.shape: ", states[i].shape)
+        state = states[i]
+        state = np.array(np.reshape(state[:64*64*3], (64,64,3)))
+        state = state + -min(np.min(state), 0)
+        state = state / np.max(state)
+        
+        img = np.array(np.reshape(vae_out[i][:64*64*3], (64,64,3)))
+        img = img + -min(np.min(img), 0)
+        img = img / np.max(img)
+        img = np.concatenate((state, img), axis=1)
+        # print (img.shape)
+        matplotlib.image.imsave(directory + '/name_'+str(i)+'.png', img)
+    
+    # scipy.misc.imsave('outfile.jpg', vae_out[0])
+    
 def rlPrint(settings=None, level="train", text=""):
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"][level]):
         print (text)

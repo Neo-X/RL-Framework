@@ -1093,9 +1093,6 @@ def trainModelParallel(inputData):
                                        ,type='Get_Net_Params'
                                        ,p=p
                                        )
-                        # print ("**** Sim network params: ", out)
-                        # print ("**** data shape: ", len(data))
-                        # print ("**** net_params shape: ", len(out))
                         for sim_net_params in out:
                             # print ("**** sim_net_params shape: ", len(out[sim_net_params_id]))
                             compare_good = compareNetParams(data, sim_net_params)
@@ -1110,8 +1107,6 @@ def trainModelParallel(inputData):
                     input_anchor_queue.put(episodeData, timeout=timeout_)
                 
                 # pr.enable()
-                # print ("Current Tuple: " + str(learningNamespace.experience.current()))
-                # print ("masterAgent.getExperience().samples() >= batch_size: ", masterAgent.getExperience().samples(), " >= ", batch_size)
                 error = 0
                 rewards = 0
                 if masterAgent.getExperience().samples() >= batch_size:
@@ -1138,12 +1133,6 @@ def trainModelParallel(inputData):
                         criticRegularizationCosts.append(regularizationCost__)
                         
                     if (settings['debug_actor']):
-                        """
-                        print( "Advantage: ", masterAgent.getPolicy()._get_advantage())
-                        print("Policy prob: ", masterAgent.getPolicy()._q_action())
-                        print("Policy log prob: ", masterAgent.getPolicy()._get_log_prob())
-                        print( "Actor loss: ", masterAgent.getPolicy()._get_action_diff())
-                        """
                         masterAgent.reset()
                         loss__ = masterAgent.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage)
                         actorLosses.append(loss__)
@@ -1455,6 +1444,10 @@ def trainModelParallel(inputData):
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
                         print ("Saving BEST current forward dynamics agent: " + str(best_dynamicsLosses))
                     masterAgent.saveTo(directory, bestFD=True)
+                    if ('save_vae_outputs' in settings
+                        and (settings['save_vae_outputs'] == True)):
+                        from util.utils import saveVAEBatch
+                        saveVAEBatch(directory, masterAgent)
                         
                 if (mean_eval > best_eval):
                     best_eval = mean_eval

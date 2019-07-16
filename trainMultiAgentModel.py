@@ -862,12 +862,6 @@ def trainModelParallel(inputData):
                                                        anchors=settings['num_on_policy_rollouts']
                                                        ,p=p)
                     
-                    if ("divide_by_zero" in settings
-                        and (settings["divide_by_zero"] == True)):
-                        d = 3 / 0
-                    # else: ### No threads synchronous simulation and learning
-                    #     out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
-                    #                    print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
                     (tuples, discounted_sum, q_value, evalData) = out
                     (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__) = tuples
                     if ( ('anneal_on_policy' in settings) and settings['anneal_on_policy']):  
@@ -1093,7 +1087,32 @@ def trainModelParallel(inputData):
                         (settings["skip_rollouts"] == True)):
                     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = 0,0,0,0,0,0,0,0
                 else:
-                    if (settings['on_policy'] == True ):
+                    if ( ( settings["eval_epochs"] == "stochastic")):
+                        rewards__=[]
+                        discounted_sum__=[]
+                        value__=[]
+                        discount_error__ = []
+                        reward_over_epocs = []
+                        for tr in range(len(__rewards)):
+                            for agent_ in range(len(masterAgent.getAgents())): 
+                                rewards__.append(np.array(__rewards[tr]).flatten()[agent_::len(masterAgent.getAgents())])
+                                # discounted_sum__.append(np.array(discounted_sum).flatten()[agent_::len(masterAgent.getAgents())])
+                                # value__.append(np.array(q_value).flatten()[agent_::len(masterAgent.getAgents())])
+                                # discount_error__.append(discounted_sum__[agent_] - value__[agent_])
+                            reward_over_epocs.append(np.mean(np.array(rewards__), axis=1))
+                        # bellman_errors.append(error)
+                        # mean_discount_error.append(np.mean(np.fabs(discount_error__), axis=1))
+                        # std_discount_error.append(np.std(discount_error__, axis=1))
+                        
+                        mean_reward = np.mean(reward_over_epocs)
+                        std_reward = np.std(reward_over_epocs)
+                        mean_bellman_error = 0
+                        std_bellman_error = 0
+                        mean_discount_error = 0
+                        std_discount_error = 0
+                        mean_eval = np.mean(reward_over_epocs)
+                        std_eval = np.std(reward_over_epocs)
+                    elif (settings['on_policy'] == True ):
                         mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=eval_sim_work_queues,
                                                                    model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                     elif (settings['on_policy'] == "fast"):
@@ -1129,13 +1148,6 @@ def trainModelParallel(inputData):
                     trainData["std_reward"].append(std_reward)
                     trainData["anneal_p"].append(p)
                     # bellman_errors
-                    # trainData["mean_bellman_error"].append(mean_bellman_error)
-                    # trainData["std_bellman_error"].append(std_bellman_error)
-                    # trainData["mean_bellman_error"].append(np.mean(np.fabs(mean_bellman_error)))
-                    # trainData["mean_bellman_error"].append(np.mean(bellman_errors, axis=0))
-                    # for er_ in bellman_errors[0]:
-                    #     print ("er_: ", er_)
-                    # stds____ = [np.std(er_) for er_ in bellman_errors[0]]
                     trainData["mean_bellman_error"].append(np.array([np.mean(er_) for er_ in np.fabs(bellman_errors[0])]))
                     # error = np.mean(np.fabs(error), axis=1)
                     trainData["std_bellman_error"].append(np.array([np.std(er_) for er_ in bellman_errors[0]]))

@@ -658,7 +658,7 @@ class VAE(SiameseNetwork):
     
     def predict_batch(self, states, actions):
         ## These input should already be normalized.
-        return self.fd([states, actions, 0])[0]
+        return self._modelTarget._forward_dynamics_net.predict([states])
     
     def predict_reward_batch(self, states, actions):
         """
