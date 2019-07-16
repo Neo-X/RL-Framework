@@ -324,17 +324,6 @@ class VAE(SiameseNetwork):
         vae_loss_a = K.mean(reconstruction_loss + kl_loss)
         return vae_loss_a
 
-    def vae_loss_b(self, action_true, action_pred):
-        
-        reconstruction_loss = mse(action_true, action_pred)
-        # reconstruction_loss *= 4096
-        kl_loss = 1 + self._network_b_vae_log_var - K.square(self._network_b_vae) - K.exp(self._network_b_vae_log_var)
-        ### Using mean 
-        kl_loss = K.mean(kl_loss, axis=-1)
-        kl_loss *= -0.5
-        vae_loss_a = K.mean(reconstruction_loss + kl_loss)
-        return vae_loss_a
-
     def reset(self):
         """
             Reset any state for the agent model
