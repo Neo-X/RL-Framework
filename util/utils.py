@@ -38,15 +38,15 @@ def saveVAEBatch(directory, model):
     print("vae_out: ", vae_out)
     import matplotlib
     import numpy as np
-
+    img_shape = model.getSettings()['fd_terrain_shape']
     for i in range ( len(vae_out)):
         # print ("states.shape: ", states[i].shape)
         state = states[i]
-        state = np.array(np.reshape(state[:64*64*3], (64,64,3)))
+        state = np.array(np.reshape(state[:np.prod(img_shape)], img_shape))
         state = state + -min(np.min(state), 0)
         state = state / np.max(state)
         
-        img = np.array(np.reshape(vae_out[i][:64*64*3], (64,64,3)))
+        img = np.array(np.reshape(vae_out[i][:np.prod(img_shape)], img_shape))
         img = img + -min(np.min(img), 0)
         img = img / np.max(img)
         img = np.concatenate((state, img), axis=1)
