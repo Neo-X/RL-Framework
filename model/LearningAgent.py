@@ -692,7 +692,7 @@ class LearningAgent(AgentInterface):
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print("Critic loss: ", loss)
                             if not np.isfinite(loss) or (loss > 500) :
-                                np.set_printoptions(threshold=np.nan)
+                                # np.set_printoptions(threshold=np.nan)
                                 print ("Critic training loss is Odd: ", loss)
                                 print ("States: " + str(np.mean(states__)) + " ResultsStates: " + str(np.mean(result_states__)) + " Rewards: " + str(np.mean(rewards__)) + " Actions: " + str(np.mean(actions__)))
                             
