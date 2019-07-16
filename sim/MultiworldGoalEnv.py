@@ -44,7 +44,7 @@ class MultiworldGoalEnv(MultiworldEnv):
         self._timestep = self._timestep + 1
         action_ = np.array(action)
         if (self.getSettings()['render']):
-            self.getEnvironment().render()
+            self.getEnvironment().render(mode='cv2')
         if (self._multiAgent):
             observation, reward, done, info = self.getEnvironment().step(action_)
         else:

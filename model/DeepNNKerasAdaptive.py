@@ -11,7 +11,7 @@ from keras.models import Sequential, Model
 from keras.optimizers import SGD
 from keras.layers import Input
 from keras.layers.core import Dense, Dropout, Activation, Reshape, Flatten, Lambda
-from keras.layers import LSTM, LSTMCell, GRU
+from keras.layers import LSTM, LSTMCell, GRU, ZeroPadding1D
 from keras.layers.convolutional import Conv1D
 from keras.layers.merge import Concatenate
 from keras.layers.advanced_activations import LeakyReLU
@@ -328,6 +328,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             ### Render a nice graph of the network
         if ( not ("critic_network_leave_off_end" in self._settings
             and (self._settings["critic_network_leave_off_end"] == True))):
+
             if (len(keras.backend.int_shape(network)) > 2):
                 ### THis is an LSTM use time distributed layer
                 input_ = keras.layers.Input(shape=(keras.backend.int_shape(network)[-1],), name="Critic_subnet")
@@ -408,7 +409,16 @@ class DeepNNKerasAdaptive(ModelInterface):
                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                  **layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Reshape"):
+                print(layer_parms)
+                print(network)
                 network = Reshape(**layer_parms)(network)
+            elif (layer_info[i]["layer_type"] == "Padding"):
+                network = Reshape([-1, 1])(network)
+                network = ZeroPadding1D(
+                    padding=(
+                        layer_info[i]["before_pad_size"],
+                        layer_info[i]["after_pad_size"]))(network)
+                network = Reshape([-1])(network)
             elif (layer_info[i]["layer_type"] == "Flatten"):
                 network = Flatten(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Dropout"):

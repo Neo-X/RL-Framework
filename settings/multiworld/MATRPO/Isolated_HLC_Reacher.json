@@ -34,7 +34,7 @@
     "comment__": "Whether or not to train a forward dynamics model as well",
 "train_forward_dynamics": false,
     "comment__": "Bounds used for scaling rewards for networks",
-"reward_bounds": [[-0.10],[0.0]],
+"reward_bounds": [[-1.0],[0.0]],
     "comment__": "Max length of the Experience memory",
 "experience_length": 20000,
     "comment__": "Possible state bounds to be used for scaling states for networks",
@@ -122,7 +122,7 @@
     "comment__": "What method to use to select actions during bootstrapping",
 "bootsrap_with_discrete_policy": false,
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
-"max_epoch_length": 256,
+"max_epoch_length": 12,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
 "reward_lower_bound": -1.0,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",
@@ -325,7 +325,7 @@
 	"comment__": "The interpolation parameter used adjust the target network for DDPG",
 "target_net_interp_weight": 0.01,
 	"comment__": "Batch size for the value function network",
-"value_function_batch_size": 256,
+"value_function_batch_size": 32,
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
 "train_critic_with_fd_data": true,
 	"comment__": "Additional on-policy training updates",
@@ -357,5 +357,5 @@
 	"comment__": "whether emailing of final plots is disabled",
 "disable_final_emailing": true,
 	"comment__": "Path to LLC to load",
-"llc_policy_model_path": "/home/btrabucco/research/RL-Framework/MultiworldGoal/algorithm.TRPO_KERAS.TRPO_KERAS/SawyerReachXYZEnv-v1/Isolated_LLC/model.DeepNNKerasAdaptive.DeepNNKerasAdaptive/model.json"
+"llc_policy_model_path": "/home/btrabucco/research/RL-Framework/MultiworldGoal/algorithm.TRPO_KERAS.TRPO_KERAS/SawyerReachXYZEnv-v1/Isolated_LLC_2/model.DeepNNKerasAdaptive.DeepNNKerasAdaptive/model.json"
 }
