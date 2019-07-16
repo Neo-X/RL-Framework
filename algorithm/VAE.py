@@ -736,9 +736,9 @@ class VAE(SiameseNetwork):
             # te_pair1, te_pair2, te_y = create_pairs2(states, self._settings)
         
             # state_ = self._model._forward_dynamics_net.predict([state, state2])[0]
-            predicted_y1 = self._model._forward_dynamics_net.predict([states])[0]
-            predicted_y2 = self._model._forward_dynamics_net.predict([result_states])[0]
-            te_acc = self._distance_func_np((predicted_y1, predicted_y2))[0]
+            predicted_y1 = self._modelTarget._forward_dynamics_net.predict([states])[0]
+            # predicted_y2 = self._model._forward_dynamics_net.predict([result_states])[0]
+            te_acc = self._distance_func_np((states, predicted_y1))[0]
             
         # predicted_y = self._model._forward_dynamics_net.predict([te_pair1, te_pair2])
         return te_acc
