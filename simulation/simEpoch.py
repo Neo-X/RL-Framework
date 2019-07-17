@@ -562,8 +562,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
                 ):
             break
-                
-        
         
     evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
     evalData = [np.mean(evalDatas)]
@@ -611,6 +609,39 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         print ("Advantage, R: ", adv_r)
         print ("Rewards: ", R_r)
         print ("Advantage, discounted Reward, baseline: ", np.array(A_r))
+
+    # Hindsight Experience Replay
+    if ("use_hindsight_relabeling" in settings and
+            settings["use_hindsight_relabeling"] and
+            "goal_slice_index" in settings):
+
+        for jj in range(len(states)):
+
+            # Multi agent version
+            if ("hlc_timestep" in settings and
+                    "hlc_index" in settings and
+                    "llc_index" in settings):
+                position = ((jj // settings["hlc_timestep"]) + 1) * settings["hlc_timestep"] - 1
+                position = min(position, len(result_states___) - 1)
+                achieved_goal = result_states___[position][
+                                settings["llc_index"], :settings["goal_slice_index"]]
+                states[jj][settings["llc_index"], ...] = np.concatenate([
+                    states[jj][settings["llc_index"], :settings["goal_slice_index"]],
+                    achieved_goal], 0)
+                result_states___[jj][settings["llc_index"], ...] = np.concatenate([
+                    result_states___[jj][settings["llc_index"], :settings["goal_slice_index"]],
+                    achieved_goal], 0)
+                actions[jj][settings["hlc_index"]] = achieved_goal
+
+            # Single agent version
+            else:
+                achieved_goal = result_states___[-1][0, :settings["goal_slice_index"]]
+                states[jj][0, ...] = np.concatenate([
+                    states[jj][0, :settings["goal_slice_index"]],
+                    achieved_goal], 0)
+                result_states___[jj][0, ...] = np.concatenate([
+                    result_states___[jj][0, :settings["goal_slice_index"]],
+                    achieved_goal], 0)
     
     ### Fix data, Might need to unpack some vectors
     tmp_states = []
@@ -642,8 +673,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_baselines_.extend(base__)
         tmp_advantage.extend(adv__)
     tmp_advantage = np.array(tmp_advantage)
-    
-        
+
     tuples = (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions)
     
     ### Doesn't work with simulations that have multiple state types/definitions
