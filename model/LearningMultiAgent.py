@@ -408,7 +408,8 @@ class LearningMultiAgent(LearningAgent):
             self._accesLock.release()
         return act
     
-    def sample(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False, use_mbrl=False):
+    def sample(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False, use_mbrl=False, 
+               sampling=False):
         if self._useLock:
             self._accesLock.acquire()
         # print ("MARL sample: ", repr(state))
@@ -436,7 +437,8 @@ class LearningMultiAgent(LearningAgent):
                 state_ = np.array([state_ for i in range(num_samples)])
                 candidate_actions, candidate_exp_acts = self.getAgents()[m].sample(
                     state_,
-                    evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+                    evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
+                    sampling=sampling)
 
                 # Assume that z_k is at the end of the state
                 llc_states = np.hstack([state_[:, :len(candidate_actions[0])], candidate_actions])
@@ -448,7 +450,8 @@ class LearningMultiAgent(LearningAgent):
             else:
                 (action, exp_act) = self.getAgents()[m].sample(
                     [state_],
-                    evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+                    evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
+                    sampling=sampling)
 
             act.append(action[0])
             exp_action.append([exp_act])
@@ -488,6 +491,17 @@ class LearningMultiAgent(LearningAgent):
     
     def predictNextState(self, state, action):
         return self._fd.predict(state, action)
+    
+    def setNoise(self, noise):
+        """
+            Normalized states for learning
+        """
+        if self._useLock:
+            self._accesLock.acquire()
+        q = [p_.setNoise(state_) for p_, state_ in zip(self.getAgents(), noise) ]
+        if self._useLock:
+            self._accesLock.release()
+        return None
     
     def q_value(self, state):
         """

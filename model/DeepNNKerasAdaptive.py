@@ -360,7 +360,7 @@ class DeepNNKerasAdaptive(ModelInterface):
             Compute a particular type of actiation to use
         """
         import keras.layers
-        print ("Getting keras activation")
+        # print ("Getting keras activation")
         if (type_name == 'leaky_rectify'):
             return keras.layers.LeakyReLU(alpha=0.1)
         if (type_name == 'relu'):

@@ -872,7 +872,20 @@ class LearningAgent(AgentInterface):
             self._accesLock.release()
         return act
     
-    def sample(self, state_, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
+    def setNoise(self, noise):
+        """
+            Normalized states for learning
+        """
+        self._noise_ = noise
+        
+    def getNoise(self):
+        """
+            Normalized states for learning
+        """
+        return self._noise_
+    
+    def sample(self, state_, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False,
+               sampling=False):
         """
             The logic for sampling for different types of distributions
         """
@@ -883,11 +896,11 @@ class LearningAgent(AgentInterface):
         if ((r2 < (self.getSettings()["omega"] * p))) and (not sampling) :
             ### explore hand crafted actions
             # return ra2
-            # randomAction = randomUniformExporation(action_bounds) # Completely random action
+            # randomAction = randomUniformExporation(self.getActionBounds()) # Completely random action
             # action = randomAction
             if ((self.getSettings()['exploration_method'] == 'sampling') or
                 (self.getSettings()['exploration_method'] == 'gaussian_network')): 
-                action = [randomUniformExporation(action_bounds)] # Completely random action
+                action = [randomUniformExporation(self.getActionBounds())] # Completely random action
             else:
                 action = np.random.choice(action_selection)
                 action__ = actor.getActionParams(action)
@@ -902,15 +915,12 @@ class LearningAgent(AgentInterface):
                   # or (bootstrapping)
                   ) 
                  and (not sampling)):
-                # print ("Random Guassian sample, state bounds", self.getStateBounds())
-                # print ("Exploration Action: ", pa)
-                # action = randomExporation(self.getSettings()["exploration_rate"], pa)
                 if ( 'anneal_policy_std' in self.getSettings() and (self.getSettings()['anneal_policy_std'])):
-                    noise_ = OUNoise(theta=0.15, sigma=self.getSettings()["exploration_rate"] * p, previousNoise=noise_)
-                    action = pa_ + (noise_ * action_bound_std(action_bounds)) 
+                    self._noise_ = OUNoise(theta=0.15, sigma=self.getSettings()["exploration_rate"] * p, previousNoise=self._noise_)
+                    action = pa_ + (self._noise_ * action_bound_std(self.getActionBounds())) 
                 else:
-                    noise_ = OUNoise(theta=0.15, sigma=self.getSettings()["exploration_rate"], previousNoise=noise_)
-                    action = pa_ + (noise_ * action_bound_std(action_bounds))
+                    self._noise_ = OUNoise(theta=0.15, sigma=self.getSettings()["exploration_rate"], previousNoise=self._noise_)
+                    action = pa_ + (self._noise_ * action_bound_std(self.getActionBounds()))
             elif ( (self.getSettings()['exploration_method'] == 'gaussian_network' or 
                   (self.getSettings()['use_stochastic_policy'] == True))
                   or (self.getSettings()['exploration_method'] == 'gaussian_random')

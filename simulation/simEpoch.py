@@ -46,7 +46,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     if action_space_continuous:
         action_bounds = model.getActionBounds()
         omega = settings["omega"]
-        # noise_ = action_bounds[0] * 0.0
+    model.setNoise(action_bounds[0] * 0.0)
         
     if ( (bootstrapping == True) and 
          (settings["exploration_method"] == "sampling") ):
@@ -193,7 +193,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 
                 
                 # print ("state_", repr(state_))
-                (action, exp_action) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping)
+                (action, exp_action) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
+                                                    sampling=sampling)
                 # print ("action", repr(action))
             else: 
                 ### exploit policy
