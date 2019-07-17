@@ -63,6 +63,8 @@
 "environment_type": "MultiworldGoal",
 	"comment__": "Key into the observation dictionary of Multiworld",
 "observation_key": "image_observation",
+	"comment__": "Key into the goal dictionary of Multiworld",
+"goal_key": "desired_goal",
     "comment__": "Model type to use for the forward dynamics model",
 "forward_dynamics_predictor": "network",
     "comment__": "Method to be used for the forward dynamics model is the model types uses a simulator",
