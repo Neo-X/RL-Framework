@@ -429,5 +429,9 @@
 	"comment__": "Leave off the final layer of the network that would result in a state sized output",
 "fd_network_leave_off_end": true,
     "comment__": "Save the output of a few VAE samples while learning",
-"save_vae_outputs": true
+"save_vae_outputs": true,
+	"comment__": "Size and shape of terrain",
+"fd_terrain_shape": [48,48,3],
+    "comment__": "Number of terrain features for which convolutinoal filters should be used",
+"fd_num_terrain_features": 13824
 }
