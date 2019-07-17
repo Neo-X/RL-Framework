@@ -292,6 +292,12 @@ def validateSettings(settings):
         print ("A single network model does not work well for TRPO.")
         return False
     
+    if ("pretrain_fd" in settings
+        and (settings['pretrain_fd'] > 0)
+        and ("perform_multiagent_training" in settings)):
+        print ("Multi agent training does not yet support pretraining the FD models.")
+        return False
+    
     return True
 
 def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, settings, print_info=False):
@@ -1059,7 +1065,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         ### Check action space size
         actionSpace = env.getActionSpace()
         
-        assert (len(actionSpace.getMaximum() == len(settings["action_bounds"][0])), 
+        assert (len(actionSpace.getMaximum()) == len(settings["action_bounds"][0]), 
                 "Length of action vector is " + str (len(settings["action_bounds"][0])) + " is should be " + 
                 str(len(actionSpace.getMaximum())))
         # sim.setRender(render)

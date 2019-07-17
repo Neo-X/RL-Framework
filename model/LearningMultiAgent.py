@@ -338,13 +338,14 @@ class LearningMultiAgent(LearningAgent):
                 self.getAgents()[agent_]._settings["max_epoch_length"] = np.ceil(self.getSettings()["max_epoch_length"]/self.getSettings()["hlc_timestep"])
             if ( "ignore_MRL_agents" in self.getSettings()
                  and (agent_ in self.getSettings()["ignore_MRL_agents"])):
-                print ("Skipping agent: ", agent_)
+                # print ("Skipping agent: ", agent_)
                 self.getAgents()[agent_]._settings["train_actor"] = False
                 self.getAgents()[agent_]._settings["train_critic"] = False
                 # continue
                 # pass ### Skip agent
             else:
-                print ("Training agent: ", agent_)
+                # print ("Training agent: ", agent_)
+                pass
             # print ("self.getAgents()[",agent_,"].getStateBounds(): ", repr(self.getAgents()[agent_].getStateBounds()) )
             # print ("self.getAgents()[",agent_,"].getRewardBounds(): ", repr(self.getAgents()[agent_].getRewardBounds()) )
             self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
