@@ -799,6 +799,12 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         except:
             print ("multiworld not installed")
             pass
+        try:
+            import metaworld.envs.mujoco
+            metaworld.envs.mujoco.register_custom_envs()
+        except:
+            print ("metaworld not installed")
+            pass
         # from OpenGL import GL
         # load_roboschool
         # print(envs.registry.all())
@@ -833,6 +839,27 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         return exp
 
+    elif env_type == 'Metaworld':
+        import gym
+        import metaworld.envs.mujoco
+        from sim.OpenAIGymEnv import OpenAIGymEnv
+
+        metaworld.envs.mujoco.register_all_envs()
+        env_name = config_file
+        if "metaworld_kwargs" in settings:
+            metaworld_kwargs = settings["metaworld_kwargs"]
+        else:
+            metaworld_kwargs = {}
+        env = gym.make(env_name, **metaworld_kwargs)
+
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        if (env.getNumberofAgents() > 1):
+            exp = OpenAIGymEnv(env, conf, multiAgent=True)
+        else:
+            exp = OpenAIGymEnv(env, conf, multiAgent=False)
+        return exp
+
     elif env_type == 'MultiworldHRL':
         import gym
         import multiworld
@@ -852,6 +879,27 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         return exp
 
+    elif env_type == 'MetaworldHRL':
+        import gym
+        from sim.OpenAIGymHRLEnv import OpenAIGymHRLEnv
+
+        import metaworld.envs.mujoco
+        metaworld.envs.mujoco.register_all_envs()
+        env_name = config_file
+        if "metaworld_kwargs" in settings:
+            metaworld_kwargs = settings["metaworld_kwargs"]
+        else:
+            metaworld_kwargs = {}
+        env = gym.make(env_name, **metaworld_kwargs)
+
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        if (env.getNumberofAgents() > 1):
+            exp = OpenAIGymHRLEnv(env, conf, multiAgent=True)
+        else:
+            exp = OpenAIGymHRLEnv(env, conf, multiAgent=False)
+        return exp
+
     elif env_type == 'MultiworldGoal':
         import gym
         import multiworld
@@ -867,7 +915,26 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         conf = copy.deepcopy(settings)
         conf['render'] = render
-        exp = MultiworldGoalEnv(env, conf, observation_key=conf['observation_key'])
+        exp = MultiworldGoalEnv(env, conf, observation_key=conf['observation_key'], goal_key=conf['goal_key'])
+
+        return exp
+
+    elif env_type == 'MetaworldGoal':
+        import gym
+        from sim.OpenAIGymGoalEnv import OpenAIGymGoalEnv
+
+        import metaworld.envs.mujoco
+        metaworld.envs.mujoco.register_all_envs()
+        env_name = config_file
+        if "metaworld_kwargs" in settings:
+            metaworld_kwargs = settings["metaworld_kwargs"]
+        else:
+            metaworld_kwargs = {}
+        env = gym.make(env_name, **metaworld_kwargs)
+
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = OpenAIGymGoalEnv(env, conf, goal_key=conf['goal_key'])
 
         return exp
 
@@ -887,6 +954,25 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         conf = copy.deepcopy(settings)
         conf['render'] = render
         exp = MultiworldEnv(env, conf, observation_key=conf['observation_key'])
+
+        return exp
+
+    elif env_type == 'MetaworldFixedLLC':
+        import gym
+        from sim.OpenAIGymEnv import OpenAIGymEnv
+
+        import metaworld.envs.mujoco
+        metaworld.envs.mujoco.register_all_envs()
+        env_name = config_file
+        if "metaworld_kwargs" in settings:
+            metaworld_kwargs = settings["metaworld_kwargs"]
+        else:
+            metaworld_kwargs = {}
+        env = gym.make(env_name, **metaworld_kwargs)
+
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        exp = OpenAIGymEnv(env, conf)
 
         return exp
 
@@ -1142,10 +1228,13 @@ def createActor(env_type, settings, experience):
           or (env_type == 'Multiworld')
           or (env_type == 'MultiworldHRL')
           or (env_type == 'MultiworldGoal')
+          or (env_type == 'Metaworld')
+          or (env_type == 'MetaworldHRL')
+          or (env_type == 'MetaworldGoal')
           ):
         from actor.OpenAIGymActor import OpenAIGymActor
         actor = OpenAIGymActor(settings, experience)
-    elif (env_type == 'MultiworldFixedLLC'):
+    elif (env_type == 'MultiworldFixedLLC') or (env_type == 'MetaworldFixedLLC'):
         from actor.MultiworldMultiCharActor import MultiworldMultiCharActor
         actor = MultiworldMultiCharActor(settings, experience)
     elif ( (env_type == 'HRLSimulations')
