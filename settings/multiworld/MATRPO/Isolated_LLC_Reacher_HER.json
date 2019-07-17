@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "SawyerReachXYZEnv-v1/Isolated_LLC",
+"data_folder": "SawyerReachXYZEnv-v1/Isolated_LLC_HER",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -351,5 +351,9 @@
 	"comment__": "The keyword arguments to pass to multiworld",
 "multiworld_kwargs": {"fix_goal":  false},
 	"comment__": "whether emailing of final plots is disabled",
-"disable_final_emailing": true
+"disable_final_emailing": true,
+	"comment__": "Boolean to use HER or not",
+"use_hindsight_relabeling": true,
+	"comment__": "the first index of the goal in the state",
+"goal_slice_index": 3
 }

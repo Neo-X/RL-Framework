@@ -25,14 +25,17 @@ def checkSettingExists(settings, key):
     else:
         return False
     
-def saveVAEBatch(directory, model):
+def saveVAEBatch(settings, directory, model):
     """
         Used to produce and save VAE outputs from the model
     """
     # import scipy.misc
     from model.ModelUtil import scale_state
-    
-    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = model.getFDExperience().get_batch(32)
+
+    if "keep_seperate_fd_exp_buffer" in settings and settings["keep_seperate_fd_exp_buffer"]:
+        states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = model.getFDExperience().get_batch(32)
+    else:
+        states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = model.getExperience().get_batch(32)
     vae_out = model.getForwardDynamics().predict_batch(states, actions)
     # vae_out = scale_state(vae_out, model.getForwardDynamics().getStateBounds())
     print("vae_out: ", vae_out)
@@ -45,11 +48,16 @@ def saveVAEBatch(directory, model):
         state = np.array(np.reshape(state[:np.prod(img_shape)], img_shape))
         state = state + -min(np.min(state), 0)
         state = state / np.max(state)
+
+        prior = model.getForwardDynamics()._sample_image_from_prior([])[0][0, :]
+        prior = np.array(np.reshape(prior[:np.prod(img_shape)], img_shape))
+        prior = prior + -min(np.min(prior), 0)
+        prior = prior / np.max(prior)
         
         img = np.array(np.reshape(vae_out[i][:np.prod(img_shape)], img_shape))
         img = img + -min(np.min(img), 0)
         img = img / np.max(img)
-        img = np.concatenate((state, img), axis=1)
+        img = np.concatenate((state, img, prior), axis=1)
         # print (img.shape)
         matplotlib.image.imsave(directory + '/name_'+str(i)+'.png', img)
     

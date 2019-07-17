@@ -386,5 +386,9 @@
 	"comment__": "Should environment goals be used instead of HLC goals",
 "use_environment_goals": false,
 	"comment__": "whether emailing of final plots is disabled",
-"disable_final_emailing": true
+"disable_final_emailing": true,
+	"comment__": "Boolean to use HER or not",
+"use_hindsight_relabeling": true,
+	"comment__": "the first index of the goal in the state",
+"goal_slice_index": 3
 }
