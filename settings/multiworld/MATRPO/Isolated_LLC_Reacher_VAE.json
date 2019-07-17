@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "Image48SawyerReachXYEnv-v1/Isolated_LLC",
+"data_folder": "Image48SawyerReachXYEnv-v1/Isolated_LLC_2",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -425,5 +425,7 @@
 	"comment__": "Use a different off-policy experience memory for the fd learning",
 "keep_seperate_fd_exp_buffer": true,
 	"comment__": "Leave off the final layer of the network that would result in a state sized output",
-"fd_network_leave_off_end": true
+"fd_network_leave_off_end": true,
+    "comment__": "Save the output of a few VAE samples while learning",
+"save_vae_outputs": true
 }
