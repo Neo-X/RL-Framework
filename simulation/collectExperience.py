@@ -330,12 +330,13 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
                                  model=model, settings=settings, 
                                  eval_episode_data_queue=eval_episode_data_queue, 
                                  anchors=settings['epochs'],
-                                 type='bootstrapping')    
+                                 type='bootstrapping')
             
         # if self._p <= 0.0:
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out
         (states_, actions_, result_states_, rewards_, falls_, G_t_, advantage_, exp_actions_) = tuples
+
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print ("Shape other states_: ", np.array(states_).shape)
             print ("Shape other action_: ", np.array(actions_).shape)

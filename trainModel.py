@@ -1447,7 +1447,7 @@ def trainModelParallel(inputData):
                     if ('save_vae_outputs' in settings
                         and (settings['save_vae_outputs'] == True)):
                         from util.utils import saveVAEBatch
-                        saveVAEBatch(directory, masterAgent)
+                        saveVAEBatch(settings, directory, masterAgent)
                         
                 if (mean_eval > best_eval):
                     best_eval = mean_eval

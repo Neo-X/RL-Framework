@@ -159,6 +159,9 @@ class VAE(SiameseNetwork):
         self._model.processed_a_log_var = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_log_var)
         processed_a_vae = self._model._forward_dynamics_net(self._model.getStateSymbolicVariable())[2]
         self._model.processed_a_vae = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=processed_a_vae)
+
+        dim = K.int_shape(processed_a_vae)[1]
+        self.noise_from_prior = K.random_normal(shape=(1, dim))
         
         if ("train_LSTM_Reward" in self.getSettings()
             and (self.getSettings()["train_LSTM_Reward"] == True)):
@@ -241,10 +244,14 @@ class VAE(SiameseNetwork):
         if ("train_LSTM_Reward" in self.getSettings()
             and (self.getSettings()["train_LSTM_Reward"] == True)):
             decode_a = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(processed_a_vae)
+            decode_prior = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self.noise_from_prior)
             print ("decode_a: ", repr(decode_a))
+            print ("decode_prior: ", repr(decode_prior))
         else:
             decode_a = self._modelTarget._forward_dynamics_net(processed_a_vae)
+            decode_prior = self._modelTarget._forward_dynamics_net(self.noise_from_prior)
             print ("decode_a: ", repr(decode_a))
+            print ("decode_prior: ", repr(decode_prior))
         # decode_b = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(decode_b_r)
         # print ("decode_b: ", repr(decode_b))
         # decode_a_vae = keras.layers.TimeDistributed(self._modelTarget._forward_dynamics_net, input_shape=(None, 1, 67))(self._network_vae)
@@ -312,6 +319,9 @@ class VAE(SiameseNetwork):
         self._get_latent_variable_reconstructed_image = K.function(
             [self._model.getStateSymbolicVariable()],
             [processed_a_vae, decode_a])
+        self._sample_image_from_prior = K.function(
+            [],
+            [decode_prior])
         
     def vae_loss_a(self, action_true, action_pred):
         
@@ -847,8 +857,7 @@ class VAE(SiameseNetwork):
             self._modelTarget._forward_dynamics_net = load_keras_model(
                 fileName+"_FD_T"+suffix, custom_objects={
                     'contrastive_loss': contrastive_loss,
-                    "vae_loss_a": self.vae_loss_a,
-                    "vae_loss_b": self.vae_loss_b})
+                    "vae_loss_a": self.vae_loss_a})
             # self._modelTarget._reward_net = load_keras_model(fileName+"_reward_net_T"+suffix)
             self._modelTarget._reward_net.load_weights(fileName+"_reward_T"+suffix)
         # self._model._actor_train = load_keras_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
