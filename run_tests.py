@@ -23,6 +23,7 @@ tests_ =[
         ,'test_saveandload.py'
         ,'test_cacla.py'
         ,'test_ddpg.py'
+        ,'test_sac.py'
         ,'test_mbrl.py'
         ,'test_ppo.py'
         ,'test_trpo.py'
