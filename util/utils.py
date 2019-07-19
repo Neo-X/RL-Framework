@@ -58,6 +58,7 @@ def saveVAEBatch(settings, directory, model):
         img = img + -min(np.min(img), 0)
         img = img / np.max(img)
         img = np.concatenate((state, img, prior), axis=1)
+        img = np.flip(img, axis=0)
         # print (img.shape)
         matplotlib.image.imsave(directory + '/name_'+str(i)+'.png', img)
     
