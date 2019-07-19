@@ -19,6 +19,7 @@ class MultiworldEnv(OpenAIGymEnv):
     def reset(self):
         # self.getEnvironment().init()
         state_dict = self.getEnvironment().reset()
+        self._previous_dict = state_dict
         self._previous_observation = state_dict[self._state_key]
         self._previous_image = state_dict[self._image_key]
         self._end_of_episode = False
@@ -28,6 +29,7 @@ class MultiworldEnv(OpenAIGymEnv):
     def init(self):
         # self.getEnvironment().init()
         state_dict = self.getEnvironment().reset()
+        self._previous_dict = state_dict
         self._previous_observation = state_dict[self._state_key]
         self._previous_image = state_dict[self._image_key]
         self._end_of_episode = False
@@ -35,6 +37,7 @@ class MultiworldEnv(OpenAIGymEnv):
 
     def initEpoch(self):
         state_dict = self.getEnvironment().reset()
+        self._previous_dict = state_dict
         self._previous_observation = state_dict[self._state_key]
         self._previous_image = state_dict[self._image_key]
         self._end_of_episode = False
@@ -50,6 +53,7 @@ class MultiworldEnv(OpenAIGymEnv):
             observation, reward, done, info = self.getEnvironment().step(action_[0])
         self._end_of_episode = done
         # self._fallen = done
+        self._previous_dict = observation
         self._previous_observation = observation[self._state_key]
         self._previous_image = observation[self._image_key]
         return reward
