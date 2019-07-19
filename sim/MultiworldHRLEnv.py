@@ -5,13 +5,12 @@ from sim.MultiworldEnv import MultiworldEnv
 
 class MultiworldHRLEnv(MultiworldEnv):
 
-    def __init__(self, exp, settings, multiAgent=False, observation_key="observation"):
+    def __init__(self, exp, settings, multiAgent=False,
+                 image_key="image_observation", state_key="state_observation"):
         #------------------------------------------------------------
         # set up initial state
-        MultiworldEnv.__init__(self, exp, settings, multiAgent=multiAgent)
-        self._observation_key = observation_key
-        assert self._observation_key in self.getEnvironment().observation_space.spaces
-        self.observation_space = self.getEnvironment().observation_space.spaces[observation_key]
+        MultiworldEnv.__init__(self, exp, settings, multiAgent=multiAgent,
+                               image_key=image_key, state_key=state_key)
         if ("ignore_hlc_actions" in self.getSettings()
                 and (self.getSettings()["ignore_hlc_actions"] == True)):
             self._ran = 0.6  ## Ignore HLC action and have env generate them if > 0.5.
@@ -19,11 +18,7 @@ class MultiworldHRLEnv(MultiworldEnv):
             self._ran = 0.4  ## Ignore HLC action and have env generate them if > 0.5.
 
     def reset(self):
-        # self.getEnvironment().init()
-        self._previous_observation = self.getEnvironment().reset()[self._observation_key]
-        self._goal = np.zeros(self.observation_space.shape)
-        self._end_of_episode = False
-        self._fallen=[False]
+        super(MultiworldHRLEnv, self).reset()
         self._hlc_timestep = 1000000
         self._hlc_skip = 10
         if ("hlc_timestep" in self.getSettings()):
