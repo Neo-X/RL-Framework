@@ -327,5 +327,7 @@ if (__name__ == "__main__"):
         
         result = tuneHyperParameters(simsettingsFileName=simSettings_['configFile'], simSettings=simSettings_, hyperSettings=hyperSettings_)
 
-        if not ("disable_final_emailing" in simSettings_ and simSettings_["disable_final_emailing"]):
+        if ("disable_final_emailing" in simSettings_ and (simSettings_["disable_final_emailing"] == True)):
+            pass
+        else:
             emailSimData(simSettings_, hyperSettings_, sim_time_=result['sim_time'], simData=result)

@@ -110,6 +110,11 @@ Run tests
 ```
 borgy submit --restartable --req-gpus=1 --req-cores=32 --req-ram-gbytes=64  -w /home/${USER} --image=images.borgy.elementai.net/glen:latest -e TERRAINRL_PATH=/home/glen/playground/TerrainRL/ -e LD_LIBRARY_PATH=/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/lib/nvidia-390:~/nvidia-390  -e RLSIMENV_PATH=/home/glen/playground/RLSimulationEnvironments -- /bin/bash -c 'pushd /home/glen/playground/RL-Framework; python3.6 run_tests.py settings/hyperParamTuning/run_tests.json | tee -a $BORGY_JOB_ID.out'
 ```
+
+Run new sim
+
+docker run -e TERRAINRL_PATH=/opt/TerrainRLSim/ -e RLSIMENV_PATH=/opt/RLSimulationEnvironments --rm -it us.gcr.io/glen-rl-framework/glen:latest2 bash -c "pushd /opt/RL-Framework; backup_data.sh & ./update_and_compile.sh;  python3  tuneHyperParameters.py  --config=settings/navgame2D/MADDPG/HRL_Tensorflow_NoViz_HLC-v5.json --metaConfig=settings/hyperParamTuning/element/exploration_rate.json -p 2 --bootstrap_samples=1000 --pretrain_fd=0 --on_policy=true  --plot=false --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2"
+
 ### Info from man page
 
 --cpu float32             Cores required (alias of --req-cores) (default 1)
