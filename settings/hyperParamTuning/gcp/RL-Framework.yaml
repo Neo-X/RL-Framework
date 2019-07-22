@@ -23,7 +23,7 @@ autoscaling_mode: default
 # and opens all the necessary ports to support the Ray cluster.
 # Empty string means disabled.
 docker:
-    image: "us.gcr.io/glen-rl-framework/glen:latest" # e.g., tensorflow/tensorflow:1.5.0-py3
+    image: "us.gcr.io/glen-rl-framework/glen:latest2" # e.g., tensorflow/tensorflow:1.5.0-py3
     container_name: "rl_framework_docker" # e.g. ray_docker
     run_options: []  # Extra options to pass into "docker run"
 

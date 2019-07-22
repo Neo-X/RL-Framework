@@ -113,7 +113,7 @@ borgy submit --restartable --req-gpus=1 --req-cores=32 --req-ram-gbytes=64  -w /
 
 Run new sim
 
-docker run -e TERRAINRL_PATH=/opt/TerrainRLSim/ -e RLSIMENV_PATH=/opt/RLSimulationEnvironments --rm -it us.gcr.io/glen-rl-framework/glen:latest2 bash -c "pushd /opt/RL-Framework; backup_data.sh & ./update_and_compile.sh;  python3  tuneHyperParameters.py  --config=settings/navgame2D/MADDPG/HRL_Tensorflow_NoViz_HLC-v5.json --metaConfig=settings/hyperParamTuning/element/exploration_rate.json -p 2 --bootstrap_samples=1000 --pretrain_fd=0 --on_policy=true  --plot=false --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2"
+docker run -e TERRAINRL_PATH=/opt/TerrainRLSim/ -e RLSIMENV_PATH=/opt/RLSimulationEnvironments --rm -it us.gcr.io/glen-rl-framework/glen:latest2 bash -c "pushd /opt/RL-Framework; ./update_and_compile.sh; backup_data_continuously.sh & python3  tuneHyperParameters.py  --config=settings/navgame2D/MADDPG/HRL_Tensorflow_NoViz_HLC-v5.json --metaConfig=settings/hyperParamTuning/element/exploration_rate.json -p 2 --bootstrap_samples=1000 --pretrain_fd=0 --on_policy=true  --plot=false --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2"
 
 ### Info from man page
 
@@ -153,6 +153,11 @@ docker commit d4aad5674841 glen:latest2; docker tag glen:latest2 images.borgy.el
 open images as iteractive container
 ```
 sudo docker run -it glen:latest /bin/bash
+```
+
+Name a docker container
+```
+docker run -d --name rl-framework-container us.gcr.io/glen-rl-framework/glen:latest2
 ```
 
 Find children of docker image
