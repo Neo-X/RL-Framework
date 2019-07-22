@@ -42,10 +42,10 @@ declare -a metaExps=(
 ### sim config files to try meta configs on
 declare -a simConfigs=(
 #	"settings/navgame2D/MADDPG/HRL_Tensorflow_NoViz_HLC-v5.json"
-	"settings/navgame2D/MADDPG/HRL_Ant_PoseGoal_TRPO_Tensorflow_NoViz_HLC-v5.json"
-#	"settings/navgame2D/MADDPG/HRL_Ant_TRPO_Tensorflow_NoViz_HLC-v4.json"
+# 	"settings/navgame2D/MADDPG/HRL_Ant_PoseGoal_TRPO_Tensorflow_NoViz_HLC-v5.json"
+	"settings/navgame2D/MADDPG/HRL_Ant_TRPO_Tensorflow_NoViz_HLC-v4.json"
 #	"settings/navgame2D/MADDPG/HRL_TRPO_Tensorflow_NoViz_HLC-v4.json"
-	"settings/navgame2D/MADDPG/HRL_Centralized_Tensorflow_NoViz_HLC-v5.json"
+# 	"settings/navgame2D/MADDPG/HRL_Centralized_Tensorflow_NoViz_HLC-v5.json"
 
 )
 
