@@ -11,7 +11,7 @@
 declare -a metaExps=(
 # 				"settings/hyperParamTuning/element/activation_type.json" 
 #				"settings/hyperParamTuning/element/add_label_noise.json" 
-  				"settings/hyperParamTuning/element/additional_on_policy_training_updates.json"
+  				"settings/hyperParamTuning/element/additional_on-poli_trianing_updates.json"
 # 				"settings/hyperParamTuning/element/advantage_scaling.json" 
 #  				"settings/hyperParamTuning/element/anneal_exploration.json"
 #  				"settings/hyperParamTuning/element/anneal_policy_std.json" 
@@ -46,6 +46,9 @@ declare -a simConfigs=(
 	"settings/navgame2D/MADDPG/HRL_Ant_TRPO_Tensorflow_NoViz_HLC-v4.json"
 #	"settings/navgame2D/MADDPG/HRL_TRPO_Tensorflow_NoViz_HLC-v4.json"
 # 	"settings/navgame2D/MADDPG/HRL_Centralized_Tensorflow_NoViz_HLC-v5.json"
+	"settings/navgame2D/MADDPG/HRL_Ant_Tensorflow_NoViz_HLC-v5.json"
+	"settings/navgame2D/DDPG/HRL_Ant_Tensorflow_NoViz_HLC-v5.json"
+	"settings/navgame2D/TRPO/HRL_Ant_Tensorflow_NoViz_HLC-v5.json"
 
 )
 
