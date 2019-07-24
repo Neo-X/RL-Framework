@@ -89,7 +89,7 @@ class MultiworldEnv(OpenAIGymEnv):
                 self._previous_image
             ]]
         else:
-            return self._previous_observation
+            return [self._previous_observation]
 
     def getState(self):
         if ("use_dual_state_representations" in self.getSettings() and
@@ -99,4 +99,4 @@ class MultiworldEnv(OpenAIGymEnv):
                 self._previous_image
             ]]
         else:
-            return self._previous_observation
+            return [self._previous_observation]

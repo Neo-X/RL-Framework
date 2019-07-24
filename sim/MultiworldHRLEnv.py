@@ -11,11 +11,6 @@ class MultiworldHRLEnv(MultiworldEnv):
         # set up initial state
         MultiworldEnv.__init__(self, exp, settings, multiAgent=multiAgent,
                                image_key=image_key, state_key=state_key)
-        if ("ignore_hlc_actions" in self.getSettings()
-                and (self.getSettings()["ignore_hlc_actions"] == True)):
-            self._ran = 0.6  ## Ignore HLC action and have env generate them if > 0.5.
-        else:
-            self._ran = 0.4  ## Ignore HLC action and have env generate them if > 0.5.
 
     def reset(self):
         super(MultiworldHRLEnv, self).reset()
@@ -43,30 +38,21 @@ class MultiworldHRLEnv(MultiworldEnv):
             action[1] == llc action
         """
         self._hlc_timestep = self._hlc_timestep + 1
-        if (self._hlc_timestep >= self._hlc_skip
-                and (self._ran < 0.5)):
-
-            # Flag that controls whether the HLC produces the goals
-            if ("use_environment_goals" in self.getSettings()
-                    and self.getSettings()["use_environment_goals"]):
-                self._goal = self.getEnvironment().sample_goals(1)["desired_goal"][0, :]
-            else:
-                action_ = np.array(action[0])
-                self._goal = np.array(action_)
-
+        if self._hlc_timestep >= self._hlc_skip:
+            action_ = np.array(action[0])
+            self._goal = np.array(action_)
             self._hlc_timestep = 0
             llc_obs = np.concatenate([self._previous_observation, self._goal], -1)
             action[1] = self._llc.predict([llc_obs])[0, :]
         action_ = np.array(action[1])
-        if ("use_hlc_action_directly" in self.getSettings()
-                and (self.getSettings()["use_hlc_action_directly"] == True)):
-            action_ = self._goal
         observation, reward, done, info = self.getEnvironment().step(action_)
         if (self.getSettings()['render']):
             self.getEnvironment().render()
         self._end_of_episode = done
         # self._fallen = done
-        self._previous_observation = observation[self._observation_key]
+        self._previous_dict = observation
+        self._previous_observation = observation[self._state_key]
+        self._previous_image = observation[self._image_key]
         distance = self._previous_observation - self._goal
         llc_reward = -np.sqrt((distance * distance).sum())
         self.__reward = np.array([[reward], [llc_reward]])
@@ -90,3 +76,29 @@ class MultiworldHRLEnv(MultiworldEnv):
 
     def calcReward(self):
         return self.__reward
+
+    def getObservation(self):
+        llc_obs = np.concatenate([self._previous_observation, self._goal], 0)
+        hlc_obs = np.concatenate([self._previous_observation, np.zeros([self._goal.size])], 0)
+        state_ = np.stack([hlc_obs, llc_obs])
+        if ("use_dual_state_representations" in self.getSettings() and
+                self.getSettings()['use_dual_state_representations']):
+            return [[
+                state_,
+                self._previous_image
+            ]]
+        else:
+            return [self._previous_observation]
+
+    def getState(self):
+        llc_obs = np.concatenate([self._previous_observation, self._goal], 0)
+        hlc_obs = np.concatenate([self._previous_observation, np.zeros([self._goal.size])], 0)
+        state_ = np.stack([hlc_obs, llc_obs])
+        if ("use_dual_state_representations" in self.getSettings() and
+                self.getSettings()['use_dual_state_representations']):
+            return [[
+                state_,
+                self._previous_image
+            ]]
+        else:
+            return [self._previous_observation]
