@@ -102,12 +102,25 @@ def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
         testing_ = True
     else:
         testing_ = False 
-    sendEmail(subject="Simulation complete: " + str(sim_time_), 
-              contents=contents_, hyperSettings=metaSettings, simSettings=options['configFile'], 
-              dataFile=tarFileName, testing=testing_, 
-              pictureFile=pictureFileName)
-    
+    try:
+        sendEmail(subject="Simulation complete: " + str(sim_time_), 
+                  contents=contents_, hyperSettings=metaSettings, simSettings=options['configFile'], 
+                  dataFile=tarFileName, testing=testing_, 
+                  pictureFile=pictureFileName)
+    except Exception as e:
+        print("Error sending email this computer might not be authorized to use the email account.")
+        print("Error: ", e)
+        print (traceback.format_exc())
 
+    ### Backup data
+    import subprocess
+    try:
+        print("Backing up learning data.")
+        subprocess.call("./backup_data.sh", shell=True)
+    except Exception as e:
+        print("Error Backing up data using rsync.")
+        print("Error: ", e)
+        print (traceback.format_exc())
 
 def compute_next_val(range_,i,samples, curve_scheme='linear'):
     """
@@ -327,5 +340,7 @@ if (__name__ == "__main__"):
         
         result = tuneHyperParameters(simsettingsFileName=simSettings_['configFile'], simSettings=simSettings_, hyperSettings=hyperSettings_)
 
-        if not ("disable_final_emailing" in simSettings_ and simSettings_["disable_final_emailing"]):
+        if ("disable_final_emailing" in simSettings_ and (simSettings_["disable_final_emailing"] == True)):
+            pass
+        else:
             emailSimData(simSettings_, hyperSettings_, sim_time_=result['sim_time'], simData=result)

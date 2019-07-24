@@ -1,8 +1,17 @@
-image: images.borgy.elementai.net/level-up-ml/learn_fast_ai:v6
-command: ['bash', '-c', 'cd /fastai && jupyter notebook']
-name: mich_fast_ai
-reqCores: 4
-reqGpus: 1
-reqRamGbytes: 20
-volumes:
-  - /mnt/home/fmlheureux/fastai:/fastai
+# A unique identifier for the head node and workers of this cluster.
+cluster_name: minimal
+
+# The maximum number of worker nodes to launch in addition to the head
+# node. This takes precedence over min_workers. min_workers default to 0.
+max_workers: 1
+
+# Cloud-provider specific configuration.
+provider:
+    type: gcp
+    region: us-west1
+    availability_zone: us-west1-c
+    project_id: glen-rl-framework # Globally unique project id
+
+# How Ray will authenticate with newly launched nodes.
+auth:
+    ssh_user: ubuntu

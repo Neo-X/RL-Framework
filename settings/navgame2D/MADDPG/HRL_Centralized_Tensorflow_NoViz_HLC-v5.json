@@ -364,7 +364,7 @@
 	"comment__": "Perform multi agent training using different policies, number of agents",
 "perform_multiagent_training": 2,
 	"comment__": "Use a centralized critics (each one kind of has full information)",
-"use_centralized_critic": false,
+"use_centralized_critic": true,
 	"comment__": "Ignore training some of the agents in a multi agent sim",
 "ignore_MRL_agents": [],
 	"comment__": "The index of the multiagent simulation for the hlc",

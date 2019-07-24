@@ -70,14 +70,28 @@ def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
         if ('error' in simData):
             contents_ = contents_ + "\n" + simData['error']
             sub = "ERROR*****     " + "Simulation terminated: " + str(sim_time_)
-         
-        sendEmail(subject=sub, contents=contents_, hyperSettings=metaSettings, simSettings=settings['configFile'], dataFile=tarFileName,
-                  pictureFile=pictureFileName) 
+        try:
+            sendEmail(subject=sub, contents=contents_, hyperSettings=metaSettings, simSettings=settings['configFile'], dataFile=tarFileName,
+                      pictureFile=pictureFileName)
+        except Exception as e:
+            print("Error sending email this computer might not be authorized to use the email account.")
+            print("Error: ", e)
+            print (traceback.format_exc()) 
     
     if ("save_video_to_file" in settings):
         ### Render a video of the policies current performance
         print ("exp for video: ", exp)
         modelEvaluation("", settings=settings, exp=exp)
+        
+        ### Backup data
+    import subprocess
+    try:
+        print("Backing up learning data.")
+        subprocess.call("./backup_data.sh", shell=True)
+    except Exception as e:
+        print("Error Backing up data using rsync.")
+        print("Error: ", e)
+        print (traceback.format_exc())
 
 def createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds, print_info=False):
     """
