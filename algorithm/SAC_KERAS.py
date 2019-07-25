@@ -12,7 +12,7 @@ import sys
 import copy
 from model.ModelUtil import *
 from algorithm.KERASAlgorithm import KERASAlgorithm
-from model.LearningUtil import  tanh_loglikelihood_keras, tanh_loglikelihood_np
+from model.LearningUtil import  loglikelihood_keras, loglikelihood_np
 from keras.optimizers import SGD
 # from keras.utils.np_utils import to_categoricalnetwork
 import keras.backend as K
@@ -121,29 +121,27 @@ class SAC_KERAS(KERASAlgorithm):
 
             self._q_valsActTargetSTD = (K.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
 
-        self._logprob = tanh_loglikelihood_keras(self._modelTarget.getActionSymbolicVariable(), self._q_valsActA, self._q_valsActASTD,
+        self._logprob = loglikelihood_keras(self._modelTarget.getActionSymbolicVariable(), self._q_valsActA, K.exp(self._q_valsActASTD / 2.0),
                                       self._action_length)
-        self._logprob_target = tanh_loglikelihood_keras(self._modelTarget.getActionSymbolicVariable(), self._q_valsActTarget_State,
-                                             self._q_valsActTargetSTD, self._action_length)
-
-        tanh_action = K.tanh(self._model.getActionSymbolicVariable())
+        self._logprob_target = loglikelihood_keras(self._modelTarget.getActionSymbolicVariable(), self._q_valsActTarget_State,
+                                             K.exp(self._q_valsActTargetSTD / 2.0), self._action_length)
 
         if ("use_centralized_critic" in self.getSettings()
                 and (self.getSettings()["use_centralized_critic"] == True)
                 and False):
             self._q_function = self._model.getCriticNetwork()(
-                [self._model.getResultStateSymbolicVariable(), tanh_action])
+                [self._model.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
             self._q_function_Target = self._model.getCriticNetwork()(
-                [self._modelTarget.getResultStateSymbolicVariable(), tanh_action])
+                [self._modelTarget.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
             self._q_func = K.function(
-                [self._model.getResultStateSymbolicVariable(), tanh_action],
+                [self._model.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()],
                 [self._q_function])
         else:
             self._q_function = self._model.getCriticNetwork()(
-                [self._model.getStateSymbolicVariable(), tanh_action])
+                [self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
             self._q_function_Target = self._model.getCriticNetwork()(
-                [self._modelTarget.getStateSymbolicVariable(), tanh_action])
-            self._q_func = K.function([self._model.getStateSymbolicVariable(), tanh_action],
+                [self._modelTarget.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+            self._q_func = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()],
                                       [self._q_function])
 
         q_vals_b = self._q_function_Target - self._logprob
@@ -163,27 +161,21 @@ class SAC_KERAS(KERASAlgorithm):
 
         def sample_actions(_act):
             _act_mean, _act_std = _act[:, :self._action_length], _act[:, self._action_length:]
-            taken_action = 0 * tf.random_normal(tf.shape(_act_mean)) * tf.math.softplus(_act_std) + _act_mean
+            taken_action = 0 * K.random_normal(K.shape(_act_mean)) * K.exp(_act_std) + _act_mean
             return taken_action
 
         sample_layer = keras.layers.Lambda(sample_actions)
         _act_unnormalized = sample_layer(self._act)
 
         def get_logprob(_act_unnormalized):
-            return tanh_loglikelihood_keras(
+            return loglikelihood_keras(
                 _act_unnormalized,
                 self._act[:, :self._action_length],
-                self._act[:, self._action_length:],
+                K.exp(self._act[:, self._action_length:] / 2.0),
                 self._action_length)
 
         logprob_layer = keras.layers.Lambda(get_logprob)
         _act_logprob = logprob_layer(_act_unnormalized)
-
-        def squash_actions(_act):
-            return tf.math.tanh(_act)
-
-        tanh_layer = keras.layers.Lambda(squash_actions)
-        _act = tanh_layer(_act_unnormalized)
 
         def neg_y(true_y, pred_y):
             return K.mean(_act_logprob - pred_y)
@@ -193,14 +185,14 @@ class SAC_KERAS(KERASAlgorithm):
                 and False):
             self._qFunc = (self._model.getCriticNetwork()(
                 [self._model.getResultStateSymbolicVariable(),
-                 _act]))
+                 _act_unnormalized]))
             self._combined = Model(input=[self._model.getStateSymbolicVariable(),
                                           self._model.getResultStateSymbolicVariable()],
                                    output=self._qFunc)
         else:
             self._qFunc = (self._model.getCriticNetwork()(
                 [self._model.getStateSymbolicVariable(),
-                 _act]))
+                 _act_unnormalized]))
             self._combined = Model(input=[self._model.getStateSymbolicVariable()],
                                    output=self._qFunc)
 
@@ -395,20 +387,18 @@ class SAC_KERAS(KERASAlgorithm):
         actor_data = self._modelTarget.getActorNetwork().predict(result_states, batch_size=states.shape[0])
         target_means = actor_data[..., :self._action_length]
         target_stds = actor_data[..., self._action_length:]
-        target_actions = np.random.normal(0, 1, target_means.shape) * softplus(target_stds) + target_means
-        tanh_actions = np.tanh(target_actions)
+        target_actions = np.random.normal(0, 1, target_means.shape) * np.exp(target_stds / 2.0) + target_means
 
-        tanh_actions = tanh_actions.astype(np.float32)
         target_actions = target_actions.astype(np.float32)
         target_means = target_means.astype(np.float32)
         target_stds = target_stds.astype(np.float32)
         ## Get next q value
-        q_vals_b = self._modelTarget.getCriticNetwork().predict([result_states, tanh_actions],
+        q_vals_b = self._modelTarget.getCriticNetwork().predict([result_states, target_actions],
                                                                 batch_size=states.shape[0])
-        logprobs = tanh_loglikelihood_np(
+        logprobs = loglikelihood_np(
             target_actions,
             target_means,
-            target_stds,
+            np.exp(target_stds / 2.0),
             self._action_length)
         q_vals_b = q_vals_b - logprobs
         # q_vals_b = self._q_val()
@@ -563,10 +553,10 @@ class SAC_KERAS(KERASAlgorithm):
         action = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
         mean, std = action[:, self._action_length:], action[:, :self._action_length]
         y_ = self._modelTarget.getCriticNetwork().predict([result_states, actions], batch_size=states.shape[0])
-        y_ = y_ - tanh_loglikelihood_np(
+        y_ = y_ - loglikelihood_np(
             actions,
             mean,
-            std,
+            np.exp(std / 2.0),
             self._action_length)
         target_ = rewards + ((self._discount_factor * y_))
         values = self._model.getCriticNetwork().predict([states, mean], batch_size=states.shape[0])

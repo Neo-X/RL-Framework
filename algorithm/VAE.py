@@ -819,6 +819,8 @@ class VAE(SiameseNetwork):
             ### Save model design as image
             plot_model(self._model._forward_dynamics_net, to_file=fileName+"_FD"+'.svg', show_shapes=True)
             plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
+            plot_model(self._modelTarget._forward_dynamics_net, to_file=fileName+"_FD_T"+'.svg', show_shapes=True)
+            plot_model(self._modelTarget._reward_net, to_file=fileName+"_reward_T"+'.svg', show_shapes=True)
         except Exception as inst:
             ### Maybe the needed libraries are not available
             print ("Error saving diagrams for rl models.")
@@ -839,27 +841,24 @@ class VAE(SiameseNetwork):
         #                                                                         "vae_loss_b": self.vae_loss_b})
         # if ("simulation_model" in self.getSettings() and
         #     (self.getSettings()["simulation_model"] == True)):
-        if (True): ### Because the simulation and learning use different model types (statefull vs stateless lstms...)
-            self._model._forward_dynamics_net.set_weights(forward_dynamics_net.get_weights())
-            self._model._forward_dynamics_net.optimizer = forward_dynamics_net.optimizer
-            # self._model._reward_net.set_weights(reward_net.get_weights())
-            self._model._reward_net.load_weights(fileName+"_reward"+suffix)
-            # self._model._reward_net.optimizer = reward_net.optimizer
-        else:
-            self._model._forward_dynamics_net = forward_dynamics_net
-            self._model._reward_net = reward_net
+        self._model._forward_dynamics_net.set_weights(forward_dynamics_net.get_weights())
+        self._model._forward_dynamics_net.optimizer = forward_dynamics_net.optimizer
+        # self._model._reward_net.set_weights(reward_net.get_weights())
+        self._model._reward_net.load_weights(fileName+"_reward"+suffix)
+        # self._model._reward_net.optimizer = reward_net.optimizer
             
         self._forward_dynamics_net = self._model._forward_dynamics_net
         self._reward_net = self._model._reward_net
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("******** self._forward_dynamics_net: ", self._forward_dynamics_net)
-        if (self._modelTarget is not None):
-            self._modelTarget._forward_dynamics_net = load_keras_model(
-                fileName+"_FD_T"+suffix, custom_objects={
-                    'contrastive_loss': contrastive_loss,
-                    "vae_loss_a": self.vae_loss_a})
-            # self._modelTarget._reward_net = load_keras_model(fileName+"_reward_net_T"+suffix)
-            self._modelTarget._reward_net.load_weights(fileName+"_reward_T"+suffix)
+        forward_dynamics_net_T = load_keras_model(
+            fileName+"_FD_T"+suffix, custom_objects={
+                'contrastive_loss': contrastive_loss,
+                "vae_loss_a": self.vae_loss_a})
+        self._modelTarget._forward_dynamics_net.set_weights(forward_dynamics_net_T.get_weights())
+        self._modelTarget._forward_dynamics_net.optimizer = forward_dynamics_net_T.optimizer
+        # self._modelTarget._reward_net = load_keras_model(fileName+"_reward_net_T"+suffix)
+        self._modelTarget._reward_net.load_weights(fileName+"_reward_T"+suffix)
         # self._model._actor_train = load_keras_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
         # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
         # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
