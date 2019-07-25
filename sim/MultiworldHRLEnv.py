@@ -52,24 +52,12 @@ class MultiworldHRLEnv(MultiworldEnv):
         # self._fallen = done
         self._previous_dict = observation
         self._previous_observation = observation[self._state_key]
-        self._previous_image = observation[self._image_key]
+        if self._image_key in observation:
+            self._previous_image = observation[self._image_key]
         distance = self._previous_observation - self._goal
         llc_reward = -np.sqrt((distance * distance).sum())
         self.__reward = np.array([[reward], [llc_reward]])
         return self.__reward
-
-    def getState(self):
-        # state = np.array(self._exp.getState())
-        # observation, reward, done, info = env.step(action)
-        # self._previous_observation = observation
-
-        llc_obs = np.concatenate([self._previous_observation, self._goal], 0)
-        hlc_obs = np.concatenate([self._previous_observation, np.zeros([self._goal.size])], 0)
-        state_ = np.stack([hlc_obs, llc_obs])
-        return state_
-
-    def getObservation(self):
-        return self.getState()
 
     def actContinuous(self, action, bootstrapping):
         return self.step(action)
@@ -81,7 +69,8 @@ class MultiworldHRLEnv(MultiworldEnv):
         llc_obs = np.concatenate([self._previous_observation, self._goal], 0)
         hlc_obs = np.concatenate([self._previous_observation, np.zeros([self._goal.size])], 0)
         state_ = np.stack([hlc_obs, llc_obs])
-        if ("use_dual_state_representations" in self.getSettings() and
+        if (self._previous_image is not None and
+                "use_dual_state_representations" in self.getSettings() and
                 self.getSettings()['use_dual_state_representations']):
             return [[
                 state_,
@@ -94,7 +83,8 @@ class MultiworldHRLEnv(MultiworldEnv):
         llc_obs = np.concatenate([self._previous_observation, self._goal], 0)
         hlc_obs = np.concatenate([self._previous_observation, np.zeros([self._goal.size])], 0)
         state_ = np.stack([hlc_obs, llc_obs])
-        if ("use_dual_state_representations" in self.getSettings() and
+        if (self._previous_image is not None and
+                "use_dual_state_representations" in self.getSettings() and
                 self.getSettings()['use_dual_state_representations']):
             return [[
                 state_,
