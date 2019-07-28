@@ -1,4 +1,4 @@
-cluster_name: rl-cluster-test
+cluster_name: rl-cluster-rail
 min_workers: 1
 max_workers: 4
 initial_workers: 1
