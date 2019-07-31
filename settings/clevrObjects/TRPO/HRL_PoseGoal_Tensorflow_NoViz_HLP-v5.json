@@ -221,7 +221,7 @@
 	"comment__": "Random seed value for the simulation to use",
 "random_seed": 1234,
 	"comment__": "KL divergence threshold between policy updates",
-"kl_divergence_threshold": 0.25,
+"kl_divergence_threshold": 0.05,
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy [true|fast]",
 "on_policy": true,
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
@@ -302,7 +302,7 @@
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],[ 
-								{"layer_type": "slice", "slice_index": 5, "slice_label": "other_agent"},
+								{"layer_type": "slice", "slice_index": 7, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
@@ -363,7 +363,7 @@
 	"comment__": "Use a centralized critics (each one kind of has full information)",
 "use_centralized_critic": false,
 	"comment__": "Ignore training some of the agents in a multi agent sim",
-"ignore_MRL_agents": [],
+"ignore_MRL_agents": [1],
 	"comment__": "The index of the multiagent simulation for the hlc",
 "llc_index": 1,
 	"comment__": "higher level controller timestep",
