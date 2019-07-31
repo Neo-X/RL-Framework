@@ -38,16 +38,16 @@
 "experience_length": [50000, 20000],
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [
-  				  [[-2.0, -2.0, -2.0, -2.0, -2.0],
-				   [ 2.0,  2.0,  2.0,  2.0,  2.0]], 
-				  [[-2.0, -2.0, -2.0, -2.0, -2.0],
-				   [ 2.0,  2.0,  2.0,  2.0,  2.0]]
+  				  [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
+  				   [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]], 
+				  [[-2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0],
+				   [ 2.0,  2.0,  2.0,  2.0,  2.0,  2.0,  2.0]]
 				],
     "comment__": "Action scaling values to be used to scale values for the network",
 "action_bounds": [[[-2.0, -2.0,  0.0],
                    [ 2.0,  2.0,  1.0]],
-                  [[-0.2, -0.2, -0.2],
-                   [ 0.2,  0.2,  0.2]]
+                  [[-0.2, -0.2, -0.1],
+                   [ 0.2,  0.2,  0.1]]
                    ],
     "comment__": "Set of discrete actions that can be sampled from",				     
 "discrete_actions": [[-0.92, 0.8],
@@ -296,13 +296,13 @@
 								],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [[ 
-								{"layer_type": "slice", "slice_index": 29, "slice_label": "other_agent"},
+								{"layer_type": "slice", "slice_index": 15, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],[ 
-								{"layer_type": "slice", "slice_index": 29, "slice_label": "other_agent"},
+								{"layer_type": "slice", "slice_index": 5, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
