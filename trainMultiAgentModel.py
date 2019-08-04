@@ -2,6 +2,7 @@ import copy
 import sys
 import traceback
 import logging
+from dill.settings import settings
 sys.setrecursionlimit(50000)
 import os
 import json
@@ -108,6 +109,7 @@ def createLearningAgent(settings, output_experience_queue, print_info=False):
         learning_workers.append(lw)  
     masterAgent = agent
     return (agent, learning_workers)
+
 # python -m memory_profiler example.py
 # @profile(precision=5)
 # def trainModelParallel(settingsFileName, settings):
@@ -320,6 +322,23 @@ def trainModelParallel(inputData):
         
         if not os.path.exists(directory):
             os.makedirs(directory)
+            
+        if ("pretrained_data_folder" in settings):
+            import shutil
+            pretrain_file = open(settings["pretrained_data_folder"], "r")
+            settings_pretrain = json.load(pretrain_file)
+            pretrain_file.close()
+            directory_pretrain = getDataDirectory(settings_pretrain)
+            for i in range(settings["perform_multiagent_training"]):
+                print ("copying over pretained files: ", directory_pretrain+getAgentName()+str(i)+"_Best_actor.h5" )
+                shutil.copy2(directory_pretrain+getAgentName()+str(i)+"_Best_actor.h5", directory+getAgentName()+str(i)+"_Best_actor.h5" )
+                shutil.copy2(directory_pretrain+getAgentName()+str(i)+"_Best_critic.h5", directory+getAgentName()+str(i)+"_Best_critic.h5" )
+                shutil.copy2(directory_pretrain+getAgentName()+str(i)+"_Best_critic_T.h5", directory+getAgentName()+str(i)+"_Best_critic_T.h5" )
+                shutil.copy2(directory_pretrain+getAgentName()+str(i)+"_Best_bounds.h5", directory+getAgentName()+str(i)+"_Best_bounds.h5" )
+            # sys.exit()
+        else:
+            sys.exit()
+            
             
         ### Put git versions in settings file before save
         from util.utils import get_git_revision_hash, get_git_revision_short_hash
