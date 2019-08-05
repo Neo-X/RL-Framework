@@ -515,6 +515,14 @@ def trainModelParallel(inputData):
             (settings['train_reward_distance_metric'] == True )):
             masterAgent.setRewardModel(rewardModel)
         
+        print ("masterAgent state bounds: ", masterAgent.getStateBounds())
+        print ("state bounds: ", state_bounds)
+        ### If the policy loaded state bounds use those
+        state_bounds = masterAgent.getStateBounds()
+        settings['state_bounds'] = masterAgent.getStateBounds()
+        # sys.exit()
+        
+        
         tmp_p=1.0
         message={}
         if ( settings['load_saved_model'] ):
@@ -590,11 +598,6 @@ def trainModelParallel(inputData):
             print("Reward bounds invalid: ", reward_bounds)
             sys.exit()
         
-        # print ("Reward History: ", masterAgent.getExperience()._reward_history)
-        # print ("Action History: ", masterAgent.getExperience()._action_history)
-        # print ("Action Mean: ", np.mean(masterAgent.getExperience()._action_history))
-        # print ("masterAgent.getExperience() Samples: ", (masterAgent.getExperience().samples()))
-        
         """
         if action_space_continuous:
             model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
@@ -607,12 +610,6 @@ def trainModelParallel(inputData):
             masterAgent.setActionBounds(action_bounds)
             masterAgent.setSettings(settings)
         else: ## Normal
-            # model.setStateBounds(state_bounds)
-            # model.setActionBounds(action_bounds)
-            # model.setRewardBounds(reward_bounds)
-            # masterAgent.getExperience().setStateBounds(copy.deepcopy(model.getStateBounds()))
-            # masterAgent.getExperience().setRewardBounds(copy.deepcopy(model.getRewardBounds()))
-            # masterAgent.getExperience().setActionBounds(copy.deepcopy(model.getActionBounds()))
             masterAgent.setStateBounds(state_bounds)
             masterAgent.setActionBounds(action_bounds)
             masterAgent.setRewardBounds(reward_bounds)
@@ -627,8 +624,6 @@ def trainModelParallel(inputData):
                     print ("Saving Experience FD memory")
                 file_name=directory+getAgentName()+"_FD_expBufferInit.hdf5"
                 masterAgent.getFDExperience().saveToFile(file_name)
-        # mgr = multiprocessing.Manager()
-        # learningNamespace = mgr.Namespace()
         
         masterAgent_message_queue = multiprocessing.Queue(settings['epochs'])
         
