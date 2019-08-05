@@ -336,9 +336,6 @@ def trainModelParallel(inputData):
                 shutil.copy2(directory_pretrain+getAgentName()+str(i)+"_Best_critic_T.h5", directory+getAgentName()+str(i)+"_Best_critic_T.h5" )
                 shutil.copy2(directory_pretrain+getAgentName()+str(i)+"_Best_bounds.h5", directory+getAgentName()+str(i)+"_Best_bounds.h5" )
             # sys.exit()
-        else:
-            sys.exit()
-            
             
         ### Put git versions in settings file before save
         from util.utils import get_git_revision_hash, get_git_revision_short_hash

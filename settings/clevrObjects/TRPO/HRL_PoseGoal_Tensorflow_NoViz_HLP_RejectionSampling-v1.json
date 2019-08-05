@@ -373,5 +373,11 @@
 	"comment__": "Folder to pull pretrained models from:",
 "pretrained_data_folder": "settings/clevrObjects/TRPO/HRL_PoseGoal_Tensorflow_NoViz_LLP-v1.json",
 	"comment__": "Agent names",
-"agent_names": ["HLP", "LLP"]
+"agent_names": ["HLP", "LLP"],
+	"comment__": "Perform a post processing step over action sampling",
+"exploration_processing": "rejection_sampling",
+	"comment__": "Number of HLP actions to sample for optimization",
+"high_level_exploration_samples": 12,
+	"comment__": "Whether or not to perform rejection sampling",
+"use_high_level_exploration": true
 }

@@ -925,16 +925,16 @@ class LearningAgent(AgentInterface):
                   (self.getSettings()['use_stochastic_policy'] == True))
                   or (self.getSettings()['exploration_method'] == 'gaussian_random')
                    ):
+
                 # action = randomExporation(self.getSettings()["exploration_rate"], pa)
                 if ( 'anneal_policy_std' in self.getSettings() and (self.getSettings()['anneal_policy_std'])):
                     std_ = self.predict_std(state_, p=p)
                 else:
                     std_ = self.predict_std(state_, p=1.0)
-                # print("Action: ", pa)
-                # print ("Action std: ", std)
                 stds.append(std_)
                 action = randomExporationSTD(pa_, std_, np.array(self.getActionBounds(), dtype=float))
                 # print("Action2: ", action)
+                    
             elif ((self.getSettings()['exploration_method'] == 'thompson')):
                 # print ('Using Thompson sampling')
                 action = thompsonExploration(self, self.getSettings()["exploration_rate"], state_)
