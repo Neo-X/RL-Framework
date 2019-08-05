@@ -643,7 +643,10 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         conf = copy.deepcopy(settings)
         conf['render'] = render
-        exp = MultiworldEnv(env, conf, observation_key=conf['observation_key'])
+        image_key = "image_observation"
+        if "image_key" in conf:
+            image_key = conf["image_key"]
+        exp = MultiworldEnv(env, conf, image_key=image_key, state_key=conf['state_key'])
 
         return exp
 
@@ -683,7 +686,10 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         conf = copy.deepcopy(settings)
         conf['render'] = render
-        exp = MultiworldHRLEnv(env, conf, observation_key=conf['observation_key'])
+        image_key = "image_observation"
+        if "image_key" in conf:
+            image_key = conf["image_key"]
+        exp = MultiworldHRLEnv(env, conf, image_key=image_key, state_key=conf['state_key'])
 
         return exp
 
@@ -723,7 +729,10 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         conf = copy.deepcopy(settings)
         conf['render'] = render
-        exp = MultiworldGoalEnv(env, conf, observation_key=conf['observation_key'], goal_key=conf['goal_key'])
+        image_key = "image_observation"
+        if "image_key" in conf:
+            image_key = conf["image_key"]
+        exp = MultiworldGoalEnv(env, conf, image_key=image_key, state_key=conf['state_key'])
 
         return exp
 
@@ -761,7 +770,7 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         conf = copy.deepcopy(settings)
         conf['render'] = render
-        exp = MultiworldEnv(env, conf, observation_key=conf['observation_key'])
+        exp = MultiworldEnv(env, conf, image_key=conf['image_key'], state_key=conf['state_key'])
 
         return exp
 

@@ -500,20 +500,31 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     except:
                         pass
 
-                    if "fd_algorithm" in settings and settings["fd_algorithm"] == "algorithm.VAE.VAE":
+                if "fd_algorithm" in settings and settings["fd_algorithm"] == "algorithm.VAE.VAE":
 
-                        fd = model.getForwardDynamics()
-                        __x = fd._get_reconstructed_image([state_])[0]
-                        __x = __x[0, :13824 // 2].reshape(48, 48, 3) * 0.5 + 0.5
-                        __y = state_[0, :13824 // 2].reshape(48, 48, 3)
+                    fd = model.getForwardDynamics()
+                    xinputs = state_[0][1]
+                    print(xinputs.shape)
+                    __x = fd._get_reconstructed_image([[xinputs]])[0]
+                    __z = fd._sample_image_from_prior([])[0]
+                    __x = __x.reshape(settings["fd_terrain_shape"]) * 0.5 + 0.5
+                    __z = __z.reshape(settings["fd_terrain_shape"]) * 0.5 + 0.5
+                    __y = xinputs.reshape(settings["fd_terrain_shape"])
 
-                        try:
-                            import cv2
-                            cv2.imshow("Decoded VAE Image", __x)
-                            cv2.imshow("Target VAE Image", __y)
-                            cv2.waitKey(10)
-                        except:
-                            pass
+                    try:
+                        import cv2
+                        __x = np.flip(__x, axis=0)
+                        __x = np.flip(__x, axis=2)
+                        __y = np.flip(__y, axis=0)
+                        __y = np.flip(__y, axis=2)
+                        __z = np.flip(__z, axis=0)
+                        __z = np.flip(__z, axis=2)
+                        cv2.imshow("Decoded VAE Image", __x)
+                        cv2.imshow("Target VAE Image", __y)
+                        cv2.imshow("Prior VAE Image", __z)
+                        cv2.waitKey(10)
+                    except Exception as e:
+                        print(e)
             
         ### I can't just unpack the vector of states here in a multi char sim because the 
         ### Order needs to be preserved for computing the advantage.
