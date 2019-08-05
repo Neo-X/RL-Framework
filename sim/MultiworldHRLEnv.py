@@ -5,25 +5,15 @@ from sim.MultiworldEnv import MultiworldEnv
 
 class MultiworldHRLEnv(MultiworldEnv):
 
-    def __init__(self, exp, settings, multiAgent=False, observation_key="observation"):
+    def __init__(self, exp, settings, multiAgent=False,
+                 image_key="image_observation", state_key="state_observation"):
         #------------------------------------------------------------
         # set up initial state
-        MultiworldEnv.__init__(self, exp, settings, multiAgent=multiAgent)
-        self._observation_key = observation_key
-        assert self._observation_key in self.getEnvironment().observation_space.spaces
-        self.observation_space = self.getEnvironment().observation_space.spaces[observation_key]
-        if ("ignore_hlc_actions" in self.getSettings()
-                and (self.getSettings()["ignore_hlc_actions"] == True)):
-            self._ran = 0.6  ## Ignore HLC action and have env generate them if > 0.5.
-        else:
-            self._ran = 0.4  ## Ignore HLC action and have env generate them if > 0.5.
+        MultiworldEnv.__init__(self, exp, settings, multiAgent=multiAgent,
+                               image_key=image_key, state_key=state_key)
 
     def reset(self):
-        # self.getEnvironment().init()
-        self._previous_observation = self.getEnvironment().reset()[self._observation_key]
-        self._goal = np.zeros(self.observation_space.shape)
-        self._end_of_episode = False
-        self._fallen=[False]
+        super(MultiworldHRLEnv, self).reset()
         self._hlc_timestep = 1000000
         self._hlc_skip = 10
         if ("hlc_timestep" in self.getSettings()):
@@ -48,50 +38,57 @@ class MultiworldHRLEnv(MultiworldEnv):
             action[1] == llc action
         """
         self._hlc_timestep = self._hlc_timestep + 1
-        if (self._hlc_timestep >= self._hlc_skip
-                and (self._ran < 0.5)):
-
-            # Flag that controls whether the HLC produces the goals
-            if ("use_environment_goals" in self.getSettings()
-                    and self.getSettings()["use_environment_goals"]):
-                self._goal = self.getEnvironment().sample_goals(1)["desired_goal"][0, :]
-            else:
-                action_ = np.array(action[0])
-                self._goal = np.array(action_)
-
+        if self._hlc_timestep >= self._hlc_skip:
+            action_ = np.array(action[0])
+            self._goal = np.array(action_)
             self._hlc_timestep = 0
             llc_obs = np.concatenate([self._previous_observation, self._goal], -1)
             action[1] = self._llc.predict([llc_obs])[0, :]
         action_ = np.array(action[1])
-        if ("use_hlc_action_directly" in self.getSettings()
-                and (self.getSettings()["use_hlc_action_directly"] == True)):
-            action_ = self._goal
         observation, reward, done, info = self.getEnvironment().step(action_)
         if (self.getSettings()['render']):
             self.getEnvironment().render()
         self._end_of_episode = done
         # self._fallen = done
-        self._previous_observation = observation[self._observation_key]
+        self._previous_dict = observation
+        self._previous_observation = observation[self._state_key]
+        if self._image_key in observation:
+            self._previous_image = observation[self._image_key]
         distance = self._previous_observation - self._goal
         llc_reward = -np.sqrt((distance * distance).sum())
         self.__reward = np.array([[reward], [llc_reward]])
         return self.__reward
-
-    def getState(self):
-        # state = np.array(self._exp.getState())
-        # observation, reward, done, info = env.step(action)
-        # self._previous_observation = observation
-
-        llc_obs = np.concatenate([self._previous_observation, self._goal], 0)
-        hlc_obs = np.concatenate([self._previous_observation, np.zeros([self._goal.size])], 0)
-        state_ = np.stack([hlc_obs, llc_obs])
-        return state_
-
-    def getObservation(self):
-        return self.getState()
 
     def actContinuous(self, action, bootstrapping):
         return self.step(action)
 
     def calcReward(self):
         return self.__reward
+
+    def getObservation(self):
+        llc_obs = np.concatenate([self._previous_observation, self._goal], 0)
+        hlc_obs = np.concatenate([self._previous_observation, np.zeros([self._goal.size])], 0)
+        state_ = np.stack([hlc_obs, llc_obs])
+        if (self._previous_image is not None and
+                "use_dual_state_representations" in self.getSettings() and
+                self.getSettings()['use_dual_state_representations']):
+            return [[
+                state_,
+                self._previous_image
+            ]]
+        else:
+            return [self._previous_observation]
+
+    def getState(self):
+        llc_obs = np.concatenate([self._previous_observation, self._goal], 0)
+        hlc_obs = np.concatenate([self._previous_observation, np.zeros([self._goal.size])], 0)
+        state_ = np.stack([hlc_obs, llc_obs])
+        if (self._previous_image is not None and
+                "use_dual_state_representations" in self.getSettings() and
+                self.getSettings()['use_dual_state_representations']):
+            return [[
+                state_,
+                self._previous_image
+            ]]
+        else:
+            return [self._previous_observation]

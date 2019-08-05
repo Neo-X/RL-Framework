@@ -68,4 +68,4 @@ class TestDDPG(object):
             
 
 if __name__ == '__main__':
-    nose.main([__file__])
+    pytest.main([__file__])
