@@ -16,7 +16,7 @@
     "comment__": "Config file for the simulator",
 "sim_config_file": "CLEVRObjectHRL_NoVision_HLC_v0",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": [0.35,0.02],
+"exploration_rate": [0.25,0.02],
     "comment__": "Number of rounds to perform before termination",
 "rounds": 200,
     "comment__": "Number of epochs to perform per round",
