@@ -68,7 +68,7 @@
     "comment__": "Name of the type of simulator to use",
 "environment_type": "MultiworldGoal",
 	"comment__": "Key into the observation dictionary of Multiworld",
-"observation_key": "observation",
+"state_key": "observation",
 	"comment__": "Key into the goal dictionary of Multiworld",
 "goal_key": "desired_goal",
     "comment__": "Model type to use for the forward dynamics model",

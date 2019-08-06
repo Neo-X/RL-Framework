@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "SawyerReachXYZEnv-v1/Isolated_LLC",
+"data_folder": "SawyerReachXYZEnv-v1/Isolated_LLC_Long",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -68,7 +68,7 @@
     "comment__": "Name of the type of simulator to use",
 "environment_type": "MultiworldGoal",
 	"comment__": "Key into the observation dictionary of Multiworld",
-"observation_key": "observation",
+"state_key": "observation",
 	"comment__": "Key into the goal dictionary of Multiworld",
 "goal_key": "desired_goal",
     "comment__": "Model type to use for the forward dynamics model",
@@ -351,5 +351,7 @@
 	"comment__": "The keyword arguments to pass to multiworld",
 "multiworld_kwargs": {"fix_goal":  false},
 	"comment__": "whether emailing of final plots is disabled",
-"disable_final_emailing": true
+"disable_final_emailing": true,
+	"comment__": "higher level controller timestep",
+"hlc_timestep": 20
 }

@@ -47,7 +47,7 @@ class MultiworldGoalEnv(MultiworldEnv):
         super(MultiworldGoalEnv, self).step(action)
         reward = -np.sqrt(np.square(self._previous_observation - self._goal).sum())
         self.__reward = np.array([[reward]])
-        if self._timestep > self._skip:
+        if self._timestep >= self._skip:
             self._timestep = 0
             goal_dict = self.getEnvironment().sample_goals(1)
             self.getEnvironment().set_to_goal(goal_dict)

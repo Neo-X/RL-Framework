@@ -16,8 +16,8 @@ class MultiworldVAEEnv(MultiworldEnv):
         self._skip = timeskip
         self.model = None
         self.observation_space = gym.spaces.Box(
-            -99.0 * np.ones([settings["encoding_vector_size"]]),
-            99.0 * np.ones([settings["encoding_vector_size"]]))
+            -1.0 * np.ones([settings["encoding_vector_size"]]),
+            1.0 * np.ones([settings["encoding_vector_size"]]))
 
     def setVAE(self, model):
         self.model = model

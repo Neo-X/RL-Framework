@@ -924,7 +924,9 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         image_key = "image_observation"
         if "image_key" in conf:
             image_key = conf["image_key"]
-        exp = MultiworldGoalEnv(env, conf, image_key=image_key, state_key=conf['state_key'])
+        exp = MultiworldGoalEnv(env, conf,
+                                image_key=image_key, state_key=conf['state_key'],
+                                timeskip=conf["hlc_timestep"])
 
         return exp
 
@@ -943,7 +945,8 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         conf = copy.deepcopy(settings)
         conf['render'] = render
-        exp = OpenAIGymGoalEnv(env, conf, goal_key=conf['goal_key'])
+        exp = OpenAIGymGoalEnv(env, conf, goal_key=conf['goal_key'],
+                                timeskip=conf["hlc_timestep"])
 
         return exp
 

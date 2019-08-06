@@ -75,7 +75,7 @@
     "comment__": "Name of the type of simulator to use",
 "environment_type": "MultiworldHRL",
 	"comment__": "Key into the observation dictionary of Multiworld",
-"observation_key": "observation",
+"state_key": "observation",
     "comment__": "Model type to use for the forward dynamics model",
 "forward_dynamics_predictor": "network",
     "comment__": "Method to be used for the forward dynamics model is the model types uses a simulator",
