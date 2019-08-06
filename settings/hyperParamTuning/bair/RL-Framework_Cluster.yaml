@@ -1,4 +1,4 @@
-cluster_name: rl-cluster-test
+cluster_name: rl-cluster-rail
 min_workers: 1
 max_workers: 4
 initial_workers: 1
@@ -18,7 +18,7 @@ provider:
                    # 'newton5.Banatao.Berkeley.EDU', 
                    # 'justin.Banatao.Berkeley.EDU',
                    # 'dirac.Banatao.Berkeley.EDU']
-    worker_ips: [paros.eecs.yorku.ca, crete.eecs.yorku.ca, dirac.Banatao.Berkeley.EDU]
+    worker_ips: [paros.eecs.yorku.ca, crete.eecs.yorku.ca]
 auth:
     ssh_user: gberseth
     ssh_private_key: ~/.ssh/id_rsa

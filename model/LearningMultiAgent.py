@@ -441,8 +441,10 @@ class LearningMultiAgent(LearningAgent):
                     sampling=sampling)
 
                 # Assume that z_k is at the end of the state
-                llc_states = np.hstack([state_[:, :len(candidate_actions[0])], candidate_actions])
-                llc_values = self.getAgents()[self.getSettings()["llc_index"]].getPolicy()._value([llc_states])
+                ### These shapes don't quite line up. The llp state can be a different size than the hlp shape.
+                state_llp = copy.deepcopy(np.array([state[self.getSettings()["llc_index"]] for i in range(num_samples)]) )               ### Replace the last few coli
+                state_llp[:, -len(candidate_actions[0]):] =  candidate_actions
+                llc_values = self.getAgents()[self.getSettings()["llc_index"]].getPolicy()._value([state_llp])
                 best_idx = np.argmax(llc_values)
                 action = [candidate_actions[best_idx]]
                 exp_act = [candidate_exp_acts[best_idx]]
