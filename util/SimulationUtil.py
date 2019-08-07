@@ -732,7 +732,33 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
         image_key = "image_observation"
         if "image_key" in conf:
             image_key = conf["image_key"]
-        exp = MultiworldGoalEnv(env, conf, image_key=image_key, state_key=conf['state_key'])
+        exp = MultiworldGoalEnv(env, conf,
+                                image_key=image_key, state_key=conf['state_key'],
+                                timeskip=conf["hlc_timestep"])
+
+        return exp
+
+    elif env_type == 'MultiworldGoalVAE':
+        import gym
+        import multiworld
+        from sim.MultiworldGoalVAEEnv import MultiworldGoalVAEEnv
+
+        multiworld.register_all_envs()
+        env_name = config_file
+        if "multiworld_kwargs" in settings:
+            multiworld_kwargs = settings["multiworld_kwargs"]
+        else:
+            multiworld_kwargs = {}
+        env = gym.make(env_name, **multiworld_kwargs)
+
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        image_key = "image_observation"
+        if "image_key" in conf:
+            image_key = conf["image_key"]
+        exp = MultiworldGoalVAEEnv(env, conf,
+                                image_key=image_key,
+                                timeskip=conf["hlc_timestep"])
 
         return exp
 
@@ -751,7 +777,8 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         conf = copy.deepcopy(settings)
         conf['render'] = render
-        exp = OpenAIGymGoalEnv(env, conf, goal_key=conf['goal_key'])
+        exp = OpenAIGymGoalEnv(env, conf, goal_key=conf['goal_key'],
+                                timeskip=conf["hlc_timestep"])
 
         return exp
 
@@ -1045,6 +1072,7 @@ def createActor(env_type, settings, experience):
           or (env_type == 'Multiworld')
           or (env_type == 'MultiworldHRL')
           or (env_type == 'MultiworldGoal')
+          or (env_type == 'MultiworldGoalVAE')
           or (env_type == 'Metaworld')
           or (env_type == 'MetaworldHRL')
           or (env_type == 'MetaworldGoal')
@@ -1153,6 +1181,12 @@ def createNewFDModel(settings, env, model):
         forwardDynamicsModel.setActor(actor)
         # forwardDynamicsModel.setEnvironment(exp)
         forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
+
+    if ("fd_algorithm" in settings and
+            settings["fd_algorithm"] == "algorithm.VAE.VAE" and
+            "VAE" in settings["environment_type"]):
+        env.setVAE(forwardDynamicsModel)
+
     return forwardDynamicsModel
 
 def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp, agentModel, reward_bounds=0, print_info=True):
