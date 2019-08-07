@@ -655,6 +655,12 @@ def trainModelParallel(inputData):
             (settings['train_reward_distance_metric'] == True )):
             masterAgent.setRewardModel(rewardModel)
         
+        print ("masterAgent state bounds: ", masterAgent.getStateBounds())
+        print ("state bounds: ", state_bounds)
+        ### If the policy loaded state bounds use those
+        state_bounds = masterAgent.getStateBounds()
+        settings['state_bounds'] = masterAgent.getStateBounds()
+        
         tmp_p=1.0
         message={}
         if ( settings['load_saved_model'] ):
