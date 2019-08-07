@@ -24,7 +24,7 @@
     "comment__": "Number of epoch/episode to evaluate the policy over",
 "eval_epochs": 32,
     "comment__": "Discount factor used during learning",
-"discount_factor": 0.9,
+"discount_factor": 0.95,
     "comment__": "Should the training be plotted during learning",
 "visualize_learning": true,
     "comment__": "Whether or not to save the plotted data while learning",
@@ -369,7 +369,5 @@
 	"comment__": "higher level controller timestep",
 "hlc_timestep": 10,
 	"comment__": "The index of the multiagent simulation for the hlc",
-"hlc_index": 0,
-	"comment__": "Processes rewards as if the trajectory length was equal to the hlc_timestep",
-"llc_episode_length": 10
+"hlc_index": 0
 }
