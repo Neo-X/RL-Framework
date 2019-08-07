@@ -2,6 +2,8 @@ import numpy as np
 from sim.SimInterface import SimInterface
 from sim.MultiworldVAEEnv import MultiworldVAEEnv
 import gym
+import cv2
+import numpy as np
 
 
 class MultiworldGoalVAEEnv(MultiworldVAEEnv):
@@ -23,7 +25,8 @@ class MultiworldGoalVAEEnv(MultiworldVAEEnv):
         super(MultiworldGoalVAEEnv, self).reset()
         goal_dict = self.getEnvironment().sample_goals(1)
         self.getEnvironment().set_to_goal(goal_dict)
-        self._goal = self.encode(self.getEnvironment()._get_obs()[self._state_key])
+        self._goal_image = self.getEnvironment()._get_obs()[self._state_key]
+        self._goal = self.encode(self._goal_image)
         self.getEnvironment().set_to_goal(self._previous_dict)
         self._previous_observation = np.concatenate([self._previous_observation, self._goal], -1)
         self._timestep = 0
@@ -33,7 +36,8 @@ class MultiworldGoalVAEEnv(MultiworldVAEEnv):
         super(MultiworldGoalVAEEnv, self).init()
         goal_dict = self.getEnvironment().sample_goals(1)
         self.getEnvironment().set_to_goal(goal_dict)
-        self._goal = self.encode(self.getEnvironment()._get_obs()[self._state_key])
+        self._goal_image = self.getEnvironment()._get_obs()[self._state_key]
+        self._goal = self.encode(self._goal_image)
         self.getEnvironment().set_to_goal(self._previous_dict)
         self._previous_observation = np.concatenate([self._previous_observation, self._goal], -1)
         self._timestep = 0
@@ -42,21 +46,28 @@ class MultiworldGoalVAEEnv(MultiworldVAEEnv):
         super(MultiworldGoalVAEEnv, self).initEpoch()
         goal_dict = self.getEnvironment().sample_goals(1)
         self.getEnvironment().set_to_goal(goal_dict)
-        self._goal = self.encode(self.getEnvironment()._get_obs()[self._state_key])
+        self._goal_image = self.getEnvironment()._get_obs()[self._state_key]
+        self._goal = self.encode(self._goal_image)
         self.getEnvironment().set_to_goal(self._previous_dict)
         self._previous_observation = np.concatenate([self._previous_observation, self._goal], -1)
         self._timestep = 0
         
     def step(self, action):
+        x = np.reshape(self._goal_image, self.getSettings()["fd_terrain_shape"])
+        x = np.flip(x, 0)
+        x = np.flip(x, 2)
+        cv2.imshow("goal image", x)
         self._timestep = self._timestep + 1
         super(MultiworldGoalVAEEnv, self).step(action)
         reward = -np.sqrt(np.square(self._previous_observation - self._goal).sum())
+        reward = reward / self.getSettings()["encoding_vector_size"]
         self.__reward = np.array([[reward]])
         if self._timestep >= self._skip:
             self._timestep = 0
             goal_dict = self.getEnvironment().sample_goals(1)
             self.getEnvironment().set_to_goal(goal_dict)
-            self._goal = self.encode(self.getEnvironment()._get_obs()[self._state_key])
+            goal_image = self.getEnvironment()._get_obs()[self._state_key]
+            self._goal = self.encode(goal_image)
             self.getEnvironment().set_to_goal(self._previous_dict)
         self._previous_observation = np.concatenate([self._previous_observation, self._goal], -1)
         return self.__reward
