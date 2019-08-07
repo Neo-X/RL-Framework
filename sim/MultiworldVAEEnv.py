@@ -22,26 +22,53 @@ class MultiworldVAEEnv(MultiworldEnv):
     def setVAE(self, model):
         self.model = model
 
-    def getObservation(self):
-        encoded_obs = self.model._get_latent_variable([[self._previous_observation]])[0]
-        if (self._previous_image is not None and
-                "use_dual_state_representations" in self.getSettings() and
-                self.getSettings()['use_dual_state_representations']):
-            return [[
-                encoded_obs,
-                self._previous_image
-            ]]
-        else:
-            return [encoded_obs]
+    def encode(self, x):
+        if self.model is None:
+            return np.zeros([self.getSettings()["encoding_vector_size"]])
+        return self.model._get_latent_variable([[x]])[0][0]
 
-    def getState(self):
-        encoded_obs = self.model._get_latent_variable([[self._previous_observation]])[0]
-        if (self._previous_image is not None and
-                "use_dual_state_representations" in self.getSettings() and
-                self.getSettings()['use_dual_state_representations']):
-            return [[
-                encoded_obs,
-                self._previous_image
-            ]]
+    def reset(self):
+        # self.getEnvironment().init()
+        state_dict = self.getEnvironment().reset()
+        self._previous_dict = state_dict
+        self._previous_observation = self.encode(state_dict[self._state_key])
+        if self._image_key in state_dict:
+            self._previous_image = state_dict[self._image_key]
+        self._end_of_episode = False
+        self._fallen = [False]
+        return self._previous_observation
+
+    def init(self):
+        # self.getEnvironment().init()
+        state_dict = self.getEnvironment().reset()
+        self._previous_dict = state_dict
+        self._previous_observation = self.encode(state_dict[self._state_key])
+        if self._image_key in state_dict:
+            self._previous_image = state_dict[self._image_key]
+        self._end_of_episode = False
+        self._fallen = [False]
+
+    def initEpoch(self):
+        state_dict = self.getEnvironment().reset()
+        self._previous_dict = state_dict
+        self._previous_observation = self.encode(state_dict[self._state_key])
+        if self._image_key in state_dict:
+            self._previous_image = state_dict[self._image_key]
+        self._end_of_episode = False
+        self._fallen = [False]
+
+    def step(self, action):
+        action_ = np.array(action)
+        if (self.getSettings()['render']):
+            self.getEnvironment().render()
+        if (self._multiAgent):
+            observation, reward, done, info = self.getEnvironment().step(action_)
         else:
-            return [encoded_obs]
+            observation, reward, done, info = self.getEnvironment().step(action_[0])
+        self._end_of_episode = done
+        # self._fallen = done
+        self._previous_dict = observation
+        self._previous_observation = self.encode(observation[self._state_key])
+        if self._image_key in observation:
+            self._previous_image = observation[self._image_key]
+        return reward

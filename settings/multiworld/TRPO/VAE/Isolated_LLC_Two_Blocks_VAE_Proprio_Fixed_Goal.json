@@ -325,6 +325,8 @@
 "multiworld_kwargs": {"fix_goal":  true, "image_size":  48},
 	"comment__": "whether emailing of final plots is disabled",
 "disable_final_emailing": true,
+	"comment__": "higher level controller timestep",
+"hlc_timestep": 20,
   "comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [
   {"layer_type": "Reshape", "target_shape": [6912]},
