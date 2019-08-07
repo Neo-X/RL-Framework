@@ -68,14 +68,14 @@ do
 		# or do whatever with individual element of the array
 		# echo "$simConfigFile"
 		output=' | tee -a $BORGY_JOB_ID.out'
-	 	arg="docker run -e TERRAINRL_PATH=/opt/TerrainRLSim/ -e RLSIMENV_PATH=/opt/RLSimulationEnvironments --rm -it us.gcr.io/glen-rl-framework/glen:latest2 bash -c 'pushd /opt/RL-Framework; ./update_and_compile.sh; backup_data_continuously.sh & python3 tuneHyperParameters.py --config=${simConfigFile} --shouldRender=false --metaConfig=${metaConfig} --meta_sim_sample=3 --meta_sim_threads=3 --tuning_threads=2 --email_log_data_periodically=true --email_logging_time=28800 ${opts}'"
+	 	arg="docker run -e TERRAINRL_PATH=/opt/TerrainRLSim/ -e RLSIMENV_PATH=/opt/RLSimulationEnvironments --rm -it us.gcr.io/glen-rl-framework/glen:latest2 bash -c 'pushd /opt/RL-Framework; ./update_and_compile.sh; backup_data_continuously.sh & python3 tuneHyperParameters.py --config=${simConfigFile} --shouldRender=false --metaConfig=${metaConfig} --meta_sim_sample=3 --meta_sim_threads=3 --tuning_threads=2 --email_log_data_periodically=true --email_logging_time=28800 --plot=false ${opts}'"
 	### GPU training
 # 	 	arg="source ~/tensorflow/bin/activate; pushd /home/glen/playground/RL-Framework; python3 tuneHyperParameters.py --config=${simConfigFile} --metaConfig=${metaConfig} --meta_sim_samples=3 --meta_sim_threads=3 --tuning_threads=2 --num_rounds=${rounds} --plot=false --on_policy=fast --shouldRender=false --save_experience_memory=continual --continue_training=last --saving_update_freq_num_rounds=1 -p 4 --rollouts=16 --simulation_timeout=1200 --email_log_data_periodically=true --save_video_to_file=eval_movie2.mp4 --visualize_expected_value=false --force_sim_net_to_cpu=true ${opts}"
 		arg=$arg$output
 		command=(ray exec settings/hyperParamTuning/bair/RL-Framework_Cluster.yaml "$arg" --tmux)
 		echo "${command[@]}"
 		# eval $command
-		"${command[@]}"
+		# "${command[@]}"
 	done
 done
 

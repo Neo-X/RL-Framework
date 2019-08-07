@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "CLEVRObjectHRL_NoVision_LLP_v0/MAD_2",
+"data_folder": "CLEVRObjectHRL_NoVision_LLP_v0/_llc_ep_10_1",
 	"comment__": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment__": "initial probability of selecting a discrete random action",
@@ -369,5 +369,7 @@
 	"comment__": "higher level controller timestep",
 "hlc_timestep": 10,
 	"comment__": "The index of the multiagent simulation for the hlc",
-"hlc_index": 0
+"hlc_index": 0,
+	"comment__": "Processes rewards as if the trajectory length was equal to the hlc_timestep",
+"llc_episode_length": 10
 }
