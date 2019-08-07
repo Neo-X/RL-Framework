@@ -348,13 +348,13 @@
 	"comment__": "If true the simulation will terminate after an early termination or when max time steps is reached, otherwise max_time_steps sample are collected",
 "sample_single_trajectories": true,
 	"comment__": "Using a single network for all functions",
-"use_single_network": true,
+"use_single_network": false,
 	"comment__": "Network settings",
 "network_settings": {
 		"comment__": "Whether or not the network should include pooling layers between convolutions.",
 	"perform_convolution_pooling": false,
 		"comment__": "Change where the network splits for a single network model",
-	"split_single_net_earlier": true
+	"split_single_net_earlier": false
 },
 	"comment__": "Run some initial training steps to pretrain the critic before starting policy training",
 "pretrain_critic": 0,
