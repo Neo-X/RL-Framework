@@ -34,3 +34,6 @@ sudo apt-get update && sudo apt-get install google-cloud-sdk
 
 ### init and login
 gcloud init
+
+### Setup docker cridentials
+gcloud auth configure-docker
