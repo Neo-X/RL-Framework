@@ -762,6 +762,30 @@ def createEnvironment(config_file, env_type, settings, render=False, index=None)
 
         return exp
 
+    elif env_type == 'MultiworldGoalRIGVAE':
+        import gym
+        import multiworld
+        from sim.MultiworldGoalRIGVAEEnv import MultiworldGoalRIGVAEEnv
+
+        multiworld.register_all_envs()
+        env_name = config_file
+        if "multiworld_kwargs" in settings:
+            multiworld_kwargs = settings["multiworld_kwargs"]
+        else:
+            multiworld_kwargs = {}
+        env = gym.make(env_name, **multiworld_kwargs)
+
+        conf = copy.deepcopy(settings)
+        conf['render'] = render
+        image_key = "image_observation"
+        if "image_key" in conf:
+            image_key = conf["image_key"]
+        exp = MultiworldGoalRIGVAEEnv(env, conf,
+                                image_key=image_key,
+                                timeskip=conf["hlc_timestep"])
+
+        return exp
+
     elif env_type == 'MetaworldGoal':
         import gym
         from sim.OpenAIGymGoalEnv import OpenAIGymGoalEnv
@@ -1073,6 +1097,7 @@ def createActor(env_type, settings, experience):
           or (env_type == 'MultiworldHRL')
           or (env_type == 'MultiworldGoal')
           or (env_type == 'MultiworldGoalVAE')
+          or (env_type == 'MultiworldGoalRIGVAE')
           or (env_type == 'Metaworld')
           or (env_type == 'MetaworldHRL')
           or (env_type == 'MetaworldGoal')

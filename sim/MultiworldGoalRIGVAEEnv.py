@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 
-class MultiworldGoalVAEEnv(MultiworldVAEEnv):
+class MultiworldGoalRIGVAEEnv(MultiworldVAEEnv):
 
     def __init__(self, exp, settings, multiAgent=False,
                  image_key="image_observation",
@@ -22,33 +22,24 @@ class MultiworldGoalVAEEnv(MultiworldVAEEnv):
             1.0 * np.ones([2 * settings["encoding_vector_size"]]))
 
     def reset(self):
-        super(MultiworldGoalVAEEnv, self).reset()
-        goal_dict = self.getEnvironment().sample_goals(1)
-        self.getEnvironment().set_to_goal(goal_dict)
-        self._goal_image = self.getEnvironment()._get_obs()[self._state_key]
-        self._goal = self.encode(self._goal_image)
-        self.getEnvironment().set_to_goal(self._previous_dict)
+        super(MultiworldGoalRIGVAEEnv, self).reset()
+        self._goal = np.random.normal(0, 1, [self.getSettings()["encoding_vector_size"]])
+        self._goal_image = self.decode(self._goal)
         self._previous_observation = np.concatenate([self._previous_observation, self._goal], -1)
         self._timestep = 0
         return self._previous_observation
 
     def init(self):
-        super(MultiworldGoalVAEEnv, self).init()
-        goal_dict = self.getEnvironment().sample_goals(1)
-        self.getEnvironment().set_to_goal(goal_dict)
-        self._goal_image = self.getEnvironment()._get_obs()[self._state_key]
-        self._goal = self.encode(self._goal_image)
-        self.getEnvironment().set_to_goal(self._previous_dict)
+        super(MultiworldGoalRIGVAEEnv, self).reset()
+        self._goal = np.random.normal(0, 1, [self.getSettings()["encoding_vector_size"]])
+        self._goal_image = self.decode(self._goal)
         self._previous_observation = np.concatenate([self._previous_observation, self._goal], -1)
         self._timestep = 0
             
     def initEpoch(self):
-        super(MultiworldGoalVAEEnv, self).initEpoch()
-        goal_dict = self.getEnvironment().sample_goals(1)
-        self.getEnvironment().set_to_goal(goal_dict)
-        self._goal_image = self.getEnvironment()._get_obs()[self._state_key]
-        self._goal = self.encode(self._goal_image)
-        self.getEnvironment().set_to_goal(self._previous_dict)
+        super(MultiworldGoalRIGVAEEnv, self).reset()
+        self._goal = np.random.normal(0, 1, [self.getSettings()["encoding_vector_size"]])
+        self._goal_image = self.decode(self._goal)
         self._previous_observation = np.concatenate([self._previous_observation, self._goal], -1)
         self._timestep = 0
         
@@ -59,16 +50,13 @@ class MultiworldGoalVAEEnv(MultiworldVAEEnv):
             x = np.flip(x, 2)
             cv2.imshow("goal image", x)
         self._timestep = self._timestep + 1
-        super(MultiworldGoalVAEEnv, self).step(action)
+        super(MultiworldGoalRIGVAEEnv, self).step(action)
         reward = -np.sqrt(np.square(self._previous_observation - self._goal).sum())
         reward = reward / self.getSettings()["encoding_vector_size"]
         self.__reward = np.array([[reward]])
         if self._timestep >= self._skip:
             self._timestep = 0
-            goal_dict = self.getEnvironment().sample_goals(1)
-            self.getEnvironment().set_to_goal(goal_dict)
-            goal_image = self.getEnvironment()._get_obs()[self._state_key]
-            self._goal = self.encode(goal_image)
-            self.getEnvironment().set_to_goal(self._previous_dict)
+            self._goal = np.random.normal(0, 1, [self.getSettings()["encoding_vector_size"]])
+            self._goal_image = self.decode(self._goal)
         self._previous_observation = np.concatenate([self._previous_observation, self._goal], -1)
         return self.__reward

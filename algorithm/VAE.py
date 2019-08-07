@@ -316,6 +316,9 @@ class VAE(SiameseNetwork):
         self._get_reconstructed_image = K.function(
             [self._model.getStateSymbolicVariable()],
             [decode_a])
+        self._get_reconstructed_image_from_latent_variable = K.function(
+            [processed_a_vae],
+            [decode_a])
         self._get_latent_variable_reconstructed_image = K.function(
             [self._model.getStateSymbolicVariable()],
             [processed_a_vae, decode_a])

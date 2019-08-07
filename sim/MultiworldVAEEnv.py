@@ -27,6 +27,11 @@ class MultiworldVAEEnv(MultiworldEnv):
             return np.zeros([self.getSettings()["encoding_vector_size"]])
         return self.model._get_latent_variable([[x]])[0][0]
 
+    def decode(self, z):
+        if self.model is None:
+            return np.zeros([self.getSettings()["fd_num_terrain_features"]])
+        return self.model._get_reconstructed_image_from_latent_variable([[z]])[0][0]
+
     def reset(self):
         # self.getEnvironment().init()
         state_dict = self.getEnvironment().reset()
