@@ -348,7 +348,7 @@
 	"comment__": "If true the simulation will terminate after an early termination or when max time steps is reached, otherwise max_time_steps sample are collected",
 "sample_single_trajectories": true,
 	"comment__": "Using a single network for all functions",
-"use_single_network": false,
+"use_single_network": true,
 	"comment__": "Network settings",
 "network_settings": {
 		"comment__": "Whether or not the network should include pooling layers between convolutions.",
