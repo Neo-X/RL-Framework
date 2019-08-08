@@ -23,7 +23,16 @@ class LearningMultiAgent(LearningAgent):
         self._useLock = False
         if self._useLock:
             self._accesLock = threading.Lock()
-        self._agents = [LearningAgent(self.getSettings()) for i in range(self.getSettings()["perform_multiagent_training"])]
+        
+        self._agents = []
+        for m in range(self.getSettings()["perform_multiagent_training"]):
+            settings__ = copy.deepcopy(self.getSettings())
+            if (type(self.getSettings()["additional_on_policy_training_updates"]) is list):
+                settings__["additional_on_policy_training_updates"] = self.getSettings()["additional_on_policy_training_updates"][m]
+
+            # LearningAgent(self.getSettings())
+            self._agents.append(LearningAgent(settings__))
+        # self._agents = [LearningAgent(self.getSettings()) for i in range(self.getSettings()["perform_multiagent_training"])]
         
     def getAgents(self):
         return self._agents
