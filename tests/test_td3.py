@@ -7,14 +7,14 @@ import json
 import sys
 
 
-class TestDDPG(object):
+class TestTD3(object):
 
     # @pytest.mark.timeout(600)
     def test_ddpg_keras_particleNav_10D(self):
         """
         Test that DDPG can still learn a good policy on 2d particle sim
         """
-        filename = "tests/settings/particleSim/SAC/Off_Policy_Tensorflow.json"
+        filename = "tests/settings/particleSim/TD3/Off_Policy_Tensorflow.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -51,7 +51,7 @@ class TestDDPG(object):
         """
         
         """
-        filename = "tests/settings/gapGame2D/SAC/Off_Policy_Tensorflow.json"
+        filename = "tests/settings/gapGame2D/TD3/Off_Policy_Tensorflow.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -68,12 +68,12 @@ class TestDDPG(object):
         
         
         # @pytest.mark.timeout(600)
-    def test_sac_keras_clevrObjects_HRL_MARL(self):
+    def test_td3_keras_clevrObjects_HRL_MARL(self):
         from trainMultiAgentModel import trainModelParallel as trainMultiAgentModelParallel
         """
         
         """
-        filename = "tests/settings/clevrObjects/SAC/HRL_Tensorflow_HLP_Only_v1.json"
+        filename = "tests/settings/clevrObjects/TD3/HRL_Tensorflow_HLP_Only_v1.json"
         file = open(filename)
         settings = json.load(file)
         file.close()

@@ -24,6 +24,7 @@ tests_ =[
         ,'test_cacla.py'
         ,'test_ddpg.py'
         ,'test_sac.py'
+        ,'test_td3.py'
         ,'test_mbrl.py'
         ,'test_ppo.py'
         ,'test_trpo.py'

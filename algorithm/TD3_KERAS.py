@@ -365,10 +365,10 @@ class TD3_KERAS(KERASAlgorithm):
         target_actions = self._modelTarget.getActorNetwork().predict(result_states, batch_size=states.shape[0])
         c = 0.02
         noise_scale = 0.02
-        target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=noise_scale, size=target_actions.shape), -c, c)
+        target_actions_n = target_actions + np.clip(np.random.normal(loc=0, scale=noise_scale, size=target_actions.shape), -c, c)
         ## Get next q value
-        q_vals_b = self._modelTarget.getCriticNetwork().predict([result_states, target_actions], batch_size=states.shape[0])
-        q_vals_b1 = self._modelTarget1.getCriticNetwork().predict([result_states, target_actions], batch_size=states.shape[0])
+        q_vals_b = self._modelTarget.getCriticNetwork().predict([result_states, target_actions_n], batch_size=states.shape[0])
+        q_vals_b1 = self._modelTarget1.getCriticNetwork().predict([result_states, target_actions_n], batch_size=states.shape[0])
         q_vals = np.concatenate((q_vals_b, q_vals_b1), axis=1)
         q_vals_min = np.min(q_vals, axis=-1, keepdims=True)
         # print ("q_vals_b, q_vals_b1, min(q_vals_b,q_vals_b1)", np.concatenate((q_vals_b, q_vals_b1, q_vals_min), axis=1))
