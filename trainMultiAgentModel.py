@@ -519,7 +519,11 @@ def trainModelParallel(inputData):
         print ("state bounds: ", state_bounds)
         ### If the policy loaded state bounds use those
         state_bounds = masterAgent.getStateBounds()
+        action_bounds = masterAgent.getActionBounds()
+        reward_bounds = masterAgent.getRewardBounds()
         settings['state_bounds'] = masterAgent.getStateBounds()
+        settings['action_bounds'] = masterAgent.getActionBounds()
+        settings['reward_bounds'] = masterAgent.getRewardBounds()
         # sys.exit()
         
         
