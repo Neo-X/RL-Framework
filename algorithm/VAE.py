@@ -325,6 +325,9 @@ class VAE(SiameseNetwork):
         self._sample_image_from_prior = K.function(
             [],
             [decode_prior])
+        self._sample_latent_variable_image_from_prior = K.function(
+            [],
+            [self.noise_from_prior, decode_prior])
         
     def vae_loss_a(self, action_true, action_pred):
         

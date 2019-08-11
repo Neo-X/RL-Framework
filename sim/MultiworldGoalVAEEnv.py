@@ -57,7 +57,7 @@ class MultiworldGoalVAEEnv(MultiworldVAEEnv):
             x = np.reshape(self._goal_image, self.getSettings()["fd_terrain_shape"])
             x = np.flip(x, 0)
             x = np.flip(x, 2)
-            cv2.imshow("goal image", x)
+            cv2.imshow("goal image", x * 0.5 + 0.5)
         self._timestep = self._timestep + 1
         super(MultiworldGoalVAEEnv, self).step(action)
         reward = -np.sqrt(np.square(self._previous_observation - self._goal).sum())
