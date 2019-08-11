@@ -24,7 +24,7 @@
     "comment__": "Number of epoch/episode to evaluate the policy over",
 "eval_epochs": 32,
     "comment__": "Discount factor used during learning",
-"discount_factor": 0.9,
+"discount_factor": 0.95,
     "comment__": "Should the training be plotted during learning",
 "visualize_learning": true,
     "comment__": "Whether or not to save the plotted data while learning",
@@ -263,7 +263,7 @@
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy F to perform per epoch",
-"num_on_policy_rollouts": 16,
+"num_on_policy_rollouts": 32,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": false,
 	"comment__": "PPO should use seperate networks for the value and policy functions",
@@ -296,13 +296,11 @@
 								],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [[ 
-								{"layer_type": "slice", "slice_index": 15, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],[ 
-								{"layer_type": "slice", "slice_index": 7, "slice_label": "other_agent"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
@@ -369,7 +367,5 @@
 	"comment__": "higher level controller timestep",
 "hlc_timestep": 10,
 	"comment__": "The index of the multiagent simulation for the hlc",
-"hlc_index": 0,
-	"comment__": "Processes rewards as if the trajectory length was equal to the hlc_timestep",
-"llc_episode_length": 10
+"hlc_index": 0
 }

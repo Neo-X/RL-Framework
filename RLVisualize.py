@@ -43,7 +43,10 @@ class RLVisualize(object):
         self._discount_errors = []
         self._discount_error_stds = []
         for j in range(self._agents):
-            self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0, label="agent_"+str(j))
+            if ("agent_names" in self._settings):
+                self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0, label=self._settings["agent_names"][j])
+            else:
+                self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0, label="agent_"+str(j))
             self._bellman_error_std = self._bellman_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
             self._bellman_error_ax.set_title('Bellman Error', fontsize=16)
             self._bellman_error_ax.set_ylabel("Absolute Error", fontsize=16)

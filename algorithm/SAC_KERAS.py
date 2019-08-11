@@ -400,7 +400,7 @@ class SAC_KERAS(KERASAlgorithm):
             target_means,
             np.exp(target_stds / 2.0),
             self._action_length)
-        q_vals_b = q_vals_b - logprobs
+        q_vals_b = q_vals_b - (0.001 * logprobs)
         # q_vals_b = self._q_val()
         ## Compute target values
         # target_tmp_ = rewards + ((self._discount_factor* q_vals_b )* falls)
