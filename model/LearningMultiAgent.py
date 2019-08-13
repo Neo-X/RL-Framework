@@ -26,11 +26,14 @@ class LearningMultiAgent(LearningAgent):
         
         self._agents = []
         for m in range(self.getSettings()["perform_multiagent_training"]):
+            ### I think these settings will get propogated to the experience memory objects
             settings__ = copy.deepcopy(self.getSettings())
             if (type(self.getSettings()["additional_on_policy_training_updates"]) is list):
                 settings__["additional_on_policy_training_updates"] = self.getSettings()["additional_on_policy_training_updates"][m]
             if (type(self.getSettings()["exploration_method"] is list)):
                 settings__["exploration_method"] = self.getSettings()["exploration_method"][m]
+            if (type(self.getSettings()["state_normalization"] is list)):
+                settings__["state_normalization"] = self.getSettings()["state_normalization"][m]
             # LearningAgent(self.getSettings())
             self._agents.append(LearningAgent(settings__))
         # self._agents = [LearningAgent(self.getSettings()) for i in range(self.getSettings()["perform_multiagent_training"])]

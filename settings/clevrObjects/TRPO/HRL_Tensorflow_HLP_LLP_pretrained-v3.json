@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "CLEVRObjectHRL_NoVision_HLC_v0/MAD_4",
+"data_folder": "CLEVRObjectHRL_NoVision_HLC_v0/Pretrained_LLP_1",
 	"comment__": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment__": "initial probability of selecting a discrete random action",
@@ -16,7 +16,7 @@
     "comment__": "Config file for the simulator",
 "sim_config_file": "CLEVRObjectHRL_NoVision_HLC_v0",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": [0.25,0.000001],
+"exploration_rate": [0.25,0.1],
     "comment__": "Number of rounds to perform before termination",
 "rounds": 200,
     "comment__": "Number of epochs to perform per round",
@@ -35,7 +35,7 @@
 "reward_bounds": [[[0.0],[10.0]],
 					[[-5.0],[0.0]]],
     "comment__": "Max length of the Experience memory",
-"experience_length": [50000, 20000],
+"experience_length": [50000, 50000],
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [
   				  [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
@@ -319,7 +319,7 @@
 	"comment__": "use a special annealing schedule that will begin at 1 and end at 0",
 "annealing_schedule": "log",
 	"comment__": "Use the annealing schedule in on policy learning",
-"anneal_on_policy": true,
+"anneal_on_policy": false,
 	"comment__": "Use a different off-policy experience memory for the fd learning",
 "keep_seperate_fd_exp_buffer": false,
 	"comment__": "Train a GAN to do something....",
@@ -361,7 +361,7 @@
 	"comment__": "Use a centralized critics (each one kind of has full information)",
 "use_centralized_critic": false,
 	"comment__": "Ignore training some of the agents in a multi agent sim",
-"ignore_MRL_agents": [1],
+"ignore_MRL_agents": [],
 	"comment__": "The index of the multiagent simulation for the hlc",
 "llc_index": 1,
 	"comment__": "higher level controller timestep",
@@ -371,5 +371,7 @@
 	"comment__": "Folder to pull pretrained models from:",
 "pretrained_data_folder": "settings/clevrObjects/TRPO/HRL_PoseGoal_Tensorflow_NoViz_LLP-v1.json",
 	"comment__": "Agent names",
-"agent_names": ["HLP", "LLP"]
+"agent_names": ["HLP", "LLP"],
+	"comment__": "Compute the batches for the agents using a approximate faster method",
+"Use_fast_batch_computation": true
 }
