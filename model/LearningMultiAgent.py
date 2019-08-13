@@ -30,9 +30,9 @@ class LearningMultiAgent(LearningAgent):
             settings__ = copy.deepcopy(self.getSettings())
             if (type(self.getSettings()["additional_on_policy_training_updates"]) is list):
                 settings__["additional_on_policy_training_updates"] = self.getSettings()["additional_on_policy_training_updates"][m]
-            if (type(self.getSettings()["exploration_method"] is list)):
+            if (type(self.getSettings()["exploration_method"]) is list):
                 settings__["exploration_method"] = self.getSettings()["exploration_method"][m]
-            if (type(self.getSettings()["state_normalization"] is list)):
+            if (type(self.getSettings()["state_normalization"]) is list):
                 settings__["state_normalization"] = self.getSettings()["state_normalization"][m]
             # LearningAgent(self.getSettings())
             self._agents.append(LearningAgent(settings__))
