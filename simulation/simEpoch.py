@@ -621,10 +621,12 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         print ("Rewards: ", R_r)
         print ("Advantage, discounted Reward, baseline: ", np.array(A_r))
 
-    # Hindsight Experience Replay
+    ### Hindsight Experience Replay
+    ## Add Trajectories that achieved some goal
     if ("use_hindsight_relabeling" in settings and
             settings["use_hindsight_relabeling"] and
-            "goal_slice_index" in settings):
+            "goal_slice_index" in settings and 
+            (not evaluation)):
 
         for jj in range(len(states)):
 
@@ -653,6 +655,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 result_states___[jj][0, ...] = np.concatenate([
                     result_states___[jj][0, :settings["goal_slice_index"]],
                     achieved_goal], 0)
+                ### Basic version of reward function is indicator of reached goal threshold
+                rewards = (rewards * 0) + -1
+                rewards[-1] = [1]
+                
     
     ### Fix data, Might need to unpack some vectors
     tmp_states = []
