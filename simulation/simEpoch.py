@@ -621,44 +621,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         print ("Rewards: ", R_r)
         print ("Advantage, discounted Reward, baseline: ", np.array(A_r))
 
-    ### Hindsight Experience Replay
-    ## Add Trajectories that achieved some goal
-    if ("use_hindsight_relabeling" in settings and
-            settings["use_hindsight_relabeling"] and
-            "goal_slice_index" in settings and 
-            (not evaluation)):
-
-        for jj in range(len(states)):
-
-            # Multi agent version
-            if ("hlc_timestep" in settings and
-                    "hlc_index" in settings and
-                    "llc_index" in settings):
-                position = ((jj // settings["hlc_timestep"]) + 1) * settings["hlc_timestep"] - 1
-                position = min(position, len(result_states___) - 1)
-                achieved_goal = result_states___[position][
-                                settings["llc_index"], :settings["goal_slice_index"]]
-                states[jj][settings["llc_index"], ...] = np.concatenate([
-                    states[jj][settings["llc_index"], :settings["goal_slice_index"]],
-                    achieved_goal], 0)
-                result_states___[jj][settings["llc_index"], ...] = np.concatenate([
-                    result_states___[jj][settings["llc_index"], :settings["goal_slice_index"]],
-                    achieved_goal], 0)
-                actions[jj][settings["hlc_index"]] = achieved_goal
-
-            # Single agent version
-            else:
-                achieved_goal = result_states___[-1][0, :settings["goal_slice_index"]]
-                states[jj][0, ...] = np.concatenate([
-                    states[jj][0, :settings["goal_slice_index"]],
-                    achieved_goal], 0)
-                result_states___[jj][0, ...] = np.concatenate([
-                    result_states___[jj][0, :settings["goal_slice_index"]],
-                    achieved_goal], 0)
-                ### Basic version of reward function is indicator of reached goal threshold
-                rewards = (rewards * 0) + -1
-                rewards[-1] = [1]
-                
     
     ### Fix data, Might need to unpack some vectors
     tmp_states = []

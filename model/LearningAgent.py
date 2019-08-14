@@ -205,6 +205,58 @@ class LearningAgent(AgentInterface):
         """
         self.putDataInExpMem(_states, _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, recomputeRewards=True)
         
+    def applyHER(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
+              _exp_actions, _G_t):
+        import numpy as np
+        ### Hindsight Experience Replay
+        ## Add Trajectories that achieved some goal
+        if ("use_hindsight_relabeling" in self._settings and
+                self._settings["use_hindsight_relabeling"] and
+                "goal_slice_index" in self._settings):
+            ### For each trajectory add another trajectory with a modified goal
+            trajectories = len(_states)
+            for traj in range(trajectories):
+                ### Get the new goal(s) for the trajectory
+                # new_goals = [x for x in copy.deepcopy(_result_states[traj])]
+                new_goals = []
+                for g in range(len(_result_states[traj])):
+                    g_index = ((int(g / self._settings["hlc_timestep"])+1) * self._settings["hlc_timestep"]) -1
+                    g_index = min(g_index, len(_result_states[traj])-1)
+                    new_goals.append(_result_states[traj][g_index][:self._settings["goal_slice_index"]]) 
+                ### Copy in the new goals
+                new_goals = np.array(new_goals)
+                states = np.array(copy.deepcopy(_states[traj]))
+                result_states = np.array(copy.deepcopy(_result_states[traj]))
+                states[:,-self._settings["goal_slice_index"]:] = new_goals
+                result_states[:,-self._settings["goal_slice_index"]:] = new_goals
+                rewards = copy.deepcopy(_rewards[traj])
+                diff = -np.fabs(result_states[:,:self._settings["goal_slice_index"]] - new_goals)
+                rewards = np.sum(diff, axis=-1, keepdims=True)
+                
+                _states.append(states)
+                _result_states.append(result_states)
+                _rewards.append(rewards)
+                _actions.append(_actions[traj])
+                _falls.append(_falls[traj])
+                _advantage.append(_advantage[traj])
+                _exp_actions.append(_exp_actions[traj])
+                _G_t.append(_G_t[traj])
+                
+                """
+                    achieved_goal = result_states___[-1][0, :self._settings["goal_slice_index"]]
+                    states[jj][0, ...] = np.concatenate([
+                        states[jj][0, :self._settings["goal_slice_index"]],
+                        achieved_goal], 0)
+                    result_states___[jj][0, ...] = np.concatenate([
+                        result_states___[jj][0, :self._settings["goal_slice_index"]],
+                        achieved_goal], 0)
+                    ### Basic version of reward function is indicator of reached goal threshold
+                    rewards = (rewards * 0) + -1
+                    rewards[-1] = [1]
+                """
+        return (_states, _actions, _rewards, _result_states, _falls, _advantage, 
+              _exp_actions, _G_t)
+                
     def getAgents(self):
         return [self]
     # @profile(precision=5)
@@ -228,6 +280,10 @@ class LearningAgent(AgentInterface):
             self.updateTargetModel()
             num_samples_=1
             t0 = time.time()
+            
+            (_states, _actions, _rewards, _result_states, _falls, _advantage, 
+              _exp_actions, _G_t) = self.applyHER(_states, _actions, _rewards, _result_states, _falls, _advantage, 
+              _exp_actions, _G_t)
             
             ( num_samples_, (tmp_states, tmp_actions, tmp_result_states, tmp_rewards, tmp_falls, tmp_G_t, tmp_advantage, tmp_exp_action)) = self.putDataInExpMem(_states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t)
