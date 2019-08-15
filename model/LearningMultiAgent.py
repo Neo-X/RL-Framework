@@ -35,6 +35,7 @@ class LearningMultiAgent(LearningAgent):
             if (type(self.getSettings()["state_normalization"]) is list):
                 settings__["state_normalization"] = self.getSettings()["state_normalization"][m]
             # LearningAgent(self.getSettings())
+            settings__["use_hindsight_relabeling"] = False
             self._agents.append(LearningAgent(settings__))
         # self._agents = [LearningAgent(self.getSettings()) for i in range(self.getSettings()["perform_multiagent_training"])]
         
@@ -279,12 +280,9 @@ class LearningMultiAgent(LearningAgent):
                         "reward": np.array(rewards__[tar]),
                         "falls": np.array(falls__[tar]), 
                         "terminated": False}
-                # print ("path: ", path)
                 paths = compute_advantage_(model, [path], model._settings["discount_factor"], model._settings['GAE_lambda'])
                 adv__ = paths["advantage"]
-                # print ("advantage diff: ", _advantage[tar] - adv__)
                 _advantage[tar] = adv__
-                # baselines_.append(np.array(paths["baseline"]))
                 
                 assert np.ceil(tmp_len/skip_num) == len(states__[tar]), "np.ceil(tmp_len/skip_num) == len(states__[tar])" + str(np.ceil(tmp_len/skip_num)) + " == " + str(len(states__[tar]))            
         return  (states__, actions__, rewards__, result_states__, falls__, _advantage, 
@@ -296,15 +294,10 @@ class LearningMultiAgent(LearningAgent):
         import numpy as np 
         
         for agent_ in range(len(self.getAgents())):
-            # print ("_states: ", np.array(_states).shape)
-            # print ("_states[0][0]: ", np.array(_states[0][0]).shape)
-            # print ("_states[0][1]: ", np.array(_states[0][1]).shape)
-            # print ("_states[0][2]: ", np.array(_states[0][2]).shape)
             ### Pull out the state for each agent, start at agent index and skip every number of agents 
             states__ = [state_[agent_::len(self.getAgents())] for state_ in _states]
             actions__ = [state_[agent_::len(self.getAgents())] for state_ in _actions]
             rewards__ = [state_[agent_::len(self.getAgents())] for state_ in _rewards]
-            # print ("rewards__: ", rewards__)
             result_states__ = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
             result_states_tmp = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
             falls__ = [state_[agent_::len(self.getAgents())] for state_ in _falls]
@@ -312,9 +305,6 @@ class LearningMultiAgent(LearningAgent):
             exp_actions__ = [state_[agent_::len(self.getAgents())] for state_ in _exp_actions]
             G_t__ = [state_[agent_::len(self.getAgents())] for state_ in _G_t]
             
-            # print ("states__: ", np.array(states__).shape)
-            # print ("result_states__: ", np.array(result_states__).shape)
-            # print ("result_states_tmp: ", np.array(result_states_tmp).shape)
             if ( "use_centralized_critic" in self.getSettings()
                  and (self.getSettings()["use_centralized_critic"] == True)):
                 ### Add other agent data 
@@ -329,59 +319,41 @@ class LearningMultiAgent(LearningAgent):
                             result_states__[tar][s] = np.concatenate((result_states__[tar][s],result_states___[tar][s]), axis=0)
                             ### Create a tmp next state data structure because we need to ask for the other agent target action later
                             result_states_tmp[tar][s] = np.concatenate((result_states_tmp[tar][s],result_states___[tar][s]), axis=0) 
-                            # states__[tar][s] = np.array(list(states__[tar][s]).extend(states___[tar][s]))
-                            # print ("states__[tar][s]: ", np.array(states__[tar][s]).shape)
-                            # print ("states__[tar][s]: ", states__[tar][s])
-                        # print ("states__[s]: ", np.array(states__[tar]).shape)
                         
                 ### Collect the actions of the other agents as additional state info.
                 for agent__ in [i for i,x in enumerate(self.getAgents()) if i!=agent_]:
                     actions___ = [state_[agent__::len(self.getAgents())] for state_ in _actions]
                     for tar in range(len(states__)):
                         for s in range(len(states__[tar])):
-                            # states__[tar][s] = np.array(list(states__[tar][s]).extend(actions___[tar][s]))
                             state___ = np.concatenate((states__[tar][s],actions___[tar][s]), axis=0)
-                            # print ("state: ", np.array(state___).shape)
                             states__[tar][s] = state___
                             ### Add garbage action to this tmp next state to create corect size state for other agent target action request
                             result_states_tmp[tar][s] = np.concatenate((result_states_tmp[tar][s],actions___[tar][s]), axis=0)
-                        # print ("states__[s]: ", np.array(states__[tar]).shape)
-                
-                # print ("states__ again: ", np.array(states__).shape)
-                # print ("result_states__: ", np.array(result_states__).shape)
-                # print ("result_states_tmp: ", np.array(result_states_tmp).shape)
                 
                 ### Now that we have data of the correct size to ask for target actions of other agents, get those target actions.
                 for agent__ in [i for i,x in enumerate(self.getAgents()) if i!=agent_]:
-                    # actions___ = [state_[agent__::len(self.getAgents())] for state_ in _actions]
-                    # result_states___ = [state_[agent__::len(self.getAgents())] for state_ in result_states_tmp]
                     ### Get result state for this other agent
                     result_states_tmp_agent = np.array([state_[agent__::len(self.getAgents())] for state_ in _result_states])
                     result_states_tmp = np.array(result_states_tmp)
-                    # print ("result_states_tmp_agent: ", result_states_tmp_agent.shape)
-                    # result_states_tmp[]
                     for tar in range(len(result_states_tmp_agent)):
                         concat_index = np.array(result_states_tmp_agent[tar][:]).shape[-1]
-                        # print ("result_states_tmp_agent[tar,:]: ", np.array(result_states_tmp_agent[tar][:]).shape)
-                        # print ("result_states_tmp[tar,:,:result_states_tmp_agent.shape[-1]]: ", np.array(result_states_tmp[tar][:,:concat_index]).shape)
                         replace_data = np.array(result_states_tmp[tar])
                         replace_data[:,:concat_index] = np.array(result_states_tmp_agent[tar][:])
                         result_states_tmp[tar] = replace_data
-                        # print ("result_states___[tar]: ", np.array(result_states_tmp[tar]).shape)
-                        # print ("result_states__[s] before : ", np.array(result_states__[tar]).shape)
                         target_actions = self.getAgents()[agent__].predict_target(result_states_tmp[tar])
-                        # print ("target_actions: ", np.array(target_actions).shape)
                         for s in range(len(result_states___[tar])):
-                            # states__[tar][s] = np.array(list(states__[tar][s]).extend(actions___[tar][s]))
-                            # states__[tar][s] = np.concatenate((states__[tar][s],actions___[tar][s]), axis=0)
                             target_res_state = np.concatenate((result_states__[tar][s],target_actions[s]), axis=0)
-                            # print ("target_res_state: ", np.array(target_res_state).shape)
-                            # print ("target_res_state: ", target_res_state)
                             result_states__[tar][s] = np.array(target_res_state)
-                        # print ("result_states__[s]: ", np.array(result_states__[tar]).shape) 
             
-            # print ("states__: ", np.array(states__).shape)
-            # print ("result_states__: ", np.array(result_states__).shape) 
+            if ("use_hindsight_relabeling" in self._settings and
+                self._settings["use_hindsight_relabeling"] and
+                "goal_slice_index" in self._settings
+                and (self.getSettings()["llc_index"] == agent_)):
+                print("Applying HER")
+                (states__, actions__, rewards__, result_states__, falls__, advantage__, 
+                 exp_actions__, G_t__) = self.applyHER(states__, actions__, rewards__, 
+                                                       result_states__, falls__, advantage__, exp_actions__, G_t__)
+                  
             if ("hlc_index" in self.getSettings()
                 and (self.getSettings()["hlc_index"] == agent_)):
                 (states__, actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__) = self.dataSkip(self.getAgents()[agent_], states__, 
@@ -400,16 +372,10 @@ class LearningMultiAgent(LearningAgent):
                 self.getAgents()[agent_]._settings["max_epoch_length"] = np.ceil(self.getSettings()["max_epoch_length"]/self.getSettings()["hlc_timestep"])
             if ( "ignore_MRL_agents" in self.getSettings()
                  and (agent_ in self.getSettings()["ignore_MRL_agents"])):
-                # print ("Skipping agent: ", agent_)
                 self.getAgents()[agent_]._settings["train_actor"] = False
                 self.getAgents()[agent_]._settings["train_critic"] = False
-                # continue
-                # pass ### Skip agent
             else:
-                # print ("Training agent: ", agent_)
                 pass
-            # print ("self.getAgents()[",agent_,"].getStateBounds(): ", repr(self.getAgents()[agent_].getStateBounds()) )
-            # print ("self.getAgents()[",agent_,"].getRewardBounds(): ", repr(self.getAgents()[agent_].getRewardBounds()) )
             self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
               _exp_actions=exp_actions__, _G_t=G_t__, p=p)
         
