@@ -348,6 +348,9 @@ def clampActionWarn(actionV, bounds):
     """
     out=False
     actionV_ = copy.deepcopy(actionV)
+    # print ("actionV_: ", actionV_)
+    # print ("bounds: ", bounds)
+    ### Does not work for multi-agent simulation
     for j in range(len(actionV_)): 
         for i in range(len(actionV_[j])):
             if actionV_[j][i] < bounds[0][i]:
