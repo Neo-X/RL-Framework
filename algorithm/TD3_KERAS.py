@@ -14,6 +14,8 @@ from keras.models import Sequential, Model
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 from collections import OrderedDict
+def neg_y(true_y, pred_y):
+    return K.mean(-pred_y)
 
 class TD3_KERAS(KERASAlgorithm):
     
@@ -150,9 +152,6 @@ class TD3_KERAS(KERASAlgorithm):
         self._model.getCriticNetwork().trainable = False
         self._model1.getCriticNetwork().trainable = False
         
-        def neg_y(true_y, pred_y):
-            return K.mean(-pred_y)
-        
         self._act = self._model.getActorNetwork()(
                                 [self._model.getStateSymbolicVariable()])
         if ( "use_centralized_critic" in self.getSettings()
@@ -203,6 +202,55 @@ class TD3_KERAS(KERASAlgorithm):
         self._get_actor_loss = K.function([self._model.getStateSymbolicVariable()
                                                  # ,K.learning_phase()
                                                  ], [self._qFunc])
+        
+        
+    def setFrontPolicy(self, lowerPolicy):
+        
+        from model.DeepNNKerasAdaptive import keras_slice
+        
+        
+        # For the combined model we will only train the actor
+        self._model.getCriticNetwork().trainable = False
+        self._model1.getCriticNetwork().trainable = False
+        lowerPolicy.trainable = False
+        
+        llp = lowerPolicy._model._actor
+        g = self._model._actor([self._model.getStateSymbolicVariable()])
+        ### a pi(a|s,g)
+        s_llp = keras.layers.core.Lambda(keras_slice, output_shape=(4,),
+                        arguments={'begin': 0, 
+                        'end': 4})(self._model.getStateSymbolicVariable())
+                         
+        s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)                         
+        # s_llp = keras.layers.merge.Concatenate(axis=-1)([s_llp, g])
+        self._model._policy2 = llp(inputs=[s_llp])
+        
+        if ( "use_centralized_critic" in self.getSettings()
+             and (self.getSettings()["use_centralized_critic"] == True)
+             and False):
+            self._qFunc = (self._model.getCriticNetwork()(
+                            [self._model.getResultStateSymbolicVariable(), 
+                             self._model._policy2]))
+            self._combined = Model(input=[self._model.getStateSymbolicVariable(),
+                                          self._model.getResultStateSymbolicVariable()], 
+                                output=self._qFunc)
+        else:
+            self._qFunc = (self._model.getCriticNetwork()(
+                            [self._model.getStateSymbolicVariable(), 
+                             self._model._policy2]))
+            self._combined = Model(input=[self._model.getStateSymbolicVariable()], 
+                                output=self._qFunc)
+        
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
+                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
+                                    amsgrad=False)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Clipping: ", sgd.decay)
+            print("sgd, critic: ", sgd)
+        self._combined.compile(loss=[neg_y], optimizer=sgd)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("combined qFun Net summary: ",  self._combined.summary())
         
     def getGrads(self, states, actions=None, alreadyNormed=False):
         """

@@ -349,7 +349,7 @@ class LearningMultiAgent(LearningAgent):
                 self._settings["use_hindsight_relabeling"] and
                 "goal_slice_index" in self._settings
                 and (self.getSettings()["llc_index"] == agent_)):
-                print("Applying HER")
+                # print("Applying HER")
                 (states__, actions__, rewards__, result_states__, falls__, advantage__, 
                  exp_actions__, G_t__) = self.applyHER(states__, actions__, rewards__, 
                                                        result_states__, falls__, advantage__, exp_actions__, G_t__)

@@ -381,6 +381,13 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                         models.append(model_)
                     print("Loaded algorithm: ", models)
                     model = models
+                    if ("policy_connections" in settings):
+                        for c in range(len(settings["policy_connections"])): 
+                            print ("Sending policy ", model[settings["policy_connections"][c][0]],
+                                                            " to policy ",  model[settings["policy_connections"][c][1]])
+                            model[settings["policy_connections"][c][1]].setFrontPolicy(
+                                model[settings["policy_connections"][c][0]])
+                            
                 else:
                     networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings_)
                     print ("networkModel: ", networkModel)
@@ -457,6 +464,12 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                     
                     print("Loaded algorithm: ", models)
                 model = models
+                if ("policy_connections" in settings):
+                    for c in range(len(settings["policy_connections"])): 
+                        print ("Sending policy ", model[settings["policy_connections"][c][0]],
+                                                        " to policy ",  model[settings["policy_connections"][c][1]])
+                        model[settings["policy_connections"][c][1]].setFrontPolicy(
+                            model[settings["policy_connections"][c][0]])
             else:
                 model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings, print_info=print_info)
