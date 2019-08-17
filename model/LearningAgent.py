@@ -1117,6 +1117,12 @@ class LearningAgent(AgentInterface):
             self._accesLock.release()
         return q
     
+    def updateFrontPolicy(self, lowerPolicy):
+        self.getPolicy().updateFrontPolicy(lowerPolicy.getPolicy())
+    
+    def setFrontPolicy(self, lowerPolicy):
+        self.getPolicy().setFrontPolicy(lowerPolicy.getPolicy())
+    
     def processState(self, state):
         """
             Input: state, non-normalized states from environment

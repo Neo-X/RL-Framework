@@ -387,16 +387,16 @@ class LearningMultiAgent(LearningAgent):
             else:
                 pass
             if ("policy_connections" in self.getSettings()):
-                ### Replace actions with actions of other agent
                 for c in range(len(self.getSettings()["policy_connections"])):
                     if (self.getSettings()["policy_connections"][c][1] == agent_):
+                        ### Replace actions with actions of other agent
                         (_, actions__, _, _,
                         _, _, _, _) = self.getSingleAgentData(_states, 
                             _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, 
                             agent_num=self.getSettings()["policy_connections"][c][0])
                         ### Update the llp model weights
-                        self.getAgents()[settings["policy_connections"][c][1]].updateFrontPolicy(
-                            self.getAgents()[settings["policy_connections"][c][0]])
+                        self.getAgents()[self.getSettings()["policy_connections"][c][1]].updateFrontPolicy(
+                            self.getAgents()[self.getSettings()["policy_connections"][c][0]])
                         break
             self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
               _exp_actions=exp_actions__, _G_t=G_t__, p=p)
