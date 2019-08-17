@@ -288,6 +288,20 @@ class LearningMultiAgent(LearningAgent):
         return  (states__, actions__, rewards__, result_states__, falls__, _advantage, 
                   _exp_actions, _G_t)
         
+    def getSingleAgentData(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
+              _exp_actions, _G_t, agent_num):
+        states__ = [state_[agent_num::len(self.getAgents())] for state_ in _states]
+        actions__ = [state_[agent_num::len(self.getAgents())] for state_ in _actions]
+        rewards__ = [state_[agent_num::len(self.getAgents())] for state_ in _rewards]
+        result_states__ = [state_[agent_num::len(self.getAgents())] for state_ in _result_states]
+        # result_states_tmp = [state_[agent_num::len(self.getAgents())] for state_ in _result_states]
+        falls__ = [state_[agent_num::len(self.getAgents())] for state_ in _falls]
+        advantage__ = [state_[agent_num::len(self.getAgents())] for state_ in _advantage]
+        exp_actions__ = [state_[agent_num::len(self.getAgents())] for state_ in _exp_actions]
+        G_t__ = [state_[agent_num::len(self.getAgents())] for state_ in _G_t]
+        
+        return (states__, actions__, rewards__, result_states__,
+                falls__, advantage__, exp_actions__, G_t__)
     # @profile(precision=5)
     def train(self, _states, _actions, _rewards, _result_states, _falls, _advantage=None, 
               _exp_actions=None, _G_t=None, p=1.0):
@@ -295,15 +309,11 @@ class LearningMultiAgent(LearningAgent):
         
         for agent_ in range(len(self.getAgents())):
             ### Pull out the state for each agent, start at agent index and skip every number of agents 
-            states__ = [state_[agent_::len(self.getAgents())] for state_ in _states]
-            actions__ = [state_[agent_::len(self.getAgents())] for state_ in _actions]
-            rewards__ = [state_[agent_::len(self.getAgents())] for state_ in _rewards]
-            result_states__ = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
-            result_states_tmp = [state_[agent_::len(self.getAgents())] for state_ in _result_states]
-            falls__ = [state_[agent_::len(self.getAgents())] for state_ in _falls]
-            advantage__ = [state_[agent_::len(self.getAgents())] for state_ in _advantage]
-            exp_actions__ = [state_[agent_::len(self.getAgents())] for state_ in _exp_actions]
-            G_t__ = [state_[agent_::len(self.getAgents())] for state_ in _G_t]
+            (states__, actions__, rewards__, result_states__,
+                falls__, advantage__, exp_actions__, G_t__) = self.getSingleAgentData(_states, 
+                    _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t,
+                    agent_num=agent_)
+            result_states_tmp = copy.deepcopy(result_states__)
             
             if ( "use_centralized_critic" in self.getSettings()
                  and (self.getSettings()["use_centralized_critic"] == True)):
@@ -376,6 +386,18 @@ class LearningMultiAgent(LearningAgent):
                 self.getAgents()[agent_]._settings["train_critic"] = False
             else:
                 pass
+            if ("policy_connections" in self.getSettings()):
+                ### Replace actions with actions of other agent
+                for c in range(len(self.getSettings()["policy_connections"])):
+                    if (self.getSettings()["policy_connections"][c][1] == agent_):
+                        (_, actions__, _, _,
+                        _, _, _, _) = self.getSingleAgentData(_states, 
+                            _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, 
+                            agent_num=self.getSettings()["policy_connections"][c][0])
+                        ### Update the llp model weights
+                        self.getAgents()[settings["policy_connections"][c][1]].updateFrontPolicy(
+                            self.getAgents()[settings["policy_connections"][c][0]])
+                        break
             self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
               _exp_actions=exp_actions__, _G_t=G_t__, p=p)
         

@@ -212,9 +212,11 @@ class TD3_KERAS(KERASAlgorithm):
         # For the combined model we will only train the actor
         self._model.getCriticNetwork().trainable = False
         self._model1.getCriticNetwork().trainable = False
+        ### I hope this won't cause the llp to not train...
         lowerPolicy.trainable = False
         
-        llp = lowerPolicy._model._actor
+        ### Should the target policy be used here?
+        self._llp = lowerPolicy._model._actor
         g = self._model._actor([self._model.getStateSymbolicVariable()])
         ### a pi(a|s,g)
         s_llp = keras.layers.core.Lambda(keras_slice, output_shape=(4,),
@@ -223,7 +225,7 @@ class TD3_KERAS(KERASAlgorithm):
                          
         s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)                         
         # s_llp = keras.layers.merge.Concatenate(axis=-1)([s_llp, g])
-        self._model._policy2 = llp(inputs=[s_llp])
+        self._model._policy2 = self._llp(inputs=[s_llp])
         
         if ( "use_centralized_critic" in self.getSettings()
              and (self.getSettings()["use_centralized_critic"] == True)
@@ -251,6 +253,9 @@ class TD3_KERAS(KERASAlgorithm):
         self._combined.compile(loss=[neg_y], optimizer=sgd)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("combined qFun Net summary: ",  self._combined.summary())
+        
+    def updateFrontPolicy(self, lowerPolicy):
+        self._llp.set_weights(lowerPolicy._model._actor.get_weights())
         
     def getGrads(self, states, actions=None, alreadyNormed=False):
         """
@@ -409,12 +414,12 @@ class TD3_KERAS(KERASAlgorithm):
     def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]], p=1.0):
         
         # self.setData(states, actions, rewards, result_states, falls)
-        ## get actions for target policy
+        ### get actions for target policy
         target_actions = self._modelTarget.getActorNetwork().predict(result_states, batch_size=states.shape[0])
-        c = 0.02
-        noise_scale = 0.02
+        c = 0.2
+        noise_scale = 0.1
         target_actions_n = target_actions + np.clip(np.random.normal(loc=0, scale=noise_scale, size=target_actions.shape), -c, c)
-        ## Get next q value
+        ### Get next q value
         q_vals_b = self._modelTarget.getCriticNetwork().predict([result_states, target_actions_n], batch_size=states.shape[0])
         q_vals_b1 = self._modelTarget1.getCriticNetwork().predict([result_states, target_actions_n], batch_size=states.shape[0])
         q_vals = np.concatenate((q_vals_b, q_vals_b1), axis=1)
