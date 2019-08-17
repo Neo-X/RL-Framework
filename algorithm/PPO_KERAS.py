@@ -96,7 +96,6 @@ class PPO_KERAS(KERASAlgorithm):
         if (print_info):
             print("Critic summary: ", self._model._critic.summary())
         ## Target network
-        # self._modelTarget = copy.deepcopy(model)
         input_Target = [self._modelTarget.getStateSymbolicVariable(),
                  self._PoliAction,
                  self._Advantage,
@@ -114,7 +113,6 @@ class PPO_KERAS(KERASAlgorithm):
         self.updateTargetModel()
         
     def compile(self):
-        # sgd = SGD(lr=0.001, momentum=0.9)
         if ("force_use_result_state_for_critic" in self._settings
             and (self._settings["force_use_result_state_for_critic"] == True)):
             inputs_ = [self._model.getResultStateSymbolicVariable()]
@@ -132,14 +130,12 @@ class PPO_KERAS(KERASAlgorithm):
         
         self._q_valsActA = self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
         if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])): 
-            # self._q_valsActASTD = (self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) + 1e-2
             self._q_valsActASTD = ((self._model.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) * self.getSettings()['exploration_rate']) + 1e-2
         else:
             self._q_valsActASTD = ( K.ones_like(self._q_valsActA)) * self.getSettings()['exploration_rate']
         
         self._q_valsActTarget_State = self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,:self._action_length]
         if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])): 
-            # self._q_valsActTargetSTD = (self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) + 1e-2
             self._q_valsActTargetSTD = ((self._modelTarget.getActorNetwork()(self._model.getStateSymbolicVariable())[:,self._action_length:]) * self.getSettings()['exploration_rate']) + 1e-2 
         else:
             self._q_valsActTargetSTD = (K.ones_like(self._q_valsActTarget_State)) * self.getSettings()['exploration_rate']
@@ -152,14 +148,10 @@ class PPO_KERAS(KERASAlgorithm):
         self._prob_target = likelihood_keras(self._model.getActionSymbolicVariable(), self._q_valsActTarget_State, self._q_valsActTargetSTD, self._action_length)
         ## This does the sum already
         self.__r = (self._prob / self._prob_target)
-        # self._actLoss_ = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((self._r), self._Advantage)
         self._actLoss_ = (self.__r) * self._Advantage
         ppo_epsilon = self.getSettings()['kl_divergence_threshold']
-        # self._actLoss_2 = theano.tensor.elemwise.Elemwise(theano.scalar.mul)((theano.tensor.clip(self._r, 1.0 - (ppo_epsilon * self._Anneal), 1+ (ppo_epsilon * self._Anneal)), self._Advantage))
         self._actLoss_2 = (K.clip(self.__r, 1.0 - (ppo_epsilon * self._Anneal), 1 + (ppo_epsilon * self._Anneal)), self._Advantage)
         self._actLoss_ = K.minimum(self._actLoss_, self._actLoss_2)
-        # self._actLoss = ((T.mean(self._actLoss_) )) + -self._actor_regularization
-        # self._actLoss = (-1.0 * (T.mean(self._actLoss_) + (self.getSettings()['std_entropy_weight'] * self._actor_entropy )))
         self._actLoss = -1.0 * K.mean(self._actLoss_)
         self._actLoss_tmp = self._actLoss
         if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):

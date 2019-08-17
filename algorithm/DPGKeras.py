@@ -88,11 +88,11 @@ class DPGKeras(KERASAlgorithm):
              and (self.getSettings()["use_centralized_critic"] == True)
              and False):
             self._q_function = self._model.getCriticNetwork()([self._model.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
-            self._q_function_Target = self._model.getCriticNetwork()([self._model.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+            self._q_function_Target = self._modelTarget.getCriticNetwork()([self._model.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
             self._q_func = K.function([self._model.getResultStateSymbolicVariable(), self._model.getActionSymbolicVariable()], [self._q_function])
         else:
             self._q_function = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
-            self._q_function_Target = self._model.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
+            self._q_function_Target = self._modelTarget.getCriticNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
             self._q_func = K.function([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()], [self._q_function])
         
         q_vals_b = self._q_function_Target
@@ -105,6 +105,34 @@ class DPGKeras(KERASAlgorithm):
         
         
         self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
+        
+        self._modelTarget.getActorNetwork().trainable = False
+        self._modelTarget.getCriticNetwork().trainable = False
+        self._gamma = keras.layers.Input(shape=(1,), name="gamma")
+        target_act = self._modelTarget._actor(self._model.getResultStateSymbolicVariable())
+        # target_q = self._model.getRewardSymbolicVariable() + (self._discount_factor * 
+        #                                 self._modelTarget._critic(inputs=[self._model.getResultStateSymbolicVariable(), target_act]))
+        target_q = self._modelTarget._critic(inputs=[self._model.getResultStateSymbolicVariable(), target_act])
+        # q_diff = self._q_function - target_q
+        q_diff = target_q
+        self._model.q_diff = Model(input=[self._model.getStateSymbolicVariable(),
+                                          self._model.getActionSymbolicVariable(),
+                                          self._model.getResultStateSymbolicVariable(),
+                                          self._model.getRewardSymbolicVariable()], 
+                                output=q_diff)
+        
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
+                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
+                                    amsgrad=False)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Clipping: ", sgd.decay)
+            print("sgd, Q loss: ", sgd)
+        self._model.q_diff.compile(loss=["mse"], optimizer=sgd)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("combined q loss Net summary: ",  self._model.q_diff.summary())
+            
+            
         
         # For the combined model we will only train the actor
         self._model.getCriticNetwork().trainable = False
