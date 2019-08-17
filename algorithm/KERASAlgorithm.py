@@ -63,6 +63,7 @@ class KERASAlgorithm(AlgorithmInterface):
     def __init__(self, model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False):
 
         super(KERASAlgorithm,self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
+        self._llp = None
 
     def getGrads(self, states, alreadyNormed=False):
         """
