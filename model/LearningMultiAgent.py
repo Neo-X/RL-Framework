@@ -480,7 +480,9 @@ class LearningMultiAgent(LearningAgent):
                 and "high_level_exploration_samples" in self.getSettings()
                 and self.getSettings()["hlc_index"] == m
                 and "use_high_level_exploration" in self.getSettings()
-                and self.getSettings()["use_high_level_exploration"] == True)
+                and self.getSettings()["use_high_level_exploration"] == True
+                and ("exploration_processing" in self.getSettings()
+                     and self.getSettings()["exploration_processing"] is not False))
 
             if use_hle:
                 num_samples = self.getSettings()["high_level_exploration_samples"]
@@ -490,15 +492,32 @@ class LearningMultiAgent(LearningAgent):
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
                     sampling=sampling)
 
-                # Assume that z_k is at the end of the state
+                ### Assume that z_k is at the end of the state
                 ### These shapes don't quite line up. The llp state can be a different size than the hlp shape.
                 state_llp = copy.deepcopy(np.array([state[self.getSettings()["llc_index"]] for i in range(num_samples)]) )               ### Replace the last few coli
                 state_llp[:, -len(candidate_actions[0]):] =  candidate_actions
-                llc_values = self.getAgents()[self.getSettings()["llc_index"]].getPolicy()._value([state_llp])
-                best_idx = np.argmax(llc_values)
-                action = [candidate_actions[best_idx]]
-                exp_act = [candidate_exp_acts[best_idx]]
-
+                llc_values = self.getAgents()[self.getSettings()["llc_index"]].getPolicy().q_values2(state_llp)
+                
+                if ("exploration_processing" in self.getSettings()
+                     and self.getSettings()["exploration_processing"] == "argmax"):
+                    
+                    best_idx = np.argmax(llc_values)
+                    action = [candidate_actions[best_idx]]
+                    exp_act = [candidate_exp_acts[best_idx]]
+                elif ("exploration_processing" in self.getSettings()
+                     and self.getSettings()["exploration_processing"] == "reweight"):
+                    ### Other options
+                    llc_values_ = llc_values.flatten() - np.min(llc_values)
+                    llc_weights = llc_values_ / np.sum(llc_values_)
+                    idx_ = np.random.choice(range(num_samples), p=llc_weights)
+                    action = [candidate_actions[idx_]]
+                    exp_act = [candidate_exp_acts[idx_]]
+                else:
+                    ### Equally weighted
+                    idx_ = np.random.choice(range(num_samples))
+                    action = [candidate_actions[idx_]]
+                    exp_act = [candidate_exp_acts[idx_]]
+                    
             else:
                 (action, exp_act) = self.getAgents()[m].sample(
                     [state_],

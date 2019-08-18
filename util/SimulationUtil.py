@@ -367,7 +367,8 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                         settings__ = copy.deepcopy(settings_)
                         settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
                         settings__["policy_network_layer_sizes"] = settings["policy_network_layer_sizes"][m]
-                        settings__["exploration_rate"] = settings["exploration_rate"][m]
+                        if (type(settings["exploration_rate"]) is list):
+                            settings__["exploration_rate"] = settings["exploration_rate"][m]
                         networkModel = createNetworkModel(settings__["model_type"], np.array(state_bounds[m]), np.array(action_bounds[m]), np.array(reward_bounds[m]),
                                                            settings__, print_info=print_info)
                         print ("networkModel: ", networkModel)
