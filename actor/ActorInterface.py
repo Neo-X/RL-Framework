@@ -23,11 +23,33 @@ class ActorInterface(object):
         self._action_bounds = self._settings["action_bounds"]
         
         
+    def updateScalling(self, state):
+        
+        if (self.inserts() == 1):
+            self._state_mean =  self._state_history[0]
+            self._state_var = np.zeros_like(state)
+            
+        else:
+            x_mean_old = self._state_mean
+            self._state_mean = self._state_mean + ((state - self._state_mean)/self.inserts())
+            
+        if ( self.inserts() == 2):
+            self._state_var = (self._state_history[1] - ((self._state_history[0]+self._state_history[1])/2.0)**2)/2.0
+            
+        elif (self.inserts() > 2):
+            self._state_var = (((self.inserts()-2)*self._state_var) + ((self.inserts()-1)*(x_mean_old - self._state_mean)**2) + ((state - self._state_mean)**2))
+            self._state_var = (self._state_var/float(self.inserts()-1))
+            
     def init(self):
         self._reward_sum=0
         
     def initEpoch(self):
         self._reward_sum=0
+        
+        if ("use_entropy_reward" in self._settings
+            and (self._settings["use_entropy_reward"] == True)):
+            print ("init entropy reward:")
+            self._means = np.zeros((54))
         
     def hasNotFallen(self, exp):
         return 1

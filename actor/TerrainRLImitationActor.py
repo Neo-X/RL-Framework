@@ -86,8 +86,8 @@ class TerrainRLImitationActor(ActorInterface):
         vel_diff = self._target_vel - averageSpeed
         vel_reward_ = math.exp((vel_diff*vel_diff)*self._target_vel_weight) # optimal is 0
         reward_ = sim.getEnvironment().calcReward()   
+        print ("averageSpeed: ", averageSpeed)
         """
-        # print ("averageSpeed: ", averageSpeed)
         # print ("vel_reward_: ", vel_reward_, " stumble: ", stumble_reward, " torque: ", torque_reward)
         reward_ = ((vel_reward_ * 0.8) + 
                    (stumble_reward * 0.2 )+
