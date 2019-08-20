@@ -40,10 +40,10 @@ class OpenAIGymActor(ActorInterface):
             sim.getMovieWriter().append_data(image_)
         
         self._count = self._count + 1
-        self.updateScalling(sim.getState())
         if ("use_entropy_reward" in self._settings
             and (self._settings["use_entropy_reward"] == True)):
             # print ("init entropy reward:")
+            self.updateScalling(sim.getState())
             reward = self.entropyReward(sim.getState())
         # print ("self._state_mean: ", self._state_mean)
         # print ("self._state_var: ", self._state_var)
