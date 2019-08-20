@@ -338,13 +338,13 @@ class ExperienceMemory(object):
         
         if (self.inserts() == 1):
             self._state_mean =  self._state_history[0]
-            self._state_var = np.zeros_like(state)
+            self._state_var = np.ones_like(state)
             
             self._reward_mean =  self._reward_history[0]
-            self._reward_var = np.zeros_like(reward)
+            self._reward_var = np.ones_like(reward)
             
             self._action_mean =  self._action_history[0]
-            self._action_var = np.zeros_like(action)
+            self._action_var = np.ones_like(action)
         else:
             x_mean_old = self._state_mean
             self._state_mean = self._state_mean + ((state - self._state_mean)/self.inserts())
@@ -370,6 +370,9 @@ class ExperienceMemory(object):
             self._action_var = (((self.inserts()-2)*self._action_var) + ((self.inserts()-1)*(action_mean_old - self._action_mean)**2) + ((action - self._action_mean)**2))
             self._action_var = (self._action_var/float(self.inserts()-1))
             
+        self._state_var = np.fabs(self._state_var)
+        self._reward_var = np.fabs(self._reward_var)
+        self._action_var = np.fabs(self._action_var)
         # if ( 'state_normalization' in self._settings and self._settings["state_normalization"] == "adaptive"):
         #     self._updateScaling()
             

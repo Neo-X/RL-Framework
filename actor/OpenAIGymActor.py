@@ -38,7 +38,17 @@ class OpenAIGymActor(ActorInterface):
                 image_[row] = vizData[len(vizData)-row - 1]
             # print ("Writing image to video") 
             sim.getMovieWriter().append_data(image_)
+        
+        self._count = self._count + 1
+        self.updateScalling(sim.getState())
+        if ("use_entropy_reward" in self._settings
+            and (self._settings["use_entropy_reward"] == True)):
+            # print ("init entropy reward:")
+            reward = self.entropyReward(sim.getState())
+        # print ("self._state_mean: ", self._state_mean)
+        # print ("self._state_var: ", self._state_var)
         self._reward_sum = self._reward_sum + np.mean(reward)
+        
         return reward
         
     def updateAction(self, sim, action_):
