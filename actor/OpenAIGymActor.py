@@ -37,6 +37,8 @@ class OpenAIGymActor(ActorInterface):
             for row in range(len(vizData)):
                 image_[row] = vizData[len(vizData)-row - 1]
             # print ("Writing image to video") 
+            ## Convert to int to get rid of warning.
+            image_ = np.array(image_, dtype="uint8")
             sim.getMovieWriter().append_data(image_)
         
         self._count = self._count + 1
