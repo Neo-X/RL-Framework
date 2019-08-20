@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TD3_KERAS.TD3_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "CLEVRObjectHRL_NoVision_HLC_v0/_hlp_llc_sampling_1",
+"data_folder": "CLEVRObjectHRL_NoVision_HLC_5Step_LLC_vel_direct_v0/_hlp_llc_sampling_1",
 	"comment__": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment__": "initial probability of selecting a discrete random action",
@@ -14,7 +14,7 @@
     "comment__": "Learning rate for the actor/policy",
 "learning_rate": 0.00005,
     "comment__": "Config file for the simulator",
-"sim_config_file": "CLEVRObjectHRL_NoVision_HLC_v0",
+"sim_config_file": "CLEVRObjectHRL_NoVision_HLC_5Step_LLC_vel_direct_v0",
     "comment__": "Exploration distance use when randomly generating new actions",
 "exploration_rate": [0.35,0.3],
     "comment__": "Number of rounds to perform before termination",
@@ -367,7 +367,7 @@
 	"comment__": "The index of the multiagent simulation for the hlc",
 "llc_index": 1,
 	"comment__": "higher level controller timestep",
-"hlc_timestep": 10,
+"hlc_timestep": 5,
 	"comment__": "The index of the multiagent simulation for the hlc",
 "hlc_index": 0,
 	"comment__": "Agent names",
@@ -377,5 +377,9 @@
 	"comment__": "Number of HLP actions to sample for optimization",
 "high_level_exploration_samples": 64,
 	"comment__": "Whether or not to perform rejection sampling",
-"use_high_level_exploration": true
+"use_high_level_exploration": true,
+	"comment__": "Boolean to use HER or not",
+"use_hindsight_relabeling": true,
+	"comment__": "the first index of the goal in the state",
+"goal_slice_index": 3
 }
