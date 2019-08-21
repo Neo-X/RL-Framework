@@ -52,6 +52,7 @@ class ActorInterface(object):
         # print ("self._state_var: ", self._state_var)
         ps = ps
         # print ("ps: ", ps)
+        # r = np.prod(np.log(ps))
         r = np.mean(ps)
         # print ("ps, r: ", r)
         return r
