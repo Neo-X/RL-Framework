@@ -3,24 +3,23 @@
 # from theano import tensor as T
 import numpy as np
 # import lasagne
+import tensorflow as tf
 import sys
 from dill.settings import settings
 from tensorflow.python.layers.normalization import BatchNorm
 from model.ModelUtil import *
 from tensorflow.keras.models import Sequential, Model
-from keras.optimizers import SGD
-from keras.layers import Input
-from keras.layers.core import Dense, Dropout, Activation, Reshape, Flatten, Lambda
-from keras.layers import LSTM, LSTMCell, GRU, ZeroPadding1D
-from keras.layers.convolutional import Conv1D
-from keras.layers.merge import Concatenate
-from keras.layers.advanced_activations import LeakyReLU
-from keras import regularizers
-import keras
-# from keras.utils.np_utils import to_categoricalnetwork
-import keras.backend as K
-import tensorflow as tf
-from keras.layers import Layer
+from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import Dense, Dropout, Activation, Reshape, Flatten, Lambda
+from tensorflow.keras.layers import LSTM, LSTMCell, GRU, ZeroPadding1D
+# from tensorflow.keras.layers.convolutional import Conv1D
+from tensorflow.keras.layers import Concatenate
+from tensorflow.keras import regularizers
+# import keras
+# from tf.keras.utils.np_utils import to_categoricalnetwork
+import tensorflow.keras.backend as K
+from tensorflow.keras.layers import Layer
 from util.coordconv import *
 # For debugging
 # theano.config.mode='FAST_COMPILE'
@@ -30,16 +29,16 @@ from pydoc import locate
         
 ### It is complicated to serialize lambda functions, better to define a function
 def keras_slice(x, begin, end):
-    # if (len(keras.backend.int_shape(x)) > 2):
+    # if (len(tf.keras.backend.int_shape(x)) > 2):
     #     return x[:, :, begin:end]
     # else:
     return x[:,begin:end]
 
-class DeepNNKerasAdaptive(ModelInterface):
+class DeepNNTFKerasAdaptive(ModelInterface):
     
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False, stateName="State", resultStateName="ResultState"):
 
-        super(DeepNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
+        super(DeepNNTFKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         self._networkSettings = {}
         if ("network_settings" in settings_):
             self._networkSettings = settings_["network_settings"]
@@ -55,22 +54,22 @@ class DeepNNKerasAdaptive(ModelInterface):
         isRNN = False
         ### data types for model
         # self._State = K.variable(value=np.random.rand(self._batch_size,self._state_length) ,name=stateName)
-        # self._State = keras.layers.Input(shape=(self._state_length,), name=stateName, batch_shape=(32,self._state_length))
+        # self._State = tf.keras.layers.Input(shape=(self._state_length,), name=stateName, batch_shape=(32,self._state_length))
         if (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True)):
             if ("simulation_model" in self._settings and
                 (self._settings["simulation_model"] == True)):
                 if (self._stateful_lstm):
-                    self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, self._state_length), name=stateName)
+                    self._State = tf.keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(1, 1, self._state_length), name=stateName)
                 else:
-                    self._State = keras.layers.Input(shape=(None, self._state_length), name=stateName)
+                    self._State = tf.keras.layers.Input(shape=(None, self._state_length), name=stateName)
             else:
                 if (self._stateful_lstm):
-                    self._State = keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
+                    self._State = tf.keras.layers.Input(shape=(self._sequence_length, self._state_length), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
                 else:
-                    self._State = keras.layers.Input(shape=(None, self._state_length), name=stateName)
+                    self._State = tf.keras.layers.Input(shape=(None, self._state_length), name=stateName)
         else:
-            self._State = keras.layers.Input(shape=(self._state_length,), name=stateName)
+            self._State = tf.keras.layers.Input(shape=(self._state_length,), name=stateName)
             self._State_backup = self._State
             
 
@@ -78,7 +77,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         # input = Input(shape=(self._state_length,))
         self._stateInput = self._State
         # input2 = Input(shape=(self._action_length,))
-        self._Action = keras.layers.Input(shape=(self._action_length,), name="Action") 
+        self._Action = tf.keras.layers.Input(shape=(self._action_length,), name="Action") 
         self._actionInput = self._Action
         # input.trainable = True        
         if (("train_LSTM_Critic" in self._settings)
@@ -86,21 +85,21 @@ class DeepNNKerasAdaptive(ModelInterface):
             if ("simulation_model" in self._settings and
                 (self._settings["simulation_model"] == True)):
                 if (self._stateful_lstm):
-                    self._ResultState = keras.layers.Input(shape=(self._sequence_length, 
+                    self._ResultState = tf.keras.layers.Input(shape=(self._sequence_length, 
                                                                   self._result_state_length), 
                                                            batch_shape=(1, 1, self._state_length), name=resultStateName+"_SIM")
                 else:
-                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name=resultStateName+"_SIM")
+                    self._ResultState = tf.keras.layers.Input(shape=(None, self._result_state_length), name=resultStateName+"_SIM")
             else:
                 if (self._stateful_lstm):
-                    self._ResultState = keras.layers.Input(shape=(self._sequence_length, 
+                    self._ResultState = tf.keras.layers.Input(shape=(self._sequence_length, 
                                                                   self._result_state_length), 
                                                            batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=resultStateName)
                 else:
-                    self._ResultState = keras.layers.Input(shape=(None, self._result_state_length), name=resultStateName)
+                    self._ResultState = tf.keras.layers.Input(shape=(None, self._result_state_length), name=resultStateName)
             # self._stateInput = self._ResultState 
         else:
-            self._ResultState = keras.layers.Input(shape=(self._result_state_length,), name=resultStateName)
+            self._ResultState = tf.keras.layers.Input(shape=(self._result_state_length,), name=resultStateName)
             if (
                 (("train_LSTM" in self._settings)
                 and (self._settings["train_LSTM"] == True))
@@ -117,11 +116,11 @@ class DeepNNKerasAdaptive(ModelInterface):
             (("train_LSTM_Critic" in self._settings)
                 and (self._settings["train_LSTM_Critic"] == True))
             ):
-            self._Reward = keras.layers.Input(shape=(self._sequence_length,1), name="Reward")
+            self._Reward = tf.keras.layers.Input(shape=(self._sequence_length,1), name="Reward")
         else:
-            self._Reward = keras.layers.Input(shape=(1,), name="Reward")
+            self._Reward = tf.keras.layers.Input(shape=(1,), name="Reward")
         
-        self._data_format_ = keras.backend.image_data_format()
+        self._data_format_ = tf.keras.backend.image_data_format()
         if ("image_data_format" in self._networkSettings ):
             self._data_format_ = self._networkSettings["image_data_format"]
         
@@ -160,7 +159,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 
             if ( "use_decoder" in self._settings
                   and (self._settings["use_decoder"] == True) ):
-                networkAct = keras.layers.Input(shape=(self._settings["encoding_vector_size"],), name="FD_Encoding_State")
+                networkAct = tf.keras.layers.Input(shape=(self._settings["encoding_vector_size"],), name="FD_Encoding_State")
                 # networkAct = Dropout(rate=self._dropout_p)(networkAct)
                 self._State = networkAct 
             
@@ -179,7 +178,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 networkAct = Dense(n_out, 
                                    kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                    bias_regularizer=regularizers.l2(self._settings['regularization_weight'])
-                                   # , kernel_initializer=(keras.initializers.VarianceScaling(scale=actor_out_init_layer_scale,
+                                   # , kernel_initializer=(tf.keras.initializers.VarianceScaling(scale=actor_out_init_layer_scale,
                                    # mode='fan_avg', distribution='uniform', seed=None) )
                                    )(networkAct)
                 networkAct = self.getActivationType(self._settings['last_policy_layer_activation_type'])(networkAct)
@@ -200,27 +199,19 @@ class DeepNNKerasAdaptive(ModelInterface):
                     with_std = Dense(n_out, 
                                 kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                 bias_regularizer=regularizers.l2(self._settings['regularization_weight']),
-                                kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
+                                kernel_initializer=(tf.keras.initializers.VarianceScaling(scale=0.01,
                                 mode='fan_avg', distribution='uniform', seed=None) )
                                      )(self._second_last_layer)
                 else:
                     with_std = Dense(n_out, 
                                 kernel_regularizer=regularizers.l2(self._settings['regularization_weight']),
                                 bias_regularizer=regularizers.l2(self._settings['regularization_weight']),
-                                kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
+                                kernel_initializer=(tf.keras.initializers.VarianceScaling(scale=0.01,
                                 mode='fan_avg', distribution='uniform', seed=None) )
                                      )(networkAct_)
                 with_std = self.getActivationType(self._settings['_last_std_policy_layer_activation_type'])(with_std)
-                # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-                self._actor = keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
+                self._actor = tf.keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
                 
-            # input_ = [self._stateInput, self._actionInput, self._Reward]
-            # input_ = self._stateInput
-            # self._actor = Model(input=input_, output=self._actor)
-            # self._actor = Model(input=[self._stateInput, self._actionInput], output=self._actor)
-            # print("Actor summary: ", self._actor.summary())
-        # self._taskFeatures = self._ResultState
-        # self._taskFeatures = self._ResultState
         isRNN = False
         network = self._stateInput
         if (("train_LSTM_Critic" in self._settings)
@@ -236,20 +227,20 @@ class DeepNNKerasAdaptive(ModelInterface):
         if ("using_encoder_decoder" in self._settings
             and (self._settings["using_encoder_decoder"] == True)):
             print (self._actor)
-            print ("keras.backend.int_shape(self._actor): ", keras.backend.int_shape(self._actor))
+            print ("tf.keras.backend.int_shape(self._actor): ", tf.keras.backend.int_shape(self._actor))
             if (self._stateful_lstm):
-                network = keras.layers.Input(shape=(self._sequence_length, 
-                      keras.backend.int_shape(self._actor)[1]), 
-                       batch_shape=(self._lstm_batch_size, self._sequence_length, keras.backend.int_shape(self._actor)[-1]), name="Encoding_State")
+                network = tf.keras.layers.Input(shape=(self._sequence_length, 
+                      tf.keras.backend.int_shape(self._actor)[1]), 
+                       batch_shape=(self._lstm_batch_size, self._sequence_length, tf.keras.backend.int_shape(self._actor)[-1]), name="Encoding_State")
             else:
-                network = keras.layers.Input(shape=(None, keras.backend.int_shape(self._actor)[1]), name="Encoding_State")
+                network = tf.keras.layers.Input(shape=(None, tf.keras.backend.int_shape(self._actor)[1]), name="Encoding_State")
             print ("Encoder input: ", network)
             self._ResultState = network
             
         if ( "use_centralized_critic" in self._settings
              and (self._settings["use_centralized_critic"] == True)
              and False):
-            network = keras.layers.Input(shape=(len(self._settings["state_bounds"][0]),), name="Centralized_Critic_State")
+            network = tf.keras.layers.Input(shape=(len(self._settings["state_bounds"][0]),), name="Centralized_Critic_State")
             self._ResultState = network
         network = self.createSubNetwork(network, layer_sizes, isRNN=isRNN, stateName=stateName, resultStateName=resultStateName)
         
@@ -265,7 +256,6 @@ class DeepNNKerasAdaptive(ModelInterface):
                                 bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(self._second_last_layer)
                 self._second_last_layer_ = self.getActivationType(self._settings['activation_type'])(self._second_last_layer_)
                 networkAct = self._second_last_layer_       
-                # networkAct_ = networkAct
                 networkAct = Dense(self._action_length, 
                                    kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                    bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(self._second_last_layer_)
@@ -291,17 +281,16 @@ class DeepNNKerasAdaptive(ModelInterface):
                     with_std = Dense(self._action_length, 
                                 kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                 bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
-                                kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
+                                kernel_initializer=(tf.keras.initializers.VarianceScaling(scale=0.01,
                                mode='fan_avg', distribution='uniform', seed=None) ))(self._second_last_layer)
                 else:
                     with_std = Dense(self._action_length, 
                                     kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                     bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
-                                    kernel_initializer=(keras.initializers.VarianceScaling(scale=0.01,
+                                    kernel_initializer=(tf.keras.initializers.VarianceScaling(scale=0.01,
                                    mode='fan_avg', distribution='uniform', seed=None) ))(networkAct_)
                 with_std = self.getActivationType(self._settings['_last_std_policy_layer_activation_type'])(with_std)
-                # with_std = networkAct = Dense(self._action_length, kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
-                self._actor = keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
+                self._actor = tf.keras.layers.concatenate(inputs=[self._actor, with_std], axis=-1)
                 
             if ("use_viz_for_policy" in self._settings 
                 and self._settings["use_viz_for_policy"] == True):
@@ -323,16 +312,14 @@ class DeepNNKerasAdaptive(ModelInterface):
                                 bias_regularizer=regularizers.l2(self._settings['regularization_weight']))(self._networkMiddle)
                 self._reward_net = self.getActivationType(self._settings['last_fd_layer_activation_type'])(self._reward_net)
                 
-            # self._actor = Model(input=self._stateInput, output=self._actor)
-            # print("Actor summary: ", self._actor.summary())
             ### Render a nice graph of the network
         if ( not ("critic_network_leave_off_end" in self._settings
             and (self._settings["critic_network_leave_off_end"] == True))):
 
-            if (len(keras.backend.int_shape(network)) > 2):
+            if (len(tf.keras.backend.int_shape(network)) > 2):
                 ### THis is an LSTM use time distributed layer
-                input_ = keras.layers.Input(shape=(keras.backend.int_shape(network)[-1],), name="Critic_subnet")
-                print ("*** Critic subnet input shape: ", repr(keras.backend.int_shape(input_)))
+                input_ = tf.keras.layers.Input(shape=(tf.keras.backend.int_shape(network)[-1],), name="Critic_subnet")
+                print ("*** Critic subnet input shape: ", repr(tf.keras.backend.int_shape(input_)))
                 subnet = Dense(1,
                            kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                            bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(input_)
@@ -340,9 +327,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                 if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                     print("Critic Subnet summary")
                     subnet.summary()
-                # subnet = Dense(8)
                 ### Create a model (set of layers to distribute) pass in the original input to that model
-                network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
+                network = tf.keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
             else:
                 network= Dense(1,
                            kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
@@ -359,10 +345,8 @@ class DeepNNKerasAdaptive(ModelInterface):
         """
             Compute a particular type of actiation to use
         """
-        import keras.layers
-        # print ("Getting keras activation")
         if (type_name == 'leaky_rectify'):
-            return keras.layers.LeakyReLU(alpha=0.1)
+            return tf.keras.layers.LeakyReLU(alpha=0.1)
         if (type_name == 'relu'):
             return Activation('relu')
         if (type_name == 'tanh'):
@@ -370,7 +354,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         if (type_name == 'linear'):
             return Activation('linear')
         if (type_name == 'elu'):
-            return keras.layers.ELU(alpha=1.0)
+            return tf.keras.layers.ELU(alpha=1.0)
         if (type_name == 'sigmoid'):
             return Activation('sigmoid')
         if (type_name == 'softplus'):
@@ -424,33 +408,33 @@ class DeepNNKerasAdaptive(ModelInterface):
             elif (layer_info[i]["layer_type"] == "Dropout"):
                 network = Dropout(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "GaussianNoise"):
-                network = keras.layers.GaussianNoise(**layer_parms)(network)
+                network = tf.keras.layers.GaussianNoise(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Input"):
                 if ("slice_label" in layer_info[i]):  
                     network = slices[layer_info[i]["slice_label"]]
                 else:   
                     if ("flag" in layer_info[i] and
                         layer_info[i]["flag"] == "fd_input"):
-                        input_ = keras.layers.Input(shape=(layer_info[i]["shape"][-1],), name=stateName)
+                        input_ = tf.keras.layers.Input(shape=(layer_info[i]["shape"][-1],), name=stateName)
                         network = input_
                         self._State_FD = input_
                     else:
                         if ("simulation_model" in self._settings and
                             (self._settings["simulation_model"] == True)):
                             if (self._stateful_lstm):
-                                input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(1, 1, self._state_length), name=stateName)
+                                input_ = tf.keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(1, 1, self._state_length), name=stateName)
                             else:
-                                input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
+                                input_ = tf.keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
                         else:
                             if (self._stateful_lstm):
-                                input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
+                                input_ = tf.keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
                             else:
-                                input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
+                                input_ = tf.keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
                         network = input_
                         self._State_ = input_   
                 print ("self._State_: ", repr(network))
             elif (layer_info[i]["layer_type"] == "BatchNormalization"):
-                network = keras.layers.BatchNormalization(**layer_parms)(network)
+                network = tf.keras.layers.BatchNormalization(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "LayerNormalization"):
                 from keras_layer_normalization import LayerNormalization
                 network = LayerNormalization(**layer_parms)(network)
@@ -483,14 +467,14 @@ class DeepNNKerasAdaptive(ModelInterface):
                     if ( layer_info[i]["net_info"] == "fd" ):
                         subnet = self._actor
                         print ("self._State_backup: ", self._State_backup)
-                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(self._State_backup)))
+                        print ("*** subnet input shape: ", repr(tf.keras.backend.int_shape(self._State_backup)))
                         subnet = Model(inputs=self._State_backup, outputs=subnet)
                         # print("Subnet summary")
                         # subnet.summary()
                     else:
-                        print ("*** net input shape: ", repr(keras.backend.int_shape(network)))
-                        input_ = keras.layers.Input(shape=(keras.backend.int_shape(network)[-1],), name="State_Conv")
-                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
+                        print ("*** net input shape: ", repr(tf.keras.backend.int_shape(network)))
+                        input_ = tf.keras.layers.Input(shape=(tf.keras.backend.int_shape(network)[-1],), name="State_Conv")
+                        print ("*** subnet input shape: ", repr(tf.keras.backend.int_shape(input_)))
                         #if (layer_sizes[i]["isRNN"] == True):
                         #    subnet = self.createSubNetwork(input_, layer_info[i]["net_info"], isRNN=True)
                         #else:
@@ -500,13 +484,13 @@ class DeepNNKerasAdaptive(ModelInterface):
                         # subnet.summary()
                         
                     ### Create a model (set of layers to distribute) pass in the original input to that model
-                    print ("*** subnet input ", network, " shape: ", repr(keras.backend.int_shape(network)))
+                    print ("*** subnet input ", network, " shape: ", repr(tf.keras.backend.int_shape(network)))
                     print ("self._state_length: ", self._state_length)
-                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
+                    network = tf.keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
             elif (layer_info[i]["layer_type"] == "slice"):
                 ### Need to make sure to create end slice first to not overwrite network then try and slice from it again...
                 if ("slice_index" in layer_info[i]):
-                    state_length_ = keras.backend.int_shape(network)[1]
+                    state_length_ = tf.keras.backend.int_shape(network)[1]
                     print ("slice, state_length_: ", state_length_)
                     # sys.exit()
                     slices[layer_info[i]["slice_label"]] = Lambda(keras_slice, output_shape=(state_length_-layer_info[i]["slice_index"],),
@@ -527,18 +511,18 @@ class DeepNNKerasAdaptive(ModelInterface):
             elif ( layer_info[i]["layer_type"] == "coordconv2d" ):
                   network = CoordinateChannel2D()(network)
             elif ( layer_info[i]["layer_type"] == "conv2d" ):
-                network = keras.layers.Conv2D( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                network = tf.keras.layers.Conv2D( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                  bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                  data_format=self._data_format_,
                                                  **layer_parms)(network)
             elif ( layer_info[i]["layer_type"] == "deconv2d" ):
-                network = keras.layers.Conv2DTranspose(
+                network = tf.keras.layers.Conv2DTranspose(
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      data_format=self._data_format_,
                                                      **layer_parms)(network)
             elif ( layer_info[i]["layer_type"] == "sepconv2d" ):
-                network = keras.layers.SeparableConv2D( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
+                network = tf.keras.layers.SeparableConv2D( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                  bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                  data_format=self._data_format_,
                                                  **layer_parms)(network)
@@ -551,7 +535,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 print ("layer type: ", layer_info[i]["layer_type"])
                 model_ = locate(layer_info[i]["layer_type"])
                 print ("layer model: ", model_)
-                if (issubclass(model_, keras.layers)):
+                if (issubclass(model_, tf.keras.layers)):
                     network = model_(
                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
@@ -565,7 +549,7 @@ class DeepNNKerasAdaptive(ModelInterface):
         
         network = input
         
-        if (len(keras.backend.int_shape(input)) == 2
+        if (len(tf.keras.backend.int_shape(input)) == 2
             and (self._settings['num_terrain_features'] > 0)
             and (not (isRNN))
             # and (not ("using_encoder_decoder" in self._settings
@@ -598,10 +582,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                 _characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
                                        arguments={'begin': self._settings['num_terrain_features'], 
                                                   'end': self._state_length})(input)
-            print ("*** _characterFeatures shape: ", repr(keras.backend.int_shape(_characterFeatures)))
+            print ("*** _characterFeatures shape: ", repr(tf.keras.backend.int_shape(_characterFeatures)))
             print ("*** _characterFeatures shape: ", repr(_characterFeatures))
             # sys.exit()
-        # print ("**********************self._taskFeatures shape: ", repr(keras.backend.int_shape(input)))
+        # print ("**********************self._taskFeatures shape: ", repr(tf.keras.backend.int_shape(input)))
         print ("**********************self._taskFeatures shape: ", repr(input))
         
         layer_sizes = layer_info
@@ -609,12 +593,12 @@ class DeepNNKerasAdaptive(ModelInterface):
             self._second_last_layer = network
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                 print ("layer_sizes[",i,"]: ", layer_sizes[i])
-                # print ("shape[", i, "]: ", repr(keras.backend.int_shape(network)))
-                print ("tensor ", network, "shape[", i, "]: ", repr(keras.backend.int_shape(network)))
+                # print ("shape[", i, "]: ", repr(tf.keras.backend.int_shape(network)))
+                print ("tensor ", network, "shape[", i, "]: ", repr(tf.keras.backend.int_shape(network)))
             if type(layer_sizes[i]) is list:
                 if (layer_sizes[i][0] == "GRU" or
                       layer_sizes[i][0] == "LSTM"):
-                    # print ("layer.output_shape: ", keras.backend.shape(network))
+                    # print ("layer.output_shape: ", tf.keras.backend.shape(network))
                     # network = Reshape((1, layer_sizes[i][1]))(network)
                     rnn_dropout=0.0
                     if (len(layer_sizes[i]) >= 4):
@@ -666,24 +650,24 @@ class DeepNNKerasAdaptive(ModelInterface):
                         network = self.getActivationType(self._settings['activation_type'])(network)
                 elif (layer_sizes[i][0] == "TimeDistributedConv"):
                     ### https://machinelearningmastery.com/timedistributed-layer-for-long-short-term-memory-networks-in-python/
-                    # input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name="State_Conv")
+                    # input_ = tf.keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name="State_Conv")
                     if ("fd" == layer_sizes[i][2]):
                         subnet = self._actor
                         print ("self._State_backup: ", self._State_backup)
-                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(self._State_backup)))
+                        print ("*** subnet input shape: ", repr(tf.keras.backend.int_shape(self._State_backup)))
                         subnet = Model(inputs=self._State_backup, outputs=subnet)
                         #if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print("Subnet summary")
                         subnet.summary()
                     else:
-                        print ("*** net input shape: ", repr(keras.backend.int_shape(network)))
-                        # input_ = keras.layers.Input(shape=(1, keras.backend.int_shape(network)[-1]), name="State_Conv")
+                        print ("*** net input shape: ", repr(tf.keras.backend.int_shape(network)))
+                        # input_ = tf.keras.layers.Input(shape=(1, tf.keras.backend.int_shape(network)[-1]), name="State_Conv")
                         # if ("num_terrain_features" in self._settings
                         #     and (self._settings["num_terrain_features"] > 0)):
-                        #     input_ = keras.layers.Input(shape=(1, self._settings["num_terrain_features"]), name="State_Conv")
+                        #     input_ = tf.keras.layers.Input(shape=(1, self._settings["num_terrain_features"]), name="State_Conv")
                         # else:
-                        input_ = keras.layers.Input(shape=(keras.backend.int_shape(network)[-1],), name="State_Conv")
-                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
+                        input_ = tf.keras.layers.Input(shape=(tf.keras.backend.int_shape(network)[-1],), name="State_Conv")
+                        print ("*** subnet input shape: ", repr(tf.keras.backend.int_shape(input_)))
                         if (layer_sizes[i][1] == True):
                             subnet = self.createSubNetwork(input_, layer_sizes[i][2], isRNN=True)
                         else:
@@ -694,19 +678,19 @@ class DeepNNKerasAdaptive(ModelInterface):
                         subnet.summary()
                         
                     ### Create a model (set of layers to distribute) pass in the original input to that model
-                    print ("*** subnet input ", network, " shape: ", repr(keras.backend.int_shape(network)))
+                    print ("*** subnet input ", network, " shape: ", repr(tf.keras.backend.int_shape(network)))
                     print ("self._state_length: ", self._state_length)
-                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
+                    network = tf.keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(network)
                     
-                    # network = keras.layers.TimeDistributed(self.getActivationType(self._settings['activation_type'])(network))
+                    # network = tf.keras.layers.TimeDistributed(self.getActivationType(self._settings['activation_type'])(network))
                 elif (layer_sizes[i][0] == "TimeDistributed"):
                     
                     if ("fd" == layer_sizes[i][2]):
                         subnet = self._actor
                         subnet = Model(inputs=self._State_backup, outputs=subnet)
                     else:
-                        input_ = keras.layers.Input(shape=(self._state_length,), name="State_subnet")
-                        print ("*** subnet input shape: ", repr(keras.backend.int_shape(input_)))
+                        input_ = tf.keras.layers.Input(shape=(self._state_length,), name="State_subnet")
+                        print ("*** subnet input shape: ", repr(tf.keras.backend.int_shape(input_)))
                         subnet = self.createSubNetwork(input_, layer_sizes[i][2], isRNN=False)
                         subnet = Model(inputs=input_, outputs=subnet)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -714,16 +698,16 @@ class DeepNNKerasAdaptive(ModelInterface):
                             subnet.summary()
                     # subnet = Dense(8)
                     ### Create a model (set of layers to distribute) pass in the original input to that model
-                    network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
+                    network = tf.keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
                     
                 elif (layer_sizes[i][0] == "Residual"):
                     
-                    print ("*** Residual subnet input shape: ", repr(keras.backend.int_shape(network)))
+                    print ("*** Residual subnet input shape: ", repr(tf.keras.backend.int_shape(network)))
                     subnet = self.createSubNetwork(network, layer_sizes[i][1], isRNN=True)
                     # subnet = Dense(256)(network)
                     # subnet = Model(inputs=network, outputs=subnet)
                     # network_ = Model(inputs=network, outputs=network)
-                    network = keras.layers.Add()([network, subnet])
+                    network = tf.keras.layers.Add()([network, subnet])
                     # network = network +
                     """ 
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -732,44 +716,44 @@ class DeepNNKerasAdaptive(ModelInterface):
                     """
                     # subnet = Dense(8)
                     ### Create a model (set of layers to distribute) pass in the original input to that model
-                    # network = keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
+                    # network = tf.keras.layers.TimeDistributed(subnet, input_shape=(None, 1, self._state_length))(input)
                     
                 elif (layer_sizes[i][0] == "integrate_actor_part"):
                     subnet_ = self.createSubNetwork(self._actionInput, layer_sizes[i][1], isRNN=False)
                     network = Concatenate()([network, subnet_])
                 elif (layer_sizes[i][0] == "max_pool"):
-                        network = keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
+                        network = tf.keras.layers.MaxPooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=self._data_format_)(network)  
                 elif (layer_sizes[i][0] == "avg_pool"):
-                        network = keras.layers.AveragePooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
+                        network = tf.keras.layers.AveragePooling2D(pool_size=layer_sizes[i][1], strides=None, padding='valid', 
                                                                    data_format=self._data_format_)(network)  
                 elif ( layer_sizes[i][0] == "dropout" ):
                     network = Dropout(rate=layer_sizes[i][1])(network)
                 elif ( layer_sizes[i][0] == "batchnorm" ):
-                    network = keras.layers.BatchNormalization()(network)
+                    network = tf.keras.layers.BatchNormalization()(network)
                 elif ( layer_sizes[i][0] == "input" ):
                     if ("simulation_model" in self._settings and
                         (self._settings["simulation_model"] == True)):
                         if (self._stateful_lstm):
-                            input_ = keras.layers.Input(shape=(self._sequence_length, layer_sizes[i][1][-1]), batch_shape=(1, 1, self._state_length), name=stateName)
+                            input_ = tf.keras.layers.Input(shape=(self._sequence_length, layer_sizes[i][1][-1]), batch_shape=(1, 1, self._state_length), name=stateName)
                         else:
-                            input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name=stateName)
+                            input_ = tf.keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name=stateName)
                     else:
                         if (self._stateful_lstm):
-                            input_ = keras.layers.Input(shape=(self._sequence_length, layer_sizes[i][1][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
+                            input_ = tf.keras.layers.Input(shape=(self._sequence_length, layer_sizes[i][1][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
                         else:
-                            input_ = keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name=stateName)
+                            input_ = tf.keras.layers.Input(shape=(None, layer_sizes[i][1][-1]), name=stateName)
                     network = input_
                     self._State_ = input_   
                     print ("self._State_: ", repr(self._State_)) 
                 elif ( layer_sizes[i][0] == "deconv" ):
-                    network = keras.layers.Conv2DTranspose(layer_sizes[i][1], kernel_size=layer_sizes[i][2], strides=layer_sizes[i][3],
+                    network = tf.keras.layers.Conv2DTranspose(layer_sizes[i][1], kernel_size=layer_sizes[i][2], strides=layer_sizes[i][3],
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      data_format=self._data_format_,
                                                      padding=layer_sizes[i][4])(network)
                 elif ( layer_sizes[i][0] == "conv" ):
-                    network = keras.layers.Conv2D(layer_sizes[i][1], kernel_size=layer_sizes[i][2], strides=layer_sizes[i][3],
+                    network = tf.keras.layers.Conv2D(layer_sizes[i][1], kernel_size=layer_sizes[i][2], strides=layer_sizes[i][3],
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      data_format=self._data_format_,
@@ -778,16 +762,16 @@ class DeepNNKerasAdaptive(ModelInterface):
                     # network = self.createSubNetwork(network, layer_info=[layer_sizes[i][1]["layer_type"]])
                 elif ( layer_sizes[i][0] == "slice_features" ):
                     # network = Concatenate(axis=1)([network, _characterFeatures])
-                    _characterFeatures = Lambda(keras_slice, output_shape=(int(keras.backend.int_shape(network)[-1]) - layer_sizes[i][1],),
+                    _characterFeatures = Lambda(keras_slice, output_shape=(int(tf.keras.backend.int_shape(network)[-1]) - layer_sizes[i][1],),
                                    arguments={'begin': layer_sizes[i][1], 
-                                              'end': int(keras.backend.int_shape(network)[-1])})(network)
+                                              'end': int(tf.keras.backend.int_shape(network)[-1])})(network)
                     print ("slice feature extra: ", repr(_characterFeatures))
                     network = Lambda(keras_slice, output_shape=(layer_sizes[i][1],),
                                    arguments={'begin': 0, 
                                               'end': layer_sizes[i][1]})(network)
                 elif ( len(layer_sizes[i][1])> 1 ):
                     if (i == 0):
-                        print ("create self._taskFeatures shape: ", repr(keras.backend.int_shape(network)))
+                        print ("create self._taskFeatures shape: ", repr(tf.keras.backend.int_shape(network)))
                         if ('split_terrain_input' in self._networkSettings 
                         and self._networkSettings['split_terrain_input']):
                             if ("image_data_format" in self._networkSettings 
@@ -809,7 +793,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                             and (self._networkSettings["use_coordconv_layers"] == True)):
                         network = CoordinateChannel2D()(network)
                     # else:
-                    network = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride,
+                    network = tf.keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride,
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      data_format=self._data_format_)(network)
@@ -820,24 +804,24 @@ class DeepNNKerasAdaptive(ModelInterface):
                             and (self._networkSettings["use_coordconv_layers"] == True)):
                             networkVel_x = CoordinateChannel2D()(networkVel_x)
                             networkVel_y = CoordinateChannel2D()(networkVel_y)
-                        networkVel_x = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride,
+                        networkVel_x = tf.keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride,
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      data_format=self._data_format_)(networkVel_x)
                         networkVel_x = self.getActivationType(self._settings['activation_type'])(networkVel_x)
-                        networkVel_y = keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride,
+                        networkVel_y = tf.keras.layers.Conv2D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride,
                                                      kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                      bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']), 
                                                      data_format=self._data_format_)(networkVel_y)   
                         networkVel_y = self.getActivationType(self._settings['activation_type'])(networkVel_y)         
                     if (self._perform_pooling):
-                        network = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
+                        network = tf.keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
                                                             data_format=self._data_format_)(network)
                         if ('split_terrain_input' in self._networkSettings 
                             and self._networkSettings['split_terrain_input']):
-                            networkVel_x = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
+                            networkVel_x = tf.keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid', 
                                                                      data_format=self._data_format_)(networkVel_x)
-                            networkVel_y = keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid',
+                            networkVel_y = tf.keras.layers.MaxPooling2D(pool_size=2, strides=None, padding='valid',
                                                                      data_format=self._data_format_)(networkVel_y)
                 else:
                     if (i == 0):
@@ -849,13 +833,13 @@ class DeepNNKerasAdaptive(ModelInterface):
                     if ("use_coordconv_layers" in self._networkSettings 
                             and (self._networkSettings["use_coordconv_layers"] == True)):
                         network = CoordinateChannel1D()(network)
-                    network = keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride_,
+                    network = tf.keras.layers.Conv1D(layer_sizes[i][0], kernel_size=layer_sizes[i][1], strides=stride_,
                                                   kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                   bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']))(network)
                     network = self.getActivationType(self._settings['activation_type'])(network)
                     if (self._perform_pooling):
-                        network = keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(network)
-                # network = keras.layers.Conv2D(4, (8,1), strides=(1, 1))(network)
+                        network = tf.keras.layers.MaxPooling1D(pool_size=2, strides=None, padding='valid')(network)
+                # network = tf.keras.layers.Conv2D(4, (8,1), strides=(1, 1))(network)
                 # networkAct = Dense(layer_sizes[i], 
                 #              kernel_regularizer=regularizers.l2(self._settings['regularization_weight']))(networkAct)
             elif ( layer_sizes[i] == "integrate_actor_part"):
@@ -918,7 +902,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                             outputs=self._actor)
         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
             print("Net summary: ", self._actor.summary())
-        sgd = keras.optimizers.Adam(lr=np.float32(0.0001), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(0.000001), decay=np.float32(0.0))
+        sgd = tf.keras.optimizers.Adam(lr=np.float32(0.0001), beta_1=np.float32(0.95), beta_2=np.float32(0.999), epsilon=np.float32(0.000001), decay=np.float32(0.0))
         self._actor.compile(loss='mse', optimizer=sgd)
         
         self._f = self._actor([self.getStateSymbolicVariable()])

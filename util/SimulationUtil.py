@@ -315,6 +315,7 @@ def createNetworkModel(model_type, state_bounds, action_bounds, reward_bounds, s
         from model.ModelInterface import ModelInterface
         # modelClass = my_import(path_)
         modelClass = locate(model_type)
+        print ("modelClass: ", modelClass)
         if ( issubclass(modelClass, ModelInterface)): ## Double check this load will work
             model = modelClass(n_in=len(state_bounds[0]), n_out=n_out_, state_bounds=state_bounds, 
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings,

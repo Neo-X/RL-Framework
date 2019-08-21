@@ -15,6 +15,8 @@ import tensorflow as tf
 import keras
 from keras.models import Sequential, Model
 from collections import OrderedDict
+# from tensorflow.python.keras._impl.keras.models import Model
+
 
 from distutils.version import LooseVersion
 if LooseVersion(tf.__version__) > LooseVersion("2.00"):
@@ -107,12 +109,9 @@ class SAC_TF(KERASAlgorithm):
         super(SAC_TF, self).__init__(model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_,
                                        print_info=False)
 
-        self._model._actor = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=self._model._actor)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"][
-            'train']):
-            print("Actor summary: ", self._model._actor.summary())
+        self._model._actor = tf.keras.Model([self._model.getStateSymbolicVariable()], outputs=self._model._actor)
 
-        self._model._critic = Model(inputs=[self._model.getStateSymbolicVariable(),
+        self._model._critic = tf.keras.Model(inputs=[self._model.getStateSymbolicVariable(),
                                                 self._model.getActionSymbolicVariable()], outputs=self._model._critic)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"][
             'train']):
@@ -120,21 +119,32 @@ class SAC_TF(KERASAlgorithm):
 
         self._modelTarget = type(self._model)(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_,
                                               print_info=False)
-        self._modelTarget._actor = Model(inputs=[self._modelTarget.getStateSymbolicVariable()],
+        self._modelTarget._actor = tf.keras.Model(inputs=[self._modelTarget.getStateSymbolicVariable()],
                                          outputs=self._modelTarget._actor)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"][
             'train']):
             print("Target Actor summary: ", self._modelTarget._actor.summary())
-        self._modelTarget._critic = Model(inputs=[self._modelTarget.getStateSymbolicVariable(),
+        self._modelTarget._critic = tf.keras.Model(inputs=[self._modelTarget.getStateSymbolicVariable(),
                                                       self._modelTarget.getActionSymbolicVariable()],
                                               outputs=self._modelTarget._critic)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"][
             'train']):
             print("Target Critic summary: ", self._modelTarget._critic.summary())
             
+        ### Convert to tf
+            
         # self._training_environment = training_environment
         # self._evaluation_environment = evaluation_environment
         self._policy = self._model._actor
+        
+        def get_logprob(_act_unnormalized):
+            return loglikelihood_keras(
+                _act_unnormalized,
+                self._act[:, :self._action_length],
+                K.exp(self._act[:, self._action_length:] / 2.0),
+                self._action_length)
+        self._policy.actions = self._model.getActorNetwork()([self._model.getStateSymbolicVariable()]) 
+        self._policy.actions = self._model.getActorNetwork()([self._model.getStateSymbolicVariable()]) 
 
         self._Qs = [self._model._critic, self._modelTarget._critic]
         self._Q_targets = tuple(tf.keras.models.clone_model(Q) for Q in self._Qs)
@@ -144,6 +154,9 @@ class SAC_TF(KERASAlgorithm):
 
         self._policy_lr = 0.0001
         self._Q_lr = 0.001
+        target_entropy = 'auto'
+        target_update_interval=1
+        action_prior='uniform'
 
         self._reward_scale = 1.0
         self._target_entropy = (
@@ -164,7 +177,7 @@ class SAC_TF(KERASAlgorithm):
         self._build()
 
     def _build(self):
-        super(SAC, self)._build()
+        # super(SAC_TF, self)._build()
 
         self._init_actor_update()
         self._init_critic_update()
@@ -248,10 +261,11 @@ class SAC_TF(KERASAlgorithm):
         and Section 5 in [1] for further information of the entropy update.
         """
 
-        policy_inputs = flatten_input_structure({
-            name: self._placeholders['observations'][name]
-            for name in self._policy.observation_keys
-        })
+        # policy_inputs = flatten_input_structure({
+        #     name: self._placeholders['observations'][name]
+        #     for name in self._policy.observation_keys
+        # })
+        policy_inputs = [self._model.getStateSymbolicVariable()]
         actions = self._policy.actions(policy_inputs)
         log_pis = self._policy.log_pis(policy_inputs, actions)
 
