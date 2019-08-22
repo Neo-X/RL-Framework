@@ -12,7 +12,7 @@
     "comment__": "Batch size used for learning",
 "batch_size": 64,
     "comment__": "Learning rate for the actor/policy",
-"learning_rate": 0.00001,
+"learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
 "sim_config_file": "CLEVRObjectHRL_NoVision_HLC_Only_v0",
     "comment__": "Exploration distance use when randomly generating new actions",

@@ -405,10 +405,12 @@ class SAC_KERAS(KERASAlgorithm):
             self._action_length)
         mean_probs = np.mean(logprobs)
         print ("q_vals_b: ", np.mean(q_vals_b), " logprobs: ", mean_probs, " self._alpha: ", self._alpha)
-        if (mean_probs < self._target_entropy):
-            self._alpha = np.clip(self._alpha * (0.7/self.getSettings()['critic_updates_per_actor_update']), 0.000001, 1)
-        elif (mean_probs >= self._target_entropy):
-            self._alpha = np.clip(self._alpha * (1.31/self.getSettings()['critic_updates_per_actor_update']), 0.000001, 1)
+        step = 0.3 / self.getSettings()['critic_updates_per_actor_update']
+        # steps = self.getSettings()['critic_updates_per_actor_update']
+        if (mean_probs > self._target_entropy):
+            self._alpha = np.clip(self._alpha * (1 - step), 0.0000001, 1)
+        elif (mean_probs <= self._target_entropy):
+            self._alpha = np.clip(self._alpha * (1.01 + step), 0.0000001, 1)
                 
         q_vals_b = q_vals_b - (self._alpha * logprobs)
         # q_vals_b = self._q_val()
