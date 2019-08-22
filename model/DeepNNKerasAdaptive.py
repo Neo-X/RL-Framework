@@ -7,7 +7,7 @@ import sys
 from dill.settings import settings
 from tensorflow.python.layers.normalization import BatchNorm
 from model.ModelUtil import *
-from tensorflow.keras.models import Sequential, Model
+from keras.models import Sequential, Model
 from keras.optimizers import SGD
 from keras.layers import Input
 from keras.layers.core import Dense, Dropout, Activation, Reshape, Flatten, Lambda
