@@ -16,6 +16,7 @@ import keras
 from keras.models import Sequential, Model
 from collections import OrderedDict
 # from tensorflow.python.keras._impl.keras.models import Model
+from model.LearningUtil import  loglikelihood_keras, loglikelihood_np
 
 
 from distutils.version import LooseVersion
@@ -137,14 +138,15 @@ class SAC_TF(KERASAlgorithm):
         # self._evaluation_environment = evaluation_environment
         self._policy = self._model._actor
         
-        def get_logprob(_act_unnormalized):
+        def get_logprob(_act_unnormalized, act):
             return loglikelihood_keras(
                 _act_unnormalized,
                 self._act[:, :self._action_length],
                 K.exp(self._act[:, self._action_length:] / 2.0),
                 self._action_length)
-        self._policy.actions = self._model.getActorNetwork()([self._model.getStateSymbolicVariable()]) 
-        self._policy.actions = self._model.getActorNetwork()([self._model.getStateSymbolicVariable()]) 
+        # self._policy.actions = self._model.getActorNetwork()([self._model.getStateSymbolicVariable()]) 
+        # self._policy.actions = self._model.getActorNetwork()([self._model.getStateSymbolicVariable()]) 
+        self._model._log_pis = get_logprob(self._model._actor([self._model.getStateSymbolicVariable()]))
 
         self._Qs = [self._model._critic, self._modelTarget._critic]
         self._Q_targets = tuple(tf.keras.models.clone_model(Q) for Q in self._Qs)
@@ -266,8 +268,8 @@ class SAC_TF(KERASAlgorithm):
         #     for name in self._policy.observation_keys
         # })
         policy_inputs = [self._model.getStateSymbolicVariable()]
-        actions = self._policy.actions(policy_inputs)
-        log_pis = self._policy.log_pis(policy_inputs, actions)
+        actions = self._model._actor(policy_inputs)
+        log_pis = self._model._log_pis
 
         assert log_pis.shape.as_list() == [None, 1]
 
