@@ -79,6 +79,9 @@ class SAC_KERAS(KERASAlgorithm):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"][
             'train']):
             print("Target Critic summary: ", self._modelTarget._critic.summary())
+            
+        self._alpha = 0.01
+        self._target_entropy = -len(action_bounds[0])
 
         self._discount_factor = self.getSettings()['discount_factor']
         self._rho = self.getSettings()['rho']
@@ -400,7 +403,14 @@ class SAC_KERAS(KERASAlgorithm):
             target_means,
             np.exp(target_stds / 2.0),
             self._action_length)
-        q_vals_b = q_vals_b - (0.01 * logprobs)
+        mean_probs = np.mean(logprobs)
+        print ("q_vals_b: ", np.mean(q_vals_b), " logprobs: ", mean_probs, " self._alpha: ", self._alpha)
+        if (mean_probs < self._target_entropy):
+            self._alpha = np.clip(self._alpha * (0.7/self.getSettings()['critic_updates_per_actor_update']), 0.000001, 1)
+        elif (mean_probs >= self._target_entropy):
+            self._alpha = np.clip(self._alpha * (1.31/self.getSettings()['critic_updates_per_actor_update']), 0.000001, 1)
+                
+        q_vals_b = q_vals_b - (self._alpha * logprobs)
         # q_vals_b = self._q_val()
         ## Compute target values
         # target_tmp_ = rewards + ((self._discount_factor* q_vals_b )* falls)

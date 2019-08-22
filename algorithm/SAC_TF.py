@@ -16,7 +16,6 @@ import keras
 from keras.models import Sequential, Model
 from collections import OrderedDict
 # from tensorflow.python.keras._impl.keras.models import Model
-from model.LearningUtil import  loglikelihood_keras, loglikelihood_np
 
 
 from distutils.version import LooseVersion
@@ -137,8 +136,9 @@ class SAC_TF(KERASAlgorithm):
         # self._training_environment = training_environment
         # self._evaluation_environment = evaluation_environment
         self._policy = self._model._actor
+        self._model._log_pis
         
-        def get_logprob(_act_unnormalized, act):
+        def get_logprob(_act_unnormalized):
             return loglikelihood_keras(
                 _act_unnormalized,
                 self._act[:, :self._action_length],
@@ -269,7 +269,7 @@ class SAC_TF(KERASAlgorithm):
         # })
         policy_inputs = [self._model.getStateSymbolicVariable()]
         actions = self._model._actor(policy_inputs)
-        log_pis = self._model._log_pis
+        log_pis = self._model._log_pis(policy_inputs, actions)
 
         assert log_pis.shape.as_list() == [None, 1]
 

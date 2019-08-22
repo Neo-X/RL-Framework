@@ -436,15 +436,10 @@ class PPO_KERAS(KERASAlgorithm):
             print ("advantage_scaling: ", std)
         if ('normalize_advantage' in self.getSettings()
             and (self.getSettings()['normalize_advantage'] == True)):
-            # print("Normalize advantage")
             advantage = np.array((advantage - mean) / std, dtype=self._settings['float_type'])
         else:
-            # print("Scale advantage")
-            # advantage = np.array((advantage / action_bound_std(self.getRewardBounds()) ) * (1.0-self.getSettings()['discount_factor']),
-            #                       dtype=self._settings['float_type'])
             advantage = np.array((advantage / action_bound_std(self.getRewardBounds()) ) * (1.0-self.getSettings()['discount_factor']),
                                   dtype=self._settings['float_type'])
-            # print ("advantage mean, std ", np.mean(advantage), np.std(advantage) )
         ### check to not perform updates when r gets to large.
         if ('anneal_learning_rate' in self.getSettings()
             and (self.getSettings()['anneal_learning_rate'] == False)):
@@ -454,16 +449,11 @@ class PPO_KERAS(KERASAlgorithm):
         et_factor = 0.2
         if ("ppo_et_factor" in self.getSettings()):
             et_factor = self.getSettings()["ppo_et_factor"] - 1.0
-            # print("Updated et_factor: ", et_factor)
         if (r_ < (et_factor)) and ( r_ > (-et_factor)):  ### update not to large
             # lossActor = score.history['loss'][0]
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy probability ratio: ", np.mean(r_))
-                # print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
-                # print ("Policy std: ", np.mean(self._q_action_std([states, 0])[0], axis=0))
-                # print ("Network Params mean: ", np.mean(np.array(list(flatten(self.getNetworkParameters()[1])))))
-                # print ("States shape: ", np.array(states).shape)
-                        ### For now don't include dropout in policy updates
+            ### For now don't include dropout in policy updates
             if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
                 
                 # (lossActor, r_) = self.trainPolicy([states, actions, result_states, rewards, advantage, p])
@@ -471,8 +461,6 @@ class PPO_KERAS(KERASAlgorithm):
                 and self.getSettings()['dont_use_td_learning'] == True):
                     if ( True ):
                         y_ = self._value_Target([result_states,0])[0]
-                        # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-                        # target_ = rewards + ((self._discount_factor * y_) * falls)
                         target_ = rewards + ((self._discount_factor * y_))
                         target_2 = norm_reward(G_t, self.getRewardBounds()) * (1.0-self.getSettings()['discount_factor'])
                         target = (target_ + target_2) / 2.0
@@ -481,24 +469,15 @@ class PPO_KERAS(KERASAlgorithm):
                     
                 else:
                     y_ = self._value_Target([result_states,0])[0]
-                    # v = self._model.getCriticNetwork().predict(states, batch_size=states.shape[0])
-                    # target_ = rewards + ((self._discount_factor * y_) * falls)
                     target_ = rewards + ((self._discount_factor * y_))
                 target_ = np.array(target_, dtype=self._settings['float_type'])
                 action_old = self._modelTarget.getActorNetwork().predict(states)
                 ### Anneal learning rate
-                # print ("model learning rate: ", K.get_value(self._model._actor_train.optimizer.lr))
                 self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], [actions, target_],
                       epochs=updates, batch_size=batch_size_,
-                      verbose=0,
-                      # shuffle=True
-                      # p_=p,
-                      # callbacks=self._callbacks_list,
+                      verbose=0
                       )
             else: 
-                # (lossActor, r_) = self.trainPolicy(states, actions, advantage, p, 0)
-                # print("states: ", states)
-                # action_old = self._modelTarget.getActorNetwork().predict([states, actions, advantage, advantage])[:,:self._action_length]
                 if (("train_LSTM" in self._settings)
                     and (self._settings["train_LSTM"] == True)):
                     self.reset()
@@ -508,21 +487,16 @@ class PPO_KERAS(KERASAlgorithm):
                         # and False
                         ):
                         
-                        # action_old = self._modelTarget.getActorNetwork().predict(states)
                         action_old = np.zeros((actions.shape))
                         for k in range(states.shape[1]):
                             x0 = np.array(states[:,[k]])
                             action_old__ = self._action_Target([x0, 0])
-                            # action_old__ = self._modelTarget.getActorNetwork().predict([x0])
-                            # print ("values: ", action_old__)
                             for j in range(states.shape[0]): 
                                 action_old[j][k] = action_old__[0][j] ### Reducing dimensionality of targets
-                                    # print ("appending state: ", j, " values: ", y_[0])
                         for k in range(states.shape[1]):
                             ### shaping data
                             states_ = np.array(states[:,[k]])
                             actions_old_ = np.array(action_old[:,k,:])
-                            # y0 = np.array(targets_[:,k])
                             advantages_ = np.array(advantage[:,k,:])
                             actions_ = np.array(actions[:,k,:])
                             
@@ -530,8 +504,6 @@ class PPO_KERAS(KERASAlgorithm):
                               epochs=1, 
                               batch_size=states.shape[0],
                               verbose=0,
-                              # shuffle=True
-                              # callbacks=[early_stopping],
                               )
                 else:
                     ### Anneal learning rate
@@ -539,21 +511,8 @@ class PPO_KERAS(KERASAlgorithm):
                     self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], actions,
                           epochs=updates, batch_size=batch_size_,
                           verbose=0,
-                          # shuffle=True
-                          # callbacks=[early_stopping],
                           )
-                # (lossActor, r_) = self.trainPolicy([states, actions, advantage, p])
-                """
-                score = self._model.getActorNetwork().fit([states, actions, advantage], advantage,
-                          nb_epoch=1, batch_size=32,
-                          verbose=0
-                          # callbacks=[early_stopping],
-                          )
-                """
-            # (lossActor, r_) = self.trainPolicy(states, actions, advantage, 1.0)
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-                # r_ = np.mean(self._r([states, actions, 0])[0])
-                # r_ = 0
                 print ("Policy loss: ", lossActor, " r: ", np.mean(r_))
             
             if ( (not np.isfinite(lossActor)) or (not np.isfinite(np.mean(r_)))):
@@ -561,7 +520,6 @@ class PPO_KERAS(KERASAlgorithm):
                 print ("State mean: ", np.mean(states, axis=0))
                 print ("Actions mean: ", np.mean(actions, axis=0))
                 print ("Advantage: ", advantage_tmp)
-                # print ("Network Params mean: ", np.mean(np.array(list(flatten(self.getNetworkParameters()[1])))))
                 self._model.getCriticNetwork().set_weights( copy.deepcopy(self._modelTarget.getCriticNetwork().get_weights()))
                 self._model.getActorNetwork().set_weights( copy.deepcopy(self._modelTarget.getActorNetwork().get_weights()))
                 if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -569,7 +527,6 @@ class PPO_KERAS(KERASAlgorithm):
                     print ("Policy probability ratio: ", np.mean(r_))
                     print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
                     print ("Policy std: ", np.mean(self._q_action_std([states, 0])[0], axis=0))
-                    # print ("Network Params mean: ", np.mean(np.array(self.getNetworkParameters()[1])))
         else:
             if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
                 print ("Policy Gradient too large: ", r_)
