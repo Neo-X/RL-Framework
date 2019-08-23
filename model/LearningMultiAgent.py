@@ -324,6 +324,7 @@ class LearningMultiAgent(LearningAgent):
                 falls__h, advantage__h, exp_actions__h, G_t__h) = self.getSingleAgentData(_states, 
                     _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t,
                     agent_num=0)
+        old_shape = np.array(actions__h).shape
         (states__l, actions__l, rewards__l, result_states__l,
                 falls__l, advantage__l, exp_actions__l, G_t__l) = self.getSingleAgentData(_states, 
                     _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t,
@@ -334,14 +335,16 @@ class LearningMultiAgent(LearningAgent):
             ### Get the new goal(s) for the trajectory
             new_goals = []
             step=0
-            for g in range(int(len(_result_states[traj])/self._settings["hlc_timestep"])):
+            steps_ = int(len(states__l[traj])/self._settings["hlc_timestep"])
+            for g in range(steps_):
                 ### get chunk of data
                 statesl = states__l[traj][step:step+self._settings["hlc_timestep"]]
                 actionsl = actions__l[traj][step:step+self._settings["hlc_timestep"]]
-                goals = self.sampleGoals(statesl, actionsl)
+                new_goals = self.sampleGoals(statesl, actionsl)
                 
                 ### Copy in the new goals
                 new_goals = np.array(new_goals)
+                old_acts = np.array(actions__h[traj][step:step+self._settings["hlc_timestep"]])
                 # states = np.array(copy.deepcopy(_states[traj]))
                 # result_states = np.array(copy.deepcopy(_result_states[traj]))
                 # states[:,-self._settings["goal_slice_index"]:] = new_goals
@@ -365,6 +368,7 @@ class LearningMultiAgent(LearningAgent):
                 rewards = (rewards * 0) + -1
                 rewards[-1] = [1]
             """
+        assert old_shape == np.array(actions__h).shape
         return (states__h, actions__h, rewards__h, result_states__h,
                 falls__h, advantage__h, exp_actions__h, G_t__h)
         
