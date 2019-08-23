@@ -132,18 +132,18 @@ class SAC_TF(KERASAlgorithm):
             print("Target Critic summary: ", self._modelTarget._critic.summary())
             
         ### Convert to tf
-            
-        # self._training_environment = training_environment
-        # self._evaluation_environment = evaluation_environment
-        self._policy = self._model._actor
-        self._model._log_pis
-        
         def get_logprob(_act_unnormalized):
             return loglikelihood_keras(
                 _act_unnormalized,
                 self._act[:, :self._action_length],
                 K.exp(self._act[:, self._action_length:] / 2.0),
                 self._action_length)
+            
+        # self._training_environment = training_environment
+        # self._evaluation_environment = evaluation_environment
+        self._policy = self._model._actor
+        self._model._log_pis = 
+        
         # self._policy.actions = self._model.getActorNetwork()([self._model.getStateSymbolicVariable()]) 
         # self._policy.actions = self._model.getActorNetwork()([self._model.getStateSymbolicVariable()]) 
         self._model._log_pis = get_logprob(self._model._actor([self._model.getStateSymbolicVariable()]))
@@ -269,7 +269,11 @@ class SAC_TF(KERASAlgorithm):
         # })
         policy_inputs = [self._model.getStateSymbolicVariable()]
         actions = self._model._actor(policy_inputs)
-        log_pis = self._model._log_pis(policy_inputs, actions)
+        log_pis = loglikelihood_keras(
+                _act_unnormalized,
+                actions[:, :self._action_length],
+                K.exp(actions[:, self._action_length:] / 2.0),
+                self._action_length)
 
         assert log_pis.shape.as_list() == [None, 1]
 

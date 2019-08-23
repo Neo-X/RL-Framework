@@ -288,6 +288,86 @@ class LearningMultiAgent(LearningAgent):
         return  (states__, actions__, rewards__, result_states__, falls__, _advantage, 
                   _exp_actions, _G_t)
         
+    def sampleGoals(self, states, actions):
+        ### get goal
+        states = np.array(copy.deepcopy(states))
+        actions = np.array(actions)
+        probs = []
+        goal = states[:,-self._settings["goal_slice_index"]:]
+        goals = [] 
+        for i in range(8):
+            noise = [np.random.normal(0,0.1,size=self._settings["goal_slice_index"])]
+            noise = np.repeat(noise, len(states), axis=0)
+            new_goals = goal + noise
+            
+            ### Copy in the new goals
+            new_goals = np.array(new_goals)
+            states[:,-self._settings["goal_slice_index"]:] = new_goals
+            
+            actions2 = self.getAgents()[1].getPolicy().predict(states)
+            ### Distance between action sequence
+            prob_ = np.sum(np.square(actions2 - actions))
+            probs.append(prob_)
+            goals.append(new_goals)
+            
+        
+        # print ("probs: ", probs)
+        indx = np.argmin(probs)
+        return goals[indx]
+        
+    def applyHIRO(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
+              _exp_actions, _G_t):
+        import numpy as np
+        ### Relable trajectory goal to new goals that have higher prob after LLP update
+        ### Get the data for both policies
+        (states__h, actions__h, rewards__h, result_states__h,
+                falls__h, advantage__h, exp_actions__h, G_t__h) = self.getSingleAgentData(_states, 
+                    _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t,
+                    agent_num=0)
+        (states__l, actions__l, rewards__l, result_states__l,
+                falls__l, advantage__l, exp_actions__l, G_t__l) = self.getSingleAgentData(_states, 
+                    _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t,
+                    agent_num=1)
+        ### For each trajectory calculate new goal
+        trajectories = len(states__l)
+        for traj in range(trajectories):
+            ### Get the new goal(s) for the trajectory
+            new_goals = []
+            step=0
+            for g in range(int(len(_result_states[traj])/self._settings["hlc_timestep"])):
+                ### get chunk of data
+                statesl = states__l[traj][step:step+self._settings["hlc_timestep"]]
+                actionsl = actions__l[traj][step:step+self._settings["hlc_timestep"]]
+                goals = self.sampleGoals(statesl, actionsl)
+                
+                ### Copy in the new goals
+                new_goals = np.array(new_goals)
+                # states = np.array(copy.deepcopy(_states[traj]))
+                # result_states = np.array(copy.deepcopy(_result_states[traj]))
+                # states[:,-self._settings["goal_slice_index"]:] = new_goals
+                # result_states[:,-self._settings["goal_slice_index"]:] = new_goals
+                actions__h[traj][step:step+self._settings["hlc_timestep"]] = new_goals
+                # rewards = copy.deepcopy(_rewards[traj])
+                # diff = -np.fabs(result_states[:,:self._settings["goal_slice_index"]] - new_goals)
+                # rewards = np.sum(diff, axis=-1, keepdims=True)
+                step = step + self._settings["hlc_timestep"]
+            
+            
+            """
+                achieved_goal = result_states___[-1][0, :self._settings["goal_slice_index"]]
+                states[jj][0, ...] = np.concatenate([
+                    states[jj][0, :self._settings["goal_slice_index"]],
+                    achieved_goal], 0)
+                result_states___[jj][0, ...] = np.concatenate([
+                    result_states___[jj][0, :self._settings["goal_slice_index"]],
+                    achieved_goal], 0)
+                ### Basic version of reward function is indicator of reached goal threshold
+                rewards = (rewards * 0) + -1
+                rewards[-1] = [1]
+            """
+        return (states__h, actions__h, rewards__h, result_states__h,
+                falls__h, advantage__h, exp_actions__h, G_t__h)
+        
     def getSingleAgentData(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t, agent_num):
         states__ = [state_[agent_num::len(self.getAgents())] for state_ in _states]
@@ -307,7 +387,9 @@ class LearningMultiAgent(LearningAgent):
               _exp_actions=None, _G_t=None, p=1.0):
         import numpy as np 
         
-        for agent_ in range(len(self.getAgents())):
+        # for agent_ in range(len(self.getAgents())):
+        ### I want to start with the LLC
+        for agent_ in range(len(self.getAgents())-1, 0 - 1, -1):
             ### Pull out the state for each agent, start at agent index and skip every number of agents 
             (states__, actions__, rewards__, result_states__,
                 falls__, advantage__, exp_actions__, G_t__) = self.getSingleAgentData(_states, 
@@ -355,6 +437,13 @@ class LearningMultiAgent(LearningAgent):
                             target_res_state = np.concatenate((result_states__[tar][s],target_actions[s]), axis=0)
                             result_states__[tar][s] = np.array(target_res_state)
             
+            if (    "use_hindsight_relabeling" in self._settings
+            and (self._settings["use_hindsight_relabeling"] == "HIRO")
+            and (self.getSettings()["hlc_index"] == agent_)):
+                    (states__, actions__, rewards__, result_states__, falls__, advantage__, 
+                 exp_actions__, G_t__) = self.applyHIRO(_states, _actions, _rewards, _result_states, _falls, _advantage, 
+              _exp_actions, _G_t)
+              
             if ("use_hindsight_relabeling" in self._settings and
                 self._settings["use_hindsight_relabeling"] and
                 "goal_slice_index" in self._settings
