@@ -279,7 +279,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if (outside_bounds and settings['penalize_actions_outside_bounds']):
                 ### TODO: this penalty should really be a function of the distance the action was outside the bounds
                 reward_ = reward_ + settings['reward_lower_bound']  
-            # print ("Action: ", action, " reward: ", reward_, " p: ", p)
         elif not action_space_continuous:
             """
             action = random.choice(action_selection)
@@ -292,25 +291,16 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print("Action selection:", action_selection, " action: ", action)
             action__ = actor.getActionParams(action)
             action = [action]
-            # print ("Action selected: " + str(action__))
-            # reward = act(action)
-            # print ("performing action: ", action)
             reward_ = actor.actContinuous(exp, action__, bootstrapping=True)
             agent_not_fell = actor.hasNotFallen(exp)
-            # print ("performed action: ", reward)
-        # print ("Reward: ", reward_)
         resultState_ = exp.getState()
-        # print ("resultState_: ", np.array(resultState_).shape)
         if (movieWriter is not None
             and (not exp.movieWriterSupport())):
             ### If the sim does not have it's own writing support
             vizData = exp.getEnvironment().getFullViewData()
-            # movie_writer.append_data(np.transpose(vizData))
-            # print ("sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
             image_ = np.zeros((vizData.shape))
             for row in range(len(vizData)):
                 image_[row] = vizData[len(vizData)-row - 1]
-            # print ("Writing image to video") 
             movieWriter.append_data(image_)
         if ("use_learned_reward_function" in settings
             and (settings["use_learned_reward_function"])
@@ -326,12 +316,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             if ("fd_algorithm" in settings
                 and (settings["fd_algorithm"] == "algorithm.DiscriminatorKeras.DiscriminatorKeras")):
                 ### Use Discriminator 
-                # print ("state_[0]: ", np.array(state_).shape)
-                # print ("resultState_[0]: ", np.array(resultState_).shape)
-                # reward_ = model.getForwardDynamics().predict([state_[0][1]], [resultState_[0][1]])[0][0]
-                # print ("learned imitation reward: ", reward_, " imitation state sum: ", np.sum(resultState_[0][1]))
                 reward_ = rewmodel.predict([state_[0][0]], [resultState_[0][0]])[0][0]
-                # print ("learned reward: ", reward_)
 
             elif ("use_encoding_for_reward" in settings
                 and (settings["use_encoding_for_reward"] == True)):

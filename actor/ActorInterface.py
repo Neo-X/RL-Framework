@@ -1,4 +1,6 @@
 import sys
+from _ast import Or
+from theano.scalar.basic import OR
 sys.path.append("../characterSimAdapter/")
 
 class ActorInterface(object):
@@ -27,10 +29,15 @@ class ActorInterface(object):
     def updateScalling(self, state):
         import numpy as np
         # print ("state: ", state)
-        if (self.count() == 1):
+        if (self.count() == 0):
+            self._state_len = np.prod(state.shape)
+        state = state[:,:self._state_len]
+        # print ("self._state_len: ", self._state_len)
+            
+        if (self.count() == 1 
+            or (self.count() == 0 )):
             self._state_mean =  state
             self._state_var = np.ones_like(state)
-            
         else:
             x_mean_old = self._state_mean
             self._state_mean = self._state_mean + ((state - self._state_mean)/self.count())
@@ -48,6 +55,7 @@ class ActorInterface(object):
     def entropyReward(self, state):
         import scipy.stats
         import numpy as np
+        state = state[:,:self._state_len]
         ps = scipy.stats.norm(self._state_mean, self._state_var).pdf(state)
         # print ("self._state_var: ", self._state_var)
         ps = ps

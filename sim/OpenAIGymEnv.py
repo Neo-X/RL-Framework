@@ -94,7 +94,7 @@ class OpenAIGymEnv(SimInterface):
         # observation, reward, done, info = env.step(action)
         # self._previous_observation = observation
         
-        state_ = np.array(self._previous_observation)
+        state = np.array(self._previous_observation)
         """
         ### Because some of the state parameters from the sim are always the same number.
         state_idx=0
@@ -103,7 +103,7 @@ class OpenAIGymEnv(SimInterface):
             if (self._state_param_mask[i] == True):
                 state__.append(state_[i] )
         """
-        state = np.array(state_)
+        # state = np.array(state_)
         if (self._settings['environment_type'] == 'RLSimulations' 
             or (self._settings['environment_type'] == 'HRLSimulations')):
             pass

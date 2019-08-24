@@ -295,7 +295,7 @@ class LearningMultiAgent(LearningAgent):
         probs = []
         goal = states[:,-self._settings["goal_slice_index"]:]
         goals = [] 
-        for i in range(8):
+        for i in range(16):
             noise = [np.random.normal(0,0.1,size=self._settings["goal_slice_index"])]
             noise = np.repeat(noise, len(states), axis=0)
             new_goals = goal + noise

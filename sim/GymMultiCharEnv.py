@@ -39,15 +39,19 @@ class GymMultiCharEnv(SimInterface):
             self._state_param_mask = [   True] * len(settings['state_bounds'][0])
         """
     def init(self):
-        # self.getEnvironment().init()
         self._previous_observation = self.getEnvironment().reset()
-        # self._previous_observation = 0
         self._end_of_episode = False
         self._num_updates_since_last_action=10000
-            
+        
+    def addSufficientStats(self, state):
+        state = np.concatenate((state, 
+                                 self.getActor()._state_mean, 
+                                 self.getActor()._state_var,
+                                 [[self.getActor()._count]]), axis=-1)
+        return state
+
     def initEpoch(self):
         self._previous_observation = self.getEnvironment().reset()
-        # print ("self._previous_observation: ", self._previous_observation[0])
         if ("use_dual_state_representations" in self.getSettings()
                 and (self.getSettings()["use_dual_state_representations"] == True)):
             while not checkDataIsValid(self._previous_observation[0][0]):
@@ -59,6 +63,10 @@ class GymMultiCharEnv(SimInterface):
                 self._previous_observation = self.getEnvironment().reset()
                 # print ("self._previous_observation: ", self._previous_observation[0])
         
+        if ("include_suffstate_in_state" in self._settings
+            and (self._settings["include_suffstate_in_state"] == True)):
+            self.getActor().updateScalling(self._previous_observation)
+            self._previous_observation = self.addSufficientStats(self._previous_observation) 
         self._end_of_episode = False
         self._num_updates_since_last_action=10000
     
@@ -67,9 +75,7 @@ class GymMultiCharEnv(SimInterface):
     
     def endOfEpoch(self):
         eoe = self._exp.endOfEpoch()
-        # return self._exp.endOfEpoch()
         return eoe
-        # return self._end_of_episode
 
     def finish(self):   
         self._exp.finish()
@@ -84,7 +90,6 @@ class GymMultiCharEnv(SimInterface):
         return self.getEnvironment().getEvaluationData()
     
     def finish(self):
-        # self._exp.finish()
         pass
         
     def step(self, action):
@@ -92,22 +97,16 @@ class GymMultiCharEnv(SimInterface):
         if (self.getSettings()['render']):
             self.getEnvironment().render()
         observation, reward, done, info = self.getEnvironment().step(action_)
-        # print ("observation: ", observation)
         self._end_of_episode = done
-        # print ("self._end_of_episode: ", self._end_of_episode)
         self._previous_observation = observation
+        if ("include_suffstate_in_state" in self._settings
+            and (self._settings["include_suffstate_in_state"] == True)):
+            self.getActor().updateScalling(self._previous_observation)
+            self._previous_observation = self.addSufficientStats(self._previous_observation) 
         return reward
     
     def getState(self):
-        # state = np.array(self._exp.getState())
-        # observation, reward, done, info = env.step(action)
-        # self._previous_observation = observation
-        
-        # state_ = np.array(self._previous_observation)
-        # state_ = np.array(self._previous_observation)
         state_ = self._previous_observation
-        # state = np.reshape(state_, (len(state_), -1))
-        
         return state_
     
     def getLLCState(self):
@@ -115,25 +114,24 @@ class GymMultiCharEnv(SimInterface):
             Want just the character state at the end.
         """
         state_ = self.getEnvironment().getLLCState()
-        # print ("state_: ", state_)
-        # state = np.array(state_)[200:]
-        # state = np.reshape(state, (-1, len(state_)-200))
         state = np.array(state_)
         state = np.reshape(state, (len(state_), -1))
         return state
     
     def update(self):
+        ### For interactive evaluation
         for i in range(1):
             self.getEnvironment().update()
             self._num_updates_since_last_action+=1
-        # self.getEnvironment().display()
         self._previous_observation = self.getEnvironment().getObservation()
+        if ("include_suffstate_in_state" in self._settings
+            and (self._settings["include_suffstate_in_state"] == True)):
+            self.getActor().updateScalling(self._previous_observation)
+            self._previous_observation = self.addSufficientStats(self._previous_observation) 
                 
     def updateAction(self, action_):
-        
         self.getActor().updateAction(self, action_)
         self._num_updates_since_last_action = 0
-        # print("update action: self._num_updates_since_last_action: ", self._num_updates_since_last_action)
 
     def updateLLCAction(self, action_ ):
         self.getActor().updateLLCAction(self, action_)
@@ -142,7 +140,6 @@ class GymMultiCharEnv(SimInterface):
         timestep = 1
         if ('hlc_timestep' in self.getSettings()):
             timestep = self.getSettings()['hlc_timestep']
-        # print ("needUpdateAction: self._num_updates_since_last_action: ", self._num_updates_since_last_action )
         if ( self._num_updates_since_last_action >= timestep):
             return True
         else:
