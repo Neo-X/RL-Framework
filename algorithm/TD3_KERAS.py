@@ -9,6 +9,7 @@ from keras.optimizers import SGD
 import keras.backend as K
 import keras
 from keras.models import Sequential, Model
+from keras.layers import RepeatVector
 
 
 # For debugging
@@ -225,7 +226,31 @@ class TD3_KERAS(KERASAlgorithm):
                          
         s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)                         
         # s_llp = keras.layers.merge.Concatenate(axis=-1)([s_llp, g])
-        self._model._policy2 = self._llp(inputs=[s_llp])
+        print ("Goal shape: ", s_llp)
+        ### Decoding models
+        ### https://github.com/keras-team/keras/issues/7949
+        def repeat_vector(args):
+            ### sequence_layer is used to determine how long the repitition should be
+            layer_to_repeat = args[0]
+            repeats = args[1]
+            return RepeatVector(repeats)(layer_to_repeat)
+                                                 
+        gen_states = repeat_vector((s_llp, self.getSettings()["hlc_timestep"]))
+        # gen_states = keras.layers.Lambda(repeat_vector, output_shape=(None, keras.backend.int_shape(s_llp)[1])) ([s_llp, self.getSettings()["hlc_timestep"]])
+        # gen_states = keras.backend.repeat(s_llp, self.getSettings()["hlc_timestep"])
+        print ("Front Policy state shape: ", gen_states)           
+        gen_actions = keras.layers.TimeDistributed(self._llp, input_shape=(None, 1, keras.backend.int_shape(s_llp)[1]))(gen_states)
+        print ("Front Policy state shape2: ", gen_states)           
+        # gen_states = keras.layers.Reshape((keras.backend.int_shape(s_llp)[1], self.getSettings()["hlc_timestep"]))(gen_states)
+        # gen_states = keras.backend.repeat_elements(s_llp, self.getSettings()["hlc_timestep"], axis=-1)
+        
+        # gen_actions = self._llp(inputs=[gen_states])
+        ### Flatten stacked actions
+        print("gen_actions: ", gen_actions)
+        print("gen_actions2: ", keras.backend.int_shape(gen_actions))
+        self._model._policy2 = keras.layers.Flatten()(gen_actions)
+        # K.shape(sequence_layer)[1]
+        print ("Front Policy output shape: ", self._model._policy2)
         
         if ( "use_centralized_critic" in self.getSettings()
              and (self.getSettings()["use_centralized_critic"] == True)
