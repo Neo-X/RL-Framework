@@ -434,6 +434,12 @@ class DeepNNKerasAdaptive(ModelInterface):
                         input_ = keras.layers.Input(shape=(layer_info[i]["shape"][-1],), name=stateName)
                         network = input_
                         self._State_FD = input_
+                    elif ("flag" in layer_info[i] and
+                        layer_info[i]["flag"] == "action"):
+                        input_act = keras.layers.Input(shape=(layer_info[i]["shape"][-1],), name="Action_Stacked")
+                        slices["action"] = input_act
+                        self._actionInput = input_act
+                        self._Action = input_act
                     else:
                         if ("simulation_model" in self._settings and
                             (self._settings["simulation_model"] == True)):

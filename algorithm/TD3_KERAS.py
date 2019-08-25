@@ -165,23 +165,25 @@ class TD3_KERAS(KERASAlgorithm):
                                           self._model.getResultStateSymbolicVariable()], 
                                 output=self._qFunc)
         else:
-            self._qFunc = (self._model.getCriticNetwork()(
-                            [self._model.getStateSymbolicVariable(), 
-                             self._act]))
-            self._combined = Model(input=[self._model.getStateSymbolicVariable()], 
-                                output=self._qFunc)
-        
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
-                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
-                                    amsgrad=False)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print ("Clipping: ", sgd.decay)
-            print("sgd, critic: ", sgd)
-        self._combined.compile(loss=[neg_y], optimizer=sgd)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("combined qFun Net summary: ",  self._combined.summary())
-        
+            if ("policy_connections" in self.getSettings()):
+                pass
+            else:
+                self._qFunc = (self._model.getCriticNetwork()(
+                                [self._model.getStateSymbolicVariable(), 
+                                 self._act]))
+                self._combined = Model(input=[self._model.getStateSymbolicVariable()], 
+                                    output=self._qFunc)
+        if ("policy_connections" in self.getSettings()):
+                pass
+        else:
+            sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
+                                        beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
+                                        epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
+                                        amsgrad=False)
+            self._combined.compile(loss=[neg_y], optimizer=sgd)
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                print("combined qFun Net summary: ",  self._combined.summary())
+            
         if (self.getSettings()["regularization_weight"] > 0.0000001):
             self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
         else:
@@ -200,7 +202,10 @@ class TD3_KERAS(KERASAlgorithm):
                                             self._model.getResultStateSymbolicVariable(),
                                             K.learning_phase()
                                             ], [self._q_loss])
-        self._get_actor_loss = K.function([self._model.getStateSymbolicVariable()
+        if ("policy_connections" in self.getSettings()):
+                pass
+        else:
+            self._get_actor_loss = K.function([self._model.getStateSymbolicVariable()
                                                  # ,K.learning_phase()
                                                  ], [self._qFunc])
         
@@ -249,6 +254,8 @@ class TD3_KERAS(KERASAlgorithm):
         print("gen_actions: ", gen_actions)
         print("gen_actions2: ", keras.backend.int_shape(gen_actions))
         self._model._policy2 = keras.layers.Flatten()(gen_actions)
+        # self._model._policy2 = keras.layers.Reshape((keras.backend.int_shape(gen_actions)*self.getSettings()["hlc_timestep"]))(gen_actions)
+        # self._model._policy2 = keras.layers.Reshape((keras.backend.int_shape(gen_actions)*self.getSettings()["hlc_timestep"],))(gen_actions)
         # K.shape(sequence_layer)[1]
         print ("Front Policy output shape: ", self._model._policy2)
         
@@ -278,6 +285,23 @@ class TD3_KERAS(KERASAlgorithm):
         self._combined.compile(loss=[neg_y], optimizer=sgd)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("combined qFun Net summary: ",  self._combined.summary())
+            
+        self._get_actor_loss = K.function([self._model.getStateSymbolicVariable()
+                                                 # ,K.learning_phase()
+                                                 ], [self._qFunc])
+        
+    def genLLPActions(self, states):
+        g = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
+        ### a pi(a|s,g)
+        # s_llp = states[:,:-self.getSettings()["goal_slice_index"]] ### remove last 3 dimensions
+        s_llp = states[:,:4] ### remove last 3 dimensions
+                         
+        s_llp = np.concatenate((s_llp, g), axis=-1)
+        # s_llp = np.repeat(s_llp, self.getSettings()["hlc_timestep"], axis=1)
+        a_llp = self._llp.predict(s_llp)
+        a_llp = np.repeat(a_llp, self.getSettings()["hlc_timestep"], axis=1)
+        # a_llp = np.reshape(a_llp, (-1,15))
+        return a_llp
         
     def updateFrontPolicy(self, lowerPolicy):
         self._llp.set_weights(lowerPolicy._model._actor.get_weights())
@@ -581,9 +605,12 @@ class TD3_KERAS(KERASAlgorithm):
         states = np.array(states, dtype=self._settings['float_type'])
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
         poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
-        value = (self._model.getCriticNetwork().predict([states, poli_mean] , batch_size=states.shape[0])* action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        if ("policy_connections" in self.getSettings()):
+            return np.zeros((states.shape[0],1))
+            poli_mean = self.genLLPActions(states)
+        value = (self._model.getCriticNetwork().predict([states, poli_mean] , 
+                    batch_size=states.shape[0])* action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         
-        # value = scale_reward(self._q_func(state), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         return value
         # return self._q_val()[0]
         
