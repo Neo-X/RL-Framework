@@ -263,31 +263,32 @@ class LearningMultiAgent(LearningAgent):
         import numpy as np
         if (skip_num > 1):
             for tar in range(len(states__)):
-                split_indices = [i for i  in range(skip_num, len(rewards__[tar]), skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
                 tmp_len = len(states__[tar])
-                states__[tar] = states__[tar][0::skip_num]
+                split_indices = [i for i  in range(skip_num, tmp_len, skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
+                states__[tar] = states__[tar][:tmp_len][0::skip_num][:-1]
                 if ("policy_connections" in self.getSettings()):
                     # and (any([model._settings["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
                     ### Stack them instead of skipping them
-                    actions__[tar] =  actions__[tar][0::skip_num]
-                    print ("actions__[tar]: ", np.shape(actions__[tar]))
-                    action_split = np.array_split(actions__[tar], split_indices, axis=0)
+                    # actions___[tar] =  actions__[tar][0::skip_num]
+                    # print ("actions__[tar]: ", np.shape(actions___[tar]))
+                    action_split = np.array_split(actions__[tar], split_indices, axis=0)[:-1]
                     actions__[tar] =  [np.array(rs).flatten() for rs in action_split]
-                    # print ("actions__[tar] ", actions__[tar][0])
+                    # print ("actions__[tar] ", actions__[tar])
                     print ("actions__[tar]: ", np.shape(actions__[tar]))
                     # actions__[tar] =  actions__[tar][0::skip_num]
                 else:
-                    actions__[tar] =  actions__[tar][0::skip_num]
+                    actions__[tar] =  actions__[tar][:tmp_len][0::skip_num]
                 axis = 0
                 first_split = np.array_split(rewards__[tar], split_indices, axis=0)
                 assert len(rewards__[tar][0::skip_num]) == len(first_split), "len(rewards__[tar][0::skip_num]) == len(first_split): " + str(len(rewards__[tar][0::skip_num])) + " == " + str(len(first_split))
                 ### Average reward over LLP steps.
-                rewards__[tar] =  [[np.mean(rs)] for rs in first_split]
-                result_states__[tar] =  result_states__[tar][0::skip_num]
-                falls__[tar] =  falls__[tar][0::skip_num]
-                _advantage[tar] =  _advantage[tar][0::skip_num]
-                _exp_actions[tar] =  _exp_actions[tar][0::skip_num]
-                _G_t[tar] =  _G_t[tar][0::skip_num]
+                rewards__[tar] =  [[np.mean(rs)] for rs in first_split][:-1]
+                
+                result_states__[tar] =  result_states__[tar][:tmp_len][0::skip_num][:-1]
+                falls__[tar] =  falls__[tar][:tmp_len][0::skip_num][:-1]
+                _advantage[tar] =  _advantage[tar][:tmp_len][0::skip_num][:-1]
+                _exp_actions[tar] =  _exp_actions[tar][:tmp_len][0::skip_num][:-1]
+                _G_t[tar] =  _G_t[tar][:tmp_len][0::skip_num][:-1]
                 
                 path = {"states": np.array(states__[tar]),
                         "reward": np.array(rewards__[tar]),
@@ -297,7 +298,7 @@ class LearningMultiAgent(LearningAgent):
                 adv__ = paths["advantage"]
                 _advantage[tar] = adv__
                 
-                assert np.ceil(tmp_len/skip_num) == len(states__[tar]), "np.ceil(tmp_len/skip_num) == len(states__[tar])" + str(np.ceil(tmp_len/skip_num)) + " == " + str(len(states__[tar]))            
+                # assert np.ceil(tmp_len/skip_num) == len(states__[tar]), "np.ceil(tmp_len/skip_num) == len(states__[tar])" + str(np.ceil(tmp_len/skip_num)) + " == " + str(len(states__[tar]))            
         
         return  (states__, actions__, rewards__, result_states__, falls__, _advantage, 
                   _exp_actions, _G_t)
