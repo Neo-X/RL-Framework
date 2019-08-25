@@ -266,12 +266,15 @@ class LearningMultiAgent(LearningAgent):
                 split_indices = [i for i  in range(skip_num, len(rewards__[tar]), skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
                 tmp_len = len(states__[tar])
                 states__[tar] = states__[tar][0::skip_num]
-                if ("policy_connections" in self.getSettings()
-                    and (any([model._settings["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
+                if ("policy_connections" in self.getSettings()):
+                    # and (any([model._settings["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
                     ### Stack them instead of skipping them
+                    actions__[tar] =  actions__[tar][0::skip_num]
+                    print ("actions__[tar]: ", np.shape(actions__[tar]))
                     action_split = np.array_split(actions__[tar], split_indices, axis=0)
                     actions__[tar] =  [np.array(rs).flatten() for rs in action_split]
-                    print ("actions__[tar] ", actions__[tar][0])
+                    # print ("actions__[tar] ", actions__[tar][0])
+                    print ("actions__[tar]: ", np.shape(actions__[tar]))
                     # actions__[tar] =  actions__[tar][0::skip_num]
                 else:
                     actions__[tar] =  actions__[tar][0::skip_num]
@@ -295,6 +298,7 @@ class LearningMultiAgent(LearningAgent):
                 _advantage[tar] = adv__
                 
                 assert np.ceil(tmp_len/skip_num) == len(states__[tar]), "np.ceil(tmp_len/skip_num) == len(states__[tar])" + str(np.ceil(tmp_len/skip_num)) + " == " + str(len(states__[tar]))            
+        
         return  (states__, actions__, rewards__, result_states__, falls__, _advantage, 
                   _exp_actions, _G_t)
         
@@ -389,6 +393,7 @@ class LearningMultiAgent(LearningAgent):
             and (any([agent_num == m[1] for m in self.getSettings()["policy_connections"]])) ):
             other_agent_id = 1
             actions__ = [state_[other_agent_id::len(self.getAgents())] for state_ in _actions]
+            print ("Switching agent actions")
         else:
             actions__ = [state_[agent_num::len(self.getAgents())] for state_ in _actions]
         rewards__ = [state_[agent_num::len(self.getAgents())] for state_ in _rewards]
@@ -494,6 +499,7 @@ class LearningMultiAgent(LearningAgent):
                 self.getAgents()[agent_]._settings["train_critic"] = False
             else:
                 pass
+            """
             if ("policy_connections" in self.getSettings()):
                 for c in range(len(self.getSettings()["policy_connections"])):
                     if (self.getSettings()["policy_connections"][c][1] == agent_):
@@ -506,6 +512,7 @@ class LearningMultiAgent(LearningAgent):
                         self.getAgents()[self.getSettings()["policy_connections"][c][1]].updateFrontPolicy(
                             self.getAgents()[self.getSettings()["policy_connections"][c][0]])
                         break
+            """
             self.getAgents()[agent_].train(states__, actions__, rewards__, result_states__, falls__, _advantage=advantage__, 
               _exp_actions=exp_actions__, _G_t=G_t__, p=p)
         

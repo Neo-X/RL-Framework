@@ -293,8 +293,8 @@ class TD3_KERAS(KERASAlgorithm):
                                                  # ,K.learning_phase()
                                                  ], [self._qFunc])
         
-    def genLLPActions(self, states):
-        g = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
+    def genLLPActions(self, states, g):
+        # g = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
         ### a pi(a|s,g)
         # s_llp = states[:,:-self.getSettings()["goal_slice_index"]] ### remove last 3 dimensions
         s_llp = states[:,:4] ### remove last 3 dimensions
@@ -465,6 +465,7 @@ class TD3_KERAS(KERASAlgorithm):
         
     def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]], p=1.0):
         
+        print ("actions: ", actions)
         # self.setData(states, actions, rewards, result_states, falls)
         ### get actions for target policy
         target_actions = self._modelTarget.getActorNetwork().predict(result_states, batch_size=states.shape[0])
@@ -472,9 +473,10 @@ class TD3_KERAS(KERASAlgorithm):
         noise_scale = 0.1
         target_actions_n = target_actions + np.clip(np.random.normal(loc=0, scale=noise_scale, size=target_actions.shape), -c, c)
         if not (self._llp is None):
-            llp_target_state = result_states[:,:7]
-            llp_target_state[:,-3:] = target_actions_n 
-            target_actions_n = self._llp.predict(llp_target_state)
+            # llp_target_state = result_states[:,:7]
+            # llp_target_state[:,-3:] = target_actions_n 
+            # target_actions_n = self._llp.predict(llp_target_state)
+            target_actions_n = self.genLLPActions(result_states, target_actions_n)
         ### Get next q value
         q_vals_b = self._modelTarget.getCriticNetwork().predict([result_states, target_actions_n], batch_size=states.shape[0])
         q_vals_b1 = self._modelTarget1.getCriticNetwork().predict([result_states, target_actions_n], batch_size=states.shape[0])

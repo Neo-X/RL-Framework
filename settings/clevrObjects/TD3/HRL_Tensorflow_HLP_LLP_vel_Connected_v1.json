@@ -375,14 +375,6 @@
 "policy_connections": [[1,0]],
 	"comment__": "Agent names",
 "agent_names": ["HLP", "LLP"],
-	"comment__": "Perform a post processing step over action sampling",
-"exploration_processing": false,
-	"comment__": "Number of HLP actions to sample for optimization",
-"high_level_exploration_samples": 16,
-	"comment__": "Whether or not to perform rejection sampling",
-"use_high_level_exploration": false,
-	"comment__": "Boolean to use HER or not",
-"use_hindsight_relabeling": false,
 	"comment__": "the first index of the goal in the state",
 "goal_slice_index": 3
 }
