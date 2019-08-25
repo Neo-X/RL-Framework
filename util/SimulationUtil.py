@@ -366,6 +366,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                     assert settings["perform_multiagent_training"] == len(state_bounds)
                     for m in range(settings["perform_multiagent_training"]):
                         settings__ = copy.deepcopy(settings_)
+                        settings__["agent_id"] = m
                         settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
                         settings__["policy_network_layer_sizes"] = settings["policy_network_layer_sizes"][m]
                         if (type(settings["exploration_rate"]) is list):
@@ -435,6 +436,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                 settings_ = copy.deepcopy(settings)
                 for m in range(settings["perform_multiagent_training"]):
                     settings__ = copy.deepcopy(settings)
+                    settings__["agent_id"] = m
                     settings__["policy_network_layer_sizes"] = settings["policy_network_layer_sizes"][m]
                     """
                     if ( "use_centralized_critic" in settings

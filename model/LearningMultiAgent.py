@@ -36,7 +36,9 @@ class LearningMultiAgent(LearningAgent):
                 settings__["state_normalization"] = self.getSettings()["state_normalization"][m]
             # LearningAgent(self.getSettings())
             settings__["use_hindsight_relabeling"] = False
-            self._agents.append(LearningAgent(settings__))
+            settings__["agent_id"] = m
+            agent = LearningAgent(settings__)
+            self._agents.append(agent)
         # self._agents = [LearningAgent(self.getSettings()) for i in range(self.getSettings()["perform_multiagent_training"])]
         
     def getAgents(self):
@@ -261,11 +263,19 @@ class LearningMultiAgent(LearningAgent):
         import numpy as np
         if (skip_num > 1):
             for tar in range(len(states__)):
+                split_indices = [i for i  in range(skip_num, len(rewards__[tar]), skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
                 tmp_len = len(states__[tar])
                 states__[tar] = states__[tar][0::skip_num]
-                actions__[tar] =  actions__[tar][0::skip_num]
+                if ("policy_connections" in self.getSettings()
+                    and (any([model._settings["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
+                    ### Stack them instead of skipping them
+                    action_split = np.array_split(actions__[tar], split_indices, axis=0)
+                    actions__[tar] =  [np.array(rs).flatten() for rs in action_split]
+                    print ("actions__[tar] ", actions__[tar][0])
+                    # actions__[tar] =  actions__[tar][0::skip_num]
+                else:
+                    actions__[tar] =  actions__[tar][0::skip_num]
                 axis = 0
-                split_indices = [i for i  in range(skip_num, len(rewards__[tar]), skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
                 first_split = np.array_split(rewards__[tar], split_indices, axis=0)
                 assert len(rewards__[tar][0::skip_num]) == len(first_split), "len(rewards__[tar][0::skip_num]) == len(first_split): " + str(len(rewards__[tar][0::skip_num])) + " == " + str(len(first_split))
                 ### Average reward over LLP steps.
@@ -375,7 +385,12 @@ class LearningMultiAgent(LearningAgent):
     def getSingleAgentData(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t, agent_num):
         states__ = [state_[agent_num::len(self.getAgents())] for state_ in _states]
-        actions__ = [state_[agent_num::len(self.getAgents())] for state_ in _actions]
+        if ("policy_connections" in self.getSettings()
+            and (any([agent_num == m[1] for m in self.getSettings()["policy_connections"]])) ):
+            other_agent_id = 1
+            actions__ = [state_[other_agent_id::len(self.getAgents())] for state_ in _actions]
+        else:
+            actions__ = [state_[agent_num::len(self.getAgents())] for state_ in _actions]
         rewards__ = [state_[agent_num::len(self.getAgents())] for state_ in _rewards]
         result_states__ = [state_[agent_num::len(self.getAgents())] for state_ in _result_states]
         # result_states_tmp = [state_[agent_num::len(self.getAgents())] for state_ in _result_states]

@@ -165,7 +165,8 @@ class TD3_KERAS(KERASAlgorithm):
                                           self._model.getResultStateSymbolicVariable()], 
                                 output=self._qFunc)
         else:
-            if ("policy_connections" in self.getSettings()):
+            if ("policy_connections" in self.getSettings()
+                and (any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
                 pass
             else:
                 self._qFunc = (self._model.getCriticNetwork()(
@@ -173,7 +174,8 @@ class TD3_KERAS(KERASAlgorithm):
                                  self._act]))
                 self._combined = Model(input=[self._model.getStateSymbolicVariable()], 
                                     output=self._qFunc)
-        if ("policy_connections" in self.getSettings()):
+        if ("policy_connections" in self.getSettings()
+            and (any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
                 pass
         else:
             sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
@@ -202,7 +204,8 @@ class TD3_KERAS(KERASAlgorithm):
                                             self._model.getResultStateSymbolicVariable(),
                                             K.learning_phase()
                                             ], [self._q_loss])
-        if ("policy_connections" in self.getSettings()):
+        if ("policy_connections" in self.getSettings()
+            and (any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
                 pass
         else:
             self._get_actor_loss = K.function([self._model.getStateSymbolicVariable()
@@ -605,7 +608,8 @@ class TD3_KERAS(KERASAlgorithm):
         states = np.array(states, dtype=self._settings['float_type'])
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
         poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
-        if ("policy_connections" in self.getSettings()):
+        if ("policy_connections" in self.getSettings()
+            and (any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
             return np.zeros((states.shape[0],1))
             poli_mean = self.genLLPActions(states)
         value = (self._model.getCriticNetwork().predict([states, poli_mean] , 
