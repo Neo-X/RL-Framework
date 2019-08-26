@@ -86,6 +86,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             exp.setLLC(model.getAgents()[settings["llc_index"]])
         else:
             exp.getEnvironment().getEnv().setLLC(model.getAgents()[settings["llc_index"]])
+    if ("hlc_index" in settings):
+        ### Bad hack for now to use llc in env
+        exp.getEnvironment().getEnv().setHLP(model.getAgents()[settings["hlc_index"]])
     # model.initEpoch(exp)
     state_ = exp.getState()
     # pa = model.predict(state_)
@@ -548,8 +551,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 _output_queue.put(([state__], [act__], [res__], [rew__],  [fall__], [[0]], [exp__]), timeout=timeout_)
         
         state_num += 1
-        # else:
-        # print ("****Reward was: ", reward_)
         pa = None
         i_ += 1
         ### Don't reset during evaluation...

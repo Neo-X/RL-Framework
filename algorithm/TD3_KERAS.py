@@ -218,7 +218,7 @@ class TD3_KERAS(KERASAlgorithm):
         from model.DeepNNKerasAdaptive import keras_slice
         
         
-        # For the combined model we will only train the actor
+        ### For the combined model we will only train the actor
         self._model.getCriticNetwork().trainable = False
         self._model1.getCriticNetwork().trainable = False
         ### I hope this won't cause the llp to not train...
@@ -226,7 +226,9 @@ class TD3_KERAS(KERASAlgorithm):
         
         ### Should the target policy be used here?
         self._llp = lowerPolicy._model._actor
+        self._llp_T = lowerPolicy._modelTarget._actor
         self._llp.trainable = False
+        self._llp_T.trainable = False
         g = self._model._actor([self._model.getStateSymbolicVariable()])
         ### a pi(a|s,g)
         s_llp = keras.layers.core.Lambda(keras_slice, output_shape=(4,),
@@ -294,7 +296,7 @@ class TD3_KERAS(KERASAlgorithm):
                                                  # ,K.learning_phase()
                                                  ], [self._qFunc])
         
-    def genLLPActions(self, states, g):
+    def genLLPActions(self, states, g, target_net=False):
         # g = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
         ### a pi(a|s,g)
         # s_llp = states[:,:-self.getSettings()["goal_slice_index"]] ### remove last 3 dimensions
@@ -302,7 +304,10 @@ class TD3_KERAS(KERASAlgorithm):
                          
         s_llp = np.concatenate((s_llp, g), axis=-1)
         # s_llp = np.repeat(s_llp, self.getSettings()["hlc_timestep"], axis=1)
-        a_llp = self._llp.predict(s_llp)
+        if (target_net == True):
+            a_llp = self._llp_T.predict(s_llp)
+        else:
+            a_llp = self._llp.predict(s_llp)
         a_llp = np.repeat(a_llp, self.getSettings()["hlc_timestep"], axis=1)
         # a_llp = np.reshape(a_llp, (-1,15))
         return a_llp
@@ -477,7 +482,7 @@ class TD3_KERAS(KERASAlgorithm):
             # llp_target_state = result_states[:,:7]
             # llp_target_state[:,-3:] = target_actions_n 
             # target_actions_n = self._llp.predict(llp_target_state)
-            target_actions_n = self.genLLPActions(result_states, target_actions_n)
+            target_actions_n = self.genLLPActions(result_states, target_actions_n, target_net=True)
         ### Get next q value
         q_vals_b = self._modelTarget.getCriticNetwork().predict([result_states, target_actions_n], batch_size=states.shape[0])
         q_vals_b1 = self._modelTarget1.getCriticNetwork().predict([result_states, target_actions_n], batch_size=states.shape[0])

@@ -309,6 +309,7 @@ class LearningMultiAgent(LearningAgent):
         actions = np.array(actions)
         probs = []
         goal = states[:,-self._settings["goal_slice_index"]:]
+        # print ("old goals: ", goal)
         goals = [] 
         for i in range(16):
             noise = [np.random.normal(0,0.1,size=self._settings["goal_slice_index"])]
