@@ -39,15 +39,11 @@ class ExperienceMemory(object):
             self._result_state_length = state_length
         else:
             self._result_state_length = result_state_length
-        # self._settings = settings
         self._history_update_index=0 # where the next experience should write
         self._samples=0 # Number of inserts since last clear()
         self._inserts=0 # total number of inserts
+        self._action_bounds = np.array(settings["action_bounds"])
         self.clear()
-        # self._state_history = theano.shared(np.zeros((self._history_size, state_length)))
-        # self._action_history = theano.shared(np.zeros((self._history_size, action_length)))
-        # self._nextState_history = theano.shared(np.zeros((self._history_size, state_length)))
-        # self._reward_history = theano.shared(np.zeros((self._history_size, 1)))
         
     def clear(self):
         self._history_update_index=0 # where the next experience should write
@@ -579,28 +575,18 @@ class ExperienceMemory(object):
             # indices.add(i)
             
             if ( ('disable_parameter_scaling' in self._settings) and (self._settings['disable_parameter_scaling'])):
-                # state.append(self._state_history[i])
                 state.append(norm_state(self._state_history[i], self.getStateBounds()))
-                # print("Action pulled out: ", self._action_history[i])
                 action.append(self._action_history[i]) # won't work for discrete actions...
-                # action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
                 resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
-                # resultState.append(self._nextState_history[i])
                 reward.append(self._reward_history[i] / action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor']))) # scale rewards
             else:
                                 
                 state.append(norm_state(self._state_history[i], self.getStateBounds()))
-                # print("Action pulled out: ", self._action_history[i])
                 action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
                 resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
-                # reward.append(norm_state(self._reward_history[i] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
                 reward.append(self._reward_history[i] / action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor']))) # scale rewards
-                # action_bound_std(self.getRewardBounds())
             fall.append(self._fall_history[i])
             G_ts.append(self._discounted_sum_history[i]/ action_bound_std(self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
-            # print ("G_ts Before: ", self._discounted_sum_history[i], " reward bounds: ", self.getRewardBounds(), " normalized: ", norm_state(self._discounted_sum_history[i], self.getRewardBounds()))
-            # print ("after: ", norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * (1.0-self._settings['discount_factor']) )
-            # print ("G_ts before, after: ", np.concatenate((self._discounted_sum_history[i], norm_state(self._discounted_sum_history[i], self.getRewardBounds()) * (1.0-self._settings['discount_factor'])), axis=1))
             advantage.append(self._advantage_history[i])
             exp_actions.append(self._exp_action_history[i])
             
@@ -654,8 +640,12 @@ class ExperienceMemory(object):
     def setRewardBounds(self, _reward_bounds):
         self._reward_bounds = np.array(_reward_bounds)
     def setActionBounds(self, _action_bounds):
-        assert len(_action_bounds[0]) == self._action_length
-        self._action_bounds = np.array(_action_bounds)
+        if ("policy_connections" in self._settings
+            and (any([self._settings["agent_id"] == m[1] for m in self._settings["policy_connections"]])) ):
+            pass
+        else:
+            assert len(_action_bounds[0]) == self._action_length
+            self._action_bounds = np.array(_action_bounds)
     def setResultStateBounds(self, _result_state_bounds):
         assert len(_result_state_bounds[0]) == self._result_state_length
         self._result_state_bounds = np.array(_result_state_bounds)

@@ -226,6 +226,7 @@ class TD3_KERAS(KERASAlgorithm):
         
         ### Should the target policy be used here?
         self._llp = lowerPolicy._model._actor
+        self._llp.trainable = False
         g = self._model._actor([self._model.getStateSymbolicVariable()])
         ### a pi(a|s,g)
         s_llp = keras.layers.core.Lambda(keras_slice, output_shape=(4,),
@@ -465,13 +466,13 @@ class TD3_KERAS(KERASAlgorithm):
         
     def trainCritic(self, states, actions, rewards, result_states, falls, G_t=[[0]], p=1.0):
         
-        print ("actions: ", actions)
+        # print ("actions: ", actions)
         # self.setData(states, actions, rewards, result_states, falls)
         ### get actions for target policy
         target_actions = self._modelTarget.getActorNetwork().predict(result_states, batch_size=states.shape[0])
-        c = 0.2
-        noise_scale = 0.1
-        target_actions_n = target_actions + np.clip(np.random.normal(loc=0, scale=noise_scale, size=target_actions.shape), -c, c)
+        self._c = 0.1
+        self._noise_scale = 0.05
+        target_actions_n = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
         if not (self._llp is None):
             # llp_target_state = result_states[:,:7]
             # llp_target_state[:,-3:] = target_actions_n 
@@ -627,7 +628,13 @@ class TD3_KERAS(KERASAlgorithm):
         y_ = self._modelTarget.getCriticNetwork().predict([result_states, actions], batch_size=states.shape[0])
         target_ = rewards + ((self._discount_factor * y_))
         poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
-        values =  self._model.getCriticNetwork().predict([states, poli_mean], batch_size=states.shape[0])
+        target_actions_n = poli_mean + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=poli_mean.shape), -self._c, self._c)
+        if not (self._llp is None):
+            # llp_target_state = result_states[:,:7]
+            # llp_target_state[:,-3:] = target_actions_n 
+            # target_actions_n = self._llp.predict(llp_target_state)
+            target_actions_n = self.genLLPActions(result_states, target_actions_n)
+        values =  self._model.getCriticNetwork().predict([states, target_actions_n], batch_size=states.shape[0])
         bellman_error = target_ - values
         return bellman_error
         # return self._bellman_errorTarget()

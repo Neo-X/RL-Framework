@@ -274,7 +274,7 @@ class LearningMultiAgent(LearningAgent):
                     action_split = np.array_split(actions__[tar], split_indices, axis=0)[:-1]
                     actions__[tar] =  [np.array(rs).flatten() for rs in action_split]
                     # print ("actions__[tar] ", actions__[tar])
-                    print ("actions__[tar]: ", np.shape(actions__[tar]))
+                    # print ("actions__[tar]: ", np.shape(actions__[tar]))
                     # actions__[tar] =  actions__[tar][0::skip_num]
                 else:
                     actions__[tar] =  actions__[tar][:tmp_len][0::skip_num]
