@@ -395,7 +395,7 @@ class LearningMultiAgent(LearningAgent):
             and (any([agent_num == m[1] for m in self.getSettings()["policy_connections"]])) ):
             other_agent_id = 1
             actions__ = [state_[other_agent_id::len(self.getAgents())] for state_ in _actions]
-            print ("Switching agent actions")
+            # print ("Switching agent actions")
         else:
             actions__ = [state_[agent_num::len(self.getAgents())] for state_ in _actions]
         rewards__ = [state_[agent_num::len(self.getAgents())] for state_ in _rewards]
