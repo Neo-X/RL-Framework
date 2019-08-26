@@ -94,20 +94,24 @@ class TD3_KERAS(KERASAlgorithm):
         self._rho = self.getSettings()['rho']
         self._rms_epsilon = self.getSettings()['rms_epsilon']
 
-        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
+        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0,
+                                    clipvalue=1.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Clipping: ", sgd.decay)
         self._model.getCriticNetwork().compile(loss='mse', optimizer=sgd)
-        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
+        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0,
+                                    clipvalue=1.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Clipping: ", sgd.decay)
         self._model1.getCriticNetwork().compile(loss='mse', optimizer=sgd)
         
-        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
+        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0,
+                                    clipvalue=1.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Clipping: ", sgd.decay)
         self._modelTarget.getCriticNetwork().compile(loss='mse', optimizer=sgd)   
-        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0)
+        sgd = keras.optimizers.Adam(lr=self.getSettings()['critic_learning_rate'], beta_1=0.9, beta_2=0.999, epsilon=self._rms_epsilon, decay=0.0,
+                                    clipvalue=1.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Clipping: ", sgd.decay)
         self._modelTarget1.getCriticNetwork().compile(loss='mse', optimizer=sgd)         
@@ -284,7 +288,7 @@ class TD3_KERAS(KERASAlgorithm):
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
                                     epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
-                                    amsgrad=False)
+                                    amsgrad=False, clipvalue=1.0)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Clipping: ", sgd.decay)
             print("sgd, critic: ", sgd)
