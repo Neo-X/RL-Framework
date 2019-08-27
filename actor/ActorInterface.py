@@ -57,6 +57,7 @@ class ActorInterface(object):
         import numpy as np
         state = state[:,:self._state_len]
         ps = scipy.stats.norm(self._state_mean, self._state_var).pdf(state)
+        # ps = (np.square(self._state_mean - state)/(2*(self._state_var)))  + (2 * np.pi * np.sqrt(self._state_var))
         # print ("self._state_var: ", self._state_var)
         ps = ps
         # print ("ps: ", ps)
