@@ -228,6 +228,8 @@ class TD3_KERAS(KERASAlgorithm):
         ### I hope this won't cause the llp to not train...
         lowerPolicy.trainable = False
         
+        self._LLP_State = keras.layers.Input(shape=(self.getSettings()["hlc_timestep"], keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1]), name="llp_state")
+        print ("self._LLP_State: ", self._LLP_State)
         ### Should the target policy be used here?
         self._llp = lowerPolicy._model._actor
         self._llp_T = lowerPolicy._modelTarget._actor
@@ -235,24 +237,27 @@ class TD3_KERAS(KERASAlgorithm):
         self._llp_T.trainable = False
         g = self._model._actor([self._model.getStateSymbolicVariable()])
         ### a pi(a|s,g)
+        ########### This is the wrong kind of slice for a 3d vector
         s_llp = keras.layers.core.Lambda(keras_slice, output_shape=(4,),
                         arguments={'begin': 0, 
-                        'end': 4})(self._model.getStateSymbolicVariable())
+                        'end': 4})(self._LLP_State)
                          
-        s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)                         
+        # s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)                         
         # s_llp = keras.layers.merge.Concatenate(axis=-1)([s_llp, g])
-        print ("Goal shape: ", s_llp)
+        print ("state shape: ", s_llp)
         ### Decoding models
         ### https://github.com/keras-team/keras/issues/7949
         def repeat_vector(args):
-            ### sequence_layer is used to determine how long the repitition should be
+            ### sequence_layer is used to determine how long the repetition should be
             layer_to_repeat = args[0]
             repeats = args[1]
             return RepeatVector(repeats)(layer_to_repeat)
                                                  
-        gen_states = repeat_vector((s_llp, self.getSettings()["hlc_timestep"]))
+        # gen_states = repeat_vector((s_llp, self.getSettings()["hlc_timestep"]))
+        gen_states = repeat_vector((g, self.getSettings()["hlc_timestep"]))
         # gen_states = keras.layers.Lambda(repeat_vector, output_shape=(None, keras.backend.int_shape(s_llp)[1])) ([s_llp, self.getSettings()["hlc_timestep"]])
         # gen_states = keras.backend.repeat(s_llp, self.getSettings()["hlc_timestep"])
+        gen_states = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)      
         print ("Front Policy state shape: ", gen_states)           
         gen_actions = keras.layers.TimeDistributed(self._llp, input_shape=(None, 1, keras.backend.int_shape(s_llp)[1]))(gen_states)
         print ("Front Policy state shape2: ", gen_states)           
@@ -269,21 +274,12 @@ class TD3_KERAS(KERASAlgorithm):
         # K.shape(sequence_layer)[1]
         print ("Front Policy output shape: ", self._model._policy2)
         
-        if ( "use_centralized_critic" in self.getSettings()
-             and (self.getSettings()["use_centralized_critic"] == True)
-             and False):
-            self._qFunc = (self._model.getCriticNetwork()(
-                            [self._model.getResultStateSymbolicVariable(), 
-                             self._model._policy2]))
-            self._combined = Model(input=[self._model.getStateSymbolicVariable(),
-                                          self._model.getResultStateSymbolicVariable()], 
-                                output=self._qFunc)
-        else:
-            self._qFunc = (self._model.getCriticNetwork()(
-                            [self._model.getStateSymbolicVariable(), 
-                             self._model._policy2]))
-            self._combined = Model(input=[self._model.getStateSymbolicVariable()], 
-                                output=self._qFunc)
+        self._qFunc = (self._model.getCriticNetwork()(
+                        [self._model.getStateSymbolicVariable(),
+                         self._model._policy2]))
+        self._combined = Model(input=[self._model.getStateSymbolicVariable(),
+                                      self._LLP_State], 
+                            output=self._qFunc)
         
         sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
                                     beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
