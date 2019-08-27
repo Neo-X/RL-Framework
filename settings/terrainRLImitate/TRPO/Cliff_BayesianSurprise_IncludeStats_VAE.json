@@ -416,5 +416,7 @@
   	"comment__": "The encoding vector size used for the fd models",
 "encoding_vector_size": 64,
 	"comment__": "Leave off the final layer of the network that would result in a state sized output",
-"fd_network_leave_off_end": true
+"fd_network_leave_off_end": true,
+	"comment__": "The number of fd network to be done per actor update.",
+"fd_updates_per_actor_update": 64
 }
