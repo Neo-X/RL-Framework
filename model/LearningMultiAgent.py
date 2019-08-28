@@ -276,6 +276,10 @@ class LearningMultiAgent(LearningAgent):
                     # print ("actions__[tar] ", actions__[tar])
                     # print ("actions__[tar]: ", np.shape(actions__[tar]))
                     # actions__[tar] =  actions__[tar][0::skip_num]
+                    ### stack llp_actions as well
+                    llp_state_split = np.array_split(states__[tar][:][7:], split_indices, axis=0)[:-1]
+                    llp_state_long =  [np.array(rs).flatten() for rs in llp_state_split]
+                    states__[tar] =  [np.concatenate((s,slp), axis=-1) for s,slp in zip(states__[tar], llp_state_long)]
                 else:
                     actions__[tar] =  actions__[tar][:tmp_len][0::skip_num]
                 axis = 0
@@ -395,6 +399,14 @@ class LearningMultiAgent(LearningAgent):
             and (any([agent_num == m[1] for m in self.getSettings()["policy_connections"]])) ):
             other_agent_id = 1
             actions__ = [state_[other_agent_id::len(self.getAgents())] for state_ in _actions]
+            states__llp = [state_[other_agent_id::len(self.getAgents())] for state_ in _states]
+            states___ = []
+            for state_, state_llp in zip(states__, states__llp):
+                 
+                states__  = [np.concatenate((s_, slp), axis=-1) for s_,slp in zip(state_, state_llp)]
+                states___.append(states__)
+            
+            ### append llp states to 
             # print ("Switching agent actions")
         else:
             actions__ = [state_[agent_num::len(self.getAgents())] for state_ in _actions]
@@ -406,6 +418,7 @@ class LearningMultiAgent(LearningAgent):
         exp_actions__ = [state_[agent_num::len(self.getAgents())] for state_ in _exp_actions]
         G_t__ = [state_[agent_num::len(self.getAgents())] for state_ in _G_t]
         
+        assert (len(states__) == len(actions__))
         return (states__, actions__, rewards__, result_states__,
                 falls__, advantage__, exp_actions__, G_t__)
     # @profile(precision=5)
@@ -414,7 +427,7 @@ class LearningMultiAgent(LearningAgent):
         import numpy as np 
         
         # for agent_ in range(len(self.getAgents())):
-        ### I want to start with the LLC
+        ### I want to start with the LLC (count down)
         for agent_ in range(len(self.getAgents())-1, 0 - 1, -1):
             ### Pull out the state for each agent, start at agent index and skip every number of agents 
             (states__, actions__, rewards__, result_states__,
@@ -424,7 +437,10 @@ class LearningMultiAgent(LearningAgent):
             result_states_tmp = copy.deepcopy(result_states__)
             
             if ( "use_centralized_critic" in self.getSettings()
-                 and (self.getSettings()["use_centralized_critic"] == True)):
+                 and ((self.getSettings()["use_centralized_critic"] == True)
+                      # or (agent_ in self.getSettings()["use_centralized_critic"])
+                      )
+                 ):
                 ### Add other agent data 
                 for agent__ in [i for i,x in enumerate(self.getAgents()) if i!=agent_]: ### Add the states for other agents
                     states___ = [state_[agent__::len(self.getAgents())] for state_ in _states]

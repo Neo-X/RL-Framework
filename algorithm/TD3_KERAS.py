@@ -219,7 +219,7 @@ class TD3_KERAS(KERASAlgorithm):
         
     def setFrontPolicy(self, lowerPolicy):
         
-        from model.DeepNNKerasAdaptive import keras_slice
+        from model.DeepNNKerasAdaptive import keras_slice_3d
         
         
         ### For the combined model we will only train the actor
@@ -237,8 +237,7 @@ class TD3_KERAS(KERASAlgorithm):
         self._llp_T.trainable = False
         g = self._model._actor([self._model.getStateSymbolicVariable()])
         ### a pi(a|s,g)
-        ########### This is the wrong kind of slice for a 3d vector
-        s_llp = keras.layers.core.Lambda(keras_slice, output_shape=(4,),
+        s_llp = keras.layers.core.Lambda(keras_slice_3d, output_shape=(5,4),
                         arguments={'begin': 0, 
                         'end': 4})(self._LLP_State)
                          
@@ -254,13 +253,14 @@ class TD3_KERAS(KERASAlgorithm):
             return RepeatVector(repeats)(layer_to_repeat)
                                                  
         # gen_states = repeat_vector((s_llp, self.getSettings()["hlc_timestep"]))
-        gen_states = repeat_vector((g, self.getSettings()["hlc_timestep"]))
+        stacked_goal = repeat_vector((g, self.getSettings()["hlc_timestep"]))
         # gen_states = keras.layers.Lambda(repeat_vector, output_shape=(None, keras.backend.int_shape(s_llp)[1])) ([s_llp, self.getSettings()["hlc_timestep"]])
         # gen_states = keras.backend.repeat(s_llp, self.getSettings()["hlc_timestep"])
-        gen_states = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)      
+        print ("stacked_goal:", stacked_goal)
+        gen_states = keras.layers.concatenate(inputs=[s_llp, stacked_goal], axis=-1)      
         print ("Front Policy state shape: ", gen_states)           
         gen_actions = keras.layers.TimeDistributed(self._llp, input_shape=(None, 1, keras.backend.int_shape(s_llp)[1]))(gen_states)
-        print ("Front Policy state shape2: ", gen_states)           
+        print ("Front Policy gen_actions shape2: ", gen_actions)           
         # gen_states = keras.layers.Reshape((keras.backend.int_shape(s_llp)[1], self.getSettings()["hlc_timestep"]))(gen_states)
         # gen_states = keras.backend.repeat_elements(s_llp, self.getSettings()["hlc_timestep"], axis=-1)
         
@@ -529,11 +529,18 @@ class TD3_KERAS(KERASAlgorithm):
             K.set_value(self._combined.optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
         
         ### The rewards are not used in this update, just a placeholder
-        score = self._combined.fit([states], rewards,
+        if (self._llp is not None):
+            core = self._combined.fit([states, llp_states], rewards,
               epochs=1, batch_size=states.shape[0],
               verbose=0
               # callbacks=[early_stopping],
               )
+        else:
+            score = self._combined.fit([states], rewards,
+                  epochs=1, batch_size=states.shape[0],
+                  verbose=0
+                  # callbacks=[early_stopping],
+                  )
         q_fun = -score.history['loss'][0]
         
         # q_fun = np.mean(self._trainPolicy(states))

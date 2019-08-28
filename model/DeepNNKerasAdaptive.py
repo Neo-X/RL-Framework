@@ -35,6 +35,13 @@ def keras_slice(x, begin, end):
     # else:
     return x[:,begin:end]
 
+### It is complicated to serialize lambda functions, better to define a function
+def keras_slice_3d(x, begin, end):
+    # if (len(keras.backend.int_shape(x)) > 2):
+    #     return x[:, :, begin:end]
+    # else:
+    return x[:,:,begin:end]
+
 class DeepNNKerasAdaptive(ModelInterface):
     
     def __init__(self, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False, stateName="State", resultStateName="ResultState"):
@@ -427,7 +434,8 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = keras.layers.GaussianNoise(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Input"):
                 if ("slice_label" in layer_info[i]):  
-                    network = slices[layer_info[i]["slice_label"]]
+                    input_ = slices[layer_info[i]["slice_label"]]
+                    network = input_
                 else:   
                     if ("flag" in layer_info[i] and
                         layer_info[i]["flag"] == "fd_input"):
@@ -461,7 +469,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                                 input_ = keras.layers.Input(shape=(layer_info[i]["shape"][0],), name=stateName)
                                 self._State = input_ 
                         network = input_
-                    self._State_ = input_   
+                        self._State_ = input_   
                 print ("self._State_: ", repr(network))
             elif (layer_info[i]["layer_type"] == "BatchNormalization"):
                 network = keras.layers.BatchNormalization(**layer_parms)(network)

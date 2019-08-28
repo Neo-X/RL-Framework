@@ -554,23 +554,14 @@ class VAE(SiameseNetwork):
     def loadFrom(self, fileName):
         import h5py
         from util.utils import load_keras_model
-        # from keras.models import load_weights
         suffix = ".h5"
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print ("Loading agent: ", fileName)
-        # with K.get_session().graph.as_default() as g:
-        ### Need to lead the model this way because the learning model's State expects batches...
+        ### Need to load the model this way because the learning model's State expects batches...
         forward_dynamics_net = load_keras_model(fileName+"_FD"+suffix, custom_objects={'contrastive_loss': contrastive_loss})
-        #reward_net = load_keras_model(fileName+"_reward"+suffix, custom_objects={'contrastive_loss': contrastive_loss,
-        #                                                                         "vae_loss_a": self.vae_loss_a,
-        #                                                                         "vae_loss_b": self.vae_loss_b})
-        # if ("simulation_model" in self.getSettings() and
-        #     (self.getSettings()["simulation_model"] == True)):
+
         self._model._forward_dynamics_net.set_weights(forward_dynamics_net.get_weights())
-        self._model._forward_dynamics_net.optimizer = forward_dynamics_net.optimizer
-        # self._model._reward_net.set_weights(reward_net.get_weights())
         self._model._reward_net.load_weights(fileName+"_reward"+suffix)
-        # self._model._reward_net.optimizer = reward_net.optimizer
             
         self._forward_dynamics_net = self._model._forward_dynamics_net
         self._reward_net = self._model._reward_net
@@ -582,17 +573,12 @@ class VAE(SiameseNetwork):
                 "vae_loss_a": self.vae_loss_a})
         self._modelTarget._forward_dynamics_net.set_weights(forward_dynamics_net_T.get_weights())
         self._modelTarget._forward_dynamics_net.optimizer = forward_dynamics_net_T.optimizer
-        # self._modelTarget._reward_net = load_keras_model(fileName+"_reward_net_T"+suffix)
         self._modelTarget._reward_net.load_weights(fileName+"_reward_T"+suffix)
-        # self._model._actor_train = load_keras_model(fileName+"_actor_train"+suffix, custom_objects={'loss': pos_y})
-        # self._value = K.function([self._model.getStateSymbolicVariable(), K.learning_phase()], [self.__value])
-        # self._value_Target = K.function([self._model.getResultStateSymbolicVariable(), K.learning_phase()], [self.__value_Target])
         hf = h5py.File(fileName+"_bounds.h5",'r')
         self.setStateBounds(np.array(hf.get('_state_bounds')))
         self.setRewardBounds(np.array(hf.get('_reward_bounds')))
         self.setActionBounds(np.array(hf.get('_action_bounds')))
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("fd load self.getStateBounds(): ", len(self.getStateBounds()[0]))
-        # self._resultgetStateBounds() = np.array(hf.get('_resultgetStateBounds()'))
         hf.close()
         
