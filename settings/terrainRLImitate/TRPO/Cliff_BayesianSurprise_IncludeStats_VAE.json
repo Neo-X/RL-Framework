@@ -50,8 +50,14 @@
 					0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,
+					0,0,0,0,0,0,0,0,0,0,
 					0,0,0,0,0,0,0,0],
 					[1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,
+					1,1,1,1,1,1,1,1,1,1,
 					1,1,1,1,1,1,1,1,1,1,
 					1,1,1,1,1,1,1,1,1,1,
 					1,1,1,1,1,1,1,1,1,1,
@@ -127,7 +133,7 @@
     "comment__": "Initial factor epsilon in multiplied by (This value will slowly be reduced during training)",
 "epsilon_annealing": 0.8,
     "comment__": "Different ways of calculating the scaling method used normalize the input and outputs of the network from the bootstrapping samples. minmax, input and output are -mean/max-min. variance, input and output are -mean/(std*2), given, use the bounds provided in this file",
-"state_normalization": "given",
+"state_normalization": "adaptive",
     "comment__": "load a pretrained model for the controller",
 "load_saved_model": false,
 	"comment__": "Number of updates the critic should perform per actor update",
@@ -165,7 +171,7 @@
     "comment__": "draw/render the next state suggested by the forward dynamics model",
 "visualize_forward_dynamics": false,
     "comment__": "Learning rate for the forward dynamics model",
-"fd_learning_rate": 0.001,
+"fd_learning_rate": 0.0002,
     "comment__": "Whether or not to train the policy. Used for debugging",
 "train_actor": true,
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
@@ -386,9 +392,11 @@
 "fd_algorithm" : "algorithm.VAE.VAE",
   "comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [
-			  {"layer_type": "Input", "shape": [49]},
-			  {"layer_type": "Dense", "units": 148, "use_bias": true},
-			  {"layer_type": "activation", "activation_type": "linear" }
+			  {"layer_type": "slice", "slice_index": 49, "slice_label": "p(s)"},
+			  {"layer_type": "Dense", "units": 128, "use_bias": true},
+			  {"layer_type": "activation", "activation_type": "leaky_rectify" },
+			  {"layer_type": "Dense", "units": 64, "use_bias": true},
+			  {"layer_type": "activation", "activation_type": "leaky_rectify" }
 ],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
@@ -398,6 +406,10 @@
 			],
   "comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [
+  {"layer_type": "Dense", "units": 64, "use_bias": true},
+  {"layer_type": "activation", "activation_type": "leaky_rectify" },
+  {"layer_type": "Dense", "units": 128, "use_bias": true},
+  {"layer_type": "activation", "activation_type": "leaky_rectify" },
   {"layer_type": "Dense", "units": 49, "use_bias": true},
   {"layer_type": "activation", "activation_type": "linear" }
 ],
@@ -422,8 +434,6 @@
 "fd_updates_per_actor_update": 64,
 	"comment__": "Replace entropy state with VAE state",
 "replace_entropy_state_with_vae": true,
-	"comment__": "Size and shape of terrain",
-"fd_terrain_shape": [49],
-    "comment__": "Number of terrain features for which convolutinoal filters should be used",
-"fd_num_terrain_features": 49
+	"comment__": "VAE state length",
+"vae_state_length": 49
 }

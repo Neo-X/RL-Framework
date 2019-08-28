@@ -65,7 +65,7 @@ class GymMultiCharEnv(SimInterface):
         
         if ("include_suffstate_in_state" in self._settings
             and (self._settings["include_suffstate_in_state"] == True)):
-            self.getActor().updateScalling(self._previous_observation)
+            self.getActor().updateScalling(self._previous_observation, init=True)
             self._previous_observation = self.addSufficientStats(self._previous_observation) 
         self._end_of_episode = False
         self._num_updates_since_last_action=10000
@@ -101,8 +101,8 @@ class GymMultiCharEnv(SimInterface):
         self._previous_observation = observation
         if ("include_suffstate_in_state" in self._settings
             and (self._settings["include_suffstate_in_state"] == True)):
-            self.getActor().updateScalling(self._previous_observation)
             self._previous_observation = self.addSufficientStats(self._previous_observation) 
+            self.getActor().updateScalling(self._previous_observation)
         return reward
     
     def getState(self):

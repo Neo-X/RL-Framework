@@ -28,16 +28,25 @@ class ActorInterface(object):
     def setEncoder(self, encoder):
         self._encoder = encoder
         
-    def updateScalling(self, state):
+    def updateScalling(self, state, init=False):
         import numpy as np
         # print ("state: ", state)
+        if (init):
+            self._state_len = np.prod(state.shape)
+            if ("replace_entropy_state_with_vae" in self._settings):
+                self._state_mean =  np.zeros((1,self._settings["encoding_vector_size"]))
+                self._state_var = np.ones_like(self._state_mean)
+            else:
+                self._state_mean =  state
+                self._state_var = np.ones_like(state)
+            return 
+        
         if ("replace_entropy_state_with_vae" in self._settings):
             state = self._encoder.predict_encoding(state)
-        if (self.count() == 0):
-            self._state_len = np.prod(state.shape)
-        state = state[:,:self._state_len]
-        # print ("self._state_len: ", self._state_len)
+        else:    
+            state = state[:,:self._state_len]
             
+        # print ("self._state_len: ", self._state_len)
         if (self.count() == 1 
             or (self.count() == 0 )):
             self._state_mean =  state
@@ -59,7 +68,10 @@ class ActorInterface(object):
     def entropyReward(self, state):
         import scipy.stats
         import numpy as np
-        state = state[:,:self._state_len]
+        if ("replace_entropy_state_with_vae" in self._settings):
+            state = self._encoder.predict_encoding(state)
+        else:
+            state = state[:,:self._state_len]
         ps = scipy.stats.norm(self._state_mean, self._state_var).pdf(state)
         # ps = (np.square(self._state_mean - state)/(2*(self._state_var)))  + (2 * np.pi * np.sqrt(self._state_var))
         # print ("self._state_var: ", self._state_var)
