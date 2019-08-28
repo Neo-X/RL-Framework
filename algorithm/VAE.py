@@ -183,8 +183,8 @@ class VAE(SiameseNetwork):
         
         ### Decoding models
         ### https://github.com/keras-team/keras/issues/7949
-        ### Decode sequences into images
         decode_a = self._modelTarget._forward_dynamics_net(processed_a_vae)
+        ### Decode sequences into images
         decode_prior = self._modelTarget._forward_dynamics_net(self.noise_from_prior)
         print ("decode_a: ", repr(decode_a))
         print ("decode_prior: ", repr(decode_prior))
@@ -482,7 +482,7 @@ class VAE(SiameseNetwork):
         """
             Compute distance between two states
         """
-        # state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
         if (("train_LSTM_FD" in self._settings)
                     and (self._settings["train_LSTM_FD"] == True)):
             h_a = self._model.processed_a.predict([np.array([state])])

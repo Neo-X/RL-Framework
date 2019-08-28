@@ -441,19 +441,27 @@ class DeepNNKerasAdaptive(ModelInterface):
                         self._actionInput = input_act
                         self._Action = input_act
                     else:
-                        if ("simulation_model" in self._settings and
+                        if (("train_LSTM" in self._settings)
+                                and (self._settings["train_LSTM"] == True)):
+                            if ("simulation_model" in self._settings and
                             (self._settings["simulation_model"] == True)):
-                            if (self._stateful_lstm):
-                                input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(1, 1, self._state_length), name=stateName)
+                                if (self._stateful_lstm):
+                                    input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(1, 1, self._state_length), name=stateName)
+                                else:
+                                    input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
                             else:
-                                input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
+                                if (self._stateful_lstm):
+                                    input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
+                                else:
+                                    input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
                         else:
-                            if (self._stateful_lstm):
-                                input_ = keras.layers.Input(shape=(self._sequence_length, layer_info[i]["shape"][-1]), batch_shape=(self._lstm_batch_size, self._sequence_length, self._state_length), name=stateName)
-                            else:
+                            if (len(layer_info[i]["shape"]) > 1): ### Hack so that RNN layers don't complain about none shapes
                                 input_ = keras.layers.Input(shape=(None, layer_info[i]["shape"][-1]), name=stateName)
+                            else:
+                                input_ = keras.layers.Input(shape=(layer_info[i]["shape"][0],), name=stateName)
+                                self._State = input_ 
                         network = input_
-                        self._State_ = input_   
+                    self._State_ = input_   
                 print ("self._State_: ", repr(network))
             elif (layer_info[i]["layer_type"] == "BatchNormalization"):
                 network = keras.layers.BatchNormalization(**layer_parms)(network)

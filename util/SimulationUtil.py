@@ -1176,6 +1176,9 @@ def createSampler(settings, exp):
 def createNewFDModel(settings, env, model):
     print ("Creating new FD model with different session")
     state_bounds = settings['state_bounds']
+    
+    getFDStateSize(settings)
+    
     if ("use_dual_dense_state_representations" in settings
         and (settings["use_dual_dense_state_representations"] == True)):
         state_bounds = settings['state_bounds']

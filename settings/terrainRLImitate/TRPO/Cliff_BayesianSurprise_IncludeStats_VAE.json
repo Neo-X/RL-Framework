@@ -127,7 +127,7 @@
     "comment__": "Initial factor epsilon in multiplied by (This value will slowly be reduced during training)",
 "epsilon_annealing": 0.8,
     "comment__": "Different ways of calculating the scaling method used normalize the input and outputs of the network from the bootstrapping samples. minmax, input and output are -mean/max-min. variance, input and output are -mean/(std*2), given, use the bounds provided in this file",
-"state_normalization": "adaptive",
+"state_normalization": "given",
     "comment__": "load a pretrained model for the controller",
 "load_saved_model": false,
 	"comment__": "Number of updates the critic should perform per actor update",
@@ -386,8 +386,9 @@
 "fd_algorithm" : "algorithm.VAE.VAE",
   "comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [
-  {"layer_type": "Dense", "units": 148, "use_bias": true},
-  {"layer_type": "activation", "activation_type": "linear" }
+			  {"layer_type": "Input", "shape": [49]},
+			  {"layer_type": "Dense", "units": 148, "use_bias": true},
+			  {"layer_type": "activation", "activation_type": "linear" }
 ],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
@@ -397,7 +398,7 @@
 			],
   "comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [
-  {"layer_type": "Dense", "units": 148, "use_bias": true},
+  {"layer_type": "Dense", "units": 49, "use_bias": true},
   {"layer_type": "activation", "activation_type": "linear" }
 ],
 "decoder_network_layer_sizes2": [
@@ -418,5 +419,11 @@
 	"comment__": "Leave off the final layer of the network that would result in a state sized output",
 "fd_network_leave_off_end": true,
 	"comment__": "The number of fd network to be done per actor update.",
-"fd_updates_per_actor_update": 64
+"fd_updates_per_actor_update": 64,
+	"comment__": "Replace entropy state with VAE state",
+"replace_entropy_state_with_vae": true,
+	"comment__": "Size and shape of terrain",
+"fd_terrain_shape": [49],
+    "comment__": "Number of terrain features for which convolutinoal filters should be used",
+"fd_num_terrain_features": 49
 }

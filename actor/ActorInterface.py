@@ -1,5 +1,5 @@
-import sys
 from _ast import Or
+import sys
 from theano.scalar.basic import OR
 sys.path.append("../characterSimAdapter/")
 
@@ -25,10 +25,14 @@ class ActorInterface(object):
         self._action_bounds = self._settings["action_bounds"]
         self._count = 0
         
+    def setEncoder(self, encoder):
+        self._encoder = encoder
         
     def updateScalling(self, state):
         import numpy as np
         # print ("state: ", state)
+        if ("replace_entropy_state_with_vae" in self._settings):
+            state = self._encoder.predict_encoding(state)
         if (self.count() == 0):
             self._state_len = np.prod(state.shape)
         state = state[:,:self._state_len]

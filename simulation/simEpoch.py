@@ -27,7 +27,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
              worker_id=None, movieWriter=None):
     import numpy as np
     """
-        
         evaluation: If True than the simulation is being evaluated and the episodes will not terminate early.
         bootstrapping: is used to collect initial random actions for the state bounds to be calculated and to init the expBuffer
         epoch: is an integer that can be used to help create repeatable episodes to evaluation
@@ -56,12 +55,9 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         
     if (movieWriter is not None):
         exp.setMovieWriter(movieWriter)
-    # print("bootstrapping: ", bootstrapping, " settings[exploration_method]: ", settings["exploration_method"])
-    # print ("Start sim state bounds: ", model.getStateBounds())
     action_selection = range(len(settings["discrete_actions"]))   
     reward_bounds = np.array(settings['reward_bounds'] )
     pa=None
-    # epsilon = settings["epsilon"]
     # Actor should be FIRST here
     exp.getActor().initEpoch()
     reset_prop = 1
@@ -75,10 +71,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     else:
         exp.generateEnvironmentSample()
     """ 
-    # exp.initEpoch()
-    exp.initEpoch()
-    # print ("sim EXP: ", exp)
-    actor.initEpoch()
     if ("llc_index" in settings):
         ### Bad hack for now to use llc in env
         if (settings["environment_type"] == "Multiworld"
@@ -89,25 +81,16 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     if ("hlc_index" in settings):
         ### Bad hack for now to use llc in env
         exp.getEnvironment().getEnv().setHLP(model.getAgents()[settings["hlc_index"]])
-    # model.initEpoch(exp)
+    if ("replace_entropy_state_with_vae" in settings 
+        and (settings["replace_entropy_state_with_vae"] == True)):
+        actor.setEncoder(model.getForwardDynamics())
+    ### reset the environments
+    exp.initEpoch()
+    actor.initEpoch()
+
     state_ = exp.getState()
-    # pa = model.predict(state_)
-    """
-    if (not bootstrapping):
-        q_values_ = [model.q_value(state_)]
-    else:
-        q_values_ = []
-    """
     viz_q_values_ = []
     
-    ### Test to make sure the agent initial pose and imitation pose are the same.
-    # pose_diff = exp.getEnvironment().getImitationState() - exp.getEnvironment()._sim.getState()
-    # print ("pose_diff: ", pose_diff)
-            
-    # q_value = model.q_value(state_)
-    # print ("Updated parameters: " + str(model.getNetworkParameters()[1]))
-    # print ("q_values_: " + str(q_value) + " Action: " + str(action_))
-    # original_val = q_value
     discounted_sum = 0
     discounted_sums = []
     G_t = []
