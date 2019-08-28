@@ -265,7 +265,7 @@ class LearningMultiAgent(LearningAgent):
             for tar in range(len(states__)):
                 tmp_len = len(states__[tar])
                 split_indices = [i for i  in range(skip_num, tmp_len, skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
-                states__[tar] = states__[tar][:tmp_len][0::skip_num][:-1]
+                states__tr = states__[tar][:tmp_len][0::skip_num][:-1]
                 if ("policy_connections" in self.getSettings()):
                     # and (any([model._settings["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
                     ### Stack them instead of skipping them
@@ -276,11 +276,12 @@ class LearningMultiAgent(LearningAgent):
                     # print ("actions__[tar] ", actions__[tar])
                     # print ("actions__[tar]: ", np.shape(actions__[tar]))
                     # actions__[tar] =  actions__[tar][0::skip_num]
-                    ### stack llp_actions as well
-                    llp_state_split = np.array_split(states__[tar][:][7:], split_indices, axis=0)[:-1]
-                    llp_state_long =  [np.array(rs).flatten() for rs in llp_state_split]
-                    states__[tar] =  [np.concatenate((s,slp), axis=-1) for s,slp in zip(states__[tar], llp_state_long)]
+                    ### stack llp_states as well
+                    llp_state_split = np.array_split(states__[tar], split_indices, axis=0)[:-1]
+                    llp_state_long =  [np.array(rs)[:,7:].flatten() for rs in llp_state_split]
+                    states__[tar] =  [np.concatenate((s,slp), axis=-1) for s,slp in zip(states__tr, llp_state_long)]
                 else:
+                    states__[tar] = states__tr
                     actions__[tar] =  actions__[tar][:tmp_len][0::skip_num]
                 axis = 0
                 first_split = np.array_split(rewards__[tar], split_indices, axis=0)
@@ -401,13 +402,11 @@ class LearningMultiAgent(LearningAgent):
             actions__ = [state_[other_agent_id::len(self.getAgents())] for state_ in _actions]
             states__llp = [state_[other_agent_id::len(self.getAgents())] for state_ in _states]
             states___ = []
-            for state_, state_llp in zip(states__, states__llp):
-                 
-                states__  = [np.concatenate((s_, slp), axis=-1) for s_,slp in zip(state_, state_llp)]
-                states___.append(states__)
-            
             ### append llp states to 
-            # print ("Switching agent actions")
+            for state_, state_llp in zip(states__, states__llp):
+                states____  = [np.concatenate((s_, slp), axis=-1) for s_,slp in zip(state_, state_llp)]
+                states___.append(states____)
+            states__ = states___
         else:
             actions__ = [state_[agent_num::len(self.getAgents())] for state_ in _actions]
         rewards__ = [state_[agent_num::len(self.getAgents())] for state_ in _rewards]
