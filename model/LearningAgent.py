@@ -1221,11 +1221,12 @@ class LearningAgent(AgentInterface):
                 and (self.getSettings()["use_dual_state_representations"] == True)):
                 pass
             else:
-                self.getForwardDynamics().setStateBounds(bounds)
+                # self.getForwardDynamics().setStateBounds(bounds)
                 if ( 'keep_seperate_fd_exp_buffer' in self.getSettings() 
-                     and (self.getSettings()['keep_seperate_fd_exp_buffer'] == True)
-                     and (self.getFDExperience() is not None)):
-                    self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
+                     and (self.getSettings()['keep_seperate_fd_exp_buffer'] == True)):
+                     
+                    if (self.getFDExperience() is not None):
+                        self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
                     # self.getFDExperience().setStateBounds(bounds)
                 else:
                     ### Using the same state bounds across models 

@@ -1175,41 +1175,8 @@ def createSampler(settings, exp):
 
 def createNewFDModel(settings, env, model):
     print ("Creating new FD model with different session")
-    state_bounds = settings['state_bounds']
     
-    getFDStateSize(settings)
-    
-    if ("use_dual_dense_state_representations" in settings
-        and (settings["use_dual_dense_state_representations"] == True)):
-        state_bounds = settings['state_bounds']
-    elif (("use_dual_state_representations" in settings
-          and (settings["use_dual_state_representations"] == True))
-        and (not (settings["forward_dynamics_model_type"] == "SingleNet"))
-        and ("fd_use_multimodal_state" in settings
-             and (settings["fd_use_multimodal_state"] == True))
-        ):
-        state_size__ = settings["fd_num_terrain_features"] + settings["dense_state_size"]
-        if ("append_camera_velocity_state" in settings 
-            and (settings["append_camera_velocity_state"] == True)):
-            state_size__ = state_size__ + 2
-        elif ("append_camera_velocity_state" in settings 
-            and (settings["append_camera_velocity_state"] == "3D")):
-            state_size__ = state_size__ + 3
-            # print ("***** Adding ", settings["append_camera_velocity_state"], " camera")
-            # sys.exit()
-        print ("Creating multi modal state size****")
-        state_bounds = [[0] * (state_size__), 
-                                 [1] * (state_size__)]
-    elif ("use_dual_state_representations" in settings
-        and (settings["use_dual_state_representations"] == True)
-        and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
-        state____ = env.getState()
-        print("state____ shape: ", state____)
-        
-        state_bounds = [[0] * state____[0][1].size, 
-                                 [1] * state____[0][1].size]
-    # if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-    #     print("fd state bounds:", state_bounds)
+    state_bounds = getFDStateSize(settings)
     action_bounds = settings['action_bounds']
     
     forwardDynamicsModel = None
@@ -1266,27 +1233,7 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                  or (settings['learning_backend'] == "theano")
                 )):
                 from algorithm.AlgorithmInterface import AlgorithmInterface
-                state_bounds__ = state_bounds
-                if ("use_dual_state_representations" in settings
-                    and "fd_num_terrain_features" in settings
-                        and (settings["use_dual_state_representations"] == True)
-                    and ("fd_use_multimodal_state" in settings
-                     and (settings["fd_use_multimodal_state"] == True))):
-                        state_size__ = settings["fd_num_terrain_features"] + settings["dense_state_size"]
-                        if ("append_camera_velocity_state" in settings 
-                            and (settings["append_camera_velocity_state"] == True)):
-                            state_size__ = state_size__ + 2
-                        elif ("append_camera_velocity_state" in settings 
-                            and (settings["append_camera_velocity_state"] == "3D")):
-                            state_size__ = state_size__ + 3
-                        print ("Creating multi modal state size****")
-                        state_bounds__ = [[0] * (state_size__), 
-                                                 [1] * (state_size__)]
-                elif ("use_dual_state_representations" in settings
-                    and "fd_num_terrain_features" in settings
-                        and (settings["use_dual_state_representations"] == True)):
-                        state_bounds__ = np.array([[0] * settings["fd_num_terrain_features"], 
-                                         [1] * settings["fd_num_terrain_features"]])
+                state_bounds__ = getFDStateSize(settings)
                 settings_ = copy.deepcopy(settings)
                 ### This is faster....
                 settings_['load_saved_model'] = False
