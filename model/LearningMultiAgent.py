@@ -277,9 +277,10 @@ class LearningMultiAgent(LearningAgent):
                     # print ("actions__[tar]: ", np.shape(actions__[tar]))
                     # actions__[tar] =  actions__[tar][0::skip_num]
                     ### stack llp_states as well
+                    state_plit_index = 7
                     llp_state_split = np.array_split(states__[tar], split_indices, axis=0)[:-1]
-                    llp_state_long =  [np.array(rs)[:,7:].flatten() for rs in llp_state_split]
-                    states__[tar] =  [np.concatenate((s,slp), axis=-1) for s,slp in zip(states__tr, llp_state_long)]
+                    llp_state_long =  [np.array(rs)[:,-state_plit_index:].flatten() for rs in llp_state_split]
+                    states__[tar] =  [np.concatenate((s[:-state_plit_index],slp), axis=-1) for s,slp in zip(states__tr, llp_state_long)]
                 else:
                     states__[tar] = states__tr
                     actions__[tar] =  actions__[tar][:tmp_len][0::skip_num]

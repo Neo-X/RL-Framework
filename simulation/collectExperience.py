@@ -251,9 +251,13 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                     if ("policy_connections" in settings
                         and (any([i == m[1] for m in settings["policy_connections"]])) ):
                         action_length = 15
-                        settings__["action_bounds"] = [np.ones((15)) * -1.5,
-                                                       np.ones((15)) * 1.5]
+                        settings__["action_bounds"] = [np.ones((action_length)) * -1.5,
+                                                       np.ones((action_length)) * 1.5]
                         print ("adjusted bounds: ", settings__["action_bounds"])
+                        # state_length = 51
+                        # settings__["state_bounds"] = [np.ones((state_length)) * -1.5,
+                        #                                np.ones((state_length)) * 1.5]
+                        # print ("adjusted state bounds: ", settings__["state_bounds"])
                     else:
                         action_length = len(model.getActionBounds()[i][0])
                     exp_ = ExperienceMemory(len(model.getStateBounds()[i][0]), action_length, 

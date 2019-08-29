@@ -38,8 +38,19 @@
 "experience_length": [5000, 20000],
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [
-  				  [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], 
-  				   [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]], 
+  				  [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  				    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  				    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  				    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  				    0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+  				    0.0
+  				  ], 
+  				   [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+  				   1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+  				   1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+  				   1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+  				   1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+  				   1.0]], 
 				  [[-2.0, -2.0, -2.0, -2.0, -2.0, -2.0, -2.0],
 				   [ 2.0,  2.0,  2.0,  2.0,  2.0,  2.0,  2.0]]
 				],
@@ -278,6 +289,7 @@
 "network_description_type": "json",
 	"comment__": "A list describing the size of the layers for the NN",
 "critic_network_layer_sizes": [[
+								{"layer_type": "slice", "slice_index": 16, "slice_label": "llp_state"},
 								{"layer_type": "Dense", "units": 128, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Input", "shape": ["none", 15], "flag": "action"},
@@ -299,6 +311,7 @@
 								],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [[ 
+								{"layer_type": "slice", "slice_index": 16, "slice_label": "llp_state"},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
@@ -378,5 +391,7 @@
 	"comment__": "the first index of the goal in the state",
 "goal_slice_index": 3,
 	"comment__": "Boolean to use HER or not",
-"use_hindsight_relabeling": true
+"use_hindsight_relabeling": true,
+	"comment__": "Do something odd with the state...",
+"use_hack_state_trans": 35
 }
