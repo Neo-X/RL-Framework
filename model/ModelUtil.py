@@ -811,14 +811,11 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         action_grads = normalizeMBAEActionGrads(action_grads, learning_rate)
         if ('randomize_MBAE_action_length' in model.getSettings()
              and ( model.getSettings()['randomize_MBAE_action_length'] == True)):
-            # print ("Adding noise to action grads")
-            # action_grads = action_grads * np.random.uniform(low=0.0, high = 1.0, size=1)[0]
             noise = (np.fabs(np.random.normal(loc=0.0, scale = 1.0, size=1)[0]))
             action_grads = action_grads * noise
             
         if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print ("Applied action: ", action_grads)
-            # print ("Action magnitude: ", np.sqrt((action_grads*action_grads).sum()), " mean, ", np.mean(np.abs(action_grads)))
             print ("Action magnitude: ", np.sqrt((action_grads*action_grads).sum()), " mean, ", np.mean(action_grads))
             
         ## Scale action by action bounds
@@ -826,27 +823,16 @@ def getOptimalAction2(forwardDynamicsModel, model, state, action_lr, use_random_
         if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
             print ("Applied action: ", action_grads)
             print ("Action magnitude: ", np.sqrt((action_grads*action_grads).sum()))
-        # action_grads = action_grads * learning_rate
-        # print ("action_grad2: ", action_grads)
         ## Use grad to update action parameters
         action = action + action_grads
         action = action
-        # print ("action_grad: ", action_grads, " new action: ", action)
-        # print ( "Action shape: ", action.shape)
-        # print (" Action diff: ", (action - init_action))
         next_state_ = np.reshape(forwardDynamicsModel.predict(state, action), (1, model.getStateSize()))
         
-        # print ("Next_state: ", next_state_.shape, " values ", next_state_)
     final_value = model.q_value(next_state_)
     if ( model.getSettings()['train_reward_predictor']):
         reward = forwardDynamicsModel.predict_reward(state, action)
-        # print ("Estimated reward: ", reward)
         final_value = reward + (model.getSettings()['discount_factor'] * final_value)
-
-    
-        # print ("Final Estimated Value: ", final_value)
         
-        # repeat
     ### This should be higher
     value_diff = final_value - init_value
     if (model.getSettings()["print_levels"][model.getSettings()["print_level"]] >= model.getSettings()["print_levels"]['debug']):
@@ -905,10 +891,8 @@ def getFDModelPredictionUncertanty(model, state, action, length=4.1, num_samples
                          model.getSettings()['regularization_weight'] ))**-1
     # print "Model Precision Inverse:" + str(modelPrecsionInv)
     predictions_ = []
-    # print "Sample: " + str(samp_)
     for pi in range(num_samples):
         predictions_.append( (model.predictWithDropout(state, action)))
-    # print "Predictions: " + str(predictions_)
     variance__ = (modelPrecsionInv) + np.var(predictions_, axis=0)
     return variance__
 
@@ -1056,6 +1040,7 @@ def checkDataIsValid(data, verbose=False, scale=1.0, identifier="Data"):
             for data__ in data:
                 valid = valid and checkDataIsValid(data__, verbose=verbose, scale=scale, identifier=identifier)
         """
+        bad_value_boundary=100000
         data = np.array(data)
         if (not np.all(np.isfinite(data))):
             if ( verbose ):
@@ -1067,7 +1052,7 @@ def checkDataIsValid(data, verbose=False, scale=1.0, identifier="Data"):
                 print ("Bad Values: ", bad_values_)
             return False
     
-        if (np.any(np.less(data, -1000.0*scale))):
+        if (np.any(np.less(data, -bad_value_boundary*scale))):
             if ( verbose ):
                 less_ = np.less(data, -1000.0*scale)
                 bad_indecies = np.where(less_ == True)
@@ -1077,9 +1062,9 @@ def checkDataIsValid(data, verbose=False, scale=1.0, identifier="Data"):
                 print ("Bad Values: ", bad_values_)
             return False
         
-        if (np.any(np.greater(data, 1000.0*scale))):
+        if (np.any(np.greater(data, bad_value_boundary*scale))):
             if ( verbose ):
-                less_ = np.greater(data, 1000.0*scale)
+                less_ = np.greater(data, bad_value_boundary*scale)
                 bad_indecies = np.where(less_ == True)
                 bad_values_ = data[bad_indecies]
                 print (identifier + " too positive: ", less_ )
