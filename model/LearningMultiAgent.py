@@ -266,6 +266,7 @@ class LearningMultiAgent(LearningAgent):
                 tmp_len = len(states__[tar])
                 split_indices = [i for i  in range(skip_num, tmp_len, skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
                 states__tr = states__[tar][:tmp_len][0::skip_num][:-1]
+                result_states__tar =  result_states__[tar][:tmp_len][0::skip_num][:-1]
                 if ("policy_connections" in self.getSettings()):
                     # and (any([model._settings["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
                     ### Stack them instead of skipping them
@@ -281,16 +282,21 @@ class LearningMultiAgent(LearningAgent):
                     llp_state_split = np.array_split(states__[tar], split_indices, axis=0)[:-1]
                     llp_state_long =  [np.array(rs)[:,-state_plit_index:].flatten() for rs in llp_state_split]
                     states__[tar] =  [np.concatenate((s[:-state_plit_index],slp), axis=-1) for s,slp in zip(states__tr, llp_state_long)]
+                    ### Add to result state as well.
+                    llp_state_split = np.array_split(result_states__[tar], split_indices, axis=0)[:-1]
+                    llp_state_long =  [np.array(rs)[:,-state_plit_index:].flatten() for rs in llp_state_split]
+                    result_states__[tar] =  [np.concatenate((s[:-state_plit_index],slp), axis=-1) for s,slp in zip(result_states__tar, llp_state_long)]
                 else:
                     states__[tar] = states__tr
                     actions__[tar] =  actions__[tar][:tmp_len][0::skip_num]
+                    result_states__[tar] =  result_states__tar
                 axis = 0
                 first_split = np.array_split(rewards__[tar], split_indices, axis=0)
                 assert len(rewards__[tar][0::skip_num]) == len(first_split), "len(rewards__[tar][0::skip_num]) == len(first_split): " + str(len(rewards__[tar][0::skip_num])) + " == " + str(len(first_split))
                 ### Average reward over LLP steps.
                 rewards__[tar] =  [[np.mean(rs)] for rs in first_split][:-1]
                 
-                result_states__[tar] =  result_states__[tar][:tmp_len][0::skip_num][:-1]
+                # result_states__[tar] =  result_states__[tar][:tmp_len][0::skip_num][:-1]
                 falls__[tar] =  falls__[tar][:tmp_len][0::skip_num][:-1]
                 _advantage[tar] =  _advantage[tar][:tmp_len][0::skip_num][:-1]
                 _exp_actions[tar] =  _exp_actions[tar][:tmp_len][0::skip_num][:-1]
@@ -397,21 +403,26 @@ class LearningMultiAgent(LearningAgent):
     def getSingleAgentData(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t, agent_num):
         states__ = [state_[agent_num::len(self.getAgents())] for state_ in _states]
+        result_states__ = [state_[agent_num::len(self.getAgents())] for state_ in _result_states]
         if ("policy_connections" in self.getSettings()
             and (any([agent_num == m[1] for m in self.getSettings()["policy_connections"]])) ):
             other_agent_id = 1
             actions__ = [state_[other_agent_id::len(self.getAgents())] for state_ in _actions]
             states__llp = [state_[other_agent_id::len(self.getAgents())] for state_ in _states]
+            res_states__llp = [state_[other_agent_id::len(self.getAgents())] for state_ in _result_states]
             states___ = []
+            res_states___ = []
             ### append llp states to 
-            for state_, state_llp in zip(states__, states__llp):
+            for state_, state_llp, res_state_, res_state_llp in zip(states__, states__llp, result_states__, res_states__llp):
                 states____  = [np.concatenate((s_, slp), axis=-1) for s_,slp in zip(state_, state_llp)]
+                res_states____  = [np.concatenate((s_, slp), axis=-1) for s_,slp in zip(res_state_, res_state_llp)]
                 states___.append(states____)
+                res_states___.append(res_states____)
             states__ = states___
+            result_states__ = res_states___
         else:
             actions__ = [state_[agent_num::len(self.getAgents())] for state_ in _actions]
         rewards__ = [state_[agent_num::len(self.getAgents())] for state_ in _rewards]
-        result_states__ = [state_[agent_num::len(self.getAgents())] for state_ in _result_states]
         # result_states_tmp = [state_[agent_num::len(self.getAgents())] for state_ in _result_states]
         falls__ = [state_[agent_num::len(self.getAgents())] for state_ in _falls]
         advantage__ = [state_[agent_num::len(self.getAgents())] for state_ in _advantage]
@@ -419,6 +430,7 @@ class LearningMultiAgent(LearningAgent):
         G_t__ = [state_[agent_num::len(self.getAgents())] for state_ in _G_t]
         
         assert (len(states__) == len(actions__))
+        assert (np.array(states__).shape == np.array(result_states__).shape)
         return (states__, actions__, rewards__, result_states__,
                 falls__, advantage__, exp_actions__, G_t__)
     # @profile(precision=5)
