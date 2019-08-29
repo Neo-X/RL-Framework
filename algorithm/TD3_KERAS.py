@@ -228,7 +228,8 @@ class TD3_KERAS(KERASAlgorithm):
         ### I hope this won't cause the llp to not train...
         lowerPolicy.trainable = False
         
-        self._LLP_State = keras.layers.Input(shape=(self.getSettings()["hlc_timestep"], keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1]), name="llp_state")
+        self._LLP_State = keras.layers.Input(shape=(self.getSettings()["hlc_timestep"]* keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1],), name="llp_state")
+        llp_state = keras.layers.Reshape((self.getSettings()["hlc_timestep"], keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1]))(self._LLP_State)
         print ("self._LLP_State: ", self._LLP_State)
         ### Should the target policy be used here?
         self._llp = lowerPolicy._model._actor
@@ -236,10 +237,10 @@ class TD3_KERAS(KERASAlgorithm):
         self._llp.trainable = False
         self._llp_T.trainable = False
         g = self._model._actor([self._model.getStateSymbolicVariable()])
-        ### a pi(a|s,g)
+        ### a <- pi(a|s,g)
         s_llp = keras.layers.core.Lambda(keras_slice_3d, output_shape=(5,4),
                         arguments={'begin': 0, 
-                        'end': 4})(self._LLP_State)
+                        'end': 4})(llp_state)
                          
         # s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)                         
         # s_llp = keras.layers.merge.Concatenate(axis=-1)([s_llp, g])
@@ -530,7 +531,8 @@ class TD3_KERAS(KERASAlgorithm):
         
         ### The rewards are not used in this update, just a placeholder
         if (self._llp is not None):
-            core = self._combined.fit([states, llp_states], rewards,
+            llp_states = states[:,16:]
+            score = self._combined.fit([states, llp_states], rewards,
               epochs=1, batch_size=states.shape[0],
               verbose=0
               # callbacks=[early_stopping],
