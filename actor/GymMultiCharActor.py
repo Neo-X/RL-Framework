@@ -135,37 +135,20 @@ class GymMultiCharActor(ActorInterface):
         return falls_
         
     def updateActor(self, sim, action_):
-        # llc_state = sim.getState()[:,self._settings['num_terrain_features']:]
-        llc_state = sim.getLLCState()
-        # llc_state = sim.getState()
-        # print("LLC state: ", llc_state.shape)
-        # print("LLC state: ", llc_state)
-        # llc_state = llc_state[:,self._settings["num_terrain_features"]:]
-        # print("LLC state: ", llc_state[0].shape,  " ", llc_state[0])
-        llc_state = np.array(llc_state)
-        # action__ = np.array([[action_[0], action_[1], 0.0, action_[2], action_[3], 0.0, action_[4]]])
-        # print ("llc pose state: ", llc_state.shape, repr(llc_state))
-        # print ("hlc action: ", action__.shape, repr(action__))
-        # llc_state = np.concatenate((llc_state, action__), axis=1)
         
-        for i in range(len(action_)):
-            # action__ = np.array([[action_[i][4], action_[i][0], 0.0, action_[i][1], action_[i][2], 0.0, action_[i][3]]])
-            action__ = np.array([action_[i][4], action_[i][0], 0.0, action_[i][1], action_[i][2], 0.0, action_[i][3]])
-            # print ("LLC goal: ", action__)
-            # print ("LLC Current state: ", llc_state[i])
-            # print ("LLC Current goal: ", llc_state[i][-7:])
-            llc_state[i][-7:] = action__
-        # print ("llc_state: ", llc_state.shape, llc_state)
-        
-        # llc_state = np.reshape(llc_state, (len(action_), len(llc_state)))
-        # print ("llc_state shape: ", llc_state.shape)
-        llc_action = self._llc_policy.predict(llc_state)
-        # print("llc_action: ", llc_action.shape, llc_action)
-        sim.updateLLCAction(llc_action)
+        if (self._llc_policy is None):
+            sim.updateLLCAction(action_)
+        else:
+            llc_state = sim.getLLCState()
+            llc_state = np.array(llc_state)
+            
+            for i in range(len(action_)):
+                action__ = np.array([action_[i][4], action_[i][0], 0.0, action_[i][1], action_[i][2], 0.0, action_[i][3]])
+                llc_state[i][-7:] = action__
+            
+            llc_action = self._llc_policy.predict(llc_state)
+            sim.updateLLCAction(llc_action)
         sim.update()
         if (self._settings["shouldRender"]):
             sim.display()
-        # rw_ = sim.getEnvironment().calcReward()
-        # tmp_reward_sum=tmp_reward_sum + rw_
-        # print("reward: ", rw_, " reward_sum:, ", tmp_reward_sum)
         
