@@ -55,8 +55,9 @@ class GymMultiCharActor(ActorInterface):
         
         
     def updateAction(self, sim, action_):
-        action_ = np.array(action_, dtype='float64')
-        sim.getEnvironment().updateAction(action_)
+        if (self._llc_policy is not None):
+            action_ = np.array(action_, dtype='float64')
+            sim.getEnvironment().updateAction(action_)
         
     def updateLLCAction(self, sim, action_):
         """
