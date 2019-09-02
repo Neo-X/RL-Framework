@@ -264,7 +264,9 @@ def validateSettings(settings):
     if ("perform_multiagent_training" in settings and
         ("on_policy" in settings and
          settings["on_policy"] == "fast")):
+        print ("******")
         print ("MultiAgent training does not support fast on policy simulation yet.")
+        print ("******")
         return False
     
     if ("use_fall_reward_shaping" in settings and
@@ -272,7 +274,9 @@ def validateSettings(settings):
         and
         (type(settings["sim_config_file"]) is list)):
         ### The use of the "fall" data is overloaded and conflicts here
+        print ("******")
         print ("Basic fall reward shaping does not work with multi task simulation.")
+        print ("******")
         return False
     
     if ("use_fall_reward_shaping" in settings and
@@ -282,20 +286,26 @@ def validateSettings(settings):
          and
          (settings["learned_reward_smoother"]) == False)):
         ### The use of the "fall" data is overloaded and conflicts here
+        print ("******")
         print ("Basic fall reward shaping does not work with a non gaussian learned_reward_smoother.")
+        print ("******")
         return False
     
     if ("use_single_network" in settings 
         and (settings["use_single_network"] == True)
          and (settings["agent_name"] == "algorithm.TRPO_KERAS.TRPO_KERAS")):
         ### A single network model does not work well for TRPO
+        print ("******")
         print ("A single network model does not work well for TRPO.")
+        print ("******")
         return False
     
     if ("pretrain_fd" in settings
         and (settings['pretrain_fd'] > 0)
         and ("perform_multiagent_training" in settings)):
+        print ("******")
         print ("Multi agent training does not yet support pretraining the FD models.")
+        print ("******")
         return False
     
     return True
