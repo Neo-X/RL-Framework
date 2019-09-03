@@ -24,6 +24,7 @@ class ActorInterface(object):
         self._agent = None
         self._action_bounds = self._settings["action_bounds"]
         self._count = 0
+        self._state_len = None
         
     def setEncoder(self, encoder):
         self._encoder = encoder
@@ -31,6 +32,7 @@ class ActorInterface(object):
     def updateScalling(self, state, init=False):
         import numpy as np
         # print ("state: ", state)
+        
         if (init):
             self._state_len = np.prod(state.shape)
             if ("replace_entropy_state_with_vae" in self._settings):
@@ -40,6 +42,14 @@ class ActorInterface(object):
                 self._state_mean =  state
                 self._state_var = np.ones_like(state)
             return 
+        
+        if ("bayesian_mean_var" in self._settings):
+            self._state_mean =  np.array(self._settings["bayesian_mean_var"]["mean"])
+            self._state_var = np.array(self._settings["bayesian_mean_var"]["var"])
+            return
+        
+        if (self._state_len is None):
+            self._state_len = np.prod(state.shape)
         
         if ("replace_entropy_state_with_vae" in self._settings):
             state = self._encoder.predict_encoding(state)
@@ -74,7 +84,8 @@ class ActorInterface(object):
             state = state[:,:self._state_len]
         ps = scipy.stats.norm(self._state_mean, self._state_var).pdf(state)
         # ps = (np.square(self._state_mean - state)/(2*(self._state_var)))  + (2 * np.pi * np.sqrt(self._state_var))
-        # print ("self._state_var: ", self._state_var)
+        # print ("self._state_mean: ", repr(self._state_mean))
+        # print ("self._state_var: ", repr(self._state_var))
         ps = ps
         # print ("ps: ", ps)
         # r = np.prod(np.log(ps))
