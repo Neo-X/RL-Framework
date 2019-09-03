@@ -1312,6 +1312,17 @@ class LearningAgent(AgentInterface):
         if ( bestPolicy == True):
             suffix_ = suffix_ + "_Best"
         self.getPolicy().saveTo(directory+getAgentName()+suffix_ )
+        if (self.getSettings()["save_experience_memory"] == "continual"
+            or(self.getSettings()["save_experience_memory"] == "all")):
+            self.getExperience().saveToFile(directory+getAgentName()+suffix_+"_expBufferInit.hdf5")
+            if (self.getSettings()['train_forward_dynamics']):
+                if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                    print ("Saving Experience FD memory")
+                if ("keep_seperate_fd_exp_buffer" in self.getSettings()
+                    and (self.getSettings()["keep_seperate_fd_exp_buffer"] == True)):
+                    self.getFDExperience().saveToFile(directory+getAgentName()+suffix_+"_FD_expBufferInit.hdf5")
+        
+        
         
         suffix_ = suffix
         if ( bestFD == True):
