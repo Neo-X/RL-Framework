@@ -1154,6 +1154,7 @@ class LearningAgent(AgentInterface):
             state = np.array(state)
             state = np.concatenate((state, np.zeros((state.shape[0],
                         self.getSettings()["use_hack_state_trans"]-state.shape[1]))), axis=-1)
+            # print ("state: ", state)
             return state
             
         assert s_length == len(state), "before state length: " + str(s_length) + " == " + str(len(state))
