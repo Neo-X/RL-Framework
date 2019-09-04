@@ -30,6 +30,9 @@ class TD3_KERAS(KERASAlgorithm):
         """
         
         super(TD3_KERAS,self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
+        
+        self._c = 0.1
+        self._noise_scale = 0.05
 
         self._model._actor = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=self._model._actor)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
@@ -480,8 +483,6 @@ class TD3_KERAS(KERASAlgorithm):
         # self.setData(states, actions, rewards, result_states, falls)
         ### get actions for target policy
         target_actions = self._modelTarget.getActorNetwork().predict(result_states, batch_size=states.shape[0])
-        self._c = 0.1
-        self._noise_scale = 0.05
         target_actions_n = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
         if not (self._llp is None):
             # llp_target_state = result_states[:,:7]

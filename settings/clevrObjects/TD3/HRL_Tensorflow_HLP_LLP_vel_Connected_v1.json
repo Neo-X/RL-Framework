@@ -380,7 +380,7 @@
 	"comment__": "Use a centralized critics (each one kind of has full information)",
 "use_centralized_critic": false,
 	"comment__": "Ignore training some of the agents in a multi agent sim",
-"ignore_MRL_agents": [],
+"ignore_MRL_agents": [1],
 	"comment__": "The index of the multiagent simulation for the hlc",
 "llc_index": 1,
 	"comment__": "higher level controller timestep",

@@ -250,7 +250,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                     settings__["agent_id"] = i
                     if ("policy_connections" in settings
                         and (any([i == m[1] for m in settings["policy_connections"]])) ):
-                        action_length = 15
+                        other_agent_id = 1
+                        action_length = len(model.getActionBounds()[other_agent_id][0]) * settings__["hlc_timestep"]
                         settings__["action_bounds"] = [np.ones((action_length)) * -1.5,
                                                        np.ones((action_length)) * 1.5]
                         print ("adjusted bounds: ", settings__["action_bounds"])
