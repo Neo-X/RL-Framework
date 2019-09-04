@@ -82,15 +82,16 @@ class ActorInterface(object):
             state = self._encoder.predict_encoding(state)
         else:
             state = state[:,:self._state_len]
-        ps = scipy.stats.norm(self._state_mean, self._state_var).pdf(state)
+        # ps = scipy.stats.norm(self._state_mean, self._state_var).pdf(state)
         # ps = (np.square(self._state_mean - state)/(2*(self._state_var)))  + (2 * np.pi * np.sqrt(self._state_var))
+        ps = ((1.0/2) * np.log(2.0 * np.pi * np.sqrt(self._state_var)) + (np.square(self._state_mean - state)/(2*np.sqrt(self._state_var))))
         # print ("self._state_mean: ", repr(self._state_mean))
         # print ("self._state_var: ", repr(self._state_var))
-        ps = ps
-        # print ("ps: ", ps)
+        # ps = ps
+        print ("ps: ", ps)
         # r = np.prod(np.log(ps))
-        r = np.mean(ps)
-        # print ("ps, r: ", r)
+        r = - np.sum(ps)
+        print ("ps, r: ", r)
         return r
             
     def init(self):
