@@ -393,5 +393,5 @@
 	"comment__": "Boolean to use HER or not",
 "use_hindsight_relabeling": true,
 	"comment__": "Do something odd with the state...",
-"use_hack_state_trans": 35
+"use_hack_state_trans": 51
 }

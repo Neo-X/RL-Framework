@@ -242,7 +242,7 @@ class TD3_KERAS(KERASAlgorithm):
         self._llp_T.trainable = False
         g = self._model._actor([self._model.getStateSymbolicVariable()])
         ### a <- pi(a|s,g)
-        s_llp = keras.layers.core.Lambda(keras_slice_3d, output_shape=(5,4),
+        s_llp = keras.layers.core.Lambda(keras_slice_3d, output_shape=(self.getSettings()["hlc_timestep"],4),
                         arguments={'begin': 0, 
                         'end': 4})(llp_state)
                          
