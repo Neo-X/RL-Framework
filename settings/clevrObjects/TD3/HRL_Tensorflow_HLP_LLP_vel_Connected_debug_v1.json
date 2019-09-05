@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TD3_KERAS.TD3_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "CLEVRObjectHRL_NoVision_HLC_2Step_LLC_vel_direct_v0/_hlp_llc_connected_5",
+"data_folder": "CLEVRObjectHRL_NoVision_HLC_2Step_LLC_vel_direct_v0/_hlp_llc_connected_debug_6",
 	"comment__": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment__": "initial probability of selecting a discrete random action",
@@ -154,7 +154,7 @@
     "comment__": "Learning rate for the forward dynamics model",
 "fd_learning_rate": 0.001,
     "comment__": "Whether or not to train the policy. Used for debugging",
-"train_actor": true,
+"train_actor": false,
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
 "debug_critic": false,
     "comment__": "critic regularization weight",
@@ -314,9 +314,9 @@
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],[ 
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "tanh" },
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "tanh" }
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								]],
 	"comment__": "Activation function to use for the std part of the policy",
 "_last_std_policy_layer_activation_type": "sigmoid",
@@ -351,7 +351,7 @@
 	"comment__": "Train the critic off of the data stored in the exp for the fd model",
 "train_critic_with_fd_data": true,
 	"comment__": "Additional on-policy training updates",
-"additional_on_policy_training_updates": [4.0, 1.0],
+"additional_on_policy_training_updates": [1.0, 1.0],
 	"comment__": "Use average of policy std as mbae learning rate",
 "use_std_avg_as_mbae_learning_rate": true,
 	"comment__": "Use the on-policy value function to compute state gradients instead of off-policy one for SMBAE.",
@@ -373,7 +373,7 @@
 	"comment__": "Use a centralized critics (each one kind of has full information)",
 "use_centralized_critic": false,
 	"comment__": "Ignore training some of the agents in a multi agent sim",
-"ignore_MRL_agents": [],
+"ignore_MRL_agents": [1],
 	"comment__": "The index of the multiagent simulation for the hlc",
 "llc_index": 1,
 	"comment__": "higher level controller timestep",
