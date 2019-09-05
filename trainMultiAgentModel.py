@@ -1324,7 +1324,7 @@ def trainModelParallel(inputData):
                 json.dump(trainData, fp, cls=NumpyEncoder)
                 fp.close()
                 # draw data
-                
+                """
                 t0 = time.time()
                 if (settings["save_experience_memory"] == "continual"
                     or(settings["save_experience_memory"] == "all")):
@@ -1343,7 +1343,7 @@ def trainModelParallel(inputData):
                 sim_time_ = datetime.timedelta(seconds=(t1-t0))
                 if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                     print ("exp saving time complete in " + str(sim_time_) + " seconds")
-                        
+                """
             # mean_reward = std_reward = mean_bellman_error = std_bellman_error = mean_discount_error = std_discount_error = None
             # if ( trainData["round"] % 10 ) == 0 :
             

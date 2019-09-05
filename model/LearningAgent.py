@@ -1148,12 +1148,13 @@ class LearningAgent(AgentInterface):
             state = np.array(state)
             state = state[:,:len(self.getStateBounds()[0])]
         elif ("use_hack_state_trans" in self.getSettings()
-            and (self.getSettings()["use_hack_state_trans"] == 35)
             and (("policy_connections" in self.getSettings()
             and (any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ))):
             import numpy as np
             state = np.array(state)
-            state = np.concatenate((state, np.zeros((state.shape[0],51-state.shape[1]))), axis=-1)
+            state = np.concatenate((state, np.zeros((state.shape[0],
+                        self.getSettings()["use_hack_state_trans"]-state.shape[1]))), axis=-1)
+            # print ("state: ", state)
             return state
             
         assert s_length == len(state), "before state length: " + str(s_length) + " == " + str(len(state))
@@ -1312,6 +1313,17 @@ class LearningAgent(AgentInterface):
         if ( bestPolicy == True):
             suffix_ = suffix_ + "_Best"
         self.getPolicy().saveTo(directory+getAgentName()+suffix_ )
+        if (self.getSettings()["save_experience_memory"] == "continual"
+            or(self.getSettings()["save_experience_memory"] == "all")):
+            self.getExperience().saveToFile(directory+getAgentName()+suffix_+"_expBufferInit.hdf5")
+            if (self.getSettings()['train_forward_dynamics']):
+                if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+                    print ("Saving Experience FD memory")
+                if ("keep_seperate_fd_exp_buffer" in self.getSettings()
+                    and (self.getSettings()["keep_seperate_fd_exp_buffer"] == True)):
+                    self.getFDExperience().saveToFile(directory+getAgentName()+suffix_+"_FD_expBufferInit.hdf5")
+        
+        
         
         suffix_ = suffix
         if ( bestFD == True):
