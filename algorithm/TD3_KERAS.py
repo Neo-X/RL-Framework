@@ -536,20 +536,24 @@ class TD3_KERAS(KERASAlgorithm):
             K.set_value(self._combined.optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
         
         ### The rewards are not used in this update, just a placeholder
-        if (self._llp is not None):
-            llp_states = states[:,16:]
-            score = self._combined.fit([states, llp_states], rewards,
-              epochs=1, batch_size=states.shape[0],
-              verbose=0
-              # callbacks=[early_stopping],
-              )
-        else:
-            score = self._combined.fit([states], rewards,
+        if not ("skip_policy_training" in self.getSettings() and self.getSettings()["skip_policy_training"]):
+            if (self._llp is not None):
+                llp_states = states[:,16:]
+                score = self._combined.fit([states, llp_states], rewards,
                   epochs=1, batch_size=states.shape[0],
                   verbose=0
                   # callbacks=[early_stopping],
                   )
-        q_fun = -score.history['loss'][0]
+            else:
+                score = self._combined.fit([states], rewards,
+                      epochs=1, batch_size=states.shape[0],
+                      verbose=0
+                      # callbacks=[early_stopping],
+                      )
+            q_fun = -score.history['loss'][0]
+        else:
+            print("skipping policy training")
+            q_fun = 0.0
         
         # q_fun = np.mean(self._trainPolicy(states))
         
