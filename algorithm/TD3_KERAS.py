@@ -488,7 +488,8 @@ class TD3_KERAS(KERASAlgorithm):
             # llp_target_state = result_states[:,:7]
             # llp_target_state[:,-3:] = target_actions_n 
             # target_actions_n = self._llp.predict(llp_target_state)
-            target_actions_n = self.genLLPActions(result_states, target_actions_n, target_net=True)
+            target_actions_n = self.genLLPActions(result_states, target_actions, target_net=True)
+            target_actions_n = target_actions_n + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions_n.shape), -self._c, self._c)
         ### Get next q value
         q_vals_b = self._modelTarget.getCriticNetwork().predict([result_states, target_actions_n], batch_size=states.shape[0])
         q_vals_b1 = self._modelTarget1.getCriticNetwork().predict([result_states, target_actions_n], batch_size=states.shape[0])
