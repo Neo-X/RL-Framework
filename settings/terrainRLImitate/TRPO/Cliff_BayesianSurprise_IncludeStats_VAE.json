@@ -16,7 +16,7 @@
     "comment__": "Config file for the simulator",
 "sim_config_file": "PD_Biped2D_Cliff_v0",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": 0.4,
+"exploration_rate": 0.2,
     "comment__": "Number of rounds to perform before termination",
 "rounds": 250,
     "comment__": "Number of epochs to perform per round",
