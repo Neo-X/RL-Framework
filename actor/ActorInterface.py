@@ -88,10 +88,10 @@ class ActorInterface(object):
         # print ("self._state_mean: ", repr(self._state_mean))
         # print ("self._state_var: ", repr(self._state_var))
         # ps = ps
-        print ("ps: ", ps)
+        # print ("ps: ", ps)
         # r = np.prod(np.log(ps))
         r = - np.sum(ps)
-        print ("ps, r: ", r)
+        # print ("ps, r: ", r)
         return r
             
     def init(self):
