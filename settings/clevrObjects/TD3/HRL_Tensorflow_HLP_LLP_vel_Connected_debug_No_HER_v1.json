@@ -391,5 +391,7 @@
 	"comment__": "Do something odd with the state... This should be HLP state length + (llp state length * hlp timestep)",
 "use_hack_state_trans": 30,
 	"comment__": "Do something odd with the policy...",
-"skip_policy_training": false
+"skip_policy_training": false,
+	"comment__": "Do something odd with the td3 noise...",
+"td3_apply_noise_llp": true
 }

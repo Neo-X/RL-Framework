@@ -483,15 +483,19 @@ class TD3_KERAS(KERASAlgorithm):
         # self.setData(states, actions, rewards, result_states, falls)
         ### get actions for target policy
         target_actions = self._modelTarget.getActorNetwork().predict(result_states, batch_size=states.shape[0])
-        target_actions_n = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
+        if "td3_apply_noise_llp" not in self.getSettings() or not self.getSettings()["td3_apply_noise_llp"]:
+            target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
         if not (self._llp is None):
             # llp_target_state = result_states[:,:7]
             # llp_target_state[:,-3:] = target_actions_n 
             # target_actions_n = self._llp.predict(llp_target_state)
-            target_actions_n = self.genLLPActions(result_states, target_actions_n, target_net=True)
+            target_actions = self.genLLPActions(result_states, target_actions, target_net=True)
+        if "td3_apply_noise_llp" in self.getSettings() and self.getSettings()["td3_apply_noise_llp"]:
+            target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
+
         ### Get next q value
-        q_vals_b = self._modelTarget.getCriticNetwork().predict([result_states, target_actions_n], batch_size=states.shape[0])
-        q_vals_b1 = self._modelTarget1.getCriticNetwork().predict([result_states, target_actions_n], batch_size=states.shape[0])
+        q_vals_b = self._modelTarget.getCriticNetwork().predict([result_states, target_actions], batch_size=states.shape[0])
+        q_vals_b1 = self._modelTarget1.getCriticNetwork().predict([result_states, target_actions], batch_size=states.shape[0])
         q_vals = np.concatenate((q_vals_b, q_vals_b1), axis=1)
         q_vals_min = np.min(q_vals, axis=-1, keepdims=True)
         # print ("q_vals_b, q_vals_b1, min(q_vals_b,q_vals_b1)", np.concatenate((q_vals_b, q_vals_b1, q_vals_min), axis=1))
@@ -651,13 +655,16 @@ class TD3_KERAS(KERASAlgorithm):
         y_ = self._modelTarget.getCriticNetwork().predict([result_states, actions], batch_size=states.shape[0])
         target_ = rewards + ((self._discount_factor * y_))
         poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
-        target_actions_n = poli_mean + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=poli_mean.shape), -self._c, self._c)
+        if "td3_apply_noise_llp" not in self.getSettings() or not self.getSettings()["td3_apply_noise_llp"]:
+            target_actions = poli_mean + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=poli_mean.shape), -self._c, self._c)
         if not (self._llp is None):
             # llp_target_state = result_states[:,:7]
             # llp_target_state[:,-3:] = target_actions_n 
             # target_actions_n = self._llp.predict(llp_target_state)
-            target_actions_n = self.genLLPActions(result_states, target_actions_n)
-        values =  self._model.getCriticNetwork().predict([states, target_actions_n], batch_size=states.shape[0])
+            target_actions = self.genLLPActions(result_states, target_actions)
+        if "td3_apply_noise_llp" in self.getSettings() and self.getSettings()["td3_apply_noise_llp"]:
+            target_actions = poli_mean + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=poli_mean.shape), -self._c, self._c)
+        values = self._model.getCriticNetwork().predict([states, target_actions], batch_size=states.shape[0])
         bellman_error = target_ - values
         return bellman_error
         # return self._bellman_errorTarget()
