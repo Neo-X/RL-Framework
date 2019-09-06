@@ -654,16 +654,16 @@ class TD3_KERAS(KERASAlgorithm):
         """
         y_ = self._modelTarget.getCriticNetwork().predict([result_states, actions], batch_size=states.shape[0])
         target_ = rewards + ((self._discount_factor * y_))
-        poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
+        target_actions = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
         if "td3_apply_noise_llp" not in self.getSettings() or not self.getSettings()["td3_apply_noise_llp"]:
-            target_actions = poli_mean + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=poli_mean.shape), -self._c, self._c)
+            target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
         if not (self._llp is None):
             # llp_target_state = result_states[:,:7]
             # llp_target_state[:,-3:] = target_actions_n 
             # target_actions_n = self._llp.predict(llp_target_state)
             target_actions = self.genLLPActions(result_states, target_actions)
         if "td3_apply_noise_llp" in self.getSettings() and self.getSettings()["td3_apply_noise_llp"]:
-            target_actions = poli_mean + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=poli_mean.shape), -self._c, self._c)
+            target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
         values = self._model.getCriticNetwork().predict([states, target_actions], batch_size=states.shape[0])
         bellman_error = target_ - values
         return bellman_error
