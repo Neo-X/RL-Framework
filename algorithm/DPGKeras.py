@@ -9,11 +9,14 @@ from keras.optimizers import SGD
 import keras.backend as K
 import keras
 from keras.models import Sequential, Model
+from keras.layers import RepeatVector
 
 
 # For debugging
 # theano.config.mode='FAST_COMPILE'
 from collections import OrderedDict
+def neg_y(true_y, pred_y):
+    return K.mean(-pred_y)
 
 class DPGKeras(KERASAlgorithm):
     
@@ -57,8 +60,7 @@ class DPGKeras(KERASAlgorithm):
                                                   self._modelTarget.getActionSymbolicVariable()], outputs=self._modelTarget._critic)
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Target Critic summary: ", self._modelTarget._critic.summary())
-        
-        
+
         self._discount_factor= self.getSettings()['discount_factor']
         self._rho = self.getSettings()['rho']
         self._rms_epsilon = self.getSettings()['rms_epsilon']
@@ -102,43 +104,11 @@ class DPGKeras(KERASAlgorithm):
         # print ("Initial W " + str(self._w_o.get_value()) )
         
         # self._get_gradients = K.function(inputs=[self._model._stateInput], outputs=gradients)
-        
-        
+
         self._q_action_std = K.function([self._model._stateInput], [self._q_valsActASTD])
         
-        self._modelTarget.getActorNetwork().trainable = False
-        self._modelTarget.getCriticNetwork().trainable = False
-        self._gamma = keras.layers.Input(shape=(1,), name="gamma")
-        target_act = self._modelTarget._actor(self._model.getResultStateSymbolicVariable())
-        # target_q = self._model.getRewardSymbolicVariable() + (self._discount_factor * 
-        #                                 self._modelTarget._critic(inputs=[self._model.getResultStateSymbolicVariable(), target_act]))
-        target_q = self._modelTarget._critic(inputs=[self._model.getResultStateSymbolicVariable(), target_act])
-        # q_diff = self._q_function - target_q
-        q_diff = target_q
-        self._model.q_diff = Model(input=[self._model.getStateSymbolicVariable(),
-                                          self._model.getActionSymbolicVariable(),
-                                          self._model.getResultStateSymbolicVariable(),
-                                          self._model.getRewardSymbolicVariable()], 
-                                output=q_diff)
-        
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
-                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
-                                    amsgrad=False)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print ("Clipping: ", sgd.decay)
-            print("sgd, Q loss: ", sgd)
-        self._model.q_diff.compile(loss=["mse"], optimizer=sgd)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("combined q loss Net summary: ",  self._model.q_diff.summary())
-            
-            
-        
-        # For the combined model we will only train the actor
+        self._model.getActorNetwork().trainable = False
         self._model.getCriticNetwork().trainable = False
-        
-        def neg_y(true_y, pred_y):
-            return K.mean(-pred_y)
         
         self._act = self._model.getActorNetwork()(
                                 [self._model.getStateSymbolicVariable()])
@@ -152,22 +122,28 @@ class DPGKeras(KERASAlgorithm):
                                           self._model.getResultStateSymbolicVariable()], 
                                 output=self._qFunc)
         else:
-            self._qFunc = (self._model.getCriticNetwork()(
-                            [self._model.getStateSymbolicVariable(), 
-                             self._act]))
-            self._combined = Model(input=[self._model.getStateSymbolicVariable()], 
-                                output=self._qFunc)
-        
-        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']), 
-                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999), 
-                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
-                                    amsgrad=False)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print ("Clipping: ", sgd.decay)
-            print("sgd, critic: ", sgd)
-        self._combined.compile(loss=[neg_y], optimizer=sgd)
-        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
-            print("combined qFun Net summary: ",  self._combined.summary())
+            if ("policy_connections" in self.getSettings()
+                    and (
+                    any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]]))):
+                pass
+            else:
+                self._qFunc = (self._model.getCriticNetwork()(
+                    [self._model.getStateSymbolicVariable(),
+                     self._act]))
+                self._combined = Model(input=[self._model.getStateSymbolicVariable()],
+                                       output=self._qFunc)
+        if ("policy_connections" in self.getSettings()
+                and (any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]]))):
+            pass
+        else:
+            sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']),
+                                        beta_1=np.float32(0.9), beta_2=np.float32(0.999),
+                                        epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
+                                        amsgrad=False)
+            self._combined.compile(loss=[neg_y], optimizer=sgd)
+            if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >=
+                    self.getSettings()["print_levels"]['train']):
+                print("combined qFun Net summary: ", self._combined.summary())
         
         if (self.getSettings()["regularization_weight"] > 0.0000001):
             self._actor_regularization = K.sum(self._model.getActorNetwork().losses)
@@ -187,9 +163,111 @@ class DPGKeras(KERASAlgorithm):
                                             self._model.getResultStateSymbolicVariable(),
                                             K.learning_phase()
                                             ], [self._q_loss])
+        if ("policy_connections" in self.getSettings()
+            and (any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
+                pass
+        else:
+            self._get_actor_loss = K.function([self._model.getStateSymbolicVariable()
+                                                 # ,K.learning_phase()
+                                                 ], [self._qFunc])
+
+    def setFrontPolicy(self, lowerPolicy):
+
+        from model.DeepNNKerasAdaptive import keras_slice_3d
+
+
+        ### For the combined model we will only train the actor
+        self._model.getCriticNetwork().trainable = False
+        ### I hope this won't cause the llp to not train...
+        lowerPolicy.trainable = False
+
+        self._LLP_State = keras.layers.Input(shape=(self.getSettings()["hlc_timestep"]* keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1],), name="llp_state")
+        llp_state = keras.layers.Reshape((self.getSettings()["hlc_timestep"], keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1]))(self._LLP_State)
+        print ("self._LLP_State: ", self._LLP_State)
+        ### Should the target policy be used here?
+        self._llp = lowerPolicy._model._actor
+        self._llp_T = lowerPolicy._modelTarget._actor
+        self._llp.trainable = False
+        self._llp_T.trainable = False
+        g = self._model._actor([self._model.getStateSymbolicVariable()])
+        ### a <- pi(a|s,g)
+        s_llp = keras.layers.core.Lambda(keras_slice_3d, output_shape=(self.getSettings()["hlc_timestep"],4),
+                        arguments={'begin': 0,
+                        'end': 4})(llp_state)
+
+        # s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)
+        # s_llp = keras.layers.merge.Concatenate(axis=-1)([s_llp, g])
+        print ("state shape: ", s_llp)
+        ### Decoding models
+        ### https://github.com/keras-team/keras/issues/7949
+        def repeat_vector(args):
+            ### sequence_layer is used to determine how long the repetition should be
+            layer_to_repeat = args[0]
+            repeats = args[1]
+            return RepeatVector(repeats)(layer_to_repeat)
+
+        # gen_states = repeat_vector((s_llp, self.getSettings()["hlc_timestep"]))
+        stacked_goal = repeat_vector((g, self.getSettings()["hlc_timestep"]))
+        # gen_states = keras.layers.Lambda(repeat_vector, output_shape=(None, keras.backend.int_shape(s_llp)[1])) ([s_llp, self.getSettings()["hlc_timestep"]])
+        # gen_states = keras.backend.repeat(s_llp, self.getSettings()["hlc_timestep"])
+        print ("stacked_goal:", stacked_goal)
+        gen_states = keras.layers.concatenate(inputs=[s_llp, stacked_goal], axis=-1)
+        print ("Front Policy state shape: ", gen_states)
+        gen_actions = keras.layers.TimeDistributed(self._llp, input_shape=(None, 1, keras.backend.int_shape(s_llp)[1]))(gen_states)
+        print ("Front Policy gen_actions shape2: ", gen_actions)
+        # gen_states = keras.layers.Reshape((keras.backend.int_shape(s_llp)[1], self.getSettings()["hlc_timestep"]))(gen_states)
+        # gen_states = keras.backend.repeat_elements(s_llp, self.getSettings()["hlc_timestep"], axis=-1)
+
+        # gen_actions = self._llp(inputs=[gen_states])
+        ### Flatten stacked actions
+        print("gen_actions: ", gen_actions)
+        print("gen_actions2: ", keras.backend.int_shape(gen_actions))
+        self._model._policy2 = keras.layers.Flatten()(gen_actions)
+        # self._model._policy2 = keras.layers.Reshape((keras.backend.int_shape(gen_actions)*self.getSettings()["hlc_timestep"]))(gen_actions)
+        # self._model._policy2 = keras.layers.Reshape((keras.backend.int_shape(gen_actions)*self.getSettings()["hlc_timestep"],))(gen_actions)
+        # K.shape(sequence_layer)[1]
+        print ("Front Policy output shape: ", self._model._policy2)
+
+        self._qFunc = (self._model.getCriticNetwork()(
+                        [self._model.getStateSymbolicVariable(),
+                         self._model._policy2]))
+        self._combined = Model(input=[self._model.getStateSymbolicVariable(),
+                                      self._LLP_State],
+                            output=self._qFunc)
+
+        sgd = keras.optimizers.Adam(lr=np.float32(self.getSettings()['learning_rate']),
+                                    beta_1=np.float32(0.9), beta_2=np.float32(0.999),
+                                    epsilon=np.float32(self._rms_epsilon), decay=np.float32(0.0000001),
+                                    amsgrad=False, clipvalue=1.0)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print ("Clipping: ", sgd.decay)
+            print("sgd, critic: ", sgd)
+        self._combined.compile(loss=[neg_y], optimizer=sgd)
+        if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
+            print("combined qFun Net summary: ",  self._combined.summary())
+
         self._get_actor_loss = K.function([self._model.getStateSymbolicVariable()
                                                  # ,K.learning_phase()
                                                  ], [self._qFunc])
+
+    def genLLPActions(self, states, g, target_net=False):
+        # g = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
+        ### a pi(a|s,g)
+        # s_llp = states[:,:-self.getSettings()["goal_slice_index"]] ### remove last 3 dimensions
+        s_llp = states[:,:4] ### remove last 3 dimensions
+
+        s_llp = np.concatenate((s_llp, g), axis=-1)
+        # s_llp = np.repeat(s_llp, self.getSettings()["hlc_timestep"], axis=1)
+        if (target_net == True):
+            a_llp = self._llp_T.predict(s_llp)
+        else:
+            a_llp = self._llp.predict(s_llp)
+        a_llp = np.repeat(a_llp, self.getSettings()["hlc_timestep"], axis=1)
+        # a_llp = np.reshape(a_llp, (-1,15))
+        return a_llp
+
+    def updateFrontPolicy(self, lowerPolicy):
+        self._llp.set_weights(lowerPolicy._model._actor.get_weights())
         
     def getGrads(self, states, actions=None, alreadyNormed=False):
         """
@@ -341,6 +419,11 @@ class DPGKeras(KERASAlgorithm):
         # self.setData(states, actions, rewards, result_states, falls)
         ## get actions for target policy
         target_actions = self._modelTarget.getActorNetwork().predict(result_states, batch_size=states.shape[0])
+        if not (self._llp is None):
+            # llp_target_state = result_states[:,:7]
+            # llp_target_state[:,-3:] = target_actions_n
+            # target_actions_n = self._llp.predict(llp_target_state)
+            target_actions = self.genLLPActions(result_states, target_actions, target_net=True)
         ## Get next q value
         q_vals_b = self._modelTarget.getCriticNetwork().predict([result_states, target_actions], batch_size=states.shape[0])
         # q_vals_b = self._q_val()
@@ -382,12 +465,24 @@ class DPGKeras(KERASAlgorithm):
             K.set_value(self._combined.optimizer.lr, np.float32(self.getSettings()['learning_rate']) * p)
         
         ### The rewards are not used in this update, just a placeholder
-        score = self._combined.fit([states], rewards,
-              epochs=1, batch_size=states.shape[0],
-              verbose=0
-              # callbacks=[early_stopping],
-              )
-        q_fun = -score.history['loss'][0]
+        if not ("skip_policy_training" in self.getSettings() and self.getSettings()["skip_policy_training"]):
+            if (self._llp is not None):
+                llp_states = states[:,16:]
+                score = self._combined.fit([states, llp_states], rewards,
+                  epochs=1, batch_size=states.shape[0],
+                  verbose=0
+                  # callbacks=[early_stopping],
+                  )
+            else:
+                score = self._combined.fit([states], rewards,
+                      epochs=1, batch_size=states.shape[0],
+                      verbose=0
+                      # callbacks=[early_stopping],
+                      )
+            q_fun = -score.history['loss'][0]
+        else:
+            print("skipping policy training")
+            q_fun = 0.0
         
         # q_fun = np.mean(self._trainPolicy(states))
         
@@ -469,9 +564,13 @@ class DPGKeras(KERASAlgorithm):
         states = np.array(states, dtype=self._settings['float_type'])
         # return scale_reward(self._q_valTarget(), self.getRewardBounds())[0]
         poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
-        value = (self._model.getCriticNetwork().predict([states, poli_mean] , batch_size=states.shape[0])* action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
-        
-        # value = scale_reward(self._q_func(state), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+        if ("policy_connections" in self.getSettings()
+            and (any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
+            return np.zeros((states.shape[0],1))
+            poli_mean = self.genLLPActions(states)
+        value = (self._model.getCriticNetwork().predict([states, poli_mean] ,
+                    batch_size=states.shape[0])* action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
+
         return value
         # return self._q_val()[0]
         
@@ -481,8 +580,13 @@ class DPGKeras(KERASAlgorithm):
         """
         y_ = self._modelTarget.getCriticNetwork().predict([result_states, actions], batch_size=states.shape[0])
         target_ = rewards + ((self._discount_factor * y_))
-        poli_mean = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
-        values =  self._model.getCriticNetwork().predict([states, poli_mean], batch_size=states.shape[0])
+        target_actions = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
+        if not (self._llp is None):
+            # llp_target_state = result_states[:,:7]
+            # llp_target_state[:,-3:] = target_actions_n
+            # target_actions_n = self._llp.predict(llp_target_state)
+            target_actions = self.genLLPActions(result_states, target_actions)
+        values =  self._model.getCriticNetwork().predict([states, target_actions], batch_size=states.shape[0])
         bellman_error = target_ - values
         return bellman_error
         # return self._bellman_errorTarget()
