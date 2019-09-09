@@ -107,8 +107,10 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
     trainData["std_discount_error"]=[]
     
     """
+    subsample = 1
     rlv.setLength(min_length)
     # rlv.setLength(64)
+    rlv.setBinSize(subsample)
     rlv.updateRewards(trainingDatas, otherDatas, mean_key="mean_reward", std_key="std_reward")
     rlv.init()
     rlv.saveVisual(folder+"Training_curves")
@@ -118,17 +120,19 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
                                               settings=settings, y_lable="Bellman Error")
     rlv_value_function.setLength(min_length)
     # rlv.setLength(64)
+    rlv_value_function.setBinSize(subsample)
     rlv_value_function.updateRewards(trainingDatas, otherDatas, 
                                      mean_key="mean_discount_error", std_key="std_discount_error")
     rlv_value_function.init()
     rlv_value_function.saveVisual(folder+"Training_curves_discounted_error")
     # rlv.show()
     
-    if (settings["train_forward_dynamics"] == True):
+    if (settings["train_forward_dynamics"] == True and False):
         rlv_fd = PolicyTrainVisualize("FD Training Curves: " + str(settings['agent_name']), 
                                       settings=settings, y_lable="Loss")
         rlv_fd.setLength(min_length)
         # rlv.setLength(64)
+        rlv_fd.setBinSize(subsample)
         rlv_fd.updateRewards(trainingDatas, otherDatas, 
                                          mean_key="mean_forward_dynamics_loss", std_key="std_forward_dynamics_loss")
         rlv_fd.init()
@@ -140,6 +144,7 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
                                               settings=settings, y_lable="Loss")
             rlv_reward.setLength(min_length)
             # rlv.setLength(64)
+            rlv_reward.setBinSize(subsample)
             rlv_reward.updateRewards(trainingDatas, otherDatas, 
                                              mean_key="mean_forward_dynamics_reward_loss", std_key="std_forward_dynamics_reward_loss")
             rlv_reward.init()

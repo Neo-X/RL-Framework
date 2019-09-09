@@ -230,27 +230,39 @@ class PolicyTrainVisualize(object):
                 if (type(mean[0]) in (list, np.ndarray)):
                     print ("Multi-agent learning, plotting agents individually.")
                     for k in range(len(mean[0])):
-                        print ("agent mean: ", np.transpose(mean)[k])
-                        self._reward, = self._reward_ax.plot(x_range_, np.transpose(mean)[k], 
+                        print ("agent mean: ", np.transpose(mean)[k].shape)
+                        ### average wrt bin size
+                        # np.transpose(mean)[k]
+                        split_indices = [i for i  in range(self._bin_size, np.transpose(mean)[k].shape[0], self._bin_size) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
+                        first_split = np.array_split(np.transpose(mean)[k], split_indices, axis=0)
+                        vals__mean =  np.array([[np.mean(rs)] for rs in first_split]).flatten()
+                        first_split = np.array_split(np.transpose(std)[k], split_indices, axis=0)
+                        vals__std =  np.array([[np.mean(rs)] for rs in first_split]).flatten()
+                        self._reward, = self._reward_ax.plot(x_range_, vals__mean, 
                                                      linewidth=3.0, 
                                                      c=colour_,
                                                      label=(self._otherDatas[j][i]['name'] + " agent: " + str(k) + " samples: " + str(len(means_))),
                                                      marker=markers[k])
                         print("Line colour: ", self._reward.get_color())
                         self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
-                                                                              np.transpose(np.array(mean))[k] - np.transpose(std)[k], 
-                                                                              np.transpose(np.array(mean))[k] + np.transpose(std)[k],
+                                                                              vals__mean - vals__std, 
+                                                                              vals__mean + vals__std,
                                                                               facecolor=self._reward.get_color(),
                                                                               alpha=0.25)
                 else:
-                    self._reward, = self._reward_ax.plot(x_range_, mean, 
+                    split_indices = [i for i  in range(self._bin_size, len(mean), self._bin_size) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
+                    first_split = np.array_split(mean, split_indices, axis=0)
+                    vals__mean =  np.array([[np.mean(rs)] for rs in first_split]).flatten()
+                    first_split = np.array_split(std, split_indices, axis=0)
+                    vals__std =  np.array([[np.mean(rs)] for rs in first_split]).flatten()
+                    self._reward, = self._reward_ax.plot(x_range_, vals__mean, 
                                                      linewidth=3.0, 
                                                      c=colour_,
                                                      label=(self._otherDatas[j][i]['name'] + " samples: " + str(len(means_))))
                     print("Line colour: ", self._reward.get_color())
                     self._bellman_error_std = self._reward_ax.fill_between(x_range_, 
-                                                                                  np.array(mean) - std, 
-                                                                                  np.array(mean) + std,
+                                                                                  vals__mean - vals__std, 
+                                                                                  vals__mean + vals__std,
                                                                                   facecolor=self._reward.get_color(),
                                                                                   alpha=0.25)
                 """
