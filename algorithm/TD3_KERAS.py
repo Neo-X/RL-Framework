@@ -29,7 +29,7 @@ class TD3_KERAS(KERASAlgorithm):
             Care needs to be taken to make sure only the parameters of the second network are updated.
         """
         
-        super(TD3_KERAS,self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
+        super(TD3_KERAS, self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
         
         self._c = 0.1
         self._noise_scale = 0.05
@@ -222,7 +222,6 @@ class TD3_KERAS(KERASAlgorithm):
             self._get_actor_loss = K.function([self._model.getStateSymbolicVariable()
                                                  # ,K.learning_phase()
                                                  ], [self._qFunc])
-        
         
     def setFrontPolicy(self, lowerPolicy):
         
