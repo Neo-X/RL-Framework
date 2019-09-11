@@ -420,7 +420,7 @@
 	"comment__": "type of activation to use for policy",
 "policy_activation_type": "leaky_rectify",
 	"comment__": "last policy type of activation to use",
-"last_policy_layer_activation_type": "tanh",
+"last_policy_layer_activation_type": "linear",
 	"comment__": "Use a different off-policy experience memory for the fd learning",
 "keep_seperate_fd_exp_buffer": true,
 	"comment__": "Train a GAN to do something....",
