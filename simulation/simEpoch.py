@@ -550,7 +550,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     
     if print_data:
         print ("Evaluation: ", str(evalData))
-        print ("Eval Datas: ", evalDatas) 
+        print ("Eval Datas: ", evalDatas, falls) 
     ### Reset before predicting values for trajectory
     model.reset()
     for a in range(len(states[0])):
@@ -836,7 +836,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         mean_eval = np.mean(evalDatas)
         std_eval = np.std(evalDatas)
         return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
-            mean_eval, std_eval)
+            mean_eval, std_eval, {"falls": falls})
         
     if ( type == "keep_alive"
          or type == "Get_Net_Params"):
@@ -1023,7 +1023,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         mean_eval = np.mean(evalDatas)
         std_eval = np.std(evalDatas)
         return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
-            mean_eval, std_eval)
+            mean_eval, std_eval, {"falls": falls})
     elif ( type == "keep_alive"
          or type == "Get_Net_Params"):
         return datas__

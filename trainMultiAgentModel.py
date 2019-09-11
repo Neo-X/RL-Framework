@@ -1128,13 +1128,13 @@ def trainModelParallel(inputData):
                         mean_eval = np.mean(reward_over_epocs)
                         std_eval = np.std(reward_over_epocs)
                     elif (settings['on_policy'] == True ):
-                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=eval_sim_work_queues,
+                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval, otherMetrics = evalModelParrallel( input_anchor_queue=eval_sim_work_queues,
                                                                    model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                     elif (settings['on_policy'] == "fast"):
-                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelMoreParrallel( input_anchor_queue=input_anchor_queue_eval,
+                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval, otherMetrics = evalModelMoreParrallel( input_anchor_queue=input_anchor_queue_eval,
                                                                    model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                     else:
-                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModelParrallel( input_anchor_queue=input_anchor_queue_eval,
+                        mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval, otherMetrics = evalModelParrallel( input_anchor_queue=input_anchor_queue_eval,
                                                                 model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                 """
                 for sm in sim_workers:
