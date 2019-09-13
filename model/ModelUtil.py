@@ -1080,16 +1080,16 @@ def checkValidData(state, action, nextState, reward, advantage=None, verbose=Fal
             Checks to make sure the data going into the exp buffer is not garbage...
         """
         
-        if (not checkDataIsValid(state, identifier="State")):
+        if (not checkDataIsValid(state, verbose=verbose, identifier="State")):
             return False
                
-        if (not checkDataIsValid(action, identifier="Action")):
+        if (not checkDataIsValid(action, verbose=verbose, identifier="Action")):
             return False
         
-        if (not checkDataIsValid(nextState, identifier="Next State")):
+        if (not checkDataIsValid(nextState, verbose=verbose, identifier="Next State")):
             return False
         
-        if (not checkDataIsValid(reward, identifier="Reward")):
+        if (not checkDataIsValid(reward, verbose=verbose, identifier="Reward")):
             return False
                 
         return True
