@@ -278,14 +278,15 @@ class LearningMultiAgent(LearningAgent):
                     # print ("actions__[tar]: ", np.shape(actions__[tar]))
                     # actions__[tar] =  actions__[tar][0::skip_num]
                     ### stack llp_states as well
-                    state_plit_index = 7
+                    state_split_index = self.getSettings()["state_split_index"]
                     llp_state_split = np.array_split(states__[tar], split_indices, axis=0)[:-1]
-                    llp_state_long =  [np.array(rs)[:,-state_plit_index:].flatten() for rs in llp_state_split]
-                    states__[tar] =  [np.concatenate((s[:-state_plit_index],slp), axis=-1) for s,slp in zip(states__tr, llp_state_long)]
+                    llp_state_long =  [np.array(rs)[:,-state_split_index:].flatten() for rs in llp_state_split]
+                    states__[tar] =  [np.concatenate((s[:-state_split_index],slp), axis=-1) for s,slp in zip(states__tr, llp_state_long)]
+
                     ### Add to result state as well.
                     llp_state_split = np.array_split(result_states__[tar], split_indices, axis=0)[:-1]
-                    llp_state_long =  [np.array(rs)[:,-state_plit_index:].flatten() for rs in llp_state_split]
-                    result_states__[tar] =  [np.concatenate((s[:-state_plit_index],slp), axis=-1) for s,slp in zip(result_states__tar, llp_state_long)]
+                    llp_state_long =  [np.array(rs)[:,-state_split_index:].flatten() for rs in llp_state_split]
+                    result_states__[tar] =  [np.concatenate((s[:-state_split_index],slp), axis=-1) for s,slp in zip(result_states__tar, llp_state_long)]
                 else:
                     states__[tar] = states__tr
                     actions__[tar] =  actions__[tar][:tmp_len][0::skip_num]
@@ -447,7 +448,7 @@ class LearningMultiAgent(LearningAgent):
                     _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t,
                     agent_num=agent_)
             result_states_tmp = copy.deepcopy(result_states__)
-            
+
             if ( "use_centralized_critic" in self.getSettings()
                  and ((self.getSettings()["use_centralized_critic"] == True)
                       # or (agent_ in self.getSettings()["use_centralized_critic"])
@@ -506,7 +507,7 @@ class LearningMultiAgent(LearningAgent):
                 (states__, actions__, rewards__, result_states__, falls__, advantage__, 
                  exp_actions__, G_t__) = self.applyHER(states__, actions__, rewards__, 
                                                        result_states__, falls__, advantage__, exp_actions__, G_t__)
-                  
+
             if ("hlc_index" in self.getSettings()
                 and (self.getSettings()["hlc_index"] == agent_)):
                 (states__, actions__, rewards__, result_states__, falls__, advantage__, exp_actions__, G_t__) = self.dataSkip(self.getAgents()[agent_], states__, 

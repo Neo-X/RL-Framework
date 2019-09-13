@@ -253,18 +253,22 @@ class DPGKeras(KERASAlgorithm):
     def genLLPActions(self, states, g, target_net=False):
         # g = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
         ### a pi(a|s,g)
-        # s_llp = states[:,:-self.getSettings()["goal_slice_index"]] ### remove last 3 dimensions
-        s_llp = states[:,:4] ### remove last 3 dimensions
-
-        s_llp = np.concatenate((s_llp, g), axis=-1)
-        # s_llp = np.repeat(s_llp, self.getSettings()["hlc_timestep"], axis=1)
+        llp_state_size = self.getSettings()["state_split_index"]
+        hlp_timestep = self.getSettings()["hlc_timestep"]
+        llp_states = states[:, -(llp_state_size * hlp_timestep):]
+        batch_size = llp_states.shape[0]
+        llp_states = llp_states.reshape(batch_size, hlp_timestep, llp_state_size)
+        llp_states = llp_states[:, :, :self.getSettings()["goal_slice_index"]]
+        llp_states = np.concatenate((llp_states, np.tile(g[:, None, :], [1, hlp_timestep, 1])), axis=(-1))
+        llp_states = llp_states.reshape(-1, llp_state_size)
         if (target_net == True):
-            a_llp = self._llp_T.predict(s_llp)
+            llp_actions = self._llp_T.predict(llp_states)
         else:
-            a_llp = self._llp.predict(s_llp)
-        a_llp = np.repeat(a_llp, self.getSettings()["hlc_timestep"], axis=1)
-        # a_llp = np.reshape(a_llp, (-1,15))
-        return a_llp
+            llp_actions = self._llp.predict(llp_states)
+        llp_actions_size = llp_actions.shape[-1]
+        llp_actions = llp_actions.reshape(batch_size, hlp_timestep, llp_actions_size)
+        llp_actions = llp_actions.reshape(batch_size, -1)
+        return llp_actions
 
     def updateFrontPolicy(self, lowerPolicy):
         self._llp.set_weights(lowerPolicy._model._actor.get_weights())
