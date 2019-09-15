@@ -862,6 +862,8 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
     discounted_values = []
     bellman_errors = []
     reward_over_epocs = []
+    mean_discount_error = []
+    std_discount_error = []
     
     epoch_=0
     states = []
@@ -985,10 +987,21 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
                 error = [[0]]
                 print ("Error: not enough samples in experience to check bellman error: ", model.samples(), " needed " , batch_size)
             error = np.mean(np.fabs(error))
-            # This works better because epochs can terminate early, which is bad.
-            # print ("rewards: ", np.array(rewards_).shape)
-            reward_over_epocs.append(np.mean(np.array(rewards_)))
+                # This works better because epochs can terminate early, which is bad.
+                # print ("rewards: ", np.array(rewards_).shape)
+            rewards__=[]
+            discounted_sum__=[]
+            value__=[]
+            discount_error__ = []
+            for agent_ in range(len(model.getAgents())): 
+                rewards__.append(np.array(rewards_).flatten()[agent_::len(model.getAgents())])
+                discounted_sum__.append(np.array(discounted_sum_).flatten()[agent_::len(model.getAgents())])
+                value__.append(np.array(value_).flatten()[agent_::len(model.getAgents())])
+                discount_error__.append(discounted_sum__[agent_] - value__[agent_])
+            reward_over_epocs.append(np.mean(np.array(rewards__), axis=1))
             bellman_errors.append(error)
+            mean_discount_error.append(np.mean(np.fabs(discount_error__), axis=1))
+            std_discount_error.append(np.std(discount_error__, axis=1))
         
             
         # print("samples collected so far: ", len(states))
@@ -1009,17 +1022,12 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
                 print ("len(discounted_values[",i,"]): ", np.array(discounted_values[i]).shape, " len(values[",i,"]): ", 
                        np.array(values[i]).shape)
             
-        mean_reward = np.mean(reward_over_epocs)
-        std_reward = np.std(reward_over_epocs)
+        mean_reward = np.mean(reward_over_epocs, axis=0)
+        std_reward = np.std(reward_over_epocs, axis=0)
         mean_bellman_error = np.mean(bellman_errors)
         std_bellman_error = np.std(bellman_errors)
-        mean_discount_error = 0
-        std_discount_error = 0
-        for d in range(len(discounted_values)):
-            mean_discount_error = mean_discount_error + np.mean(np.array(discounted_values[d]) - np.array(values[d]))
-            std_discount_error =  std_discount_error + np.std(np.array(discounted_values[d]) - np.array(values[d]))
-        mean_discount_error = mean_discount_error / float(len(discounted_values))
-        std_discount_error = std_discount_error / float(len(discounted_values))
+        mean_discount_error = np.mean(mean_discount_error, axis=0)
+        std_discount_error = np.std(std_discount_error, axis=0)
         mean_eval = np.mean(evalDatas)
         std_eval = np.std(evalDatas)
         return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,

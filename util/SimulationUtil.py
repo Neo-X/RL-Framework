@@ -261,6 +261,7 @@ def validateSettings(settings):
         are known to conflict. Meaning any simulation with this combination of settings
         will only produce garbage.
     """
+    """
     if ("perform_multiagent_training" in settings and
         ("on_policy" in settings and
          settings["on_policy"] == "fast")):
@@ -268,7 +269,7 @@ def validateSettings(settings):
         print ("MultiAgent training does not support fast on policy simulation yet.")
         print ("******")
         return False
-    
+    """    
     if ("use_fall_reward_shaping" in settings and
         (settings["use_fall_reward_shaping"] == True)
         and
