@@ -4,6 +4,7 @@
 import dill
 import sys
 import gc
+from dill.settings import settings
 # from theano.compile.io import Out
 sys.setrecursionlimit(50000)
 # from sim.PendulumEnvState import PendulumEnvState
@@ -113,6 +114,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     evalDatas=[]
     stds=[]
     bad_sim_state = False
+    entropy_ = 0
     if ("divide_by_zero2" in settings
         and (settings["divide_by_zero2"] == True)
         and (not bootstrapping)):
@@ -179,7 +181,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 
                 
                 # print ("state_", repr(state_))
-                (action, exp_action) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
+                (action, exp_action, entropy_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
                                                     sampling=sampling)
                 # print ("action", repr(action))
             else: 
@@ -374,38 +376,26 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 reward_ = np.array(reward_) + (-1.0 * 1/(1-settings["discount_factor"]))
             else:
                 reward_ = np.mean(reward_) + (-1.0 * 1/(1-settings["discount_factor"]))
-        # print ("reward: ", reward_)
-        # baseline.append(model.q_value(state_))
         
         G_t.append(np.array([[0]])) # *(1.0-discount_factor)))
         for i in range(len(G_t)):
             if isinstance(reward_, (list, tuple, np.ndarray)):
                 assert len(np.array(reward_).shape) == 2, "reward shape is " + str(np.array(reward_).shape) + str(reward_) 
-                # G_t[i] = G_t[i] + (((np.power(discount_factor,(len(G_t)-i)-1) * (np.array(reward_) ))))
-                # print( "reward: ", repr(np.array(reward_)) )
-                # print( "G_t: ", repr(np.array(G_t)) )
             else:
-                # G_t[i] = G_t[i] + (((np.power(discount_factor,(len(G_t)-i)-1) * (np.array([reward_]) ))))
                 reward_ = [[reward_]]
         
         
         if ("replace_next_state_with_imitation_viz_state" in settings
             and (settings["replace_next_state_with_imitation_viz_state"] == True)):
-            # print ("resultState_: ", resultState_)
-            # print ("Before resultState_[0][1]: ", np.array(resultState_[0][1]).shape)
             ### This only works properly in the dual state rep case.
             if ("replace_next_state_with_pose_state" in settings and
                   (settings["replace_next_state_with_pose_state"] == True)):
-                # print ("Replacing result state data with imitation data")
                 ob = np.asarray(exp.getEnvironment().getImitationState())
                 ob = ob.flatten()
                 resultState_[0][1] = ob
             elif ("use_dual_viz_state_representations" in settings
                   and (settings["use_dual_viz_state_representations"] == True)):
                 ### Need agent data for simease net
-                # ob = np.asarray(exp.getEnvironment().getVisualState())
-                # ob = np.reshape(np.array(ob), (-1, 
-                #             (np.prod(ob.shape))))
                 state_[0][1] = resultState_[0][0]
             elif ("use_dual_dense_state_representations" in settings
                 and (settings["use_dual_dense_state_representations"] == True)):
@@ -420,15 +410,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 ob = np.asarray(exp.getEnvironment().getImitationVisualState())
                 ob = ob.flatten()
                 resultState_[0][1] = ob
-            # print ("resultState_[0][0]: ", np.array(resultState_[0][0]).shape)    
-            # print ("resultState_[0][1]: ", np.array(resultState_[0][1]).shape)
         ## For testing remove later
         if (settings["use_back_on_track_forcing"] and (not evaluation)):
             exp.getControllerBackOnTrack()
         # print ("reward_: ", reward_)
         if print_data:
-            # print ("State " + str(state_) + " action " + str(pa) + " newState " + str(resultState) + " Reward: " + str(reward_))
-            # print ("Value: ", model.q_value(state_), " Action " + str(pa) + " Reward: " + str(reward_) + " Discounted Sum: " + str(discounted_sum) )
             if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                 value__ = 0
                 if ( not bootstrapping ):
@@ -497,6 +483,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     except Exception as e:
                         print(e)
             
+        if ("max_ent_rl" in settings
+            and (settings["max_ent_rl"] == True)):
+            # print ("entropy: ", entropy_)
+            reward_ = reward_ + entropy_
         ### I can't just unpack the vector of states here in a multi char sim because the 
         ### Order needs to be preserved for computing the advantage.
         actions.append(action)

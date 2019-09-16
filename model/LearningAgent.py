@@ -946,6 +946,8 @@ class LearningAgent(AgentInterface):
             The logic for sampling for different types of distributions
         """
         import numpy as np
+        from model.LearningUtil import entropy
+        entropy_ = 0
         stds=[]
         exp_action = int(1)
         r2 = np.random.rand(1)[0]
@@ -988,6 +990,7 @@ class LearningAgent(AgentInterface):
                 else:
                     std_ = self.predict_std(state_, p=1.0)
                 stds.append(std_)
+                entropy_ = entropy(std_)
                 action = randomExporationSTD(pa_, std_, np.array(self.getActionBounds(), dtype=float))
                 # print("Action2: ", action)
                     
@@ -1053,7 +1056,7 @@ class LearningAgent(AgentInterface):
             # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
             
         exp_action = [[exp_action]] * len(state_)
-        return (action, exp_action)
+        return (action, exp_action, entropy_)
     
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:

@@ -119,7 +119,7 @@ def entropy(std):
     """
         Computes the entropy for a Guassian distribution given the std.
     """
-    return 0.5 * T.mean(T.log(2 * np.pi * std ) + 1 )
+    return 0.5 * np.mean(np.log(2 * np.pi * std ) + 1 )
 
 def entropy_keras(std):
     return 0.5 * K.mean(K.log(2 * np.pi * std ) + 1 )

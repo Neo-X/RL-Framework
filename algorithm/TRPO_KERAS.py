@@ -350,22 +350,11 @@ class TRPO_KERAS(KERASAlgorithm):
         ### Used to understand the shape of the parameters
         all_paramsActA = self._model.getActorNetwork().get_weights()
         self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))
-        # print("Policy log prob before: ", np.mean(self._get_log_prob([states, actions])[0], axis=0))
-        # print ("Performing Critic trainning update")
-        # if (( self._updates % self._weight_update_steps) == 0):
-        #     self.updateTargetModel()
-        # self._updates += 1
-        # loss, _ = self._train()
-        # print( "Actor loss: ", self._get_action_diff())
         lossActor = 0
         
-        # diff_ = self.bellman_error(states, actions, rewards, result_states, falls)
-        # print("Advantage: ", np.mean(self._get_advantage()))
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("Rewards: ", np.mean(scale_reward(rewards, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))), " std: ", np.std(scale_reward(rewards, self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))), " shape: ", np.array(rewards).shape)
-            # print("Targets: ", np.mean(self._get_target()), " std: ", np.std(self._get_target()))
             print("Falls: ", np.mean(falls), " std: ", np.std(falls))
-            # print("values, falls: ", np.concatenate((scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor'])), falls), axis=1))
             print("values: ", np.mean(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))),
                    " std: ", np.std(scale_reward(self._q_val(), self.getRewardBounds()) * (1.0 / (1.0- self.getSettings()['discount_factor']))) )
             print("Model Advantage: ", np.mean(self._get_diff()), " std: ", np.std(self._get_diff()))
@@ -373,19 +362,10 @@ class TRPO_KERAS(KERASAlgorithm):
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['train']):
             print("Advantage: ", np.mean(advantage), " std: ", np.std(advantage))
             
-            # print("Advantage, reward: ", np.concatenate((advantage, rewards), axis=1))
             print("Actions:     ", np.mean(actions, axis=0), " shape: ", actions.shape)
             print ("Policy mean: ", np.mean(self._policy_mean([states, 0])[0], axis=0))
-            # print("Actions std:  ", np.mean(np.sqrt( (np.square(np.abs(actions - np.mean(actions, axis=0))))/1.0), axis=0) )
-            # print("Actions std:  ", np.std(actions - self._q_action(), axis=0) )
             print("Actions std:  ", np.std(actions - self._policy_mean([states, 0])[0], axis=0) )
             print ("Policy std: ", np.mean(self.q_valsActASTD([states, 0])[0], axis=0))
-            # print("Policy log prob before: ", np.mean(self._get_log_prob(states, actions), axis=0))
-            # print( "Actor loss: ", np.mean(self._get_action_diff()))
-            # print ("Actor diff: ", np.mean(np.array(self._get_diff()) / (1.0/(1.0-self._discount_factor))))
-            ## Sometimes really HUGE losses appear, ocasionally
-            # if (np.abs(np.mean(self._get_action_diff())) < 10): 
-            #     lossActor, _ = self._trainActor()
             
         if (self.getSettings()["print_levels"][self.getSettings()["print_level"]] >= self.getSettings()["print_levels"]['debug']):
             print("Policy   std2: ", np.mean(self._q_action_std(), axis=0) + np.std(self._q_action(), axis=0))
@@ -457,20 +437,6 @@ class TRPO_KERAS(KERASAlgorithm):
             print( "Losses after: ", self.loss_names, ", ", losses_after)
         
         return out
-        # print("Policy log prob after: ", np.mean(self._get_log_prob(), axis=0))
-        # print( "Length of positive actions: " , str(len(tmp_actions)), " Actor loss: ", lossActor)
-        # print( " Actor loss: ", lossActor)
-        # self._advantage_shared.set_value(diff_)
-        # lossActor, _ = self._trainActor()
-        # kl_after = self.kl_divergence()
-        """
-        if kl_d > self.getSettings()['kl_divergence_threshold']:
-            self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()*2.0)
-        else:
-            self._kl_weight_shared.set_value(self._kl_weight_shared.get_value()/2.0)
-        """  
-    
-        # return lossActor
     
     def train(self, states, actions, rewards, result_states, falls):
         loss = self.trainCritic(states, actions, rewards, result_states, falls)

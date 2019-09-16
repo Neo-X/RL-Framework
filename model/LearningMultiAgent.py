@@ -612,6 +612,7 @@ class LearningMultiAgent(LearningAgent):
 
         act = []
         exp_action = []
+        entropy = []
         for m in range(len(state)):
             if ( "use_centralized_critic" in self.getSettings()
                  and (self.getSettings()["use_centralized_critic"] == True)):
@@ -633,7 +634,7 @@ class LearningMultiAgent(LearningAgent):
             if use_hle:
                 num_samples = self.getSettings()["high_level_exploration_samples"]
                 state_ = np.array([state_ for i in range(num_samples)])
-                candidate_actions, candidate_exp_acts = self.getAgents()[m].sample(
+                candidate_actions, candidate_exp_acts, entropys = self.getAgents()[m].sample(
                     state_,
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
                     sampling=sampling)
@@ -665,20 +666,21 @@ class LearningMultiAgent(LearningAgent):
                     exp_act = [candidate_exp_acts[idx_]]
                     
             else:
-                (action, exp_act) = self.getAgents()[m].sample(
+                (action, exp_act, entropy_) = self.getAgents()[m].sample(
                     [state_],
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
                     sampling=sampling)
 
             act.append(action[0])
             exp_action.append([exp_act])
+            entropy.append(entropy_)
 
         if self._useLock:
             self._accesLock.release()
         # print ("act: ", repr(act))
         # print ("exp_action: ", repr(exp_action))
 
-        return (act, exp_action)
+        return (act, exp_action, entropy)
     
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:
