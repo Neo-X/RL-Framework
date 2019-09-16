@@ -54,9 +54,9 @@ class OpenAIGymActor(ActorInterface):
             bs_w = self._settings["entropy_reward_weight"]
             bs_r = self.entropyReward(sim.getState())
             
-            print ("bs_r: ", bs_r , " imitation_r: ", reward)
+            # print ("bs_r: ", bs_r , " imitation_r: ", reward)
             reward = (bs_r * bs_w) + reward
-            print ("r: ", reward)
+            # print ("r: ", reward)
         # print ("self._state_mean: ", self._state_mean)
         # print ("self._state_var: ", self._state_var)
         self._reward_sum = self._reward_sum + np.mean(reward)
