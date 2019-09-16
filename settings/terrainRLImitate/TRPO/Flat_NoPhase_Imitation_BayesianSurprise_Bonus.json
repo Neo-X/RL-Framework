@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Biped2D_Flat_NoPhase_v0/_imitation_plus_bayesian_3",
+"data_folder": "PD_Biped2D_Flat_NoPhase_v0/_imitation_plus_bayesian_4",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
