@@ -266,6 +266,8 @@ class LearningMultiAgent(LearningAgent):
                 tmp_len = len(states__[tar])
                 split_indices = [i for i  in range(skip_num, tmp_len, skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
                 states__tr = states__[tar][:tmp_len][0::skip_num][:-1]
+                if (len(states__tr) == 0): ### Sometimes trajectories are very short...
+                    break
                 result_states__tar =  result_states__[tar][:tmp_len][0::skip_num][:-1]
                 if ("policy_connections" in self.getSettings()):
                     # and (any([model._settings["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
@@ -307,6 +309,12 @@ class LearningMultiAgent(LearningAgent):
                         "reward": np.array(rewards__[tar]),
                         "falls": np.array(falls__[tar]), 
                         "terminated": False}
+                print ("tar: ", tar)
+                print ("path", path)
+                if (len(states__[tar]) == 0):
+                    print ("bs")
+                
+                ### Recompute advantage now that some states may be skipped
                 paths = compute_advantage_(model, [path], model._settings["discount_factor"], model._settings['GAE_lambda'])
                 adv__ = paths["advantage"]
                 _advantage[tar] = adv__

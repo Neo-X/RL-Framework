@@ -80,7 +80,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         else:
             exp.getEnvironment().getEnv().setLLC(model.getAgents()[settings["llc_index"]])
     if ("hlc_index" in settings):
-        ### Bad hack for now to use llc in env
+        ### Bad hack for now to use hlp in env
         exp.getEnvironment().getEnv().setHLP(model.getAgents()[settings["hlc_index"]])
     if ("replace_entropy_state_with_vae" in settings 
         and (settings["replace_entropy_state_with_vae"] == True)):
@@ -258,21 +258,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 reward_[settings["hlc_index"]][0] += a
                 reward_[settings["llc_index"]][0] += b
 
-            """
-            if ( settings['train_reward_predictor'] and (not bootstrapping)):
-                predicted_reward = model.getForwardDynamics().predict_reward(state_, [action])
-                print ("Actual Reward: ", reward_, " Predicted reward: ", predicted_reward)
-            """
             agent_not_fell = actor.hasNotFallen(exp)
             if (outside_bounds and settings['penalize_actions_outside_bounds']):
                 ### TODO: this penalty should really be a function of the distance the action was outside the bounds
                 reward_ = reward_ + settings['reward_lower_bound']  
         elif not action_space_continuous:
-            """
-            action = random.choice(action_selection)
-            action = eGreedy(pa, action, epsilon * p)
-            reward_ = actor.act(exp, action)
-            """
             pa = model.predict(state_)
             action = random.choice(action_selection)
             action = eGreedy(pa, action, epsilon * p)
