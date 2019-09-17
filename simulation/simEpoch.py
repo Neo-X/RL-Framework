@@ -83,7 +83,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         ### Bad hack for now to use hlp in env
         exp.getEnvironment().getEnv().setHLP(model.getAgents()[settings["hlc_index"]])
     if ("replace_entropy_state_with_vae" in settings 
-        and (settings["replace_entropy_state_with_vae"] == True)):
+        and (settings["replace_entropy_state_with_vae"])):
         actor.setEncoder(model.getForwardDynamics())
     ### reset the environments
     exp.initEpoch()

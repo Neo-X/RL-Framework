@@ -51,8 +51,12 @@ class ActorInterface(object):
         if (self._state_len is None):
             self._state_len = np.prod(state.shape)
         
-        if ("replace_entropy_state_with_vae" in self._settings):
+        if ("replace_entropy_state_with_vae" in self._settings
+            and (self._settings["replace_entropy_state_with_vae"] == True)):
             state = self._encoder.predict_encoding(state)
+        elif ("replace_entropy_state_with_vae" in self._settings
+              and (self._settings["replace_entropy_state_with_vae"] == "p(z)")):
+            state = self._encoder.predict_encoding_z(state)
         else:    
             state = state[:,:self._state_len]
             
@@ -78,8 +82,12 @@ class ActorInterface(object):
     def entropyReward(self, state):
         import scipy.stats
         import numpy as np
-        if ("replace_entropy_state_with_vae" in self._settings):
+        if ("replace_entropy_state_with_vae" in self._settings
+            and (self._settings["replace_entropy_state_with_vae"] == True)):
             state = self._encoder.predict_encoding(state)
+        elif ("replace_entropy_state_with_vae" in self._settings
+              and (self._settings["replace_entropy_state_with_vae"] == "p(z)")):
+            state = self._encoder.predict_encoding_z(state)
         else:
             state = state[:,:self._state_len]
         # ps = scipy.stats.norm(self._state_mean, self._state_var).pdf(state)

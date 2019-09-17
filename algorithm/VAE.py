@@ -340,6 +340,18 @@ class VAE(SiameseNetwork):
             h_a = self._model._forward_dynamics_net.predict([state])[0]
         return h_a
     
+    def predict_encoding_z(self, state):
+        """
+            Compute distance between two states
+        """
+        state = np.array(norm_state(state, self.getStateBounds()), dtype=self.getSettings()['float_type'])
+        if (("train_LSTM_FD" in self._settings)
+                    and (self._settings["train_LSTM_FD"] == True)):
+            h_a = self._model.processed_a.predict([np.array([state])])
+        else:
+            h_a = self._model._forward_dynamics_net.predict([state])[2]
+        return h_a
+    
     def predict(self, state, state2):
         """
             Compute distance between two states
