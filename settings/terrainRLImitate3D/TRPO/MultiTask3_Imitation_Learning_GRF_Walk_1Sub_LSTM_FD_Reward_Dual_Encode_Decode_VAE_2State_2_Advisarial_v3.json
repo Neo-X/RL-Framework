@@ -650,5 +650,5 @@
 	"comment__": "Add noise to the target noise values",
 "target_noise_scale": 0.1,
 	"comment__": "Ask the simulator for the id of the task being performed for this episode",
-"ask_env_for_multitask_id": true
+"ask_env_for_multitask_id": "multi_task"
 }

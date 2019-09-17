@@ -197,7 +197,7 @@ def trainForwardDynamics(settings):
         # print ("state: ", state_[l])
         #### Lazy hack, the number of types is greater than the number of threads, now.
         if (  "ask_env_for_multitask_id" in settings
-              and (settings["ask_env_for_multitask_id"] == True)):
+              and (settings["ask_env_for_multitask_id"])):
             clas = fall_[l][0][0]
         else:
             clas = settings["worker_to_task_mapping"][fall_[l][0][0]]

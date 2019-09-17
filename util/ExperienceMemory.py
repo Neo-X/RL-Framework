@@ -458,6 +458,11 @@ class ExperienceMemory(object):
                         and (self._fall_history[i][0] != 0)): 
                         # print ("Skipping: ", self._fall_history[i][0])
                         continue
+                    if ("ask_env_for_multitask_id" in self._settings 
+                        and (self._settings["ask_env_for_multitask_id"] == "multi_task")
+                        and (self._fall_history[i][0] != 0)): 
+                        ## Don't skip.
+                        pass
                     elif ("worker_to_task_mapping" in self._settings
                         and (self._settings["worker_to_task_mapping"][self._fall_history[i][0]] != 0)): ### Only use training data for the task of interest
                     # print ("skipping non desired task tuple")
