@@ -309,11 +309,6 @@ class LearningMultiAgent(LearningAgent):
                         "reward": np.array(rewards__[tar]),
                         "falls": np.array(falls__[tar]), 
                         "terminated": False}
-                print ("tar: ", tar)
-                print ("path", path)
-                if (len(states__[tar]) == 0):
-                    print ("bs")
-                
                 ### Recompute advantage now that some states may be skipped
                 paths = compute_advantage_(model, [path], model._settings["discount_factor"], model._settings['GAE_lambda'])
                 adv__ = paths["advantage"]
