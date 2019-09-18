@@ -49,8 +49,6 @@ class SimContainer(object):
         if (self._movieWriter is not None):
             ### If the size of the window is changed at any time this will probably get messed up...
             vizData = self._exp.getEnvironment().getFullViewData()
-            # movie_writer.append_data(np.transpose(vizData))
-            # print ("sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
             image_ = np.zeros((vizData.shape))
             for row in range(len(vizData)):
                 image_[row] = vizData[len(vizData)-row - 1]
@@ -61,40 +59,7 @@ class SimContainer(object):
             pass
         else:
             print ("Current sim time: ", current_time)
-            """
-            glClearColor(0.8, 0.8, 0.9, 0.0)
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glEnable(GL_DEPTH_TEST)
-            glEnable(GL_LIGHTING)
-            glEnable(GL_NORMALIZE)
-            glShadeModel(GL_SMOOTH)
-        
-            glMatrixMode(GL_PROJECTION)
-            glLoadIdentity()
-            gluPerspective (45.0, 1.3333, 0.2, 20.0)
-        
-            glViewport(0, 0, 640, 480)
-        
-            glMatrixMode(GL_MODELVIEW)
-            glLoadIdentity()
-        
-            glLightfv(GL_LIGHT0,GL_POSITION,[0, 0, 1, 0])
-            glLightfv(GL_LIGHT0,GL_DIFFUSE,[1, 1, 1, 1])
-            glLightfv(GL_LIGHT0,GL_SPECULAR,[1, 1, 1, 1])
-            glEnable(GL_LIGHT0)
-        
-            glEnable(GL_COLOR_MATERIAL)
-            glColor3f(0.8, 0.8, 0.8)
-        
-            gluLookAt(1.5, 4.0, 3.0, 0.5, 1.0, 0.0, 0.0, 1.0, 0.0)
-            
-            glutPostRedisplay()
-            
-            """
             state_ = self._exp.getState()
-            # print ("state 0: ", state_[:,-20:])
-            # action_ = np.array(self._agent.predict(state_, evaluation_=True), dtype='float64')
-            # self._exp.updateAction(action_)
             
             num_substeps = 1
             for i in range(num_substeps):
@@ -296,7 +261,11 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
     experience=None
     # actor = ActorInterface(discrete_actions)
     actor = createActor(str(settings['environment_type']),settings, experience)
-    masterAgent = LearningAgent(settings_=settings)
+    if ( "perform_multiagent_training" in settings):
+        from model.LearningMultiAgent import LearningMultiAgent
+        masterAgent = LearningMultiAgent(settings_=settings)
+    else:
+        masterAgent = LearningAgent(settings_=settings)
     
     # c = characterSim.Configuration("../data/epsilon0Config.ini")
     if (runLastModel == True):
@@ -355,7 +324,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         criticLosses = []
         
     masterAgent.setSettings(settings)
-    masterAgent.setExperience(experience)
+    # masterAgent.setExperience(experience)
     masterAgent.setPolicy(model)
     
     """
