@@ -43,13 +43,6 @@ class GymMultiCharEnv(SimInterface):
         self._end_of_episode = False
         self._num_updates_since_last_action=10000
         
-    def addSufficientStats(self, state):
-        state = np.concatenate((state, 
-                                 self.getActor()._state_mean, 
-                                 self.getActor()._state_var,
-                                 [[self.getActor()._count]]), axis=-1)
-        return state
-
     def initEpoch(self):
         self._previous_observation = self.getEnvironment().reset()
         if ("use_dual_state_representations" in self.getSettings()

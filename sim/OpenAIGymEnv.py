@@ -53,6 +53,10 @@ class OpenAIGymEnv(SimInterface):
         self._previous_observation = self.getEnvironment().reset()
         self._end_of_episode = False
         self._fallen=[False]
+        if ("include_suffstate_in_state" in self._settings
+            and (self._settings["include_suffstate_in_state"] == True)):
+            self.getActor().updateScalling(self._previous_observation, init=True)
+            self._previous_observation = self.addSufficientStats(self._previous_observation) 
         
     def endOfEpoch(self):
         return self._end_of_episode
@@ -87,6 +91,10 @@ class OpenAIGymEnv(SimInterface):
         self._end_of_episode = done
         # self._fallen = done
         self._previous_observation = observation
+        if ("include_suffstate_in_state" in self._settings
+            and (self._settings["include_suffstate_in_state"] == True)):
+            self._previous_observation = self.addSufficientStats(self._previous_observation) 
+            self.getActor().updateScalling(self._previous_observation)
         return reward
     
     def getState(self):
@@ -104,12 +112,13 @@ class OpenAIGymEnv(SimInterface):
                 state__.append(state_[i] )
         """
         # state = np.array(state_)
+        """
         if (self._settings['environment_type'] == 'RLSimulations' 
             or (self._settings['environment_type'] == 'HRLSimulations')):
             pass
         else:
             state = np.reshape(state, (-1, len(state_)))
-        
+        """
         return state
     
     def setState(self, st):

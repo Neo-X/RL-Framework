@@ -39,6 +39,13 @@ class SimInterface(object):
         # while not checkDataIsValid(self.getState()):
         #     self.getEnvironment().initEpoch()
     
+    def addSufficientStats(self, state):
+        state = np.concatenate((state, 
+                                 self.getActor()._state_mean, 
+                                 self.getActor()._state_var,
+                                 [[self.getActor()._count]]), axis=-1)
+        return state
+    
     def generateValidation(self, data, epoch):
         pass
     
