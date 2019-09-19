@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid_3D_GRF_Walk_1Sub_Imitate_30FPS_DenseState_v0/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128__12",
+"data_folder": "PD_Humanoid_3D_GRF_Walk_1Sub_Imitate_30FPS_DenseState_v0/LSTM_FD_Dual_Reward_EncodeDecode_VAE_2State_FallReward2_T128__13",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -274,7 +274,7 @@
     "comment__": "draw/render the next state suggested by the forward dynamics model",
 "visualize_forward_dynamics": false,
     "comment__": "Learning rate for the forward dynamics model",
-"fd_learning_rate": 0.0001,
+"fd_learning_rate": 0.0005,
     "comment__": "Whether or not to train the policy. Used for debugging",
 "train_actor": true,
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
@@ -349,11 +349,11 @@
 	"comment__": "Random seed value for the simulation to use",
 "random_seed": 1234,
 	"comment__": "KL divergence threshold between policy updates",
-"kl_divergence_threshold": 0.1,
+"kl_divergence_threshold": 0.5,
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy [true|fast]",
 "on_policy": true,
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
-"use_stochastic_policy": false,
+"use_stochastic_policy": true,
 	"comment__": "Whether or  not to train the critic at all. Usually used for debugging",
 "train_critic": true,
 	"comment__": "What type of regularization to use",
@@ -497,21 +497,18 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice", "slice_index": 196, "slice_label": "grf" },
-							{"layer_type": "GaussianNoise", "stddev": 0.025},
+							{"layer_type": "GaussianNoise", "stddev": 0.03},
 							{"layer_type": "Dropout", "rate": 0.2},
 							{"layer_type": "Dense", "units": 256, "use_bias": true},
-							{"layer_type": "Dropout", "rate": 0.2},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dense", "units": 256, "use_bias": true},
 							{"layer_type": "Dropout", "rate": 0.2},
+							{"layer_type": "Dense", "units": 128, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dense", "units": 64, "use_bias": true},
-							{"layer_type": "Dropout", "rate": 0.2},
-							{"layer_type": "activation", "activation_type": "linear" }
+							{"layer_type": "Dropout", "rate": 0.2}
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
-							{"layer_type": "Input", "shape": ["none", "none", 64]},
+							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "LayerNormalization"},
 							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
 							],
@@ -595,30 +592,29 @@
 "train_lstm_fd_and_reward_and_decoder_together": true,
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [ 
-								{"layer_type": "Dense", "units": 256, "use_bias": false},
+								{"layer_type": "Dropout", "rate": 0.2},
+								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dropout", "rate": 0.2},
-								{"layer_type": "Dense", "units": 256, "use_bias": false},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dropout", "rate": 0.2},
-								{"layer_type": "Dense", "units": 196, "use_bias": false},
+								{"layer_type": "Dense", "units": 196, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "linear" },
 								{"layer_type": "Dropout", "rate": 0.2}
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes2": [
-							{"layer_type": "Input", "shape": ["none", "none", 64]},
+							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null},
 							{"layer_type": "LayerNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "TimeDistributedConv", "net_info":
 							[ 
-								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "Dropout", "rate": 0.2},
+								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "linear" }
 							]}
 							],
 	"comment__": "The encoding vector size used for the fd models",
-"encoding_vector_size": 64,
+"encoding_vector_size": 32,
 	"comment__": "Inform the system that a encoder decoder model is being used",
 "using_encoder_decoder_fd": false,
 	"comment__": "Inform the system that a encoder decoder model is being used",
@@ -632,5 +628,5 @@
 	"comment": "use Multi modal state",
 "fd_use_multimodal_state": true,
 	"comment": "Use advisarial comparisons between agent and expert data",
-"include_agent_imitator_pairs": true
+"include_agent_imitator_pairs": false
 }
