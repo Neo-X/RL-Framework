@@ -11,6 +11,9 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
         settings_ = copy.deepcopy(settings_)
         settings_['policy_network_layer_sizes'] = settings_['fd_network_layer_sizes']
         settings_['critic_network_layer_sizes'] = settings_['reward_network_layer_sizes']
+        settings_['use_stochastic_policy'] = False
+        if ("use_stochastic_policy_fd" in settings_):
+            settings_['use_stochastic_policy'] = settings_['use_stochastic_policy_fd']
         if ("last_fd_layer_activation_type" in settings_):
             settings_['last_policy_layer_activation_type'] = settings_['last_fd_layer_activation_type']
         if ("reward_activation_type" in settings_):

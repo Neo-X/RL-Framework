@@ -516,18 +516,19 @@
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice", "slice_index": 196, "slice_label": "grf" },
 							{"layer_type": "GaussianNoise", "stddev": 0.03},
-							{"layer_type": "Dense", "units": 256, "use_bias": false},
-							{"layer_type": "BatchNormalization"},
+							{"layer_type": "Dropout", "rate": 0.2},
+							{"layer_type": "Dense", "units": 256, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dense", "units": 128, "use_bias": false},
-							{"layer_type": "BatchNormalization"},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" }
+							{"layer_type": "Dropout", "rate": 0.2},
+							{"layer_type": "Dense", "units": 128, "use_bias": true},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dropout", "rate": 0.2}
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.0, "recurrent_dropout": 0.0}
+							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -609,22 +610,23 @@
 "train_lstm_fd_and_reward_and_decoder_together": true,
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [ 
-								{"layer_type": "Dense", "units": 256, "use_bias": false},
-								{"layer_type": "BatchNormalization"},
+								{"layer_type": "Dropout", "rate": 0.2},
+								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dense", "units": 196, "use_bias": false},
-								{"layer_type": "BatchNormalization"},
-								{"layer_type": "activation", "activation_type": "linear" }
+								{"layer_type": "Dropout", "rate": 0.2},
+								{"layer_type": "Dense", "units": 196, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "linear" },
+								{"layer_type": "Dropout", "rate": 0.2}
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes2": [
 							{"layer_type": "Input", "shape": ["none", "none", 32]},
-							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.0, "recurrent_dropout": 0.0, "activation": null},
+							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null},
 							{"layer_type": "LayerNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "TimeDistributedConv", "net_info":
 							[ 
-								{"layer_type": "BatchNormalization"},
+								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "linear" }
 							]}
