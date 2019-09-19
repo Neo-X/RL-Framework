@@ -469,7 +469,7 @@ def trainModelParallel(inputData):
         from util.SimulationUtil import createEnvironment
         from util.SimulationUtil import createRLAgent, createNewFDModel
         from util.SimulationUtil import createActor, getAgentName, updateSettings
-        from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
+        from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, processBounds
         
         from util.ExperienceMemory import ExperienceMemory
         
@@ -580,25 +580,7 @@ def trainModelParallel(inputData):
         exp_val.setActor(actor)
         exp_val.getActor().init()
         exp_val.init()
-        if ((state_bounds == "ask_env")):
-            print ("Getting state bounds from environment")
-            s_min = exp_val.getEnvironment().observation_space.getMinimum()
-            s_max = exp_val.getEnvironment().observation_space.getMaximum()
-            print (exp_val.getEnvironment().observation_space.getMinimum())
-            settings['state_bounds'] = [s_min,s_max]
-            state_bounds = settings['state_bounds']
-            """
-            if (int(settings["num_available_threads"]) != -1):
-                print ("Removing extra environment.")
-                exp_val.finish()
-            """
-        if ((action_bounds == "ask_env")):
-            print ("Getting action bounds from environment")
-            a_min = exp_val.getEnvironment()._action_space.getMinimum()
-            a_max = exp_val.getEnvironment()._action_space.getMaximum()
-            print (exp_val.getEnvironment()._action_space.getMinimum())
-            settings['action_bounds'] = [a_min,a_max]
-            action_bounds = settings['state_bounds']
+        (state_bounds, action_bounds, settings) = processBounds(state_bounds, action_bounds, settings, exp_val)
         """
             if (int(settings["num_available_threads"]) != -1):
                 print ("Removing extra environment.")

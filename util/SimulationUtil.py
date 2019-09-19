@@ -134,6 +134,31 @@ def loadNetwork(net_file_path):
 def getDataDirectory(settings):
     return getBaseDataDirectory(settings)+settings["model_type"]+"/"
 
+def processBounds(state_bounds, action_bounds, settings, sim):
+    
+    if ((state_bounds == "ask_env")):
+        print ("Getting state bounds from environment")
+        s_min = sim.getEnvironment().observation_space.low
+        s_max = sim.getEnvironment().observation_space.high
+        print (sim.getEnvironment().observation_space.low)
+        settings['state_bounds'] = [s_min,s_max]
+        state_bounds = settings['state_bounds']
+        """
+        if (int(settings["num_available_threads"]) != -1):
+            print ("Removing extra environment.")
+            exp_val.finish()
+        """
+    if ((action_bounds == "ask_env")):
+        print ("Getting action bounds from environment")
+        a_min = sim.getEnvironment()._action_space.low
+        a_max = sim.getEnvironment()._action_space.high
+        print (sim.getEnvironment()._action_space.low)
+        settings['action_bounds'] = [a_min,a_max]
+        action_bounds = settings['state_bounds']
+        
+        
+    return (state_bounds, action_bounds, settings)
+
 def getBaseDataDirectory(settings):
     """
     if ("folder_instance_name" in settings):

@@ -20,7 +20,10 @@ except:
     pass
 # from OpenGL import GL
 import numpy as np
-from stackingv2.simpleworlds.envs.mujoco.sawyer_xyz.sawyer import SawyerMultitaskXYZEnv
+# from stackingv2.simpleworlds.envs.mujoco.sawyer_xyz.sawyer import SawyerMultitaskXYZEnv
+from stackingv2.simpleworlds.envs.mujoco.sawyer_xyz.objectcentric_sawyer import ObjectCentricSawyer
+env = ObjectCentricSawyer()
+env.render_on=True
 # print(envs.registry.all())
 # env = gym.make('CartPole-v0')
 # env = gym.make('BipedalWalker-v2')
@@ -28,7 +31,6 @@ from stackingv2.simpleworlds.envs.mujoco.sawyer_xyz.sawyer import SawyerMultitas
 # print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 # env = gym.make('MembraneTarget-v0')
 # env = gym.make('AntBulletEnv-v0')
-env = SawyerMultitaskXYZEnv()
 # MembraneHardware-v0
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')

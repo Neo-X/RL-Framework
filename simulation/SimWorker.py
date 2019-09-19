@@ -101,7 +101,7 @@ class SimWorker(Process):
         # from pympler import summary
         # from pympler import muppy
         import os
-        from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend, updateSettings
+        from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend, updateSettings, processBounds
         ### Flag so simulation models can be a little different.
         self._settings["simulation_model"] = True
         ### Keep forward models on the CPU
@@ -126,20 +126,9 @@ class SimWorker(Process):
             self._exp.getActor().init()   
             self._exp.init()
             self._exp.setRandomSeed(self._process_random_seed)
-            if (self._settings['state_bounds'] == "ask_env"):
-                print ("Getting state bounds from environment")
-                s_min = self._exp.getEnvironment().observation_space.getMinimum()
-                s_max = self._exp.getEnvironment().observation_space.getMaximum()
-                print (self._exp.getEnvironment().observation_space.getMinimum())
-                self._settings['state_bounds'] = [s_min,s_max]
-                
-            if (self._settings['action_bounds'] == "ask_env"):
-                print ("Getting action bounds from environment")
-                a_min = self._exp.getEnvironment()._action_space.getMinimum()
-                a_max = self._exp.getEnvironment()._action_space.getMaximum()
-                print (self._exp.getEnvironment()._action_space.getMinimum())
-                self._settings['action_bounds'] = [a_min,a_max]
-                # print ("*************new state bounds: ", np.array(self._settings['state_bounds']).shape)
+
+            (_, _, self._settings) = processBounds(self._settings['state_bounds'], self._settings['action_bounds'], self._settings, self._exp)
+            
             np.random.seed(self._process_random_seed)
             ## The sampler might need this new model if threads > 1
             self._model.setEnvironment(self._exp)
