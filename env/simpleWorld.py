@@ -1,6 +1,8 @@
 import gym
 from gym import wrappers
 from gym import envs
+import sys
+sys.path.append("./stackingv2/")
 try:
     import roboschool
 except:
@@ -18,13 +20,15 @@ except:
     pass
 # from OpenGL import GL
 import numpy as np
+from stackingv2.simpleworlds.envs.mujoco.sawyer_xyz.sawyer import SawyerMultitaskXYZEnv
 # print(envs.registry.all())
 # env = gym.make('CartPole-v0')
 # env = gym.make('BipedalWalker-v2')
 # import roboschool, gym; print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
-print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
+# print("\n".join(['- ' + spec.id for spec in gym.envs.registry.all() if spec.id.startswith('Roboschool')]))
 # env = gym.make('MembraneTarget-v0')
-env = gym.make('AntBulletEnv-v0')
+# env = gym.make('AntBulletEnv-v0')
+env = SawyerMultitaskXYZEnv()
 # MembraneHardware-v0
 # env = gym.make('Hopper-v1')
 # env = wrappers.Monitor(env, '/tmp/cartpole-experiment-1')
