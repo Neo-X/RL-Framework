@@ -35,15 +35,6 @@ class ForwardDynamicsKeras(KERASAlgorithm):
         if (print_info):
             print("Reward Net summary: ", self._model._reward_net.summary())
         
-        ### data types for model
-        self._fd_grad_target = T.matrix("FD_Grad")
-        self._fd_grad_target.tag.test_value = np.zeros((self._batch_size,self._state_length), dtype=np.dtype(self.getSettings()['float_type']))
-        self._fd_grad_target_shared = theano.shared(
-            np.zeros((self._batch_size, self._state_length),
-                      dtype=self.getSettings()['float_type']))
-        
-        ##
-        
         self._forward = self._model.getForwardDynamicsNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
         self._reward = self._model.getRewardNetwork()([self._model.getStateSymbolicVariable(), self._model.getActionSymbolicVariable()])
         
@@ -187,7 +178,7 @@ class ForwardDynamicsKeras(KERASAlgorithm):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         pred = self.fd([state, action,0])[0]
-        pred = pred[:,:self._action_length] ### Cut off std
+        pred = pred[:,:self._state_length] ### Cut off std
         # print ("pred: ", pred[:,:self._action_length])
         state_ = scale_state(pred, self._state_bounds)
         return state_
@@ -198,7 +189,7 @@ class ForwardDynamicsKeras(KERASAlgorithm):
         state = np.array(norm_state(state, self._state_bounds), dtype=self.getSettings()['float_type'])
         action = np.array(norm_action(action, self._action_bounds), dtype=self.getSettings()['float_type'])
         pred = self.fd([state, action,1])[0]
-        pred = pred[:,:self._action_length] ### Cut off std
+        pred = pred[:,:self._state_length] ### Cut off std
         state_ = scale_state(pred, self._state_bounds)
         return state_
     

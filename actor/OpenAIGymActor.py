@@ -24,19 +24,18 @@ class OpenAIGymActor(ActorInterface):
     def actContinuous(self, sim, action_, bootstrapping=False):
         import numpy as np
         # Actor should be FIRST here
-        # print ("Action: " + str(action_))
-        # dist = exp.getEnvironment().step(action_, bootstrapping=bootstrapping)
+        if ("use_entropy_reward" in self._settings
+            and (self._settings["use_entropy_reward"] == "ICM")):
+            state = sim.getState()
+            
         reward = sim.step(action_)
         if (sim.getMovieWriter() is not None
             and (sim.movieWriterSupport())):
             ### If the sim does not have it's own writing support
             vizData = sim.getEnvironment().getFullViewData()
-            # movie_writer.append_data(np.transpose(vizData))
-            # print ("sim image mean: ", np.mean(vizData), " std: ", np.std(vizData))
             image_ = np.zeros((vizData.shape))
             for row in range(len(vizData)):
                 image_[row] = vizData[len(vizData)-row - 1]
-            # print ("Writing image to video") 
             ## Convert to int to get rid of warning.
             image_ = np.array(image_, dtype="uint8")
             sim.getMovieWriter().append_data(image_)
@@ -44,23 +43,25 @@ class OpenAIGymActor(ActorInterface):
         self._count = self._count + 1
         if ("use_entropy_reward" in self._settings
             and (self._settings["use_entropy_reward"] == True)):
-            # print ("init entropy reward:")
             self.updateScalling(sim.getState())
             reward = self.entropyReward(sim.getState())
         elif ("use_entropy_reward" in self._settings
             and (self._settings["use_entropy_reward"] == "bonus")):
-            # print ("init entropy reward:")
             self.updateScalling(sim.getState())
             bs_w = self._settings["entropy_reward_weight"]
             bs_r = self.entropyReward(sim.getState())
             self._reward_sum = self._reward_sum + np.mean(reward)
             
-            # print ("bs_r: ", bs_r , " imitation_r: ", reward)
             reward = (bs_r * bs_w) + reward
             return reward
-            # print ("r: ", reward)
-        # print ("self._state_mean: ", self._state_mean)
-        # print ("self._state_var: ", self._state_var)
+        elif ("use_entropy_reward" in self._settings
+            and (self._settings["use_entropy_reward"] == "ICM")):
+            bs_r = self.rewardICM(state, action_, sim.getState())
+            self._reward_sum = self._reward_sum + np.mean(reward)
+            
+            reward = bs_r
+            # print ("ICM reward:", reward)
+            return reward
         self._reward_sum = self._reward_sum + np.mean(reward)        
         return reward
         

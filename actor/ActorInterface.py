@@ -101,6 +101,13 @@ class ActorInterface(object):
         r = - np.sum(ps)
         # print ("ps, r: ", r)
         return r
+    
+    def rewardICM(self, state, action, result_state):
+        import scipy.stats
+        import numpy as np
+        result_state_hat = self._encoder.predict(state, action)
+        r = np.sum(np.square(result_state_hat - result_state))
+        return r
             
     def init(self):
         self._reward_sum=0
