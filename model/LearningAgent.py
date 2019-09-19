@@ -288,6 +288,25 @@ class LearningAgent(AgentInterface):
             ( num_samples_, (tmp_states, tmp_actions, tmp_result_states, tmp_rewards, tmp_falls, tmp_G_t, tmp_advantage, tmp_exp_action)) = self.putDataInExpMem(_states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t)
             
+            ## Update scaling values
+            ### Updating the scaling values after the update(s) will help make things more accurate
+            if ('state_normalization' in self._settings and (self._settings["state_normalization"] == "adaptive")):
+                self.getExperience()._updateScaling()
+                self.setStateBounds(self.getExperience().getStateBounds())
+                self.setActionBounds(self.getExperience().getActionBounds())
+                self.setRewardBounds(self.getExperience().getRewardBounds())
+                if ( ('keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'] == True))
+                     ):
+                    self.getFDExperience()._updateScaling()
+                    if ( ('train_forward_dynamics' in self._settings and (self._settings['train_forward_dynamics'] == True))):
+                        self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
+                        self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
+                        self.getForwardDynamics().setRewardBounds(self.getFDExperience().getRewardBounds())
+                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
+                    print("Learner, Scaling State params: ", self.getStateBounds())
+                    print("Learner, Scaling Action params: ", self.getActionBounds())
+                    print("Learner, Scaling Reward params: ", self.getRewardBounds())
+            
             batch_size_ = self._settings["batch_size"]        
             if (self._settings["batch_size"] == "all"):
                 batch_size_ = max(self._expBuff.samples(), 1)
@@ -795,24 +814,6 @@ class LearningAgent(AgentInterface):
                         print ("Policy training complete in " + str(sim_time_) + " seconds")
                 dynamicsLoss = 0 
                                
-            ## Update scaling values
-            ### Updating the scaling values after the update(s) will help make things more accurate
-            if ('state_normalization' in self._settings and (self._settings["state_normalization"] == "adaptive")):
-                self.getExperience()._updateScaling()
-                self.setStateBounds(self.getExperience().getStateBounds())
-                self.setActionBounds(self.getExperience().getActionBounds())
-                self.setRewardBounds(self.getExperience().getRewardBounds())
-                if ( ('keep_seperate_fd_exp_buffer' in self._settings and (self._settings['keep_seperate_fd_exp_buffer'] == True))
-                     ):
-                    self.getFDExperience()._updateScaling()
-                    if ( ('train_forward_dynamics' in self._settings and (self._settings['train_forward_dynamics'] == True))):
-                        self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
-                        self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
-                        self.getForwardDynamics().setRewardBounds(self.getFDExperience().getRewardBounds())
-                if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
-                    print("Learner, Scaling State params: ", self.getStateBounds())
-                    print("Learner, Scaling Action params: ", self.getActionBounds())
-                    print("Learner, Scaling Reward params: ", self.getRewardBounds())
         else: ## Off-policy
             
             for update in range(self._settings['training_updates_per_sim_action']): ## Even more training options...

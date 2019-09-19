@@ -292,7 +292,7 @@
     "comment__": "draw/render the next state suggested by the forward dynamics model",
 "visualize_forward_dynamics": false,
     "comment__": "Learning rate for the forward dynamics model",
-"fd_learning_rate": 0.0001,
+"fd_learning_rate": 0.0005,
     "comment__": "Whether or not to train the policy. Used for debugging",
 "train_actor": true,
     "comment__": "Plot the terms for the critic as well (regularization and td error)",
@@ -300,7 +300,7 @@
     "comment__": "critic regularization weight",
 "critic_regularization_weight": 0.00001,
     "comment__": "Critic learning rate",
-"critic_learning_rate": 0.0001,
+"critic_learning_rate": 0.001,
     "comment__": "During evaluation plot of value function",
 "visualize_expected_value": true,
     "comment__": "exponential decay value for use in reward function",
@@ -367,11 +367,11 @@
 	"comment__": "Random seed value for the simulation to use",
 "random_seed": 1234,
 	"comment__": "KL divergence threshold between policy updates",
-"kl_divergence_threshold": 0.1,
+"kl_divergence_threshold": 0.5,
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy [true|fast]",
 "on_policy": true,
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
-"use_stochastic_policy": false,
+"use_stochastic_policy": true,
 	"comment__": "Whether or  not to train the critic at all. Usually used for debugging",
 "train_critic": true,
 	"comment__": "What type of regularization to use",
@@ -516,18 +516,19 @@
 "fd_network_layer_sizes": [ 
 							{"layer_type": "slice", "slice_index": 196, "slice_label": "grf" },
 							{"layer_type": "GaussianNoise", "stddev": 0.03},
-							{"layer_type": "Dense", "units": 256, "use_bias": false},
-							{"layer_type": "BatchNormalization"},
+							{"layer_type": "Dropout", "rate": 0.2},
+							{"layer_type": "Dense", "units": 256, "use_bias": true},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dense", "units": 128, "use_bias": false},
-							{"layer_type": "BatchNormalization"},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" }
+							{"layer_type": "Dropout", "rate": 0.2},
+							{"layer_type": "Dense", "units": 128, "use_bias": true},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dropout", "rate": 0.2}
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [
 							{"layer_type": "Input", "shape": ["none", "none", 32]},
 							{"layer_type": "LayerNormalization"},
-							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.0, "recurrent_dropout": 0.0}
+							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": true, "use_bias": true, "dropout": 0.2, "recurrent_dropout": 0.2}
 							],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",
@@ -609,22 +610,23 @@
 "train_lstm_fd_and_reward_and_decoder_together": true,
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes": [ 
-								{"layer_type": "Dense", "units": 256, "use_bias": false},
-								{"layer_type": "BatchNormalization"},
+								{"layer_type": "Dropout", "rate": 0.2},
+								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dense", "units": 196, "use_bias": false},
-								{"layer_type": "BatchNormalization"},
-								{"layer_type": "activation", "activation_type": "linear" }
+								{"layer_type": "Dropout", "rate": 0.2},
+								{"layer_type": "Dense", "units": 196, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "linear" },
+								{"layer_type": "Dropout", "rate": 0.2}
 							],
 	"comment__": "A list describing the size of the layers for the NN",
 "decoder_network_layer_sizes2": [
 							{"layer_type": "Input", "shape": ["none", "none", 32]},
-							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.0, "recurrent_dropout": 0.0, "activation": null},
+							{"layer_type": "LSTM", "units": 128, "return_sequences": true, "return_state": false, "use_bias": false, "dropout": 0.2, "recurrent_dropout": 0.2, "activation": null},
 							{"layer_type": "LayerNormalization"},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
 							{"layer_type": "TimeDistributedConv", "net_info":
 							[ 
-								{"layer_type": "BatchNormalization"},
+								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "linear" }
 							]}

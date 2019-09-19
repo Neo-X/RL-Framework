@@ -411,18 +411,18 @@
 	"comment__": "A list describing the size of the layers for the NN",
 "critic_network_layer_sizes": [ 
 								{"layer_type": "Dropout", "rate": 0.2},
-								{"layer_type": "Dense", "units": 256, "use_bias": true},
+								{"layer_type": "Dense", "units": 512, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dropout", "rate": 0.2},
-								{"layer_type": "Dense", "units": 128, "use_bias": true},
+								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dropout", "rate": 0.2}
 								],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [ 
-								{"layer_type": "Dense", "units": 256, "use_bias": true},
+								{"layer_type": "Dense", "units": 512, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dense", "units": 128, "use_bias": true},
+								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],
 	"comment__": "Activation function to use for the std part of the policy",
