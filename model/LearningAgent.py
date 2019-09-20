@@ -211,18 +211,26 @@ class LearningAgent(AgentInterface):
         ### Hindsight Experience Replay
         ## Add Trajectories that achieved some goal
         ### For each trajectory add another trajectory with a modified goal
+
+        hindsight_relabel_probability = 1.0 if not "hindsight_relabel_probability" in self.getSettings() else self.getSettings()["hindsight_relabel_probability"]
+
         trajectories = len(_states)
         for traj in range(trajectories):
             ### Get the new goal(s) for the trajectory
             # new_goals = [x for x in copy.deepcopy(_result_states[traj])]
+            states = np.array(copy.deepcopy(_states[traj]))
             new_goals = []
             for g in range(len(_result_states[traj])):
                 g_index = ((int(g / self._settings["hlc_timestep"])+1) * self._settings["hlc_timestep"]) -1
                 g_index = min(g_index, len(_result_states[traj])-1)
-                new_goals.append(_result_states[traj][g_index][:self._settings["goal_slice_index"]]) 
+                original_goal = states[g, -self._settings["goal_slice_index"]:]
+                if np.random.uniform() < hindsight_relabel_probability:
+                    new_goals.append(_result_states[traj][g_index][:self._settings["goal_slice_index"]])
+                else:
+                    new_goals.append(original_goal)
+
             ### Copy in the new goals
             new_goals = np.array(new_goals)
-            states = np.array(copy.deepcopy(_states[traj]))
             result_states = np.array(copy.deepcopy(_result_states[traj]))
             states[:,-self._settings["goal_slice_index"]:] = new_goals
             result_states[:,-self._settings["goal_slice_index"]:] = new_goals
