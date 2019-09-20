@@ -403,6 +403,59 @@ class LearningMultiAgent(LearningAgent):
         assert old_shape == np.array(actions__h).shape
         return (states__h, actions__h, rewards__h, result_states__h,
                 falls__h, advantage__h, exp_actions__h, G_t__h)
+
+    def applyHAC(self, _states, _actions, _rewards, _result_states, _falls, _advantage,
+                 _exp_actions, _G_t):
+        import numpy as np
+        # Relabel trajectory goal to new goals that are actually achieved,
+        # and add penalty to rewards if goals are not achieved
+        # Get the data for both policies
+        (states__h, actions__h, rewards__h, result_states__h,
+         falls__h, advantage__h, exp_actions__h, G_t__h) = self.getSingleAgentData(_states,
+                                                                                   _actions, _rewards, _result_states,
+                                                                                   _falls, _advantage, _exp_actions,
+                                                                                   _G_t,
+                                                                                   agent_num=0)
+        old_shape = np.array(actions__h).shape
+        (states__l, actions__l, rewards__l, result_states__l,
+         falls__l, advantage__l, exp_actions__l, G_t__l) = self.getSingleAgentData(_states,
+                                                                                   _actions, _rewards, _result_states,
+                                                                                   _falls, _advantage, _exp_actions,
+                                                                                   _G_t,
+                                                                                   agent_num=1)
+        hindsight_relabel_probability = 1.0 if not "hindsight_relabel_probability" in self.getSettings() else self.getSettings()["hindsight_relabel_probability"]
+        subgoal_testing_probability = 1.0 if not "subgoal_testing_probability" in self.getSettings() else self.getSettings()["subgoal_testing_probability"]
+
+        # For each trajectory calculate new goal
+        trajectories = len(states__l)
+        for traj in range(trajectories):
+            # Get the new goal(s) for the trajectory
+            step = 0
+            steps_ = int(len(states__l[traj]) / self._settings["hlc_timestep"])
+            for g in range(steps_):
+                # get the goal that was achieved by the policy
+                statesl = states__l[traj][step:step + self._settings["hlc_timestep"]]
+                achieved_goals = statesl[-1][:self.getSettings()["goal_slice_index"]]
+                new_goals = np.array(achieved_goals)
+
+                # compute a penalty for not achieving goals proposed by the upper level with some probability
+                if "hac_goal_threshold" in self.getSettings() and np.random.uniform() < hindsight_relabel_probability:
+                    distance = np.linalg.norm(
+                        new_goals - np.array(actions__h[traj][step]))
+                    penalties = 0.0 if distance < self.getSettings()["hac_goal_threshold"] else self._settings["hlc_timestep"]
+                    for t in range(self._settings["hlc_timestep"]):
+                        rewards__h[traj][step + t] = np.array(rewards__h[traj][step + t]) - penalties
+
+                # Copy in the new goals with some probability
+                elif np.random.uniform() < subgoal_testing_probability:
+                    for t in range(self._settings["hlc_timestep"]):
+                        actions__h[traj][step + t] = new_goals
+
+                step = step + self._settings["hlc_timestep"]
+
+        assert old_shape == np.array(actions__h).shape
+        return (states__h, actions__h, rewards__h, result_states__h,
+                falls__h, advantage__h, exp_actions__h, G_t__h)
         
     def getSingleAgentData(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t, agent_num):
@@ -496,14 +549,22 @@ class LearningMultiAgent(LearningAgent):
                             result_states__[tar][s] = np.array(target_res_state)
             
             if (    "use_hindsight_relabeling" in self._settings
-            and (self._settings["use_hindsight_relabeling"] == "HIRO")
-            and (self.getSettings()["hlc_index"] == agent_)):
-                    (states__, actions__, rewards__, result_states__, falls__, advantage__, 
-                 exp_actions__, G_t__) = self.applyHIRO(_states, _actions, _rewards, _result_states, _falls, _advantage, 
-              _exp_actions, _G_t)
+                    and ("HIRO" in self._settings["use_hindsight_relabeling"])
+                    and (self.getSettings()["hlc_index"] == agent_)):
+                (states__, actions__, rewards__, result_states__, falls__, advantage__,
+                 exp_actions__, G_t__) = self.applyHIRO(_states, _actions, _rewards, _result_states, _falls, _advantage,
+                                                        _exp_actions, _G_t)
+
+            if ("use_hindsight_relabeling" in self._settings
+                    and ("HAC" in self._settings["use_hindsight_relabeling"])
+                    and (self.getSettings()["hlc_index"] == agent_)):
+                (states__, actions__, rewards__, result_states__, falls__, advantage__,
+                 exp_actions__, G_t__) = self.applyHAC(_states, _actions, _rewards, _result_states, _falls, _advantage,
+                                                       _exp_actions, _G_t)
               
             if ("use_hindsight_relabeling" in self._settings and
-                self._settings["use_hindsight_relabeling"] and
+                    ("HER" in self._settings["use_hindsight_relabeling"] or
+                     "HAC" in self._settings["use_hindsight_relabeling"])and
                 "goal_slice_index" in self._settings
                 and (self.getSettings()["llc_index"] == agent_)):
                 # print("Applying HER")
