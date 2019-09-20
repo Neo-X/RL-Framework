@@ -440,19 +440,16 @@ class LearningMultiAgent(LearningAgent):
 
                 # compute a penalty for not achieving goals proposed by the upper level with some probability
                 if "hac_goal_threshold" in self.getSettings() and np.random.uniform() < hindsight_relabel_probability:
+                    distance = np.linalg.norm(
+                        new_goals - np.array(actions__h[traj][step]))
+                    penalties = 0.0 if distance < self.getSettings()["hac_goal_threshold"] else self._settings["hlc_timestep"]
                     for t in range(self._settings["hlc_timestep"]):
-                        distances = np.linalg.norm(
-                            new_goals - np.array(actions__h[traj][step + t]))
-                        penalties = 0.0 if distances < self.getSettings()["hac_goal_threshold"] else self._settings["hlc_timestep"]
                         rewards__h[traj][step + t] = np.array(rewards__h[traj][step + t]) - penalties
 
                 # Copy in the new goals with some probability
                 elif np.random.uniform() < subgoal_testing_probability:
                     for t in range(self._settings["hlc_timestep"]):
                         actions__h[traj][step + t] = new_goals
-                        new_states = states__l[traj][step + t][:self.getSettings()["goal_slice_index"]]
-                        new_states = np.concatenate([new_states, new_goals], 0)
-                        states__l[traj][step + t] = new_states
 
                 step = step + self._settings["hlc_timestep"]
 
