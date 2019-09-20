@@ -8,7 +8,7 @@ This folder contains some scripts and files to run simulations in a docker image
 Login to the container and mount a folder inside the docker image/container
 
 ```
-docker run -v /mnt/home/${USER}:/home/glen -it images.borgy.elementai.net/glen:latest bash
+ docker pull us.gcr.io/glen-rl-framework/glen:latest2; docker run -v ~/shared/playground/RL-Framework:/opt/RL-Framework -v ~/.mujoco/:/root/.mujoco/ -e TERRAINRL_PATH=/opt/TerrainRLSim/ -e RLSIMENV_PATH=/opt/RLSimulationEnvironments -e LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/root/.mujoco/mujoco200/bin -e LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/nvidia-390 -it us.gcr.io/glen-rl-framework/glen:latest2 bash
 ```
 Login to a running container
 
@@ -170,7 +170,7 @@ sudo docker push images.borgy.elementai.net/glen:latest
 As one command
 
 ```
-docker commit d4aad5674841 glen:latest2; docker tag glen:latest2 images.borgy.elementai.net/glen:latest2; docker push images.borgy.elementai.net/glen:latest2
+docker commit f76d8e488c44 glen:latest2; docker tag glen:latest2 us.gcr.io/glen-rl-framework/glen:latest2; docker push us.gcr.io/glen-rl-framework/glen:latest2
 ```
 
 revise commit tree
