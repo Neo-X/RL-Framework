@@ -40,7 +40,7 @@
 					[[0.0],[1.0]],
 					[[0.0],[1.0]]],
     "comment__": "Max length of the Experience memory",
-"experience_length": [5000, 5000, 5000, 5000, 5000],
+"experience_length": [50000, 50000, 50000, 50000, 50000],
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [
 				[[ 
@@ -1567,14 +1567,64 @@
 "network_description_type": "json",
 	"comment__": "A list describing the size of the layers for the NN",
 "critic_network_layer_sizes": [[ 
-								{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents"},
-								{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive"},
+								{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents1234"},
+								{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive0"},
 								{"layer_type": "Reshape", "target_shape": [2,32,32]},
 								{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
 								{"layer_type": "Flatten"},
-								{"layer_type": "Concatenate", "slice_label": "agent_propreceptive"}, 
+								{"layer_type": "Concatenate", "slice_label": "agent_propreceptive0"},
+									{"layer_type": "subnet", "input": "other_agents1234", "output_label": "agent1", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents234"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive1"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive1"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents234", "output_label": "agent2", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents34"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive2"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive2"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents34", "output_label": "agent3", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents4"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive3"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive3"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents4", "output_label": "agent4", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents_action"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive4"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive4"}
+										]},
+								{"layer_type": "Concatenate", "slice_label": "agent1"}, 
+								{"layer_type": "Concatenate", "slice_label": "agent2"},
+								{"layer_type": "Concatenate", "slice_label": "agent3"},
+								{"layer_type": "Concatenate", "slice_label": "agent4"},
+								{"layer_type": "integrate_actor_part"},
+								{"layer_type": "Concatenate", "slice_label": "other_agents_action"}, 
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -1582,14 +1632,64 @@
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],
 								[
-								 {"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents"},
-								{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive"},
+								 {"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents1234"},
+								{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive0"},
 								{"layer_type": "Reshape", "target_shape": [2,32,32]},
 								{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
 								{"layer_type": "Flatten"},
-								{"layer_type": "Concatenate", "slice_label": "agent_propreceptive"}, 
+								{"layer_type": "Concatenate", "slice_label": "agent_propreceptive0"},
+									{"layer_type": "subnet", "input": "other_agents1234", "output_label": "agent1", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents234"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive1"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive1"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents234", "output_label": "agent2", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents34"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive2"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive2"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents34", "output_label": "agent3", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents4"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive3"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive3"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents4", "output_label": "agent4", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents_action"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive4"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive4"}
+										]},
+								{"layer_type": "Concatenate", "slice_label": "agent1"}, 
+								{"layer_type": "Concatenate", "slice_label": "agent2"},
+								{"layer_type": "Concatenate", "slice_label": "agent3"},
+								{"layer_type": "Concatenate", "slice_label": "agent4"},
+								{"layer_type": "integrate_actor_part"},
+								{"layer_type": "Concatenate", "slice_label": "other_agents_action"}, 
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -1597,14 +1697,64 @@
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],
 								[ 
-								{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents"},
-								{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive"},
+								{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents1234"},
+								{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive0"},
 								{"layer_type": "Reshape", "target_shape": [2,32,32]},
 								{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
 								{"layer_type": "Flatten"},
-								{"layer_type": "Concatenate", "slice_label": "agent_propreceptive"}, 
+								{"layer_type": "Concatenate", "slice_label": "agent_propreceptive0"},
+									{"layer_type": "subnet", "input": "other_agents1234", "output_label": "agent1", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents234"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive1"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive1"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents234", "output_label": "agent2", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents34"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive2"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive2"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents34", "output_label": "agent3", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents4"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive3"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive3"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents4", "output_label": "agent4", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents_action"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive4"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive4"}
+										]},
+								{"layer_type": "Concatenate", "slice_label": "agent1"}, 
+								{"layer_type": "Concatenate", "slice_label": "agent2"},
+								{"layer_type": "Concatenate", "slice_label": "agent3"},
+								{"layer_type": "Concatenate", "slice_label": "agent4"},
+								{"layer_type": "integrate_actor_part"},
+								{"layer_type": "Concatenate", "slice_label": "other_agents_action"}, 
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -1612,14 +1762,64 @@
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],
 								[ 
-								{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents"},
-								{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive"},
+								{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents1234"},
+								{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive0"},
 								{"layer_type": "Reshape", "target_shape": [2,32,32]},
 								{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
 								{"layer_type": "Flatten"},
-								{"layer_type": "Concatenate", "slice_label": "agent_propreceptive"}, 
+								{"layer_type": "Concatenate", "slice_label": "agent_propreceptive0"},
+									{"layer_type": "subnet", "input": "other_agents1234", "output_label": "agent1", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents234"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive1"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive1"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents234", "output_label": "agent2", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents34"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive2"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive2"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents34", "output_label": "agent3", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents4"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive3"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive3"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents4", "output_label": "agent4", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents_action"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive4"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive4"}
+										]},
+								{"layer_type": "Concatenate", "slice_label": "agent1"}, 
+								{"layer_type": "Concatenate", "slice_label": "agent2"},
+								{"layer_type": "Concatenate", "slice_label": "agent3"},
+								{"layer_type": "Concatenate", "slice_label": "agent4"},
+								{"layer_type": "integrate_actor_part"},
+								{"layer_type": "Concatenate", "slice_label": "other_agents_action"}, 
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -1627,14 +1827,64 @@
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],
 								[ 
-								{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents"},
-								{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive"},
+								{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents1234"},
+								{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive0"},
 								{"layer_type": "Reshape", "target_shape": [2,32,32]},
 								{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
 								{"layer_type": "Flatten"},
-								{"layer_type": "Concatenate", "slice_label": "agent_propreceptive"}, 
+								{"layer_type": "Concatenate", "slice_label": "agent_propreceptive0"},
+									{"layer_type": "subnet", "input": "other_agents1234", "output_label": "agent1", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents234"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive1"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive1"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents234", "output_label": "agent2", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents34"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive2"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive2"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents34", "output_label": "agent3", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents4"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive3"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive3"}
+										]},
+									{"layer_type": "subnet", "input": "other_agents4", "output_label": "agent4", "layer_info": 
+										[
+										{"layer_type": "slice", "slice_index": 2155, "slice_label": "other_agents_action"},
+										{"layer_type": "slice", "slice_index": 2048, "slice_label": "agent_propreceptive4"},
+										{"layer_type": "Reshape", "target_shape": [2,32,32]},
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [6,6], "strides": [3,3], "use_bias": true},
+										{"layer_type": "activation", "activation_type": "leaky_rectify" },
+										{"layer_type": "conv2d", "filters": 16, "kernel_size": [3,3], "strides": [1,1], "use_bias": true},
+										{"layer_type": "Flatten"},
+										{"layer_type": "Concatenate", "slice_label": "agent_propreceptive4"}
+										]},
+								{"layer_type": "Concatenate", "slice_label": "agent1"}, 
+								{"layer_type": "Concatenate", "slice_label": "agent2"},
+								{"layer_type": "Concatenate", "slice_label": "agent3"},
+								{"layer_type": "Concatenate", "slice_label": "agent4"},
+								{"layer_type": "integrate_actor_part"},
+								{"layer_type": "Concatenate", "slice_label": "other_agents_action"}, 
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 256, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },

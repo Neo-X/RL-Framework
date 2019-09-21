@@ -48,6 +48,7 @@ class DeepNNKerasAdaptive(ModelInterface):
 
         super(DeepNNKerasAdaptive,self).__init__(n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=print_info)
         self._networkSettings = {}
+        self._slices = {}
         if ("network_settings" in settings_):
             self._networkSettings = settings_["network_settings"]
             
@@ -387,7 +388,6 @@ class DeepNNKerasAdaptive(ModelInterface):
             sys.exit()
                 
     def createSubNetwork(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):
-    
         if ( "network_description_type" in self._settings and
              (self._settings["network_description_type"] == "json")):
             net = self._createSubNetworkFromJSON(input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState")
@@ -401,7 +401,6 @@ class DeepNNKerasAdaptive(ModelInterface):
     def _createSubNetworkFromJSON(self, input, layer_info, isRNN=False, stateName="State", resultStateName="ResultState"):
         
         network = input
-        slices = {}
         for i in range(len(layer_info)):
             # layer_desc = dict(layer_info[i])
             self._second_last_layer = network
@@ -434,7 +433,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                 network = keras.layers.GaussianNoise(**layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "Input"):
                 if ("slice_label" in layer_info[i]):  
-                    input_ = slices[layer_info[i]["slice_label"]]
+                    input_ = self._slices[layer_info[i]["slice_label"]]
                     network = input_
                 else:   
                     if ("flag" in layer_info[i] and
@@ -445,7 +444,7 @@ class DeepNNKerasAdaptive(ModelInterface):
                     elif ("flag" in layer_info[i] and
                         layer_info[i]["flag"] == "action"):
                         input_act = keras.layers.Input(shape=(layer_info[i]["shape"][-1],), name="Action_Stacked")
-                        slices["action"] = input_act
+                        self._slices["action"] = input_act
                         self._actionInput = input_act
                         self._Action = input_act
                     else:
@@ -483,8 +482,8 @@ class DeepNNKerasAdaptive(ModelInterface):
             elif (layer_info[i]["layer_type"] == "Concatenate"):
                 print ("concatenating: ", repr(network))
                 if ("slice_label" in layer_info[i]):
-                    print ("concatenating slice: ", repr(slices[layer_info[i]["slice_label"]]))
-                    network = Concatenate(axis=-1)([network, slices[layer_info[i]["slice_label"]]])
+                    print ("concatenating slice: ", repr(self._slices[layer_info[i]["slice_label"]]))
+                    network = Concatenate(axis=-1)([network, self._slices[layer_info[i]["slice_label"]]])
                 else:
                     print ("concatenating _characterFeatures: ", repr(_characterFeatures))
                     network = Concatenate(axis=-1)([network, _characterFeatures])
@@ -531,12 +530,14 @@ class DeepNNKerasAdaptive(ModelInterface):
                     state_length_ = keras.backend.int_shape(network)[1]
                     print ("slice, state_length_: ", state_length_)
                     # sys.exit()
-                    slices[layer_info[i]["slice_label"]] = Lambda(keras_slice, output_shape=(state_length_-layer_info[i]["slice_index"],),
+                    self._slices[layer_info[i]["slice_label"]] = Lambda(keras_slice, output_shape=(state_length_-layer_info[i]["slice_index"],),
                                        arguments={'begin': layer_info[i]["slice_index"], 
-                                                  'end': state_length_})(network)
-                    print ("new slice network shape: ", repr(slices[layer_info[i]["slice_label"]]))
+                                                  'end': state_length_},
+                                       name=layer_info[i]["slice_label"])(network)
+                    print ("new slice network shape: ", repr(self._slices[layer_info[i]["slice_label"]]))
                     network = Lambda(keras_slice, output_shape=(layer_info[i]["slice_index"],),
-                                  arguments={'begin': 0, 'end': layer_info[i]["slice_index"]})(network)
+                                  arguments={'begin': 0, 'end': layer_info[i]["slice_index"]}
+                                  )(network)
                     print ("new network shape: ", repr(network))
                     # sys.exit()
                 else:
@@ -565,10 +566,10 @@ class DeepNNKerasAdaptive(ModelInterface):
                                                  data_format=self._data_format_,
                                                  **layer_parms)(network)
             elif (layer_info[i]["layer_type"] == "subnet"):
-                input_ = slices[layer_info[i]["input"]]
+                input_ = self._slices[layer_info[i]["input"]]
                 subnet = self.createSubNetwork(input_, layer_info[i]["layer_info"], isRNN=False)
                 ### build model, maybe?
-                slices[layer_info[i]["output_label"]] = subnet
+                self._slices[layer_info[i]["output_label"]] = subnet
             else:
                 print ("layer type: ", layer_info[i]["layer_type"])
                 model_ = locate(layer_info[i]["layer_type"])
