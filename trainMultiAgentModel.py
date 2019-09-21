@@ -711,7 +711,7 @@ def trainModelParallel(inputData):
                 
                 lw.start()
                 
-        masterAgent.saveTo(directory)
+        # masterAgent.saveTo(directory)
             
         # del learningNamespace.model
         """
