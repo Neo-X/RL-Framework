@@ -710,6 +710,8 @@ def trainModelParallel(inputData):
                 print ("ls policy: ", lw._agent.getPolicy())
                 
                 lw.start()
+                
+        # masterAgent.saveTo(directory)
             
         # del learningNamespace.model
         """
