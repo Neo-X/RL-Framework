@@ -16,6 +16,7 @@ class MultiworldHRLEnv(MultiworldEnv):
         super(MultiworldHRLEnv, self).reset()
         self._hlc_timestep = 1000000
         self._hlc_skip = 10
+        self._goal = np.zeros_like(self._previous_observation)
         if ("hlc_timestep" in self.getSettings()):
             self._hlc_skip = self.getSettings()["hlc_timestep"]
         return self.getState()
@@ -28,6 +29,12 @@ class MultiworldHRLEnv(MultiworldEnv):
 
     def setLLC(self, llc):
         self._llc = llc
+
+    def getEnvironment(self):
+        return self
+
+    def getEnv(self):
+        return self
 
     def getNumAgents(self):
         return 2
