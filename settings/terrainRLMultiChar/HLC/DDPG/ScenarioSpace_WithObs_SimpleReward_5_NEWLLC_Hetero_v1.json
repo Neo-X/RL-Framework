@@ -40,7 +40,7 @@
 					[[0.0],[1.0]],
 					[[0.0],[1.0]]],
     "comment__": "Max length of the Experience memory",
-"experience_length": [50000, 50000, 50000, 50000, 50000],
+"experience_length": [10000, 10000, 10000, 10000, 10000],
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [
 				[[ 

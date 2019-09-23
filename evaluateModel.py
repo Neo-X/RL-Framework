@@ -236,7 +236,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
     reward_bounds=np.array(settings["reward_bounds"])
     action_space_continuous=settings['action_space_continuous']
     if action_space_continuous:
-        action_bounds = np.array(settings["action_bounds"], dtype=float)
+        action_bounds = settings["action_bounds"]
     
     print ("Sim config file name: " + str(settings["sim_config_file"]))
     # this is the process that selects which game to play
@@ -251,6 +251,13 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         print (exp.getEnvironment().observation_space.getMinimum())
         settings['state_bounds'] = [s_min,s_max]
         state_bounds = settings['state_bounds']
+    if ((action_bounds == "ask_env")):
+        print ("Getting action bounds from environment")
+        s_min = exp.getEnvironment().action_space.getMinimum()
+        s_max = exp.getEnvironment().action_space.getMaximum()
+        print (exp.getEnvironment().action_space.getMinimum())
+        settings['action_bounds'] = [s_min,s_max]
+        action_bounds = settings['action_bounds']
     ### Using a wrapper for the type of actor now
     """
     if action_space_continuous:
