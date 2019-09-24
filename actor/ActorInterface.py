@@ -118,6 +118,7 @@ class ActorInterface(object):
     def initEpoch(self):
         self._reward_sum=0
         self._count = 0
+        # self.updateScalling(self.getState(), init=True)
         
     def hasNotFallen(self, exp):
         return 1

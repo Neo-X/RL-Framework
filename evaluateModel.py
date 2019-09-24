@@ -212,7 +212,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
     setupEnvironmentVariable(settings)
     setupLearningBackend(settings)
     
-    from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor, getAgentName
+    from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor, getAgentName, createNewFDModel
     from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, getAgentName
     from util.ExperienceMemory import ExperienceMemory
     from model.LearningAgent import LearningAgent, LearningWorker
@@ -290,6 +290,20 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         dill.dump(model, f)
         f.close()
         
+        
+    if (settings['train_forward_dynamics']):
+        if (runLastModel == True):
+            # createNewFDModel(settings, exp_val, model)
+            forwardDynamicsModel = createNewFDModel(settings, exp, model)
+            # forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
+        else:
+            forwardDynamicsModel = createNewFDModel(settings, exp, model)
+            # forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
+        
+        print ("Loaded fd", forwardDynamicsModel)
+        forwardDynamicsModel.setActor(actor)
+        masterAgent.setForwardDynamics(forwardDynamicsModel)
+        
     movieWriter = None
     if ("save_video_to_file" in settings):
         movieWriter = imageio.get_writer(settings["save_video_to_file"], mode='I',  fps=30)
@@ -319,6 +333,10 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         model.setTaskNetworkParameters(taskModel)
 
     # actor.setPolicy(model)
+    if ("replace_entropy_state_with_vae" in settings 
+        and (settings["replace_entropy_state_with_vae"])):
+        print ("setting encoder ", masterAgent.getForwardDynamics())
+        actor.setEncoder(masterAgent.getForwardDynamics())
     exp.setActor(actor)
     exp.getActor().init()   
     exp.init()

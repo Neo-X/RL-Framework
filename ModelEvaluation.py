@@ -385,6 +385,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
         expected_value_viz.init()
         criticLosses = []
 
+    """
     if ("perform_multiagent_training" in settings):
         experience = [ExperienceMemory(len(state_bounds[i][0]), len(action_bounds[i][0]),
                                        settings['experience_length'][i], continuous_actions=True, settings=settings)
@@ -397,10 +398,10 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
         else:
             experience = ExperienceMemory(len(state_bounds[0]), 1, settings['experience_length'])
         # actor = ActorInterface(discrete_actions)
-
+    """
         
     masterAgent.setSettings(settings)
-    masterAgent.setExperience(experience)
+    # masterAgent.setExperience(experience)
     masterAgent.setPolicy(model)
     
     # print (masterAgent.getRewardModel())

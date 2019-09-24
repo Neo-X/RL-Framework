@@ -1305,7 +1305,10 @@ class LearningAgent(AgentInterface):
         self.getFDExperience().insertTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
         
     def samples(self):
-        return self.getExperience().samples()
+        if self.getExperience() is None:
+            return 0
+        else:
+            return self.getExperience().samples()
     
     def get_batch(self, size_):
         return self.getExperience().get_batch(size_)

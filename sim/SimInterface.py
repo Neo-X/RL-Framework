@@ -44,6 +44,7 @@ class SimInterface(object):
                                  self.getActor()._state_mean, 
                                  self.getActor()._state_var,
                                  [[self.getActor()._count]]), axis=-1)
+        # return state[:,:114]
         return state
     
     def generateValidation(self, data, epoch):
