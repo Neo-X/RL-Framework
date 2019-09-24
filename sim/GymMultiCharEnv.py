@@ -117,7 +117,7 @@ class GymMultiCharEnv(SimInterface):
         for i in range(1):
             self.getEnvironment().update()
             self._num_updates_since_last_action+=1
-        # self._previous_observation = self.getEnvironment().getObservation()
+        self._previous_observation = self.getEnvironment().getObservation()
         if ("include_suffstate_in_state" in self._settings
             and (self._settings["include_suffstate_in_state"] == True)):
             self.getActor().updateScalling(self._previous_observation)
