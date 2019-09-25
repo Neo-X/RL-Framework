@@ -74,7 +74,8 @@ class OpenAIGymActor(ActorInterface):
             # reward = bs_r
             # print ("ICM reward:", bs_r)
             reward = (bs_r * bs_w) + reward
-        self._reward_sum = self._reward_sum + np.mean(reward)        
+        else:
+            self._reward_sum = self._reward_sum + np.mean(reward)        
         return reward
         
     def updateAction(self, sim, action_):
