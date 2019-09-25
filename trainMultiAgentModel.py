@@ -1147,6 +1147,7 @@ def trainModelParallel(inputData):
                                                     anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings)
                                                     """
                 print ("round_, p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
+                addLogData(trainData, "falls", np.mean(otherMetrics["falls"]))
                 print (trainData["round"], p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
                 if np.mean(mean_bellman_error) > 10000:
                     print ("Error to big: ")

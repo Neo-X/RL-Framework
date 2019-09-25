@@ -412,11 +412,12 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
         movieWriter = imageio.get_writer(directory + settings["save_video_to_file"], mode='I',  fps=30)
     
     
-    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = evalModel(actor, exp, masterAgent, discount_factor, anchors=settings['eval_epochs'], 
+    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval, otherMetrics = evalModel(actor, exp, masterAgent, discount_factor, anchors=settings['eval_epochs'], 
                                                                                                                         action_space_continuous=action_space_continuous, settings=settings, print_data=True, evaluation=True,
                                                                                                                         visualizeEvaluation=expected_value_viz, movieWriter=movieWriter)
         # simEpoch(exp, model, discount_factor=discount_factor, anchors=_anchors[:settings['eval_epochs']][9], action_space_continuous=True, settings=settings, print_data=True, p=0.0, validation=True)
     
+    print ("otherMetrics: ", otherMetrics)
     """
     workers = []
     input_anchor_queue = Queue(settings['queue_size_limit'])

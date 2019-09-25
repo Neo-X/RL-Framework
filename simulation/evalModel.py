@@ -30,6 +30,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
     reward_over_epocs = []
     values = []
     evalDatas = []
+    falls_=[]
     epoch_=0
     for i in range(anchors): # half the anchors
         (tuples, discounted_sum, value, evalData) = simEpoch(actor, exp, 
@@ -63,6 +64,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
         reward_over_epocs.append(np.mean(np.array(rewards)))
         bellman_errors.append(error)
         evalDatas.append(evalData)
+        falls_.append(falls)
     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
         print ("Reward for best epoch: " + str(np.argmax(reward_over_epocs)) + " is " + str(np.max(reward_over_epocs)))
         print ("reward_over_epocs" + str(reward_over_epocs))
@@ -86,7 +88,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
     bellman_errors = []
         
     return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
-            mean_eval, std_eval)
+            mean_eval, std_eval, {"falls": falls_})
 
 # @profile(precision=5)
 def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, settings, anchors=None):
