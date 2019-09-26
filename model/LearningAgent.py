@@ -739,7 +739,7 @@ class LearningAgent(AgentInterface):
                               or (self._settings['agent_name'] == 'algorithm.QPropKeras.QPropKeras')
                               ):
                                 states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
-                                loss = self.getPolicy().trainOnPolicyCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
+                                critic_loss = self.getPolicy().trainOnPolicyCritic(states=states__, actions=actions__, rewards=rewards__, result_states=result_states__, falls=falls__)
                             # loss = self.getPolicy().trainOnPolicyCritic(states=tmp_states, actions=tmp_actions, rewards=tmp_rewards, result_states=tmp_result_states, falls=tmp_falls)
                             # print ("Number of samples:", self._expBuff.samples())
                             if ( 'give_mbae_actions_to_critic' in self._settings and 
@@ -747,7 +747,7 @@ class LearningAgent(AgentInterface):
                                 # if ( np.random.random() >= self._settings['model_based_action_omega']):
                                 if ( np.random.random() >= -1.0):
                                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.getNonMBAEBatch(min(value_function_batch_size, self._expBuff.samples()))
-                                    loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
+                                    critic_loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
                                                                  result_states=result_states__, falls=falls__, G_t=G_ts__,
                                                                  p=p)
                                 else:
@@ -756,7 +756,7 @@ class LearningAgent(AgentInterface):
                                     actions____ = self.getPolicy().predict_batch(states=result_states__) 
                                     predicted_result_states__ = self._fd.predict_batch(states=result_states__, actions=actions____)
                                     rewards____ = self._fd.predict_reward_batch(states=result_states__, actions=actions____)
-                                    loss = self.getPolicy().trainCritic(states=result_states__, actions=actions____, rewards=rewards____, 
+                                    critic_loss = self.getPolicy().trainCritic(states=result_states__, actions=actions____, rewards=rewards____, 
                                                                  result_states=predicted_result_states__, falls=falls__, G_t=G_ts__,
                                                                  p=p)
                             else:
@@ -769,7 +769,7 @@ class LearningAgent(AgentInterface):
                                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self.getFDExperience().get_batch(value_function_batch_size)
                                 else:
                                     states__, actions__, result_states__, rewards__, falls__, G_ts__, exp_actions__, advantage__ = self._expBuff.get_batch(min(value_function_batch_size, self._expBuff.samples()))
-                                loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
+                                critic_loss = self.getPolicy().trainCritic(states=states__, actions=actions__, rewards=rewards__, 
                                                              result_states=result_states__, falls=falls__, G_t=G_ts__,
                                                              p=p)
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -781,7 +781,7 @@ class LearningAgent(AgentInterface):
                             
                     else:
                         _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_batch(value_function_batch_size)
-                        loss = self.getPolicy().trainCritic(states=_states, actions=_actions, rewards=_rewards, 
+                        critic_loss = self.getPolicy().trainCritic(states=_states, actions=_actions, rewards=_rewards, 
                                                      result_states=_result_states, falls=_falls, G_t=G_ts__,
                                                      p=p)
                         if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -821,6 +821,8 @@ class LearningAgent(AgentInterface):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
                         print ("Policy training complete in " + str(sim_time_) + " seconds")
                 dynamicsLoss = 0 
+                
+                logExperimentData({}, "critic_loss", loss)
                                
         else: ## Off-policy
             

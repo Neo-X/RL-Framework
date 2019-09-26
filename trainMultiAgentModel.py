@@ -121,7 +121,8 @@ def trainModelParallel(inputData):
     from util.SimulationUtil import validateSettings, getFDStateSize
     if (not validateSettings(settings)):
         return False
-    setupEnvironmentVariable(settings)
+    exp_logger = setupEnvironmentVariable(settings)
+    settings["logger_instance"] = exp_logger
     settingsFileName = inputData[0]
     settings['sample_single_trajectories'] = True
     # settings['shouldRender'] = True
@@ -306,7 +307,7 @@ def trainModelParallel(inputData):
         from model.ModelUtil import validBounds, fixBounds, anneal_value, getLearningData
         # from model.LearningMultiAgent import LearningMultiAgent, LearningWorker
         # from model.LearningAgent import LearningMultiAgent, LearningWorker
-        from util.SimulationUtil import createEnvironment
+        from util.SimulationUtil import createEnvironment, logExperimentData
         from util.SimulationUtil import createRLAgent, createNewFDModel
         from util.SimulationUtil import createActor, getAgentName, updateSettings
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
@@ -1147,7 +1148,7 @@ def trainModelParallel(inputData):
                                                     anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings)
                                                     """
                 print ("round_, p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
-                addLogData(trainData, "falls", np.mean(otherMetrics["falls"]))
+                # addLogData(trainData, "falls", np.mean(otherMetrics["falls"]))
                 print (trainData["round"], p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
                 if np.mean(mean_bellman_error) > 10000:
                     print ("Error to big: ")
@@ -1161,26 +1162,27 @@ def trainModelParallel(inputData):
                             std_dynamicsRewardLosses = np.std(dynamicsRewardLosses)
                             dynamicsRewardLosses = []
                         
-                    trainData["mean_reward"].append(mean_reward)
-                    # print ("Mean Rewards: " + str(mean_rewards))
-                    trainData["std_reward"].append(std_reward)
-                    trainData["anneal_p"].append(p)
-                    # bellman_errors
-                    trainData["mean_bellman_error"].append(np.array([np.mean(er_) for er_ in np.fabs(bellman_errors[0])]))
+                        
+                    logExperimentData(exp_logger, trainData, "mean_reward", mean_reward, settings)
+                    logExperimentData(exp_logger, trainData, "std_reward", std_reward, settings)
+                    logExperimentData(exp_logger, trainData, "anneal_p", p, settings)
+                    logExperimentData(exp_logger, trainData, "mean_bellman_error", np.array([np.mean(er_) for er_ in np.fabs(bellman_errors[0])]), settings)
+                    logExperimentData(exp_logger, trainData, "std_bellman_error", np.array([np.std(er_) for er_ in bellman_errors[0]]), settings)
+                    bellman_errors=[]
+                    logExperimentData(exp_logger, trainData, "mean_discount_error", mean_discount_error, settings)
+                    logExperimentData(exp_logger, trainData, "std_discount_error", std_discount_error, settings)
+                    logExperimentData(exp_logger, trainData, "mean_eval", mean_eval, settings)
+                    logExperimentData(exp_logger, trainData, "std_eval", std_eval, settings)
                     # error = np.mean(np.fabs(error), axis=1)
-                    trainData["std_bellman_error"].append(np.array([np.std(er_) for er_ in bellman_errors[0]]))
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     bellman_errors=[]
-                    trainData["mean_discount_error"].append(mean_discount_error)
-                    trainData["std_discount_error"].append(std_discount_error)
-                    trainData["mean_eval"].append(mean_eval)
-                    trainData["std_eval"].append(std_eval)
                     if (settings['train_forward_dynamics']):
-                        trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
-                        trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
+                        logExperimentData(exp_logger, trainData, "mean_forward_dynamics_loss", mean_forward_dynamics_loss, settings)
+                        logExperimentData(exp_logger, trainData, "std_forward_dynamics_loss", std_forward_dynamics_loss, settings)
                         if (settings['train_reward_predictor']):
-                            trainData["mean_forward_dynamics_reward_loss"].append(mean_dynamicsRewardLosses)
-                            trainData["std_forward_dynamics_reward_loss"].append(std_dynamicsRewardLosses)
+                            logExperimentData(exp_logger, trainData, "mean_forward_dynamics_reward_loss", mean_forward_dynamics_reward_loss, settings)
+                            logExperimentData(exp_logger, trainData, "std_forward_dynamics_reward_loss", std_forward_dynamics_reward_loss, settings)
+                            
                     ### Lets always save a figure for the learning...
                     if ( settings['save_trainData'] and (not settings['visualize_learning'])):
                         rlv_ = RLVisualize(title=str(settings['sim_config_file']) + " agent on " + str(settings['environment_type']), settings=settings)

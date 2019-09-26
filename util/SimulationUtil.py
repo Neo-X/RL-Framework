@@ -45,6 +45,21 @@ def getGPUBusIndex(index=0):
     ### return BUS ID
     return raw_devices[index][6:]
 
+
+def logExperimentData(trainData, key, value, settings):
+    import numpy as np
+    
+    logger = settings["logger_instance"] 
+    if logger is not None:
+        logger.set_step(step=trainData["round"])
+        logger.log_metrics({key:np.mean(value)})
+        
+        
+    if key in trainData:
+        trainData[key].append(value)
+    else:
+        trainData[key] = [value]
+
 def setupEnvironmentVariable(settings):
     import os    
     os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
@@ -80,23 +95,30 @@ def setupEnvironmentVariable(settings):
     else:
         ### Only do this in the main thread
         pass
-        """
+        
         ### log training via commet.ml
         try:
-            # import comet_ml in the top of your file
-            from comet_ml import Experiment
-            
-            # Add the following code anywhere in your machine learning file
-            print ("Tracking training via commet.ml")
-            experiment = Experiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu",
-                                    project_name="general", workspace="glenb")
-            experiment.log_parameters(settings)
-            return experiment
+            ### This will only start if experiment logging settings are specified and a meta log file is specified
+            ### This is to avoid this logging from occuring when just debugging and coding. 
+            if ("experiment_logging" in settings 
+                and "metaConfigFile" in settings):
+                from comet_ml import Experiment
+                
+                # Add the following code anywhere in your machine learning file
+                print ("Tracking training via commet.ml")
+                experiment = Experiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu",
+                                        project_name=settings["experiment_logging"]["project_name"], workspace="glenb")
+                experiment.log_parameters(settings)
+                experiment.add_tag("comet_test")
+                experiment.set_name(settings["data_folder"])
+                # experiment.log_dependency(self, "terrainRLAdapter", version)
+                experiment.set_filename(fname="cometML_test")
+                return experiment
         except Exception as inst:
             print ("Not tracking training via commet.ml")
             print ("Error: ", inst)
             sys.exit()
-        """
+        
         
 def setupLearningBackend(settings):
     import keras
