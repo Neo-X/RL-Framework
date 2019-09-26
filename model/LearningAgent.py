@@ -271,6 +271,7 @@ class LearningAgent(AgentInterface):
             self._accesLock.acquire()
         loss = 0
         import numpy as np
+        from util.SimulationUtil import logExperimentData
         
         if ("value_function_batch_size" in self._settings):
             value_function_batch_size = self._settings['value_function_batch_size']
@@ -680,6 +681,8 @@ class LearningAgent(AgentInterface):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
                         print ("FD training complete in " + str(sim_time_) + " seconds")
                         
+                    logExperimentData({}, "fd_net_loss", dynamicsLoss, self._settings)
+                        
                 if (("train_reward_distance_metric" in self._settings
                     and (self._settings['train_reward_distance_metric']))
                     and not ((("train_LSTM_FD" in self._settings)
@@ -722,6 +725,9 @@ class LearningAgent(AgentInterface):
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
                         print ("Reward Distance Model training complete in " + str(sim_time_) + " seconds")
+                    
+                    logExperimentData({}, "reward_net_loss", dynamicsLoss, self._settings)
+                    
                 if ( "refresh_rewards" in self._settings
                      and (self._settings["refresh_rewards"] == True)):
                     rlPrint(self._settings, "train", "Refreshing rewards.")
@@ -773,10 +779,10 @@ class LearningAgent(AgentInterface):
                                                              result_states=result_states__, falls=falls__, G_t=G_ts__,
                                                              p=p)
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                                print("Critic loss: ", loss)
-                            if not np.isfinite(loss) or (loss > 500) :
+                                print("Critic loss: ", critic_loss)
+                            if not np.isfinite(loss) or (critic_loss > 500) :
                                 # np.set_printoptions(threshold=np.nan)
-                                print ("Critic training loss is Odd: ", loss)
+                                print ("Critic training loss is Odd: ", critic_loss)
                                 print ("States: " + str(np.mean(states__)) + " ResultsStates: " + str(np.mean(result_states__)) + " Rewards: " + str(np.mean(rewards__)) + " Actions: " + str(np.mean(actions__)))
                             
                     else:
@@ -806,23 +812,24 @@ class LearningAgent(AgentInterface):
                         
                             _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_exporation_action_batch(batch_size_)
                             
-                            loss_ = self.getPolicy().trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, 
+                            loss_actor = self.getPolicy().trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, 
                                                          falls=_falls, advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, 
                                                          forwardDynamicsModel=self._fd, p=p)
                     else:
                         _states, _actions, _result_states, _rewards, _falls, G_ts__, exp_actions__, _advantage = self._expBuff.get_exporation_action_batch(batch_size_)
-                        loss_ = self.getPolicy().trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
+                        loss_actor = self.getPolicy().trainActor(states=_states, actions=_actions, rewards=_rewards, result_states=_result_states, falls=_falls, 
                                                      advantage=_advantage, exp_actions=exp_actions__, G_t=G_ts__, forwardDynamicsModel=self._fd,
                                                      p=p)
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
-                        print("Policy Loss: ", loss_)
+                        print("Policy Loss: ", loss_actor)
                     t1 = time.time()
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['debug']):
                         sim_time_ = datetime.timedelta(seconds=(t1-t0))
                         print ("Policy training complete in " + str(sim_time_) + " seconds")
                 dynamicsLoss = 0 
                 
-                logExperimentData({}, "critic_loss", loss)
+                logExperimentData({}, "critic_loss", critic_loss, self._settings)
+                logExperimentData({}, "loss_actor", loss_actor, self._settings)
                                
         else: ## Off-policy
             

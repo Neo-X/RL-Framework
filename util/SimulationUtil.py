@@ -1,5 +1,6 @@
 import copy
 import sys
+from builtins import isinstance
 sys.setrecursionlimit(50000)
 import os
 import json
@@ -45,14 +46,85 @@ def getGPUBusIndex(index=0):
     ### return BUS ID
     return raw_devices[index][6:]
 
+def saveData(settings, settingsFileName):
+    
+    directory= getDataDirectory(settings)
+    
+    ### Put git versions in settings file before save
+    from util.utils import get_git_revision_hash, get_git_revision_short_hash
+    settings['git_revision_hash'] = get_git_revision_hash()
+    settings['git_revision_short_hash'] = get_git_revision_short_hash()     
+    ### copy settings file
+    out_file_name=directory+os.path.basename(settingsFileName)
+    print ("Saving settings file with data: ", out_file_name)
+    if ("logger_instance" in settings):
+        exp_logger = settings["logger_instance"]
+        settings["logger_instance"] = None
+    out_file = open(out_file_name, 'w')
+    out_file.write(json.dumps(settings, indent=4))
+    out_file.close()
+    if ("logger_instance" in settings):
+        settings["logger_instance"] = exp_logger
+    
+    
+    ### Try and save algorithm and model files for reference
+    if "." in settings['model_type']:
+        ### convert . to / and copy file over
+        file_name = settings['model_type']
+        k = file_name.rfind(".")
+        file_name = file_name[:k]
+        file_name_read = file_name.replace(".", "/")
+        file_name_read = file_name_read + ".py"
+        print ("model file name:", file_name)
+        print ("os.path.basename(file_name): ", os.path.basename(file_name))
+        file = open(file_name_read, 'r')
+        out_file = open(directory+file_name+".py", 'w')
+        out_file.write(file.read())
+        file.close()
+        out_file.close()
+    if "." in settings['agent_name']:
+        ### convert . to / and copy file over
+        file_name = settings['agent_name']
+        k = file_name.rfind(".")
+        file_name = file_name[:k]
+        file_name_read = file_name.replace(".", "/")
+        file_name_read = file_name_read + ".py"
+        print ("model file name:", file_name)
+        print ("os.path.basename(file_name): ", os.path.basename(file_name))
+        file = open(file_name_read, 'r')
+        out_file = open(directory+file_name+".py", 'w')
+        out_file.write(file.read())
+        file.close()
+        out_file.close()
+        
+    if (settings['train_forward_dynamics']):
+        if "." in settings['forward_dynamics_model_type']:
+            ### convert . to / and copy file over
+            file_name = settings['forward_dynamics_model_type']
+            k = file_name.rfind(".")
+            file_name = file_name[:k]
+            file_name_read = file_name.replace(".", "/")
+            file_name_read = file_name_read + ".py"
+            print ("model file name:", file_name)
+            print ("os.path.basename(file_name): ", os.path.basename(file_name))
+            file = open(file_name_read, 'r')
+            out_file = open(directory+file_name+".py", 'w')
+            out_file.write(file.read())
+            file.close()
+            out_file.close()
 
 def logExperimentData(trainData, key, value, settings):
     import numpy as np
+    from collections import OrderedDict
     
-    logger = settings["logger_instance"] 
-    if logger is not None:
-        logger.set_step(step=trainData["round"])
-        logger.log_metrics({key:np.mean(value)})
+    if ("logger_instance" in settings):
+        logger = settings["logger_instance"] 
+        logger.set_step(step=settings["round"])
+        
+        if (isinstance(value, OrderedDict)):
+            logger.log_metrics(value)
+        else:
+            logger.log_metrics({key:np.mean(value)})
         
         
     if key in trainData:

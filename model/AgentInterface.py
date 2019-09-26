@@ -42,7 +42,8 @@ class AgentInterface(object):
     
     def setSettings(self, settings):
         import copy
-        self._settings = copy.deepcopy(settings)
+        # self._settings = copy.deepcopy(settings)
+        self._settings = settings
         # self.getPolicy().setSettings(settings)
         # self.getForwardDynamics().setSettings(settings)
     def getSettings(self):
