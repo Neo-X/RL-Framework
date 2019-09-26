@@ -2,6 +2,7 @@ import sys
 import math
 from actor.ActorInterface import ActorInterface
 from model.ModelUtil import reward_smoother
+from _ast import Or
 
 class OpenAIGymActor(ActorInterface):
     
@@ -25,7 +26,10 @@ class OpenAIGymActor(ActorInterface):
         import numpy as np
         # Actor should be FIRST here
         if ("use_entropy_reward" in self._settings
-            and (self._settings["use_entropy_reward"] == "ICM")):
+            and (
+                (self._settings["use_entropy_reward"] == "ICM") or
+                (self._settings["use_entropy_reward"] == "ICM_bonus")
+            )):
             state = sim.getState()
             
         reward = sim.step(action_)
@@ -62,7 +66,16 @@ class OpenAIGymActor(ActorInterface):
             reward = bs_r
             # print ("ICM reward:", reward)
             return reward
-        self._reward_sum = self._reward_sum + np.mean(reward)        
+        elif ("use_entropy_reward" in self._settings
+            and (self._settings["use_entropy_reward"] == "ICM_bonus")):
+            bs_r = self.rewardICM(state, action_, sim.getState())
+            self._reward_sum = self._reward_sum + np.mean(reward)
+            bs_w = self._settings["entropy_reward_weight"]
+            # reward = bs_r
+            # print ("ICM reward:", bs_r)
+            reward = (bs_r * bs_w) + reward
+        else:
+            self._reward_sum = self._reward_sum + np.mean(reward)        
         return reward
         
     def updateAction(self, sim, action_):

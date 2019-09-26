@@ -121,7 +121,7 @@ def trainModelParallel(inputData):
     from util.SimulationUtil import validateSettings, getFDStateSize
     if (not validateSettings(settings)):
         return False
-    setupEnvironmentVariable(settings)
+    exp_logger = setupEnvironmentVariable(settings)
     settingsFileName = inputData[0]
     settings['sample_single_trajectories'] = True
     # settings['shouldRender'] = True
@@ -306,7 +306,7 @@ def trainModelParallel(inputData):
         from model.ModelUtil import validBounds, fixBounds, anneal_value, getLearningData
         # from model.LearningMultiAgent import LearningMultiAgent, LearningWorker
         # from model.LearningAgent import LearningMultiAgent, LearningWorker
-        from util.SimulationUtil import createEnvironment
+        from util.SimulationUtil import createEnvironment, logExperimentData, saveData
         from util.SimulationUtil import createRLAgent, createNewFDModel
         from util.SimulationUtil import createActor, getAgentName, updateSettings
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
@@ -337,61 +337,7 @@ def trainModelParallel(inputData):
                 shutil.copy2(directory_pretrain+getAgentName()+str(i)+"_Best_bounds.h5", directory+getAgentName()+str(i)+"_Best_bounds.h5" )
             # sys.exit()
             
-        ### Put git versions in settings file before save
-        from util.utils import get_git_revision_hash, get_git_revision_short_hash
-        settings['git_revision_hash'] = get_git_revision_hash()
-        settings['git_revision_short_hash'] = get_git_revision_short_hash()     
-        ### copy settings file
-        out_file_name=directory+os.path.basename(settingsFileName)
-        print ("Saving settings file with data: ", out_file_name)
-        out_file = open(out_file_name, 'w')
-        out_file.write(json.dumps(settings, indent=4))
-        out_file.close()
-        ### Try and save algorithm and model files for reference
-        if "." in settings['model_type']:
-            ### convert . to / and copy file over
-            file_name = settings['model_type']
-            k = file_name.rfind(".")
-            file_name = file_name[:k]
-            file_name_read = file_name.replace(".", "/")
-            file_name_read = file_name_read + ".py"
-            print ("model file name:", file_name)
-            print ("os.path.basename(file_name): ", os.path.basename(file_name))
-            file = open(file_name_read, 'r')
-            out_file = open(directory+file_name+".py", 'w')
-            out_file.write(file.read())
-            file.close()
-            out_file.close()
-        if "." in settings['agent_name']:
-            ### convert . to / and copy file over
-            file_name = settings['agent_name']
-            k = file_name.rfind(".")
-            file_name = file_name[:k]
-            file_name_read = file_name.replace(".", "/")
-            file_name_read = file_name_read + ".py"
-            print ("model file name:", file_name)
-            print ("os.path.basename(file_name): ", os.path.basename(file_name))
-            file = open(file_name_read, 'r')
-            out_file = open(directory+file_name+".py", 'w')
-            out_file.write(file.read())
-            file.close()
-            out_file.close()
-            
-        if (settings['train_forward_dynamics']):
-            if "." in settings['forward_dynamics_model_type']:
-                ### convert . to / and copy file over
-                file_name = settings['forward_dynamics_model_type']
-                k = file_name.rfind(".")
-                file_name = file_name[:k]
-                file_name_read = file_name.replace(".", "/")
-                file_name_read = file_name_read + ".py"
-                print ("model file name:", file_name)
-                print ("os.path.basename(file_name): ", os.path.basename(file_name))
-                file = open(file_name_read, 'r')
-                out_file = open(directory+file_name+".py", 'w')
-                out_file.write(file.read())
-                file.close()
-                out_file.close()
+        saveData(settings, settingsFileName)
             
         ### Using a wrapper for the type of actor now
         actor = createActor(settings['environment_type'], settings, None)
@@ -711,25 +657,6 @@ def trainModelParallel(inputData):
                 
                 lw.start()
                 
-        # masterAgent.saveTo(directory)
-            
-        # del learningNamespace.model
-        """
-        tmp_p=1.0
-        if ( settings['load_saved_model'] ):
-            tmp_p = settings['min_epsilon']
-        data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
-                masterAgent.getPolicy().getNetworkParameters())
-        if (settings['train_forward_dynamics']):
-            # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-            data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
-                    masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
-        message['type'] = 'Update_Policy'
-        message['data'] = data
-        for m_q in sim_work_queues:
-            print("trainModel: Sending current network parameters: ", m_q)
-            m_q.put(message, timeout=timeout_)
-        """
             
         del model
         ## Give gloabl access to processes to they can be terminated when ctrl+c is pressed
@@ -817,6 +744,10 @@ def trainModelParallel(inputData):
                 actor_regularization_viz = NNVisualize(title=str("Actor Reg Cost") + " with " + title)
                 actor_regularization_viz.setInteractive()
                 actor_regularization_viz.init()
+                
+        settings["logger_instance"] = exp_logger
+        settings["round"] = int(trainData["round"])
+        masterAgent.setSettings(settings)
 
         if (False ):
             print("State Bounds:", masterAgent.getStateBounds())
@@ -844,6 +775,8 @@ def trainModelParallel(inputData):
         # for round_ in range(0,rounds):
         while (trainData["round"] <= rounds):
             trainData["round"] = int(trainData["round"])
+            settings["round"] = int(trainData["round"])
+            masterAgent.setSettings(settings)
             # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
             # p = (settings['initial_temperature'] / (math.log(round_))) 
             # p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds))
@@ -1147,6 +1080,7 @@ def trainModelParallel(inputData):
                                                     anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings)
                                                     """
                 print ("round_, p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
+                # addLogData(trainData, "falls", np.mean(otherMetrics["falls"]))
                 print (trainData["round"], p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
                 if np.mean(mean_bellman_error) > 10000:
                     print ("Error to big: ")
@@ -1160,26 +1094,28 @@ def trainModelParallel(inputData):
                             std_dynamicsRewardLosses = np.std(dynamicsRewardLosses)
                             dynamicsRewardLosses = []
                         
-                    trainData["mean_reward"].append(mean_reward)
-                    # print ("Mean Rewards: " + str(mean_rewards))
-                    trainData["std_reward"].append(std_reward)
-                    trainData["anneal_p"].append(p)
-                    # bellman_errors
-                    trainData["mean_bellman_error"].append(np.array([np.mean(er_) for er_ in np.fabs(bellman_errors[0])]))
+                        
+                    logExperimentData(trainData, "falls", otherMetrics["falls"], settings)
+                    logExperimentData(trainData, "mean_reward", mean_reward, settings)
+                    logExperimentData(trainData, "std_reward", std_reward, settings)
+                    logExperimentData(trainData, "anneal_p", p, settings)
+                    logExperimentData(trainData, "mean_bellman_error", np.array([np.mean(er_) for er_ in np.fabs(bellman_errors[0])]), settings)
+                    logExperimentData(trainData, "std_bellman_error", np.array([np.std(er_) for er_ in bellman_errors[0]]), settings)
+                    bellman_errors=[]
+                    logExperimentData(trainData, "mean_discount_error", mean_discount_error, settings)
+                    logExperimentData(trainData, "std_discount_error", std_discount_error, settings)
+                    logExperimentData(trainData, "mean_eval", mean_eval, settings)
+                    logExperimentData(trainData, "std_eval", std_eval, settings)
                     # error = np.mean(np.fabs(error), axis=1)
-                    trainData["std_bellman_error"].append(np.array([np.std(er_) for er_ in bellman_errors[0]]))
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     bellman_errors=[]
-                    trainData["mean_discount_error"].append(mean_discount_error)
-                    trainData["std_discount_error"].append(std_discount_error)
-                    trainData["mean_eval"].append(mean_eval)
-                    trainData["std_eval"].append(std_eval)
                     if (settings['train_forward_dynamics']):
-                        trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
-                        trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
+                        logExperimentData(trainData, "mean_forward_dynamics_loss", mean_forward_dynamics_loss, settings)
+                        logExperimentData(trainData, "std_forward_dynamics_loss", std_forward_dynamics_loss, settings)
                         if (settings['train_reward_predictor']):
-                            trainData["mean_forward_dynamics_reward_loss"].append(mean_dynamicsRewardLosses)
-                            trainData["std_forward_dynamics_reward_loss"].append(std_dynamicsRewardLosses)
+                            logExperimentData(trainData, "mean_forward_dynamics_reward_loss", mean_forward_dynamics_reward_loss, settings)
+                            logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_forward_dynamics_reward_loss, settings)
+                            
                     ### Lets always save a figure for the learning...
                     if ( settings['save_trainData'] and (not settings['visualize_learning'])):
                         rlv_ = RLVisualize(title=str(settings['sim_config_file']) + " agent on " + str(settings['environment_type']), settings=settings)
@@ -1233,8 +1169,8 @@ def trainModelParallel(inputData):
                         
                         mean_criticLosses = np.mean([np.mean(cl) for cl in criticLosses])
                         std_criticLosses = np.mean([np.std(acl) for acl in criticLosses])
-                        trainData["mean_critic_loss"].append(mean_criticLosses)
-                        trainData["std_critic_loss"].append(std_criticLosses)
+                        logExperimentData(trainData, "mean_critic_loss", mean_critic_loss, settings)
+                        logExperimentData(trainData, "std_critic_loss", std_critic_loss, settings)
                         criticLosses = []
                         if (settings['visualize_learning']):
                             critic_loss_viz.updateLoss(np.array(trainData["mean_critic_loss"]), np.array(trainData["std_critic_loss"]))
@@ -1245,8 +1181,8 @@ def trainModelParallel(inputData):
                         
                         mean_criticRegularizationCosts = np.mean(criticRegularizationCosts)
                         std_criticRegularizationCosts = np.std(criticRegularizationCosts)
-                        trainData["mean_critic_regularization_cost"].append(mean_criticRegularizationCosts)
-                        trainData["std_critic_regularization_cost"].append(std_criticRegularizationCosts)
+                        logExperimentData(trainData, "mean_critic_regularization_cost", mean_critic_regularization_cost, settings)
+                        logExperimentData(trainData, "std_critic_regularization_cost", std_critic_regularization_cost, settings)
                         criticRegularizationCosts = []
                         if (settings['visualize_learning']):
                             critic_regularization_viz.updateLoss(np.array(trainData["mean_critic_regularization_cost"]), np.array(trainData["std_critic_regularization_cost"]))
@@ -1259,8 +1195,8 @@ def trainModelParallel(inputData):
                         
                         mean_actorLosses = np.mean([np.mean(acL) for acL in actorLosses])
                         std_actorLosses = np.mean([np.std(acl) for acl in actorLosses])
-                        trainData["mean_actor_loss"].append(mean_actorLosses)
-                        trainData["std_actor_loss"].append(std_actorLosses)
+                        logExperimentData(trainData, "mean_actor_loss", mean_actor_loss, settings)
+                        logExperimentData(trainData, "std_actor_loss", std_actor_loss, settings)
                         actorLosses = []
                         if (settings['visualize_learning']):
                             actor_loss_viz.updateLoss(np.array(trainData["mean_actor_loss"]), np.array(trainData["std_actor_loss"]))
@@ -1271,8 +1207,8 @@ def trainModelParallel(inputData):
                         
                         mean_actorRegularizationCosts = np.mean(actorRegularizationCosts)
                         std_actorRegularizationCosts = np.std(actorRegularizationCosts)
-                        trainData["mean_actor_regularization_cost"].append(mean_actorRegularizationCosts)
-                        trainData["std_actor_regularization_cost"].append(std_actorRegularizationCosts)
+                        logExperimentData(trainData, "mean_actor_regularization_cost", mean_actor_regularization_cost, settings)
+                        logExperimentData(trainData, "std_actor_regularization_cost", std_actor_regularization_cost, settings)
                         actorRegularizationCosts = []
                         if (settings['visualize_learning']):
                             actor_regularization_viz.updateLoss(np.array(trainData["mean_actor_regularization_cost"]), np.array(trainData["std_actor_regularization_cost"]))

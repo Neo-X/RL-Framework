@@ -107,7 +107,7 @@ def plotMetaDataSimulation(data_path, settings, settingsFiles, folder=''):
     trainData["std_discount_error"]=[]
     
     """
-    subsample = 1
+    subsample = 10
     rlv.setLength(min_length)
     # rlv.setLength(64)
     rlv.setBinSize(subsample)

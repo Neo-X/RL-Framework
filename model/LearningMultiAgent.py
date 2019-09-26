@@ -96,8 +96,18 @@ class LearningMultiAgent(LearningAgent):
         
     def setSettings(self, settings):
         self._settings = settings
-        # self.getPolicy().setSettings(settings)
-        # self.getForwardDynamics().setSettings(settings)
+
+        ### Only propogate the logger settings because settings are unqiue for each agent.
+        if hasattr(self, '_agents'):
+            for a in range(len(self.getAgents())):
+                set = self.getAgents()[a].getSettings()
+                if "logger_instance" in self._settings:
+                    set["logger_instance"] = self._settings["logger_instance"]
+                if ("logger_instance" in self._settings):
+                    set["round"] = self._settings["round"]
+                
+                self.getAgents()[a].setSettings(set)
+        
     def getSettings(self):
         return self._settings
     
