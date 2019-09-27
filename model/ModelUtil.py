@@ -1103,8 +1103,12 @@ def getLearningData(masterAgent, settings, tmp_p):
             masterAgent.getPolicyNetworkParameters())
     if (settings['train_forward_dynamics']):
         # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-        data = ('Update_Policy', tmp_p, masterAgent.getStateBounds(), masterAgent.getActionBounds(), masterAgent.getRewardBounds(), 
-                masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
+        data = ('Update_Policy', tmp_p, 
+                masterAgent.getStateBounds(), 
+                masterAgent.getActionBounds(), 
+                masterAgent.getRewardBounds(), 
+                masterAgent.getPolicy().getNetworkParameters(),
+                 masterAgent.getForwardDynamics().getNetworkParameters())
         if ( "keep_seperate_fd_exp_buffer" in settings 
              and ( settings["keep_seperate_fd_exp_buffer"] == True )):
             data = ('Update_Policy', tmp_p, 
