@@ -867,6 +867,9 @@ class LearningMultiAgent(LearningAgent):
         if (not self._sampler == None ):
             self._sampler.setEnvironment(exp)
             
+    def getPolicyParameters(self):
+        return [p.getStateBounds() for p in self.getAgents()]
+            
     def getStateBounds(self):
         return [p.getStateBounds() for p in self.getAgents()]
     def getActionBounds(self):
