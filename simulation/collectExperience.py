@@ -55,7 +55,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                                           )
             else:
                 if ("perform_multiagent_training" in settings):
-                    experience = [ExperienceMemory(len(state_bounds[i][0]), len(action_bounds[i][0]), settings['experience_length'],
+                    experience = [ExperienceMemory(len(state_bounds[i][0]), len(action_bounds[i][0]), settings['experience_length'][i],
                                           continuous_actions=True, settings = settings, 
                                           # result_state_length=settings["dense_state_size"]
                                           ) for i in range(settings["perform_multiagent_training"])]
@@ -166,6 +166,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         reward_bounds = fixBounds(reward_bounds)
         action_bounds = fixBounds(action_bounds)
 
+        """
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):            
             print ("State Length:" + str(len(state_bounds[1])))
             print ("Max State:" + str(state_bounds[1]))
@@ -174,6 +175,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             print ("Min Reward:" + str(reward_bounds[0]))
             print ("Max Action:" + str(action_bounds[1]))
             print ("Min Action:" + str(action_bounds[0]))
+        """
         
         for state, action, resultState, reward, fall, G_t, exp_action, adv in zip(states, actions, resultStates, rewards, falls, G_ts, exp_actions, advantage):
             statefd = state
