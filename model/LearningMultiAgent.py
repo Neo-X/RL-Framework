@@ -72,10 +72,12 @@ class LearningMultiAgent(LearningAgent):
             self._accesLock.release()
         return fd
                 
-    def setForwardDynamics(self, fd):
+    def setForwardDynamics(self, pol):
         if self._useLock:
             self._accesLock.acquire()
-        self._fd = fd
+        [a.setForwardDynamics(pol_) for a, pol_ in zip(self.getAgents(), pol)]
+        if (not self._sampler == None ):
+            self._sampler.setPolicy(pol)
         if self._useLock:
             self._accesLock.release()
             
@@ -866,9 +868,6 @@ class LearningMultiAgent(LearningAgent):
     def setEnvironment(self, exp):
         if (not self._sampler == None ):
             self._sampler.setEnvironment(exp)
-            
-    def getPolicyParameters(self):
-        return [p.getStateBounds() for p in self.getAgents()]
             
     def getStateBounds(self):
         return [p.getStateBounds() for p in self.getAgents()]

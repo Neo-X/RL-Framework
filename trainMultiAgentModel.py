@@ -405,9 +405,9 @@ def trainModelParallel(inputData):
         forwardDynamicsModel = None
         if (settings['train_forward_dynamics']):
             forwardDynamicsModel = createNewFDModel(settings, exp_val, model)
-            forwardDynamicsModel.setActor(actor)
+            # forwardDynamicsModel.setActor(actor)
             # forwardDynamicsModel.setEnvironment(exp)
-            forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
+            # forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
         if ("train_reward_distance_metric" in settings and
             (settings['train_reward_distance_metric'] == True )):
@@ -416,17 +416,11 @@ def trainModelParallel(inputData):
             settings_ = updateSettings(settings_, settings_["reward_metric_settings"])
             rewardModel = createNewFDModel(settings_, exp_val, model)
             rewardModel.setActor(actor)
-            # forwardDynamicsModel.setEnvironment(exp)
             rewardModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
         exp_val.finish()
-        # print ("forwardDynamicsModel.getStateBounds(): ", forwardDynamicsModel.getStateBounds())
-        # sys.exit()
         (agent, learning_workers) = createLearningAgent(settings, output_experience_queue, print_info=True)
         masterAgent = agent
-        # print ("NameSpace: " + str(namespace))
-        # sys.exit(0)
-        
         
         if ((settings['visualize_learning'] == False) 
             and (settings['save_trainData'] == True) ):

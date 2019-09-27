@@ -1107,8 +1107,8 @@ def getLearningData(masterAgent, settings, tmp_p):
                 masterAgent.getStateBounds(), 
                 masterAgent.getActionBounds(), 
                 masterAgent.getRewardBounds(), 
-                masterAgent.getPolicy().getNetworkParameters(),
-                 masterAgent.getForwardDynamics().getNetworkParameters())
+                masterAgent.getPolicyNetworkParameters(),
+                 masterAgent.getFDNetworkParameters())
         if ( "keep_seperate_fd_exp_buffer" in settings 
              and ( settings["keep_seperate_fd_exp_buffer"] == True )):
             data = ('Update_Policy', tmp_p, 

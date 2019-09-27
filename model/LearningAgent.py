@@ -1227,6 +1227,17 @@ class LearningAgent(AgentInterface):
         if (not self._sampler == None ):
             self._sampler.setEnvironment(exp)
             
+    def getPolicyParameters(self):
+        return self.getPolicy().getNetworkParameters()
+    def setPolicyParameters(self, params):
+        self.getPolicy().setNetworkParameters(params)
+        
+    def getFDParameters(self):
+        return self.getForwardDynamics().getNetworkParameters()
+    def setFDParameters(self, params):
+        self.getPolicy().setNetworkParameters(params)
+    
+            
     def getStateBounds(self):
         return self.getPolicy().getStateBounds()
     def getActionBounds(self):
