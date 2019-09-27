@@ -117,7 +117,8 @@ def logExperimentData(trainData, key, value, settings):
     import numpy as np
     from collections import OrderedDict
     
-    if ("logger_instance" in settings):
+    if ("logger_instance" in settings
+        and (settings["logger_instance"] is not None)):
         logger = settings["logger_instance"] 
         logger.set_step(step=settings["round"])
         
@@ -230,24 +231,30 @@ def getDataDirectory(settings):
 
 def processBounds(state_bounds, action_bounds, settings, sim):
     
-    if ((state_bounds == "ask_env")):
+    if ((state_bounds == "ask_env")
+        or (state_bounds == ["ask_env"])):
         print ("Getting state bounds from environment")
         s_min = sim.getEnvironment().observation_space.low
         s_max = sim.getEnvironment().observation_space.high
         print (sim.getEnvironment().observation_space.low)
         settings['state_bounds'] = [s_min,s_max]
+        if ("perform_multiagent_training" in settings):
+            settings['state_bounds'] = [settings['state_bounds']]
         state_bounds = settings['state_bounds']
         """
         if (int(settings["num_available_threads"]) != -1):
             print ("Removing extra environment.")
             exp_val.finish()
         """
-    if ((action_bounds == "ask_env")):
+    if ((action_bounds == "ask_env")
+        or (action_bounds == ["ask_env"])):
         print ("Getting action bounds from environment")
         a_min = sim.getEnvironment()._action_space.low
         a_max = sim.getEnvironment()._action_space.high
         print (sim.getEnvironment()._action_space.low)
         settings['action_bounds'] = [a_min,a_max]
+        if ("perform_multiagent_training" in settings):
+            settings['action_bounds'] = [settings['action_bounds']]
         action_bounds = settings['state_bounds']
         
         

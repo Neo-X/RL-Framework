@@ -116,6 +116,15 @@ def createLearningAgent(settings, output_experience_queue, print_info=False):
 def trainModelParallel(inputData):
     # (sys.argv[1], settings)
     settings = inputData[1]
+    if ("perform_multiagent_training" not in settings):
+        settings["perform_multiagent_training"] = 1
+        settings["state_bounds"] = [settings["state_bounds"]]
+        settings["action_bounds"] = [settings["action_bounds"]]
+        settings["reward_bounds"] = [settings["reward_bounds"]]
+        settings["exploration_rate"] = [settings["exploration_rate"]]
+        settings["experience_length"] = [settings["experience_length"]]
+        settings["critic_network_layer_sizes"] = [settings["critic_network_layer_sizes"]]
+        settings["policy_network_layer_sizes"] = [settings["policy_network_layer_sizes"]]
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     from simulation.LoggingWorker import LoggingWorker
     from util.SimulationUtil import validateSettings, getFDStateSize
@@ -307,7 +316,7 @@ def trainModelParallel(inputData):
         # from model.LearningMultiAgent import LearningMultiAgent, LearningWorker
         # from model.LearningAgent import LearningMultiAgent, LearningWorker
         from util.SimulationUtil import createEnvironment, logExperimentData, saveData
-        from util.SimulationUtil import createRLAgent, createNewFDModel
+        from util.SimulationUtil import createRLAgent, createNewFDModel, processBounds
         from util.SimulationUtil import createActor, getAgentName, updateSettings
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
         
@@ -342,23 +351,24 @@ def trainModelParallel(inputData):
         ### Using a wrapper for the type of actor now
         actor = createActor(settings['environment_type'], settings, None)
         exp_val = None
-        if ((action_bounds != "ask_env")
-            and
-            not validBounds(action_bounds)):
-            # Check that the action bounds are specified correctly
-            print("Action bounds invalid: ", action_bounds)
-            sys.exit()
-        if ( (state_bounds != "ask_env") 
-             and not validBounds(state_bounds)):
-            # Probably did not collect enough bootstrapping samples to get good state bounds.
-            print("State bounds invalid: ", state_bounds)
-            state_bounds = fixBounds(np.array(state_bounds))
-            bound_fixed = validBounds(state_bounds)
-            print("State bounds fixed: ", bound_fixed)
-            # sys.exit()
-        if (not validBounds(reward_bounds)):
-            print("Reward bounds invalid: ", reward_bounds)
-            sys.exit()
+        for i in range(len(action_bounds)):
+            if ((action_bounds[i] != "ask_env")
+                and
+                not validBounds(action_bounds[i])):
+                # Check that the action bounds are specified correctly
+                print("Action bounds invalid: ", action_bounds[i])
+                sys.exit()
+            if ( (state_bounds[i] != "ask_env") 
+                 and not validBounds(state_bounds[i])):
+                # Probably did not collect enough bootstrapping samples to get good state bounds.
+                print("State bounds invalid: ", state_bounds[i])
+                state_bounds[i] = fixBounds(np.array(state_bounds[i]))
+                bound_fixed = validBounds(state_bounds[i])
+                print("State bounds fixed: ", bound_fixed)
+                # sys.exit()
+            if (not validBounds(reward_bounds[i])):
+                print("Reward bounds invalid: ", reward_bounds[i])
+                sys.exit()
         
         """
         if settings['action_space_continuous']:
@@ -380,36 +390,8 @@ def trainModelParallel(inputData):
         exp_val.setActor(actor)
         exp_val.getActor().init()
         exp_val.init()
-        if ((state_bounds == "ask_env")):
-            print ("Getting state bounds from environment")
-            s_min = exp_val.getEnvironment().observation_space.getMinimum()
-            s_max = exp_val.getEnvironment().observation_space.getMaximum()
-            print (exp_val.getEnvironment().observation_space.getMinimum())
-            settings['state_bounds'] = [s_min,s_max]
-            state_bounds = settings['state_bounds']
-            """
-            if (int(settings["num_available_threads"]) != -1):
-                print ("Removing extra environment.")
-                exp_val.finish()
-            """
-        if ((action_bounds == "ask_env")):
-            print ("Getting action bounds from environment")
-            a_min = exp_val.getEnvironment()._action_space.getMinimum()
-            a_max = exp_val.getEnvironment()._action_space.getMaximum()
-            print (exp_val.getEnvironment()._action_space.getMinimum())
-            settings['action_bounds'] = [a_min,a_max]
-            action_bounds = settings['state_bounds']
-        """
-            if (int(settings["num_available_threads"]) != -1):
-                print ("Removing extra environment.")
-                exp_val.finish()
         
-        if ((action_bounds == "ask_env")
-            or (state_bounds == "ask_env")):
-            if (int(settings["num_available_threads"]) != -1):
-                print ("Removing extra environment.")
-                exp_val.finish()
-        """ 
+        (state_bounds, action_bounds, settings) = processBounds(state_bounds, action_bounds, settings, exp_val)
         
         ### This is for a single-threaded Synchronous sim only.
         if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
@@ -887,10 +869,11 @@ def trainModelParallel(inputData):
                         print( "Actor loss: ", masterAgent.getPolicy()._get_action_diff())
                         """
                         masterAgent.reset()
-                        loss__ = masterAgent.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage)
-                        actorLosses.append(loss__)
-                        regularizationCost__ = masterAgent.getPolicy().get_actor_regularization()
-                        actorRegularizationCosts.append(regularizationCost__)
+                        # loss__ = [loss___ masterAgent.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage)
+                        loss__ = [p_.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage) for p_ in masterAgent.getAgents() ]
+                        actorLosses.append(np.mean(loss__))
+                        regularizationCost__ = [p_.getPolicy().get_actor_regularization() for p_ in masterAgent.getAgents() ]
+                        actorRegularizationCosts.append(np.mean(regularizationCost__))
                     
                     if not all(np.isfinite(np.mean(error, axis=0))):
                         print ("Bellman Error is Nan: " + str(error) + str(np.isfinite(error)))
@@ -1080,7 +1063,6 @@ def trainModelParallel(inputData):
                                                     anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings)
                                                     """
                 print ("round_, p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
-                # addLogData(trainData, "falls", np.mean(otherMetrics["falls"]))
                 print (trainData["round"], p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
                 if np.mean(mean_bellman_error) > 10000:
                     print ("Error to big: ")
@@ -1095,7 +1077,7 @@ def trainModelParallel(inputData):
                             dynamicsRewardLosses = []
                         
                         
-                    logExperimentData(trainData, "falls", otherMetrics["falls"], settings)
+                    logExperimentData(trainData, "falls", np.mean(otherMetrics["falls"]), settings)
                     logExperimentData(trainData, "mean_reward", mean_reward, settings)
                     logExperimentData(trainData, "std_reward", std_reward, settings)
                     logExperimentData(trainData, "anneal_p", p, settings)
@@ -1108,7 +1090,6 @@ def trainModelParallel(inputData):
                     logExperimentData(trainData, "std_eval", std_eval, settings)
                     # error = np.mean(np.fabs(error), axis=1)
                     # trainData["std_bellman_error"].append(std_bellman_error)
-                    bellman_errors=[]
                     if (settings['train_forward_dynamics']):
                         logExperimentData(trainData, "mean_forward_dynamics_loss", mean_forward_dynamics_loss, settings)
                         logExperimentData(trainData, "std_forward_dynamics_loss", std_forward_dynamics_loss, settings)
@@ -1195,8 +1176,8 @@ def trainModelParallel(inputData):
                         
                         mean_actorLosses = np.mean([np.mean(acL) for acL in actorLosses])
                         std_actorLosses = np.mean([np.std(acl) for acl in actorLosses])
-                        logExperimentData(trainData, "mean_actor_loss", mean_actor_loss, settings)
-                        logExperimentData(trainData, "std_actor_loss", std_actor_loss, settings)
+                        logExperimentData(trainData, "mean_actor_loss", mean_actorLosses, settings)
+                        logExperimentData(trainData, "std_actor_loss", std_actorLosses, settings)
                         actorLosses = []
                         if (settings['visualize_learning']):
                             actor_loss_viz.updateLoss(np.array(trainData["mean_actor_loss"]), np.array(trainData["std_actor_loss"]))
@@ -1207,8 +1188,8 @@ def trainModelParallel(inputData):
                         
                         mean_actorRegularizationCosts = np.mean(actorRegularizationCosts)
                         std_actorRegularizationCosts = np.std(actorRegularizationCosts)
-                        logExperimentData(trainData, "mean_actor_regularization_cost", mean_actor_regularization_cost, settings)
-                        logExperimentData(trainData, "std_actor_regularization_cost", std_actor_regularization_cost, settings)
+                        logExperimentData(trainData, "mean_actor_regularization_cost", mean_actorRegularizationCosts, settings)
+                        logExperimentData(trainData, "std_actor_regularization_cost", std_actorRegularizationCosts, settings)
                         actorRegularizationCosts = []
                         if (settings['visualize_learning']):
                             actor_regularization_viz.updateLoss(np.array(trainData["mean_actor_regularization_cost"]), np.array(trainData["std_actor_regularization_cost"]))
@@ -1250,15 +1231,16 @@ def trainModelParallel(inputData):
                 ## because json does not serialize np.float32 
                 """
                 for key in trainData:
+                    # print ("trainData[",key,"]", trainData[key])
                     if (key == 'error'):
                         continue
-                    # print ("trainData[",key,"]", trainData[key])
                     elif (type(trainData[key]) is list):
                         trainData[key] = [float(i) for i in trainData[key]]
                     else:
                         trainData[key] = float(trainData[key])
                 """
                 from util.utils import NumpyEncoder 
+                # print ("trainData: ", trainData)
                 json.dump(trainData, fp, cls=NumpyEncoder)
                 fp.close()
                 # draw data

@@ -494,7 +494,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             else:
                 falls.append([[worker_id]] * len(state_))
         elif ("perform_multiagent_training" in settings
-              and (settings["perform_multiagent_training"] > 1)):
+              and (settings["perform_multiagent_training"] > 0)):
             falls_ = []
             for f in range(len(state_)):
                 falls_.append([f])

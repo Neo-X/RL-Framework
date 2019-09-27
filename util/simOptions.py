@@ -107,6 +107,13 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Even if performing training on the GPU the networks for the simulations will be put on the CPU.")
     
+    parser.add_option("--keep_seperate_fd_exp_buffer",
+              action="store", dest="keep_seperate_fd_exp_buffer", default=None,
+              type='choice',
+              choices=['true', 'false', None],
+              metavar="STRING", 
+              help="If to use a separate exp mem for the fd model, often to store more data for on-policy methods.")
+    
     parser.add_option("--on_policy",
               action="store", dest="on_policy", default=None,
               type='choice',

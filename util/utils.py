@@ -86,8 +86,11 @@ class NumpyEncoder(json.JSONEncoder):
     """
     def default(self, obj):
         import numpy as np
+        # print (obj)
         if isinstance(obj, np.ndarray):
             return obj.tolist()
+        elif isinstance(obj, np.float32):
+            return float(obj)
         return json.JSONEncoder.default(self, obj)
 
 

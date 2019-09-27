@@ -241,7 +241,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     else: ## Most likely performing continuation learning
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print ("Skipping bootstrap samples from simulation")
-            print ("State length: ", len(model.getStateBounds()[0]))
+            print ("State length: ", model.getStateBounds())
         if settings['action_space_continuous']:
             if ("perform_multiagent_training" in settings):
                 experience = []

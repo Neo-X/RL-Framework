@@ -19,7 +19,8 @@ class RLVisualize(object):
         self._title = title
         self._agents = 1
         if ("perform_multiagent_training" in self._settings):
-            self._agents = self._settings["perform_multiagent_training"]
+            ### The + 0.1 is an ugly hack to get single agent working
+            self._agents = self._settings["perform_multiagent_training"] + 0.1
         
         
     def init(self):
@@ -42,7 +43,7 @@ class RLVisualize(object):
         self._reward_stds = []
         self._discount_errors = []
         self._discount_error_stds = []
-        for j in range(self._agents):
+        for j in range(int(self._agents)):
             if ("agent_names" in self._settings):
                 self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0, label=self._settings["agent_names"][j])
             else:
@@ -79,7 +80,7 @@ class RLVisualize(object):
         # self._bellman_error.set_data(error)
         if ( self._agents > 1):
             
-            for j in range(self._agents):
+            for j in range(int(self._agents)):
                 self._bellman_errors[j].set_data(np.arange(len(error[:,j])), error[:,j])
                 self._bellman_error_ax.collections.remove(self._bellman_error_stds[j])
                 # print ("self._bellman_errors[j]: ", self._bellman_errors[j])
@@ -96,13 +97,13 @@ class RLVisualize(object):
     def updateReward(self, reward, std):
         
         if ( self._agents > 1):
-            for j in range(self._agents):
+            for j in range(int(self._agents)):
                 self._rewards[j].set_data(np.arange(len(reward[:,j])), reward[:,j])
                 # self._rewards[j].set_ydata(reward[:,j])
                 self._reward_ax.collections.remove(self._reward_stds[j])
                 self._reward_stds[j] = self._reward_ax.fill_between(np.arange(len(reward[:,j])), reward[:,j] - std[:,j], reward[:,j] + std[:,j], facecolor=self._rewards[j].get_color(), alpha=0.4)
         else:
-            for j in range(self._agents):
+            for j in range(int(self._agents)):
                 self._rewards[j].set_data(np.arange(len(reward)), reward)
                 # self._rewards[j].set_ydata(reward)
                 self._reward_ax.collections.remove(self._reward_stds[j])
@@ -114,13 +115,13 @@ class RLVisualize(object):
     def updateDiscountError(self, error, std):
        
         if ( self._agents > 1):
-            for j in range(self._agents):
+            for j in range(int(self._agents)):
                 self._discount_errors[j].set_data(np.arange(len(error[:,j])), error[:,j] )
                 # self._discount_errors[j].set_ydata(error[:,j])
                 self._discount_error_ax.collections.remove(self._discount_error_stds[j])
                 self._discount_error_stds[j] = self._discount_error_ax.fill_between(np.arange(len(error[:,j])), error[:,j] - std[:,j], error[:,j] + std[:,j], facecolor=self._discount_errors[j].get_color(), alpha=0.4)
         else:
-            for j in range(self._agents):
+            for j in range(int(self._agents)):
                 self._discount_errors[j].set_data(np.arange(len(error)), error )
                 # self._discount_errors[j].set_ydata(error)
                 self._discount_error_ax.collections.remove(self._discount_error_stds[j])
