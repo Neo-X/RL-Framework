@@ -50,7 +50,7 @@ class LearningMultiAgent(LearningAgent):
     def getPolicy(self):
         if self._useLock:
             self._accesLock.acquire()
-        pol = self._pol
+        pol = self.getAgents()[0].getPolicy()
         if self._useLock:
             self._accesLock.release()
         return pol
@@ -67,7 +67,7 @@ class LearningMultiAgent(LearningAgent):
     def getForwardDynamics(self):
         if self._useLock:
             self._accesLock.acquire()
-        fd = self._fd
+        fd = self.getAgents()[0].getForwardDynamics()
         if self._useLock:
             self._accesLock.release()
         return fd
@@ -885,12 +885,17 @@ class LearningMultiAgent(LearningAgent):
     
     def setStateBounds(self, bounds):
         [p.setStateBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
-
     def setActionBounds(self, bounds):
         [p.setActionBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
-                
     def setRewardBounds(self, bounds):
         [p.setRewardBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
+        
+    def setFDStateBounds(self, bounds):
+        [p.setFDStateBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
+    def setFDActionBounds(self, bounds):
+        [p.setFDActionBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
+    def setFDRewardBounds(self, bounds):
+        [p.setFDRewardBounds(bounds_) for p, bounds_ in zip(self.getAgents(), bounds)]
         
     def _updateScaling(self):
         [p._updateScaling() for p in self.getAgents()]
@@ -902,11 +907,23 @@ class LearningMultiAgent(LearningAgent):
     def insertTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions):
         self.getAgents()[falls[0][0]].insertTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
         
+    def insertFDTuple(self, tuple):
+        ([state], [action], [resultState], [reward], [fall], [G_t], [exp_action], [adv]) = tuple
+        self.getAgents()[fall[0]].insertFDTuple(tuple)
+    def insertFDTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions):
+        self.getAgents()[falls[0][0]].insertFDTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
+        
     def samples(self):
         return self.getAgents()[0].samples()
     
     def get_batch(self, size_, m):
         return self.getAgents()[m].get_batch(size_)
+    
+    def getFDBatch(self, size_, m=0):
+        return self.getAgents()[m].getFDBatch(size_)
+    
+    def getFDmultitask_trajectory_batch(self, size_, m=0):
+        return self.getAgents()[m].getFDmultitask_trajectory_batch(size_)
         
     def saveTo(self, directory, bestPolicy=False, bestFD=False, suffix=""):
         from util.SimulationUtil import getAgentName

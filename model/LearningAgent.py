@@ -1232,6 +1232,13 @@ class LearningAgent(AgentInterface):
     def setPolicyParameters(self, params):
         self.getPolicy().setNetworkParameters(params)
         
+    def setFDStateBounds(self, bounds):
+        self.getForwardDynamics().setStateBounds(bounds)
+    def setFDActionBounds(self, bounds):
+        self.getForwardDynamics().setActionBounds(bounds)
+    def setFDRewardBounds(self, bounds):
+        self.getForwardDynamics().setRewardBounds(bounds)
+        
     def getFDParameters(self):
         return self.getForwardDynamics().getNetworkParameters()
     def setFDParameters(self, params):
@@ -1335,6 +1342,11 @@ class LearningAgent(AgentInterface):
     
     def get_multitask_trajectory_batch(self, batch_size):
         return self.getExperience().get_multitask_trajectory_batch(batch_size)
+    
+    def getFDBatch(self, size_):
+        return self.getFDExperience().get_batch(size_)
+    def getFDmultitask_trajectory_batch(self, batch_size):
+        return self.getFDExperience().get_multitask_trajectory_batch(batch_size)
     
     def _updateScaling(self):
         self.getExperience()._updateScaling()

@@ -1173,9 +1173,9 @@ def setLearningData(masterAgent, settings, data):
              and ( settings["keep_seperate_fd_exp_buffer"] == True ))
             ):
             # print ("Updating fd bounds")
-            masterAgent.getForwardDynamics().setStateBounds(data[8])
-            masterAgent.getForwardDynamics().setActionBounds(data[9])
-            masterAgent.getForwardDynamics().setRewardBounds(data[10])
+            masterAgent.setFDStateBounds(data[8])
+            masterAgent.setFDActionBounds(data[9])
+            masterAgent.setFDRewardBounds(data[10])
         # masterAgent._p = data[1]
         masterAgent.setStateBounds(data[2])
         masterAgent.setActionBounds(data[3])

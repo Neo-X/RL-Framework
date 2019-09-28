@@ -68,10 +68,19 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                 and ( settings["keep_seperate_fd_exp_buffer"] == True )):
                 state_bounds_fd__ = getFDStateSize(settings)
                 if ("perform_multiagent_training" in settings):
-                    experiencefd = [ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds[0]), settings['experience_length'],
-                                      continuous_actions=True, settings = settings 
-                                      # result_state_length=settings["dense_state_size"]
-                                      ) for i in range(settings["perform_multiagent_training"])]
+                    ### Might be a bug because the fd sizes could be different for each agent
+                    experiencefd = []
+                    for i in range(settings["perform_multiagent_training"]):
+                        settings__ = copy.deepcopy(settings)
+                        settings__['state_bounds'] = settings['state_bounds'][i]
+                        settings__['action_bounds'] = settings['action_bounds'][i]
+                        state_bounds_fd__ = getFDStateSize(settings__)
+                        action_bounds_fd__ = settings__['action_bounds']
+                        experience__fd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds_fd__[0]), settings['experience_length'][i],
+                                          continuous_actions=True, settings = settings__ 
+                                          # result_state_length=settings["dense_state_size"]
+                                          ) 
+                        experiencefd.append(experience__fd)
                 else:
                     experiencefd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds[0]), settings['experience_length'],
                                       continuous_actions=True, settings = settings 

@@ -480,14 +480,12 @@ def trainModelParallel(inputData):
         if ("fd_experience_length" in settings):
             fd_epxerience_length = settings["fd_experience_length"]
         if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
-            # masterAgent.setFDExperience(copy.deepcopy(masterAgent.getExperience()))
-            # experiencefd = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), fd_epxerience_length, 
-            #                                         continuous_actions=True, settings = settings, result_state_length=settings["dense_state_size"])
             state_bounds__ = getFDStateSize(settings)
-            experiencefd.setStateBounds(state_bounds__)
-            experiencefd.setActionBounds(action_bounds)
-            experiencefd.setRewardBounds(reward_bounds)
+            ### Might be some memory expenditure here with a double copy
             masterAgent.setFDExperience(copy.deepcopy(experiencefd))
+            masterAgent.setFDStateBounds(copy.deepcopy(state_bounds__))
+            masterAgent.setFDActionBounds(copy.deepcopy(action_bounds))
+            masterAgent.setFDRewardBounds(copy.deepcopy(reward_bounds))
             
         # print ("masterAgent.getFDExperience().getStateBounds() shape : ", masterAgent.getFDExperience().getStateBounds().shape)
         # sys.exit()
@@ -553,73 +551,15 @@ def trainModelParallel(inputData):
         
         masterAgent_message_queue = multiprocessing.Queue(settings['epochs'])
         
-        if (settings['train_forward_dynamics']):
-            if ( settings['load_saved_model'] == False ):
-                if ("use_dual_dense_state_representations" in settings
-                and (settings["use_dual_dense_state_representations"] == True)):
-                    forwardDynamicsModel.setStateBounds(state_bounds)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-                elif (("use_dual_state_representations" in settings
-                  and (settings["use_dual_state_representations"] == True))
-                    and (not (settings["forward_dynamics_model_type"] == "SingleNet"))
-                    and ("fd_use_multimodal_state" in settings
-                         and (settings["fd_use_multimodal_state"] == True))
-                    ):
-                    print ("Creating multi modal state size****")
-                    state_size__ = settings["fd_num_terrain_features"] + settings["dense_state_size"]
-                    if ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == True)):
-                        state_size__ = state_size__ + 2
-                    elif ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == "3D")):
-                        state_size__ = state_size__ + 3
-                    state_bounds__ = [[0] * (state_size__), 
-                                 [1] * (state_size__)]
-                    forwardDynamicsModel.setStateBounds(state_bounds__)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-                elif ("use_dual_state_representations" in settings
-                    and (settings["use_dual_state_representations"] == True)
-                    and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
-                    state_size__ = settings["fd_num_terrain_features"]
-                    if ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == True)):
-                        state_size__ = state_size__ + 2
-                    elif ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == "3D")):
-                        state_size__ = state_size__ + 3
-                    state_bounds__ = np.array([[0] * state_size__, 
-                                     [1] * state_size__])
-                    if ("use_dual_dense_state_representations" in settings
-                        and (settings["use_dual_dense_state_representations"] == True)):
-                        state_bounds = np.array(settings['state_bounds'])
-                    forwardDynamicsModel.setStateBounds(state_bounds__)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-                else:
-                    forwardDynamicsModel.setStateBounds(state_bounds)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-            masterAgent.setForwardDynamics(forwardDynamicsModel)
-        
         ## Now everything related to the exp memory needs to be updated
         bellman_errors=[]
         masterAgent.setPolicy(model)
-        # masterAgent.setForwardDynamics(forwardDynamicsModel)
-        # learningNamespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
-        # learningNamespace.model = model
         print("Master agent state bounds: ",  repr(masterAgent.getStateBounds()))
-        # sys.exit()
         for sw in sim_workers: # Need to update parameter bounds for models
-            # sw._model.setPolicy(copy.deepcopy(model))
-            # sw.updateModel()
-            # sw.updateForwardDynamicsModel()
             print ("exp: ", sw._exp)
             print ("sw modle: ", sw._model.getPolicy()) 
             
             
-        # learningNamespace.experience = experience
         ## If not on policy
         if ( not settings['on_policy']):
             for lw in learning_workers:
@@ -884,7 +824,7 @@ def trainModelParallel(inputData):
                 if (settings['train_forward_dynamics']):
                     if ( 'keep_seperate_fd_exp_buffer' in settings 
                          and (settings['keep_seperate_fd_exp_buffer'])):
-                        states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getFDExperience().get_batch(batch_size)
+                        states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getFDBatch(batch_size)
                     masterAgent.reset()
                     if (("train_LSTM_FD" in settings)
                         and (settings["train_LSTM_FD"] == True)):
