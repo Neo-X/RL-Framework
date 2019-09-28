@@ -97,7 +97,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print ("Collecting bootstrap samples from simulation")
-        (states_, actions_, resultStates_, rewards_, falls_, G_ts_, exp_actions_, advantage_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
+        (states_, actions_, resultStates_, rewards_, falls_, G_ts_, exp_actions_, advantage_, data) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
         
                                                                                                                    eval_episode_data_queue=eval_episode_data_queue)
         """
@@ -106,7 +106,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                                         falls_[e], G_ts_[e], advantage_[e], exp_actions[e])
         """
         
-        data__ = (states_, actions_, resultStates_, rewards_, falls_, G_ts_, exp_actions_, advantage_)
+        data__ = (states_, actions_, resultStates_, rewards_, falls_, G_ts_, exp_actions_, advantage_, data)
         states = np.array(list(itertools.chain(*states_)))
         actions = np.array(list(itertools.chain(*actions_)))
         resultStates = np.array(list(itertools.chain(*resultStates_)))
@@ -186,9 +186,15 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             print ("Min Action:" + str(action_bounds[0]))
         """
         
-        for state, action, resultState, reward, fall, G_t, exp_action, adv in zip(states, actions, resultStates, rewards, falls, G_ts, exp_actions, advantage):
+        # for state, action, resultState, reward, fall, G_t, exp_action, adv in zip(states, actions, resultStates, rewards, falls, G_ts, exp_actions, advantage):
+        for j in range(len(states)):
+            state = states[j]
+            resultState = resultStates[j]
             statefd = state
-            resultStatefd = state
+            resultStatefd = resultState
+            data___ = {}
+            for key in data:
+                data___[key] = data[key][j]
             if ("use_dual_state_representations" in settings
                 and (settings["use_dual_state_representations"] == True)):
                 statefd = state[1]
@@ -209,12 +215,12 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                     resultState = resultState[0]
             if settings['action_space_continuous']:
                 # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
-                model.insertTuple(([state], [action], [resultState], [reward], [fall], [G_t], [exp_action], [adv]))
+                model.insertTuple(([state], [actions[j]], [resultState], [rewards[j]], [falls[j]], [G_ts[j]], [exp_actions[j]], [advantage[j]], data___))
                 if ( "keep_seperate_fd_exp_buffer" in settings 
                      and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                    model.insertFDTuple(([statefd], [action], [resultStatefd], [reward], [fall], [G_t], [exp_action], [adv]))
+                    model.insertFDTuple(([statefd], [actions[j]], [resultStatefd], [rewards[j]], [falls[j]], [G_ts[j]], [exp_action[j]], [advs[j]], data___))
             else:
-                model.insertTuple(([state], [action], [resultState], [reward], [falls], G_t, [exp_action], [adv]))
+                model.insertTuple(([state], [actions[j]], [resultState], [rewards[j]], [falls[j]], [G_ts[j]], [exp_action[j]], [advantage[j]], data___))
                 
         ### Need to normalize data
         _states = []
@@ -350,7 +356,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         # if self._p <= 0.0:
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out
-        (states_, actions_, result_states_, rewards_, falls_, G_t_, advantage_, exp_actions_) = tuples
+        (states_, actions_, result_states_, rewards_, falls_, G_t_, advantage_, exp_actions_, data) = tuples
 
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print ("Shape other states_: ", np.array(states_).shape)
@@ -379,5 +385,5 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
 
     print ("Done collecting experience.")
     return (np.array(states), np.array(actions), np.array(resultStates), np.array(rewards), 
-            np.array(falls), np.array(G_ts), np.array(exp_actions), np.array(advantage))  
+            np.array(falls), np.array(G_ts), np.array(exp_actions), np.array(advantage), data)  
 

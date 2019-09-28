@@ -1025,11 +1025,11 @@ def trainModelParallel(inputData):
                     # error = np.mean(np.fabs(error), axis=1)
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     if (settings['train_forward_dynamics']):
-                        logExperimentData(trainData, "mean_forward_dynamics_loss", mean_forward_dynamics_loss, settings)
-                        logExperimentData(trainData, "std_forward_dynamics_loss", std_forward_dynamics_loss, settings)
+                        logExperimentData(trainData, "mean_forward_dynamics_loss", mean_dynamicsLosses, settings)
+                        logExperimentData(trainData, "std_forward_dynamics_loss", std_dynamicsLosses, settings)
                         if (settings['train_reward_predictor']):
-                            logExperimentData(trainData, "mean_forward_dynamics_reward_loss", mean_forward_dynamics_reward_loss, settings)
-                            logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_forward_dynamics_reward_loss, settings)
+                            logExperimentData(trainData, "mean_forward_dynamics_reward_loss", mean_dynamicsRewardLosses, settings)
+                            logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_dynamicsRewardLosses, settings)
                             
                     ### Lets always save a figure for the learning...
                     if ( settings['save_trainData'] and (not settings['visualize_learning'])):

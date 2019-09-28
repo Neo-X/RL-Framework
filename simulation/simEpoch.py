@@ -109,6 +109,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     actions = []
     rewards = []
     falls = []
+    agent_ids = []
+    task_ids = []
     result_states___ = []
     exp_actions = []
     evalDatas=[]
@@ -490,23 +492,25 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 and (settings["ask_env_for_multitask_id"])):
                 worker_id = exp.getTaskID()
                 # print ("Task ID: ", worker_id)
-                falls.append([[worker_id]] * len(state_))
+                task_ids.append([[worker_id]] * len(state_))
             else:
-                falls.append([[worker_id]] * len(state_))
-        elif ("perform_multiagent_training" in settings
-              and (settings["perform_multiagent_training"] > 0)):
-            falls_ = []
-            for f in range(len(state_)):
-                falls_.append([f])
-            falls.append(falls_)
-        else:
+                task_ids.append([[worker_id]] * len(state_))
+        # elif ("perform_multiagent_training" in settings
+        #  and (settings["perform_multiagent_training"] > 0)):
+        ## Saving agent index for data
+        agents_ = []
+        for f in range(len(state_)):
+            agents_.append([f])
+        agent_ids.append(agents_)
+        # falls.append(falls_)
+        # else:
             # print("Pushing actual fall value before : ", agent_not_fell)
             # print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])
             # falls.append([[agent_not_fell]] * len(state_))
-            if type(agent_not_fell) is list:
-                falls.append(agent_not_fell)
-            else:
-                falls.append([[agent_not_fell]])
+        if type(agent_not_fell) is list:
+            falls.append(agent_not_fell)
+        else:
+            falls.append([[agent_not_fell]])
                 
         exp_act = exp_action
         exp_actions.append(exp_act)
@@ -554,6 +558,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             path['states'] = copy.deepcopy(np.array([st[a] for st in states[last_epoch_end:]]))
         path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
         path['falls'] = np.array(np.array(falls[last_epoch_end:])[:,a,:])
+        path['agent_id'] = np.array(np.array(agent_ids[last_epoch_end:])[:,a,:])
+        path['task_id'] = np.array(np.array(task_ids[last_epoch_end:])[:,a,:])
         path["terminated"] = False
         ## Append so that we can preserve the paths/trajectory structure.
         if (len(rewards[last_epoch_end:]) > 0):
@@ -583,6 +589,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     tmp_exp_actions = []
     tmp_baselines_ = []
     tmp_advantage = []
+    otherData = {"agent_ids": [],
+     "task_ids": []}
     ### data is in format (state, agent), this "extend" does not work well for multi-agent simulation
     for s in range(len(states)):
         tmp_states.extend(states[s])
@@ -593,6 +601,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_G_ts.extend(G_ts[s])
         tmp_falls.extend(falls[s])
         tmp_exp_actions.extend(exp_actions[s])
+        otherData["agent_ids"].extend(agent_ids[s])
+        otherData["task_ids"].extend(task_ids[s])
         ### Advantage is in a different format (agent , state)
         adv__ = []
         base__ = []
@@ -603,7 +613,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_advantage.extend(adv__)
     tmp_advantage = np.array(tmp_advantage)
 
-    tuples = (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions)
+    
+    tuples = (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions, otherData)
     
     ### Doesn't work with simulations that have multiple state types/definitions
     if ("perform_multiagent_training" in settings):
@@ -691,6 +702,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     exp_actions = []
     values = []
     evalDatas = []
+    data = {}
     i = 0 
     
     if ("num_on_policy_rollouts" in settings):
@@ -756,7 +768,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
                     visualizeEvaluation=visualizeEvaluation)
             """
             epoch_ = epoch_ + 1
-            (states_, actions_, result_states_, rewards_, falls_, G_ts_, advantage_, exp_actions_) = tuples
+            (states_, actions_, result_states_, rewards_, falls_, G_ts_, advantage_, exp_actions_, data_) = tuples
             samples__ = samples__ + len(states_)
             states.append(states_)
             actions.append(actions_)
@@ -766,6 +778,13 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             G_ts.append(G_ts_)
             advantage.append(advantage_)
             exp_actions.append(exp_actions_)
+            
+            for key in data_:
+                if key in data:
+                    data[key].append(data_[key])
+                else:
+                    data[key] = data_[key]
+                
             if( type == 'eval'):
             
                 if model.samples() >= batch_size:
@@ -822,7 +841,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     if ( type == "keep_alive"
          or type == "Get_Net_Params"):
         return datas__
-    tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
+    tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions, data)
     return (tuples, discounted_values, values, evalDatas)
 
 # @profile(precision=5)
