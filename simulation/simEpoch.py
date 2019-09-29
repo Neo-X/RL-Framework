@@ -589,8 +589,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     tmp_exp_actions = []
     tmp_baselines_ = []
     tmp_advantage = []
-    otherData = {"agent_ids": [],
-     "task_ids": []}
+    otherData = {"agent_id": [],
+     "task_id": []}
     ### data is in format (state, agent), this "extend" does not work well for multi-agent simulation
     for s in range(len(states)):
         tmp_states.extend(states[s])
@@ -601,8 +601,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_G_ts.extend(G_ts[s])
         tmp_falls.extend(falls[s])
         tmp_exp_actions.extend(exp_actions[s])
-        otherData["agent_ids"].extend(agent_ids[s])
-        otherData["task_ids"].extend(task_ids[s])
+        otherData["agent_id"].extend(agent_ids[s])
+        otherData["task_id"].extend(task_ids[s])
         ### Advantage is in a different format (agent , state)
         adv__ = []
         base__ = []
@@ -613,7 +613,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_advantage.extend(adv__)
     tmp_advantage = np.array(tmp_advantage)
 
-    
+    # print ("otherData:", otherData)
     tuples = (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions, otherData)
     
     ### Doesn't work with simulations that have multiple state types/definitions
@@ -702,7 +702,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
     exp_actions = []
     values = []
     evalDatas = []
-    data = {}
+    data = []
     i = 0 
     
     if ("num_on_policy_rollouts" in settings):
@@ -778,12 +778,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             G_ts.append(G_ts_)
             advantage.append(advantage_)
             exp_actions.append(exp_actions_)
-            
-            for key in data_:
-                if key in data:
-                    data[key].append(data_[key])
-                else:
-                    data[key] = data_[key]
+            data.append(data_)
                 
             if( type == 'eval'):
             

@@ -468,11 +468,11 @@ def trainModelParallel(inputData):
         else:
             if (settings['on_policy'] == True):
                 
-                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, masterAgent, settings,
+                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_, datas), experiencefd = collectExperience(actor, None, masterAgent, settings,
                            sim_work_queues=sim_work_queues, 
                            eval_episode_data_queue=eval_episode_data_queue)
             else:
-                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, masterAgent, settings,
+                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_, datas), experiencefd = collectExperience(actor, None, masterAgent, settings,
                            sim_work_queues=input_anchor_queue, 
                            eval_episode_data_queue=eval_episode_data_queue)
             masterAgent.setExperience(experience)
@@ -729,7 +729,7 @@ def trainModelParallel(inputData):
                                                        ,p=p)
                     
                     (tuples, discounted_sum, q_value, evalData) = out
-                    (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__) = tuples
+                    (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__, datas__) = tuples
                     if ( ('anneal_on_policy' in settings) and settings['anneal_on_policy']):  
                         p_tmp_ = p 
                     else:
@@ -737,7 +737,7 @@ def trainModelParallel(inputData):
                     
                     for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
-                                           _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_)
+                                           _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_, datas=datas__)
                     masterAgent.reset()
                     
                     data = getLearningData(masterAgent, settings, p)

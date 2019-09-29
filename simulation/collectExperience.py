@@ -115,6 +115,14 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         advantage = np.array(list(itertools.chain(*advantage_)))
         G_ts = np.array(list(itertools.chain(*G_ts_)))
         exp_actions = np.array(list(itertools.chain(*exp_actions_)))
+        data_ = {}
+        for key in data[0]:
+            data_[key] = []
+        for tra in data:
+            for key in tra:
+                data_[key].extend(tra[key])
+        for key in data_:
+            data_[key] = np.array(data_[key])
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print (" Shape states: ", states.shape)
             print (" Shape Actions: ", actions.shape)
@@ -124,6 +132,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             print (" Shape G_ts: ", G_ts.shape)
             print (" Shape advantage: ", advantage.shape)
             print (" Shape exp_actions: ", exp_actions.shape)
+            for key in data_:
+                print ("Shape data", key, ": ", data_[key].shape )
         
         scale_factor = 1.0
         
@@ -185,7 +195,6 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             print ("Max Action:" + str(action_bounds[1]))
             print ("Min Action:" + str(action_bounds[0]))
         """
-        
         # for state, action, resultState, reward, fall, G_t, exp_action, adv in zip(states, actions, resultStates, rewards, falls, G_ts, exp_actions, advantage):
         for j in range(len(states)):
             state = states[j]
@@ -193,8 +202,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             statefd = state
             resultStatefd = resultState
             data___ = {}
-            for key in data:
-                data___[key] = data[key][j]
+            for key in data_:
+                data___[key] = data_[key][j]
             if ("use_dual_state_representations" in settings
                 and (settings["use_dual_state_representations"] == True)):
                 statefd = state[1]
@@ -218,7 +227,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                 model.insertTuple(([state], [actions[j]], [resultState], [rewards[j]], [falls[j]], [G_ts[j]], [exp_actions[j]], [advantage[j]], data___))
                 if ( "keep_seperate_fd_exp_buffer" in settings 
                      and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                    model.insertFDTuple(([statefd], [actions[j]], [resultStatefd], [rewards[j]], [falls[j]], [G_ts[j]], [exp_action[j]], [advs[j]], data___))
+                    model.insertFDTuple(([statefd], [actions[j]], [resultStatefd], [rewards[j]], [falls[j]], [G_ts[j]], [exp_actions[j]], [advantage[j]], data___))
             else:
                 model.insertTuple(([state], [actions[j]], [resultState], [rewards[j]], [falls[j]], [G_ts[j]], [exp_action[j]], [advantage[j]], data___))
                 
@@ -244,11 +253,11 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                 
         for e in range(len(_states)):
             model.insertTrajectory(_states[e], actions_[e], _result_states[e], rewards_[e], 
-                                        falls_[e], G_ts_[e], advantage_[e], exp_actions_[e])
+                                        falls_[e], G_ts_[e], advantage_[e], exp_actions_[e], data[e])
             if ( "keep_seperate_fd_exp_buffer" in settings 
                      and ( settings["keep_seperate_fd_exp_buffer"] == True )):
                 model.insertFDTrajectory(_states_fd[e], actions_[e], _result_states_fd[e], rewards_[e], 
-                                            falls_[e], G_ts_[e], advantage_[e], exp_actions_[e])
+                                            falls_[e], G_ts_[e], advantage_[e], exp_actions_[e], data[e])
         
         if ('state_normalization' in settings and 
             (settings["state_normalization"] == "adaptive")):

@@ -78,6 +78,12 @@ class ExperienceMemory(object):
         else:
         """
         self._exp_action_history = (np.zeros((self._history_size, 1), dtype='int8'))
+        
+        self._data = {
+            "agent_id": list(range(self._history_size)), 
+            "task_id": list(range(self._history_size))}
+        
+        
             
         self._trajectory_history = [None] * self._trajectory_size
         self._samplesTrajectory = 0
@@ -110,18 +116,18 @@ class ExperienceMemory(object):
         """
         return self._trajectory_history[i]
         
-    def insertTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions):
+    def insertTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions, data):
         """
             Insert a trajectory as a collection of sequences
         """
         assert len(states[0]) == self._state_length
         assert len(actions[0]) == self._action_length
         
-        self._insertTrajectory([states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions])
+        self._insertTrajectory([states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions, data])
         
     def get_multitask_trajectory_batch(self, batch_size=4, excludeActionTypes=[], randomLength=False, randomStart=False):
         
-        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_ = self.get_trajectory_batch(batch_size=batch_size, cast=False)
+        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_, data_ = self.get_trajectory_batch(batch_size=batch_size, cast=False)
         
         ### Find length of shortest trajectory...
         min_seq_length = 1
@@ -176,6 +182,7 @@ class ExperienceMemory(object):
             G_ts_[t] = G_ts_[t][traj_start:shortest_traj]
             exp_actions_[t] = exp_actions_[t][traj_start:shortest_traj]
             advantage_[t] = advantage_[t][traj_start:shortest_traj]
+            data_[t] = data_[t][traj_start:shortest_traj]
             
         state_ = np.array(state_, dtype=self._settings['float_type'])
         if (self._continuous_actions):
@@ -211,6 +218,7 @@ class ExperienceMemory(object):
         G_ts = []
         exp_actions = []
         advantage = []
+        datas = []
         indices = set([])
         trys = 0
         ### collect batch and try at most 3 times the batch size for valid tuples
@@ -235,6 +243,7 @@ class ExperienceMemory(object):
             G_ts.append(norm_state(self._trajectory_history[i][5], self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
             advantage.append(self._trajectory_history[i][6])
             exp_actions.append(self._trajectory_history[i][7])
+            datas.append(self._trajectory_history[i][8])
             
         # print c
         # print experience[indices]
@@ -263,15 +272,15 @@ class ExperienceMemory(object):
         # assert advantage.shape == (len(indices), 1), "G_ts.shape == (len(indices), 1): " + str(advantage.shape) + " == " + str((len(indices), 1))
         # assert len(np.unique(indices)[0]) == batch_size, "np.unique(indices).shape[0] == batch_size: " + str(np.unique(indices).shape[0]) + " == " + str(batch_size)
         
-        return (state, action, resultState, reward, fall, G_ts, exp_actions, advantage)
+        return (state, action, resultState, reward, fall, G_ts, exp_actions, advantage, datas)
         
         
     def insertTuple(self, tuple):
         
-        (state, action, nextState, reward, fall, G_t, exp_action, advantage) = tuple
-        self.insert(state, action, nextState, reward, fall, G_t, exp_action, advantage)
+        (state, action, nextState, reward, fall, G_t, exp_action, advantage, data) = tuple
+        self.insert(state, action, nextState, reward, fall, G_t, exp_action, advantage, data)
         
-    def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]], exp_action=[[0]], advantage=[[0]]):
+    def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]], exp_action=[[0]], advantage=[[0]], data={}):
         # print "Instert State: " + str(state)
         # state = list(state)
         if ("use_hack_state_trans" in self.getSettings()
@@ -316,6 +325,8 @@ class ExperienceMemory(object):
         self._exp_action_history[self._history_update_index] = copy.deepcopy(np.array(exp_action))
         # print ("fall: ", fall)
         # print ("self._fall_history: ", self._fall_history[self._history_update_index])
+        for key in data:
+            self._data[key][self._history_update_index] = data[key]
         
         self._inserts+=1
         self._history_update_index+=1
@@ -436,6 +447,9 @@ class ExperienceMemory(object):
         exp_actions = []
         advantage = []
         indices = set([])
+        data = {}
+        for key in self._data:
+            data[key] = []
         trys = 0
         ### collect batch and try at most 5 times the batch size for valid tuples
         while len(indices) <  batch_size and (trys < batch_size*5):
@@ -495,6 +509,9 @@ class ExperienceMemory(object):
             advantage.append(self._advantage_history[i])
             exp_actions.append(self._exp_action_history[i])
             
+            for key in self._data:
+                data[key].append(self_data[key][self._history_update_index])
+            
         # print c
         # print experience[indices]
         if (self._settings['float_type'] == 'float32'):
@@ -533,7 +550,7 @@ class ExperienceMemory(object):
         assert advantage.shape == (len(indices), 1), "G_ts.shape == (len(indices), 1): " + str(advantage.shape) + " == " + str((len(indices), 1))
         # assert len(np.unique(indices)[0]) == batch_size, "np.unique(indices).shape[0] == batch_size: " + str(np.unique(indices).shape[0]) + " == " + str(batch_size)
         
-        return (state, action, resultState, reward, fall, G_ts, exp_actions, advantage)
+        return (state, action, resultState, reward, fall, G_ts, exp_actions, advantage, data)
     
     def get_batch_fast(self, batch_size=32, excludeActionTypes=[]):
         """

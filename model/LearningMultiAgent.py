@@ -902,16 +902,17 @@ class LearningMultiAgent(LearningAgent):
             
     def insertTuple(self, tuple):
         ([state], [action], [resultState], [reward], [fall], [G_t], [exp_action], [adv], data) = tuple
-        self.getAgents()[data["agent_id"]].insertTuple(tuple)
+        # print("data: ", data)
+        self.getAgents()[data["agent_id"][0]].insertTuple(tuple)
         
     def insertTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions, data):
-        self.getAgents()[falls[0][0]].insertTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions, data)
+        self.getAgents()[data["agent_id"][0][0]].insertTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions, data)
         
     def insertFDTuple(self, tuple):
         ([state], [action], [resultState], [reward], [fall], [G_t], [exp_action], [adv], data) = tuple
-        self.getAgents()[fall[0]].insertFDTuple(tuple)
+        self.getAgents()[data["agent_id"][0]].insertFDTuple(tuple)
     def insertFDTrajectory(self, states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions, data):
-        self.getAgents()[falls[0][0]].insertFDTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions, data)
+        self.getAgents()[data["agent_id"][0][0]].insertFDTrajectory(states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions, data)
         
     def samples(self):
         return self.getAgents()[0].samples()
