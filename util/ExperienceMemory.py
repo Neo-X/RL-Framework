@@ -137,7 +137,7 @@ class ExperienceMemory(object):
         traj_start = 0
         for t in range(len(state_)):
             if len(state_[t]) < shortest_traj:
-                shortesget_trajectory_batcht_traj = len(state_[t])
+                shortest_traj = len(state_[t])
                 
         use_random_sequence_length_for_lstm = False
         if ("use_random_sequence_length_for_lstm" in self._settings
