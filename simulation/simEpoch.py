@@ -875,6 +875,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
     exp_actions = []
     values = []
     evalDatas = []
+    data = []
     i = 0 
     
     if ("num_on_policy_rollouts" in settings):
@@ -943,7 +944,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         evalDatas.append(evalData_)
 
         epoch_ = epoch_ + 1
-        (states_, actions_, result_states_, rewards_, falls_, G_ts_, advantage_, exp_actions_) = tuples
+        (states_, actions_, result_states_, rewards_, falls_, G_ts_, advantage_, exp_actions_, data_) = tuples
         samples__ = samples__ + len(states_)
         states.append(states_)
         actions.append(actions_)
@@ -953,6 +954,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         G_ts.append(G_ts_)
         advantage.append(advantage_)
         exp_actions.append(exp_actions_)
+        data.append(data_)
         
         
         if (samples__ < (min_samples)):
@@ -1008,7 +1010,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
     assert (j == 0)
     
     
-    tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions)
+    tuples = (states, actions, result_states, rewards, falls, G_ts, advantage, exp_actions, data)
     if( type == 'eval'):
         
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
