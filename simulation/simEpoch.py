@@ -559,7 +559,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         path['reward'] = np.array(np.array(rewards[last_epoch_end:])[:,a,:])
         path['falls'] = np.array(np.array(falls[last_epoch_end:])[:,a,:])
         path['agent_id'] = np.array(np.array(agent_ids[last_epoch_end:])[:,a,:])
-        path['task_id'] = np.array(np.array(task_ids[last_epoch_end:])[:,a,:])
+        if (worker_id is not None):
+            path['task_id'] = np.array(np.array(task_ids[last_epoch_end:])[:,a,:])
         path["terminated"] = False
         ## Append so that we can preserve the paths/trajectory structure.
         if (len(rewards[last_epoch_end:]) > 0):
@@ -589,8 +590,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     tmp_exp_actions = []
     tmp_baselines_ = []
     tmp_advantage = []
-    otherData = {"agent_id": [],
-     "task_id": []}
+    otherData = {"agent_id": []}
+    if (worker_id is not None):
+        otherData["task_id"] = []
+        
     ### data is in format (state, agent), this "extend" does not work well for multi-agent simulation
     for s in range(len(states)):
         tmp_states.extend(states[s])
@@ -602,7 +605,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_falls.extend(falls[s])
         tmp_exp_actions.extend(exp_actions[s])
         otherData["agent_id"].extend(agent_ids[s])
-        otherData["task_id"].extend(task_ids[s])
+        if (worker_id is not None):
+            otherData["task_id"].extend(task_ids[s])
         ### Advantage is in a different format (agent , state)
         adv__ = []
         base__ = []

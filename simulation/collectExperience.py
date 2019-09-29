@@ -44,7 +44,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     action_bounds = settings["action_bounds"]
     state_bounds = settings['state_bounds']
     experiencefd = None
-    data__ = ([],[],[],[],[],[],[],[])
+    data__ = ([],[],[],[],[],[],[],[], [])
     if (settings["bootsrap_with_discrete_policy"]) and (settings['bootstrap_samples'] > 0):
         if settings['action_space_continuous']:
             if ("use_viz_for_policy" in settings 
@@ -299,6 +299,33 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                     experience.append(exp_)
             else:
                 experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['experience_length'], continuous_actions=True, settings = settings)
+            
+            if ( "keep_seperate_fd_exp_buffer" in settings 
+                and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+                state_bounds_fd__ = getFDStateSize(settings)
+                if ("perform_multiagent_training" in settings):
+                    ### Might be a bug because the fd sizes could be different for each agent
+                    experiencefd = []
+                    for i in range(settings["perform_multiagent_training"]):
+                        settings__ = copy.deepcopy(settings)
+                        settings__['state_bounds'] = settings['state_bounds'][i]
+                        settings__['action_bounds'] = settings['action_bounds'][i]
+                        settings__['reward_bounds'] = settings['reward_bounds'][i]
+                        state_bounds_fd__ = getFDStateSize(settings__)
+                        action_bounds_fd__ = settings__['action_bounds']
+                        experience__fd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds_fd__[0]), settings['experience_length'][i],
+                                          continuous_actions=True, settings = settings__ 
+                                          # result_state_length=settings["dense_state_size"]
+                                          ) 
+                        experience__fd.setRewardBounds(settings__['reward_bounds'])
+                        experiencefd.append(experience__fd)
+                else:
+                    experiencefd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds[0]), settings['experience_length'],
+                                      continuous_actions=True, settings = settings 
+                                      # result_state_length=settings["dense_state_size"]
+                                      )
+                    experiencefd.setRewardBounds(settings__['reward_bounds'])
+                model.setFDExperience(experiencefd)
         else:
             experience = ExperienceMemory(len(model.getStateBounds()[0]), 1, settings['experience_length'])
             experience.setSettings(settings)
@@ -336,10 +363,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
     G_ts = []
     advantage = []
     exp_actions = []
-    # anchor_data_file = open(settings["anchor_file"])
-    # _anchors = getAnchors(anchor_data_file)
-    # print ("Length of anchors epochs: " + str(len(_anchors)))
-    # anchor_data_file.close()
+    datas = []
     episode_ = 0
     while i < samples:
         ## Actor should be FIRST here
@@ -379,7 +403,15 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         G_ts.extend(G_t_)
         advantage.extend(advantage_)
         exp_actions.extend(exp_actions_)
-        
+        datas.extend(data)
+        """
+        for key in data:
+            if key in datas:
+                datas[key].extend(data[key])
+            else:
+                datas[key] = []
+                datas[key].extend(data[key])
+        """
         for j in range(len(states_)):
             i=i+len(states_[j])
         episode_ += 1
@@ -394,5 +426,5 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
 
     print ("Done collecting experience.")
     return (np.array(states), np.array(actions), np.array(resultStates), np.array(rewards), 
-            np.array(falls), np.array(G_ts), np.array(exp_actions), np.array(advantage), data)  
+            np.array(falls), np.array(G_ts), np.array(exp_actions), np.array(advantage), datas)  
 

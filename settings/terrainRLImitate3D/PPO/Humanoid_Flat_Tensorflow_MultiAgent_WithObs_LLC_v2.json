@@ -421,7 +421,7 @@
 	"comment__": "last policy type of activation to use",
 "last_policy_layer_activation_type": "linear",
 	"comment__": "Use a different off-policy experience memory for the fd learning",
-"keep_seperate_fd_exp_buffer": true,
+"keep_seperate_fd_exp_buffer": false,
 	"comment__": "Train a GAN to do something....",
 "train_gan": false,
 	"comment__": "Train GAN with gaussian noise",
@@ -472,5 +472,9 @@
 	"comment__": "Use an L2 loss over for the value function over the G_t from rollouts (no TD loss)",
 "dont_use_td_learning": true,
 	"comment__": "Add a negative reward when the robot falls",
-"use_fall_reward_shaping2": true
+"use_fall_reward_shaping2": true,
+	"comment__": "Data for using comet ML for logging learning experiments",
+"experiment_logging":
+	{"use_comet": true,
+	"project_name": "deepcrowds"}
 }
