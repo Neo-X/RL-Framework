@@ -91,7 +91,7 @@ def compute_advantage_(vf, paths, gamma, lam):
         # q_values
         # print("reward: ", path['reward'])
         ### state is in environment space not normalized space
-        b = path["baseline"] = vf.q_values2(path['states'], path["falls"])
+        b = path["baseline"] = vf.q_values2(path['states'], path["agent_id"])
         # print("Baseline: ", b.shape)
         b1 = np.append(b, 0 if path["terminated"] else b[-1])
         b1 = np.reshape(b1, (-1,1))
@@ -1107,8 +1107,8 @@ def getLearningData(masterAgent, settings, tmp_p):
                 masterAgent.getStateBounds(), 
                 masterAgent.getActionBounds(), 
                 masterAgent.getRewardBounds(), 
-                masterAgent.getPolicy().getNetworkParameters(),
-                 masterAgent.getForwardDynamics().getNetworkParameters())
+                masterAgent.getPolicyNetworkParameters(),
+                 masterAgent.getFDNetworkParameters())
         if ( "keep_seperate_fd_exp_buffer" in settings 
              and ( settings["keep_seperate_fd_exp_buffer"] == True )):
             data = ('Update_Policy', tmp_p, 
@@ -1173,9 +1173,9 @@ def setLearningData(masterAgent, settings, data):
              and ( settings["keep_seperate_fd_exp_buffer"] == True ))
             ):
             # print ("Updating fd bounds")
-            masterAgent.getForwardDynamics().setStateBounds(data[8])
-            masterAgent.getForwardDynamics().setActionBounds(data[9])
-            masterAgent.getForwardDynamics().setRewardBounds(data[10])
+            masterAgent.setFDStateBounds(data[8])
+            masterAgent.setFDActionBounds(data[9])
+            masterAgent.setFDRewardBounds(data[10])
         # masterAgent._p = data[1]
         masterAgent.setStateBounds(data[2])
         masterAgent.setActionBounds(data[3])

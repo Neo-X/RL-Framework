@@ -13,7 +13,7 @@ sudo apt-key adv --recv-keys --keyserver hkp://pool.sks-keyservers.net:80 0xA5D3
 
 sudo apt-get update
 
-sudo apt-get install -y singularity-container
+sudo apt-get install -y singularity-container=2.4.2-4
 ```
 
 

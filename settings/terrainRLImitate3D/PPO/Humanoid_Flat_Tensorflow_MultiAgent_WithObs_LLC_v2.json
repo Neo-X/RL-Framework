@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_v0/Tensorflow_Pushes_8",
+"data_folder": "PD_Humanoid3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_v0/Tensorflow_Pushes_9",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
@@ -421,7 +421,7 @@
 	"comment__": "last policy type of activation to use",
 "last_policy_layer_activation_type": "linear",
 	"comment__": "Use a different off-policy experience memory for the fd learning",
-"keep_seperate_fd_exp_buffer": true,
+"keep_seperate_fd_exp_buffer": false,
 	"comment__": "Train a GAN to do something....",
 "train_gan": false,
 	"comment__": "Train GAN with gaussian noise",
@@ -472,5 +472,9 @@
 	"comment__": "Use an L2 loss over for the value function over the G_t from rollouts (no TD loss)",
 "dont_use_td_learning": true,
 	"comment__": "Add a negative reward when the robot falls",
-"use_fall_reward_shaping2": true
+"use_fall_reward_shaping2": true,
+	"comment__": "Data for using comet ML for logging learning experiments",
+"experiment_logging":
+	{"use_comet": true,
+	"project_name": "deepcrowds"}
 }

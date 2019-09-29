@@ -44,7 +44,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
     action_bounds = settings["action_bounds"]
     state_bounds = settings['state_bounds']
     experiencefd = None
-    data__ = ([],[],[],[],[],[],[],[])
+    data__ = ([],[],[],[],[],[],[],[], [])
     if (settings["bootsrap_with_discrete_policy"]) and (settings['bootstrap_samples'] > 0):
         if settings['action_space_continuous']:
             if ("use_viz_for_policy" in settings 
@@ -68,10 +68,19 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                 and ( settings["keep_seperate_fd_exp_buffer"] == True )):
                 state_bounds_fd__ = getFDStateSize(settings)
                 if ("perform_multiagent_training" in settings):
-                    experiencefd = [ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds[0]), settings['experience_length'],
-                                      continuous_actions=True, settings = settings 
-                                      # result_state_length=settings["dense_state_size"]
-                                      ) for i in range(settings["perform_multiagent_training"])]
+                    ### Might be a bug because the fd sizes could be different for each agent
+                    experiencefd = []
+                    for i in range(settings["perform_multiagent_training"]):
+                        settings__ = copy.deepcopy(settings)
+                        settings__['state_bounds'] = settings['state_bounds'][i]
+                        settings__['action_bounds'] = settings['action_bounds'][i]
+                        state_bounds_fd__ = getFDStateSize(settings__)
+                        action_bounds_fd__ = settings__['action_bounds']
+                        experience__fd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds_fd__[0]), settings['experience_length'][i],
+                                          continuous_actions=True, settings = settings__ 
+                                          # result_state_length=settings["dense_state_size"]
+                                          ) 
+                        experiencefd.append(experience__fd)
                 else:
                     experiencefd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds[0]), settings['experience_length'],
                                       continuous_actions=True, settings = settings 
@@ -88,7 +97,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print ("Collecting bootstrap samples from simulation")
-        (states_, actions_, resultStates_, rewards_, falls_, G_ts_, exp_actions_, advantage_) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
+        (states_, actions_, resultStates_, rewards_, falls_, G_ts_, exp_actions_, advantage_, data) = collectExperienceActionsContinuous(actor, exp_val, model, settings['bootstrap_samples'], settings=settings, action_selection=action_selection, sim_work_queues=sim_work_queues, 
         
                                                                                                                    eval_episode_data_queue=eval_episode_data_queue)
         """
@@ -97,7 +106,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                                         falls_[e], G_ts_[e], advantage_[e], exp_actions[e])
         """
         
-        data__ = (states_, actions_, resultStates_, rewards_, falls_, G_ts_, exp_actions_, advantage_)
+        data__ = (states_, actions_, resultStates_, rewards_, falls_, G_ts_, exp_actions_, advantage_, data)
         states = np.array(list(itertools.chain(*states_)))
         actions = np.array(list(itertools.chain(*actions_)))
         resultStates = np.array(list(itertools.chain(*resultStates_)))
@@ -106,6 +115,14 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
         advantage = np.array(list(itertools.chain(*advantage_)))
         G_ts = np.array(list(itertools.chain(*G_ts_)))
         exp_actions = np.array(list(itertools.chain(*exp_actions_)))
+        data_ = {}
+        for key in data[0]:
+            data_[key] = []
+        for tra in data:
+            for key in tra:
+                data_[key].extend(tra[key])
+        for key in data_:
+            data_[key] = np.array(data_[key])
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print (" Shape states: ", states.shape)
             print (" Shape Actions: ", actions.shape)
@@ -115,6 +132,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             print (" Shape G_ts: ", G_ts.shape)
             print (" Shape advantage: ", advantage.shape)
             print (" Shape exp_actions: ", exp_actions.shape)
+            for key in data_:
+                print ("Shape data", key, ": ", data_[key].shape )
         
         scale_factor = 1.0
         
@@ -176,10 +195,15 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             print ("Max Action:" + str(action_bounds[1]))
             print ("Min Action:" + str(action_bounds[0]))
         """
-        
-        for state, action, resultState, reward, fall, G_t, exp_action, adv in zip(states, actions, resultStates, rewards, falls, G_ts, exp_actions, advantage):
+        # for state, action, resultState, reward, fall, G_t, exp_action, adv in zip(states, actions, resultStates, rewards, falls, G_ts, exp_actions, advantage):
+        for j in range(len(states)):
+            state = states[j]
+            resultState = resultStates[j]
             statefd = state
-            resultStatefd = state
+            resultStatefd = resultState
+            data___ = {}
+            for key in data_:
+                data___[key] = data_[key][j]
             if ("use_dual_state_representations" in settings
                 and (settings["use_dual_state_representations"] == True)):
                 statefd = state[1]
@@ -200,12 +224,12 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                     resultState = resultState[0]
             if settings['action_space_continuous']:
                 # experience.insert(norm_state(state, state_bounds), norm_action(action, action_bounds), norm_state(resultState, state_bounds), norm_reward([reward_], reward_bounds))
-                model.insertTuple(([state], [action], [resultState], [reward], [fall], [G_t], [exp_action], [adv]))
+                model.insertTuple(([state], [actions[j]], [resultState], [rewards[j]], [falls[j]], [G_ts[j]], [exp_actions[j]], [advantage[j]], data___))
                 if ( "keep_seperate_fd_exp_buffer" in settings 
                      and ( settings["keep_seperate_fd_exp_buffer"] == True )):
-                    model.insertFDTuple(([statefd], [action], [resultStatefd], [reward], [fall], [G_t], [exp_action], [adv]))
+                    model.insertFDTuple(([statefd], [actions[j]], [resultStatefd], [rewards[j]], [falls[j]], [G_ts[j]], [exp_actions[j]], [advantage[j]], data___))
             else:
-                model.insertTuple(([state], [action], [resultState], [reward], [falls], G_t, [exp_action], [adv]))
+                model.insertTuple(([state], [actions[j]], [resultState], [rewards[j]], [falls[j]], [G_ts[j]], [exp_action[j]], [advantage[j]], data___))
                 
         ### Need to normalize data
         _states = []
@@ -229,11 +253,11 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                 
         for e in range(len(_states)):
             model.insertTrajectory(_states[e], actions_[e], _result_states[e], rewards_[e], 
-                                        falls_[e], G_ts_[e], advantage_[e], exp_actions_[e])
+                                        falls_[e], G_ts_[e], advantage_[e], exp_actions_[e], data[e])
             if ( "keep_seperate_fd_exp_buffer" in settings 
                      and ( settings["keep_seperate_fd_exp_buffer"] == True )):
                 model.insertFDTrajectory(_states_fd[e], actions_[e], _result_states_fd[e], rewards_[e], 
-                                            falls_[e], G_ts_[e], advantage_[e], exp_actions_[e])
+                                            falls_[e], G_ts_[e], advantage_[e], exp_actions_[e], data[e])
         
         if ('state_normalization' in settings and 
             (settings["state_normalization"] == "adaptive")):
@@ -275,6 +299,33 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                     experience.append(exp_)
             else:
                 experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['experience_length'], continuous_actions=True, settings = settings)
+            
+            if ( "keep_seperate_fd_exp_buffer" in settings 
+                and ( settings["keep_seperate_fd_exp_buffer"] == True )):
+                state_bounds_fd__ = getFDStateSize(settings)
+                if ("perform_multiagent_training" in settings):
+                    ### Might be a bug because the fd sizes could be different for each agent
+                    experiencefd = []
+                    for i in range(settings["perform_multiagent_training"]):
+                        settings__ = copy.deepcopy(settings)
+                        settings__['state_bounds'] = settings['state_bounds'][i]
+                        settings__['action_bounds'] = settings['action_bounds'][i]
+                        settings__['reward_bounds'] = settings['reward_bounds'][i]
+                        state_bounds_fd__ = getFDStateSize(settings__)
+                        action_bounds_fd__ = settings__['action_bounds']
+                        experience__fd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds_fd__[0]), settings['experience_length'][i],
+                                          continuous_actions=True, settings = settings__ 
+                                          # result_state_length=settings["dense_state_size"]
+                                          ) 
+                        experience__fd.setRewardBounds(settings__['reward_bounds'])
+                        experiencefd.append(experience__fd)
+                else:
+                    experiencefd = ExperienceMemory(len(state_bounds_fd__[0]), len(action_bounds[0]), settings['experience_length'],
+                                      continuous_actions=True, settings = settings 
+                                      # result_state_length=settings["dense_state_size"]
+                                      )
+                    experiencefd.setRewardBounds(settings__['reward_bounds'])
+                model.setFDExperience(experiencefd)
         else:
             experience = ExperienceMemory(len(model.getStateBounds()[0]), 1, settings['experience_length'])
             experience.setSettings(settings)
@@ -312,10 +363,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
     G_ts = []
     advantage = []
     exp_actions = []
-    # anchor_data_file = open(settings["anchor_file"])
-    # _anchors = getAnchors(anchor_data_file)
-    # print ("Length of anchors epochs: " + str(len(_anchors)))
-    # anchor_data_file.close()
+    datas = []
     episode_ = 0
     while i < samples:
         ## Actor should be FIRST here
@@ -341,7 +389,7 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         # if self._p <= 0.0:
         #    self._output_queue.put(out)
         (tuples, discounted_sum_, q_value_, evalData) = out
-        (states_, actions_, result_states_, rewards_, falls_, G_t_, advantage_, exp_actions_) = tuples
+        (states_, actions_, result_states_, rewards_, falls_, G_t_, advantage_, exp_actions_, data) = tuples
 
         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
             print ("Shape other states_: ", np.array(states_).shape)
@@ -355,7 +403,15 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
         G_ts.extend(G_t_)
         advantage.extend(advantage_)
         exp_actions.extend(exp_actions_)
-        
+        datas.extend(data)
+        """
+        for key in data:
+            if key in datas:
+                datas[key].extend(data[key])
+            else:
+                datas[key] = []
+                datas[key].extend(data[key])
+        """
         for j in range(len(states_)):
             i=i+len(states_[j])
         episode_ += 1
@@ -370,5 +426,5 @@ def collectExperienceActionsContinuous(actor, exp, model, samples, settings, act
 
     print ("Done collecting experience.")
     return (np.array(states), np.array(actions), np.array(resultStates), np.array(rewards), 
-            np.array(falls), np.array(G_ts), np.array(exp_actions), np.array(advantage))  
+            np.array(falls), np.array(G_ts), np.array(exp_actions), np.array(advantage), datas)  
 

@@ -405,9 +405,9 @@ def trainModelParallel(inputData):
         forwardDynamicsModel = None
         if (settings['train_forward_dynamics']):
             forwardDynamicsModel = createNewFDModel(settings, exp_val, model)
-            forwardDynamicsModel.setActor(actor)
+            # forwardDynamicsModel.setActor(actor)
             # forwardDynamicsModel.setEnvironment(exp)
-            forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
+            # forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
         if ("train_reward_distance_metric" in settings and
             (settings['train_reward_distance_metric'] == True )):
@@ -416,17 +416,11 @@ def trainModelParallel(inputData):
             settings_ = updateSettings(settings_, settings_["reward_metric_settings"])
             rewardModel = createNewFDModel(settings_, exp_val, model)
             rewardModel.setActor(actor)
-            # forwardDynamicsModel.setEnvironment(exp)
             rewardModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
         exp_val.finish()
-        # print ("forwardDynamicsModel.getStateBounds(): ", forwardDynamicsModel.getStateBounds())
-        # sys.exit()
         (agent, learning_workers) = createLearningAgent(settings, output_experience_queue, print_info=True)
         masterAgent = agent
-        # print ("NameSpace: " + str(namespace))
-        # sys.exit(0)
-        
         
         if ((settings['visualize_learning'] == False) 
             and (settings['save_trainData'] == True) ):
@@ -467,18 +461,18 @@ def trainModelParallel(inputData):
             m_q.put(message, timeout=timeout_)
         
         if ( int(settings["num_available_threads"]) ==  -1):
-           experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, exp_val, masterAgent, settings,
+           experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_, datas), experiencefd = collectExperience(actor, exp_val, masterAgent, settings,
                            sim_work_queues=None, 
                            eval_episode_data_queue=None)
             
         else:
             if (settings['on_policy'] == True):
                 
-                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, masterAgent, settings,
+                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_, datas), experiencefd = collectExperience(actor, None, masterAgent, settings,
                            sim_work_queues=sim_work_queues, 
                            eval_episode_data_queue=eval_episode_data_queue)
             else:
-                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, masterAgent, settings,
+                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_, datas), experiencefd = collectExperience(actor, None, masterAgent, settings,
                            sim_work_queues=input_anchor_queue, 
                            eval_episode_data_queue=eval_episode_data_queue)
             masterAgent.setExperience(experience)
@@ -486,14 +480,12 @@ def trainModelParallel(inputData):
         if ("fd_experience_length" in settings):
             fd_epxerience_length = settings["fd_experience_length"]
         if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
-            # masterAgent.setFDExperience(copy.deepcopy(masterAgent.getExperience()))
-            # experiencefd = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), fd_epxerience_length, 
-            #                                         continuous_actions=True, settings = settings, result_state_length=settings["dense_state_size"])
             state_bounds__ = getFDStateSize(settings)
-            experiencefd.setStateBounds(state_bounds__)
-            experiencefd.setActionBounds(action_bounds)
-            experiencefd.setRewardBounds(reward_bounds)
+            ### Might be some memory expenditure here with a double copy
             masterAgent.setFDExperience(copy.deepcopy(experiencefd))
+            masterAgent.setFDStateBounds(copy.deepcopy(state_bounds__))
+            masterAgent.setFDActionBounds(copy.deepcopy(action_bounds))
+            masterAgent.setFDRewardBounds(copy.deepcopy(reward_bounds))
             
         # print ("masterAgent.getFDExperience().getStateBounds() shape : ", masterAgent.getFDExperience().getStateBounds().shape)
         # sys.exit()
@@ -559,73 +551,15 @@ def trainModelParallel(inputData):
         
         masterAgent_message_queue = multiprocessing.Queue(settings['epochs'])
         
-        if (settings['train_forward_dynamics']):
-            if ( settings['load_saved_model'] == False ):
-                if ("use_dual_dense_state_representations" in settings
-                and (settings["use_dual_dense_state_representations"] == True)):
-                    forwardDynamicsModel.setStateBounds(state_bounds)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-                elif (("use_dual_state_representations" in settings
-                  and (settings["use_dual_state_representations"] == True))
-                    and (not (settings["forward_dynamics_model_type"] == "SingleNet"))
-                    and ("fd_use_multimodal_state" in settings
-                         and (settings["fd_use_multimodal_state"] == True))
-                    ):
-                    print ("Creating multi modal state size****")
-                    state_size__ = settings["fd_num_terrain_features"] + settings["dense_state_size"]
-                    if ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == True)):
-                        state_size__ = state_size__ + 2
-                    elif ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == "3D")):
-                        state_size__ = state_size__ + 3
-                    state_bounds__ = [[0] * (state_size__), 
-                                 [1] * (state_size__)]
-                    forwardDynamicsModel.setStateBounds(state_bounds__)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-                elif ("use_dual_state_representations" in settings
-                    and (settings["use_dual_state_representations"] == True)
-                    and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
-                    state_size__ = settings["fd_num_terrain_features"]
-                    if ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == True)):
-                        state_size__ = state_size__ + 2
-                    elif ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == "3D")):
-                        state_size__ = state_size__ + 3
-                    state_bounds__ = np.array([[0] * state_size__, 
-                                     [1] * state_size__])
-                    if ("use_dual_dense_state_representations" in settings
-                        and (settings["use_dual_dense_state_representations"] == True)):
-                        state_bounds = np.array(settings['state_bounds'])
-                    forwardDynamicsModel.setStateBounds(state_bounds__)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-                else:
-                    forwardDynamicsModel.setStateBounds(state_bounds)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-            masterAgent.setForwardDynamics(forwardDynamicsModel)
-        
         ## Now everything related to the exp memory needs to be updated
         bellman_errors=[]
         masterAgent.setPolicy(model)
-        # masterAgent.setForwardDynamics(forwardDynamicsModel)
-        # learningNamespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
-        # learningNamespace.model = model
         print("Master agent state bounds: ",  repr(masterAgent.getStateBounds()))
-        # sys.exit()
         for sw in sim_workers: # Need to update parameter bounds for models
-            # sw._model.setPolicy(copy.deepcopy(model))
-            # sw.updateModel()
-            # sw.updateForwardDynamicsModel()
             print ("exp: ", sw._exp)
             print ("sw modle: ", sw._model.getPolicy()) 
             
             
-        # learningNamespace.experience = experience
         ## If not on policy
         if ( not settings['on_policy']):
             for lw in learning_workers:
@@ -741,13 +675,13 @@ def trainModelParallel(inputData):
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)
             and (trainData["round"] == 0)):
             pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
-                           falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
+                           falls_, G_ts_, exp_actions, advantage_, datas, sim_work_queues, 
                            eval_episode_data_queue)
             
         if ("pretrain_fd" in settings and (settings["pretrain_fd"] > 0)
             and (trainData["round"] == 0)):
             pretrainFD(masterAgent, states, actions, resultStates, rewards_, 
-                           falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
+                           falls_, G_ts_, exp_actions, advantage_, datas, sim_work_queues, 
                            eval_episode_data_queue)
         
         print ("Starting first round: ", trainData["round"])
@@ -795,7 +729,7 @@ def trainModelParallel(inputData):
                                                        ,p=p)
                     
                     (tuples, discounted_sum, q_value, evalData) = out
-                    (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__) = tuples
+                    (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__, datas__) = tuples
                     if ( ('anneal_on_policy' in settings) and settings['anneal_on_policy']):  
                         p_tmp_ = p 
                     else:
@@ -803,7 +737,7 @@ def trainModelParallel(inputData):
                     
                     for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
-                                           _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_)
+                                           _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_, datas=datas__)
                     masterAgent.reset()
                     
                     data = getLearningData(masterAgent, settings, p)
@@ -836,7 +770,7 @@ def trainModelParallel(inputData):
                 error = 0
                 rewards = 0
                 if masterAgent.samples() >= batch_size:
-                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.get_batch(batch_size, 0)
+                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage, datas = masterAgent.get_batch(batch_size, 0)
                     # print ("Batch size: " + str(batch_size))
                     masterAgent.reset()
                     error = masterAgent.bellman_error()
@@ -853,7 +787,7 @@ def trainModelParallel(inputData):
                             batch_size_lstm = 4
                             if ("lstm_batch_size" in settings):
                                 batch_size_lstm = settings["lstm_batch_size"][1]
-                            states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_ = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
+                            states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_, datas = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
                             loss__ = masterAgent.getPolicy().get_critic_loss(states_, actions_, rewards_, result_states_)
                         else:
                             loss__ = masterAgent.getPolicy().get_critic_loss(states, actions, rewards, result_states)
@@ -890,7 +824,7 @@ def trainModelParallel(inputData):
                 if (settings['train_forward_dynamics']):
                     if ( 'keep_seperate_fd_exp_buffer' in settings 
                          and (settings['keep_seperate_fd_exp_buffer'])):
-                        states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getFDExperience().get_batch(batch_size)
+                        states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage, datas = masterAgent.getFDBatch(batch_size)
                     masterAgent.reset()
                     if (("train_LSTM_FD" in settings)
                         and (settings["train_LSTM_FD"] == True)):
@@ -898,7 +832,7 @@ def trainModelParallel(inputData):
                         if ("lstm_batch_size" in settings):
                             batch_size_lstm_fd = settings["lstm_batch_size"][0]
                         ### This can consume a lot of memory if trajectories are long...
-                        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=2)
+                        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
                         dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(state_, action_, resultState_, reward_)
                     else:
                         dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
@@ -915,7 +849,7 @@ def trainModelParallel(inputData):
                             if ("lstm_batch_size" in settings):
                                 batch_size_lstm_fd = settings["lstm_batch_size"][0]
                             ### This can consume a lot of memory if trajectories are long...
-                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=2)
+                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
                             dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
                         else:
                             dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
@@ -1091,11 +1025,11 @@ def trainModelParallel(inputData):
                     # error = np.mean(np.fabs(error), axis=1)
                     # trainData["std_bellman_error"].append(std_bellman_error)
                     if (settings['train_forward_dynamics']):
-                        logExperimentData(trainData, "mean_forward_dynamics_loss", mean_forward_dynamics_loss, settings)
-                        logExperimentData(trainData, "std_forward_dynamics_loss", std_forward_dynamics_loss, settings)
+                        logExperimentData(trainData, "mean_forward_dynamics_loss", mean_dynamicsLosses, settings)
+                        logExperimentData(trainData, "std_forward_dynamics_loss", std_dynamicsLosses, settings)
                         if (settings['train_reward_predictor']):
-                            logExperimentData(trainData, "mean_forward_dynamics_reward_loss", mean_forward_dynamics_reward_loss, settings)
-                            logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_forward_dynamics_reward_loss, settings)
+                            logExperimentData(trainData, "mean_forward_dynamics_reward_loss", mean_dynamicsRewardLosses, settings)
+                            logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_dynamicsRewardLosses, settings)
                             
                     ### Lets always save a figure for the learning...
                     if ( settings['save_trainData'] and (not settings['visualize_learning'])):

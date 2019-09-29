@@ -1318,20 +1318,44 @@ def createNewFDModel(settings, env, model):
     
     forwardDynamicsModel = None
     if (settings['train_forward_dynamics']):
-        actor = createActor(settings['environment_type'], settings, None)
-        if ( settings['forward_dynamics_model_type'] == "SingleNet"
-             and (settings['use_single_network'] == True)):
-            print ("Creating forward dynamics network: Using single network model")
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model)
-            # forwardDynamicsModel = model
+        if ("perform_multiagent_training" in settings):
+            for i in range(settings["perform_multiagent_training"]):
+                forwardDynamicsModel = []
+                actor = createActor(settings['environment_type'], settings, None)
+                settings__ = copy.deepcopy(settings)
+                settings__['state_bounds'] = settings['state_bounds'][i]
+                settings__['action_bounds'] = settings['action_bounds'][i]
+                state_bounds = getFDStateSize(settings__)
+                action_bounds = settings__['action_bounds']
+                if ( settings['forward_dynamics_model_type'] == "SingleNet"
+                     and (settings['use_single_network'] == True)):
+                    print ("Creating forward dynamics network: Using single network model")
+                    settings__["agent_id"] = m
+                    # settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
+                    # settings__["policy_network_layer_sizes"] = settings["policy_network_layer_sizes"][m]
+                    forwardDynamicsModel_ = createForwardDynamicsModel(settings__, state_bounds, action_bounds, None, None, agentModel=model)
+                    # forwardDynamicsModel = model
+                else:
+                    print ("Creating forward dynamics network")
+                    # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
+                    forwardDynamicsModel_ = createForwardDynamicsModel(settings__, state_bounds, action_bounds, None, None, agentModel=None)
+                # masterAgent.setForwardDynamics(forwardDynamicsModel)
+                forwardDynamicsModel_.setActor(actor)
+                # forwardDynamicsModel.setEnvironment(exp)
+                forwardDynamicsModel_.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
+                forwardDynamicsModel.append(forwardDynamicsModel_)
         else:
-            print ("Creating forward dynamics network")
-            # forwardDynamicsModel = ForwardDynamicsNetwork(state_length=len(state_bounds[0]),action_length=len(action_bounds[0]), state_bounds=state_bounds, action_bounds=action_bounds, settings_=settings)
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None)
-        # masterAgent.setForwardDynamics(forwardDynamicsModel)
-        forwardDynamicsModel.setActor(actor)
-        # forwardDynamicsModel.setEnvironment(exp)
-        forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
+            actor = createActor(settings['environment_type'], settings, None)
+            if ( settings['forward_dynamics_model_type'] == "SingleNet"
+                 and (settings['use_single_network'] == True)):
+                print ("Creating forward dynamics network: Using single network model")
+                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=model)
+                # forwardDynamicsModel = model
+            else:
+                print ("Creating forward dynamics network")
+                forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None)
+            forwardDynamicsModel.setActor(actor)
+            forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
 
     if ("fd_algorithm" in settings and
             settings["fd_algorithm"] == "algorithm.VAE.VAE" and
