@@ -1206,9 +1206,9 @@ class LearningAgent(AgentInterface):
             batch_size_lstm = 4
             if ("lstm_batch_size" in self.getSettings()):
                 batch_size_lstm = self.getSettings()["lstm_batch_size"][1]
-            state, action, result_state, reward, fall, G_ts_, exp_actions_, advantages_ = self.get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, self.getExperience().samplesTrajectory()))
+            state, action, result_state, reward, fall, G_ts_, exp_actions_, advantages_, datas = self.get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, self.getExperience().samplesTrajectory()))
         else:
-            state, action, result_state, reward, fall, _G_ts, exp_actions, advantage = self.get_batch(batch_size)
+            state, action, result_state, reward, fall, _G_ts, exp_actions, advantage, datas = self.get_batch(batch_size)
         if ("use_hack_state_trans" in self.getSettings()
             and (self.getSettings()["use_hack_state_trans"] == True)):
             import numpy as np
@@ -1342,14 +1342,14 @@ class LearningAgent(AgentInterface):
         else:
             return self.getExperience().samples()
     
-    def get_batch(self, size_):
-        return self.getExperience().get_batch(size_)
+    def get_batch(self, batch_size):
+        return self.getExperience().get_batch(batch_size)
     
     def get_multitask_trajectory_batch(self, batch_size):
         return self.getExperience().get_multitask_trajectory_batch(batch_size)
     
-    def getFDBatch(self, size_):
-        return self.getFDExperience().get_batch(size_)
+    def getFDBatch(self, batch_size):
+        return self.getFDExperience().get_batch(batch_size)
     def getFDmultitask_trajectory_batch(self, batch_size):
         return self.getFDExperience().get_multitask_trajectory_batch(batch_size)
     

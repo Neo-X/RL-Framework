@@ -184,7 +184,7 @@ def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval
     return (sim_workers, sim_work_queues)
     
 def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
-                   sim_work_queues, eval_episode_data_queue):
+                   sim_work_queues, datas=None, eval_episode_data_queue=None):
     from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
     settings__ = copy.deepcopy(masterAgent.getSettings())
     settings__2 = copy.deepcopy(masterAgent.getSettings())
@@ -204,7 +204,7 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
         print ("pretraining critic round: ", i)
         masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
                                        _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
-                                       _G_t=G_ts_, p=1.0)
+                                       _G_t=G_ts_, datas=datas, p=1.0)
         ### Send keep alive to sim processes
         if (masterAgent.getSettings()['on_policy'] == "fast"):
             out = simModelMoreParrallel( sw_message_queues=sim_work_queues
@@ -227,7 +227,7 @@ def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_,
     print ("Done pretraining critic")
     
 def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
-                   sim_work_queues, eval_episode_data_queue):
+                   sim_work_queues, datas=None, eval_episode_data_queue=None):
     from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
     settings__ = copy.deepcopy(masterAgent.getSettings())
     settings__2 = copy.deepcopy(masterAgent.getSettings())
@@ -243,7 +243,7 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
         print ("pretraining fd round: ", i)
         masterAgent.train(_states=states, _actions=actions, _rewards=rewards_, _result_states=resultStates,
                                        _falls=falls_, _advantage=advantage_, _exp_actions=exp_actions, 
-                                       _G_t=G_ts_, p=1.0)
+                                       _G_t=G_ts_, datas=datas, p=1.0)
         ### Send keep alive to sim processes
         if (masterAgent.getSettings()['on_policy'] == "fast"):
             out = simModelMoreParrallel( sw_message_queues=sim_work_queues

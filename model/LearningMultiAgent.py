@@ -928,14 +928,17 @@ class LearningMultiAgent(LearningAgent):
     def samples(self):
         return self.getAgents()[0].samples()
     
-    def get_batch(self, size_, m):
-        return self.getAgents()[m].get_batch(size_)
+    def get_batch(self, batch_size, m=0):
+        return self.getAgents()[m].get_batch(batch_size)
     
-    def getFDBatch(self, size_, m=0):
-        return self.getAgents()[m].getFDBatch(size_)
+    def get_multitask_trajectory_batch(self, batch_size, m=0):
+        return self.getAgents()[m].get_multitask_trajectory_batch(batch_size)
     
-    def getFDmultitask_trajectory_batch(self, size_, m=0):
-        return self.getAgents()[m].getFDmultitask_trajectory_batch(size_)
+    def getFDBatch(self, batch_size, m=0):
+        return self.getAgents()[m].getFDBatch(batch_size)
+    
+    def getFDmultitask_trajectory_batch(self, batch_size, m=0):
+        return self.getAgents()[m].getFDmultitask_trajectory_batch(batch_size)
         
     def saveTo(self, directory, bestPolicy=False, bestFD=False, suffix=""):
         from util.SimulationUtil import getAgentName

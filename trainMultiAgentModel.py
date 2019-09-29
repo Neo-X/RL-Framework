@@ -461,7 +461,7 @@ def trainModelParallel(inputData):
             m_q.put(message, timeout=timeout_)
         
         if ( int(settings["num_available_threads"]) ==  -1):
-           experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, exp_val, masterAgent, settings,
+           experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_, datas), experiencefd = collectExperience(actor, exp_val, masterAgent, settings,
                            sim_work_queues=None, 
                            eval_episode_data_queue=None)
             
@@ -675,13 +675,13 @@ def trainModelParallel(inputData):
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)
             and (trainData["round"] == 0)):
             pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
-                           falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
+                           falls_, G_ts_, exp_actions, advantage_, datas, sim_work_queues, 
                            eval_episode_data_queue)
             
         if ("pretrain_fd" in settings and (settings["pretrain_fd"] > 0)
             and (trainData["round"] == 0)):
             pretrainFD(masterAgent, states, actions, resultStates, rewards_, 
-                           falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
+                           falls_, G_ts_, exp_actions, advantage_, datas, sim_work_queues, 
                            eval_episode_data_queue)
         
         print ("Starting first round: ", trainData["round"])
@@ -770,7 +770,7 @@ def trainModelParallel(inputData):
                 error = 0
                 rewards = 0
                 if masterAgent.samples() >= batch_size:
-                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.get_batch(batch_size, 0)
+                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage, datas = masterAgent.get_batch(batch_size, 0)
                     # print ("Batch size: " + str(batch_size))
                     masterAgent.reset()
                     error = masterAgent.bellman_error()
@@ -787,7 +787,7 @@ def trainModelParallel(inputData):
                             batch_size_lstm = 4
                             if ("lstm_batch_size" in settings):
                                 batch_size_lstm = settings["lstm_batch_size"][1]
-                            states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_ = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
+                            states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_, datas = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
                             loss__ = masterAgent.getPolicy().get_critic_loss(states_, actions_, rewards_, result_states_)
                         else:
                             loss__ = masterAgent.getPolicy().get_critic_loss(states, actions, rewards, result_states)
@@ -824,7 +824,7 @@ def trainModelParallel(inputData):
                 if (settings['train_forward_dynamics']):
                     if ( 'keep_seperate_fd_exp_buffer' in settings 
                          and (settings['keep_seperate_fd_exp_buffer'])):
-                        states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getFDBatch(batch_size)
+                        states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage, datas = masterAgent.getFDBatch(batch_size)
                     masterAgent.reset()
                     if (("train_LSTM_FD" in settings)
                         and (settings["train_LSTM_FD"] == True)):
@@ -832,7 +832,7 @@ def trainModelParallel(inputData):
                         if ("lstm_batch_size" in settings):
                             batch_size_lstm_fd = settings["lstm_batch_size"][0]
                         ### This can consume a lot of memory if trajectories are long...
-                        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=2)
+                        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
                         dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(state_, action_, resultState_, reward_)
                     else:
                         dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
@@ -849,7 +849,7 @@ def trainModelParallel(inputData):
                             if ("lstm_batch_size" in settings):
                                 batch_size_lstm_fd = settings["lstm_batch_size"][0]
                             ### This can consume a lot of memory if trajectories are long...
-                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=2)
+                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
                             dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
                         else:
                             dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
