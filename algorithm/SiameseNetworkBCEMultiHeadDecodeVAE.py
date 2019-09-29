@@ -466,7 +466,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
     def updateTargetModel(self):
         pass
                 
-    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True):
+    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True, datas=None):
         """
             states will come for the agent and
             results_states can come from the imitation agent
@@ -509,7 +509,7 @@ class SiameseNetworkBCEMultiHeadDecodeVAE(SiameseNetwork):
                     # sequences1.extend(sequences1_)
                     # targets_.extend(targets___)
             else:
-                sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
+                sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, datas["task_id"], self._settings)
             sequences0 = np.array(sequences0)
             # print ("sequences0 shape: ", sequences0.shape)
             sequences1 = np.array(sequences1)

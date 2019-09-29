@@ -378,7 +378,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
         self._model.processed_b_r_target.set_weights(self._model.processed_b_r_target.get_weights())
         assert np.allclose(self._model.processed_a_r.get_weights()[0], self._model.processed_a_r_target.get_weights()[0])
           
-    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True):
+    def train(self, states, actions, result_states, rewards, falls=None, updates=1, batch_size=None, p=1, lstm=True, datas=None):
         """
             states will come for the agent and
             results_states can come from the imitation agent
@@ -401,7 +401,7 @@ class MultiModalSiameseNetworkMultiHead(KERASAlgorithm):
             if (falls is None):
                 sequences0, sequences1, targets_ = create_sequences2(states, result_states, self._settings)
             else:
-                sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, falls, self._settings)
+                sequences0, sequences1, targets_ = create_multitask_sequences(states, result_states, datas["task_id"], self._settings)
             """
             for jk in range(len(sequences0)):
                 print ("sequences0 " , jk, ": len = ", len(sequences0[jk]))

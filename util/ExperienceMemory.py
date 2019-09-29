@@ -137,7 +137,7 @@ class ExperienceMemory(object):
         traj_start = 0
         for t in range(len(state_)):
             if len(state_[t]) < shortest_traj:
-                shortest_traj = len(state_[t])
+                shortesget_trajectory_batcht_traj = len(state_[t])
                 
         use_random_sequence_length_for_lstm = False
         if ("use_random_sequence_length_for_lstm" in self._settings
@@ -182,7 +182,8 @@ class ExperienceMemory(object):
             G_ts_[t] = G_ts_[t][traj_start:shortest_traj]
             exp_actions_[t] = exp_actions_[t][traj_start:shortest_traj]
             advantage_[t] = advantage_[t][traj_start:shortest_traj]
-            data_[t] = data_[t][traj_start:shortest_traj]
+            for key in data_[t]:
+                data_[t][key] = data_[t][key][traj_start:shortest_traj]
             
         state_ = np.array(state_, dtype=self._settings['float_type'])
         if (self._continuous_actions):
@@ -197,7 +198,7 @@ class ExperienceMemory(object):
         fall_ = np.array(fall_, dtype='int8')
         exp_actions_ = np.array(exp_actions_, dtype='int8')
             
-        return (state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_)
+        return (state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions_, advantage_, data_)
         
     def get_trajectory_batch(self, batch_size=4, excludeActionTypes=[], cast=True):
         """
@@ -243,7 +244,7 @@ class ExperienceMemory(object):
             G_ts.append(norm_state(self._trajectory_history[i][5], self.getRewardBounds()) * ((1.0-self._settings['discount_factor'])))
             advantage.append(self._trajectory_history[i][6])
             exp_actions.append(self._trajectory_history[i][7])
-            datas.append(self._trajectory_history[i][8])
+            datas.append(copy.deepcopy(self._trajectory_history[i][8]))
             
         # print c
         # print experience[indices]
