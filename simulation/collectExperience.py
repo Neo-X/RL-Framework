@@ -274,6 +274,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                 for i in range(settings["perform_multiagent_training"]):
                     settings__ = copy.deepcopy(settings)
                     settings__["agent_id"] = i
+                    settings__["action_bounds"] = settings["action_bounds"][i]
+                    settings__["state_bounds"] = settings["state_bounds"][i]
                     if ("policy_connections" in settings
                         and (any([i == m[1] for m in settings["policy_connections"]])) ):
                         other_agent_id = 1

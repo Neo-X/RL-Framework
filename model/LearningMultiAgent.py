@@ -369,12 +369,12 @@ class LearningMultiAgent(LearningAgent):
         ### Get the data for both policies
         (states__h, actions__h, rewards__h, result_states__h,
                 falls__h, advantage__h, exp_actions__h, G_t__h, datas__h) = self.getSingleAgentData(_states, 
-                    _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t,
+                    _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, datas,
                     agent_num=0)
         old_shape = np.array(actions__h).shape
         (states__l, actions__l, rewards__l, result_states__l,
                 falls__l, advantage__l, exp_actions__l, G_t__l, datas__l) = self.getSingleAgentData(_states, 
-                    _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t,
+                    _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, datas,
                     agent_num=1)
         ### For each trajectory calculate new goal
         trajectories = len(states__l)
@@ -429,14 +429,14 @@ class LearningMultiAgent(LearningAgent):
          falls__h, advantage__h, exp_actions__h, G_t__h, datas__h) = self.getSingleAgentData(_states,
                                                                                    _actions, _rewards, _result_states,
                                                                                    _falls, _advantage, _exp_actions,
-                                                                                   _G_t, datas,
+                                                                                   _G_t, datas=datas,
                                                                                    agent_num=0)
         old_shape = np.array(actions__h).shape
         (states__l, actions__l, rewards__l, result_states__l,
          falls__l, advantage__l, exp_actions__l, G_t__l, datas__l) = self.getSingleAgentData(_states,
                                                                                    _actions, _rewards, _result_states,
                                                                                    _falls, _advantage, _exp_actions,
-                                                                                   _G_t, datas,
+                                                                                   _G_t, datas=datas,
                                                                                    agent_num=1)
         hindsight_relabel_probability = 1.0 if not "hindsight_relabel_probability" in self.getSettings() else self.getSettings()["hindsight_relabel_probability"]
         subgoal_testing_probability = 1.0 if not "subgoal_testing_probability" in self.getSettings() else self.getSettings()["subgoal_testing_probability"]
@@ -473,7 +473,7 @@ class LearningMultiAgent(LearningAgent):
                 falls__h, advantage__h, exp_actions__h, G_t__h, datas__h)
         
     def getSingleAgentData(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
-              _exp_actions, _G_t, agent_num, datas):
+              _exp_actions, _G_t, datas, agent_num):
         states__ = [state_[agent_num::len(self.getAgents())] for state_ in _states]
         result_states__ = [state_[agent_num::len(self.getAgents())] for state_ in _result_states]
         if ("policy_connections" in self.getSettings()
@@ -523,8 +523,8 @@ class LearningMultiAgent(LearningAgent):
             ### Pull out the state for each agent, start at agent index and skip every number of agents 
             (states__, actions__, rewards__, result_states__,
                 falls__, advantage__, exp_actions__, G_t__, datas__) = self.getSingleAgentData(_states, 
-                    _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t,
-                    agent_num=agent_, datas=datas)
+                    _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, datas=datas,
+                    agent_num=agent_)
             result_states_tmp = copy.deepcopy(result_states__)
 
             if ( "use_centralized_critic" in self.getSettings()
@@ -624,7 +624,7 @@ class LearningMultiAgent(LearningAgent):
                         ### Replace actions with actions of other agent
                         (_, actions__, _, _,
                         _, _, _, _) = self.getSingleAgentData(_states, 
-                            _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, 
+                            _actions, _rewards, _result_states, _falls, _advantage, _exp_actions, _G_t, datas=datas
                             agent_num=self.getSettings()["policy_connections"][c][0])
                         ### Update the llp model weights
                         self.getAgents()[self.getSettings()["policy_connections"][c][1]].updateFrontPolicy(
