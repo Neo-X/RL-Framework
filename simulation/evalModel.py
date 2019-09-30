@@ -39,7 +39,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
                 visualizeEvaluation=visualizeEvaluation, bootstrapping=bootstrapping, sampling=sampling, epsilon=settings['epsilon'],
                 movieWriter=movieWriter)
         epoch_ = epoch_ + 1
-        (states, actions, result_states, rewards, falls, G_t, advantage, exp_actions) = tuples
+        (states, actions, result_states, rewards, falls, G_t, advantage, exp_actions, datas) = tuples
         # print (states, actions, rewards, result_states, discounted_sum, value)
         # print ("Evaluated Actions: ", actions)
         # print ("Evaluated Rewards: ", rewards)
