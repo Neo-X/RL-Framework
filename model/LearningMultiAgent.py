@@ -701,6 +701,8 @@ class LearningMultiAgent(LearningAgent):
         exp_action = []
         entropy = []
         for m in range(len(state)):
+            # by convention the highest levels in the hierarchy come first
+
             if ( "use_centralized_critic" in self.getSettings()
                  and (self.getSettings()["use_centralized_critic"] == True)):
                 ### Need to assemble centralized states
@@ -708,6 +710,26 @@ class LearningMultiAgent(LearningAgent):
 
             else:
                 state_ = state[m]
+
+            """ Brandon:
+            This code manages converting actions from higher agents into goals of lower agents.
+            Assume that state does not have a goal concatenates to it.
+            """
+            state_ = np.array(state_)
+            if m > 0:
+                # if index is not the highest level policy, which has no goal to concat.
+                # concat on the action of the higher level onto the state
+                goal = np.array(act[-1])
+                while len(goal.shape) < len(state_.shape):
+                    # if the state has extra dimensions, then copy those dimensions
+                    # assume that the goal and the state always have a batch dimension first
+                    goal = goal[:, None, ...]
+                    next_expansion_dim = len(state_.shape) - len(goal.shape) - 1
+                    goal = np.tile(goal, [state_.shape[next_expansion_dim]] + [1 for _i in goal.shape])
+                # by this point state and goals should be the same along every axis except the last
+                # if this is false then one is likely not a simple vector
+                assert all([i == j for i, j in zip(state_.shape[:-1], goal.shape[:-1])])
+                state_ = np.concat([np.array(state_), goal], -1)
 
             use_hle = ( "hlc_index" in self.getSettings()
                 and "llc_index" in self.getSettings()
