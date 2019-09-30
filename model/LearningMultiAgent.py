@@ -316,13 +316,13 @@ class LearningMultiAgent(LearningAgent):
                 _exp_actions[tar] =  _exp_actions[tar][:tmp_len][0::skip_num][:-1]
                 _G_t[tar] =  _G_t[tar][:tmp_len][0::skip_num][:-1]
                 
-                datas__ = {}
-                for key in datas:
-                    datas__[key] = datas[key][tar][:tmp_len][0::skip_num][:-1]
+                for key in datas[tar]:
+                    datas[tar][key] = datas[tar][key][:tmp_len][0::skip_num][:-1]
                 
                 path = {"states": np.array(states__[tar]),
                         "reward": np.array(rewards__[tar]),
                         "falls": np.array(falls__[tar]), 
+                        "agent_id": np.array(datas[tar]["agent_id"]),
                         "terminated": False}
                 ### Recompute advantage now that some states may be skipped
                 paths = compute_advantage_(model, [path], model._settings["discount_factor"], model._settings['GAE_lambda'])
@@ -332,7 +332,7 @@ class LearningMultiAgent(LearningAgent):
                 # assert np.ceil(tmp_len/skip_num) == len(states__[tar]), "np.ceil(tmp_len/skip_num) == len(states__[tar])" + str(np.ceil(tmp_len/skip_num)) + " == " + str(len(states__[tar]))            
         
         return  (states__, actions__, rewards__, result_states__, falls__, _advantage, 
-                  _exp_actions, _G_t)
+                  _exp_actions, _G_t, datas)
         
     def sampleGoals(self, states, actions):
         ### get goal

@@ -506,11 +506,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # else:
             # print("Pushing actual fall value before : ", agent_not_fell)
             # print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])
-            # falls.append([[agent_not_fell]] * len(state_))
         if type(agent_not_fell) is list:
             falls.append(agent_not_fell)
         else:
-            falls.append([[agent_not_fell]])
+            falls.append([[agent_not_fell]] * len(state_))
+            # falls.append([[agent_not_fell]])
                 
         exp_act = exp_action
         exp_actions.append(exp_act)
