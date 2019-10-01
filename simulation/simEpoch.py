@@ -184,7 +184,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 
                 # print ("state_", repr(state_))
                 (action, exp_action, entropy_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
-                                                    sampling=sampling, time_step=i)
+                                                    sampling=sampling, time_step=i_)
                 # print ("action", repr(action))
             else: 
                 ### exploit policy
