@@ -964,7 +964,7 @@ class LearningAgent(AgentInterface):
         return self._noise_
     
     def sample(self, state_, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False,
-               sampling=False):
+               sampling=False, time_step=0):
         """
             The logic for sampling for different types of distributions
         """
