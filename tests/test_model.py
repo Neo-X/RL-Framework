@@ -1,6 +1,6 @@
 from numpy.testing import assert_allclose
 import numpy as np
-from nose.tools import timed
+# from nose.tools import timed
 import warnings
 from model.ModelUtil import *
 import pytest
