@@ -69,7 +69,7 @@ class TestTD3(object):
         
         # @pytest.mark.timeout(600)
     def test_td3_keras_clevrObjects_HRL_MARL(self):
-        from trainMultiAgentModel import trainModelParallel as trainMultiAgentModelParallel
+        from trainModel import trainModelParallel as trainModelParallel
         """
         
         """

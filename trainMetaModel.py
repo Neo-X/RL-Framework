@@ -128,7 +128,7 @@ def trainMetaModel(settingsFileName, samples=10, settings=None, numThreads=1, hy
         file.close()
     
     # if ( "perform_multiagent_training" in settings):
-    from trainMultiAgentModel import trainModelParallel
+    from trainModel import trainModelParallel
     # else:
     #     from trainModel import trainModelParallel
         
