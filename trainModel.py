@@ -1244,8 +1244,8 @@ def trainModelParallel(inputData):
                         
                         mean_criticLosses = np.mean([np.mean(cl) for cl in criticLosses])
                         std_criticLosses = np.mean([np.std(acl) for acl in criticLosses])
-                        logExperimentData(trainData, "mean_critic_loss", mean_critic_loss, settings)
-                        logExperimentData(trainData, "std_critic_loss", std_critic_loss, settings)
+                        logExperimentData(trainData, "mean_critic_loss", mean_criticLosses, settings)
+                        logExperimentData(trainData, "std_critic_loss", std_criticLosses, settings)
                         criticLosses = []
                         if (settings['visualize_learning']):
                             critic_loss_viz.updateLoss(np.array(trainData["mean_critic_loss"]), np.array(trainData["std_critic_loss"]))
@@ -1256,8 +1256,8 @@ def trainModelParallel(inputData):
                         
                         mean_criticRegularizationCosts = np.mean(criticRegularizationCosts)
                         std_criticRegularizationCosts = np.std(criticRegularizationCosts)
-                        logExperimentData(trainData, "mean_critic_regularization_cost", mean_critic_regularization_cost, settings)
-                        logExperimentData(trainData, "std_critic_regularization_cost", std_critic_regularization_cost, settings)
+                        logExperimentData(trainData, "mean_critic_regularization_cost", mean_criticRegularizationCosts, settings)
+                        logExperimentData(trainData, "std_critic_regularization_cost", std_criticRegularizationCosts, settings)
                         criticRegularizationCosts = []
                         if (settings['visualize_learning']):
                             critic_regularization_viz.updateLoss(np.array(trainData["mean_critic_regularization_cost"]), np.array(trainData["std_critic_regularization_cost"]))

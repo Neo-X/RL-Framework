@@ -376,6 +376,7 @@ class LearningMultiAgent(LearningAgent):
     def applyHIRO(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t, datas):
         import numpy as np
+        print ("Applying HIRO")
         ### Relable trajectory goal to new goals that have higher prob after LLP update
         ### Get the data for both policies
         (states__h, actions__h, rewards__h, result_states__h,
