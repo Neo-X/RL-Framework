@@ -40,11 +40,20 @@ class LearningMultiAgent(LearningAgent):
             agent = LearningAgent(settings__)
             self._agents.append(agent)
         # self._agents = [LearningAgent(self.getSettings()) for i in range(self.getSettings()["perform_multiagent_training"])]
+        # list of periods over which each agent is active
+        # TODO: make this not specific to 2 agents
+        self.time_skips = [1, self.getSettings()["hlc_timestep"]]
+        self.latest_actions = [None, None]
+        self.latest_exp_act = [None, None]
+        self.latest_entropy = [None, None]
         
     def getAgents(self):
         return self._agents
     
     def reset(self):
+        self.latest_actions = [None, None]
+        self.latest_exp_act = [None, None]
+        self.latest_entropy = [None, None]
         [p.reset() for p in self.getAgents()]
         
     def getPolicy(self):
@@ -692,7 +701,7 @@ class LearningMultiAgent(LearningAgent):
         return act
     
     def sample(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False, use_mbrl=False, 
-               sampling=False):
+               sampling=False, time_step=0):
         if self._useLock:
             self._accesLock.acquire()
         # print ("MARL sample: ", repr(state))
@@ -719,7 +728,7 @@ class LearningMultiAgent(LearningAgent):
             if m > 0:
                 # if index is not the highest level policy, which has no goal to concat.
                 # concat on the action of the higher level onto the state
-                goal = np.array(act[-1])
+                goal = np.array(self.latest_actions[m - 1])
                 while len(goal.shape) < len(state_.shape):
                     # if the state has extra dimensions, then copy those dimensions
                     # assume that the goal and the state always have a batch dimension first
@@ -780,9 +789,16 @@ class LearningMultiAgent(LearningAgent):
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
                     sampling=sampling)
 
-            act.append(action[0])
-            exp_action.append([exp_act])
-            entropy.append(entropy_)
+            if time_step % self.time_skips[m] == 0:
+                # if this value is true then this level in the hierarchy is active
+                # otherwise use the actions exp actions and entropy from previous steps
+                self.latest_actions[m] = action
+                self.latest_exp_act[m] = exp_act
+                self.latest_entropy[m] = entropy_
+
+            act.append(self.latest_actions[m])
+            exp_action.append([self.latest_exp_act[m]])
+            entropy.append(self.latest_entropy[m])
 
         if self._useLock:
             self._accesLock.release()
