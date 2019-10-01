@@ -728,7 +728,7 @@ class LearningMultiAgent(LearningAgent):
             if m > 0:
                 # if index is not the highest level policy, which has no goal to concat.
                 # concat on the action of the higher level onto the state
-                goal = np.array(self.latest_actions[m - 1])
+                goal = np.array(self.latest_actions[m - 1][0])
                 while len(goal.shape) < len(state_.shape):
                     # if the state has extra dimensions, then copy those dimensions
                     # assume that the goal and the state always have a batch dimension first
@@ -738,7 +738,7 @@ class LearningMultiAgent(LearningAgent):
                 # by this point state and goals should be the same along every axis except the last
                 # if this is false then one is likely not a simple vector
                 assert all([i == j for i, j in zip(state_.shape[:-1], goal.shape[:-1])])
-                state_ = np.concat([np.array(state_), goal], -1)
+                state_ = np.concatenate([np.array(state_), goal], -1)
 
             use_hle = ( "hlc_index" in self.getSettings()
                 and "llc_index" in self.getSettings()
@@ -789,14 +789,14 @@ class LearningMultiAgent(LearningAgent):
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
                     sampling=sampling)
 
-            if time_step % self.time_skips[m] == 0:
+            if time_step == 0 or time_step % self.time_skips[m] == 0:
                 # if this value is true then this level in the hierarchy is active
                 # otherwise use the actions exp actions and entropy from previous steps
                 self.latest_actions[m] = action
                 self.latest_exp_act[m] = exp_act
                 self.latest_entropy[m] = entropy_
 
-            act.append(self.latest_actions[m])
+            act.append(self.latest_actions[m][0])
             exp_action.append([self.latest_exp_act[m]])
             entropy.append(self.latest_entropy[m])
 
