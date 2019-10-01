@@ -17,7 +17,7 @@ class TestSimulation(object):
     
     # @pytest.mark.timeout(600)
     def test_collect_tuples(self):
-        filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD.json"
+        filename = "tests/settings/particleSim/PPO/PPO_KERAS_Tensorflow.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -28,6 +28,7 @@ class TestSimulation(object):
         settings['print_level'] = 'hyper_train'
         settings["simulation_timeout"] = 600
         
+        settings["perform_multiagent_training"] = 1
         settings['state_bounds'] = [[-1] * 11, [1] * 11]
         agent = DoNothingActor(settings_=settings, experience=None)
         env = DummyEnv(exp=None, settings=settings)
@@ -41,7 +42,7 @@ class TestSimulation(object):
              worker_id=None)
         
         (tuples, tmp_discounted_sum, tmp_baselines_, evalData) = out
-        (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions) = tuples
+        (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions, datas) = tuples
         # print ('out: ', out)
         assert ( len(tmp_states) == settings['max_epoch_length'])
         assert ( len(tmp_actions) == settings['max_epoch_length'])
@@ -53,10 +54,9 @@ class TestSimulation(object):
         assert ( len(tmp_exp_actions) == settings['max_epoch_length'])
        
      
-    
     # @pytest.mark.timeout(600)    
     def test_collect_tuples_discount_sum(self):
-        filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD.json"
+        filename = "tests/settings/particleSim/PPO/PPO_KERAS_Tensorflow.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -67,6 +67,7 @@ class TestSimulation(object):
         settings['print_level'] = 'hyper_train'
         settings["simulation_timeout"] = 60
         
+        settings["perform_multiagent_training"] = 1
         settings['state_bounds'] = [[-1] * 11, [1] * 11]
         agent = DoNothingActor(settings_=settings, experience=None)
         env = DummyEnv(exp=None, settings=settings)
@@ -80,7 +81,7 @@ class TestSimulation(object):
              worker_id=None)
         
         (tuples, tmp_discounted_sum, tmp_baselines_, evalData) = out
-        (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions) = tuples
+        (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions, datas) = tuples
         # print ('out: ', out)
         assert ( len(tmp_discounted_sum) == settings['max_epoch_length'])
         assert ( len(tmp_baselines_) == settings['max_epoch_length'])
@@ -89,7 +90,7 @@ class TestSimulation(object):
     
     # @pytest.mark.timeout(600)   
     def test_collect_tuples_fidd_length_episodes(self):
-        filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD.json"
+        filename = "tests/settings/particleSim/PPO/PPO_KERAS_Tensorflow.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -100,6 +101,7 @@ class TestSimulation(object):
         settings['print_level'] = 'hyper_train'
         settings["simulation_timeout"] = 60
         
+        settings["perform_multiagent_training"] = 1
         settings['state_bounds'] = [[-1] * 11, [1] * 11]
         agent = DoNothingActor(settings_=settings, experience=None)
         env = DummyEnv(exp=None, settings=settings)
@@ -115,7 +117,7 @@ class TestSimulation(object):
                  worker_id=None)
         
             (tuples, tmp_discounted_sum, tmp_baselines_, evalData) = out
-            (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions) = tuples
+            (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions, datas) = tuples
         # print ('out: ', out)
             assert ( len(tmp_states) == i)
             assert ( len(tmp_actions) == i)
@@ -128,7 +130,7 @@ class TestSimulation(object):
     
     # @pytest.mark.timeout(600)       
     def test_get_state_size_from_env(self):
-        filename = "tests/settings/gapGame2D/PPO/FixedSTD-v2.json"
+        filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -147,7 +149,7 @@ class TestSimulation(object):
         
     # @pytest.mark.timeout(600)       
     def test_get_action_size_from_env(self):
-        filename = "tests/settings/gapGame2D/PPO/FixedSTD-v2.json"
+        filename = "tests/settings/gapGame2D/PPO/SingleNet_FixedSTD_Tensorflow.json"
         file = open(filename)
         settings = json.load(file)
         file.close()
@@ -163,7 +165,6 @@ class TestSimulation(object):
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None   
-        
     
 
 if __name__ == '__main__':

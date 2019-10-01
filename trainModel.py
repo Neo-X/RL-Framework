@@ -99,90 +99,6 @@ def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
         print("Error: ", e)
         print (traceback.format_exc())
 
-def createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds, print_info=False):
-    """
-        Create the Learning Agent to be used
-    """
-    from model.LearningAgent import LearningAgent, LearningWorker
-    
-    learning_workers = []
-    for process in range(1):
-        agent = LearningAgent(settings_=settings)
-        
-        agent.setSettings(settings)
-        
-        lw = LearningWorker(output_experience_queue, agent, random_seed_=settings['random_seed']+process + 1)
-        learning_workers.append(lw)  
-    masterAgent = agent
-    return (agent, learning_workers)
-
-def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, state_bounds, action_bounds, reward_bounds, default_sim_id=None):
-    """
-        Creates a number of simulation workers and the message queues that
-        are used to tell them what to simulate.
-    """
-    
-    from model.LearningAgent import LearningAgent, LearningWorker
-    from simulation.SimWorker import SimWorker
-    from util.SimulationUtil import createActor, getAgentName, createSampler, createForwardDynamicsModel
-    
-    
-    sim_workers = []
-    sim_work_queues = []
-    for process in range(abs(settings['num_available_threads'])):
-        # this is the process that selects which game to play
-        exp_=None
-        
-        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
-            print ("Assigning same EXP")
-            exp_ = exp_val # This should not work properly for many simulations running at the same time. It could try and evalModel a simulation while it is still running samples 
-        print ("original exp: ", exp_)
-            # sys.exit()
-        ### Using a wrapper for the type of actor now
-        actor = createActor(settings['environment_type'], settings, None)
-        
-        agent = LearningAgent(settings_=settings)
-        agent.setSettings(settings)
-        agent.setPolicy(model)
-        if (settings['train_forward_dynamics']):
-            agent.setForwardDynamics(forwardDynamicsModel)
-        
-        elif ( settings['use_simulation_sampling'] ):
-            
-            sampler = createSampler(settings, exp_)
-            ## This should be some kind of copy of the simulator not a network
-            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp_, agentModel=None, print_info=True)
-            sampler.setForwardDynamics(forwardDynamicsModel)
-            # sampler.setPolicy(model)
-            agent.setSampler(sampler)
-            print ("thread together exp: ", sampler._exp)
-        
-        ### Check if this is to be a multi-task simulation
-        if type(settings['sim_config_file']) is list:
-            if (default_sim_id != None):
-                print("Setting sim_id to default id")
-                sim_id = default_sim_id
-            else:
-                print("Setting sim_id to process number")
-                sim_id = process
-        else:
-            print("Not Multi task simulation")
-            sim_id = None
-            
-        print("Setting sim_id to:" , sim_id)
-        if (settings['on_policy']):
-            message_queue = multiprocessing.Queue(1)
-        else:
-            message_queue = multiprocessing.Queue(settings['num_available_threads'])
-        sim_work_queues.append(message_queue)
-        w = SimWorker(input_anchor_queue, output_experience_queue, actor, exp_, agent, settings["discount_factor"], action_space_continuous=settings['action_space_continuous'], 
-                settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process + 1,
-                message_que=message_queue, worker_id=sim_id )
-        # w.start()
-        sim_workers.append(w)
-
-    return (sim_workers, sim_work_queues)
-    
 def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
                    sim_work_queues, datas=None, eval_episode_data_queue=None):
     from simulation.simEpoch import simModelParrallel, simModelMoreParrallel
@@ -268,24 +184,117 @@ def pretrainFD(masterAgent, states, actions, resultStates, rewards_, falls_, G_t
 
 # python -m memory_profiler example.py
 # @profile(precision=5)
+def createSimWorkers(settings, input_anchor_queue, output_experience_queue, eval_episode_data_queue, model, forwardDynamicsModel, exp_val, default_sim_id=None):
+    """
+        Creates a number of simulation workers and the message queues that
+        are used to tell them what to simulate.
+    """
+    
+    from model.LearningMultiAgent import LearningMultiAgent
+    from simulation.SimWorker import SimWorker
+    from util.SimulationUtil import createActor, getAgentName, createSampler, createForwardDynamicsModel
+    
+    
+    sim_workers = []
+    sim_work_queues = []
+    for process in range(abs(settings['num_available_threads'])):
+        # this is the process that selects which game to play
+        exp_=None
+        
+        if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
+            print ("Assigning same EXP")
+            exp_ = exp_val # This should not work properly for many simulations running at the same time. It could try and evalModel a simulation while it is still running samples 
+        print ("original exp: ", exp_)
+            # sys.exit()
+        ### Using a wrapper for the type of actor now
+        actor = createActor(settings['environment_type'], settings, None)
+        
+        agent = LearningMultiAgent(settings_=settings)
+        agent.setSettings(settings)
+        agent.setPolicy(model)
+        if (settings['train_forward_dynamics']):
+            agent.setForwardDynamics(forwardDynamicsModel)
+        
+        elif ( settings['use_simulation_sampling'] ):
+            
+            sampler = createSampler(settings, exp_)
+            ## This should be some kind of copy of the simulator not a network
+            forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp_, agentModel=None, print_info=True)
+            sampler.setForwardDynamics(forwardDynamicsModel)
+            # sampler.setPolicy(model)
+            agent.setSampler(sampler)
+            print ("thread together exp: ", sampler._exp)
+        
+        ### Check if this is to be a multi-task simulation
+        if type(settings['sim_config_file']) is list:
+            if (default_sim_id != None):
+                print("Setting sim_id to default id")
+                sim_id = default_sim_id
+            else:
+                print("Setting sim_id to process number")
+                sim_id = process
+        else:
+            print("Not Multi task simulation")
+            sim_id = None
+            
+        print("Setting sim_id to:" , sim_id)
+        if (settings['on_policy']):
+            message_queue = multiprocessing.Queue(1)
+        else:
+            message_queue = multiprocessing.Queue(settings['num_available_threads'])
+        sim_work_queues.append(message_queue)
+        w = SimWorker(input_anchor_queue, output_experience_queue, actor, exp_, agent, settings["discount_factor"], action_space_continuous=settings['action_space_continuous'], 
+                settings=settings, print_data=False, p=0.0, validation=True, eval_episode_data_queue=eval_episode_data_queue, process_random_seed=settings['random_seed']+process + 1,
+                message_que=message_queue, worker_id=sim_id )
+        # w.start()
+        sim_workers.append(w)
+
+    return (sim_workers, sim_work_queues)
+
+def createLearningAgent(settings, output_experience_queue, print_info=False):
+    """
+        Create the Learning Agent to be used
+    """
+    from model.LearningAgent import LearningWorker
+    from model.LearningMultiAgent import LearningMultiAgent
+    
+    learning_workers = []
+    for process in range(1):
+        agent = LearningMultiAgent(settings_=settings)
+        
+        agent.setSettings(settings)
+        
+        lw = LearningWorker(output_experience_queue, agent, random_seed_=settings['random_seed']+process + 1)
+        learning_workers.append(lw)  
+    masterAgent = agent
+    return (agent, learning_workers)
+
+# python -m memory_profiler example.py
+# @profile(precision=5)
 # def trainModelParallel(settingsFileName, settings):
 def trainModelParallel(inputData):
     # (sys.argv[1], settings)
-    profileCode = False
     settings = inputData[1]
+    if ("perform_multiagent_training" not in settings):
+        settings["perform_multiagent_training"] = 1
+        settings["state_bounds"] = [settings["state_bounds"]]
+        settings["action_bounds"] = [settings["action_bounds"]]
+        settings["reward_bounds"] = [settings["reward_bounds"]]
+        settings["exploration_rate"] = [settings["exploration_rate"]]
+        settings["experience_length"] = [settings["experience_length"]]
+        settings["critic_network_layer_sizes"] = [settings["critic_network_layer_sizes"]]
+        settings["policy_network_layer_sizes"] = [settings["policy_network_layer_sizes"]]
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     from simulation.LoggingWorker import LoggingWorker
     from util.SimulationUtil import validateSettings, getFDStateSize
     if (not validateSettings(settings)):
         return False
-    experiment = None
-    experiment = setupEnvironmentVariable(settings)
+    exp_logger = setupEnvironmentVariable(settings)
     settingsFileName = inputData[0]
     settings['sample_single_trajectories'] = True
     # settings['shouldRender'] = True
-    if profileCode:
-        pr = cProfile.Profile()
-        pr.enable()
+    # pr = cProfile.Profile()
+    # pr.enable()
     trainData = {}
     trainData["mean_reward"]=[]
     trainData["std_reward"]=[]
@@ -400,16 +409,14 @@ def trainModelParallel(inputData):
         ### These are the workers for training
         (sim_workers, sim_work_queues) = createSimWorkers(settings, input_anchor_queue, 
                                               output_experience_queue, eval_episode_data_queue, 
-                                              None, None, exp_val, state_bounds, action_bounds, 
-                                              reward_bounds)
+                                              [], [], exp_val)
 
         eval_sim_workers = sim_workers
         eval_sim_work_queues = sim_work_queues
         if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
             (eval_sim_workers, eval_sim_work_queues) = createSimWorkers(settings, input_anchor_queue_eval, 
                                                             output_experience_queue, eval_episode_data_queue, 
-                                                            None, forwardDynamicsModel, exp_val, state_bounds, 
-                                                            action_bounds, reward_bounds, 
+                                                            None, forwardDynamicsModel, exp_val,
                                                             default_sim_id=settings['override_sim_env_id'])
         else:
             input_anchor_queue_eval = input_anchor_queue
@@ -464,12 +471,13 @@ def trainModelParallel(inputData):
         from simulation.simEpoch import simEpoch, simModelParrallel, simModelMoreParrallel
         from simulation.evalModel import evalModelParrallel, evalModel, evalModelMoreParrallel
         from simulation.collectExperience import collectExperience
-        from model.ModelUtil import validBounds, fixBounds, anneal_value, getLearningData, compareNetParams
-        from model.LearningAgent import LearningAgent, LearningWorker
-        from util.SimulationUtil import createEnvironment
-        from util.SimulationUtil import createRLAgent, createNewFDModel
+        from model.ModelUtil import validBounds, fixBounds, anneal_value, getLearningData
+        # from model.LearningMultiAgent import LearningMultiAgent, LearningWorker
+        # from model.LearningAgent import LearningMultiAgent, LearningWorker
+        from util.SimulationUtil import createEnvironment, logExperimentData, saveData
+        from util.SimulationUtil import createRLAgent, createNewFDModel, processBounds
         from util.SimulationUtil import createActor, getAgentName, updateSettings
-        from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, processBounds
+        from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
         
         from util.ExperienceMemory import ExperienceMemory
         
@@ -483,82 +491,44 @@ def trainModelParallel(inputData):
         if not os.path.exists(directory):
             os.makedirs(directory)
             
-        ### Put git versions in settings file before save
-        from util.utils import get_git_revision_hash, get_git_revision_short_hash
-        settings['git_revision_hash'] = get_git_revision_hash()
-        settings['git_revision_short_hash'] = get_git_revision_short_hash()     
-        ### copy settings file
-        out_file_name=directory+os.path.basename(settingsFileName)
-        # print ("Saving settings file with data: ", out_file_name)
-        out_file = open(out_file_name, 'w')
-        out_file.write(json.dumps(settings, indent=4))
-        out_file.close()
-        ### Try and save algorithm and model files for reference
-        if "." in settings['model_type']:
-            ### convert . to / and copy file over
-            file_name = settings['model_type']
-            k = file_name.rfind(".")
-            file_name = file_name[:k]
-            file_name_read = file_name.replace(".", "/")
-            file_name_read = file_name_read + ".py"
-            print ("model file name:", file_name)
-            print ("os.path.basename(file_name): ", os.path.basename(file_name))
-            file = open(file_name_read, 'r')
-            out_file = open(directory+file_name+".py", 'w')
-            out_file.write(file.read())
-            file.close()
-            out_file.close()
-        if "." in settings['agent_name']:
-            ### convert . to / and copy file over
-            file_name = settings['agent_name']
-            k = file_name.rfind(".")
-            file_name = file_name[:k]
-            file_name_read = file_name.replace(".", "/")
-            file_name_read = file_name_read + ".py"
-            print ("model file name:", file_name)
-            print ("os.path.basename(file_name): ", os.path.basename(file_name))
-            file = open(file_name_read, 'r')
-            out_file = open(directory+file_name+".py", 'w')
-            out_file.write(file.read())
-            file.close()
-            out_file.close()
+        if ("pretrained_data_folder" in settings):
+            import shutil
+            pretrain_file = open(settings["pretrained_data_folder"], "r")
+            settings_pretrain = json.load(pretrain_file)
+            pretrain_file.close()
+            directory_pretrain = getDataDirectory(settings_pretrain)
+            for i in range(settings["perform_multiagent_training"]):
+                print ("copying over pretained files: ", directory_pretrain+getAgentName()+str(i)+"_Best_actor.h5" )
+                shutil.copy2(directory_pretrain+getAgentName()+str(i)+"_Best_actor.h5", directory+getAgentName()+str(i)+"_Best_actor.h5" )
+                shutil.copy2(directory_pretrain+getAgentName()+str(i)+"_Best_critic.h5", directory+getAgentName()+str(i)+"_Best_critic.h5" )
+                shutil.copy2(directory_pretrain+getAgentName()+str(i)+"_Best_critic_T.h5", directory+getAgentName()+str(i)+"_Best_critic_T.h5" )
+                shutil.copy2(directory_pretrain+getAgentName()+str(i)+"_Best_bounds.h5", directory+getAgentName()+str(i)+"_Best_bounds.h5" )
+            # sys.exit()
             
-        if (settings['train_forward_dynamics']):
-            if "." in settings['forward_dynamics_model_type']:
-                ### convert . to / and copy file over
-                file_name = settings['forward_dynamics_model_type']
-                k = file_name.rfind(".")
-                file_name = file_name[:k]
-                file_name_read = file_name.replace(".", "/")
-                file_name_read = file_name_read + ".py"
-                print ("model file name:", file_name)
-                print ("os.path.basename(file_name): ", os.path.basename(file_name))
-                file = open(file_name_read, 'r')
-                out_file = open(directory+file_name+".py", 'w')
-                out_file.write(file.read())
-                file.close()
-                out_file.close()
+        saveData(settings, settingsFileName)
             
         ### Using a wrapper for the type of actor now
         actor = createActor(settings['environment_type'], settings, None)
         exp_val = None
-        if ((action_bounds != "ask_env")
-            and
-            not validBounds(action_bounds)):
-            # Check that the action bounds are spcified correctly
-            print("Action bounds invalid: ", action_bounds)
-            sys.exit()
-        if ( (state_bounds != "ask_env") 
-             and not validBounds(state_bounds)):
-            # Probably did not collect enough bootstrapping samples to get good state bounds.
-            print("State bounds invalid: ", state_bounds)
-            state_bounds = fixBounds(np.array(state_bounds))
-            bound_fixed = validBounds(state_bounds)
-            print("State bounds fixed: ", bound_fixed)
-            # sys.exit()
-        if (not validBounds(reward_bounds)):
-            print("Reward bounds invalid: ", reward_bounds)
-            sys.exit()
+        for i in range(len(action_bounds)):
+            # print ("state_bounds[i]: ", state_bounds[i])
+            if ((action_bounds[i] != "ask_env")
+                and
+                not validBounds(action_bounds[i])):
+                # Check that the action bounds are specified correctly
+                print("Action bounds invalid: ", action_bounds[i])
+                sys.exit()
+            if ( (state_bounds[i] != "ask_env") 
+                 and not validBounds(state_bounds[i])):
+                # Probably did not collect enough bootstrapping samples to get good state bounds.
+                print("State bounds invalid: ", state_bounds[i])
+                state_bounds[i] = fixBounds(np.array(state_bounds[i]))
+                bound_fixed = validBounds(state_bounds[i])
+                print("State bounds fixed: ", bound_fixed)
+                # sys.exit()
+            if (not validBounds(reward_bounds[i])):
+                print("Reward bounds invalid: ", reward_bounds[i])
+                sys.exit()
         
         """
         if settings['action_space_continuous']:
@@ -568,7 +538,7 @@ def trainModelParallel(inputData):
             
         experience.setSettings(settings)
         """
-        
+
         # mgr = multiprocessing.Manager()
         # namespace = mgr.Namespace()
         ## This needs to be done after the simulation worker processes are created
@@ -580,18 +550,8 @@ def trainModelParallel(inputData):
         exp_val.setActor(actor)
         exp_val.getActor().init()
         exp_val.init()
-        (state_bounds, action_bounds, settings) = processBounds(state_bounds, action_bounds, settings, exp_val)
-        """
-            if (int(settings["num_available_threads"]) != -1):
-                print ("Removing extra environment.")
-                exp_val.finish()
         
-        if ((action_bounds == "ask_env")
-            or (state_bounds == "ask_env")):
-            if (int(settings["num_available_threads"]) != -1):
-                print ("Removing extra environment.")
-                exp_val.finish()
-        """ 
+        (state_bounds, action_bounds, settings) = processBounds(state_bounds, action_bounds, settings, exp_val)
         
         ### This is for a single-threaded Synchronous sim only.
         if (int(settings["num_available_threads"]) == -1): # This is okay if there is one thread only...
@@ -605,9 +565,9 @@ def trainModelParallel(inputData):
         forwardDynamicsModel = None
         if (settings['train_forward_dynamics']):
             forwardDynamicsModel = createNewFDModel(settings, exp_val, model)
-            forwardDynamicsModel.setActor(actor)
+            # forwardDynamicsModel.setActor(actor)
             # forwardDynamicsModel.setEnvironment(exp)
-            forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
+            # forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
         if ("train_reward_distance_metric" in settings and
             (settings['train_reward_distance_metric'] == True )):
@@ -616,17 +576,11 @@ def trainModelParallel(inputData):
             settings_ = updateSettings(settings_, settings_["reward_metric_settings"])
             rewardModel = createNewFDModel(settings_, exp_val, model)
             rewardModel.setActor(actor)
-            # forwardDynamicsModel.setEnvironment(exp)
             rewardModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
         exp_val.finish()
-        # print ("forwardDynamicsModel.getStateBounds(): ", forwardDynamicsModel.getStateBounds())
-        # sys.exit()
-        (agent, learning_workers) = createLearningAgent(settings, output_experience_queue, state_bounds, action_bounds, reward_bounds, print_info=True)
+        (agent, learning_workers) = createLearningAgent(settings, output_experience_queue, print_info=True)
         masterAgent = agent
-        # print ("NameSpace: " + str(namespace))
-        # sys.exit(0)
-        
         
         if ((settings['visualize_learning'] == False) 
             and (settings['save_trainData'] == True) ):
@@ -652,12 +606,13 @@ def trainModelParallel(inputData):
         settings['state_bounds'] = masterAgent.getStateBounds()
         settings['action_bounds'] = masterAgent.getActionBounds()
         settings['reward_bounds'] = masterAgent.getRewardBounds()
+        # sys.exit()
+        
         
         tmp_p=1.0
         message={}
         if ( settings['load_saved_model'] ):
             tmp_p = settings['min_epsilon']
-            
         data = getLearningData(masterAgent, settings, tmp_p)
         message['type'] = 'Update_Policy'
         message['data'] = data
@@ -666,38 +621,31 @@ def trainModelParallel(inputData):
             m_q.put(message, timeout=timeout_)
         
         if ( int(settings["num_available_threads"]) ==  -1):
-           experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, exp_val, masterAgent, settings,
+           experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_, datas), experiencefd = collectExperience(actor, exp_val, masterAgent, settings,
                            sim_work_queues=None, 
                            eval_episode_data_queue=None)
             
         else:
-            if (settings["load_saved_model"] == True):
-                # settings["bootstrap_samples"] = 0
-                # settings["bootsrap_with_discrete_policy"] = False
-                experience = ExperienceMemory(len(model.getStateBounds()[0]), len(model.getActionBounds()[0]), settings['experience_length'], continuous_actions=True, settings = settings)
+            if (settings['on_policy'] == True):
+                
+                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_, datas), experiencefd = collectExperience(actor, None, masterAgent, settings,
+                           sim_work_queues=sim_work_queues, 
+                           eval_episode_data_queue=eval_episode_data_queue)
             else:
-                if (settings['on_policy'] == True):
-                    
-                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, masterAgent, settings,
-                               sim_work_queues=sim_work_queues, 
-                               eval_episode_data_queue=eval_episode_data_queue)
-                else:
-                    experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_), experiencefd = collectExperience(actor, None, masterAgent, settings,
-                               sim_work_queues=input_anchor_queue, 
-                               eval_episode_data_queue=eval_episode_data_queue)
+                experience, state_bounds, reward_bounds, action_bounds, (states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_, datas), experiencefd = collectExperience(actor, None, masterAgent, settings,
+                           sim_work_queues=input_anchor_queue, 
+                           eval_episode_data_queue=eval_episode_data_queue)
             masterAgent.setExperience(experience)
         fd_epxerience_length = settings['experience_length']
         if ("fd_experience_length" in settings):
             fd_epxerience_length = settings["fd_experience_length"]
         if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
-            # masterAgent.setFDExperience(copy.deepcopy(masterAgent.getExperience()))
-            # experiencefd = ExperienceMemory(len(state_bounds[0]), len(action_bounds[0]), fd_epxerience_length, 
-            #                                         continuous_actions=True, settings = settings, result_state_length=settings["dense_state_size"])
             state_bounds__ = getFDStateSize(settings)
-            experiencefd.setStateBounds(state_bounds__)
-            experiencefd.setActionBounds(action_bounds)
-            experiencefd.setRewardBounds(reward_bounds)
+            ### Might be some memory expenditure here with a double copy
             masterAgent.setFDExperience(copy.deepcopy(experiencefd))
+            masterAgent.setFDStateBounds(copy.deepcopy(state_bounds__))
+            masterAgent.setFDActionBounds(copy.deepcopy(action_bounds))
+            masterAgent.setFDRewardBounds(copy.deepcopy(reward_bounds))
             
         # print ("masterAgent.getFDExperience().getStateBounds() shape : ", masterAgent.getFDExperience().getStateBounds().shape)
         # sys.exit()
@@ -734,11 +682,6 @@ def trainModelParallel(inputData):
             print("Reward bounds invalid: ", reward_bounds)
             sys.exit()
         
-        print ("Reward History: ", masterAgent.getExperience()._reward_history)
-        print ("Action History: ", masterAgent.getExperience()._action_history)
-        print ("Action Mean: ", np.mean(masterAgent.getExperience()._action_history))
-        print ("masterAgent.getExperience() Samples: ", (masterAgent.getExperience().samples()))
-        
         """
         if action_space_continuous:
             model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
@@ -746,17 +689,11 @@ def trainModelParallel(inputData):
             model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
         """
         if ( settings['load_saved_model'] or (settings['load_saved_model'] == 'network_and_scales') ): ## Transfer learning
-            masterAgent.getExperience().setStateBounds(copy.deepcopy(model.getStateBounds()))
-            masterAgent.getExperience().setRewardBounds(copy.deepcopy(model.getRewardBounds()))
-            masterAgent.getExperience().setActionBounds(copy.deepcopy(model.getActionBounds()))
-            model.setSettings(settings)
+            masterAgent.setStateBounds(state_bounds)
+            masterAgent.setRewardBounds(reward_bounds)
+            masterAgent.setActionBounds(action_bounds)
+            masterAgent.setSettings(settings)
         else: ## Normal
-            model.setStateBounds(state_bounds)
-            model.setActionBounds(action_bounds)
-            model.setRewardBounds(reward_bounds)
-            masterAgent.getExperience().setStateBounds(copy.deepcopy(model.getStateBounds()))
-            masterAgent.getExperience().setRewardBounds(copy.deepcopy(model.getRewardBounds()))
-            masterAgent.getExperience().setActionBounds(copy.deepcopy(model.getActionBounds()))
             masterAgent.setStateBounds(state_bounds)
             masterAgent.setActionBounds(action_bounds)
             masterAgent.setRewardBounds(reward_bounds)
@@ -771,98 +708,18 @@ def trainModelParallel(inputData):
                     print ("Saving Experience FD memory")
                 file_name=directory+getAgentName()+"_FD_expBufferInit.hdf5"
                 masterAgent.getFDExperience().saveToFile(file_name)
-        # mgr = multiprocessing.Manager()
-        # learningNamespace = mgr.Namespace()
         
         masterAgent_message_queue = multiprocessing.Queue(settings['epochs'])
-        
-        if (settings['train_forward_dynamics']):
-            if ( settings['load_saved_model'] == False ):
-                if ("use_dual_dense_state_representations" in settings
-                and (settings["use_dual_dense_state_representations"] == True)):
-                    forwardDynamicsModel.setStateBounds(state_bounds)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-                elif (("use_dual_state_representations" in settings
-                  and (settings["use_dual_state_representations"] == True))
-                    and (not (settings["forward_dynamics_model_type"] == "SingleNet"))
-                    and ("fd_use_multimodal_state" in settings
-                         and (settings["fd_use_multimodal_state"] == True))
-                    ):
-                    print ("Creating multi modal state size****")
-                    state_size__ = settings["fd_num_terrain_features"] + settings["dense_state_size"]
-                    if ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == True)):
-                        state_size__ = state_size__ + 2
-                    elif ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == "3D")):
-                        state_size__ = state_size__ + 3
-                    state_bounds__ = [[0] * (state_size__), 
-                                 [1] * (state_size__)]
-                    forwardDynamicsModel.setStateBounds(state_bounds__)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-                elif ("use_dual_state_representations" in settings
-                    and (settings["use_dual_state_representations"] == True)
-                    and ( "replace_next_state_with_pose_state" in settings and
-                          (settings["replace_next_state_with_pose_state"] == True))
-                      ):
-                    state_size__ = settings["fd_num_terrain_features"]
-                    if ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == True)):
-                        state_size__ = state_size__ + 2
-                    elif ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == "3D")):
-                        state_size__ = state_size__ + 3
-                    state_bounds__ = np.array([[0] * state_size__, 
-                                     [1] * state_size__])
-                    if ("use_dual_dense_state_representations" in settings
-                        and (settings["use_dual_dense_state_representations"] == True)):
-                        state_bounds = np.array(settings['state_bounds'])
-                    forwardDynamicsModel.setStateBounds(state_bounds__)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-                elif ("use_dual_state_representations" in settings
-                    and (settings["use_dual_state_representations"] == True)
-                    and (not (settings["forward_dynamics_model_type"] == "SingleNet"))):
-                    state_size__ = settings["fd_num_terrain_features"]
-                    if ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == True)):
-                        state_size__ = state_size__ + 2
-                    elif ("append_camera_velocity_state" in settings 
-                        and (settings["append_camera_velocity_state"] == "3D")):
-                        state_size__ = state_size__ + 3
-                    state_bounds__ = np.array([[0] * state_size__, 
-                                     [1] * state_size__])
-                    if ("use_dual_dense_state_representations" in settings
-                        and (settings["use_dual_dense_state_representations"] == True)):
-                        state_bounds__ = np.array(settings['state_bounds'])
-                    forwardDynamicsModel.setStateBounds(state_bounds__)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-                else:
-                    forwardDynamicsModel.setStateBounds(state_bounds)
-                    forwardDynamicsModel.setActionBounds(action_bounds)
-                    forwardDynamicsModel.setRewardBounds(reward_bounds)
-            masterAgent.setForwardDynamics(forwardDynamicsModel)
         
         ## Now everything related to the exp memory needs to be updated
         bellman_errors=[]
         masterAgent.setPolicy(model)
-        # masterAgent.setForwardDynamics(forwardDynamicsModel)
-        # learningNamespace.agentPoly = masterAgent.getPolicy().getNetworkParameters()
-        # learningNamespace.model = model
-        print("Master agent state bounds: ",  repr(masterAgent.getPolicy().getStateBounds()))
-        # sys.exit()
+        print("Master agent state bounds: ",  repr(masterAgent.getStateBounds()))
         for sw in sim_workers: # Need to update parameter bounds for models
-            # sw._model.setPolicy(copy.deepcopy(model))
-            # sw.updateModel()
-            # sw.updateForwardDynamicsModel()
             print ("exp: ", sw._exp)
             print ("sw modle: ", sw._model.getPolicy()) 
             
             
-        # learningNamespace.experience = experience
         ## If not on policy
         if ( not settings['on_policy']):
             for lw in learning_workers:
@@ -875,24 +732,7 @@ def trainModelParallel(inputData):
                 print ("ls policy: ", lw._agent.getPolicy())
                 
                 lw.start()
-            
-        # del learningNamespace.model
-        """
-        tmp_p=1.0
-        if ( settings['load_saved_model'] ):
-            tmp_p = settings['min_epsilon']
-        data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
-                masterAgent.getPolicy().getNetworkParameters())
-        if (settings['train_forward_dynamics']):
-            # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
-            data = ('Update_Policy', tmp_p, model.getStateBounds(), model.getActionBounds(), model.getRewardBounds(), 
-                    masterAgent.getPolicy().getNetworkParameters(), masterAgent.getForwardDynamics().getNetworkParameters())
-        message['type'] = 'Update_Policy'
-        message['data'] = data
-        for m_q in sim_work_queues:
-            print("trainModel: Sending current network parameters: ", m_q)
-            m_q.put(message, timeout=timeout_)
-        """
+                
             
         del model
         ## Give gloabl access to processes to they can be terminated when ctrl+c is pressed
@@ -980,6 +820,10 @@ def trainModelParallel(inputData):
                 actor_regularization_viz = NNVisualize(title=str("Actor Reg Cost") + " with " + title)
                 actor_regularization_viz.setInteractive()
                 actor_regularization_viz.init()
+                
+        settings["logger_instance"] = exp_logger
+        settings["round"] = int(trainData["round"])
+        masterAgent.setSettings(settings)
 
         if (False ):
             print("State Bounds:", masterAgent.getStateBounds())
@@ -988,29 +832,17 @@ def trainModelParallel(inputData):
             print("Exp State Bounds: ", masterAgent.getExperience().getStateBounds())
             print("Exp Action Bounds: ", masterAgent.getExperience().getActionBounds())
             
-        if ("pretrain_fd" in settings and (settings["pretrain_fd"] > 0)
-            and (trainData["round"] == 0)):
-            if (settings['on_policy'] == "fast"):
-                pretrainFD(masterAgent, states, actions, resultStates, rewards_, 
-                           falls_, G_ts_, exp_actions, advantage_, input_anchor_queue, 
-                           eval_episode_data_queue)
-            else:
-                pretrainFD(masterAgent, states, actions, resultStates, rewards_, 
-                           falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
-                           eval_episode_data_queue)
-            
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)
             and (trainData["round"] == 0)):
-            ### Send keep alive to sim processes
-            if (settings['on_policy'] == "fast"):
-                pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
-                               falls_, G_ts_, exp_actions, advantage_, input_anchor_queue, 
-                               eval_episode_data_queue)
-            else:
-                pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
-                               falls_, G_ts_, exp_actions, advantage_, sim_work_queues, 
-                               eval_episode_data_queue)
+            pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
+                           falls_, G_ts_, exp_actions, advantage_, datas, sim_work_queues, 
+                           eval_episode_data_queue)
             
+        if ("pretrain_fd" in settings and (settings["pretrain_fd"] > 0)
+            and (trainData["round"] == 0)):
+            pretrainFD(masterAgent, states, actions, resultStates, rewards_, 
+                           falls_, G_ts_, exp_actions, advantage_, datas, sim_work_queues, 
+                           eval_episode_data_queue)
         
         print ("Starting first round: ", trainData["round"])
         if (settings['on_policy']):
@@ -1019,6 +851,8 @@ def trainModelParallel(inputData):
         # for round_ in range(0,rounds):
         while (trainData["round"] <= rounds):
             trainData["round"] = int(trainData["round"])
+            settings["round"] = int(trainData["round"])
+            masterAgent.setSettings(settings)
             # p = math.fabs(settings['initial_temperature'] / (math.log(round_*round_) - round_) )
             # p = (settings['initial_temperature'] / (math.log(round_))) 
             # p = ((settings['initial_temperature']/math.log(round_))/math.log(rounds))
@@ -1054,14 +888,8 @@ def trainModelParallel(inputData):
                                                        anchors=settings['num_on_policy_rollouts']
                                                        ,p=p)
                     
-                    if ("divide_by_zero" in settings
-                        and (settings["divide_by_zero"] == True)):
-                        d = 3 / 0
-                    # else: ### No threads synchronous simulation and learning
-                    #     out = simEpoch(actor, exp_val, masterAgent, discount_factor, anchors=epoch, action_space_continuous=action_space_continuous, settings=settings, 
-                    #                    print_data=False, p=1.0, validation=False, epoch=epoch, evaluation=False, _output_queue=None, epsilon=settings['epsilon'])
                     (tuples, discounted_sum, q_value, evalData) = out
-                    (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__) = tuples
+                    (__states, __actions, __result_states, __rewards, __falls, __G_ts, advantage__, exp_actions__, datas__) = tuples
                     if ( ('anneal_on_policy' in settings) and settings['anneal_on_policy']):  
                         p_tmp_ = p 
                     else:
@@ -1069,8 +897,9 @@ def trainModelParallel(inputData):
                     
                     for i in range(1):
                         masterAgent.train(_states=__states, _actions=__actions, _rewards=__rewards, _result_states=__result_states,
-                                           _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_)
+                                           _falls=__falls, _advantage=advantage__, _exp_actions=exp_actions__, _G_t=__G_ts, p=p_tmp_, datas=datas__)
                     masterAgent.reset()
+                    
                     data = getLearningData(masterAgent, settings, p)
                     message['data'] = data
                     
@@ -1087,29 +916,6 @@ def trainModelParallel(inputData):
                                 ## block on full queue
                                 m_q.put(message, timeout=timeout_)
                     
-                    if ("test_net_param_propogation" in settings
-                        and (settings["test_net_param_propogation"] == True)):
-                        ### Check that the network parameters and scaling values were properly propogated
-                        if (settings['on_policy'] == "fast"):
-                            out = simModelMoreParrallel( sw_message_queues=input_anchor_queue
-                                                       ,model=masterAgent, settings=settings 
-                                                       ,eval_episode_data_queue=eval_episode_data_queue 
-                                                       ,anchors=settings['num_on_policy_rollouts']
-                                                       ,type='Get_Net_Params'
-                                                       ,p=p)
-                        else:
-                            out = simModelParrallel( sw_message_queues=sim_work_queues
-                                       ,model=masterAgent, settings=settings 
-                                       ,eval_episode_data_queue=eval_episode_data_queue 
-                                       ,anchors=settings['num_on_policy_rollouts']
-                                       ,type='Get_Net_Params'
-                                       ,p=p
-                                       )
-                        for sim_net_params in out:
-                            # print ("**** sim_net_params shape: ", len(out[sim_net_params_id]))
-                            compare_good = compareNetParams(data, sim_net_params)
-                            # print ("compare_good: ", compare_good)
-                            assert compare_good
                     # states, actions, result_states, rewards, falls, G_ts, exp_actions = masterAgent.getExperience().get_batch(batch_size)
                     # print ("Batch size: " + str(batch_size))
                 else:
@@ -1119,11 +925,16 @@ def trainModelParallel(inputData):
                     input_anchor_queue.put(episodeData, timeout=timeout_)
                 
                 # pr.enable()
+                # print ("Current Tuple: " + str(learningNamespace.experience.current()))
+                # print ("masterAgent.getExperience().samples() >= batch_size: ", masterAgent.getExperience().samples(), " >= ", batch_size)
                 error = 0
                 rewards = 0
-                if masterAgent.getExperience().samples() >= batch_size:
-                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.get_batch(batch_size)
+                if masterAgent.samples() >= batch_size:
+                    states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage, datas = masterAgent.get_batch(batch_size, 0)
+                    # print ("Batch size: " + str(batch_size))
+                    masterAgent.reset()
                     error = masterAgent.bellman_error()
+                    # error = np.mean(np.fabs(error), axis=1)
                     # print ("Error: ", error)
                     # bellman_errors.append(np.mean(np.fabs(error)))
                     bellman_errors.append(error)
@@ -1136,7 +947,7 @@ def trainModelParallel(inputData):
                             batch_size_lstm = 4
                             if ("lstm_batch_size" in settings):
                                 batch_size_lstm = settings["lstm_batch_size"][1]
-                            states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_ = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
+                            states_, actions_, result_states_, rewards_, falls_, G_ts_, exp_actions, advantage_, datas = masterAgent.getExperience().get_multitask_trajectory_batch(batch_size=min(batch_size_lstm, masterAgent.getExperience().samplesTrajectory()))
                             loss__ = masterAgent.getPolicy().get_critic_loss(states_, actions_, rewards_, result_states_)
                         else:
                             loss__ = masterAgent.getPolicy().get_critic_loss(states, actions, rewards, result_states)
@@ -1145,20 +956,27 @@ def trainModelParallel(inputData):
                         criticRegularizationCosts.append(regularizationCost__)
                         
                     if (settings['debug_actor']):
+                        """
+                        print( "Advantage: ", masterAgent.getPolicy()._get_advantage())
+                        print("Policy prob: ", masterAgent.getPolicy()._q_action())
+                        print("Policy log prob: ", masterAgent.getPolicy()._get_log_prob())
+                        print( "Actor loss: ", masterAgent.getPolicy()._get_action_diff())
+                        """
                         masterAgent.reset()
-                        loss__ = masterAgent.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage)
-                        actorLosses.append(loss__)
-                        regularizationCost__ = masterAgent.getPolicy().get_actor_regularization()
-                        actorRegularizationCosts.append(regularizationCost__)
+                        # loss__ = [loss___ masterAgent.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage)
+                        loss__ = [p_.getPolicy().get_actor_loss(states, actions, rewards, result_states, advantage) for p_ in masterAgent.getAgents() ]
+                        actorLosses.append(np.mean(loss__))
+                        regularizationCost__ = [p_.getPolicy().get_actor_regularization() for p_ in masterAgent.getAgents() ]
+                        actorRegularizationCosts.append(np.mean(regularizationCost__))
                     
-                    if not all(np.isfinite(error)):
+                    if not all(np.isfinite(np.mean(error, axis=0))):
                         print ("Bellman Error is Nan: " + str(error) + str(np.isfinite(error)))
                         # if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                         print ("States: " + str(states) + " ResultsStates: " + str(result_states) + " Rewards: " + str(rewards) + " Actions: " + str(actions) + " Falls: ", str(falls))
                         sys.exit()
                     
-                    error = np.mean(np.fabs(error))
-                    if error > 10000:
+                    error = np.mean(np.fabs(error), axis=1)
+                    if np.mean(error) > 10000:
                         print ("Error to big: ")
                         if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                             print (states, actions, rewards, result_states)
@@ -1166,7 +984,7 @@ def trainModelParallel(inputData):
                 if (settings['train_forward_dynamics']):
                     if ( 'keep_seperate_fd_exp_buffer' in settings 
                          and (settings['keep_seperate_fd_exp_buffer'])):
-                        states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage = masterAgent.getFDExperience().get_batch(batch_size)
+                        states, actions, result_states, rewards, falls, G_ts, exp_actions, advantage, datas = masterAgent.getFDBatch(batch_size)
                     masterAgent.reset()
                     if (("train_LSTM_FD" in settings)
                         and (settings["train_LSTM_FD"] == True)):
@@ -1174,7 +992,7 @@ def trainModelParallel(inputData):
                         if ("lstm_batch_size" in settings):
                             batch_size_lstm_fd = settings["lstm_batch_size"][0]
                         ### This can consume a lot of memory if trajectories are long...
-                        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=2)
+                        state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
                         dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(state_, action_, resultState_, reward_)
                     else:
                         dynamicsLoss = masterAgent.getForwardDynamics().bellman_error(states, actions, result_states, rewards)
@@ -1191,7 +1009,7 @@ def trainModelParallel(inputData):
                             if ("lstm_batch_size" in settings):
                                 batch_size_lstm_fd = settings["lstm_batch_size"][0]
                             ### This can consume a lot of memory if trajectories are long...
-                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_ = masterAgent.getFDExperience().get_multitask_trajectory_batch(batch_size=2)
+                            state_, action_, resultState_, reward_, fall_, G_ts_, exp_actions, advantage_, datas = masterAgent.getFDmultitask_trajectory_batch(batch_size=4)
                             dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(state_, action_, resultState_, reward_)
                         else:
                             dynamicsRewardLoss = masterAgent.getForwardDynamics().reward_error(states, actions, result_states, rewards)
@@ -1210,7 +1028,7 @@ def trainModelParallel(inputData):
                     # discounted_values.append(discounted_sum)
                     
                 if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
-                    print ("Master agent experience size: " + str(masterAgent.getExperience().samples()))
+                    print ("Master agent experience size: " + str(masterAgent.samples()))
                 # print ("**** Master agent experience size: " + str(learning_workers[0]._agent._expBuff.samples()))
                 
                 if (settings['on_policy'] is False):
@@ -1237,6 +1055,13 @@ def trainModelParallel(inputData):
                         
                 # experience = learningNamespace.experience
                 # actor.setExperience(experience)
+                """
+                pr.disable()
+                f = open('x.prof', 'a')
+                pstats.Stats(pr, stream=f).sort_stats('time').print_stats()
+                f.close()
+                """
+            
                 # this->_actor->iterate();
             ## This will let me know which part of learning is going slower training updates or simulation
             if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
@@ -1248,7 +1073,19 @@ def trainModelParallel(inputData):
                 # masterAgent.getPolicy().setNetworkParameters(learningNamespace.agentPoly)
                 # masterAgent.setExperience(learningNamespace.experience)
                 masterAgent.reset()
-                data = getLearningData(masterAgent, settings, p)
+                data = ('Update_Policy', p,
+                        masterAgent.getStateBounds(),
+                        masterAgent.getActionBounds(),
+                        masterAgent.getRewardBounds(),
+                        masterAgent.getPolicy().getNetworkParameters())
+                if (settings['train_forward_dynamics']):
+                    # masterAgent.getForwardDynamics().setNetworkParameters(learningNamespace.forwardNN)
+                    data = ('Update_Policy', p, 
+                            masterAgent.getStateBounds(),
+                            masterAgent.getActionBounds(),
+                            masterAgent.getRewardBounds(),
+                            masterAgent.getPolicy().getNetworkParameters(),
+                             masterAgent.getForwardDynamics().getNetworkParameters())
                 message['type'] = 'Update_Policy'
                 message['data'] = data
                 for m_q in sim_work_queues:
@@ -1275,9 +1112,34 @@ def trainModelParallel(inputData):
                 # else:
                 if ("skip_rollouts" in settings and 
                         (settings["skip_rollouts"] == True)):
-                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval, otherMetrics = 0,0,0,0,0,0,0,0,{}
+                    mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = 0,0,0,0,0,0,0,0
                 else:
-                    if (settings['on_policy'] == True ):
+                    if ( ( settings["eval_epochs"] == "stochastic")):
+                        rewards__=[]
+                        discounted_sum__=[]
+                        value__=[]
+                        discount_error__ = []
+                        reward_over_epocs = []
+                        for tr in range(len(__rewards)):
+                            for agent_ in range(len(masterAgent.getAgents())): 
+                                rewards__.append(np.array(__rewards[tr]).flatten()[agent_::len(masterAgent.getAgents())])
+                                # discounted_sum__.append(np.array(discounted_sum).flatten()[agent_::len(masterAgent.getAgents())])
+                                # value__.append(np.array(q_value).flatten()[agent_::len(masterAgent.getAgents())])
+                                # discount_error__.append(discounted_sum__[agent_] - value__[agent_])
+                            reward_over_epocs.append(np.mean(np.array(rewards__), axis=1))
+                        # bellman_errors.append(error)
+                        # mean_discount_error.append(np.mean(np.fabs(discount_error__), axis=1))
+                        # std_discount_error.append(np.std(discount_error__, axis=1))
+                        
+                        mean_reward = np.mean(reward_over_epocs)
+                        std_reward = np.std(reward_over_epocs)
+                        mean_bellman_error = 0
+                        std_bellman_error = 0
+                        mean_discount_error = 0
+                        std_discount_error = 0
+                        mean_eval = np.mean(reward_over_epocs)
+                        std_eval = np.std(reward_over_epocs)
+                    elif (settings['on_policy'] == True ):
                         mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval, otherMetrics = evalModelParrallel( input_anchor_queue=eval_sim_work_queues,
                                                                    model=masterAgent, settings=settings, eval_episode_data_queue=eval_episode_data_queue, anchors=settings['eval_epochs'])
                     elif (settings['on_policy'] == "fast"):
@@ -1295,8 +1157,6 @@ def trainModelParallel(inputData):
                                                     anchors=_anchors[:settings['eval_epochs']], action_space_continuous=action_space_continuous, settings=settings)
                                                     """
                 print ("round_, p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error")
-                # print ("Other metrics", otherMetrics)
-                addLogData(trainData, "falls", np.mean(otherMetrics["falls"]))
                 print (trainData["round"], p, mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error)
                 if np.mean(mean_bellman_error) > 10000:
                     print ("Error to big: ")
@@ -1310,36 +1170,33 @@ def trainModelParallel(inputData):
                             std_dynamicsRewardLosses = np.std(dynamicsRewardLosses)
                             dynamicsRewardLosses = []
                         
-                    if experiment is not None:
-                        experiment.log_metrics({"mean_reward_": mean_reward})
-                    trainData["mean_reward"].append(mean_reward)
-                    # print ("Mean Rewards: " + str(mean_rewards))
-                    trainData["std_reward"].append(std_reward)
-                    trainData["anneal_p"].append(p)
-                    # bellman_errors
-                    # trainData["mean_bellman_error"].append(mean_bellman_error)
-                    # trainData["std_bellman_error"].append(std_bellman_error)
-                    # trainData["mean_bellman_error"].append(np.mean(np.fabs(mean_bellman_error)))
-                    trainData["mean_bellman_error"].append(np.mean([np.mean(np.fabs(er_)) for er_ in bellman_errors]))
-                    trainData["std_bellman_error"].append(np.mean([np.std(er_) for er_ in bellman_errors]))
-                    # trainData["std_bellman_error"].append(std_bellman_error)
+                        
+                    logExperimentData(trainData, "falls", np.mean(otherMetrics["falls"]), settings)
+                    logExperimentData(trainData, "mean_reward", mean_reward, settings)
+                    logExperimentData(trainData, "std_reward", std_reward, settings)
+                    logExperimentData(trainData, "anneal_p", p, settings)
+                    logExperimentData(trainData, "mean_bellman_error", np.array([np.mean(er_) for er_ in np.fabs(bellman_errors[0])]), settings)
+                    logExperimentData(trainData, "std_bellman_error", np.array([np.std(er_) for er_ in bellman_errors[0]]), settings)
                     bellman_errors=[]
-                    trainData["mean_discount_error"].append(np.mean(mean_discount_error))
-                    trainData["std_discount_error"].append(np.mean(std_discount_error))
-                    trainData["mean_eval"].append(mean_eval)
-                    trainData["std_eval"].append(std_eval)
+                    logExperimentData(trainData, "mean_discount_error", mean_discount_error, settings)
+                    logExperimentData(trainData, "std_discount_error", std_discount_error, settings)
+                    logExperimentData(trainData, "mean_eval", mean_eval, settings)
+                    logExperimentData(trainData, "std_eval", std_eval, settings)
+                    # error = np.mean(np.fabs(error), axis=1)
+                    # trainData["std_bellman_error"].append(std_bellman_error)
                     if (settings['train_forward_dynamics']):
-                        trainData["mean_forward_dynamics_loss"].append(mean_dynamicsLosses)
-                        trainData["std_forward_dynamics_loss"].append(std_dynamicsLosses)
+                        logExperimentData(trainData, "mean_forward_dynamics_loss", mean_dynamicsLosses, settings)
+                        logExperimentData(trainData, "std_forward_dynamics_loss", std_dynamicsLosses, settings)
                         if (settings['train_reward_predictor']):
-                            trainData["mean_forward_dynamics_reward_loss"].append(mean_dynamicsRewardLosses)
-                            trainData["std_forward_dynamics_reward_loss"].append(std_dynamicsRewardLosses)
+                            logExperimentData(trainData, "mean_forward_dynamics_reward_loss", mean_dynamicsRewardLosses, settings)
+                            logExperimentData(trainData, "std_forward_dynamics_reward_loss", std_dynamicsRewardLosses, settings)
+                            
                     ### Lets always save a figure for the learning...
                     if ( settings['save_trainData'] and (not settings['visualize_learning'])):
                         rlv_ = RLVisualize(title=str(settings['sim_config_file']) + " agent on " + str(settings['environment_type']), settings=settings)
                         rlv_.init()
                         rlv_.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
-                        rlv_.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
+                        rlv_.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
                         rlv_.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
                         rlv_.redraw()
                         rlv_.saveVisual(directory+getAgentName())
@@ -1347,7 +1204,7 @@ def trainModelParallel(inputData):
                         del rlv_
                     if settings['visualize_learning']:
                         rlv.updateBellmanError(np.array(trainData["mean_bellman_error"]), np.array(trainData["std_bellman_error"]))
-                        rlv.updateReward(np.array(trainData["mean_eval"]), np.array(trainData["std_eval"]))
+                        rlv.updateReward(np.array(trainData["mean_reward"]), np.array(trainData["std_reward"]))
                         rlv.updateDiscountError(np.fabs(trainData["mean_discount_error"]), np.array(trainData["std_discount_error"]))
                         rlv.redraw()
                         rlv.setInteractiveOff()
@@ -1387,8 +1244,8 @@ def trainModelParallel(inputData):
                         
                         mean_criticLosses = np.mean([np.mean(cl) for cl in criticLosses])
                         std_criticLosses = np.mean([np.std(acl) for acl in criticLosses])
-                        trainData["mean_critic_loss"].append(mean_criticLosses)
-                        trainData["std_critic_loss"].append(std_criticLosses)
+                        logExperimentData(trainData, "mean_critic_loss", mean_critic_loss, settings)
+                        logExperimentData(trainData, "std_critic_loss", std_critic_loss, settings)
                         criticLosses = []
                         if (settings['visualize_learning']):
                             critic_loss_viz.updateLoss(np.array(trainData["mean_critic_loss"]), np.array(trainData["std_critic_loss"]))
@@ -1399,8 +1256,8 @@ def trainModelParallel(inputData):
                         
                         mean_criticRegularizationCosts = np.mean(criticRegularizationCosts)
                         std_criticRegularizationCosts = np.std(criticRegularizationCosts)
-                        trainData["mean_critic_regularization_cost"].append(mean_criticRegularizationCosts)
-                        trainData["std_critic_regularization_cost"].append(std_criticRegularizationCosts)
+                        logExperimentData(trainData, "mean_critic_regularization_cost", mean_critic_regularization_cost, settings)
+                        logExperimentData(trainData, "std_critic_regularization_cost", std_critic_regularization_cost, settings)
                         criticRegularizationCosts = []
                         if (settings['visualize_learning']):
                             critic_regularization_viz.updateLoss(np.array(trainData["mean_critic_regularization_cost"]), np.array(trainData["std_critic_regularization_cost"]))
@@ -1413,8 +1270,8 @@ def trainModelParallel(inputData):
                         
                         mean_actorLosses = np.mean([np.mean(acL) for acL in actorLosses])
                         std_actorLosses = np.mean([np.std(acl) for acl in actorLosses])
-                        trainData["mean_actor_loss"].append(mean_actorLosses)
-                        trainData["std_actor_loss"].append(std_actorLosses)
+                        logExperimentData(trainData, "mean_actor_loss", mean_actorLosses, settings)
+                        logExperimentData(trainData, "std_actor_loss", std_actorLosses, settings)
                         actorLosses = []
                         if (settings['visualize_learning']):
                             actor_loss_viz.updateLoss(np.array(trainData["mean_actor_loss"]), np.array(trainData["std_actor_loss"]))
@@ -1425,8 +1282,8 @@ def trainModelParallel(inputData):
                         
                         mean_actorRegularizationCosts = np.mean(actorRegularizationCosts)
                         std_actorRegularizationCosts = np.std(actorRegularizationCosts)
-                        trainData["mean_actor_regularization_cost"].append(mean_actorRegularizationCosts)
-                        trainData["std_actor_regularization_cost"].append(std_actorRegularizationCosts)
+                        logExperimentData(trainData, "mean_actor_regularization_cost", mean_actorRegularizationCosts, settings)
+                        logExperimentData(trainData, "std_actor_regularization_cost", std_actorRegularizationCosts, settings)
                         actorRegularizationCosts = []
                         if (settings['visualize_learning']):
                             actor_regularization_viz.updateLoss(np.array(trainData["mean_actor_regularization_cost"]), np.array(trainData["std_actor_regularization_cost"]))
@@ -1443,8 +1300,6 @@ def trainModelParallel(inputData):
                     ): # This is okay if there is one thread only...
                     exp_val.updateViz(actor, masterAgent, directory, p=p)
                 
-                if experiment is not None:
-                    experiment.log_metrics(trainData)
                 
             if (trainData["round"] % settings['saving_update_freq_num_rounds']) == 0:
             
@@ -1458,10 +1313,6 @@ def trainModelParallel(inputData):
                     if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['hyper_train']):
                         print ("Saving BEST current forward dynamics agent: " + str(best_dynamicsLosses))
                     masterAgent.saveTo(directory, bestFD=True)
-                    if ('save_vae_outputs' in settings
-                        and (settings['save_vae_outputs'] == True)):
-                        from util.utils import saveVAEBatch
-                        saveVAEBatch(settings, directory, masterAgent)
                         
                 if (mean_eval > best_eval):
                     best_eval = mean_eval
@@ -1472,18 +1323,22 @@ def trainModelParallel(inputData):
                 fp = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", 'w')
                 # print ("Train data: ", trainData)
                 ## because json does not serialize np.float32 
+                """
                 for key in trainData:
+                    # print ("trainData[",key,"]", trainData[key])
                     if (key == 'error'):
                         continue
-                    # print ("trainData[",key,"]", trainData[key])
                     elif (type(trainData[key]) is list):
                         trainData[key] = [float(i) for i in trainData[key]]
                     else:
                         trainData[key] = float(trainData[key])
-                json.dump(trainData, fp)
+                """
+                from util.utils import NumpyEncoder 
+                # print ("trainData: ", trainData)
+                json.dump(trainData, fp, cls=NumpyEncoder)
                 fp.close()
                 # draw data
-                
+                """
                 t0 = time.time()
                 if (settings["save_experience_memory"] == "continual"
                     or(settings["save_experience_memory"] == "all")):
@@ -1502,7 +1357,7 @@ def trainModelParallel(inputData):
                 sim_time_ = datetime.timedelta(seconds=(t1-t0))
                 if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                     print ("exp saving time complete in " + str(sim_time_) + " seconds")
-                        
+                """
             # mean_reward = std_reward = mean_bellman_error = std_bellman_error = mean_discount_error = std_discount_error = None
             # if ( trainData["round"] % 10 ) == 0 :
             
@@ -1527,13 +1382,6 @@ def trainModelParallel(inputData):
         # print ("Discounted reward difference Avg: " +  str(np.mean(np.fabs(discounted_values - values))))
         # print ("Discounted reward difference STD: " +  str(np.std(np.fabs(discounted_values - values))))
         # reward_over_epoc = np.array(reward_over_epoc)
-        
-    if profileCode:
-        pr.disable()
-        f = open('x.prof', 'a')
-        pstats.Stats(pr, stream=f).sort_stats('time').print_stats()
-        f.close()
-
     print ("Terminating Workers")
     if (settings['on_policy'] == True):
         for m_q in sim_work_queues:
@@ -1621,16 +1469,8 @@ def trainModelParallel(inputData):
     masterAgent.finish()
     
     f = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", "w")
-    for key in trainData:
-        if (key == 'error'):
-            continue
-        # print ("trainData[",key,"]", trainData[key])
-        elif (type(trainData[key]) is list):
-            trainData[key] = [float(i) for i in trainData[key]]
-        else:
-            trainData[key] = float(trainData[key])
-            
-    json.dump(trainData, f, sort_keys=True, indent=4)
+    from util.utils import NumpyEncoder 
+    json.dump(trainData, f, sort_keys=True, indent=4, cls=NumpyEncoder)
     f.close()
     
     """except: # catch *all* exceptions
@@ -1780,7 +1620,7 @@ if (__name__ == "__main__"):
                 settings[option] = False
         # settings['num_available_threads'] = options['num_available_threads']
 
-    # print ("Settings: " + str(json.dumps(settings, indent=4)))
+        # print ("Settings: " + str(json.dumps(settings, indent=4)))
     metaSettings = None
     if ( 'metaConfigFile' in settings and (settings['metaConfigFile'] is not None)):
         ### Import meta settings
