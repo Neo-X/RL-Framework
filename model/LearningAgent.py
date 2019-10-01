@@ -1127,7 +1127,7 @@ class LearningAgent(AgentInterface):
                 (self.getSettings()["evalaute_with_MBRL"] == True) ):
                 use_MBRL = True
 
-            pa = self.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, 
+            pa = self.predict(state_, evaluation_=evaluation_, p=p, sim_index=sim_index, 
                                bootstrapping=bootstrapping, use_mbrl=use_MBRL)
             
             action = pa
