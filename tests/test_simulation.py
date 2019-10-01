@@ -140,9 +140,11 @@ class TestSimulation(object):
         settings['visualize_learning'] = False
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
-        settings['rounds'] = 2
+        settings['epochs'] = 1
+        settings['eval_epochs'] = 1
+        settings['max_epoch_length'] = 64
         settings['pretrain_critic'] = 0
-        settings["simulation_timeout"] = 60
+        settings["simulation_timeout"] = 300
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None
@@ -160,8 +162,11 @@ class TestSimulation(object):
         settings['shouldRender'] = False
         settings['print_level'] = 'testing_sim'
         settings['rounds'] = 2
+        settings['epochs'] = 1
+        settings['eval_epochs'] = 1
+        settings['max_epoch_length'] = 64
         settings['pretrain_critic'] = 0
-        settings["simulation_timeout"] = 60
+        settings["simulation_timeout"] = 300
         simData = trainModelParallel((filename, settings))
         # assert np.mean(simData['mean_reward'][-5:]) > -0.5
         assert simData != None   
