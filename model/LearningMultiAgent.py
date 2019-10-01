@@ -42,7 +42,7 @@ class LearningMultiAgent(LearningAgent):
         # self._agents = [LearningAgent(self.getSettings()) for i in range(self.getSettings()["perform_multiagent_training"])]
         # list of periods over which each agent is active
         # TODO: make this not specific to 2 agents
-        self.time_skips = [1, self.getSettings()["hlc_timestep"]]
+        self.time_skips = [self.getSettings()["hlc_timestep"], 1]
         self.latest_actions = [None, None]
         self.latest_exp_act = [None, None]
         self.latest_entropy = [None, None]
@@ -725,10 +725,13 @@ class LearningMultiAgent(LearningAgent):
             Assume that state does not have a goal concatenates to it.
             """
             state_ = np.array(state_)
-            if m > 0:
+            if ( "use_hrl_logic" in self.getSettings()
+                 and (self.getSettings()["use_hrl_logic"] == True)
+                 and (m == 1) ):
                 # if index is not the highest level policy, which has no goal to concat.
                 # concat on the action of the higher level onto the state
                 goal = np.array(self.latest_actions[m - 1][0])
+                """
                 while len(goal.shape) < len(state_.shape):
                     # if the state has extra dimensions, then copy those dimensions
                     # assume that the goal and the state always have a batch dimension first
@@ -738,6 +741,7 @@ class LearningMultiAgent(LearningAgent):
                 # by this point state and goals should be the same along every axis except the last
                 # if this is false then one is likely not a simple vector
                 assert all([i == j for i, j in zip(state_.shape[:-1], goal.shape[:-1])])
+                """
                 state_ = np.concatenate([np.array(state_), goal], -1)
 
             use_hle = ( "hlc_index" in self.getSettings()
@@ -782,7 +786,7 @@ class LearningMultiAgent(LearningAgent):
                 entropy_ = entropys[idx_]
 
             else:
-                print(state_.shape, m)
+                # print(state_.shape, m)
                 (action, exp_act, entropy_) = self.getAgents()[m].sample(
                     [state_],
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
@@ -794,7 +798,11 @@ class LearningMultiAgent(LearningAgent):
                 self.latest_actions[m] = action
                 self.latest_exp_act[m] = exp_act
                 self.latest_entropy[m] = entropy_
-
+            """
+            if (self.getSettings()["policy_connections"][0][1] == m):
+                state[self.getSettings()["policy_connections"][0][0]][
+                    self.getSettings()["goal_slice_index"]:] =  self.latest_actions[m]
+            """
             state[m] = state_
             act.append(self.latest_actions[m][0])
             exp_action.append([self.latest_exp_act[m]])
@@ -805,7 +813,7 @@ class LearningMultiAgent(LearningAgent):
         # print ("act: ", repr(act))
         # print ("exp_action: ", repr(exp_action))
 
-        return (act, exp_action, entropy)
+        return (act, exp_action, entropy, state)
     
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:

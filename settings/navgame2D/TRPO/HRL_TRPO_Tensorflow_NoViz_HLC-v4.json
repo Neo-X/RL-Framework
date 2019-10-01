@@ -41,7 +41,7 @@
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [
   				  [[-1.08073413, -1.544791,   -10.0, -10.0],
-				 [ 1.11802318,  0.73305066,   -10.0, -10.0]],
+				 [ 1.11802318,  0.73305066,    10.0,  10.0]],
 				  [[-1.08073413, -1.544791,   -10.0, -10.0],
 				 [ 1.11802318,  0.73305066,    10.0,  10.0]]
 				],
@@ -370,5 +370,9 @@
 	"comment__": "higher level controller timestep",
 "hlc_timestep": 5,
 	"comment__": "The index of the multiagent simulation for the hlc",
-"hlc_index": 0
+"hlc_index": 0,
+	"comment__": "the first index of the goal in the state",
+"goal_slice_index": 2,
+	"comment__": "Flag to use internal HRL logic",
+"use_hrl_logic": true
 }

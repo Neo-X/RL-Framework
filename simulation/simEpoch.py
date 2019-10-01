@@ -181,11 +181,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                     )
                 ): # explore random actions
                 
-                
-                # print ("state_", repr(state_))
-                for s in state_:
-                    print(s.shape)
-                (action, exp_action, entropy_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
+                (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
                                                     sampling=sampling, time_step=i_)
                 # print ("action", repr(action))
             else: 
@@ -276,6 +272,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             reward_ = actor.actContinuous(exp, action__, bootstrapping=True)
             agent_not_fell = actor.hasNotFallen(exp)
         resultState_ = exp.getState()
+        if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
+             and (settings["use_hrl_logic"] == True) ):
+            resultState_[1] = np.concatenate([resultState_[1],
+                                        action[0] ], axis=-1)
+             
+        
+        
         if (movieWriter is not None
             and (not exp.movieWriterSupport())):
             ### If the sim does not have it's own writing support
