@@ -701,7 +701,7 @@ class LearningMultiAgent(LearningAgent):
         return act
     
     def sample(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False, use_mbrl=False, 
-               sampling=False, time_step=0):
+               epsilon=1.0, sampling=False, time_step=0):
         if self._useLock:
             self._accesLock.acquire()
         # print ("MARL sample: ", repr(state))
@@ -759,7 +759,7 @@ class LearningMultiAgent(LearningAgent):
                 candidate_actions, candidate_exp_acts, entropys = self.getAgents()[m].sample(
                     state_,
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
-                    sampling=sampling)
+                    epsilon=epsilon, sampling=sampling)
 
                 ### Assume that z_k is at the end of the state
                 ### These shapes don't quite line up. The llp state can be a different size than the hlp shape.
@@ -790,7 +790,7 @@ class LearningMultiAgent(LearningAgent):
                 (action, exp_act, entropy_) = self.getAgents()[m].sample(
                     [state_],
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
-                    sampling=sampling)
+                    epsilon=epsilon, sampling=sampling)
 
             if time_step == 0 or time_step % self.time_skips[m] == 0:
                 # if this value is true then this level in the hierarchy is active
