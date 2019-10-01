@@ -28,7 +28,8 @@ class LearningMultiAgent(LearningAgent):
         for m in range(self.getSettings()["perform_multiagent_training"]):
             ### I think these settings will get propogated to the experience memory objects
             settings__ = copy.deepcopy(self.getSettings())
-            if (type(self.getSettings()["additional_on_policy_training_updates"]) is list):
+            if ("additional_on_policy_training_updates" in  self.getSettings()
+                and (type(self.getSettings()["additional_on_policy_training_updates"]) is list)):
                 settings__["additional_on_policy_training_updates"] = self.getSettings()["additional_on_policy_training_updates"][m]
             if (type(self.getSettings()["exploration_method"]) is list):
                 settings__["exploration_method"] = self.getSettings()["exploration_method"][m]
@@ -42,7 +43,8 @@ class LearningMultiAgent(LearningAgent):
         # self._agents = [LearningAgent(self.getSettings()) for i in range(self.getSettings()["perform_multiagent_training"])]
         # list of periods over which each agent is active
         # TODO: make this not specific to 2 agents
-        self.time_skips = [self.getSettings()["hlc_timestep"], 1]
+        if "hlc_timestep" in self.getSettings():
+            self.time_skips = [self.getSettings()["hlc_timestep"], 1]
         self.latest_actions = [None] * self.getSettings()["perform_multiagent_training"]
         self.latest_exp_act = [None] * self.getSettings()["perform_multiagent_training"]
         self.latest_entropy = [None] * self.getSettings()["perform_multiagent_training"]

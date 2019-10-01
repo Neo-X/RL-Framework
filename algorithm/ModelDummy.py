@@ -24,6 +24,11 @@ class ModelDummy(AlgorithmInterface):
         # sgd = SGD(lr=0.001, momentum=0.9)
         pass 
     
+    def sample(self, state_, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False,
+               epsilon=1.0, sampling=False, time_step=0):
+        action = self.predict(state_)
+        return (action, [1], [0], state_)
+    
     def getGrads(self, states, alreadyNormed=False):
         """
             The states should be normalized
@@ -128,3 +133,6 @@ class ModelDummy(AlgorithmInterface):
     
     def get_critic_loss(self):
         return 0
+    
+    def setNoise(self, noise):
+        pass

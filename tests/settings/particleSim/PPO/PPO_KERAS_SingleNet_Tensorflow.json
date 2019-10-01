@@ -244,8 +244,6 @@
 "use_multiple_policy_updates": false,	
 	"comment__": "Whether or not to clear the experience memory after each update is done, for pure on policy methods",
 "clear_exp_mem_on_poli": true,
-
-
 	"comment__": "Disable scaling for inputs and outputs of networks",
 "disable_parameter_scaling": false,
 	"comment__": "Train a state encoding as well.",

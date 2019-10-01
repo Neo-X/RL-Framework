@@ -374,5 +374,9 @@
 	"comment__": "the first index of the goal in the state",
 "goal_slice_index": 2,
 	"comment__": "Flag to use internal HRL logic",
-"use_hrl_logic": true
+"use_hrl_logic": true,
+	"comment__": "Data for using comet ML for logging learning experiments",
+"experiment_logging":
+	{"use_comet": true,
+	"project_name": "hrlasmarl"}
 }
