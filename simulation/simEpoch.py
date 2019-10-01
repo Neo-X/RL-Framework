@@ -183,6 +183,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 
                 
                 # print ("state_", repr(state_))
+                for s in state_:
+                    print(s.shape)
                 (action, exp_action, entropy_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
                                                     sampling=sampling, time_step=i_)
                 # print ("action", repr(action))

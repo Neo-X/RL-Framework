@@ -766,24 +766,23 @@ class LearningMultiAgent(LearningAgent):
                 if ("exploration_processing" in self.getSettings()
                      and self.getSettings()["exploration_processing"] == "argmax"):
                     
-                    best_idx = np.argmax(llc_values)
-                    action = [candidate_actions[best_idx]]
-                    exp_act = [candidate_exp_acts[best_idx]]
+                    idx_ = np.argmax(llc_values)
                 elif ("exploration_processing" in self.getSettings()
                      and self.getSettings()["exploration_processing"] == "reweight"):
                     ### Other options
                     llc_values_ = llc_values.flatten() - np.min(llc_values)
                     llc_weights = llc_values_ / np.sum(llc_values_)
                     idx_ = np.random.choice(range(num_samples), p=llc_weights)
-                    action = [candidate_actions[idx_]]
-                    exp_act = [candidate_exp_acts[idx_]]
                 else:
                     ### Equally weighted
                     idx_ = np.random.choice(range(num_samples))
-                    action = [candidate_actions[idx_]]
-                    exp_act = [candidate_exp_acts[idx_]]
-                    
+
+                action = [candidate_actions[idx_]]
+                exp_act = [candidate_exp_acts[idx_]]
+                entropy_ = entropys[idx_]
+
             else:
+                print(state_.shape, m)
                 (action, exp_act, entropy_) = self.getAgents()[m].sample(
                     [state_],
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
@@ -796,6 +795,7 @@ class LearningMultiAgent(LearningAgent):
                 self.latest_exp_act[m] = exp_act
                 self.latest_entropy[m] = entropy_
 
+            state[m] = state_
             act.append(self.latest_actions[m][0])
             exp_action.append([self.latest_exp_act[m]])
             entropy.append(self.latest_entropy[m])
@@ -882,13 +882,14 @@ class LearningMultiAgent(LearningAgent):
         """
             
         """
+        state_ = np.array(state)
         if ( "use_centralized_critic" in self.getSettings()
              and (self.getSettings()["use_centralized_critic"] == True)):
             ### Need to assemble centralized states
             # state_ = self.getcentralizedCriticState(state)[agent_id[0][0]]
-            q = self.getAgents()[agent_id[0][0]].q_values2(state, agent_id)
+            q = self.getAgents()[agent_id[0][0]].q_values2(state_, agent_id)
         else:
-            q = self.getAgents()[agent_id[0][0]].q_values2(state, agent_id)
+            q = self.getAgents()[agent_id[0][0]].q_values2(state_, agent_id)
         if self._useLock:
             self._accesLock.release()
         return q
