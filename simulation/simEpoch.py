@@ -117,10 +117,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     stds=[]
     bad_sim_state = False
     entropy_ = 0
-    if ("divide_by_zero2" in settings
-        and (settings["divide_by_zero2"] == True)
-        and (not bootstrapping)):
-        d = 3 / 0
     
     i_ = 0
     while (i_ < settings['max_epoch_length']):
@@ -140,66 +136,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             visualizeEvaluation.redraw()
         action=None
         if action_space_continuous:
-            """
-                epsilon greedy action select
-                pa1 is best action from policy
-                ra1 is the noisy policy action action
-                ra2 is the random action
-                e is proabilty to select random action
-                0 <= e < omega < 1.0
-            """
-            r = np.random.rand(1)[0]
-            # print ("float(settings['anneal_exploration']), epsilon * p: ", float(settings['anneal_exploration']), epsilon * p)
-            if ((not evaluation) ### This logic has gotten far to complicated.... 
-                and 
-                (
-                    ( ### Explore if r < annealing value
-                        (settings['on_policy']) 
-                        and 
-                        (
-                            ("anneal_exploration" in settings) 
-                            and (settings['anneal_exploration'] != False)
-                            and (r < (max(float(settings['anneal_exploration']), epsilon * p))) 
-                        )
-                    ) 
-                        or ### Always explore 
-                        ( 
-                            (settings['on_policy'])
-                            and ("anneal_exploration" in settings) 
-                            and (settings['anneal_exploration'] == False)
-                        )
-                        or ### Always explore 
-                        (
-                            (settings['on_policy'])
-                            and (not "anneal_exploration" in settings) 
-                        )
-                        or  
-                        ( ### Explore sometimes
-                            (settings['on_policy'])
-                            and (r < (epsilon * p)) 
-                        )
-                    )
-                ): # explore random actions
                 
+            (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
+                                                    epsilon=epsilon, sampling=sampling, time_step=i_, evaluation_=evaluation)
                 
-                # print ("state_", repr(state_))
-                (action, exp_action, entropy_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
-                                                    sampling=sampling)
-                # print ("action", repr(action))
-            else: 
-                ### exploit policy
-                exp_action = [[0]] *  len(state_)
-                ## For sampling method to skip sampling during evaluation.
-                use_MBRL = False
-                if ("evalaute_with_MBRL" in settings and
-                    (settings["evalaute_with_MBRL"] == True) ):
-                    use_MBRL = True
-
-                pa = model.predict(state_, evaluation_=evaluation, p=p, sim_index=worker_id, 
-                                   bootstrapping=bootstrapping, use_mbrl=use_MBRL)
-                
-                action = pa
-                # print ("Exploitation: ", action , " epsilon: ", epsilon * p)
             outside_bounds=False
             action_=None
             if (settings["clamp_actions_to_stay_inside_bounds"] or (settings['penalize_actions_outside_bounds'])):
@@ -274,6 +214,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             reward_ = actor.actContinuous(exp, action__, bootstrapping=True)
             agent_not_fell = actor.hasNotFallen(exp)
         resultState_ = exp.getState()
+        if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
+             and (settings["use_hrl_logic"] == True) ):
+            resultState_[1] = np.concatenate([resultState_[1],
+                                        action[0] ], axis=-1)
+             
+        
+        
         if (movieWriter is not None
             and (not exp.movieWriterSupport())):
             ### If the sim does not have it's own writing support

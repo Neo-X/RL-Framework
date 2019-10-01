@@ -352,6 +352,7 @@ def trainModelParallel(inputData):
         actor = createActor(settings['environment_type'], settings, None)
         exp_val = None
         for i in range(len(action_bounds)):
+            # print ("state_bounds[i]: ", state_bounds[i])
             if ((action_bounds[i] != "ask_env")
                 and
                 not validBounds(action_bounds[i])):

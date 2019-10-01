@@ -964,120 +964,174 @@ class LearningAgent(AgentInterface):
         return self._noise_
     
     def sample(self, state_, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False,
-               sampling=False):
+               epsilon=1.0, sampling=False, time_step=0):
         """
             The logic for sampling for different types of distributions
         """
         import numpy as np
         from model.LearningUtil import entropy
+        omega = self.getSettings()["omega"]
         entropy_ = 0
         stds=[]
-        exp_action = int(1)
-        r2 = np.random.rand(1)[0]
-        if ((r2 < (self.getSettings()["omega"] * p))) and (not sampling) :
-            ### explore hand crafted actions
-            # return ra2
-            # randomAction = randomUniformExporation(self.getActionBounds()) # Completely random action
-            # action = randomAction
-            if ((self.getSettings()['exploration_method'] == 'sampling') or
-                (self.getSettings()['exploration_method'] == 'gaussian_network')): 
-                action = [randomUniformExporation(self.getActionBounds())] # Completely random action
-            else:
-                action = np.random.choice(action_selection)
-                action__ = actor.getActionParams(action)
-                action = [action__]
-            ### off policy
-            exp_action = int(0)
-            # print ("Discrete action choice: ", action, " epsilon * p: ", omega * p)
-        else : 
-            ### add noise to current policy
-            pa_ = self.predict(state_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
-            if ( ((self.getSettings()['exploration_method'] == 'OrnsteinUhlenbeck') 
-                  # or (bootstrapping)
-                  ) 
-                 and (not sampling)):
-                if ( 'anneal_policy_std' in self.getSettings() and (self.getSettings()['anneal_policy_std'])):
-                    self._noise_ = OUNoise(theta=0.15, sigma=self.getSettings()["exploration_rate"] * p, previousNoise=self._noise_)
-                    action = pa_ + (self._noise_ * action_bound_std(self.getActionBounds())) 
+        """
+            epsilon greedy action select
+            pa1 is best action from policy
+            ra1 is the noisy policy action action
+            ra2 is the random action
+            e is proabilty to select random action
+            0 <= e < omega < 1.0
+        """
+        r = np.random.rand(1)[0]
+        # print ("float(settings['anneal_exploration']), epsilon * p: ", float(settings['anneal_exploration']), epsilon * p)
+        if ((not evaluation_) ### This logic has gotten far to complicated.... 
+            and 
+            (
+                ( ### Explore if r < annealing value
+                    (self.getSettings()['on_policy']) 
+                    and 
+                    (
+                        ("anneal_exploration" in self.getSettings()) 
+                        and (self.getSettings()['anneal_exploration'] != False)
+                        and (r < (max(float(self.getSettings()['anneal_exploration']), epsilon * p))) 
+                    )
+                ) 
+                    or ### Always explore 
+                    ( 
+                        (self.getSettings()['on_policy'])
+                        and ("anneal_exploration" in self.getSettings()) 
+                        and (self.getSettings()['anneal_exploration'] == False)
+                    )
+                    or ### Always explore 
+                    (
+                        (self.getSettings()['on_policy'])
+                        and (not "anneal_exploration" in self.getSettings()) 
+                    )
+                    or  
+                    ( ### Explore sometimes
+                        (self.getSettings()['on_policy'])
+                        and (r < (epsilon * p)) 
+                    )
+                )
+            ): # explore random actions  
+            exp_action = int(1)
+            r2 = np.random.rand(1)[0]
+            if ((r2 < (self.getSettings()["omega"] * p))) and (not sampling) :
+                ### explore hand crafted actions
+                # return ra2
+                # randomAction = randomUniformExporation(self.getActionBounds()) # Completely random action
+                # action = randomAction
+                if ((self.getSettings()['exploration_method'] == 'sampling') or
+                    (self.getSettings()['exploration_method'] == 'gaussian_network')): 
+                    action = [randomUniformExporation(self.getActionBounds())] # Completely random action
                 else:
-                    self._noise_ = OUNoise(theta=0.15, sigma=self.getSettings()["exploration_rate"], previousNoise=self._noise_)
-                    action = pa_ + (self._noise_ * action_bound_std(self.getActionBounds()))
-            elif ( (self.getSettings()['exploration_method'] == 'gaussian_network' or 
-                  (self.getSettings()['use_stochastic_policy'] == True))
-                  or (self.getSettings()['exploration_method'] == 'gaussian_random')
-                   ):
-
-                # action = randomExporation(self.getSettings()["exploration_rate"], pa)
-                if ( 'anneal_policy_std' in self.getSettings() and (self.getSettings()['anneal_policy_std'])):
-                    std_ = self.predict_std(state_, p=p)
-                else:
-                    std_ = self.predict_std(state_, p=1.0)
-                stds.append(std_)
-                entropy_ = entropy(std_)
-                action = randomExporationSTD(pa_, std_, np.array(self.getActionBounds(), dtype=float))
-                # print("Action2: ", action)
-                    
-            elif ((self.getSettings()['exploration_method'] == 'thompson')):
-                # print ('Using Thompson sampling')
-                action = thompsonExploration(self, self.getSettings()["exploration_rate"], state_)
-            elif ((self.getSettings()['exploration_method'] == 'deterministic')):
-                # print ('Using Thompson sampling')
-                action = pa_
-            elif ((self.getSettings()['exploration_method'] == 'sampling')):
-                ## Use a sampling method to find a good action
-                if (self.getSettings()["forward_dynamics_predictor"] == "simulator"
-                    or (self.getSettings()["forward_dynamics_predictor"] == "simulator_parallel")):
-                    sim_state_ = exp.getSimState()
-                else:
-                    sim_state_ = state_
-                # print ("explore on state: ", sim_state_)
-                action = self.getSampler().predict(sim_state_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
-                action = [action]
-                # print("samples action: ", action)
-            else:
-                print ("Exploration method unknown: " + str(self.getSettings()['exploration_method']))
-                sys.exit(1)
-            # randomAction = randomUniformExporation(np.array(self.getActionBounds(), dtype=float)) # Completely random action
-            # randomAction = random.choice(action_selection)
-            if (self.getSettings()["use_model_based_action_optimization"] and self.getSettings()["train_forward_dynamics"] ):
-                """
-                if ( ('anneal_mbae' in self.getSettings()) and self.getSettings()['anneal_mbae'] ):
-                    mbae_omega = p * self.getSettings()["model_based_action_omega"]
-                else:
-                """
-                mbae_omega = self.getSettings()["model_based_action_omega"]
-                # print ("model_based_action_omega", self.getSettings()["model_based_action_omega"])
-                if (np.random.rand(1)[0] < mbae_omega):
-                    ## Need to be learning a forward dynamics deep network for this
-                    mbae_lr = self.getSettings()["action_learning_rate"]
-                    std_p = 1.0
-                    use_rand_act = False
-                    if ( ('use_std_avg_as_mbae_learning_rate' in self.getSettings()) 
-                         and (self.getSettings()['use_std_avg_as_mbae_learning_rate'] == True )
-                         ):
-                        ### Need to normalize this learning space
-                        avg_policy_std = np.mean(self.predict_std(state_)/action_bound_std(np.array(self.getActionBounds(), dtype=float)))
-                        # print ("avg_policy_std: ", avg_policy_std)
-                        mbae_lr = avg_policy_std
-                    if ( ('anneal_mbae' in self.getSettings()) and self.getSettings()['anneal_mbae'] ):
-                        mbae_lr = p * mbae_lr
-                        # print("MBAE p: ", p)
-                    if ( 'MBAE_anneal_policy_std' in self.getSettings() and (self.getSettings()['MBAE_anneal_policy_std'])):
-                        std_p = p
-                    if ( 'use_random_actions_for_MBAE' in self.getSettings()):
-                        use_rand_act = self.getSettings()['use_random_actions_for_MBAE']
+                    action = np.random.choice(action_selection)
+                    action__ = actor.getActionParams(action)
+                    action = [action__]
+                ### off policy
+                exp_action = int(0)
+                # print ("Discrete action choice: ", action, " epsilon * p: ", omega * p)
+            else : 
+                ### add noise to current policy
+                pa_ = self.predict(state_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+                if ( ((self.getSettings()['exploration_method'] == 'OrnsteinUhlenbeck') 
+                      # or (bootstrapping)
+                      ) 
+                     and (not sampling)):
+                    if ( 'anneal_policy_std' in self.getSettings() and (self.getSettings()['anneal_policy_std'])):
+                        self._noise_ = OUNoise(theta=0.15, sigma=self.getSettings()["exploration_rate"] * p, previousNoise=self._noise_)
+                        action = pa_ + (self._noise_ * action_bound_std(self.getActionBounds())) 
+                    else:
+                        self._noise_ = OUNoise(theta=0.15, sigma=self.getSettings()["exploration_rate"], previousNoise=self._noise_)
+                        action = pa_ + (self._noise_ * action_bound_std(self.getActionBounds()))
+                elif ( (self.getSettings()['exploration_method'] == 'gaussian_network' or 
+                      (self.getSettings()['use_stochastic_policy'] == True))
+                      or (self.getSettings()['exploration_method'] == 'gaussian_random')
+                       ):
+    
+                    # action = randomExporation(self.getSettings()["exploration_rate"], pa)
+                    if ( 'anneal_policy_std' in self.getSettings() and (self.getSettings()['anneal_policy_std'])):
+                        std_ = self.predict_std(state_, p=p)
+                    else:
+                        std_ = self.predict_std(state_, p=1.0)
+                    stds.append(std_)
+                    entropy_ = entropy(std_)
+                    action = randomExporationSTD(pa_, std_, np.array(self.getActionBounds(), dtype=float))
+                    # print("Action2: ", action)
                         
-                    # print ("old action:", action)
-                    (action, value_diff) = getOptimalAction(self.getForwardDynamics(), self.getPolicy(), state_, action_lr=mbae_lr, use_random_action=use_rand_act, p=std_p)
-                    # print ("new action:", action)
-                    # if ( 'give_mbae_actions_to_critic' in self.getSettings() and 
-                    #      (self.getSettings()['give_mbae_actions_to_critic'] == False)):
-                    exp_action = int(2)
-                    # print ("Using MBAE: ", state_)
-                    # if ( ('print_level' in self.getSettings()) and (self.getSettings()["print_level"]== 'debug') ):
-                        # print("MBAE action:")
-            # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
+                elif ((self.getSettings()['exploration_method'] == 'thompson')):
+                    # print ('Using Thompson sampling')
+                    action = thompsonExploration(self, self.getSettings()["exploration_rate"], state_)
+                elif ((self.getSettings()['exploration_method'] == 'deterministic')):
+                    # print ('Using Thompson sampling')
+                    action = pa_
+                elif ((self.getSettings()['exploration_method'] == 'sampling')):
+                    ## Use a sampling method to find a good action
+                    if (self.getSettings()["forward_dynamics_predictor"] == "simulator"
+                        or (self.getSettings()["forward_dynamics_predictor"] == "simulator_parallel")):
+                        sim_state_ = exp.getSimState()
+                    else:
+                        sim_state_ = state_
+                    # print ("explore on state: ", sim_state_)
+                    action = self.getSampler().predict(sim_state_, p=p, sim_index=sim_index, bootstrapping=bootstrapping)
+                    action = [action]
+                    # print("samples action: ", action)
+                else:
+                    print ("Exploration method unknown: " + str(self.getSettings()['exploration_method']))
+                    sys.exit(1)
+                # randomAction = randomUniformExporation(np.array(self.getActionBounds(), dtype=float)) # Completely random action
+                # randomAction = random.choice(action_selection)
+                if (self.getSettings()["use_model_based_action_optimization"] and self.getSettings()["train_forward_dynamics"] ):
+                    """
+                    if ( ('anneal_mbae' in self.getSettings()) and self.getSettings()['anneal_mbae'] ):
+                        mbae_omega = p * self.getSettings()["model_based_action_omega"]
+                    else:
+                    """
+                    mbae_omega = self.getSettings()["model_based_action_omega"]
+                    # print ("model_based_action_omega", self.getSettings()["model_based_action_omega"])
+                    if (np.random.rand(1)[0] < mbae_omega):
+                        ## Need to be learning a forward dynamics deep network for this
+                        mbae_lr = self.getSettings()["action_learning_rate"]
+                        std_p = 1.0
+                        use_rand_act = False
+                        if ( ('use_std_avg_as_mbae_learning_rate' in self.getSettings()) 
+                             and (self.getSettings()['use_std_avg_as_mbae_learning_rate'] == True )
+                             ):
+                            ### Need to normalize this learning space
+                            avg_policy_std = np.mean(self.predict_std(state_)/action_bound_std(np.array(self.getActionBounds(), dtype=float)))
+                            # print ("avg_policy_std: ", avg_policy_std)
+                            mbae_lr = avg_policy_std
+                        if ( ('anneal_mbae' in self.getSettings()) and self.getSettings()['anneal_mbae'] ):
+                            mbae_lr = p * mbae_lr
+                            # print("MBAE p: ", p)
+                        if ( 'MBAE_anneal_policy_std' in self.getSettings() and (self.getSettings()['MBAE_anneal_policy_std'])):
+                            std_p = p
+                        if ( 'use_random_actions_for_MBAE' in self.getSettings()):
+                            use_rand_act = self.getSettings()['use_random_actions_for_MBAE']
+                            
+                        # print ("old action:", action)
+                        (action, value_diff) = getOptimalAction(self.getForwardDynamics(), self.getPolicy(), state_, action_lr=mbae_lr, use_random_action=use_rand_act, p=std_p)
+                        # print ("new action:", action)
+                        # if ( 'give_mbae_actions_to_critic' in self.getSettings() and 
+                        #      (self.getSettings()['give_mbae_actions_to_critic'] == False)):
+                        exp_action = int(2)
+                        # print ("Using MBAE: ", state_)
+                        # if ( ('print_level' in self.getSettings()) and (self.getSettings()["print_level"]== 'debug') ):
+                            # print("MBAE action:")
+                # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
+        else: 
+            ### exploit policy
+            exp_action = [[0]] *  len(state_)
+            ## For sampling method to skip sampling during evaluation.
+            use_MBRL = False
+            if ("evalaute_with_MBRL" in self.getSettings() and
+                (self.getSettings()["evalaute_with_MBRL"] == True) ):
+                use_MBRL = True
+
+            pa = self.predict(state_, evaluation_=evaluation_, p=p, sim_index=sim_index, 
+                               bootstrapping=bootstrapping, use_mbrl=use_MBRL)
             
+            action = pa
+            # print ("Exploitation: ", action , " epsilon: ", epsilon * p)
         exp_action = [[exp_action]] * len(state_)
         return (action, exp_action, entropy_)
     

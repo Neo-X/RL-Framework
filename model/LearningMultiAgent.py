@@ -40,11 +40,20 @@ class LearningMultiAgent(LearningAgent):
             agent = LearningAgent(settings__)
             self._agents.append(agent)
         # self._agents = [LearningAgent(self.getSettings()) for i in range(self.getSettings()["perform_multiagent_training"])]
+        # list of periods over which each agent is active
+        # TODO: make this not specific to 2 agents
+        self.time_skips = [self.getSettings()["hlc_timestep"], 1]
+        self.latest_actions = [None] * self.getSettings()["perform_multiagent_training"]
+        self.latest_exp_act = [None] * self.getSettings()["perform_multiagent_training"]
+        self.latest_entropy = [None] * self.getSettings()["perform_multiagent_training"]
         
     def getAgents(self):
         return self._agents
     
     def reset(self):
+        self.latest_actions = [None] * self.getSettings()["perform_multiagent_training"]
+        self.latest_exp_act = [None] * self.getSettings()["perform_multiagent_training"]
+        self.latest_entropy = [None] * self.getSettings()["perform_multiagent_training"]
         [p.reset() for p in self.getAgents()]
         
     def getPolicy(self):
@@ -692,7 +701,7 @@ class LearningMultiAgent(LearningAgent):
         return act
     
     def sample(self, state, evaluation_=False, p=None, sim_index=None, bootstrapping=False, use_mbrl=False, 
-               sampling=False):
+               epsilon=1.0, sampling=False, time_step=0):
         if self._useLock:
             self._accesLock.acquire()
         # print ("MARL sample: ", repr(state))
@@ -701,6 +710,8 @@ class LearningMultiAgent(LearningAgent):
         exp_action = []
         entropy = []
         for m in range(len(state)):
+            # by convention the highest levels in the hierarchy come first
+
             if ( "use_centralized_critic" in self.getSettings()
                  and (self.getSettings()["use_centralized_critic"] == True)):
                 ### Need to assemble centralized states
@@ -708,6 +719,30 @@ class LearningMultiAgent(LearningAgent):
 
             else:
                 state_ = state[m]
+
+            """ Brandon:
+            This code manages converting actions from higher agents into goals of lower agents.
+            Assume that state does not have a goal concatenates to it.
+            """
+            state_ = np.array(state_)
+            if ( "use_hrl_logic" in self.getSettings()
+                 and (self.getSettings()["use_hrl_logic"] == True)
+                 and (m == 1) ):
+                # if index is not the highest level policy, which has no goal to concat.
+                # concat on the action of the higher level onto the state
+                goal = np.array(self.latest_actions[m - 1][0])
+                """
+                while len(goal.shape) < len(state_.shape):
+                    # if the state has extra dimensions, then copy those dimensions
+                    # assume that the goal and the state always have a batch dimension first
+                    goal = goal[:, None, ...]
+                    next_expansion_dim = len(state_.shape) - len(goal.shape) - 1
+                    goal = np.tile(goal, [state_.shape[next_expansion_dim]] + [1 for _i in goal.shape])
+                # by this point state and goals should be the same along every axis except the last
+                # if this is false then one is likely not a simple vector
+                assert all([i == j for i, j in zip(state_.shape[:-1], goal.shape[:-1])])
+                """
+                state_ = np.concatenate([np.array(state_), goal], -1)
 
             use_hle = ( "hlc_index" in self.getSettings()
                 and "llc_index" in self.getSettings()
@@ -724,7 +759,7 @@ class LearningMultiAgent(LearningAgent):
                 candidate_actions, candidate_exp_acts, entropys = self.getAgents()[m].sample(
                     state_,
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
-                    sampling=sampling)
+                    epsilon=epsilon, sampling=sampling)
 
                 ### Assume that z_k is at the end of the state
                 ### These shapes don't quite line up. The llp state can be a different size than the hlp shape.
@@ -735,39 +770,56 @@ class LearningMultiAgent(LearningAgent):
                 if ("exploration_processing" in self.getSettings()
                      and self.getSettings()["exploration_processing"] == "argmax"):
                     
-                    best_idx = np.argmax(llc_values)
-                    action = [candidate_actions[best_idx]]
-                    exp_act = [candidate_exp_acts[best_idx]]
+                    idx_ = np.argmax(llc_values)
                 elif ("exploration_processing" in self.getSettings()
                      and self.getSettings()["exploration_processing"] == "reweight"):
                     ### Other options
                     llc_values_ = llc_values.flatten() - np.min(llc_values)
                     llc_weights = llc_values_ / np.sum(llc_values_)
                     idx_ = np.random.choice(range(num_samples), p=llc_weights)
-                    action = [candidate_actions[idx_]]
-                    exp_act = [candidate_exp_acts[idx_]]
                 else:
                     ### Equally weighted
                     idx_ = np.random.choice(range(num_samples))
-                    action = [candidate_actions[idx_]]
-                    exp_act = [candidate_exp_acts[idx_]]
-                    
+
+                action = [candidate_actions[idx_]]
+                exp_act = [candidate_exp_acts[idx_]]
+                entropy_ = entropys[idx_]
+
             else:
+                # print(state_.shape, m)
                 (action, exp_act, entropy_) = self.getAgents()[m].sample(
                     [state_],
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
-                    sampling=sampling)
+                    epsilon=epsilon, sampling=sampling)
 
-            act.append(action[0])
-            exp_action.append([exp_act])
-            entropy.append(entropy_)
+            if ("use_hrl_logic" in self.getSettings()
+                 and (self.getSettings()["use_hrl_logic"] == True) 
+                 and ((time_step == 0) or (time_step % self.time_skips[m] == 0) )):
+                # if this value is true then this level in the hierarchy is active
+                # otherwise use the actions exp actions and entropy from previous steps
+                self.latest_actions[m] = action
+                self.latest_exp_act[m] = exp_act
+                self.latest_entropy[m] = entropy_
+            else:
+                self.latest_actions[m] = action
+                self.latest_exp_act[m] = exp_act
+                self.latest_entropy[m] = entropy_
+            """
+            if (self.getSettings()["policy_connections"][0][1] == m):
+                state[self.getSettings()["policy_connections"][0][0]][
+                    self.getSettings()["goal_slice_index"]:] =  self.latest_actions[m]
+            """
+            state[m] = state_
+            act.append(self.latest_actions[m][0])
+            exp_action.append([self.latest_exp_act[m]])
+            entropy.append(self.latest_entropy[m])
 
         if self._useLock:
             self._accesLock.release()
         # print ("act: ", repr(act))
         # print ("exp_action: ", repr(exp_action))
 
-        return (act, exp_action, entropy)
+        return (act, exp_action, entropy, state)
     
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:
@@ -844,13 +896,14 @@ class LearningMultiAgent(LearningAgent):
         """
             
         """
+        state_ = np.array(state)
         if ( "use_centralized_critic" in self.getSettings()
              and (self.getSettings()["use_centralized_critic"] == True)):
             ### Need to assemble centralized states
             # state_ = self.getcentralizedCriticState(state)[agent_id[0][0]]
-            q = self.getAgents()[agent_id[0][0]].q_values2(state, agent_id)
+            q = self.getAgents()[agent_id[0][0]].q_values2(state_, agent_id)
         else:
-            q = self.getAgents()[agent_id[0][0]].q_values2(state, agent_id)
+            q = self.getAgents()[agent_id[0][0]].q_values2(state_, agent_id)
         if self._useLock:
             self._accesLock.release()
         return q
