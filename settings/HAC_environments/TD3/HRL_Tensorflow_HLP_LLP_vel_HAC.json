@@ -40,12 +40,12 @@
 "state_bounds": [
   				  [[-1, -1, -1, -1, -1, -1],
 				 [ 1, 1, 1, 1, 1, 1]],
-  				  [[-1, -1, -1, -1, -1, -1],
-				 [ 1, 1, 1, 1, 1, 1]]
+  				  [[-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1],
+				 [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
 ],
     "comment__": "Action scaling values to be used to scale values for the network",
-"action_bounds": [[[-1.0, -1.0, -1.0],
-                  [  1.0,  1.0,  1.0]],
+"action_bounds": [[[-1.0, -1.0, -1.0, -1.0, -1.0, -1.0],
+                  [  1.0,  1.0,  1.0, 1.0, 1.0, 1.0]],
                   [[-1.0, -1.0, -1.0],
                    [ 1.0,  1.0,  1.0]]],
     "comment__": "Set of discrete actions that can be sampled from",				     
@@ -381,5 +381,11 @@
 	"comment__": "the probability to relabel samples using sub goal testing",
 "subgoal_testing_probability": 0.3,
 	"comment__": "the threshold under which goals are considered achieved",
-"hac_goal_threshold": 1.0
+"hac_goal_threshold": 1.0,
+	"comment__": "Flag to use internal HRL logic",
+"use_hrl_logic": true,
+	"comment__": "Data for using comet ML for logging learning experiments",
+"experiment_logging":
+	{"use_comet": true,
+	"project_name": "hrlasmarl"}
 }
