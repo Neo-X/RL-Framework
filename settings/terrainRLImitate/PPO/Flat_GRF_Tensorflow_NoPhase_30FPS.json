@@ -330,5 +330,9 @@
 	"comment__": "Which backend to use for keras [theano|tensorflow]",
 "learning_backend": "tensorflow",
 	"comment__": "Use an L2 loss over for the value function over the G_t from rollouts (no TD loss)",
-"dont_use_td_learning": true
+"dont_use_td_learning": true,
+	"comment__": "Data for using comet ML for logging learning experiments",
+"experiment_logging":
+	{"use_comet": true,
+	"project_name": "deepcrowds"}
 }
