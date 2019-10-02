@@ -501,5 +501,5 @@ if __name__ == "__main__":
     if (settings['shouldRender'] == 'yes'):
         sim = modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render='yes')
     else:
-        sim = modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render=True)
+        sim = modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render=settings["shouldRender"])
     
