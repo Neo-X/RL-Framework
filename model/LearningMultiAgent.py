@@ -759,7 +759,7 @@ class LearningMultiAgent(LearningAgent):
             if use_hle:
                 num_samples = self.getSettings()["high_level_exploration_samples"]
                 state_ = np.array([state_ for i in range(num_samples)])
-                candidate_actions, candidate_exp_acts, entropys = self.getAgents()[m].sample(
+                candidate_actions, candidate_exp_acts, entropys, _ = self.getAgents()[m].sample(
                     state_,
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
                     epsilon=epsilon, sampling=sampling)
@@ -790,7 +790,7 @@ class LearningMultiAgent(LearningAgent):
 
             else:
                 # print(state_.shape, m)
-                (action, exp_act, entropy_) = self.getAgents()[m].sample(
+                (action, exp_act, entropy_, _) = self.getAgents()[m].sample(
                     [state_],
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
                     epsilon=epsilon, sampling=sampling)

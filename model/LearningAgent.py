@@ -1133,7 +1133,7 @@ class LearningAgent(AgentInterface):
             action = pa
             # print ("Exploitation: ", action , " epsilon: ", epsilon * p)
         exp_action = [[exp_action]] * len(state_)
-        return (action, exp_action, entropy_)
+        return (action, exp_action, entropy_, state_)
     
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:

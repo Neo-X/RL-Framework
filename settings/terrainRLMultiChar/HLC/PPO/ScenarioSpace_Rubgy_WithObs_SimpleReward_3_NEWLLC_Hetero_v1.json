@@ -292,7 +292,7 @@
     "comment__": "Number of steps ahead the actions should be sampled",
 "look_ahead_planning_steps": 2,
     "comment__": "How often to update the training data and plots wrt # of rounds",
-"plotting_update_freq_num_rounds": 2,
+"plotting_update_freq_num_rounds": 1,
     "comment__": "How often to save the training data and plotting data",
 "saving_update_freq_num_rounds": 5,
     "comment__": "Number of treads that can be run in parallel during training",
