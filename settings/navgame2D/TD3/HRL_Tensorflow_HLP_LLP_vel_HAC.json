@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TD3_KERAS.TD3_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "NavGame2D_HRL_NoVision_HLC_5Step_LLC_vel_direct_v0/_hlp_llc_sampling_hac_2",
+"data_folder": "NavGame2D_HRL_NoVision_HLC_5Step_LLC_vel_direct_v0/hac_test",
 	"comment__": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment__": "initial probability of selecting a discrete random action",
@@ -388,5 +388,13 @@
 	"comment__": "the probability to relabel samples using sub goal testing",
 "subgoal_testing_probability": 0.3,
 	"comment__": "the threshold under which goals are considered achieved",
-"hac_goal_threshold": 1.0
+"hac_goal_threshold": 1.0,
+	"comment__": "Flag to use internal HRL logic",
+"use_hrl_logic": true,
+	"comment__": "Flag to use internal HRL logic",
+"dont_do_hrl_logic": true,
+	"comment__": "Data for using comet ML for logging learning experiments",
+"experiment_logging":
+	{"use_comet": true,
+	"project_name": "hrlasmarl"}
 }

@@ -708,6 +708,7 @@ class LearningMultiAgent(LearningAgent):
         if self._useLock:
             self._accesLock.acquire()
         # print ("MARL sample: ", repr(state))
+        state_and_goals = []
 
         act = []
         exp_action = []
@@ -812,7 +813,7 @@ class LearningMultiAgent(LearningAgent):
                 state[self.getSettings()["policy_connections"][0][0]][
                     self.getSettings()["goal_slice_index"]:] =  self.latest_actions[m]
             """
-            state[m] = state_
+            state_and_goals.append(state_)
             act.append(self.latest_actions[m][0])
             exp_action.append([self.latest_exp_act[m]])
             entropy.append(self.latest_entropy[m])
@@ -822,7 +823,7 @@ class LearningMultiAgent(LearningAgent):
         # print ("act: ", repr(act))
         # print ("exp_action: ", repr(exp_action))
 
-        return (act, exp_action, entropy, state)
+        return (act, exp_action, entropy, state_and_goals)
     
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:

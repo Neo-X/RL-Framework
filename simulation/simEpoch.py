@@ -124,9 +124,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         state_ = exp.getState()
         # print ("state_: ", repr(np.array(state_).shape))
         # print ("state_: ", state_)
-        
-        states.append(state_)
-        states__.extend(state_)
 
         if (not (visualizeEvaluation == None)):
             viz_q_values_.append(model.q_value(state_)[0][0])
@@ -216,10 +213,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         resultState_ = exp.getState()
         if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
              and (settings["use_hrl_logic"] == True) ):
-            resultState_[1] = np.concatenate([resultState_[1],
-                                        action[0] ], axis=-1)
-             
-        
+            resultState_ = resultState_.tolist()
+            resultState_[1] = np.concatenate([resultState_[1], action[0]], axis=-1)
+
+        states.append(state_)
+        states__.extend(state_)
         
         if (movieWriter is not None
             and (not exp.movieWriterSupport())):
