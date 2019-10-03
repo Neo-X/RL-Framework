@@ -176,11 +176,14 @@ def setupEnvironmentVariable(settings):
             if ("experiment_logging" in settings 
                 and "metaConfigFile" in settings):
                 from comet_ml import Experiment
-                
+                exp_config = settings["experiment_logging"]
+                if (isinstance(exp_config, str)):
+                    print ("exp_config: ", exp_config)
+                    exp_config = json.loads(exp_config)
                 # Add the following code anywhere in your machine learning file
                 print ("Tracking training via commet.ml")
                 experiment = Experiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu",
-                                        project_name=settings["experiment_logging"]["project_name"], workspace="glenb")
+                                        project_name=exp_config["project_name"], workspace="glenb")
                 experiment.log_parameters(settings)
                 experiment.add_tag("comet_test")
                 experiment.set_name(settings["data_folder"])
