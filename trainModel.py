@@ -284,6 +284,9 @@ def trainModelParallel(inputData):
         settings["experience_length"] = [settings["experience_length"]]
         settings["critic_network_layer_sizes"] = [settings["critic_network_layer_sizes"]]
         settings["policy_network_layer_sizes"] = [settings["policy_network_layer_sizes"]]
+        
+    print ("Number of agents: ", settings["perform_multiagent_training"])
+    # sys.exit()
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     from simulation.LoggingWorker import LoggingWorker
     from util.SimulationUtil import validateSettings, getFDStateSize
@@ -639,7 +642,9 @@ def trainModelParallel(inputData):
         fd_epxerience_length = settings['experience_length']
         if ("fd_experience_length" in settings):
             fd_epxerience_length = settings["fd_experience_length"]
-        if ( 'keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer'])):
+        if ( settings['train_forward_dynamics'] and 
+             ('keep_seperate_fd_exp_buffer' in settings and (settings['keep_seperate_fd_exp_buffer']))
+             ):
             state_bounds__ = getFDStateSize(settings)
             ### Might be some memory expenditure here with a double copy
             masterAgent.setFDExperience(copy.deepcopy(experiencefd))
@@ -825,13 +830,6 @@ def trainModelParallel(inputData):
         settings["round"] = int(trainData["round"])
         masterAgent.setSettings(settings)
 
-        if (False ):
-            print("State Bounds:", masterAgent.getStateBounds())
-            print("Action Bounds:", masterAgent.getActionBounds())
-            
-            print("Exp State Bounds: ", masterAgent.getExperience().getStateBounds())
-            print("Exp Action Bounds: ", masterAgent.getExperience().getActionBounds())
-            
         if ("pretrain_critic" in settings and (settings["pretrain_critic"] > 0)
             and (trainData["round"] == 0)):
             pretrainCritic(masterAgent, states, actions, resultStates, rewards_, 
@@ -1114,25 +1112,26 @@ def trainModelParallel(inputData):
                         (settings["skip_rollouts"] == True)):
                     mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error, mean_eval, std_eval = 0,0,0,0,0,0,0,0
                 else:
+                    rewards__=[]
+                    reward_over_epocs = []
+                    for tr in range(len(__rewards)):
+                        for agent_ in range(len(masterAgent.getAgents())): 
+                            rewards__.append(np.array(__rewards[tr]).flatten()[agent_::len(masterAgent.getAgents())])
+                            # discounted_sum__.append(np.array(discounted_sum).flatten()[agent_::len(masterAgent.getAgents())])
+                            # value__.append(np.array(q_value).flatten()[agent_::len(masterAgent.getAgents())])
+                            # discount_error__.append(discounted_sum__[agent_] - value__[agent_])
+                        rewards__ = [np.mean(rew) for rew in rewards__]
+                        reward_over_epocs.append(np.mean(np.array(rewards__), axis=-1))
+                    # bellman_errors.append(error)
+                    # mean_discount_error.append(np.mean(np.fabs(discount_error__), axis=1))
+                    # std_discount_error.append(np.std(discount_error__, axis=1))
+                        
                     if ( ( settings["eval_epochs"] == "stochastic")):
-                        rewards__=[]
+                        mean_reward = np.mean(reward_over_epocs)
+                        std_reward = np.std(reward_over_epocs)
                         discounted_sum__=[]
                         value__=[]
                         discount_error__ = []
-                        reward_over_epocs = []
-                        for tr in range(len(__rewards)):
-                            for agent_ in range(len(masterAgent.getAgents())): 
-                                rewards__.append(np.array(__rewards[tr]).flatten()[agent_::len(masterAgent.getAgents())])
-                                # discounted_sum__.append(np.array(discounted_sum).flatten()[agent_::len(masterAgent.getAgents())])
-                                # value__.append(np.array(q_value).flatten()[agent_::len(masterAgent.getAgents())])
-                                # discount_error__.append(discounted_sum__[agent_] - value__[agent_])
-                            reward_over_epocs.append(np.mean(np.array(rewards__), axis=1))
-                        # bellman_errors.append(error)
-                        # mean_discount_error.append(np.mean(np.fabs(discount_error__), axis=1))
-                        # std_discount_error.append(np.std(discount_error__, axis=1))
-                        
-                        mean_reward = np.mean(reward_over_epocs)
-                        std_reward = np.std(reward_over_epocs)
                         mean_bellman_error = 0
                         std_bellman_error = 0
                         mean_discount_error = 0
@@ -1173,6 +1172,8 @@ def trainModelParallel(inputData):
                         
                     logExperimentData(trainData, "falls", np.mean(otherMetrics["falls"]), settings)
                     logExperimentData(trainData, "mean_reward", mean_reward, settings)
+                    print ("__rewards: " , reward_over_epocs)
+                    logExperimentData(trainData, "mean_reward_train", np.mean(reward_over_epocs), settings)
                     logExperimentData(trainData, "std_reward", std_reward, settings)
                     logExperimentData(trainData, "anneal_p", p, settings)
                     logExperimentData(trainData, "mean_bellman_error", np.array([np.mean(er_) for er_ in np.fabs(bellman_errors[0])]), settings)
