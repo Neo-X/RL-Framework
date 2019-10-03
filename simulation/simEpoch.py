@@ -121,7 +121,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     i_ = 0
     while (i_ < settings['max_epoch_length']):
         
-        state_ = exp.getState()
+        # state_ = exp.getState()
         # print ("state_: ", repr(np.array(state_).shape))
         # print ("state_: ", state_)
 
@@ -211,13 +211,17 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             reward_ = actor.actContinuous(exp, action__, bootstrapping=True)
             agent_not_fell = actor.hasNotFallen(exp)
         resultState_ = exp.getState()
-        if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
-             and (settings["use_hrl_logic"] == True) ):
-            resultState_ = resultState_.tolist()
-            resultState_[1] = np.concatenate([resultState_[1], action[0]], axis=-1)
-
+        # if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
+        #      and (settings["use_hrl_logic"] == True) ):
+        #     resultState_ = resultState_.tolist()
+        #     resultState_[1] = np.concatenate([resultState_[1], action[0]], axis=-1)
+        if (i_ > 0):
+            result_states___.append(state_)
         states.append(state_)
         states__.extend(state_)
+        
+        # print ("state_: ", state_)
+        # print ("resultState_: ", resultState_)
         
         if (movieWriter is not None
             and (not exp.movieWriterSupport())):
@@ -430,7 +434,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         actions.append(action)
         # print ("reward_: ", reward_)
         rewards.append(reward_)
-        result_states___.append(resultState_)
+        # result_states___.append(resultState_)
         if (worker_id is not None):
             # Pushing working id as fall value for multi task training
             if ("ask_env_for_multitask_id" in settings 
@@ -466,13 +470,21 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         state_num += 1
         pa = None
         i_ += 1
+        state_ = resultState_
         ### Don't reset during evaluation...
         if (((exp.endOfEpoch() and settings['reset_on_fall'] and ((not evaluation)))
              and (reset_prop_tmp <= reset_prop) ) ### Allow option to collect some full trajectories  
             # or ((reward_ < settings['reward_lower_bound']) and (not evaluation))
                 ):
             break
-        
+
+    ### This logic is not perfect yet, It should all sample() again to check if the goal should have been updated after the last action.
+    if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
+         and (settings["use_hrl_logic"] == True) ):
+        # resultState_ = resultState_.tolist()
+        resultState_[1] = np.concatenate([resultState_[1], action[0]], axis=-1)
+    result_states___.append(resultState_)
+    
     evalDatas.append(actor.getEvaluationData()/float(settings['max_epoch_length']))
     evalData = [np.mean(evalDatas)]
     G_ts.extend(copy.deepcopy(discounted_rewards(np.array(rewards), discount_factor)))
