@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TD3_KERAS.TD3_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "NavGameHRL2D_NoVision_HLC_v2/_hlp_llc_sampling_hiro_1",
+"data_folder": "NavGameHRL2D_NoVision_HLC_v2/_hlp_llc_sampling_hiro_2",
 	"comment__": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment__": "initial probability of selecting a discrete random action",
