@@ -1172,7 +1172,7 @@ def trainModelParallel(inputData):
                         
                     logExperimentData(trainData, "falls", np.mean(otherMetrics["falls"]), settings)
                     logExperimentData(trainData, "mean_reward", mean_reward, settings)
-                    print ("__rewards: " , reward_over_epocs)
+                    # print ("__rewards: " , reward_over_epocs)
                     logExperimentData(trainData, "mean_reward_train", np.mean(reward_over_epocs), settings)
                     logExperimentData(trainData, "std_reward", std_reward, settings)
                     logExperimentData(trainData, "anneal_p", p, settings)

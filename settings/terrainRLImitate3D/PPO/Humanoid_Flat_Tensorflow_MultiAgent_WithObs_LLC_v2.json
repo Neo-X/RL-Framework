@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.PPO_KERAS.PPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Humanoid3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_v0/Tensorflow_Pushes_11",
+"data_folder": "PD_Humanoid3D_LLC_Symetric_Step_MultiAgent_Terrain_WithObs_v0/Tensorflow_Pushes_12",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
