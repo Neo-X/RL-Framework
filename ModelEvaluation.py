@@ -251,7 +251,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     if (settings is None):
         settings = getSettings(settings_file_name)
     # settings['shouldRender'] = True
-    setupEnvironmentVariable(settings)
+    setupEnvironmentVariable(settings, eval=True)
     setupLearningBackend(settings)
     ### Flag so simulation models can be a little different.
     settings["simulation_model"] = True
@@ -351,7 +351,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
             forwardDynamicsModel = createNewFDModel(settings, exp, model)
             # forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
         
-        forwardDynamicsModel.setActor(actor)
+        # forwardDynamicsModel.setActor(actor)
         masterAgent.setForwardDynamics(forwardDynamicsModel)
 
     if ( settings['use_simulation_sampling'] ):

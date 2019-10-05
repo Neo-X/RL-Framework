@@ -251,7 +251,7 @@
 	"comment__": "Whether or not to collects tuples in batches, this can be good for multi-threading or computing furture discounted reward",
 "collect_tuples_in_batches":false,
 	"comment__": "Whether or not the controller should be reset to a new epoch when a fall (fallen into some kind of non-recoverable state) has occured",
-"reset_on_fall": true,
+"reset_on_fall": false,
 	"comment__": "Whether a model of the reward r <- R(s,a) should be trained",
 "train_reward_predictor": true,
 	"comment__": "How many gradient steps model based action exploration should take",

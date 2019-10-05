@@ -18,7 +18,7 @@
     "comment__": "A different config file for the forward dynamics simulator",
 "exploration_rate": 0.5,
     "comment__": "Number of rounds to perform before termination",
-"rounds": 25,
+"rounds": 350,
     "comment__": "Number of epochs to perform per round",
 "epochs": 5,
     "comment__": "Number of epoch/episode to evaluate the policy over",
