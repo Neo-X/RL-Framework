@@ -219,6 +219,15 @@ class LearningAgent(AgentInterface):
 
         hindsight_relabel_probability = 1.0 if not "hindsight_relabel_probability" in self.getSettings() else self.getSettings()["hindsight_relabel_probability"]
 
+        new_states = []
+        new_result_states = []
+        new_rewards = []
+        new_actions = []
+        new_falls = []
+        new_advantage = []
+        new_exp_actions = []
+        new_G_t = []
+
         trajectories = len(_states)
         for traj in range(trajectories):
             ### Get the new goal(s) for the trajectory
@@ -243,14 +252,14 @@ class LearningAgent(AgentInterface):
             diff = -np.fabs(result_states[:,:self._settings["goal_slice_index"]] - new_goals)
             rewards = np.sum(diff, axis=-1, keepdims=True)
             
-            _states.append(states)
-            _result_states.append(result_states)
-            _rewards.append(rewards)
-            _actions.append(_actions[traj])
-            _falls.append(_falls[traj])
-            _advantage.append(_advantage[traj])
-            _exp_actions.append(_exp_actions[traj])
-            _G_t.append(_G_t[traj])
+            new_states.append(states)
+            new_result_states.append(result_states)
+            new_rewards.append(rewards)
+            new_actions.append(_actions[traj])
+            new_falls.append(_falls[traj])
+            new_advantage.append(_advantage[traj])
+            new_exp_actions.append(_exp_actions[traj])
+            new_G_t.append(_G_t[traj])
             
             """
                 achieved_goal = result_states___[-1][0, :self._settings["goal_slice_index"]]
@@ -264,8 +273,8 @@ class LearningAgent(AgentInterface):
                 rewards = (rewards * 0) + -1
                 rewards[-1] = [1]
             """
-        return (_states, _actions, _rewards, _result_states, _falls, _advantage, 
-              _exp_actions, _G_t, datas)
+        return (new_states, new_actions, new_rewards, new_result_states, new_falls, new_advantage,
+              new_exp_actions, new_G_t, datas)
                 
     def getAgents(self):
         return [self]
@@ -275,6 +284,8 @@ class LearningAgent(AgentInterface):
         if self._useLock:
             self._accesLock.acquire()
         loss = 0
+        critic_loss = 0
+        loss_actor = 0
         import numpy as np
         from util.SimulationUtil import logExperimentData
         

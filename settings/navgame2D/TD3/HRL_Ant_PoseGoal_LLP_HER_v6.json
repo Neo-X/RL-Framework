@@ -383,8 +383,8 @@
 "hlc_timestep": 10,
 	"comment__": "The index of the multiagent simulation for the hlc",
 "hlc_index": 0,
-	"comment__": "Boolean to use HER or not",
-"use_hindsight_relabeling": true,
+	"comment__": "String to use HER or not",
+"use_hindsight_relabeling": "HER",
 	"comment__": "the first index of the goal in the state",
 "goal_slice_index": 27
 }
