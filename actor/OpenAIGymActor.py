@@ -21,6 +21,8 @@ class OpenAIGymActor(ActorInterface):
         
         return reward
     
+        
+        
     # @profile(precision=5)
     def actContinuous(self, sim, action_, bootstrapping=False):
         import numpy as np

@@ -1133,6 +1133,18 @@ class LearningAgent(AgentInterface):
             action = pa
             # print ("Exploitation: ", action , " epsilon: ", epsilon * p)
         exp_action = [[exp_action]] * len(state_)
+        
+        """
+        elif not action_space_continuous:
+            pa = model.predict(state_)
+            action = random.choice(action_selection)
+            action = eGreedy(pa, action, epsilon * p)
+            # print("Action selection:", action_selection, " action: ", action)
+            action__ = actor.getActionParams(action)
+            action = [action]
+            reward_ = actor.actContinuous(exp, action__, bootstrapping=True)
+            agent_not_fell = actor.hasNotFallen(exp)
+        """
         return (action, exp_action, entropy_, state_)
     
     def predict_std(self, state, evaluation_=False, p=1.0):
