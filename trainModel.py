@@ -46,7 +46,9 @@ def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     import os
     
     if (("email_log_data_periodically" in settings)
-        and (settings["email_log_data_periodically"] == True)):
+        and (settings["email_log_data_periodically"] == True)
+        and (not (("experiment_logging" in settings)
+                and (settings["experiment_logging"]["use_comet"] == True)))):
         ### Create a tar file of all the sim data
         root_data_dir = getDataDirectory(settings)+"/"
         tarFileName = (root_data_dir + '_sim_data.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
@@ -1649,6 +1651,7 @@ if (__name__ == "__main__"):
     if ( (metaSettings is not None) ):
         settings["email_log_data_periodically"] = True
         settings.pop('save_video_to_file', None)
+        settings.pop("experiment_logging", None)
         collectEmailData(settings, metaSettings, sim_time_, simData)
 
     print("All Done.")

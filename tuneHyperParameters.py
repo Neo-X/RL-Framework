@@ -103,7 +103,10 @@ def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     else:
         testing_ = False 
     try:
-        sendEmail(subject="Simulation complete: " + str(sim_time_), 
+        if (not (("experiment_logging" in settings)
+                and (settings["experiment_logging"]["use_comet"] == True))):
+            
+            sendEmail(subject="Simulation complete: " + str(sim_time_), 
                   contents=contents_, hyperSettings=metaSettings, simSettings=options['configFile'], 
                   dataFile=tarFileName, testing=testing_, 
                   pictureFile=pictureFileName)
@@ -343,4 +346,5 @@ if (__name__ == "__main__"):
         if ("disable_final_emailing" in simSettings_ and (simSettings_["disable_final_emailing"] == True)):
             pass
         else:
+            simSettings_.pop("experiment_logging", None)
             emailSimData(simSettings_, hyperSettings_, sim_time_=result['sim_time'], simData=result)
