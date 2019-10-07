@@ -292,6 +292,7 @@ def trainMetaModel_(args):
             result = trainMetaModel(args[1], samples=int(simSettings_['meta_sim_samples']), settings=copy.deepcopy(simSettings_), numThreads=int(simSettings_['meta_sim_threads']), hyperSettings=hyperSettings_)
 
         if not ("disable_final_emailing" in simSettings_ and simSettings_["disable_final_emailing"]):
+            simSettings_.pop("experiment_logging", None)
             emailSimData(simSettings_, hyperSettings_, sim_time_=result['sim_time'], simData=result)
 
 if (__name__ == "__main__"):

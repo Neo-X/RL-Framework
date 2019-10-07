@@ -25,6 +25,9 @@ class ActorInterface(object):
         self._action_bounds = self._settings["action_bounds"]
         self._count = 0
         self._state_len = None
+        self._num_agents = 1
+        if ("perform_multiagent_training" in settings_):
+            self._num_agents = settings_["perform_multiagent_training"]
         
     def setEncoder(self, encoder):
         self._encoder = encoder
@@ -79,7 +82,7 @@ class ActorInterface(object):
         self._state_var = np.fabs(self._state_var)
         self._last_state = state
         
-    def entropyReward(self, state):
+    def entropyReward(self, state, action=None):
         import scipy.stats
         import numpy as np
         if ("replace_entropy_state_with_vae" in self._settings
@@ -88,6 +91,9 @@ class ActorInterface(object):
         elif ("replace_entropy_state_with_vae" in self._settings
               and (self._settings["replace_entropy_state_with_vae"] == "p(z)")):
             state = self._encoder.predict_encoding_z(state)
+        elif ("replace_entropy_state_with_vae" in self._settings
+              and (self._settings["replace_entropy_state_with_vae"] == "action")):
+            state = action
         else:
             state = state[:,:self._state_len]
         # ps = scipy.stats.norm(self._state_mean, self._state_var).pdf(state)
@@ -151,6 +157,17 @@ class ActorInterface(object):
         self._reward_sum = self._reward_sum + reward
         return reward
     
+    def step(self, sim, action_):
+        reward = self.actContinuous(sim, action_, bootstrapping=False)
+        ob = sim.getState()
+        done = sim.endOfEpoch()
+        info = {"count": [self._count] * self.getNumAgents()}
+        # print ("info: ", info)
+        return ob, reward, done, info
+    
+    def getNumAgents(self):
+        return self._num_agents
+        
     def getEvaluationData(self):
         return self._reward_sum
     

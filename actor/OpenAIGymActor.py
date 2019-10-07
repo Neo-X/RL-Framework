@@ -48,6 +48,7 @@ class OpenAIGymActor(ActorInterface):
         if ("use_entropy_reward" in self._settings
             and (self._settings["use_entropy_reward"] == True)):
             self.updateScalling(sim.getState())
+            self._reward_sum = self._reward_sum + np.mean(reward)
             reward = self.entropyReward(sim.getState())
         elif ("use_entropy_reward" in self._settings
             and (self._settings["use_entropy_reward"] == "bonus")):
@@ -57,6 +58,15 @@ class OpenAIGymActor(ActorInterface):
             self._reward_sum = self._reward_sum + np.mean(reward)
             
             reward = (bs_r * bs_w) + reward
+            return reward
+        elif ("use_entropy_reward" in self._settings
+            and (self._settings["use_entropy_reward"] == "action")):
+            action_z = action_[0][-self._settings["encoding_vector_size"]]
+            self.updateScalling(sim.getState())
+            bs_r = self.entropyReward(sim.getState(), action = action_z)
+            self._reward_sum = self._reward_sum + np.mean(reward)
+            
+            reward = bs_r
             return reward
         elif ("use_entropy_reward" in self._settings
             and (self._settings["use_entropy_reward"] == "ICM")):

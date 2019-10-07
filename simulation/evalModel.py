@@ -86,9 +86,12 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
     discounted_values = []
     reward_over_epocs = []
     bellman_errors = []
-        
+    
+    otherDatas = {"falls": falls_}
+    for key in datas:
+        otherDatas[key] = datas[key]
     return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
-            mean_eval, std_eval, {"falls": falls_})
+            mean_eval, std_eval, otherDatas)
 
 # @profile(precision=5)
 def evalModelParrallel(input_anchor_queue, eval_episode_data_queue, model, settings, anchors=None):

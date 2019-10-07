@@ -30,6 +30,14 @@ def getOptions(_args=None):
               metavar="STRING", 
               help="Extra options that are given to the simulation when executed on the command line.")
     
+    
+    parser.add_option("--experiment_logging",
+              action="store", dest="experiment_logging",
+              default=None,
+              metavar="STRING", 
+              help="Details to define what kind of logging should be don for this simulation.")
+    
+    
     parser.add_option("--train_actor",
               action="store", dest="train_actor", default=None,
               type='choice',

@@ -105,7 +105,7 @@ class SimWorker(Process):
         ### Flag so simulation models can be a little different.
         self._settings["simulation_model"] = True
         ### Keep forward models on the CPU
-        setupEnvironmentVariable(self._settings)
+        setupEnvironmentVariable(self._settings, eval=True)
 
         import numpy as np
         np.random.seed(self._process_random_seed)

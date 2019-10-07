@@ -133,7 +133,7 @@ def logExperimentData(trainData, key, value, settings):
     else:
         trainData[key] = [value]
 
-def setupEnvironmentVariable(settings):
+def setupEnvironmentVariable(settings, eval=False):
     import os    
     os.environ['THEANO_FLAGS'] = "mode=FAST_RUN,device="+settings['training_processor_type']+",floatX="+settings['float_type']
     if ("learning_backend" in settings):
@@ -174,13 +174,17 @@ def setupEnvironmentVariable(settings):
             ### This will only start if experiment logging settings are specified and a meta log file is specified
             ### This is to avoid this logging from occuring when just debugging and coding. 
             if ("experiment_logging" in settings 
-                and "metaConfigFile" in settings):
+                and "metaConfigFile" in settings
+                and (not eval)):
                 from comet_ml import Experiment
-                
+                exp_config = settings["experiment_logging"]
+                if (isinstance(exp_config, str)):
+                    print ("exp_config: ", exp_config)
+                    exp_config = json.loads(exp_config)
                 # Add the following code anywhere in your machine learning file
                 print ("Tracking training via commet.ml")
                 experiment = Experiment(api_key="v063r9jHG5GDdPFvCtsJmHYZu",
-                                        project_name=settings["experiment_logging"]["project_name"], workspace="glenb")
+                                        project_name=exp_config["project_name"], workspace="glenb")
                 experiment.log_parameters(settings)
                 experiment.add_tag("comet_test")
                 experiment.set_name(settings["data_folder"])

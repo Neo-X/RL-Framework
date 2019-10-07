@@ -47,7 +47,7 @@ class LoggingWorker(Process):
         steps__ = 0
         timesteps = 0
         exp = None
-        setupEnvironmentVariable(self._settings)
+        setupEnvironmentVariable(self._settings, eval=True)
         import numpy as np
         if ("save_video_to_file" in self._settings):
             from util.SimulationUtil import createEnvironment
