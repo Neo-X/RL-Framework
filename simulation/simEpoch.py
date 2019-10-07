@@ -132,84 +132,75 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             visualizeEvaluation.updateLoss(viz_q_values_, np.zeros(len(viz_q_values_)))
             visualizeEvaluation.redraw()
         action=None
-        if action_space_continuous:
+            
+        (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
+                                                epsilon=epsilon, sampling=sampling, time_step=i_, evaluation_=evaluation)
+            
+        outside_bounds=False
+        action_=None
+        if (settings["clamp_actions_to_stay_inside_bounds"] or (settings['penalize_actions_outside_bounds'])):
+            (action_, outside_bounds) = clampActionWarn(action, action_bounds)
+            if (settings['clamp_actions_to_stay_inside_bounds']):
+                action = action_
+        if (settings["visualize_forward_dynamics"] and settings['train_forward_dynamics']):
+            predicted_next_state = model.getForwardDynamics().predict(np.array(state_), action)
+            # exp.visualizeNextState(state_[0], [0,0]) # visualize current state
+            exp.visualizeNextState(predicted_next_state, action)
+            
+            action__ = model.predict(state_)
+            actions_ = []
+            dirs = []
+            deltas = np.linspace(-0.5,0.5,10)
+            for d in range(len(deltas)):
+                action_ = np.zeros_like(action__)
+                for i in range(len(action_)):
+                    action_[i] = action__[i]
+                action_[0] = action__[0] + deltas[d] 
+                if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
+                    mbae_lr = p * settings["action_learning_rate"]
+                else:
+                    mbae_lr = settings["action_learning_rate"]
+                action_new_ = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), action_, state_, mbae_lr)
+                # actions.append(action_new_)
+                actions_.append(action_)
+                print("action_new_: ", action_new_[0], " action_: ", action_[0])
+                if ( (float(action_new_[0][0]) - float(action_[0])) > 0 ):
+                    dirs.append(1.0)
+                else:
+                    dirs.append(-1.0)
                 
-            (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
-                                                    epsilon=epsilon, sampling=sampling, time_step=i_, evaluation_=evaluation)
-                
-            outside_bounds=False
-            action_=None
-            if (settings["clamp_actions_to_stay_inside_bounds"] or (settings['penalize_actions_outside_bounds'])):
-                (action_, outside_bounds) = clampActionWarn(action, action_bounds)
-                if (settings['clamp_actions_to_stay_inside_bounds']):
-                    action = action_
-            if (settings["visualize_forward_dynamics"] and settings['train_forward_dynamics']):
-                predicted_next_state = model.getForwardDynamics().predict(np.array(state_), action)
-                # exp.visualizeNextState(state_[0], [0,0]) # visualize current state
-                exp.visualizeNextState(predicted_next_state, action)
-                
-                action__ = model.predict(state_)
-                actions_ = []
-                dirs = []
-                deltas = np.linspace(-0.5,0.5,10)
-                for d in range(len(deltas)):
-                    action_ = np.zeros_like(action__)
-                    for i in range(len(action_)):
-                        action_[i] = action__[i]
-                    action_[0] = action__[0] + deltas[d] 
-                    if ( ('anneal_mbae' in settings) and settings['anneal_mbae'] ):
-                        mbae_lr = p * settings["action_learning_rate"]
-                    else:
-                        mbae_lr = settings["action_learning_rate"]
-                    action_new_ = getOptimalAction(model.getForwardDynamics(), model.getPolicy(), action_, state_, mbae_lr)
-                    # actions.append(action_new_)
-                    actions_.append(action_)
-                    print("action_new_: ", action_new_[0], " action_: ", action_[0])
-                    if ( (float(action_new_[0][0]) - float(action_[0])) > 0 ):
-                        dirs.append(1.0)
-                    else:
-                        dirs.append(-1.0)
-                    
-                # return _getOptimalAction(forwardDynamicsModel, model, action, state)
-                
-                # action_ = _getOptimalAction(model.getForwardDynamics(), model.getPolicy(), action, state_)
-                exp.getEnvironment().visualizeActions(actions_, dirs)
-                ## The perfect action?
-                exp.getEnvironment().visualizeAction(action__)
+            # return _getOptimalAction(forwardDynamicsModel, model, action, state)
+            
+            # action_ = _getOptimalAction(model.getForwardDynamics(), model.getPolicy(), action, state_)
+            exp.getEnvironment().visualizeActions(actions_, dirs)
+            ## The perfect action?
+            exp.getEnvironment().visualizeAction(action__)
                 
             
-            # print("exp_action: ", exp_action, " action", action)
-            reward_ = actor.actContinuous(exp,action)
-            a = 0
+        # print("exp_action: ", exp_action, " action", action)
+        observation, reward_, done, info = actor.step(exp,action)
+        a = 0
 
-            # support for mixing rewards across levels
-            if ("hlc_index" in settings
-                    and "llc_index" in settings
-                    and "hlc_intrinsic_weight" in settings):
-                a = reward_[settings["llc_index"]][0] * settings["hlc_intrinsic_weight"]
-            b = 0
-            if ("hlc_index" in settings
-                    and "llc_index" in settings
-                    and "llc_task_weight" in settings):
-                b = reward_[settings["hlc_index"]][0] * settings["llc_task_weight"]
-            if ("hlc_index" in settings
-                    and "llc_index" in settings):
-                reward_[settings["hlc_index"]][0] += a
-                reward_[settings["llc_index"]][0] += b
+        # support for mixing rewards across levels
+        if ("hlc_index" in settings
+                and "llc_index" in settings
+                and "hlc_intrinsic_weight" in settings):
+            a = reward_[settings["llc_index"]][0] * settings["hlc_intrinsic_weight"]
+        b = 0
+        if ("hlc_index" in settings
+                and "llc_index" in settings
+                and "llc_task_weight" in settings):
+            b = reward_[settings["hlc_index"]][0] * settings["llc_task_weight"]
+        if ("hlc_index" in settings
+                and "llc_index" in settings):
+            reward_[settings["hlc_index"]][0] += a
+            reward_[settings["llc_index"]][0] += b
 
-            agent_not_fell = actor.hasNotFallen(exp)
-            if (outside_bounds and settings['penalize_actions_outside_bounds']):
-                ### TODO: this penalty should really be a function of the distance the action was outside the bounds
-                reward_ = reward_ + settings['reward_lower_bound']  
-        elif not action_space_continuous:
-            pa = model.predict(state_)
-            action = random.choice(action_selection)
-            action = eGreedy(pa, action, epsilon * p)
-            # print("Action selection:", action_selection, " action: ", action)
-            action__ = actor.getActionParams(action)
-            action = [action]
-            reward_ = actor.actContinuous(exp, action__, bootstrapping=True)
-            agent_not_fell = actor.hasNotFallen(exp)
+        agent_not_fell = actor.hasNotFallen(exp)
+        if (outside_bounds and settings['penalize_actions_outside_bounds']):
+            ### TODO: this penalty should really be a function of the distance the action was outside the bounds
+            reward_ = reward_ + settings['reward_lower_bound']  
+
         resultState_ = exp.getState()
         # if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
         #      and (settings["use_hrl_logic"] == True) ):

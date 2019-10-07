@@ -154,6 +154,12 @@ class ActorInterface(object):
         self._reward_sum = self._reward_sum + reward
         return reward
     
+    def step(self, sim, action_):
+        reward = self.actContinuous(sim, action_, bootstrapping=False)
+        ob = sim.getState()
+        done = sim.endOfEpoch()
+        return ob, reward, done, {}
+    
     def getEvaluationData(self):
         return self._reward_sum
     
