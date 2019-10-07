@@ -25,6 +25,9 @@ class ActorInterface(object):
         self._action_bounds = self._settings["action_bounds"]
         self._count = 0
         self._state_len = None
+        self._num_agents = 1
+        if ("perform_multiagent_training" in settings_):
+            self._num_agents = settings_["perform_multiagent_training"]
         
     def setEncoder(self, encoder):
         self._encoder = encoder
@@ -158,8 +161,13 @@ class ActorInterface(object):
         reward = self.actContinuous(sim, action_, bootstrapping=False)
         ob = sim.getState()
         done = sim.endOfEpoch()
-        return ob, reward, done, {}
+        info = {"count": [self._count] * self.getNumAgents()}
+        # print ("info: ", info)
+        return ob, reward, done, info
     
+    def getNumAgents(self):
+        return self._num_agents
+        
     def getEvaluationData(self):
         return self._reward_sum
     

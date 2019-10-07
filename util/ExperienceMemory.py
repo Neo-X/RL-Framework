@@ -327,6 +327,8 @@ class ExperienceMemory(object):
         # print ("fall: ", fall)
         # print ("self._fall_history: ", self._fall_history[self._history_update_index])
         for key in data:
+            if key not in self._data:
+                 self._data[key] = list(range(self._history_size))
             self._data[key][self._history_update_index] = data[key]
         
         self._inserts+=1

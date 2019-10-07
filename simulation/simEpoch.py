@@ -115,6 +115,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     exp_actions = []
     evalDatas=[]
     stds=[]
+    infos = []
     bad_sim_state = False
     entropy_ = 0
     
@@ -179,6 +180,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             
         # print("exp_action: ", exp_action, " action", action)
         observation, reward_, done, info = actor.step(exp,action)
+        infos.append(info)
         a = 0
 
         # support for mixing rewards across levels
@@ -539,6 +541,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     tmp_baselines_ = []
     tmp_advantage = []
     otherData = {"agent_id": []}
+    for key in info:
+        otherData[key] = []
     if (worker_id is not None):
         otherData["task_id"] = []
         
@@ -555,6 +559,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         otherData["agent_id"].extend(agent_ids[s])
         if (worker_id is not None):
             otherData["task_id"].extend(task_ids[s])
+        for key in info:
+            otherData[key].extend(infos[s][key])
         ### Advantage is in a different format (agent , state)
         adv__ = []
         base__ = []

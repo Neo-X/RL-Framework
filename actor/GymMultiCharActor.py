@@ -74,6 +74,18 @@ class GymMultiCharActor(ActorInterface):
         
         return reward
     
+        
+    def step(self, sim, action_):
+        reward = self.actContinuous(sim, action_, bootstrapping=False)
+        ob = sim.getState()
+        done = sim.endOfEpoch()
+        # falls = sim.getEnvironment().agentHasFallenMultiAgent()
+        falls = [sim.getEnvironment().endOfEpochForAgent(i) for i in range(sim.getEnvironment().getNumAgents())]
+        info = {"count": [self._count] * self.getNumAgents(),
+                "falls_sim": falls}
+        # print ("info: ", info)
+        return ob, reward, done, info
+    
     # @profile(precision=5)
     def actContinuous(self, sim, action_, bootstrapping=False):
         """
