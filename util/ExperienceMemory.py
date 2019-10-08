@@ -80,8 +80,8 @@ class ExperienceMemory(object):
         self._exp_action_history = (np.zeros((self._history_size, 1), dtype='int8'))
         
         self._data = {
-            "agent_id": list(range(self._history_size)), 
-            "task_id": list(range(self._history_size))}
+            "agent_id": [[0]] * self._history_size, 
+            "task_id": [[0]] * self._history_size}
         
         
             
@@ -328,7 +328,7 @@ class ExperienceMemory(object):
         # print ("self._fall_history: ", self._fall_history[self._history_update_index])
         for key in data:
             if key not in self._data:
-                 self._data[key] = list(range(self._history_size))
+                 self._data[key] =  [[0]] * self._history_size
             self._data[key][self._history_update_index] = data[key]
         
         self._inserts+=1
@@ -722,6 +722,11 @@ class ExperienceMemory(object):
         hf.create_dataset('_action_mean', data=self._action_mean)
         hf.create_dataset('_action_var', data=self._action_var)
         
+        grp_d = hf.create_group('datas')
+        for key in self._data:
+            print ("key: ", key, " value: ", self._data[key])
+            grp_d.create_dataset(str(key),data=np.array(self._data[key]))
+        
         
         ### Save a variable length list of data
         # data = np.array(self._trajectory_history, dtype=object)
@@ -786,7 +791,10 @@ class ExperienceMemory(object):
         self._action_mean = np.array(hf.get('_action_mean'))
         self._action_var = np.array(hf.get('_action_var'))
         
-        print ("self._state_mean: ", self._state_mean)
+        # print ("self._state_mean: ", self._state_mean)
+        grp_d = hf.get('datas')
+        for key in grp_d.keys():
+            self._data[str(key)] = grp_d.get(str(key))
         
         if (((("train_LSTM_FD" in self._settings)
                 and (self._settings["train_LSTM_FD"] == True))
