@@ -1331,10 +1331,10 @@ def createNewFDModel(settings, env, model):
                 settings__['action_bounds'] = settings['action_bounds'][i]
                 state_bounds = getFDStateSize(settings__)
                 action_bounds = settings__['action_bounds']
+                settings__["agent_id"] = i
                 if ( settings['forward_dynamics_model_type'] == "SingleNet"
                      and (settings['use_single_network'] == True)):
                     print ("Creating forward dynamics network: Using single network model")
-                    settings__["agent_id"] = m
                     # settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
                     # settings__["policy_network_layer_sizes"] = settings["policy_network_layer_sizes"][m]
                     forwardDynamicsModel_ = createForwardDynamicsModel(settings__, state_bounds, action_bounds, None, None, agentModel=model)
@@ -1415,7 +1415,10 @@ def createForwardDynamicsModel(settings, state_bounds, action_bounds, actor, exp
                     forwardDynamicsModel.setSettings(settings)
                     print ("Loading pre trained FD model:")
                     if (settings['load_saved_model'] == 'last'):
-                        forwardDynamicsModel.loadFrom(directory+"forward_dynamics"+str(m))
+                        try: 
+                            forwardDynamicsModel.loadFrom(directory+"forward_dynamics"+str(settings["agent_id"]))
+                        except Exception as e:
+                            forwardDynamicsModel.loadFrom(directory+"forward_dynamics")
                     else:
                         forwardDynamicsModel.loadFrom(directory+"forward_dynamics"+"_Best")
                     print("Loaded algorithm: ", forwardDynamicsModel)
