@@ -499,7 +499,7 @@ class ExperienceMemory(object):
                                 
                 state.append(norm_state(self._state_history[i], self.getStateBounds()))
                 # print("Action pulled out: ", self._action_history[i])
-                print ("self.getActionBounds(): ", self.getActionBounds())
+                # print ("self.getActionBounds(): ", self.getActionBounds())
                 action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
                 resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
                 # reward.append(norm_state(self._reward_history[i] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
