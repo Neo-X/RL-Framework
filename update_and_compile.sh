@@ -1,5 +1,8 @@
 #!/bin/bash
 
+pushd /opt/RL-Framework
+    git pull origin master
+popd
 pushd /opt/TerrainRLSim
     git pull origin master
     git reset --hard origin/master
@@ -19,8 +22,5 @@ pushd /opt/RLSimulationEnvironments
         premake4 gmake
         make config=release64 -j 2
     popd
-popd
-pushd /opt/RL-Framework
-    git pull origin master
 popd
 echo "Done update and build"
