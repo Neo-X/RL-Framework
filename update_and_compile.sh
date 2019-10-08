@@ -2,6 +2,7 @@
 
 pushd /opt/TerrainRLSim
     git pull origin master
+    git reset --hard origin/master
     pushd simAdapter/
     ./gen_swig.sh
     popd
