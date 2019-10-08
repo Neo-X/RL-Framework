@@ -48,7 +48,9 @@ def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
     if (("email_log_data_periodically" in settings)
         and (settings["email_log_data_periodically"] == True)
         and (not (("experiment_logging" in settings)
-                and (settings["experiment_logging"]["use_comet"] == True)))):
+            and ("use_comet" in settings["experiment_logging"])
+            and (settings["experiment_logging"]["use_comet"] == True)))):
+        print ('settings["experiment_logging"]', settings["experiment_logging"])
         ### Create a tar file of all the sim data
         root_data_dir = getDataDirectory(settings)+"/"
         tarFileName = (root_data_dir + '_sim_data.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
@@ -92,14 +94,16 @@ def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
         modelEvaluation("", settings=settings, exp=exp)
         
         ### Backup data
-    import subprocess
-    try:
-        print("Backing up learning data.")
-        subprocess.call("./backup_data.sh", shell=True)
-    except Exception as e:
-        print("Error Backing up data using rsync.")
-        print("Error: ", e)
-        print (traceback.format_exc())
+    if (("backup_exp_data" in settings)
+        and (settings["backup_exp_data"] == True)):
+        import subprocess
+        try:
+            print("Backing up learning data.")
+            subprocess.call("./backup_data.sh", shell=True)
+        except Exception as e:
+            print("Error Backing up data using rsync.")
+            print("Error: ", e)
+            print (traceback.format_exc())
 
 def pretrainCritic(masterAgent, states, actions, resultStates, rewards_, falls_, G_ts_, exp_actions, advantage_,
                    sim_work_queues, datas=None, eval_episode_data_queue=None):
@@ -1616,7 +1620,12 @@ if (__name__ == "__main__"):
     for option in options:
         if ( not (options[option] is None) ):
             print ("Updateing option: ", option, " = ", options[option])
+            # settings[option] = json.loads(options[option])
             settings[option] = options[option]
+            try:
+                settings[option] = json.loads(settings[option])
+            except Exception as e:
+                pass # dataTar.close()
             if ( options[option] == 'true'):
                 settings[option] = True
             elif ( options[option] == 'false'):

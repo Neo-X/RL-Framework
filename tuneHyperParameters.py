@@ -116,14 +116,16 @@ def emailSimData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
         print (traceback.format_exc())
 
     ### Backup data
-    import subprocess
-    try:
-        print("Backing up learning data.")
-        subprocess.call("./backup_data.sh", shell=True)
-    except Exception as e:
-        print("Error Backing up data using rsync.")
-        print("Error: ", e)
-        print (traceback.format_exc())
+    if (("backup_exp_data" in settings)
+        and (settings["backup_exp_data"] == True)):
+        import subprocess
+        try:
+            print("Backing up learning data.")
+            subprocess.call("./backup_data.sh", shell=True)
+        except Exception as e:
+            print("Error Backing up data using rsync.")
+            print("Error: ", e)
+            print (traceback.format_exc())
 
 def compute_next_val(range_,i,samples, curve_scheme='linear'):
     """
@@ -324,6 +326,10 @@ if (__name__ == "__main__"):
             if ( not (options[option] is None) ):
                 print ("Updating option: ", option, " = ", options[option])
                 simSettings_[option] = options[option]
+                try:
+                    simSettings_[option] = json.loads(simSettings_[option])
+                except Exception as e:
+                    pass # dataTar.close()
                 if ( options[option] == 'true'):
                     simSettings_[option] = True
                 elif ( options[option] == 'false'):
