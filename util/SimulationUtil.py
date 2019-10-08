@@ -194,7 +194,7 @@ def setupEnvironmentVariable(settings, eval=False):
         except Exception as inst:
             print ("Not tracking training via commet.ml")
             print ("Error: ", inst)
-            sys.exit()
+            # sys.exit()
         
         
 def setupLearningBackend(settings):
