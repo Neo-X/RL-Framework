@@ -1430,6 +1430,12 @@ class LearningAgent(AgentInterface):
     def getFDmultitask_trajectory_batch(self, batch_size):
         return self.getFDExperience().get_multitask_trajectory_batch(batch_size)
     
+    def loadExperience(self, filename):
+        self.getExperience().loadFromFile(filename+"_expBufferInit.hdf5")
+        
+    def loadFDExperience(self, filename):
+        self.getFDExperience().loadFromFile(filename+"_FD_expBufferInit.hdf5")
+    
     def _updateScaling(self):
         self.getExperience()._updateScaling()
         if ( "keep_seperate_fd_exp_buffer" in self.getSettings() 

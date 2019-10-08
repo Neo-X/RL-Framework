@@ -209,11 +209,11 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
     if ( settings is None):
         settings = getSettings(settings_file_name)
     # settings['shouldRender'] = True
-    setupEnvironmentVariable(settings)
+    setupEnvironmentVariable(settings, eval=True)
     setupLearningBackend(settings)
     
     from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor, getAgentName, createNewFDModel
-    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, getAgentName
+    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, getAgentName, processBounds
     from util.ExperienceMemory import ExperienceMemory
     from model.LearningAgent import LearningAgent, LearningWorker
     from RLVisualize import RLVisualize
@@ -244,20 +244,8 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
     if ( 'override_sim_env_id' in settings and (settings['override_sim_env_id'] != False)):
         sim_index = settings['override_sim_env_id']
     exp = createEnvironment(settings["sim_config_file"], settings['environment_type'], settings, render=True, index=sim_index)
-    if ((state_bounds == "ask_env")):
-        print ("Getting state bounds from environment")
-        s_min = exp.getEnvironment().observation_space.getMinimum()
-        s_max = exp.getEnvironment().observation_space.getMaximum()
-        print (exp.getEnvironment().observation_space.getMinimum())
-        settings['state_bounds'] = [s_min,s_max]
-        state_bounds = settings['state_bounds']
-    if ((action_bounds == "ask_env")):
-        print ("Getting action bounds from environment")
-        s_min = exp.getEnvironment().action_space.getMinimum()
-        s_max = exp.getEnvironment().action_space.getMaximum()
-        print (exp.getEnvironment().action_space.getMinimum())
-        settings['action_bounds'] = [s_min,s_max]
-        action_bounds = settings['action_bounds']
+        
+    (state_bounds, action_bounds, settings) = processBounds(state_bounds, action_bounds, settings, exp)
     ### Using a wrapper for the type of actor now
     """
     if action_space_continuous:

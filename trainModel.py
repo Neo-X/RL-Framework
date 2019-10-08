@@ -397,7 +397,7 @@ def trainModelParallel(inputData):
                     print ("Round: ", trainData["round"])
                     # sys.exit()
             else:
-                ### Actually this is the first run..
+                print(" Actually this is the first run..")
                 settings["load_saved_model"] = False
                 
         
@@ -560,6 +560,7 @@ def trainModelParallel(inputData):
         exp_val.getActor().init()
         exp_val.init()
         
+        ### This should really be moved inside createRLAgent
         (state_bounds, action_bounds, settings) = processBounds(state_bounds, action_bounds, settings, exp_val)
         
         ### This is for a single-threaded Synchronous sim only.
@@ -661,20 +662,22 @@ def trainModelParallel(inputData):
         # print ("masterAgent.getFDExperience().getStateBounds() shape : ", masterAgent.getFDExperience().getStateBounds().shape)
         # sys.exit()
         
-        if (settings["load_saved_model"] == True and
+        if (settings["load_saved_model"] and
             (settings["save_experience_memory"] == "continual")):
             ### load exp mem
             if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                 print ("Loading Experience memory")
-            file_name=directory+getAgentName()+"_expBufferInit.hdf5"
-            masterAgent.getExperience().loadFromFile(file_name)
+            file_name=directory+getAgentName()
+            masterAgent.loadExperience(file_name)
             if (settings['train_forward_dynamics']):
                 if (settings["print_levels"][settings["print_level"]] >= settings["print_levels"]['train']):
                     print ("Loading Experience FD memory")
-                file_name=directory+getAgentName()+"_FD_expBufferInit.hdf5"
-                masterAgent.getFDExperience().loadFromFile(file_name)
+                # masterAgent.getFDExperience().loadFromFile(file_name)
+                # file_name=directory+getAgentName()"forward_dynamics"
+                # file_name=directory+getAgentName()"forward_dynamics"
+                masterAgent.loadFDExperience(file_name)
                 # print ("****** state bounds mean: ", np.mean(masterAgent.getFDExperience().getStateBounds()))
-                print ("****** fd exp mem insters ***: ", masterAgent.getFDExperience().inserts())
+                # print ("****** fd exp mem insters ***: ", masterAgent.getFDExperience().inserts())
             
         if (not validBounds(action_bounds)):
             # Check that the action bounds are spcified correctly

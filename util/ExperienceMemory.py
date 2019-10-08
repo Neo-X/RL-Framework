@@ -499,6 +499,7 @@ class ExperienceMemory(object):
                                 
                 state.append(norm_state(self._state_history[i], self.getStateBounds()))
                 # print("Action pulled out: ", self._action_history[i])
+                print ("self.getActionBounds(): ", self.getActionBounds())
                 action.append(norm_action(self._action_history[i], self.getActionBounds())) # won't work for discrete actions...
                 resultState.append(norm_state(self._nextState_history[i], self.getResultStateBounds()))
                 # reward.append(norm_state(self._reward_history[i] , self.getRewardBounds() ) * ((1.0-self._settings['discount_factor']))) # scale rewards
@@ -710,7 +711,7 @@ class ExperienceMemory(object):
         hf.create_dataset('_result_state_length', data=[self._result_state_length])
         hf.create_dataset('_state_bounds', data=self._state_bounds)
         hf.create_dataset('_reward_bounds', data=self._reward_bounds)
-        hf.create_dataset('_action_bounds', data=self._action_bounds)
+        hf.create_dataset('_action_bounds', data=np.array(self._action_bounds))
         hf.create_dataset('_result_state_bounds', data=self._result_state_bounds)
         
         ### Adaptive scaling values
@@ -784,6 +785,8 @@ class ExperienceMemory(object):
         self._reward_var = np.array(hf.get('_reward_var'))
         self._action_mean = np.array(hf.get('_action_mean'))
         self._action_var = np.array(hf.get('_action_var'))
+        
+        print ("self._state_mean: ", self._state_mean)
         
         if (((("train_LSTM_FD" in self._settings)
                 and (self._settings["train_LSTM_FD"] == True))

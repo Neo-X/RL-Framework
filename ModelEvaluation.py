@@ -262,7 +262,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     # from model.ModelUtil import validBounds
     from model.LearningAgent import LearningAgent, LearningWorker
     from util.SimulationUtil import validateSettings, createEnvironment, createRLAgent, createActor, createNewFDModel
-    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, getAgentName
+    from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler, getAgentName, processBounds
     
     
     from util.ExperienceMemory import ExperienceMemory
@@ -308,20 +308,8 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
         exp.setActor(actor)
         exp.getActor().init()
         exp.init()
-    if (state_bounds == "ask_env"): # This is okay if there is one thread only...
-        print ("Getting state bounds from environment")
-        s_min = exp.getEnvironment().observation_space.getMinimum()
-        s_max = exp.getEnvironment().observation_space.getMaximum()
-        print (exp.getEnvironment().observation_space.getMinimum())
-        settings['state_bounds'] = [s_min,s_max]
-        state_bounds = settings['state_bounds']
-    if (settings["action_bounds"] == "ask_env"): # This is okay if there is one thread only...
-        print ("Getting state bounds from environment")
-        s_min = exp.getEnvironment().action_space.getMinimum()
-        s_max = exp.getEnvironment().action_space.getMaximum()
-        print (exp.getEnvironment().action_space.getMinimum())
-        settings['action_bounds'] = [s_min,s_max]
-        action_bounds = settings['state_bounds']
+        
+    (state_bounds, action_bounds, settings) = processBounds(state_bounds, action_bounds, settings, exp)
     
     if ( "perform_multiagent_training" in settings):
         from model.LearningMultiAgent import LearningMultiAgent

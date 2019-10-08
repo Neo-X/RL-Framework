@@ -336,9 +336,13 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             experience.setActionBounds(model.getActionBounds())
             
         model.setExperience(experience)
-        model.setStateBounds(state_bounds)
-        model.setRewardBounds(reward_bounds)
-        model.setActionBounds(action_bounds)
+        if (settings["load_saved_model"] and
+            (settings["save_experience_memory"] == "continual")):
+            pass
+        else:
+            model.setStateBounds(state_bounds)
+            model.setRewardBounds(reward_bounds)
+            model.setActionBounds(action_bounds)
         
         """
         (states, actions, resultStates, rewards_) = collectExperienceActionsContinuous(exp, settings['experience_length'], settings=settings, action_selection=action_selection)

@@ -1003,6 +1003,12 @@ class LearningMultiAgent(LearningAgent):
         # self.getPolicy().saveTo(directory+getAgentName()+suffix )
         [self.getAgents()[i].saveTo(directory, bestPolicy=bestPolicy, bestFD=bestFD, suffix=str(i)  ) for i in range(len(self.getAgents()))]
         
+    def loadExperience(self, directory):
+        [self.getAgents()[i].loadExperience(directory+str(i)  ) for i in range(len(self.getAgents()))]
+        
+    def loadFDExperience(self, directory):
+        [self.getAgents()[i].loadFDExperience(directory+str(i)  ) for i in range(len(self.getAgents()))]
+        
     def loadFrom(self, directory, best=False):
         import dill
         from util.SimulationUtil import getAgentName
