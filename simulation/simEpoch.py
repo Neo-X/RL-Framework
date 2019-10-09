@@ -442,6 +442,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         ## Saving agent index for data
         agents_ = []
         for f in range(len(state_)):
+            ### This needs to work for multi agent and single policy MultiAgent stuff
+            f = min(f, settings["perform_multiagent_training"]-1)
             agents_.append([f])
         agent_ids.append(agents_)
         # falls.append(falls_)
