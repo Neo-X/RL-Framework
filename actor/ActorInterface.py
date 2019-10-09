@@ -161,7 +161,7 @@ class ActorInterface(object):
         reward = self.actContinuous(sim, action_, bootstrapping=False)
         ob = sim.getState()
         done = sim.endOfEpoch()
-        info = {"count": [self._count] * self.getNumAgents()}
+        info = {"count": [[self._count]] * self.getNumAgents()}
         # print ("info: ", info)
         return ob, reward, done, info
     
