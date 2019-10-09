@@ -726,6 +726,8 @@ class LearningMultiAgent(LearningAgent):
 
             else:
                 state_ = state[m]
+            ### This needs to work for multi agent and single policy MultiAgent stuff
+            m = min(m, self.getSettings()["perform_multiagent_training"]-1)
 
             """ Brandon:
             This code manages converting actions from higher agents into goals of lower agents.
