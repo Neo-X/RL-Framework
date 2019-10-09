@@ -724,7 +724,7 @@ class ExperienceMemory(object):
         
         grp_d = hf.create_group('datas')
         for key in self._data:
-            # print ("key: ", key, " value: ", self._data[key])
+            print ("key: ", key, " value: ", self._data[key])
             grp_d.create_dataset(str(key),data=np.array(self._data[key]))
         
         
@@ -795,7 +795,7 @@ class ExperienceMemory(object):
         grp_d = hf.get('datas')
         for key in grp_d.keys():
             self._data[str(key)] = np.array(grp_d.get(str(key)))
-            # print ("loading key: ", key, " value: ", self._data[str(key)])
+            print ("loading key: ", key, " value: ", self._data[str(key)])
         
         if (((("train_LSTM_FD" in self._settings)
                 and (self._settings["train_LSTM_FD"] == True))

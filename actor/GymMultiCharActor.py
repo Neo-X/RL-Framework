@@ -80,7 +80,7 @@ class GymMultiCharActor(ActorInterface):
         ob = sim.getState()
         done = sim.endOfEpoch()
         # falls = sim.getEnvironment().agentHasFallenMultiAgent()
-        falls = [sim.getEnvironment().endOfEpochForAgent(i) for i in range(sim.getEnvironment().getNumAgents())]
+        falls = [[int(sim.getEnvironment().endOfEpochForAgent(i))] for i in range(sim.getEnvironment().getNumAgents())]
         info = {"count": [[self._count]] * self.getNumAgents(),
                 "falls_sim": falls}
         # print ("info: ", info)
