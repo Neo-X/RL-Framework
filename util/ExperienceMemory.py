@@ -724,7 +724,7 @@ class ExperienceMemory(object):
         
         grp_d = hf.create_group('datas')
         for key in self._data:
-            print ("key: ", key, " value: ", self._data[key])
+            # print ("key: ", key, " value: ", self._data[key])
             grp_d.create_dataset(str(key),data=np.array(self._data[key]))
         
         
