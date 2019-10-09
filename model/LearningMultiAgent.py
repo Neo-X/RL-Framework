@@ -352,9 +352,12 @@ class LearningMultiAgent(LearningAgent):
         probs = []
         goal = states[:,-self._settings["goal_slice_index"]:]
         # print ("old goals: ", goal)
-        goals = [] 
-        for i in range(16):
-            noise = [np.random.normal(0,0.1,size=self._settings["goal_slice_index"])]
+        goals = []
+
+        num_goals_to_resample = (16 if not "num_goals_to_resample" in self.getSettings() else
+                                 self.getSettings()["num_goals_to_resample"])
+        for i in range(num_goals_to_resample):
+            noise = [np.random.normal(0, 0.1, size=self._settings["goal_slice_index"])]
             noise = np.repeat(noise, len(states), axis=0)
             new_goals = goal + noise
             
