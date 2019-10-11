@@ -79,11 +79,19 @@ class GymMultiCharActor(ActorInterface):
         reward = self.actContinuous(sim, action_, bootstrapping=False)
         ob = sim.getState()
         done = sim.endOfEpoch()
-        # falls = sim.getEnvironment().agentHasFallenMultiAgent()
-        falls = [[int(sim.getEnvironment().endOfEpochForAgent(i))] for i in range(sim.getEnvironment().getNumAgents())]
+        #falls = [[int(sim.getEnvironment().endOfEpochForAgent(i))] for i in range(sim.getEnvironment().getNumAgents())]
+
+        falls = sim.getEnvironment().agentHasFallenMultiAgent()
+        falls_sim =  [int(elem) for elem in falls]
+
+        collisions = sim.getEnvironment().agent_collision_MultiAgent()
+        collisions_sim = [int(elem) for elem in collisions]
+        
         info = {"count": [[self._count]] * sim.getEnvironment().getNumAgents(),
-                "falls_sim": falls}
-        # print ("info: ", info)
+                "falls_sim": falls_sim,
+                "collision": collisions_sim,
+                }
+        print ("info: ", info)
         return ob, reward, done, info
     
     # @profile(precision=5)
