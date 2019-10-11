@@ -146,7 +146,20 @@ class GymMultiCharActor(ActorInterface):
         falls_ = [[not fall] for fall in falls]
         # print ("Not falls: ", falls_)
         return falls_
-        
+
+    def hasCollided(self, exp):
+        """
+            Returns True when the agent is still going (not end of episode)
+            return false when the agent has fallen (end of episode)
+        """
+        collisions = exp.getEnvironment().agent_collision_MultiAgent()
+        # print ("falls: ", falls)
+        collisions = [[collision] for collision in collisions]
+        # print ("Not falls: ", falls_)
+        return collisions
+
+
+
     def updateActor(self, sim, action_):
         
         if (self._llc_policy is None):

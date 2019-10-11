@@ -109,6 +109,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     actions = []
     rewards = []
     falls = []
+    collisions =[]
     agent_ids = []
     task_ids = []
     result_states___ = []
@@ -125,6 +126,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # state_ = exp.getState()
         # print ("state_: ", repr(np.array(state_).shape))
         # print ("state_: ", state_)
+        print(i_)
 
         if (not (visualizeEvaluation == None)):
             viz_q_values_.append(model.q_value(state_)[0][0])
@@ -199,6 +201,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             reward_[settings["llc_index"]][0] += b
 
         agent_not_fell = actor.hasNotFallen(exp)
+        agent_collision = actor.hasCollided(exp)
         if (outside_bounds and settings['penalize_actions_outside_bounds']):
             ### TODO: this penalty should really be a function of the distance the action was outside the bounds
             reward_ = reward_ + settings['reward_lower_bound']  
@@ -452,10 +455,13 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])
         if type(agent_not_fell) is list:
             falls.append(agent_not_fell)
+            collisions.append(agent_collision)            
         else:
             falls.append([[agent_not_fell]] * len(state_))
+            collisions.append([[agent_collision]]*len(state_))
             # falls.append([[agent_not_fell]])
-                
+        print("Standing  :" , falls)
+        print("Collision :", collisions)
         exp_act = exp_action
         exp_actions.append(exp_act)
         if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
