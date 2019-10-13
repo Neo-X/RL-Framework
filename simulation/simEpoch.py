@@ -117,6 +117,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     evalDatas=[]
     stds=[]
     infos = []
+    collision_count= np.zeros(len(model.getAgents()))
+    fall_count=np.zeros(len(model.getAgents()))
+
+
     bad_sim_state = False
     entropy_ = 0
     
@@ -126,8 +130,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # state_ = exp.getState()
         # print ("state_: ", repr(np.array(state_).shape))
         # print ("state_: ", state_)
-        print(i_)
-
         if (not (visualizeEvaluation == None)):
             viz_q_values_.append(model.q_value(state_)[0][0])
             if (len(viz_q_values_)>30):
@@ -182,6 +184,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             
         # print("exp_action: ", exp_action, " action", action)
         observation, reward_, done, info = actor.step(exp,action)
+
+        collision_count=np.add(info["collision"], collision_count)
+        fall_count=np.add(info["falls_sim"], fall_count)
+
         infos.append(info)
         a = 0
 
@@ -460,8 +466,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             falls.append([[agent_not_fell]] * len(state_))
             collisions.append([[agent_collision]]*len(state_))
             # falls.append([[agent_not_fell]])
-        print("Standing  :" , falls)
-        print("Collision :", collisions)
+        #print("Standing  :" , falls)
+        #print("Collision :", collisions)
         exp_act = exp_action
         exp_actions.append(exp_act)
         if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
@@ -578,6 +584,15 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         tmp_baselines_.extend(base__)
         tmp_advantage.extend(adv__)
     tmp_advantage = np.array(tmp_advantage)
+
+
+    file = open("Log_info.txt","a+") 
+    file.write("%s : %s  \n" % ("Collision", str(collision_count) ))
+    file.write("%s : %s  \n" % ("Falls", str(fall_count) ) )
+#    collision_count=np.add(info["collision"], collision_count)
+#    fall_count=np.add(info["falls_sim"], fall_count)
+    file.close()
+
 
     # print ("otherData:", otherData)
     tuples = (tmp_states, tmp_actions, tmp_res_states, tmp_rewards, tmp_falls, tmp_G_ts, tmp_advantage, tmp_exp_actions, otherData)

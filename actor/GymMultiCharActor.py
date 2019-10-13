@@ -86,12 +86,13 @@ class GymMultiCharActor(ActorInterface):
 
         collisions = sim.getEnvironment().agent_collision_MultiAgent()
         collisions_sim = [int(elem) for elem in collisions]
-        
+
         info = {"count": [[self._count]] * sim.getEnvironment().getNumAgents(),
                 "falls_sim": falls_sim,
                 "collision": collisions_sim,
                 }
-        print ("info: ", info)
+
+
         return ob, reward, done, info
     
     # @profile(precision=5)
