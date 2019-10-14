@@ -109,7 +109,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     actions = []
     rewards = []
     falls = []
-    collisions =[]
     agent_ids = []
     task_ids = []
     result_states___ = []
@@ -461,10 +460,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             # print("Pushing actual fall value: ", [agent_not_fell] * np.array(state_).shape[0])
         if type(agent_not_fell) is list:
             falls.append(agent_not_fell)
-            collisions.append(agent_collision)            
         else:
             falls.append([[agent_not_fell]] * len(state_))
-            collisions.append([[agent_collision]]*len(state_))
             # falls.append([[agent_not_fell]])
         #print("Standing  :" , falls)
         #print("Collision :", collisions)
