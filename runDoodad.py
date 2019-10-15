@@ -9,7 +9,7 @@ print ("cmd: ", cmd)
 """
 docker run --rm -it us.gcr.io/glen-rl-framework/glen:latest2 bash -c 'pushd /opt/RL-Framework; ./update_and_compile.sh; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/FixedSTD_Tensorflow-v2.json -p 2 --metaConfig=settings/hyperParamTuning/element/exploration_rate.json --plot=false --shouldRender=false --bootstrap_sample=1 --experiment_logging="{\"use_comet\": true, \"project_name\": \"vizimitation\"}"'
 
-python3 runDoodad.py 'pushd /opt/RL-Framework; ./update_and_compile.sh; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/FixedSTD_Tensorflow-v2.json -p 2 --metaConfig=settings/hyperParamTuning/element/exploration_rate.json --plot=false --shouldRender=false --bootstrap_sample=1 --experiment_logging="{\"use_comet\": true, \"project_name\": \"vizimitation\"}"'
+python3 runDoodad.py 'pushd /opt/RL-Framework; ./update_and_compile.sh; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/FixedSTD_Tensorflow-v2.json -p 2 --metaConfig=settings/hyperParamTuning/element/exploration_rate.json --plot=false --shouldRender=false --bootstrap_sample=1'
 
 gcloud compute instances create [INSTANCE_NAME] \
     --image rl-framework-image \
