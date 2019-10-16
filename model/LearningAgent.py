@@ -250,8 +250,8 @@ class LearningAgent(AgentInterface):
             states[:,-self._settings["goal_slice_index"]:] = new_goals
             result_states[:,-self._settings["goal_slice_index"]:] = new_goals
             rewards = copy.deepcopy(_rewards[traj])
-            diff = -np.fabs(result_states[:,:self._settings["goal_slice_index"]] - new_goals)
-            rewards = np.sum(diff, axis=-1, keepdims=True)
+            diff = result_states[:,:self._settings["goal_slice_index"]] - new_goals
+            rewards = -np.sum(diff * diff, axis=-1, keepdims=True)
             
             new_states.append(states)
             new_result_states.append(result_states)
