@@ -487,12 +487,9 @@ def trainModelParallel(inputData):
         from util.SimulationUtil import createRLAgent, createNewFDModel, processBounds
         from util.SimulationUtil import createActor, getAgentName, updateSettings
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
+        from util.utils import current_mem_usage
         
         from util.ExperienceMemory import ExperienceMemory
-        
-        from sim.PendulumEnvState import PendulumEnvState
-        from sim.PendulumEnv import PendulumEnv
-        from sim.BallGame2DEnv import BallGame2DEnv
         
         model_type= settings["model_type"]
         directory= getDataDirectory(settings)
@@ -1179,7 +1176,9 @@ def trainModelParallel(inputData):
                             dynamicsRewardLosses = []
                         
                         
-                    logExperimentData(trainData, "falls", np.mean(otherMetrics["falls"]), settings)
+                    logExperimentData(trainData, "falls", np.mean([met["falls"] for met in otherMetrics]), settings)
+                    logExperimentData(trainData, "mem_usage_sim", np.mean([met["mem_usage_sim"] for met in otherMetrics]), settings)
+                    logExperimentData(trainData, "mem_usage_train", np.mean(current_mem_usage()), settings)
                     logExperimentData(trainData, "mean_reward", mean_reward, settings)
                     # print ("__rewards: " , reward_over_epocs)
                     logExperimentData(trainData, "mean_reward_train", np.mean(reward_over_epocs), settings)

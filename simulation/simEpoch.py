@@ -741,6 +741,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             G_ts.append(G_ts_)
             advantage.append(advantage_)
             exp_actions.append(exp_actions_)
+            data_['falls'] = falls_
             data.append(data_)
                 
             if( type == 'eval'):
@@ -794,7 +795,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         mean_eval = np.mean(evalDatas)
         std_eval = np.std(evalDatas)
         return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
-            mean_eval, std_eval, {"falls": falls})
+            mean_eval, std_eval, data)
         
     if ( type == "keep_alive"
          or type == "Get_Net_Params"):
@@ -913,9 +914,9 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         G_ts.append(G_ts_)
         advantage.append(advantage_)
         exp_actions.append(exp_actions_)
+        data_['falls'] = falls_
         data.append(data_)
-        
-        
+            
         if (samples__ < (min_samples)):
             ### If we still need more samples generate another trajectory
             episodeData = {}
@@ -991,7 +992,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         mean_eval = np.mean(evalDatas)
         std_eval = np.std(evalDatas)
         return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
-            mean_eval, std_eval, {"falls": falls})
+            mean_eval, std_eval, data)
     elif ( type == "keep_alive"
          or type == "Get_Net_Params"):
         return datas__
