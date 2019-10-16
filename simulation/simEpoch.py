@@ -474,7 +474,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     ### This logic is not perfect yet, It should all sample() again to check if the goal should have been updated after the last action.
     if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
          and (settings["use_hrl_logic"] == True) ):
-        # resultState_ = resultState_.tolist()
+        if isinstance(resultState_, np.ndarray):
+            resultState_ = resultState_.tolist()
         resultState_[1] = np.concatenate([resultState_[1], action[0]], axis=-1)
     result_states___.append(resultState_)
     
