@@ -431,5 +431,5 @@ if __name__ == "__main__":
         # settings['num_available_threads'] = options['num_available_threads']
 
 
-    evaluateModelRender(sys.argv[1], runLastModel=False, settings=settings)
+    evaluateModelRender(sys.argv[1], runLastModel=True, settings=settings)
 

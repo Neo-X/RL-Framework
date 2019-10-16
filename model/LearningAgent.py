@@ -172,6 +172,7 @@ class LearningAgent(AgentInterface):
                 for j in range(len(state__)):
                     data___ = {}
                     for key in datas__:
+                        # print ("key: ", key, " datas__", datas__[key])
                         data___[key] = datas__[key][j] 
                     
                     tup = ([state__[j]], [action__[j]], [next_state__[j]], [reward__[j]], [fall__[j]], [G_t__[j]], [exp_action__[j]], [advantage__[j]], data___)

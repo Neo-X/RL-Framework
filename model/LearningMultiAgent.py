@@ -524,7 +524,7 @@ class LearningMultiAgent(LearningAgent):
             datas__.append(datas___)
         
         assert (len(states__) == len(actions__))
-        assert (np.array(states__).shape == np.array(result_states__).shape)
+        assert (np.array(states__).shape == np.array(result_states__).shape), "np.array(states__).shape == np.array(result_states__).shape: " + str(np.array(states__).shape) + " == " + str(np.array(result_states__).shape)
         return (states__, actions__, rewards__, result_states__,
                 falls__, advantage__, exp_actions__, G_t__, datas__)
     # @profile(precision=5)
@@ -718,14 +718,17 @@ class LearningMultiAgent(LearningAgent):
         entropy = []
         for m in range(len(state)):
             # by convention the highest levels in the hierarchy come first
-
+            """
             if ( "use_centralized_critic" in self.getSettings()
                  and (self.getSettings()["use_centralized_critic"] == True)):
                 ### Need to assemble centralized states
                 state_ = self.getcentralizedPolicyState(m, state)
 
             else:
-                state_ = state[m]
+            """
+            state_ = state[m]
+            ### This needs to work for multi agent and single policy MultiAgent stuff
+            m = min(m, self.getSettings()["perform_multiagent_training"]-1)
 
             """ Brandon:
             This code manages converting actions from higher agents into goals of lower agents.
@@ -794,10 +797,18 @@ class LearningMultiAgent(LearningAgent):
 
             else:
                 # print(state_.shape, m)
+                state_tmp = state_
+                if ( "use_centralized_critic" in self.getSettings()
+                 and (self.getSettings()["use_centralized_critic"] == True)):
+                ### Need to assemble centralized states
+                    state_tmp = state_
+                    state_ = self.getcentralizedPolicyState(m, state)
+                    
                 (action, exp_act, entropy_, _) = self.getAgents()[m].sample(
                     [state_],
                     evaluation_=evaluation_, p=p, sim_index=sim_index, bootstrapping=bootstrapping,
                     epsilon=epsilon, sampling=sampling)
+                state_ = state_tmp 
 
             if ("use_hrl_logic" in self.getSettings()
                  and (self.getSettings()["use_hrl_logic"] == True) 

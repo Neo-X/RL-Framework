@@ -50,7 +50,7 @@ def collectEmailData(settings, metaSettings, sim_time_=0, simData={}, exp=None):
         and (not (("experiment_logging" in settings)
             and ("use_comet" in settings["experiment_logging"])
             and (settings["experiment_logging"]["use_comet"] == True)))):
-        print ('settings["experiment_logging"]', settings["experiment_logging"])
+        # print ('settings["experiment_logging"]', settings["experiment_logging"])
         ### Create a tar file of all the sim data
         root_data_dir = getDataDirectory(settings)+"/"
         tarFileName = (root_data_dir + '_sim_data.tar.gz_') ## gmail doesn't like compressed files....so change the file name ending..
