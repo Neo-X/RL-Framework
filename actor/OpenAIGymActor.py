@@ -2,10 +2,6 @@ import sys
 import math
 from actor.ActorInterface import ActorInterface
 from model.ModelUtil import reward_smoother
-from _ast import Or
-from theano.scalar.basic import OR
-from prompt_toolkit.output.vt100 import _16_bg_colors
-from skimage.feature import orb
 
 class OpenAIGymActor(ActorInterface):
     
