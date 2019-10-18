@@ -485,7 +485,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     ### This logic is not perfect yet, It should all sample() again to check if the goal should have been updated after the last action.
     if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
          and (settings["use_hrl_logic"] == True) ):
-        # resultState_ = resultState_.tolist()
+        if isinstance(resultState_, np.ndarray):
+            resultState_ = resultState_.tolist()
         resultState_[1] = np.concatenate([resultState_[1], action[0]], axis=-1)
     result_states___.append(resultState_)
     
@@ -759,6 +760,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
             G_ts.append(G_ts_)
             advantage.append(advantage_)
             exp_actions.append(exp_actions_)
+            data_['falls'] = falls_
             data.append(data_)
                 
             if( type == 'eval'):
@@ -812,7 +814,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         mean_eval = np.mean(evalDatas)
         std_eval = np.std(evalDatas)
         return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
-            mean_eval, std_eval, {"falls": falls})
+            mean_eval, std_eval, data)
         
     if ( type == "keep_alive"
          or type == "Get_Net_Params"):
@@ -931,9 +933,9 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         G_ts.append(G_ts_)
         advantage.append(advantage_)
         exp_actions.append(exp_actions_)
+        data_['falls'] = falls_
         data.append(data_)
-        
-        
+            
         if (samples__ < (min_samples)):
             ### If we still need more samples generate another trajectory
             episodeData = {}
@@ -1009,7 +1011,7 @@ def simModelMoreParrallel(sw_message_queues, eval_episode_data_queue, model, set
         mean_eval = np.mean(evalDatas)
         std_eval = np.std(evalDatas)
         return (mean_reward, std_reward, mean_bellman_error, std_bellman_error, mean_discount_error, std_discount_error,
-            mean_eval, std_eval, {"falls": falls})
+            mean_eval, std_eval, data)
     elif ( type == "keep_alive"
          or type == "Get_Net_Params"):
         return datas__

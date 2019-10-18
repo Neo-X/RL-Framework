@@ -3,6 +3,9 @@ import math
 from actor.ActorInterface import ActorInterface
 from model.ModelUtil import reward_smoother
 from _ast import Or
+from theano.scalar.basic import OR
+from prompt_toolkit.output.vt100 import _16_bg_colors
+from skimage.feature import orb
 
 class OpenAIGymActor(ActorInterface):
     
@@ -28,7 +31,8 @@ class OpenAIGymActor(ActorInterface):
         if ("use_entropy_reward" in self._settings
             and (
                 (self._settings["use_entropy_reward"] == "ICM") or
-                (self._settings["use_entropy_reward"] == "ICM_bonus")
+                (self._settings["use_entropy_reward"] == "ICM_bonus") or
+                (self._settings["use_entropy_reward"] == "ICM+SMiRL")
             )):
             state = sim.getState()
             
@@ -84,6 +88,17 @@ class OpenAIGymActor(ActorInterface):
             # reward = bs_r
             # print ("ICM reward:", bs_r)
             reward = (bs_r * bs_w) + reward
+        elif ("use_entropy_reward" in self._settings
+            and (self._settings["use_entropy_reward"] == "ICM+SMiRL")):
+            r_icm = self.rewardICM(state, action_, sim.getState())
+            self.updateScalling(sim.getState())
+            self._reward_sum = self._reward_sum + np.mean(reward)
+            r_smirl = self.entropyReward(sim.getState())
+            self._reward_sum = self._reward_sum + np.mean(reward)
+            bs_w = self._settings["entropy_reward_weight"]
+            # reward = bs_r
+            # print ("ICM reward:", bs_r)
+            reward = (r_icm * bs_w) + r_smirl
         else:
             self._reward_sum = self._reward_sum + np.mean(reward)        
         return reward

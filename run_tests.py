@@ -34,6 +34,7 @@ tests_ =[
         ,'test_meta_training.py'
         ,'test_viz_imitation.py'
         ,'test_parallel_learning.py'
+        ,'test_TerrainRLSim_MultiChar.py'
          ]
 
 def run_tests(metaSettings, test=False):

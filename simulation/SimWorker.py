@@ -13,6 +13,7 @@ import threading
 import time
 import copy
 from model.ModelUtil import *
+from util.utils import current_mem_usage
 # import memory_profiler
 # import resources
 from simulation.simEpoch import simEpoch
@@ -74,14 +75,6 @@ class SimWorker(Process):
         sampler.setPolicy(poli)
         return sampler
     
-    def current_mem_usage(self):
-        try:
-            import resource
-            return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
-        except ImportError:
-            return 0
-        # return 0
-
     def setEnvironment(self, exp_):
         """
             Set the environment instance to use
@@ -201,7 +194,7 @@ class SimWorker(Process):
                     
                     if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                         print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
-                        print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
+                        print('\tWorker maximum memory usage: %.2f (mb)' % (current_mem_usage()))
                 
                     continue
                 
@@ -288,6 +281,8 @@ class SimWorker(Process):
                 #    self._output_queue.put(out, timeout=timeout_)
                 (tuples, discounted_sum, q_value, evalData) = out
                 # (states, actions, result_states, rewards, falls) = tuples
+                tuples[8]["mem_usage_sim"] = np.zeros_like(tuples[8]["agent_id"]) + current_mem_usage()
+                out = (tuples, discounted_sum, q_value, evalData)
                 ## Hack for now just update after ever episode
                 # print ("Worker: send sim results: ")
                 if (eval or sim_on_poli or bootstrapping):
@@ -337,7 +332,7 @@ class SimWorker(Process):
                             
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
-                                print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
+                                print('\tWorker maximum memory usage: %.2f (mb)' % (current_mem_usage()))
                 # print ("Worker: got data", episodeData)
                 if episodeData == None:
                     print ("Terminating worker: " , os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
@@ -418,15 +413,11 @@ class SimWorker(Process):
                             anchors=episodeData, action_space_continuous=self._action_space_continuous, settings=settings_, 
                             print_data=self._print_data, p=self._p, validation=self._validation, evaluation=eval)
                 self._iteration += 1
-                # if self._p <= 0.0:
                 
-                #    self._output_queue.put(out, timeout=timeout_)
                 (tuples, discounted_sum, q_value, evalData) = out
-                # (states, actions, result_states, rewards, falls) = tuples
-                ## Hack for now just update after ever episode
-                # print ("Worker: send sim results: ")
+                tuples[8]["mem_usage_sim"] = np.zeros_like(tuples[8]["agent_id"]) + current_mem_usage()
+                out = (tuples, discounted_sum, q_value, evalData)
                 if (eval or sim_on_poli or bootstrapping):
-                    # print ("Putting episode data in queue")
                     self._eval_episode_data_queue.put(out, timeout=timeout_)
                 else:
                     pass
@@ -493,13 +484,10 @@ class SimWorker(Process):
                 self._iteration += 1
                 # if self._p <= 0.0:
                 
-                #    self._output_queue.put(out, timeout=timeout_)
                 (tuples, discounted_sum, q_value, evalData) = out
-                # (states, actions, result_states, rewards, falls) = tuples
-                ## Hack for now just update after ever episode
-                # print ("Worker: send sim results: ")
+                tuples[8]["mem_usage_sim"] = np.zeros_like(tuples[8]["agent_id"]) + current_mem_usage()
+                out = (tuples, discounted_sum, q_value, evalData)
                 if (eval or sim_on_poli or bootstrapping):
-                    # print ("Putting episode data in queue")
                     self._eval_episode_data_queue.put(out, timeout=timeout_)
                 else:
                     pass
@@ -541,7 +529,7 @@ class SimWorker(Process):
                             self._p = p
                             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
                                 print ("Sim worker:", os.getpid(), " Size of state input Queue: " + str(self._input_queue.qsize()))
-                                print('\tWorker maximum memory usage: %.2f (mb)' % (self.current_mem_usage()))
+                                print('\tWorker maximum memory usage: %.2f (mb)' % (current_mem_usage()))
                     
                 # print ("Actions: " + str(actions))
                 # all_objects = muppy.get_objects()

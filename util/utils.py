@@ -25,6 +25,13 @@ def checkSettingExists(settings, key):
     else:
         return False
     
+def current_mem_usage():
+    try:
+        import resource
+        return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.
+    except ImportError:
+        return 0
+    
 def saveVAEBatch(settings, directory, model):
     """
         Used to produce and save VAE outputs from the model

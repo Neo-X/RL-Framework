@@ -32,7 +32,7 @@ def evalModel(actor, exp, model, discount_factor, anchors=None, action_space_con
     evalDatas = []
     falls_=[]
     epoch_=0
-    for i in range(anchors): # half the anchors
+    for i in range(anchors): 
         (tuples, discounted_sum, value, evalData) = simEpoch(actor, exp, 
                 model, discount_factor, anchors=i, action_space_continuous=action_space_continuous, 
                 settings=settings, print_data=print_data, p=p, validation=True, epoch=epoch_, evaluation=evaluation,
