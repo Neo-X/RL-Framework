@@ -184,8 +184,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print("exp_action: ", exp_action, " action", action)
         observation, reward_, done, info = actor.step(exp,action)
 
-        collision_count=np.add(info["collision"], collision_count)
-        fall_count=np.add(info["falls_sim"], fall_count)
+        #collision_count=np.add(info["collision"], collision_count)
+        #fall_count=np.add(info["falls_sim"], fall_count)
 
         infos.append(info)
         a = 0
@@ -206,7 +206,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             reward_[settings["llc_index"]][0] += b
 
         agent_not_fell = actor.hasNotFallen(exp)
-        agent_collision = actor.hasCollided(exp)
+        #agent_collision = actor.hasCollided(exp)
         if (outside_bounds and settings['penalize_actions_outside_bounds']):
             ### TODO: this penalty should really be a function of the distance the action was outside the bounds
             reward_ = reward_ + settings['reward_lower_bound']  
