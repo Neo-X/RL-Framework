@@ -59,7 +59,12 @@ class ActorInterface(object):
             state = self._encoder.predict_encoding(state)
         elif ("replace_entropy_state_with_vae" in self._settings
               and (self._settings["replace_entropy_state_with_vae"] == "p(z)")):
-            state = self._encoder.predict_encoding_z(state)
+            states = self._encoder.predict_encoding_z(np.repeat(state, repeats=32, axis=0))
+            # print ("states shape: ", states.shape)
+            state = np.mean(states, axis=0, keepdims=True)
+            state_var = np.var(states, axis=0, keepdims=True)
+            # print ("state_var: ", state_var)
+            # print ("state shape: ", state.shape)
         else:    
             state = state[:,:self._state_len]
             
@@ -90,7 +95,9 @@ class ActorInterface(object):
             state = self._encoder.predict_encoding(state)
         elif ("replace_entropy_state_with_vae" in self._settings
               and (self._settings["replace_entropy_state_with_vae"] == "p(z)")):
-            state = self._encoder.predict_encoding_z(state)
+            states = self._encoder.predict_encoding_z(np.repeat(state, repeats=32, axis=0))
+            state = np.mean(states, axis=0, keepdims=True)
+            # state = self._encoder.predict_encoding_z(state)
         elif ("replace_entropy_state_with_vae" in self._settings
               and (self._settings["replace_entropy_state_with_vae"] == "action")):
             state = action
