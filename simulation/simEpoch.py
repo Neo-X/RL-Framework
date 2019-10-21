@@ -231,6 +231,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             image_ = np.zeros((vizData.shape))
             for row in range(len(vizData)):
                 image_[row] = vizData[len(vizData)-row - 1]
+            image_ = np.array(image_, dtype="uint8")
             movieWriter.append_data(image_)
         if ("use_learned_reward_function" in settings
             and (settings["use_learned_reward_function"])
@@ -451,7 +452,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         agents_ = []
         for f in range(len(state_)):
             ### This needs to work for multi agent and single policy MultiAgent stuff
-            f = min(f, settings["perform_multiagent_training"]-1)
+            if ("perform_multiagent_training" in settings):
+                f = min(f, settings["perform_multiagent_training"]-1)
             agents_.append([f])
         agent_ids.append(agents_)
         # falls.append(falls_)

@@ -128,6 +128,7 @@ class GymMultiCharActor(ActorInterface):
                 for row in range(len(vizData)):
                     image_[row] = vizData[len(vizData)-row - 1]
                 # print ("Writing image to video") 
+                image_ = np.array(image_, dtype="uint8")
                 sim.getMovieWriter().append_data(image_)
             
             # print("Update #: ", updates_)
