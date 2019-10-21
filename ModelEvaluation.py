@@ -250,15 +250,6 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     from util.SimulationUtil import setupEnvironmentVariable, setupLearningBackend
     if (settings is None):
         settings = getSettings(settings_file_name)
-    if ("perform_multiagent_training" not in settings):
-        settings["perform_multiagent_training"] = 1
-        settings["state_bounds"] = [settings["state_bounds"]]
-        settings["action_bounds"] = [settings["action_bounds"]]
-        settings["reward_bounds"] = [settings["reward_bounds"]]
-        settings["exploration_rate"] = [settings["exploration_rate"]]
-        settings["experience_length"] = [settings["experience_length"]]
-        settings["critic_network_layer_sizes"] = [settings["critic_network_layer_sizes"]]
-        settings["policy_network_layer_sizes"] = [settings["policy_network_layer_sizes"]]
     # settings['shouldRender'] = True
     setupEnvironmentVariable(settings, eval=True)
     setupLearningBackend(settings)
