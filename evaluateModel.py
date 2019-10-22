@@ -290,7 +290,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
             # forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None, print_info=True)
         
         print ("Loaded fd", forwardDynamicsModel)
-        forwardDynamicsModel.setActor(actor)
+        # forwardDynamicsModel.setActor(actor)
         masterAgent.setForwardDynamics(forwardDynamicsModel)
         
     movieWriter = None
