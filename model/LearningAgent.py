@@ -1130,6 +1130,7 @@ class LearningAgent(AgentInterface):
                         # if ( ('print_level' in self.getSettings()) and (self.getSettings()["print_level"]== 'debug') ):
                             # print("MBAE action:")
                 # print ("Exploration: Before action: ", pa, " after action: ", action, " epsilon: ", epsilon * p )
+            exp_action = [[exp_action]] * len(state_)
         else: 
             ### exploit policy
             exp_action = [[0]] *  len(state_)
@@ -1144,7 +1145,6 @@ class LearningAgent(AgentInterface):
             
             action = pa
             # print ("Exploitation: ", action , " epsilon: ", epsilon * p)
-        exp_action = [[exp_action]] * len(state_)
         
         """
         elif not action_space_continuous:

@@ -829,7 +829,7 @@ class LearningMultiAgent(LearningAgent):
             """
             state_and_goals.append(state_)
             act.append(self.latest_actions[m][0])
-            exp_action.append([self.latest_exp_act[m]])
+            exp_action.append(self.latest_exp_act[m][0])
             entropy.append(self.latest_entropy[m])
 
         if self._useLock:

@@ -460,6 +460,8 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 
         exp_act = exp_action
         exp_actions.append(exp_act)
+        # print("exp_actions: ", exp_actions)
+        # print("falls: ", falls)
         if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
             for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1], actions[-1], result_states___[-1], rewards[-1],  falls[-1], exp_actions[-1]):
                 _output_queue.put(([state__], [act__], [res__], [rew__],  [fall__], [[0]], [exp__]), timeout=timeout_)
