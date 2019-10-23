@@ -667,7 +667,7 @@
 	"comment__": "Performs MBAE random sampling at the level of episodes instead of transitions",
 "perform_mbae_episode_sampling": false,
 	"comment__": "Additional on-policy training updates",
-"additional_on_policy_training_updates": 2,
+"additional_on_policy_training_updates": 1,
 	"comment__": "Performs MBAE random sampling at the level of episodes instead of transitions",
 "perform_mbae_episode_sampling": false,
 	"comment__": "If already annealing on-policy then enabling this will anneal the std for the policy",
