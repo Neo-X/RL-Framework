@@ -4,20 +4,11 @@ from doodad import mount
 import sys
 
 cmd = sys.argv[1]
-print ("cmd: ", cmd)
+print("cmd: ", cmd)
 
 """
-docker run --rm -it us.gcr.io/glen-rl-framework/glen:latest2 bash -c 'pushd /opt/RL-Framework; ./update_and_compile.sh; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/FixedSTD_Tensorflow-v2.json -p 2 --metaConfig=settings/hyperParamTuning/element/exploration_rate.json --plot=false --shouldRender=false --bootstrap_sample=1 --experiment_logging="{\"use_comet\": true, \"project_name\": \"vizimitation\"}"'
 
-python3 runDoodad.py 'pushd /opt/RL-Framework; ./update_and_compile.sh; python3 trainModel.py --config=tests/settings/gapGame2D/PPO/FixedSTD_Tensorflow-v2.json -p 2 --metaConfig=settings/hyperParamTuning/element/exploration_rate.json --plot=false --shouldRender=false --bootstrap_sample=1'
-
-gcloud compute instances create [INSTANCE_NAME] \
-    --image rl-framework-image \
-    --image-project glen-rl-framework \
-    --machine-type=n1-standard-4 \
-    --boot-disk-size=50GB \
-    --preemptible
-
+python3 runDoodad.py 'pushd /opt/RL-Framework; ./update_and_compile.sh; python3 tuneHyperParameters.py --config settings/navgame2D/TD3/Two_Level_HIRO_TD3.json --metaConfig=settings/hyperParamTuning/HIRO/sweep_num_goals_to_resample.json -p 4 --meta_sim_samples 3 --meta_sim_threads 1  --plot=false --shouldRender=false'
 
 """
 
@@ -25,25 +16,26 @@ useGCP = True
 if (useGCP):
     mode = mode.GCPMode(
             gcp_bucket='rl-framework-cluster-bucket',
-            gcp_log_path='/doodad/logs/',
+            gcp_log_path='/doodad/logs2/',
             gcp_project='glen-rl-framework',
             gcp_image='rl-framework-image',
             gcp_image_project='glen-rl-framework',
-            instance_type='n1-standard-4', ## 
+            instance_type='n1-standard-4',
+            terminate_on_end=True,
+            preemptible=True,
             zone='us-west1-a'
         )
     mnt = mount.MountGCP(
         gcp_path='./doodad',
         mount_point='/opt/doodad',  # Directory visible to the running job.
-        output=True
-    )
+        output=True)
+
 else:
     mode = mode.LocalMode()
     mnt = mount.MountLocal(
-        local_dir='/home/gberseth/playground/RL-Framework/doodad',
+        local_dir='/home/btrabucco/research/doodad',
         mount_point='/opt/doodad',
-        output=True
-        )
+        output=True)
 
 out = launch_api.run_command(
     command=cmd,
