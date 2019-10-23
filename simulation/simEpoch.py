@@ -302,16 +302,16 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             reward_ = exp.computeReward(resultState_, sim_time)
             # print("reward: ", reward_)
             
-        if ((exp.endOfEpoch() and settings['reset_on_fall'])
-            and 
-            ("use_fall_reward_shaping2" in settings
-             and (settings["use_fall_reward_shaping2"] == True))
-            ):
-            if (len(np.array(reward_).shape) == 2):
-                reward_ = np.array(reward_) + (-1.0 * 1/(1-settings["discount_factor"]))
+        if  ("use_fall_reward_shaping2" in settings
+             and (settings["use_fall_reward_shaping2"] == True)):
+            if type(agent_not_fell) is list:
+                for ag in range(len(agent_not_fell)):
+                    if (agent_not_fell[ag] == [0]):
+                        reward_[ag] = reward_[ag] + (-1.0 * 1/(1-settings["discount_factor"]))
             else:
-                reward_ = np.mean(reward_) + (-1.0 * 1/(1-settings["discount_factor"]))
-        
+                if (agent_not_fell == 0):
+                    reward_ = reward_ + (-1.0 * 1/(1-settings["discount_factor"]))
+            
         G_t.append(np.array([[0]])) # *(1.0-discount_factor)))
         for i in range(len(G_t)):
             if isinstance(reward_, (list, tuple, np.ndarray)):
