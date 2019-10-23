@@ -7,11 +7,6 @@ import os
 import json
 sys.path.append("../")
 sys.path.append("../characterSimAdapter/")
-# import cPickle
-# import dill
-# import dill as pickle
-# import dill as cPickle
-# from util.utils import *
 import cProfile, pstats, io
 # import memory_profiler
 # import psutil
@@ -1121,13 +1116,15 @@ def trainModelParallel(inputData):
                     rewards__=[]
                     reward_over_epocs = []
                     for tr in range(len(__rewards)):
+                        rewards__ = []
                         for agent_ in range(len(masterAgent.getAgents())): 
                             rewards__.append(np.array(__rewards[tr]).flatten()[agent_::len(masterAgent.getAgents())])
                             # discounted_sum__.append(np.array(discounted_sum).flatten()[agent_::len(masterAgent.getAgents())])
                             # value__.append(np.array(q_value).flatten()[agent_::len(masterAgent.getAgents())])
                             # discount_error__.append(discounted_sum__[agent_] - value__[agent_])
-                        rewards__ = [np.mean(rew) for rew in rewards__]
-                        reward_over_epocs.append(np.mean(np.array(rewards__), axis=-1))
+                        rewards_ = [np.mean(rew) for rew in rewards__]
+                        # print ("rewards__", tr ,": ", rewards_)
+                        reward_over_epocs.append(rewards_)
                     # bellman_errors.append(error)
                     # mean_discount_error.append(np.mean(np.fabs(discount_error__), axis=1))
                     # std_discount_error.append(np.std(discount_error__, axis=1))
@@ -1182,6 +1179,11 @@ def trainModelParallel(inputData):
                     logExperimentData(trainData, "mean_reward", mean_reward, settings)
                     # print ("__rewards: " , reward_over_epocs)
                     logExperimentData(trainData, "mean_reward_train", np.mean(reward_over_epocs), settings)
+                    for ag in range(settings["perform_multiagent_training"]):
+                        logExperimentData(trainData, "mean_reward_agent_"+str(ag), np.mean(mean_reward[ag]), settings)
+                        mean_train_reward = np.mean(np.array(reward_over_epocs)[:,ag])
+                        # print ("mean_train_reward: ", mean_train_reward)
+                        logExperimentData(trainData, "mean_reward_train_"+str(ag), mean_train_reward, settings)
                     logExperimentData(trainData, "std_reward", std_reward, settings)
                     logExperimentData(trainData, "anneal_p", p, settings)
                     logExperimentData(trainData, "mean_bellman_error", np.array([np.mean(er_) for er_ in np.fabs(bellman_errors[0])]), settings)
