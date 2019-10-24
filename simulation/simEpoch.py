@@ -422,7 +422,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             and (settings["max_ent_rl"] == True)):
             # print ("entropy: ", entropy_)
             maxEnt_w = 0.2
-            reward_ = reward_ + (np.array([entropy_]) * maxEnt_w)
+            reward_ = reward_ + (np.array(entropy_)[..., np.newaxis] * maxEnt_w)
         ### I can't just unpack the vector of states here in a multi char sim because the 
         ### Order needs to be preserved for computing the advantage.
         actions.append(action)
