@@ -379,6 +379,7 @@
 "dont_do_hrl_logic": true,
 	"comment__": "Data for using comet ML for logging learning experiments",
 "experiment_logging":
+
 	{"use_comet": true,
 	"project_name": "hrlasmarl"},
 	"comment__": "Use Maximum Entropy RL",
