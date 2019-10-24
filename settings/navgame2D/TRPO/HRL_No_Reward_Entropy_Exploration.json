@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TRPO_KERAS.TRPO_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "NavGameHRL2D_Unsupervised_Exploration/TRPO",
+"data_folder": "NavGameHRL2D_Unsupervised_Exploration/TRPO_With_Entropy",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0,
 	"comment": "initial probability of selecting a discrete random action",
@@ -380,5 +380,7 @@
 	"comment__": "Data for using comet ML for logging learning experiments",
 "experiment_logging":
 	{"use_comet": true,
-	"project_name": "hrlasmarl"}
+	"project_name": "hrlasmarl"},
+	"comment__": "Use Maximum Entropy RL",
+"max_ent_rl": true
 }
