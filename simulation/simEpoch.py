@@ -125,6 +125,10 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # state_ = exp.getState()
         # print ("state_: ", repr(np.array(state_).shape))
         # print ("state_: ", state_)
+        action=None
+            
+        (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
+                                                epsilon=epsilon, sampling=sampling, time_step=i_, evaluation_=evaluation)
 
         if (not (visualizeEvaluation == None)):
             viz_q_values_.append(model.q_value(state_)[0][0])
@@ -132,10 +136,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                  viz_q_values_.pop(0)
             visualizeEvaluation.updateLoss(viz_q_values_, np.zeros(len(viz_q_values_)))
             visualizeEvaluation.redraw()
-        action=None
-            
-        (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
-                                                epsilon=epsilon, sampling=sampling, time_step=i_, evaluation_=evaluation)
             
         outside_bounds=False
         action_=None
@@ -422,7 +422,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             and (settings["max_ent_rl"] == True)):
             # print ("entropy: ", entropy_)
             maxEnt_w = 0.2
-            reward_ = reward_ + (np.array([entropy_]) * maxEnt_w)
+            reward_ = reward_ + (np.array(entropy_)[..., np.newaxis] * maxEnt_w)
         ### I can't just unpack the vector of states here in a multi char sim because the 
         ### Order needs to be preserved for computing the advantage.
         actions.append(action)
