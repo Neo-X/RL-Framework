@@ -8,7 +8,7 @@
 	"comment__": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment__": "initial probability of selecting a discrete random action",
-"omega": 0.00
+"omega": 0.00,
     "comment__": "Batch size used for learning",
 "batch_size": 64,
     "comment__": "Learning rate for the actor/policy",
@@ -325,7 +325,7 @@
 	"comment__": "last policy type of activation to use",
 "last_policy_layer_activation_type": "tanh",
 	"comment__": "type of activation to use for policy",
-"policy_activation_type": "linear",
+"policy_activation_type": "tanh",
 	"comment__": "Normalize the advantage used for gradient calculations wrt the discount factor and scale of reward",
 "normalize_advantage": true,
 	"comment__": "use a special annealing schedule that will begin at 1 and end at 0",
