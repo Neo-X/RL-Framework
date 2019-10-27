@@ -244,9 +244,9 @@ class TD3_KERAS(KERASAlgorithm):
         self._llp_T.trainable = False
         g = self._model._actor([self._model.getStateSymbolicVariable()])
         ### a <- pi(a|s,g)
-        s_llp = keras.layers.core.Lambda(keras_slice_3d, output_shape=(self.getSettings()["hlc_timestep"],4),
+        s_llp = keras.layers.core.Lambda(keras_slice_3d, output_shape=(self.getSettings()["hlc_timestep"],self.getSettings()["goal_slice_index"]),
                         arguments={'begin': 0, 
-                        'end': 4})(llp_state)
+                        'end': self.getSettings()["goal_slice_index"]})(llp_state)
                          
         # s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)                         
         # s_llp = keras.layers.merge.Concatenate(axis=-1)([s_llp, g])
@@ -486,8 +486,6 @@ class TD3_KERAS(KERASAlgorithm):
         # self.setData(states, actions, rewards, result_states, falls)
         ### get actions for target policy
         target_actions = self._modelTarget.getActorNetwork().predict(result_states, batch_size=states.shape[0])
-        if "td3_apply_noise_llp" not in self.getSettings() or not self.getSettings()["td3_apply_noise_llp"]:
-            target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
         if not (self._llp is None):
             # llp_target_state = result_states[:,:7]
             # llp_target_state[:,-3:] = target_actions_n 

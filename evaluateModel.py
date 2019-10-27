@@ -322,6 +322,7 @@ def evaluateModelRender(settings_file_name, runLastModel=False, settings=None):
         model.setTaskNetworkParameters(taskModel)
 
     # actor.setPolicy(model)
+    
     if ("replace_entropy_state_with_vae" in settings 
         and (settings["replace_entropy_state_with_vae"])):
         print ("setting encoder ", masterAgent.getForwardDynamics())

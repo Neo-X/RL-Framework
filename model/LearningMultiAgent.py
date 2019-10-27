@@ -752,6 +752,7 @@ class LearningMultiAgent(LearningAgent):
                 # if this is false then one is likely not a simple vector
                 assert all([i == j for i, j in zip(state_.shape[:-1], goal.shape[:-1])])
                 """
+                # print ("state: ", state_, " goal: ",  goal)
                 state_ = np.concatenate([np.array(state_), goal], -1)
 
             use_hle = ( "hlc_index" in self.getSettings()

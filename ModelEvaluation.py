@@ -368,7 +368,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     exp.init()
     expected_value_viz=None
     if (settings['visualize_expected_value'] == True):
-        expected_value_viz = NNVisualize(title=str("Expected Value") + " with " + str(settings["model_type"]), settings=settings)
+        expected_value_viz = NNVisualize(title=str("Reward"), settings=settings, nice=True)
         expected_value_viz.setInteractive()
         expected_value_viz.init()
         criticLosses = []
