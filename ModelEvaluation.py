@@ -448,10 +448,19 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     evalData['std_discount_error'] = std_discount_error
     evalData['mean_eval'] = mean_eval
     evalData['std_eval'] = std_eval
+    evalData.update(otherMetrics)
+    evalData.update(settings)
+    fp = open(directory+"evalData_" + str(settings['agent_name']) + ".json", 'w')
+    from util.utils import NumpyEncoder 
+    # print ("trainData: ", trainData)
+    json.dump(evalData, fp, cls=NumpyEncoder)
+    fp.close()
     evalData['masterAgent'] = masterAgent
     exp.finish()
     if ("save_video_to_file" in settings):
         movieWriter.close()
+    if (settings['visualize_expected_value'] == True):
+        expected_value_viz.finish()
     
     return evalData
     
