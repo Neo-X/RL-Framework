@@ -438,6 +438,14 @@ def validateSettings(settings):
         print ("Multi agent training does not yet support pretraining the FD models.")
         print ("******")
         return False
+
+    if ("max_ent_rl" in settings
+        and settings['max_ent_rl']
+        and ("use_stochastic_policy" not in settings or not settings["use_stochastic_policy"])):
+        print ("******")
+        print ("Max Ent RL requires a stochastic policy")
+        print ("******")
+        return False
     
     return True
 

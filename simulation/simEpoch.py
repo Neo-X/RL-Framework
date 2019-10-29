@@ -129,17 +129,20 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # state_ = exp.getState()
         # print ("state_: ", repr(np.array(state_).shape))
         # print ("state_: ", state_)
+
         if (not (visualizeEvaluation == None)):
             viz_q_values_.append(model.q_value(state_)[0][0])
             if (len(viz_q_values_)>30):
                  viz_q_values_.pop(0)
             visualizeEvaluation.updateLoss(viz_q_values_, np.zeros(len(viz_q_values_)))
             visualizeEvaluation.redraw()
+
+
         action=None
             
         (action, exp_action, entropy_, state_) = model.sample(state_, p=p, sim_index=worker_id, bootstrapping=bootstrapping,
                                                 epsilon=epsilon, sampling=sampling, time_step=i_, evaluation_=evaluation)
-            
+
         outside_bounds=False
         action_=None
         if (settings["clamp_actions_to_stay_inside_bounds"] or (settings['penalize_actions_outside_bounds'])):
@@ -310,16 +313,16 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             reward_ = exp.computeReward(resultState_, sim_time)
             # print("reward: ", reward_)
             
-        if ((exp.endOfEpoch() and settings['reset_on_fall'])
-            and 
-            ("use_fall_reward_shaping2" in settings
-             and (settings["use_fall_reward_shaping2"] == True))
-            ):
-            if (len(np.array(reward_).shape) == 2):
-                reward_ = np.array(reward_) + (-1.0 * 1/(1-settings["discount_factor"]))
+        if  ("use_fall_reward_shaping2" in settings
+             and (settings["use_fall_reward_shaping2"] == True)):
+            if type(agent_not_fell) is list:
+                for ag in range(len(agent_not_fell)):
+                    if (agent_not_fell[ag] == [0]):
+                        reward_[ag] = reward_[ag] + (-1.0 * 1/(1-settings["discount_factor"]))
             else:
-                reward_ = np.mean(reward_) + (-1.0 * 1/(1-settings["discount_factor"]))
-        
+                if (agent_not_fell == 0):
+                    reward_ = reward_ + (-1.0 * 1/(1-settings["discount_factor"]))
+            
         G_t.append(np.array([[0]])) # *(1.0-discount_factor)))
         for i in range(len(G_t)):
             if isinstance(reward_, (list, tuple, np.ndarray)):
@@ -430,7 +433,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             and (settings["max_ent_rl"] == True)):
             # print ("entropy: ", entropy_)
             maxEnt_w = 0.2
-            reward_ = reward_ + (np.array([entropy_]) * maxEnt_w)
+            reward_ = reward_ + (np.array(entropy_)[..., np.newaxis] * maxEnt_w)
         ### I can't just unpack the vector of states here in a multi char sim because the 
         ### Order needs to be preserved for computing the advantage.
         actions.append(action)
@@ -469,10 +472,21 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         #print("Collision :", collisions)
         exp_act = exp_action
         exp_actions.append(exp_act)
+        # print("exp_actions: ", exp_actions)
+        # print("falls: ", falls)
         if ((_output_queue != None) and (not evaluation) and (not bootstrapping)): # for multi-threading
             for state__, act__, res__, rew__, fall__, exp__ in zip (states[-1], actions[-1], result_states___[-1], rewards[-1],  falls[-1], exp_actions[-1]):
                 _output_queue.put(([state__], [act__], [res__], [rew__],  [fall__], [[0]], [exp__]), timeout=timeout_)
         
+        
+        if (not (visualizeEvaluation == None)):
+            viz_q_values_.append(model.q_value(state_)[0][0])
+            if (len(viz_q_values_)>50):
+                 viz_q_values_.pop(0)
+            visualizeEvaluation.updateLoss(viz_q_values_, np.zeros(len(viz_q_values_)))
+            visualizeEvaluation.redraw()
+            # print ("viz_value")
+            
         state_num += 1
         pa = None
         i_ += 1

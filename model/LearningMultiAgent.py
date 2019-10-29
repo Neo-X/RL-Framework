@@ -752,6 +752,7 @@ class LearningMultiAgent(LearningAgent):
                 # if this is false then one is likely not a simple vector
                 assert all([i == j for i, j in zip(state_.shape[:-1], goal.shape[:-1])])
                 """
+                # print ("state: ", state_, " goal: ",  goal)
                 state_ = np.concatenate([np.array(state_), goal], -1)
 
             use_hle = ( "hlc_index" in self.getSettings()
@@ -829,7 +830,7 @@ class LearningMultiAgent(LearningAgent):
             """
             state_and_goals.append(state_)
             act.append(self.latest_actions[m][0])
-            exp_action.append([self.latest_exp_act[m]])
+            exp_action.append(self.latest_exp_act[m][0])
             entropy.append(self.latest_entropy[m])
 
         if self._useLock:

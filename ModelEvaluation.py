@@ -368,7 +368,7 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     exp.init()
     expected_value_viz=None
     if (settings['visualize_expected_value'] == True):
-        expected_value_viz = NNVisualize(title=str("Expected Value") + " with " + str(settings["model_type"]), settings=settings)
+        expected_value_viz = NNVisualize(title=str("Reward"), settings=settings, nice=True)
         expected_value_viz.setInteractive()
         expected_value_viz.init()
         criticLosses = []
@@ -448,10 +448,19 @@ def modelEvaluation(settings_file_name, settings=None, runLastModel=False, rende
     evalData['std_discount_error'] = std_discount_error
     evalData['mean_eval'] = mean_eval
     evalData['std_eval'] = std_eval
+    evalData.update(otherMetrics)
+    evalData.update(settings)
+    fp = open(directory+"evalData_" + str(settings['agent_name']) + ".json", 'w')
+    from util.utils import NumpyEncoder 
+    # print ("trainData: ", trainData)
+    json.dump(evalData, fp, cls=NumpyEncoder)
+    fp.close()
     evalData['masterAgent'] = masterAgent
     exp.finish()
     if ("save_video_to_file" in settings):
         movieWriter.close()
+    if (settings['visualize_expected_value'] == True):
+        expected_value_viz.finish()
     
     return evalData
     
@@ -487,7 +496,7 @@ if __name__ == "__main__":
     print ("Settings: " + str(json.dumps(settings, indent=4)))
     
     if (settings['shouldRender'] == 'yes'):
-        sim = modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render='yes')
+        sim = modelEvaluation(sys.argv[1], runLastModel=True, settings=settings, render='yes')
     else:
-        sim = modelEvaluation(sys.argv[1], runLastModel=False, settings=settings, render=settings["shouldRender"])
+        sim = modelEvaluation(sys.argv[1], runLastModel=True, settings=settings, render=settings["shouldRender"])
     
