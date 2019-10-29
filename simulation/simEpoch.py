@@ -587,10 +587,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 
 
     file = open("Log_info.txt","a+") 
-    file.write("%s : %s  \n" % ("Collision", str(collision_count) ))
-    file.write("%s : %s  \n" % ("Falls", str(fall_count) ) )
-    collision_count=np.add(info["collision"], collision_count)
-    fall_count=np.add(info["falls_sim"], fall_count)
+    file.write("%s,%s \n" % (str(np.sum(fall_count)) , str( np.sum(collision_count) ))) 
+    #file.write("%s : %s  \n" % ("Collision", str(collision_count) ))
+    #file.write("%s : %s  \n" % ("Falls", str(fall_count) ) )
+    #collision_count=np.add(info["collision"], collision_count)
+    #fall_count=np.add(info["falls_sim"], fall_count)
     file.close()
 
 
