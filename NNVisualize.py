@@ -44,14 +44,18 @@ class NNVisualize(object):
         """
         self._settings = settings
         self._movie = None
+        self._ylim = None
+        self._xlim = None
         
-    def init(self):
+    def init(self, settings=None):
         """
             Three plots
             bellman error
             average reward
             discounted reward error
         """
+        if (settings is not None):
+            self._settings=settings
         # self._fig, (self._bellman_error_ax, self._reward_ax, self._discount_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
         self._fig, (self._bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
         self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
@@ -60,7 +64,7 @@ class NNVisualize(object):
         if ( not self._nice ):
             self._bellman_error_ax.set_ylabel("Value", fontsize=16)
         else:
-            self._bellman_error_ax.set_ylabel("Reward", fontsize=16)
+            self._bellman_error_ax.set_ylabel(r'$\log p_{\theta_{t}}(s)$', fontsize=16)
         """
         self._reward, = self._reward_ax.plot([], [], linewidth=2.0)
         self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
@@ -90,18 +94,32 @@ class NNVisualize(object):
     def updateLoss(self, error, std):
         self._bellman_error.set_xdata(np.arange(len(error)))
         self._bellman_error.set_ydata(error)
-        self._bellman_error_ax.collections.remove(self._bellman_error_std)
-        self._bellman_error_std = self._bellman_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor='blue', alpha=0.5)
+        if ( not self._nice):
+            self._bellman_error_ax.collections.remove(self._bellman_error_std)
+            self._bellman_error_std = self._bellman_error_ax.fill_between(np.arange(len(error)), error - std, error + std, facecolor='blue', alpha=0.5)
         
         
         self._bellman_error_ax.relim()      # make sure all the data fits
-        self._bellman_error_ax.autoscale()
+        # self._bellman_error_ax.autoscale()
         
         
     def show(self):
         plt.show()
         
+    def setYLimit(self, ylim):
+        self._ylim = ylim
+        self._bellman_error_ax.set_autoscaley_on(False)
+        
+    def setXLimit(self, xlim):
+        self._xlim = xlim
+        self._bellman_error_ax.set_autoscaley_on(False)
+        
     def redraw(self):
+        if (self._ylim is not None):
+            print ("self._ylim: ", self._ylim)
+            self._bellman_error_ax.set_ylim(self._ylim)
+        if (self._xlim is not None):
+            self._bellman_error_ax.set_xlim(self._xlim)
         self._fig.canvas.draw()
         if ("save_video_to_file" in self._settings):
             import io
@@ -133,7 +151,7 @@ class NNVisualize(object):
             Closes the figure window
         """
         if ("save_video_to_file" in self._settings):
-            self._movie.finish()
+            self._movie.close()
         plt.close(self._fig)
         plt.close()
         
