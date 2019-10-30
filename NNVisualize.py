@@ -64,7 +64,7 @@ class NNVisualize(object):
         if ( not self._nice ):
             self._bellman_error_ax.set_ylabel("Value", fontsize=16)
         else:
-            self._bellman_error_ax.set_ylabel(r'$\log p_{\theta_{t}}(s)$', fontsize=16)
+            self._bellman_error_ax.set_ylabel(r'$\log p_{\theta_{t}}(s)$', fontsize=32)
         """
         self._reward, = self._reward_ax.plot([], [], linewidth=2.0)
         self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
@@ -78,10 +78,17 @@ class NNVisualize(object):
         """
         if ( not self._nice ):
             self._fig.suptitle(self._title, fontsize=16)
-        plt.grid(b=True, which='major', color='black', linestyle='--', alpha=0.5)
-        plt.grid(b=True, which='minor', color='g', linestyle='--', alpha=0.5)
+        
+        if ( not self._nice ):
+            plt.grid(b=True, which='major', color='black', linestyle='--', alpha=0.5, fontsize=32)
+            plt.grid(b=True, which='minor', color='g', linestyle='--', alpha=0.5, fontsize=32)
+        else:
+            plt.grid(b=True, which='major', color='black', linestyle='--', alpha=0.5)
+            plt.grid(b=True, which='minor', color='g', linestyle='--', alpha=0.5, )
         if ( not self._nice ):
             plt.xlabel("Iteration x" + str(self._iteration_scale), fontsize=18)
+        else:
+            plt.xlabel(r't', fontsize=32)
         
         self._fig.set_size_inches(8.0, 4.5, forward=True)
         
