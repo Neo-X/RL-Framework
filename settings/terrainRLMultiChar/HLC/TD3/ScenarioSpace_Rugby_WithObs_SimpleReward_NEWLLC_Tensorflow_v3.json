@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TD3_KERAS.TD3_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "PD_Biped3D_MutliChar_ScenarioSpace_Rugby_4_WithObstacles_OnlyVel_SimpleReward_v3/Tensorflow_TRUE-v0_NewLLC_17",
+"data_folder": "PD_Biped3D_MutliChar_ScenarioSpace_Rugby_4_WithObstacles_OnlyVel_SimpleReward_v3/Tensorflow_TRUE-v0_NewLLC_18",
 	"comment": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment": "initial probability of selecting a discrete random action",
