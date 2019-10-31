@@ -91,7 +91,7 @@ class NNVisualize(object):
         if ( not self._nice ):
             plt.xlabel("Iteration x" + str(self._iteration_scale), fontsize=18)
         else:
-            plt.xlabel(r't', fontsize=24)
+            plt.xlabel(r't', fontsize=16)
         
         # if ( not self._nice ):
         self._fig.set_size_inches(8.0, 4.5, forward=True)
