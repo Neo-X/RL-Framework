@@ -58,13 +58,16 @@ class NNVisualize(object):
             self._settings=settings
         # self._fig, (self._bellman_error_ax, self._reward_ax, self._discount_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
         self._fig, (self._bellman_error_ax) = plt.subplots(1, 1, sharey=False, sharex=True)
-        self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
+        if ( not self._nice ):
+            self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=2.0)
+        else:
+            self._bellman_error, = self._bellman_error_ax.plot([], [], linewidth=3.0)
         self._bellman_error_std = self._bellman_error_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
         # self._bellman_error_ax.set_title('Error', fontsize=18)
         if ( not self._nice ):
             self._bellman_error_ax.set_ylabel("Value", fontsize=16)
         else:
-            self._bellman_error_ax.set_ylabel(r'$\log p_{\theta_{t}}(s)$', fontsize=32)
+            self._bellman_error_ax.set_ylabel(r'$\log p_{\theta_{t}}(s)$', fontsize=24)
         """
         self._reward, = self._reward_ax.plot([], [], linewidth=2.0)
         self._reward_std = self._reward_ax.fill_between([0], [0], [1], facecolor='blue', alpha=0.5)
@@ -80,16 +83,17 @@ class NNVisualize(object):
             self._fig.suptitle(self._title, fontsize=16)
         
         if ( not self._nice ):
-            plt.grid(b=True, which='major', color='black', linestyle='--', alpha=0.5, fontsize=32)
-            plt.grid(b=True, which='minor', color='g', linestyle='--', alpha=0.5, fontsize=32)
-        else:
             plt.grid(b=True, which='major', color='black', linestyle='--', alpha=0.5)
             plt.grid(b=True, which='minor', color='g', linestyle='--', alpha=0.5, )
+        else:
+            plt.grid(b=True, which='major', color='black', linestyle='--', alpha=0.5, linewidth=2.5)
+            plt.grid(b=True, which='minor', color='g', linestyle='--', alpha=0.5, linewidth=2.5)
         if ( not self._nice ):
             plt.xlabel("Iteration x" + str(self._iteration_scale), fontsize=18)
         else:
-            plt.xlabel(r't', fontsize=32)
+            plt.xlabel(r't', fontsize=24)
         
+        # if ( not self._nice ):
         self._fig.set_size_inches(8.0, 4.5, forward=True)
         
         if ("save_video_to_file" in self._settings):
