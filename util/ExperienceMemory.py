@@ -515,7 +515,7 @@ class ExperienceMemory(object):
             exp_actions.append(self._exp_action_history[i])
             
             for key in self._data:
-                data[key].append(self._data[key][self._history_update_index])
+                data[key].append(self._data[key][i])
             
         # print c
         # print experience[indices]
