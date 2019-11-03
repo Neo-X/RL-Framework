@@ -368,7 +368,7 @@
 	"comment__": "The index of the multiagent simulation for the hlc",
 "llc_index": 1,
 	"comment__": "higher level controller timestep",
-"hlc_timestep": 1,
+"hlc_timestep": 5,
 	"comment__": "The index of the multiagent simulation for the hlc",
 "hlc_index": 0,
 	"comment__": "Describes the policy links for training, give a to b",
