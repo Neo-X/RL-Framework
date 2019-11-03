@@ -738,7 +738,14 @@ class LearningMultiAgent(LearningAgent):
         act = []
         exp_action = []
         entropy = []
-        for m in range(len(state)):
+        m_ = len(state)
+        if ("perform_multiagent_training" in self.getSettings()):
+            m_ = self.getSettings()['perform_multiagent_training']
+            
+        if ( "use_hrl_logic" in self.getSettings() ### Add LLP state
+             and (self.getSettings()["use_hrl_logic"]) == "full" ):
+            state = self.addHRLData(state)
+        for m in range(m_):
             # by convention the highest levels in the hierarchy come first
             """
             if ( "use_centralized_critic" in self.getSettings()
@@ -758,7 +765,7 @@ class LearningMultiAgent(LearningAgent):
             """
             state_ = np.array(state_)
             if ( "use_hrl_logic" in self.getSettings()
-                 and (self.getSettings()["use_hrl_logic"] == True)
+                 and (self.getSettings()["use_hrl_logic"])
                  and (m == 1) ):
                 # if index is not the highest level policy, which has no goal to concat.
                 # concat on the action of the higher level onto the state
@@ -834,7 +841,7 @@ class LearningMultiAgent(LearningAgent):
                 state_ = state_tmp 
 
             if ("use_hrl_logic" in self.getSettings()
-                 and (self.getSettings()["use_hrl_logic"] == True) 
+                 and (self.getSettings()["use_hrl_logic"]) 
                  and ((time_step == 0) or (time_step % self.time_skips[m] == 0) )):
                 # if this value is true then this level in the hierarchy is active
                 # otherwise use the actions exp actions and entropy from previous steps
@@ -862,6 +869,32 @@ class LearningMultiAgent(LearningAgent):
 
         return (act, exp_action, entropy, state_and_goals)
     
+    def addHRLData(self, observation):
+        ### The the state data for the LLP
+        obs = [observation[0]]
+        LLP_state = observation[0][:self.getSettings()['goal_slice_index']]
+        # llp_goal = self.latest_actions[m - 1][0]
+        # state_ = np.concatenate([np.array(state_), goal], -1)
+        # observation = np.concatenate([observation, LLP_state], 0)
+        obs.append(LLP_state)
+        # print ("obs :", obs)
+        return obs
+    
+    def addHRLReward(self, observation, nextObservation, reward_, done, info):
+        ### THe next Observation is not going to have the HRL state structure yet.
+        ### The the state data for the LLP
+        r_ = [[reward_]]
+        LLP_state = nextObservation[0][:self.getSettings()['goal_slice_index']]
+        llp_goal = observation[self.getSettings()['llc_index']][0]
+        # state_ = np.concatenate([np.array(state_), goal], -1)
+        reward = -np.mean(np.fabs((LLP_state-llp_goal)))
+        # observation.append(LLP_state)
+        # reward_.append([reward])
+        r_.append([reward])
+        # print("reward_ :", r_)
+        return r_
+        
+        
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:
             self._accesLock.acquire()

@@ -72,6 +72,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     else:
         exp.generateEnvironmentSample()
     """ 
+    """
     if ("llc_index" in settings):
         ### Bad hack for now to use llc in env
         if (settings["environment_type"] == "Multiworld"
@@ -82,6 +83,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
     if ("hlc_index" in settings):
         ### Bad hack for now to use hlp in env
         exp.getEnvironment().getEnv().setHLP(model.getAgents()[settings["hlc_index"]])
+    """
     if ("replace_entropy_state_with_vae" in settings 
         and (settings["replace_entropy_state_with_vae"])):
         actor.setEncoder(model.getForwardDynamics())
@@ -174,8 +176,11 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
         # print("exp_action: ", exp_action, " action", action)
         observation, reward_, done, info = actor.step(exp,action)
         infos.append(info)
+        if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
+        and (settings["use_hrl_logic"]) == "full" ):
+            reward_ = model.addHRLReward(state_, observation, reward_, done, info)
         a = 0
-
+        """
         # support for mixing rewards across levels
         if ("hlc_index" in settings
                 and "llc_index" in settings
@@ -190,7 +195,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 and "llc_index" in settings):
             reward_[settings["hlc_index"]][0] += a
             reward_[settings["llc_index"]][0] += b
-
+        """
         agent_not_fell = actor.hasNotFallen(exp)
         if (outside_bounds and settings['penalize_actions_outside_bounds']):
             ### TODO: this penalty should really be a function of the distance the action was outside the bounds
@@ -198,7 +203,7 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 
         resultState_ = exp.getState()
         # if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
-        #      and (settings["use_hrl_logic"] == True) ):
+        #      and (settings["use_hrl_logic"]) ):
         #     resultState_ = resultState_.tolist()
         #     resultState_[1] = np.concatenate([resultState_[1], action[0]], axis=-1)
         if (i_ > 0):
@@ -481,7 +486,14 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
 
     ### This logic is not perfect yet, It should all sample() again to check if the goal should have been updated after the last action.
     if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
-         and (settings["use_hrl_logic"] == True) ):
+         and (settings["use_hrl_logic"]) == "full"):
+        if isinstance(resultState_, np.ndarray):
+            resultState_ = resultState_.tolist()
+        resultState_ = model.addHRLData(resultState_)
+        # print ("resultState_ obs :", resultState_)
+        # resultState_[1] = np.concatenate([resultState_[1], action[0]], axis=-1)
+    if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
+         and (settings["use_hrl_logic"]) ):
         if isinstance(resultState_, np.ndarray):
             resultState_ = resultState_.tolist()
         resultState_[1] = np.concatenate([resultState_[1], action[0]], axis=-1)

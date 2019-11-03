@@ -31,7 +31,7 @@ class TD3_KERAS(KERASAlgorithm):
         
         super(TD3_KERAS, self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
         
-        self._c = 0.1
+        self._c = 0.05
         self._noise_scale = 0.05
 
         self._model._actor = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=self._model._actor)
@@ -492,6 +492,8 @@ class TD3_KERAS(KERASAlgorithm):
             # target_actions_n = self._llp.predict(llp_target_state)
             target_actions = self.genLLPActions(result_states, target_actions, target_net=True)
         if "td3_apply_noise_llp" in self.getSettings() and self.getSettings()["td3_apply_noise_llp"]:
+            target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
+        else:
             target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
 
         ### Get next q value
