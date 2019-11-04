@@ -1256,10 +1256,11 @@ class LearningAgent(AgentInterface):
             and (any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ))):
             import numpy as np
             state = np.array(state)
+            # print ("state: ", state)
             state = np.concatenate((state, np.zeros((state.shape[0],
                         self.getSettings()["use_hack_state_trans"]-state.shape[1]))), axis=-1)
-            # print ("state: ", state)
             return state
+        
             
         assert s_length == len(state), "before state length: " + str(s_length) + " == " + str(len(state))
         return state

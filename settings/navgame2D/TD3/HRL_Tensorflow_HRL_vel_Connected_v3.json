@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": "algorithm.TD3_KERAS.TD3_KERAS",
     "comment__": "Folder to store the training data in.",
-"data_folder": "NavGame2D_NoViz-v0/_hrl_connected_6",
+"data_folder": "NavGame2D_NoViz-v0/_HRL_5Step_connected_6",
 	"comment__": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment__": "initial probability of selecting a discrete random action",
@@ -16,7 +16,7 @@
     "comment__": "Config file for the simulator",
 "sim_config_file": "NavGame2D_NoViz-v0",
     "comment__": "Exploration distance use when randomly generating new actions",
-"exploration_rate": [0.1,0.2],
+"exploration_rate": [0.2,0.2],
     "comment__": "Number of rounds to perform before termination",
 "rounds": 100,
     "comment__": "Number of epochs to perform per round",
@@ -38,16 +38,16 @@
 "experience_length": [50000, 50000],
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [
-  				  [[-1.08073413, -1.544791,   -10.0, -10.0, -1.08073413, -1.544791,   -10.0, -10.0],
-				 [ 1.11802318,  0.73305066,    10.0,  10.0,  1.11802318,  0.73305066,    10.0,  10.0]], 
+  				  [[-1.08073413, -1.544791,   -10.0, -10.0, -1.08073413, -1.544791,   -10.0, -10.0,  -1.08073413, -1.544791,   -10.0, -10.0, -1.08073413, -1.544791,   -10.0, -10.0, -1.08073413, -1.544791,   -10.0, -10.0, -1.08073413, -1.544791,   -10.0, -10.0],
+				 [ 1.11802318,  0.73305066,    10.0,  10.0,  1.11802318,  0.73305066,  10.0,  10.0,   1.11802318,  0.73305066,  10.0,  10.0, 1.11802318,  0.73305066,    10.0,  10.0, 1.11802318,  0.73305066,    10.0,  10.0, 1.11802318,  0.73305066,    10.0,  10.0]], 
 				  [[-1.08073413, -1.544791,   -10.0, -10.0],
 				 [ 1.11802318,  0.73305066,    10.0,  10.0]]
 				],
     "comment__": "Action scaling values to be used to scale values for the network",
 "action_bounds": [[[-1.0, -1.0],
                   [  1.0,  1.0]],
-                  [[-0.2, -0.2],
-                   [ 0.2,  0.2]]],
+                  [[-1.0, -1.0],
+                  [  1.0,  1.0]]],
     "comment__": "Set of discrete actions that can be sampled from",				     
 "discrete_actions": [[-0.92, 0.8],
                     [0.02, 0.0],
@@ -117,7 +117,7 @@
     "comment__": "What method to use to select actions during bootstrapping",
 "bootsrap_with_discrete_policy": false,
     "comment__": "That max number of action that can be take before the end of an episode/epoch",
-"max_epoch_length": 256,
+"max_epoch_length": 512,
     "comment__": "If reward is below this bound it will not be put in the Experience Buffer",
 "reward_lower_bound": -10.5,
     "comment__": "Enable guided policy search. Uses MCMC sampling ahead in time to select the best action to keep",
@@ -279,29 +279,27 @@
 "critic_network_layer_sizes": [[
 								{"layer_type": "Dense", "units": 128, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Input", "shape": ["none", 2], "flag": "action"},
+								{"layer_type": "Input", "shape": ["none", 10], "flag": "action"},
 								{"layer_type": "integrate_actor_part"},
 								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dropout", "rate": 0.2}
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],
 								[  
-								{"layer_type": "Dense", "units": 128, "use_bias": true},
+								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "integrate_actor_part"},
 								{"layer_type": "Dropout", "rate": 0.2},
-								{"layer_type": "Dense", "units": 64, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dropout", "rate": 0.2}
+								{"layer_type": "Dense", "units": 32, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								]
 								],
 	"comment__": "A list describing the size of the layers for the NN",
 "policy_network_layer_sizes": [[ 
 								{"layer_type": "slice", "slice_index": 4, "slice_label": "llp_state"},
-								{"layer_type": "Dense", "units": 128, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								],[ 
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
@@ -384,7 +382,7 @@
 	"comment__": "Do something odd with the policy...",
 "skip_policy_training": false,
 	"comment__": "Do something odd with the state... This should be HLP state length + (llp state length * hlp timestep)",
-"use_hack_state_trans": 8,
+"use_hack_state_trans": 24,
 	"comment__": "Use the internal HRL logic that allows the learning code to add sub-goals",
 "use_hrl_logic": "full",
 	"comment__": "The original size of the HLP state",
