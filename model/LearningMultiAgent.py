@@ -887,7 +887,7 @@ class LearningMultiAgent(LearningAgent):
         LLP_state = nextObservation[0][:self.getSettings()['goal_slice_index']]
         llp_goal = observation[self.getSettings()['llc_index']][0]
         # state_ = np.concatenate([np.array(state_), goal], -1)
-        reward = -np.mean(np.fabs((LLP_state-llp_goal)))
+        reward = -np.sum(np.fabs((LLP_state-llp_goal)))
         # observation.append(LLP_state)
         # reward_.append([reward])
         r_.append([reward])
