@@ -10,7 +10,7 @@
 	"comment": "initial probability of selecting a discrete random action",
 "omega": 0.0,
     "comment__": "Batch size used for learning",
-"batch_size": 32,
+"batch_size": 256,
     "comment__": "Learning rate for the actor/policy",
 "learning_rate": 0.0001,
     "comment__": "Config file for the simulator",
