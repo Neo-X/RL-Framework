@@ -96,7 +96,7 @@ class NNVisualize(object):
         # if ( not self._nice ):
         self._fig.set_size_inches(8.0, 4.5, forward=True)
         
-        if ("save_video_to_file" in self._settings):
+        if (self._settings is not None and ("save_video_to_file" in self._settings)):
             from util.SimulationUtil import getDataDirectory
             directory = getDataDirectory(self._settings)
             self._movie = imageio.get_writer(directory + "reward_video.mp4", mode='I',  fps=30)
