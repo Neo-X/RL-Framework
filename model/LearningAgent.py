@@ -540,8 +540,8 @@ class LearningAgent(AgentInterface):
             if ( "additional_on_policy_training_updates" in self._settings
                  and (self._settings["additional_on_policy_training_updates"] != False)):
                 additional_on_poli_trianing_updates = self._settings["additional_on_policy_training_updates"]
-            if ("perform_multiagent_training" in self._settings): ### Reduce number of updates by agent count
-                additional_on_poli_trianing_updates = additional_on_poli_trianing_updates / self._settings["perform_multiagent_training"]
+            # if ("perform_multiagent_training" in self._settings): ### Reduce number of updates by agent count
+            #     additional_on_poli_trianing_updates = additional_on_poli_trianing_updates / self._settings["perform_multiagent_training"]
             ### The data should be seen ~ 4 times
             additional_on_poli_trianing_updates = int(np.ceil(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / batch_size_) * additional_on_poli_trianing_updates))
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):

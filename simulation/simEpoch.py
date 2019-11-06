@@ -693,7 +693,7 @@ def simModelParrallel(sw_message_queues, eval_episode_data_queue, model, setting
         min_samples = settings["epochs"] * settings["max_epoch_length"]
         
     if ("perform_multiagent_training" in settings):
-        min_samples = min_sample * settings["perform_multiagent_training"]
+        min_samples = min_samples * settings["perform_multiagent_training"]
     
     if (   ("anneal_exploration" in settings) 
          and (settings['anneal_exploration'] != False)
