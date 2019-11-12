@@ -374,11 +374,16 @@ class LearningMultiAgent(LearningAgent):
         goal = states[:,-self._settings["goal_slice_index"]:]
         # print ("old goals: ", goal)
         goals = []
+        
+        actions2 = self.getAgents()[1].getPolicy().predict(states)
+        prob_ = -0.5 * np.sum(np.square(actions2 - actions))
+        probs.append(prob_)
+        goals.append(goal)
 
         num_goals_to_resample = (16 if not "num_goals_to_resample" in self.getSettings() else
                                  self.getSettings()["num_goals_to_resample"])
         for i in range(num_goals_to_resample):
-            noise = [np.random.normal(0, 0.1, size=self._settings["goal_slice_index"])]
+            noise = [np.random.normal(0, 0.05, size=self._settings["goal_slice_index"])]
             noise = np.repeat(noise, len(states), axis=0)
             new_goals = goal + noise
             
@@ -388,19 +393,20 @@ class LearningMultiAgent(LearningAgent):
             
             actions2 = self.getAgents()[1].getPolicy().predict(states)
             ### Distance between action sequence
-            prob_ = np.sum(np.square(actions2 - actions))
+            prob_ = -0.5 * np.sum(np.square(actions2 - actions))
             probs.append(prob_)
             goals.append(new_goals)
             
         
         # print ("probs: ", probs)
-        indx = np.argmin(probs)
+        indx = np.argmax(probs)
         return goals[indx]
         
     def applyHIRO(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t, datas):
         import numpy as np
-        # print ("Applying HIRO")
+        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):  
+            print ("Applying HIRO")
         ### Relable trajectory goal to new goals that have higher prob after LLP update
         ### Get the data for both policies
         (states__h, actions__h, rewards__h, result_states__h,
