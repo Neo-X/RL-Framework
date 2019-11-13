@@ -390,6 +390,8 @@ class LearningMultiAgent(LearningAgent):
             ### Copy in the new goals
             new_goals = np.array(new_goals)
             states[:,-self._settings["goal_slice_index"]:] = new_goals
+            # print ("new_goals: ", new_goals)
+            # print ("states: ", states)
             
             actions2 = self.getAgents()[1].getPolicy().predict(states)
             ### Distance between action sequence
@@ -427,6 +429,7 @@ class LearningMultiAgent(LearningAgent):
             steps_ = int(len(states__l[traj])/self._settings["hlc_timestep"])
             for g in range(steps_):
                 ### get chunk of data
+                print ("states__l[traj]: ", states__l[traj])
                 statesl = states__l[traj][step:step+self._settings["hlc_timestep"]]
                 actionsl = actions__l[traj][step:step+self._settings["hlc_timestep"]]
                 new_goals = self.sampleGoals(statesl, actionsl)
@@ -879,11 +882,11 @@ class LearningMultiAgent(LearningAgent):
         ### The the state data for the LLP
         obs = [observation[0]]
         LLP_state = observation[0][:self.getSettings()['goal_slice_index']]
-        # llp_goal = self.latest_actions[m - 1][0]
+        llp_goal = self.latest_actions[0][0]
         # state_ = np.concatenate([np.array(state_), goal], -1)
-        # observation = np.concatenate([observation, LLP_state], 0)
+        LLP_state = np.concatenate([LLP_state, llp_goal], 0)
         obs.append(LLP_state)
-        # print ("obs :", obs)
+        print ("obs :", obs)
         return obs
     
     def addHRLReward(self, observation, nextObservation, reward_, done, info):
