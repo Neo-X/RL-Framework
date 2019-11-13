@@ -383,7 +383,7 @@ class LearningMultiAgent(LearningAgent):
         num_goals_to_resample = (16 if not "num_goals_to_resample" in self.getSettings() else
                                  self.getSettings()["num_goals_to_resample"])
         for i in range(num_goals_to_resample):
-            noise = [np.random.normal(0, 0.05, size=self._settings["goal_slice_index"])]
+            noise = [np.random.normal(0, 0.1, size=self._settings["goal_slice_index"])]
             noise = np.repeat(noise, len(states), axis=0)
             new_goals = goal + noise
             
@@ -429,7 +429,7 @@ class LearningMultiAgent(LearningAgent):
             steps_ = int(len(states__l[traj])/self._settings["hlc_timestep"])
             for g in range(steps_):
                 ### get chunk of data
-                print ("states__l[traj]: ", states__l[traj])
+                # print ("states__l[traj]: ", states__l[traj])
                 statesl = states__l[traj][step:step+self._settings["hlc_timestep"]]
                 actionsl = actions__l[traj][step:step+self._settings["hlc_timestep"]]
                 new_goals = self.sampleGoals(statesl, actionsl)
@@ -776,8 +776,8 @@ class LearningMultiAgent(LearningAgent):
             if ( "use_hrl_logic" in self.getSettings()
                  and (self.getSettings()["use_hrl_logic"])
                  and (m == 1) ):
-                # if index is not the highest level policy, which has no goal to concat.
-                # concat on the action of the higher level onto the state
+                ### if index is not the highest level policy, which has no goal to concat.
+                ### concat on the action of the higher level onto the state
                 goal = np.array(self.latest_actions[m - 1][0])
                 """
                 while len(goal.shape) < len(state_.shape):
@@ -851,13 +851,13 @@ class LearningMultiAgent(LearningAgent):
 
             if ("use_hrl_logic" in self.getSettings()
                  and (self.getSettings()["use_hrl_logic"]) 
-                 and ((time_step == 0) or (time_step % self.time_skips[m] == 0) )):
-                # if this value is true then this level in the hierarchy is active
-                # otherwise use the actions exp actions and entropy from previous steps
-                self.latest_actions[m] = action
-                self.latest_exp_act[m] = exp_act
-                self.latest_entropy[m] = entropy_
+                 and ((time_step % self.time_skips[m] != 0) )):
+                ### Skip the steps where the HLP is still active and should not ask for a new action yet
+                pass
             else:
+                ### if this value is true then this level in the hierarchy is active
+                ### otherwise use the actions exp actions and entropy from previous steps
+                # print ("Update action: ", m, " action: ", action)
                 self.latest_actions[m] = action
                 self.latest_exp_act[m] = exp_act
                 self.latest_entropy[m] = entropy_
@@ -882,11 +882,11 @@ class LearningMultiAgent(LearningAgent):
         ### The the state data for the LLP
         obs = [observation[0]]
         LLP_state = observation[0][:self.getSettings()['goal_slice_index']]
-        llp_goal = self.latest_actions[0][0]
+        # llp_goal = self.latest_actions[0][0]
         # state_ = np.concatenate([np.array(state_), goal], -1)
-        LLP_state = np.concatenate([LLP_state, llp_goal], 0)
+        # LLP_state = np.concatenate([LLP_state, llp_goal], 0)
         obs.append(LLP_state)
-        print ("obs :", obs)
+        # print ("obs :", obs)
         return obs
     
     def addHRLReward(self, observation, nextObservation, reward_, done, info):
