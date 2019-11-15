@@ -132,7 +132,7 @@ class NNVisualize(object):
         if (self._xlim is not None):
             self._bellman_error_ax.set_xlim(self._xlim)
         self._fig.canvas.draw()
-        if ("save_video_to_file" in self._settings):
+        if ((self._settings is not None) and ("save_video_to_file" in self._settings)):
             import io
             buf = io.BytesIO()
             self._fig.savefig(buf, format = 'png')

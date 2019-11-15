@@ -12,6 +12,8 @@ python3 runDoodad.py 'pushd /opt/RL-Framework; ./update_and_compile.sh; python3 
 
 python3 runDoodad.py 'pushd /opt/RL-Framework; ./update_and_compile.sh; ./backup_data_continuously.sh & python3 tuneHyperParameters.py --config=settings/navgame2D/TD3/HRL_Tensorflow_HRL_vel_Connected_v3.json --metaConfig=settings/hyperParamTuning/bair/exploration_rate_MARL.json -p 2 --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --experiment_logging="{\"use_comet\": true, \"project_name\": \"test\"}"'
 
+python3 runDoodad.py 'pushd /opt/RL-Framework; ./update_and_compile.sh; ./backup_data_continuously.sh & python3 tuneHyperParameters.py --config=settings/navgame2D/TRPO/HRL_Tensorflow_vel.json --num_rounds=50 --metaConfig=settings/hyperParamTuning/element/kl_divergence_threshold.json -p 2 --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --experiment_logging="{\"use_comet\": true, \"project_name\": \"test\"}"'
+
 """
 
 useGCP = True
