@@ -404,23 +404,32 @@
 							{"layer_type": "Input", "shape": ["none", 10], "flag": "action"},
 							{"layer_type": "integrate_actor_part"},
 							{"layer_type": "Dense", "units": 64, "use_bias": false},
-							{"layer_type": "activation", "activation_type": "linear" }
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dense", "units": 64, "use_bias": false},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" }
 							],
 							[ 
+							{"layer_type": "slice", "slice_index": 2, "slice_label": "hlp_goal"},
 							{"layer_type": "integrate_actor_part"},
 							{"layer_type": "Dense", "units": 64, "use_bias": false},
-							{"layer_type": "activation", "activation_type": "linear" }
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dense", "units": 64, "use_bias": false},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" }
 							]],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [[
 							{"layer_type": "integrate_actor_part"},
 							{"layer_type": "Dense", "units": 64, "use_bias": true},
-							{"layer_type": "activation", "activation_type": "linear" }
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dense", "units": 64, "use_bias": false},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" }
 							],
 							[
 							{"layer_type": "integrate_actor_part"},
 							{"layer_type": "Dense", "units": 64, "use_bias": true},
-							{"layer_type": "activation", "activation_type": "linear" }
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Dense", "units": 64, "use_bias": false},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" }
 							]],
 	"comment__": "type of activation to use",
 "reward_activation_type": "leaky_rectify",

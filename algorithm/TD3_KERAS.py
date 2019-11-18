@@ -318,7 +318,9 @@ class TD3_KERAS(KERASAlgorithm):
         ### Add in the goals.
         llp_states = np.concatenate((llp_states, np.tile(g[:, None, :], [1, hlp_timestep, 1])), axis=(-1))
         
-        if ("use_modelbase_cp" in self.getSettings()
+        if ("train_forward_dynamics" in self.getSettings()
+            and (self.getSettings()["train_forward_dynamics"])
+            and "use_modelbase_cp" in self.getSettings()
             and (self.getSettings()["use_modelbase_cp"])):
             llp_actions = np.zeros((batch_size, hlp_timestep, 2))
             for i in range(hlp_timestep-1):
@@ -509,10 +511,12 @@ class TD3_KERAS(KERASAlgorithm):
         # self.setData(states, actions, rewards, result_states, falls)
         ### get actions for target policy
         target_actions = self._modelTarget.getActorNetwork().predict(result_states, batch_size=states.shape[0])
+        # print ("self.getActorNetwork().get_weights: ", self._model.getActorNetwork().get_weights())
         if not (self._llp is None):
             # llp_target_state = result_states[:,:7]
             # llp_target_state[:,-3:] = target_actions_n 
             # target_actions_n = self._llp.predict(llp_target_state)
+            # print ("self._llp.get_weights: ", self._llp.get_weights())
             target_actions = self.genLLPActions(result_states, target_actions, target_net=False, normalize=False)
         if "td3_apply_noise_llp" in self.getSettings() and self.getSettings()["td3_apply_noise_llp"]:
             target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
