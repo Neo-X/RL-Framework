@@ -285,6 +285,9 @@ def trainModelParallel(inputData):
         settings["experience_length"] = [settings["experience_length"]]
         settings["critic_network_layer_sizes"] = [settings["critic_network_layer_sizes"]]
         settings["policy_network_layer_sizes"] = [settings["policy_network_layer_sizes"]]
+        if (settings["train_forward_dynamics"]):
+            settings["fd_network_layer_sizes"] = [settings["fd_network_layer_sizes"]]
+            settings["reward_network_layer_sizes"] = [settings["reward_network_layer_sizes"]]
         
     print ("Number of agents: ", settings["perform_multiagent_training"])
     # sys.exit()

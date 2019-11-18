@@ -22,7 +22,7 @@ class ForwardDynamicsKeras(KERASAlgorithm):
         self._model = model
         self._modelTarget = None
         self._learning_rate = self.getSettings()["fd_learning_rate"]
-        self._regularization_weight = 1e-6
+        self._regularization_weight = 1e-4
         
         condition_reward_on_result_state = False
         self._train_combined_loss = False

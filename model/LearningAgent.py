@@ -1460,8 +1460,6 @@ class LearningAgent(AgentInterface):
                     and (self.getSettings()["keep_seperate_fd_exp_buffer"] == True)):
                     self.getFDExperience().saveToFile(directory+getAgentName()+suffix_+"_FD_expBufferInit.hdf5")
         
-        
-        
         suffix_ = suffix
         if ( bestFD == True):
             suffix_ = "_Best"
