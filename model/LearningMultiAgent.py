@@ -35,6 +35,12 @@ class LearningMultiAgent(LearningAgent):
                 settings__["exploration_method"] = self.getSettings()["exploration_method"][m]
             if (type(self.getSettings()["state_normalization"]) is list):
                 settings__["state_normalization"] = self.getSettings()["state_normalization"][m]
+            if (type(self.getSettings()["train_forward_dynamics"]) is list):
+                settings__["train_forward_dynamics"] = self.getSettings()["train_forward_dynamics"][m]
+            if (type(self.getSettings()["agent_name"]) is list):
+                settings__["agent_name"] = self.getSettings()["agent_name"][m]
+                
+                
             # LearningAgent(self.getSettings())
             settings__["use_hindsight_relabeling"] = False
             settings__["agent_id"] = m
