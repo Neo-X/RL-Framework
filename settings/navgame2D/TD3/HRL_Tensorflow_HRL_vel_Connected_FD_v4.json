@@ -4,7 +4,7 @@
     "comment__": "Learning algorithm to use",
 "agent_name": ["algorithm.TD3_KERAS.TD3_KERAS", "algorithm.TRPO_KERAS.TRPO_KERAS"],
     "comment__": "Folder to store the training data in.",
-"data_folder": "NavGame2D_NoViz-v0/_HRL_5Step_connected_8",
+"data_folder": "NavGame2D_NoViz-v0/_HRL_5Step_FD_connected_8",
 	"comment__": "initial probability of selecting a random action",
 "epsilon": 1.0, 
 	"comment__": "initial probability of selecting a discrete random action",
@@ -438,6 +438,7 @@
 "fd_action_bounds": [[[-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0],
                       [ 1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0]],
 	                  [[-1.0, -1.0],
-	                  [  1.0,  1.0]]]		
-	
+	                  [  1.0,  1.0]]],
+	"comment__": "Use model-based CP rollouts to compute target values",
+"use_modelbase_cp": true
 }

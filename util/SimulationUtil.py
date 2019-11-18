@@ -519,13 +519,13 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
             ### This is faster....
             settings_['load_saved_model'] = False
             # modelClass = my_import(path_)
-            modelAlgorithm = locate(algorihtm_type)
-            if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
-                if ("perform_multiagent_training" in settings):
-                    models = []
-                    assert settings["perform_multiagent_training"] == len(state_bounds)
-                    for m in range(settings["perform_multiagent_training"]):
-                        settings__ = copy.deepcopy(settings_)
+            if ("perform_multiagent_training" in settings):
+                models = []
+                assert settings["perform_multiagent_training"] == len(state_bounds)
+                for m in range(settings["perform_multiagent_training"]):
+                    settings__ = copy.deepcopy(settings_)
+                    modelAlgorithm = locate(algorihtm_type)
+                    if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                         settings__["agent_id"] = m
                         settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
                         settings__["policy_network_layer_sizes"] = settings["policy_network_layer_sizes"][m]
@@ -542,16 +542,21 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                         else:
                             model_.loadFrom(directory+getAgentName()+str(m)+"_Best")
                         models.append(model_)
-                    print("Loaded algorithm: ", models)
-                    model = models
-                    if ("policy_connections" in settings):
-                        for c in range(len(settings["policy_connections"])): 
-                            print ("Sending policy ", model[settings["policy_connections"][c][0]],
-                                                            " to policy ",  model[settings["policy_connections"][c][1]])
-                            model[settings["policy_connections"][c][1]].setFrontPolicy(
-                                model[settings["policy_connections"][c][0]])
-                            
-                else:
+                    else:
+                        print ("Unknown learning algorithm type: " + str(algorihtm_type))
+                        raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+                print("Loaded algorithm: ", models)
+                model = models
+                if ("policy_connections" in settings):
+                    for c in range(len(settings["policy_connections"])): 
+                        print ("Sending policy ", model[settings["policy_connections"][c][0]],
+                                                        " to policy ",  model[settings["policy_connections"][c][1]])
+                        model[settings["policy_connections"][c][1]].setFrontPolicy(
+                            model[settings["policy_connections"][c][0]])
+                        
+            else:
+                modelAlgorithm = locate(algorihtm_type)
+                if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                     networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings_)
                     print ("networkModel: ", networkModel)
                     model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
@@ -561,11 +566,11 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                         model.loadFrom(directory+getAgentName())
                     else:
                         model.loadFrom(directory+getAgentName()+"_Best")
-                print("Loaded algorithm: ", model)
-                # return model
-            else:
-                print ("Unknown learning algorithm type: " + str(algorihtm_type))
-                raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+                else:
+                    print ("Unknown learning algorithm type: " + str(algorihtm_type))
+                    raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+            print("Loaded algorithm: ", model)
+            # return model
             # sys.exit(2)
         else:
             print ("Loading pre compiled network")

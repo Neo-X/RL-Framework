@@ -233,6 +233,7 @@ class TD3_KERAS(KERASAlgorithm):
         self._model1.getCriticNetwork().trainable = False
         ### I hope this won't cause the llp to not train...
         lowerPolicy.trainable = False
+        self._lowerPolicy = lowerPolicy
         
         self._LLP_State = keras.layers.Input(shape=(self.getSettings()["hlc_timestep"]* keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1],), name="llp_state")
         llp_state = keras.layers.Reshape((self.getSettings()["hlc_timestep"], keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1]))(self._LLP_State)
@@ -303,21 +304,38 @@ class TD3_KERAS(KERASAlgorithm):
                                                  # ,K.learning_phase()
                                                  ], [self._qFunc])
 
-    def genLLPActions(self, states, g, target_net=False):
+    def genLLPActions(self, states, g, target_net=False, normalize=True):
         # g = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
         ### a pi(a|s,g)
         llp_state_size = self.getSettings()["state_split_index"]
         hlp_timestep = self.getSettings()["hlc_timestep"]
         llp_states = states[:, -(llp_state_size * hlp_timestep):]
         batch_size = llp_states.shape[0]
+        ### reshape to have last dimension work for LLP input
         llp_states = llp_states.reshape(batch_size, hlp_timestep, llp_state_size)
+        #### Slice out just the states
         llp_states = llp_states[:, :, :self.getSettings()["goal_slice_index"]]
+        ### Add in the goals.
         llp_states = np.concatenate((llp_states, np.tile(g[:, None, :], [1, hlp_timestep, 1])), axis=(-1))
-        llp_states = llp_states.reshape(-1, llp_state_size)
-        if (target_net == True):
-            llp_actions = self._llp_T.predict(llp_states)
+        
+        if ("use_modelbase_cp" in self.getSettings()
+            and (self.getSettings()["use_modelbase_cp"])):
+            llp_actions = []
+            for i in range(hlp_timestep-1):
+                llp_states_ = llp_states[:,i]
+                llp_actions_ = self._lowerPolicy.predict(llp_states_, normalize=normalize)
+                llp_actions.append(llp_actions_)
+                llp_states_ = self._lowerPolicy.getFDNetwork().predict_batch(llp_states_, llp_actions_)
+                llp_states[:,i+1]
+            llp_actions_= self._lowerPolicy.predict(llp_states[:,hlp_timestep-1], normalize=normalize)
+            llp_actions.append(llp_actions_)
+            llp_actions = np.array(llp_actions)
         else:
-            llp_actions = self._llp.predict(llp_states)
+            llp_states = llp_states.reshape(-1, llp_state_size)
+            if (target_net == True):
+                llp_actions = self._lowerPolicy.predict(llp_states, normalize=normalize)
+            else:
+                llp_actions = self._lowerPolicy.predict(llp_states, normalize=normalize)
         llp_actions_size = llp_actions.shape[-1]
         llp_actions = llp_actions.reshape(batch_size, hlp_timestep, llp_actions_size)
         llp_actions = llp_actions.reshape(batch_size, -1)
@@ -490,7 +508,7 @@ class TD3_KERAS(KERASAlgorithm):
             # llp_target_state = result_states[:,:7]
             # llp_target_state[:,-3:] = target_actions_n 
             # target_actions_n = self._llp.predict(llp_target_state)
-            target_actions = self.genLLPActions(result_states, target_actions, target_net=True)
+            target_actions = self.genLLPActions(result_states, target_actions, target_net=False, normalize=False)
         if "td3_apply_noise_llp" in self.getSettings() and self.getSettings()["td3_apply_noise_llp"]:
             target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
         else:
@@ -582,11 +600,15 @@ class TD3_KERAS(KERASAlgorithm):
         lossActor = self.trainActor(states, actions, rewards, result_states)
         return loss
     
-    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
+    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False, normalize=True):
         # print ("self._state_bounds shape ", np.array(self._state_bounds).shape)
-        state = norm_state(state, self._state_bounds)
+        if (normalize):
+            state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
-        action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1), self._action_bounds)
+        if (normalize):
+            action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1), self._action_bounds)
+        else:
+            action_ = self._model.getActorNetwork().predict(state, batch_size=1)
         return action_
     
     def predict_std(self, state, deterministic_=True, p=1.0):
@@ -644,7 +666,7 @@ class TD3_KERAS(KERASAlgorithm):
         if ("policy_connections" in self.getSettings()
             and (any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
             return np.zeros((states.shape[0],1))
-            poli_mean = self.genLLPActions(states)
+            poli_mean = self.genLLPActions(states, normalize=True)
         value = (self._model.getCriticNetwork().predict([states, poli_mean] , 
                     batch_size=states.shape[0])* action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         
@@ -664,7 +686,7 @@ class TD3_KERAS(KERASAlgorithm):
             # llp_target_state = result_states[:,:7]
             # llp_target_state[:,-3:] = target_actions_n 
             # target_actions_n = self._llp.predict(llp_target_state)
-            target_actions = self.genLLPActions(result_states, target_actions)
+            target_actions = self.genLLPActions(result_states, target_actions, normalize=True)
         if "td3_apply_noise_llp" in self.getSettings() and self.getSettings()["td3_apply_noise_llp"]:
             target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
         values = self._model.getCriticNetwork().predict([states, target_actions], batch_size=states.shape[0])
