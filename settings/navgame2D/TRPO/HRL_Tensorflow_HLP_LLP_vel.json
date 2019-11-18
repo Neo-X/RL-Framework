@@ -24,7 +24,7 @@
     "comment__": "Number of epoch/episode to evaluate the policy over",
 "eval_epochs": 32,
     "comment__": "Discount factor used during learning",
-"discount_factor": 0.95,
+"discount_factor": 0.9,
     "comment__": "Should the training be plotted during learning",
 "visualize_learning": true,
     "comment__": "Whether or not to save the plotted data while learning",
@@ -35,7 +35,7 @@
 "reward_bounds": [[[0.0],[1.0]],
 					[[-5.0],[0.0]]],
     "comment__": "Max length of the Experience memory",
-"experience_length": [5000, 20000],
+"experience_length": [20000, 20000],
     "comment__": "Possible state bounds to be used for scaling states for networks",
 "state_bounds": [
   				  [[-1.08073413, -1.544791,   -10.0, -10.0],
@@ -220,7 +220,7 @@
 	"comment__": "Random seed value for the simulation to use",
 "random_seed": 1234,
 	"comment__": "KL divergence threshold between policy updates",
-"kl_divergence_threshold": 0.1,
+"kl_divergence_threshold": 0.05,
 	"comment__": "Makes a few changes to the flow of control in order for things to be on policy [true|fast]",
 "on_policy": true,
 	"comment__": "Whether or not to use a stochastic policy, This adds more outputs to the network and changes the way actions are sampled",
@@ -262,7 +262,7 @@
 	"comment__": "policy loss function weight, to help balance policy loss vs value function loss",
 "policy_loss_weight": 1.0,
 	"comment__": "number of on policy F to perform per epoch",
-"num_on_policy_rollouts": 4,
+"num_on_policy_rollouts": 16,
 	"comment__": "Don't weight policy updates wrt the advantage of the action",
 "dont_use_advantage": false,
 	"comment__": "PPO should use seperate networks for the value and policy functions",
@@ -277,16 +277,22 @@
 "network_description_type": "json",
 	"comment__": "A list describing the size of the layers for the NN",
 "critic_network_layer_sizes": [[
+								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" }
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dropout", "rate": 0.2}
 								],
 								[  
+								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" }
+								{"layer_type": "activation", "activation_type": "leaky_rectify" },
+								{"layer_type": "Dropout", "rate": 0.2}
 								]
 								],
 	"comment__": "A list describing the size of the layers for the NN",
