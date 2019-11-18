@@ -547,13 +547,14 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                         raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
                 print("Loaded algorithm: ", models)
                 model = models
+                """
                 if ("policy_connections" in settings):
                     for c in range(len(settings["policy_connections"])): 
                         print ("Sending policy ", model[settings["policy_connections"][c][0]],
                                                         " to policy ",  model[settings["policy_connections"][c][1]])
                         model[settings["policy_connections"][c][1]].setFrontPolicy(
                             model[settings["policy_connections"][c][0]])
-                        
+                """        
             else:
                 modelAlgorithm = locate(algorihtm_type)
                 if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
@@ -638,12 +639,14 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                     print ("Unknown learning algorithm type: " + str(algorihtm_type))
                     raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
             model = models
+            """
             if ("policy_connections" in settings):
                 for c in range(len(settings["policy_connections"])): 
                     print ("Sending policy ", model[settings["policy_connections"][c][0]],
                                                     " to policy ",  model[settings["policy_connections"][c][1]])
                     model[settings["policy_connections"][c][1]].setFrontPolicy(
                         model[settings["policy_connections"][c][0]])
+            """
         else:
             modelAlgorithm = locate(algorihtm_type)
             if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work

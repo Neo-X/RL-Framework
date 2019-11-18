@@ -598,6 +598,13 @@ def trainModelParallel(inputData):
         if ("train_reward_distance_metric" in settings and
             (settings['train_reward_distance_metric'] == True )):
             masterAgent.setRewardModel(rewardModel)
+            
+        if ("policy_connections" in settings):
+            for c in range(len(settings["policy_connections"])): 
+                print ("Sending policy ", model[settings["policy_connections"][c][0]],
+                                                " to policy ",  model[settings["policy_connections"][c][1]])
+                masterAgent.getAgents()[settings["policy_connections"][c][1]].getPolicy().setFrontPolicy(
+                    masterAgent.getAgents()[settings["policy_connections"][c][0]])
         
         print ("masterAgent state bounds: ", masterAgent.getStateBounds())
         print ("state bounds: ", state_bounds)
@@ -688,12 +695,6 @@ def trainModelParallel(inputData):
             print("Reward bounds invalid: ", reward_bounds)
             sys.exit()
         
-        """
-        if action_space_continuous:
-            model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
-        else:
-            model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
-        """
         if ( settings['load_saved_model'] or (settings['load_saved_model'] == 'network_and_scales') ): ## Transfer learning
             masterAgent.setStateBounds(state_bounds)
             masterAgent.setRewardBounds(reward_bounds)

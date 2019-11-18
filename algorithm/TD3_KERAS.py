@@ -226,8 +226,8 @@ class TD3_KERAS(KERASAlgorithm):
     def setFrontPolicy(self, lowerPolicy):
         
         from model.DeepNNKerasAdaptive import keras_slice_3d
-        
-        
+        self._lowerPolicy_ = lowerPolicy
+        lowerPolicy = lowerPolicy.getPolicy()
         ### For the combined model we will only train the actor
         self._model.getCriticNetwork().trainable = False
         self._model1.getCriticNetwork().trainable = False
@@ -320,24 +320,29 @@ class TD3_KERAS(KERASAlgorithm):
         
         if ("use_modelbase_cp" in self.getSettings()
             and (self.getSettings()["use_modelbase_cp"])):
-            llp_actions = []
+            llp_actions = np.zeros((batch_size, hlp_timestep, 2))
             for i in range(hlp_timestep-1):
+                ### Grab states for current timestep k
                 llp_states_ = llp_states[:,i]
+                ### Predict actions to take for LLP
                 llp_actions_ = self._lowerPolicy.predict(llp_states_, normalize=normalize)
-                llp_actions.append(llp_actions_)
-                llp_states_ = self._lowerPolicy.getFDNetwork().predict_batch(llp_states_, llp_actions_)
-                llp_states[:,i+1]
+                llp_actions[:,i] = llp_actions_
+                ### Predict the state as a result of the LLP action
+                llp_states_ = self._lowerPolicy_.getForwardDynamics().predict_batch(llp_states_, llp_actions_)
+                ### Fix goals to reduce error
+                llp_states_[:,-self.getSettings()["goal_slice_index"]:] = g
+                llp_states[:,i+1] = llp_states_
             llp_actions_= self._lowerPolicy.predict(llp_states[:,hlp_timestep-1], normalize=normalize)
-            llp_actions.append(llp_actions_)
-            llp_actions = np.array(llp_actions)
+            llp_actions[:,hlp_timestep-1] = llp_actions_
         else:
             llp_states = llp_states.reshape(-1, llp_state_size)
             if (target_net == True):
                 llp_actions = self._lowerPolicy.predict(llp_states, normalize=normalize)
             else:
                 llp_actions = self._lowerPolicy.predict(llp_states, normalize=normalize)
-        llp_actions_size = llp_actions.shape[-1]
-        llp_actions = llp_actions.reshape(batch_size, hlp_timestep, llp_actions_size)
+            llp_actions_size = llp_actions.shape[-1]
+            llp_actions = llp_actions.reshape(batch_size, hlp_timestep, llp_actions_size)
+        ### Flatten action sequences
         llp_actions = llp_actions.reshape(batch_size, -1)
         return llp_actions
         
