@@ -443,16 +443,19 @@ class TRPO_KERAS(KERASAlgorithm):
         lossActor = self.trainActor(states, actions, rewards, result_states, falls)
         return loss
     
-    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
+    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False, normalize=True):
         # states = np.zeros((self._batch_size, self._state_length), dtype=self._settings['float_type'])
         ### Used to understand the shape of the parameters
-        
-        state = norm_state(state, self._state_bounds)
+        if ( normalize ):
+            state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
         # if deterministic_:
         action__ = self._model.getActorNetwork().predict([state], 
                                  batch_size=1)[:,:self._action_length]
-        action_ = scale_action(action__, self._action_bounds)
+        if ( normalize ):
+            action_ = scale_action(action__, self._action_bounds)
+        else:
+            action_ = action__
         """
         all_paramsActA = self._model.getActorNetwork().get_weights()
         self._modelTarget.getActorNetwork().set_weights( copy.deepcopy(self._model.getActorNetwork().get_weights()))

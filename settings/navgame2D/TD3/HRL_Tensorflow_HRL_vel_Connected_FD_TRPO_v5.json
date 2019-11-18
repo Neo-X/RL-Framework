@@ -2,7 +2,7 @@
     "comment__": "Type of model/network to use for the actor and critic",
 "model_type": "model.DeepNNKerasAdaptive.DeepNNKerasAdaptive",
     "comment__": "Learning algorithm to use",
-"agent_name": ["algorithm.TD3_KERAS.TD3_KERAS", "algorithm.TD3_KERAS.TD3_KERAS"],
+"agent_name": ["algorithm.TD3_KERAS.TD3_KERAS", "algorithm.TRPO_KERAS.TRPO_KERAS"],
     "comment__": "Folder to store the training data in.",
 "data_folder": "NavGame2D_NoViz-v0/_HRL_5Step_FD_connected_9",
 	"comment__": "initial probability of selecting a random action",
@@ -10,7 +10,7 @@
 	"comment__": "initial probability of selecting a discrete random action",
 "omega": 0.00,
     "comment__": "Batch size used for learning",
-"batch_size": 64,
+"batch_size": [64, "all"],
     "comment__": "Learning rate for the actor/policy",
 "learning_rate": 0.00001,
     "comment__": "Config file for the simulator",
@@ -109,7 +109,7 @@
     "comment__": "load a pretrained model for the controller",
 "load_saved_model": false,
 	"comment__": "Number of updates the critic should perform per actor update",
-"critic_updates_per_actor_update": 4,
+"critic_updates_per_actor_update": [4, 64],
     "comment__": "weather or not to clamp actions to stay inside the action boundaries",
 "clamp_actions_to_stay_inside_bounds": false,
     "comment__": "Number of initial actions to sample before calculating input/output scaling and starting to train.",
@@ -288,10 +288,8 @@
 								{"layer_type": "Dropout", "rate": 0.2}
 								],
 								[  
-								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "integrate_actor_part"},
 								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
@@ -309,13 +307,10 @@
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
 								{"layer_type": "Dropout", "rate": 0.2}
 								],[ 
-								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 64, "use_bias": true},
 								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dropout", "rate": 0.2},
 								{"layer_type": "Dense", "units": 32, "use_bias": true},
-								{"layer_type": "activation", "activation_type": "leaky_rectify" },
-								{"layer_type": "Dropout", "rate": 0.2}
+								{"layer_type": "activation", "activation_type": "leaky_rectify" }
 								]],
 	"comment__": "Activation function to use for the std part of the policy",
 "_last_std_policy_layer_activation_type": "sigmoid",
