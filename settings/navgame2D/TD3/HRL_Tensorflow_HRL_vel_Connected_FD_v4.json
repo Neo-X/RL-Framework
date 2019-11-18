@@ -433,5 +433,11 @@
 	"comment__": "Lets the network models handle the training and batch processing",
 "model_perform_batch_training": false,
 	"comment__": "Leave off the final layer of the network that would result in a state sized output",
-"fd_network_leave_off_end": false			
+"fd_network_leave_off_end": false,
+	"comment__": "Hack to allow the fd model to have different action bounds",
+"fd_action_bounds": [[[-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0],
+                      [ 1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0]],
+	                  [[-1.0, -1.0],
+	                  [  1.0,  1.0]]]		
+	
 }

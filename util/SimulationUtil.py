@@ -1355,6 +1355,8 @@ def createNewFDModel(settings, env, model):
                 settings__ = copy.deepcopy(settings)
                 settings__['state_bounds'] = settings['state_bounds'][i]
                 settings__['action_bounds'] = settings['action_bounds'][i]
+                if ("fd_action_bounds" in settings):
+                    settings__['action_bounds'] = settings['fd_action_bounds'][i]
                 settings__['fd_network_layer_sizes'] = settings['fd_network_layer_sizes'][i]
                 settings__['reward_network_layer_sizes'] = settings['reward_network_layer_sizes'][i]
                 state_bounds = getFDStateSize(settings__)

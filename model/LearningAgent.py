@@ -1379,7 +1379,8 @@ class LearningAgent(AgentInterface):
                 # self.getFDExperience().setActionBounds(bounds)
                 self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
             else:
-                self.getForwardDynamics().setActionBounds(bounds)
+                if ( "fd_action_bounds" not in self.getSettings()):
+                    self.getForwardDynamics().setActionBounds(bounds)   
                 
     def setRewardBounds(self, bounds):
         import numpy as np
