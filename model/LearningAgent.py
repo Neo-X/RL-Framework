@@ -1358,8 +1358,7 @@ class LearningAgent(AgentInterface):
                 if ( 'keep_seperate_fd_exp_buffer' in self.getSettings() 
                      and (self.getSettings()['keep_seperate_fd_exp_buffer'] == True)):
                      
-                    if (self.getFDExperience() is not None
-                        and hasattr(self.getFDExperience(), '_state_bounds')):
+                    if (self.getFDExperience() is not None):
                         self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
                     # self.getFDExperience().setStateBounds(bounds)
                 else:
