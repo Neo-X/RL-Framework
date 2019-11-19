@@ -272,7 +272,7 @@ class TD3_KERAS(KERASAlgorithm):
         if ("use_modelbase_cp" in self.getSettings()
             and (self.getSettings()["use_modelbase_cp"] == "full")):
             
-            self._LLP_State = keras.layers.Input(shape=(keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1],), name="llp_state")
+            self._LLP_State = self._model.getStateSymbolicVariable()
             
             self._lowerPolicy_FD = self._lowerPolicy_.getForwardDynamics()
             self._lowerPolicy_FD.trainable = False
@@ -318,7 +318,13 @@ class TD3_KERAS(KERASAlgorithm):
         self._qFunc = (self._model.getCriticNetwork()(
                         [self._model.getStateSymbolicVariable(),
                          self._model._policy2]))
-        self._combined = Model(input=[self._model.getStateSymbolicVariable(),
+        
+        if ("use_modelbase_cp" in self.getSettings()
+            and (self.getSettings()["use_modelbase_cp"] == "full")):
+            self._combined = Model(input=[self._model.getStateSymbolicVariable()], 
+                            output=self._qFunc)
+        else:
+            self._combined = Model(input=[self._model.getStateSymbolicVariable(),
                                       self._LLP_State], 
                             output=self._qFunc)
         
@@ -604,12 +610,21 @@ class TD3_KERAS(KERASAlgorithm):
         ### The rewards are not used in this update, just a placeholder
         if not ("skip_policy_training" in self.getSettings() and self.getSettings()["skip_policy_training"]):
             if (self._llp is not None):
-                llp_states = states[:,self.getSettings()['orig_hlp_state_size']:]
-                score = self._combined.fit([states, llp_states], rewards,
-                  epochs=1, batch_size=states.shape[0],
-                  verbose=0
-                  # callbacks=[early_stopping],
-                  )
+                if ("use_modelbase_cp" in self.getSettings()
+                    and (self.getSettings()["use_modelbase_cp"] == "full")):
+                    llp_states = states[:,:self.getSettings()['orig_hlp_state_size']]
+                    score = self._combined.fit([states], rewards,
+                      epochs=1, batch_size=states.shape[0],
+                      verbose=0
+                      # callbacks=[early_stopping],
+                      )
+                else:
+                    llp_states = states[:,self.getSettings()['orig_hlp_state_size']:]
+                    score = self._combined.fit([states, llp_states], rewards,
+                      epochs=1, batch_size=states.shape[0],
+                      verbose=0
+                      # callbacks=[early_stopping],
+                      )
             else:
                 score = self._combined.fit([states], rewards,
                       epochs=1, batch_size=states.shape[0],
