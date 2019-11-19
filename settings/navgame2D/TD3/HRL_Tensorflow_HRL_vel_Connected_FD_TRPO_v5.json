@@ -250,7 +250,7 @@
 	"comment__": "Whether or not to take a couple of on policy updates",
 "use_multiple_policy_updates": false,	
 	"comment__": "Whether or not to clear the experience memory after each update is done, for pure on policy methods",
-"clear_exp_mem_on_poli": false,
+"clear_exp_mem_on_poli": [false, true],
 	"comment__": "Using a single network for all functions",
 "use_single_network": false,
 	"comment__": "Disable scaling for inputs and outputs of networks",
@@ -400,16 +400,18 @@
 							{"layer_type": "integrate_actor_part"},
 							{"layer_type": "Dense", "units": 64, "use_bias": false},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dense", "units": 64, "use_bias": false},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" }
+							{"layer_type": "Dense", "units": 24, "use_bias": false},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Residual", "activation_type": "leaky_rectify" }
 							],
 							[ 
 							{"layer_type": "slice", "slice_index": 2, "slice_label": "hlp_goal"},
 							{"layer_type": "integrate_actor_part"},
 							{"layer_type": "Dense", "units": 64, "use_bias": false},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
-							{"layer_type": "Dense", "units": 64, "use_bias": false},
-							{"layer_type": "activation", "activation_type": "leaky_rectify" }
+							{"layer_type": "Dense", "units": 4, "use_bias": false},
+							{"layer_type": "activation", "activation_type": "leaky_rectify" },
+							{"layer_type": "Residual", "activation_type": "leaky_rectify" }
 							]],
 	"comment__": "A list describing the size of the layers for the NN",
 "reward_network_layer_sizes": [[
@@ -433,11 +435,11 @@
 	"comment__": "last policy type of activation to use",
 "last_fd_layer_activation_type": "sigmoid",
 	"comment__": "The number of fd network to be done per actor update.",
-"fd_updates_per_actor_update": 1,
+"fd_updates_per_actor_update": [1, 64],
 	"comment__": "Lets the network models handle the training and batch processing",
 "model_perform_batch_training": false,
 	"comment__": "Leave off the final layer of the network that would result in a state sized output",
-"fd_network_leave_off_end": false,
+"fd_network_leave_off_end": true,
 	"comment__": "Hack to allow the fd model to have different action bounds",
 "fd_action_bounds": [[[-1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0],
                       [ 1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0]],

@@ -562,6 +562,15 @@ class DeepNNKerasAdaptive(ModelInterface):
                     # sys.exit()
             elif ( layer_info[i]["layer_type"] == "coordconv2d" ):
                   network = CoordinateChannel2D()(network)
+            elif ( layer_info[i]["layer_type"] == "Residual" ):
+                    
+                    print ("*** Residual subnet input shape: ", repr(keras.backend.int_shape(network)))
+                    # subnet = self.createSubNetwork(network, layer_sizes[i][1], isRNN=True)
+                    # subnet = Dense(256)(network)
+                    # subnet = Model(inputs=network, outputs=subnet)
+                    # network_ = Model(inputs=network, outputs=network)
+                    network = keras.layers.Add()([network, input])
+
             elif ( layer_info[i]["layer_type"] == "conv2d" ):
                 network = keras.layers.Conv2D( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                  bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),

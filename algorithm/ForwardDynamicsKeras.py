@@ -251,6 +251,15 @@ class ForwardDynamicsKeras(KERASAlgorithm):
         # self._model._actor_train.save(fileName+"_actor_train"+suffix, overwrite=True)
         self._model._forward_dynamics_net.save(fileName+"_FD"+suffix, overwrite=True)
         self._model._reward_net.save(fileName+"_reward"+suffix, overwrite=True)
+        try:
+            from keras.utils import plot_model
+            ### Save model design as image
+            plot_model(self._model._forward_dynamics_net, to_file=fileName+"_fd"+'.svg', show_shapes=True)
+            plot_model(self._model._reward_net, to_file=fileName+"_reward"+'.svg', show_shapes=True)
+        except Exception as inst:
+            ### Maybe the needed libraries are not available
+            print ("Error saving diagrams for rl models.")
+            print (inst)
         # print ("self._model._actor_train: ", self._model._actor_train)
         
     def loadFrom(self, fileName):
