@@ -1365,6 +1365,7 @@ def createNewFDModel(settings, env, model):
                 settings__ = copy.deepcopy(settings)
                 settings__['state_bounds'] = settings['state_bounds'][i]
                 settings__['action_bounds'] = settings['action_bounds'][i]
+                settings__['reward_bounds'] = settings['reward_bounds'][i]
                 if ("fd_action_bounds" in settings):
                     settings__['action_bounds'] = settings['fd_action_bounds'][i]
                 settings__['fd_network_layer_sizes'] = settings['fd_network_layer_sizes'][i]
@@ -1405,6 +1406,7 @@ def createNewFDModel(settings, env, model):
                 forwardDynamicsModel = createForwardDynamicsModel(settings, state_bounds, action_bounds, None, None, agentModel=None)
             forwardDynamicsModel.setActor(actor)
             forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
+            
 
     if ("fd_algorithm" in settings and
             settings["fd_algorithm"] == "algorithm.VAE.VAE" and

@@ -310,8 +310,11 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                     experiencefd = []
                     for i in range(settings["perform_multiagent_training"]):
                         settings__ = copy.deepcopy(settings)
+                        settings__["agent_id"] = i
                         settings__['state_bounds'] = settings['state_bounds'][i]
                         settings__['action_bounds'] = settings['action_bounds'][i]
+                        if ("fd_action_bounds" in settings):
+                            settings__['action_bounds'] = settings['fd_action_bounds'][i]
                         settings__['reward_bounds'] = settings['reward_bounds'][i]
                         state_bounds_fd__ = getFDStateSize(settings__)
                         action_bounds_fd__ = settings__['action_bounds']
@@ -319,6 +322,8 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
                                           continuous_actions=True, settings = settings__ 
                                           # result_state_length=settings["dense_state_size"]
                                           ) 
+                        experience__fd.setStateBounds(settings__['state_bounds'])
+                        experience__fd.setActionBounds(settings__['action_bounds'])
                         experience__fd.setRewardBounds(settings__['reward_bounds'])
                         experiencefd.append(experience__fd)
                 else:
@@ -336,7 +341,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             experience.setActionBounds(model.getActionBounds())
             
         model.setExperience(experience)
-        """
+        
         if (settings["load_saved_model"] and
             (settings["save_experience_memory"] == "continual")):
             pass
@@ -344,7 +349,7 @@ def collectExperience(actor, exp_val, model, settings, sim_work_queues=None,
             model.setStateBounds(state_bounds)
             model.setRewardBounds(reward_bounds)
             model.setActionBounds(action_bounds)
-        """
+        
         """
         (states, actions, resultStates, rewards_) = collectExperienceActionsContinuous(exp, settings['experience_length'], settings=settings, action_selection=action_selection)
         # states = np.array(states)

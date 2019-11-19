@@ -1378,7 +1378,8 @@ class LearningAgent(AgentInterface):
                  and (self.getSettings()['keep_seperate_fd_exp_buffer'])
                  and (self.getFDExperience() is not None)):
                 # self.getFDExperience().setActionBounds(bounds)
-                self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
+                if ( "fd_action_bounds" not in self.getSettings()):
+                    self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
             else:
                 if ( "fd_action_bounds" not in self.getSettings()):
                     self.getForwardDynamics().setActionBounds(bounds)   
