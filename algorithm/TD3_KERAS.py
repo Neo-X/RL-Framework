@@ -225,7 +225,7 @@ class TD3_KERAS(KERASAlgorithm):
         
     def setFrontPolicy(self, lowerPolicy):
         
-        from model.DeepNNKerasAdaptive import keras_slice_3d
+        from model.DeepNNKerasAdaptive import keras_slice_3d, keras_slice
         self._lowerPolicy_ = lowerPolicy
         lowerPolicy = lowerPolicy.getPolicy()
         ### For the combined model we will only train the actor
@@ -234,6 +234,8 @@ class TD3_KERAS(KERASAlgorithm):
         ### I hope this won't cause the llp to not train...
         lowerPolicy.trainable = False
         self._lowerPolicy = lowerPolicy
+        
+        
         
         self._LLP_State = keras.layers.Input(shape=(self.getSettings()["hlc_timestep"]* keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1],), name="llp_state")
         llp_state = keras.layers.Reshape((self.getSettings()["hlc_timestep"], keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1]))(self._LLP_State)
@@ -266,8 +268,39 @@ class TD3_KERAS(KERASAlgorithm):
         # gen_states = keras.backend.repeat(s_llp, self.getSettings()["hlc_timestep"])
         print ("stacked_goal:", stacked_goal)
         gen_states = keras.layers.concatenate(inputs=[s_llp, stacked_goal], axis=-1)      
-        print ("Front Policy state shape: ", gen_states)           
-        gen_actions = keras.layers.TimeDistributed(self._llp, input_shape=(None, 1, keras.backend.int_shape(s_llp)[1]))(gen_states)
+        print ("Front Policy state shape: ", gen_states)  
+        if ("use_modelbase_cp" in self.getSettings()
+            and (self.getSettings()["use_modelbase_cp"] == "full")):
+            
+            self._LLP_State = keras.layers.Input(shape=(keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1],), name="llp_state")
+            
+            self._lowerPolicy_FD = self._lowerPolicy_.getForwardDynamics()
+            self._lowerPolicy_FD.trainable = False
+            self._lowerPolicy_FD = self._lowerPolicy_FD._model._forward_dynamics_net
+            self._lowerPolicy_FD.trainable = False
+            
+            
+            s_llp = keras.layers.core.Lambda(keras_slice, output_shape=(self.getSettings()["goal_slice_index"],),
+                        arguments={'begin': 0, 
+                        'end': self.getSettings()["goal_slice_index"]})(self._LLP_State)
+            s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)          
+            gen_action_ = self._llp(s_llp)
+            gen_actions = gen_action_
+            for i in range(self.getSettings()["hlc_timestep"]-1):
+                s_llp = self._lowerPolicy_FD([s_llp, gen_action_])
+                ### Slice off predicted goal and concat real goal
+                s_llp = keras.layers.core.Lambda(keras_slice, output_shape=(self.getSettings()["goal_slice_index"],),
+                        arguments={'begin': 0, 
+                        'end': self.getSettings()["goal_slice_index"]})(s_llp)
+                s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)
+                
+                gen_action_ = self._llp(s_llp)
+                gen_actions = keras.layers.concatenate(inputs=[gen_actions, gen_action_], axis=-1)
+
+            
+        else:
+            gen_actions = keras.layers.TimeDistributed(self._llp, input_shape=(None, 1, keras.backend.int_shape(s_llp)[1]))(gen_states)
+            gen_actions = keras.layers.Flatten()(gen_actions)
         print ("Front Policy gen_actions shape2: ", gen_actions)           
         # gen_states = keras.layers.Reshape((keras.backend.int_shape(s_llp)[1], self.getSettings()["hlc_timestep"]))(gen_states)
         # gen_states = keras.backend.repeat_elements(s_llp, self.getSettings()["hlc_timestep"], axis=-1)
@@ -276,7 +309,7 @@ class TD3_KERAS(KERASAlgorithm):
         ### Flatten stacked actions
         print("gen_actions: ", gen_actions)
         print("gen_actions2: ", keras.backend.int_shape(gen_actions))
-        self._model._policy2 = keras.layers.Flatten()(gen_actions)
+        self._model._policy2 = gen_actions
         # self._model._policy2 = keras.layers.Reshape((keras.backend.int_shape(gen_actions)*self.getSettings()["hlc_timestep"]))(gen_actions)
         # self._model._policy2 = keras.layers.Reshape((keras.backend.int_shape(gen_actions)*self.getSettings()["hlc_timestep"],))(gen_actions)
         # K.shape(sequence_layer)[1]
