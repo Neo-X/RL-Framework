@@ -128,7 +128,7 @@ class SimWorker(Process):
             print("Creating new policy in process:")
             self._model.setPolicy(self.createNewModel())
             if ("train_forward_dynamics" in self._settings and
-             (self._settings["train_forward_dynamics"] == True)):
+             (self._settings["train_forward_dynamics"])):
                 self._model.setForwardDynamics(self.createNewFDModel(self._exp, self._settings))
             if ("train_reward_distance_metric" in self._settings and
              (self._settings["train_reward_distance_metric"] == True)):

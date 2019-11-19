@@ -1,0 +1,17 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+            "args": ["--config=GymMultiChar/algorithm.PPO_KERAS.PPO_KERAS/PD_Biped3D_MutliChar_ScenarioSpace_5_WithObstacles_OnlyVel_SimpleReward_v1/Tensorflow_TRUE-v0_NewLLC_17/_exploration_rate_0.125_0/_0/model.DeepNNKerasAdaptive.DeepNNKerasAdaptive/ScenarioSpace_WithObs_SimpleReward_5_NEWLLC_Hetero_v1.json"]
+
+        }
+    ]
+}

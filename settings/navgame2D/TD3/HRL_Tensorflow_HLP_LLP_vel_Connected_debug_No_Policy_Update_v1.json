@@ -386,5 +386,7 @@
 	"comment__": "Do something odd with the state... This should be HLP state length + (llp state length * hlp timestep)",
 "use_hack_state_trans": 8,
 	"comment__": "Use the internal HRL logic that allows the learning code to add sub-goals",
-"use_hrl_logic": true
+"use_hrl_logic": true,
+	"comment__": "The original size of the HLP state",
+"orig_hlp_state_size": 4
 }

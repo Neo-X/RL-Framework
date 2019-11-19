@@ -8,7 +8,11 @@ print("cmd: ", cmd)
 
 """
 
-python3 runDoodad.py 'pushd /opt/RL-Framework; ./update_and_compile.sh; python3 tuneHyperParameters.py --config settings/navgame2D/TD3/Two_Level_HIRO_TD3.json --metaConfig=settings/hyperParamTuning/HIRO/sweep_num_goals_to_resample.json -p 4 --meta_sim_samples 3 --meta_sim_threads 1  --plot=false --shouldRender=false'
+python3 runDoodad.py 'pushd /opt/RL-Framework; ./update_and_compile.sh; python3 tuneHyperParameters.py --config=settings/navgame2D/TD3/HRL_Tensorflow_HLP_LLP_vel_HIRO.json --metaConfig=settings/hyperParamTuning/HIRO/num_goals_to_resample.json -p 2 --meta_sim_samples=2 --meta_sim_threads=2  --tuning_threads=2  --plot=false --shouldRender=false --experiment_logging="{\"use_comet\": true, \"project_name\": \"test\"}"'
+
+python3 runDoodad.py 'pushd /opt/RL-Framework; ./update_and_compile.sh; ./backup_data_continuously.sh & python3 tuneHyperParameters.py --config=settings/navgame2D/TD3/HRL_Tensorflow_HRL_vel_Connected_v3.json --metaConfig=settings/hyperParamTuning/bair/exploration_rate_MARL.json -p 2 --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --experiment_logging="{\"use_comet\": true, \"project_name\": \"test\"}"'
+
+python3 runDoodad.py 'pushd /opt/RL-Framework; ./update_and_compile.sh; ./backup_data_continuously.sh & python3 tuneHyperParameters.py --config=settings/navgame2D/TRPO/HRL_Tensorflow_vel.json --num_rounds=50 --metaConfig=settings/hyperParamTuning/element/kl_divergence_threshold.json -p 2 --meta_sim_samples=2 --meta_sim_threads=2 --tuning_threads=2 --experiment_logging="{\"use_comet\": true, \"project_name\": \"test\"}"'
 
 """
 
@@ -25,11 +29,12 @@ if (useGCP):
             preemptible=True,
             zone='us-west1-a'
         )
+    
     mnt = mount.MountGCP(
         gcp_path='./doodad',
         mount_point='/opt/doodad',  # Directory visible to the running job.
         output=True)
-
+    
 else:
     mode = mode.LocalMode()
     mnt = mount.MountLocal(

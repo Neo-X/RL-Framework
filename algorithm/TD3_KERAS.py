@@ -31,7 +31,7 @@ class TD3_KERAS(KERASAlgorithm):
         
         super(TD3_KERAS, self).__init__( model, n_in, n_out, state_bounds, action_bounds, reward_bound, settings_, print_info=False)
         
-        self._c = 0.1
+        self._c = 0.05
         self._noise_scale = 0.05
 
         self._model._actor = Model(inputs=[self._model.getStateSymbolicVariable()], outputs=self._model._actor)
@@ -225,14 +225,17 @@ class TD3_KERAS(KERASAlgorithm):
         
     def setFrontPolicy(self, lowerPolicy):
         
-        from model.DeepNNKerasAdaptive import keras_slice_3d
-        
-        
+        from model.DeepNNKerasAdaptive import keras_slice_3d, keras_slice
+        self._lowerPolicy_ = lowerPolicy
+        lowerPolicy = lowerPolicy.getPolicy()
         ### For the combined model we will only train the actor
         self._model.getCriticNetwork().trainable = False
         self._model1.getCriticNetwork().trainable = False
         ### I hope this won't cause the llp to not train...
         lowerPolicy.trainable = False
+        self._lowerPolicy = lowerPolicy
+        
+        
         
         self._LLP_State = keras.layers.Input(shape=(self.getSettings()["hlc_timestep"]* keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1],), name="llp_state")
         llp_state = keras.layers.Reshape((self.getSettings()["hlc_timestep"], keras.backend.int_shape(lowerPolicy._model.getStateSymbolicVariable())[1]))(self._LLP_State)
@@ -265,8 +268,39 @@ class TD3_KERAS(KERASAlgorithm):
         # gen_states = keras.backend.repeat(s_llp, self.getSettings()["hlc_timestep"])
         print ("stacked_goal:", stacked_goal)
         gen_states = keras.layers.concatenate(inputs=[s_llp, stacked_goal], axis=-1)      
-        print ("Front Policy state shape: ", gen_states)           
-        gen_actions = keras.layers.TimeDistributed(self._llp, input_shape=(None, 1, keras.backend.int_shape(s_llp)[1]))(gen_states)
+        print ("Front Policy state shape: ", gen_states)  
+        if ("use_modelbase_cp" in self.getSettings()
+            and (self.getSettings()["use_modelbase_cp"] == "full")):
+            
+            self._LLP_State = self._model.getStateSymbolicVariable()
+            
+            self._lowerPolicy_FD = self._lowerPolicy_.getForwardDynamics()
+            self._lowerPolicy_FD.trainable = False
+            self._lowerPolicy_FD = self._lowerPolicy_FD._model._forward_dynamics_net
+            self._lowerPolicy_FD.trainable = False
+            
+            
+            s_llp = keras.layers.core.Lambda(keras_slice, output_shape=(self.getSettings()["goal_slice_index"],),
+                        arguments={'begin': 0, 
+                        'end': self.getSettings()["goal_slice_index"]})(self._LLP_State)
+            s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)          
+            gen_action_ = self._llp(s_llp)
+            gen_actions = gen_action_
+            for i in range(self.getSettings()["hlc_timestep"]-1):
+                s_llp = self._lowerPolicy_FD([s_llp, gen_action_])
+                ### Slice off predicted goal and concat real goal
+                s_llp = keras.layers.core.Lambda(keras_slice, output_shape=(self.getSettings()["goal_slice_index"],),
+                        arguments={'begin': 0, 
+                        'end': self.getSettings()["goal_slice_index"]})(s_llp)
+                s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)
+                
+                gen_action_ = self._llp(s_llp)
+                gen_actions = keras.layers.concatenate(inputs=[gen_actions, gen_action_], axis=-1)
+
+            
+        else:
+            gen_actions = keras.layers.TimeDistributed(self._llp, input_shape=(None, 1, keras.backend.int_shape(s_llp)[1]))(gen_states)
+            gen_actions = keras.layers.Flatten()(gen_actions)
         print ("Front Policy gen_actions shape2: ", gen_actions)           
         # gen_states = keras.layers.Reshape((keras.backend.int_shape(s_llp)[1], self.getSettings()["hlc_timestep"]))(gen_states)
         # gen_states = keras.backend.repeat_elements(s_llp, self.getSettings()["hlc_timestep"], axis=-1)
@@ -275,7 +309,7 @@ class TD3_KERAS(KERASAlgorithm):
         ### Flatten stacked actions
         print("gen_actions: ", gen_actions)
         print("gen_actions2: ", keras.backend.int_shape(gen_actions))
-        self._model._policy2 = keras.layers.Flatten()(gen_actions)
+        self._model._policy2 = gen_actions
         # self._model._policy2 = keras.layers.Reshape((keras.backend.int_shape(gen_actions)*self.getSettings()["hlc_timestep"]))(gen_actions)
         # self._model._policy2 = keras.layers.Reshape((keras.backend.int_shape(gen_actions)*self.getSettings()["hlc_timestep"],))(gen_actions)
         # K.shape(sequence_layer)[1]
@@ -284,7 +318,13 @@ class TD3_KERAS(KERASAlgorithm):
         self._qFunc = (self._model.getCriticNetwork()(
                         [self._model.getStateSymbolicVariable(),
                          self._model._policy2]))
-        self._combined = Model(input=[self._model.getStateSymbolicVariable(),
+        
+        if ("use_modelbase_cp" in self.getSettings()
+            and (self.getSettings()["use_modelbase_cp"] == "full")):
+            self._combined = Model(input=[self._model.getStateSymbolicVariable()], 
+                            output=self._qFunc)
+        else:
+            self._combined = Model(input=[self._model.getStateSymbolicVariable(),
                                       self._LLP_State], 
                             output=self._qFunc)
         
@@ -303,23 +343,47 @@ class TD3_KERAS(KERASAlgorithm):
                                                  # ,K.learning_phase()
                                                  ], [self._qFunc])
 
-    def genLLPActions(self, states, g, target_net=False):
+    def genLLPActions(self, states, g, target_net=False, normalize=True):
         # g = self._model.getActorNetwork().predict(states, batch_size=states.shape[0])
         ### a pi(a|s,g)
         llp_state_size = self.getSettings()["state_split_index"]
         hlp_timestep = self.getSettings()["hlc_timestep"]
         llp_states = states[:, -(llp_state_size * hlp_timestep):]
         batch_size = llp_states.shape[0]
+        ### reshape to have last dimension work for LLP input
         llp_states = llp_states.reshape(batch_size, hlp_timestep, llp_state_size)
+        #### Slice out just the states
         llp_states = llp_states[:, :, :self.getSettings()["goal_slice_index"]]
+        ### Add in the goals.
         llp_states = np.concatenate((llp_states, np.tile(g[:, None, :], [1, hlp_timestep, 1])), axis=(-1))
-        llp_states = llp_states.reshape(-1, llp_state_size)
-        if (target_net == True):
-            llp_actions = self._llp_T.predict(llp_states)
+        
+        if ("train_forward_dynamics" in self.getSettings()
+            and (self.getSettings()["train_forward_dynamics"])
+            and "use_modelbase_cp" in self.getSettings()
+            and (self.getSettings()["use_modelbase_cp"])):
+            llp_actions = np.zeros((batch_size, hlp_timestep, 2))
+            for i in range(hlp_timestep-1):
+                ### Grab states for current timestep k
+                llp_states_ = llp_states[:,i]
+                ### Predict actions to take for LLP
+                llp_actions_ = self._lowerPolicy.predict(llp_states_, normalize=normalize)
+                llp_actions[:,i] = llp_actions_
+                ### Predict the state as a result of the LLP action
+                llp_states_ = self._lowerPolicy_.getForwardDynamics().predict_batch(llp_states_, llp_actions_)
+                ### Fix goals to reduce error
+                llp_states_[:,-self.getSettings()["goal_slice_index"]:] = g
+                llp_states[:,i+1] = llp_states_
+            llp_actions_= self._lowerPolicy.predict(llp_states[:,hlp_timestep-1], normalize=normalize)
+            llp_actions[:,hlp_timestep-1] = llp_actions_
         else:
-            llp_actions = self._llp.predict(llp_states)
-        llp_actions_size = llp_actions.shape[-1]
-        llp_actions = llp_actions.reshape(batch_size, hlp_timestep, llp_actions_size)
+            llp_states = llp_states.reshape(-1, llp_state_size)
+            if (target_net == True):
+                llp_actions = self._lowerPolicy.predict(llp_states, normalize=normalize)
+            else:
+                llp_actions = self._lowerPolicy.predict(llp_states, normalize=normalize)
+            llp_actions_size = llp_actions.shape[-1]
+            llp_actions = llp_actions.reshape(batch_size, hlp_timestep, llp_actions_size)
+        ### Flatten action sequences
         llp_actions = llp_actions.reshape(batch_size, -1)
         return llp_actions
         
@@ -486,12 +550,16 @@ class TD3_KERAS(KERASAlgorithm):
         # self.setData(states, actions, rewards, result_states, falls)
         ### get actions for target policy
         target_actions = self._modelTarget.getActorNetwork().predict(result_states, batch_size=states.shape[0])
+        # print ("self.getActorNetwork().get_weights: ", self._model.getActorNetwork().get_weights())
         if not (self._llp is None):
             # llp_target_state = result_states[:,:7]
             # llp_target_state[:,-3:] = target_actions_n 
             # target_actions_n = self._llp.predict(llp_target_state)
-            target_actions = self.genLLPActions(result_states, target_actions, target_net=True)
+            # print ("self._llp.get_weights: ", self._llp.get_weights())
+            target_actions = self.genLLPActions(result_states, target_actions, target_net=False, normalize=False)
         if "td3_apply_noise_llp" in self.getSettings() and self.getSettings()["td3_apply_noise_llp"]:
+            target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
+        else:
             target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
 
         ### Get next q value
@@ -542,12 +610,21 @@ class TD3_KERAS(KERASAlgorithm):
         ### The rewards are not used in this update, just a placeholder
         if not ("skip_policy_training" in self.getSettings() and self.getSettings()["skip_policy_training"]):
             if (self._llp is not None):
-                llp_states = states[:,16:]
-                score = self._combined.fit([states, llp_states], rewards,
-                  epochs=1, batch_size=states.shape[0],
-                  verbose=0
-                  # callbacks=[early_stopping],
-                  )
+                if ("use_modelbase_cp" in self.getSettings()
+                    and (self.getSettings()["use_modelbase_cp"] == "full")):
+                    llp_states = states[:,:self.getSettings()['orig_hlp_state_size']]
+                    score = self._combined.fit([states], rewards,
+                      epochs=1, batch_size=states.shape[0],
+                      verbose=0
+                      # callbacks=[early_stopping],
+                      )
+                else:
+                    llp_states = states[:,self.getSettings()['orig_hlp_state_size']:]
+                    score = self._combined.fit([states, llp_states], rewards,
+                      epochs=1, batch_size=states.shape[0],
+                      verbose=0
+                      # callbacks=[early_stopping],
+                      )
             else:
                 score = self._combined.fit([states], rewards,
                       epochs=1, batch_size=states.shape[0],
@@ -580,11 +657,15 @@ class TD3_KERAS(KERASAlgorithm):
         lossActor = self.trainActor(states, actions, rewards, result_states)
         return loss
     
-    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False):
+    def predict(self, state, deterministic_=True, evaluation_=False, p=None, sim_index=None, bootstrapping=False, normalize=True):
         # print ("self._state_bounds shape ", np.array(self._state_bounds).shape)
-        state = norm_state(state, self._state_bounds)
+        if (normalize):
+            state = norm_state(state, self._state_bounds)
         state = np.array(state, dtype=self._settings['float_type'])
-        action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1), self._action_bounds)
+        if (normalize):
+            action_ = scale_action(self._model.getActorNetwork().predict(state, batch_size=1), self._action_bounds)
+        else:
+            action_ = self._model.getActorNetwork().predict(state, batch_size=1)
         return action_
     
     def predict_std(self, state, deterministic_=True, p=1.0):
@@ -642,7 +723,7 @@ class TD3_KERAS(KERASAlgorithm):
         if ("policy_connections" in self.getSettings()
             and (any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
             return np.zeros((states.shape[0],1))
-            poli_mean = self.genLLPActions(states)
+            poli_mean = self.genLLPActions(states, normalize=True)
         value = (self._model.getCriticNetwork().predict([states, poli_mean] , 
                     batch_size=states.shape[0])* action_bound_std(self.getRewardBounds())) * (1.0 / (1.0- self.getSettings()['discount_factor']))
         
@@ -662,7 +743,7 @@ class TD3_KERAS(KERASAlgorithm):
             # llp_target_state = result_states[:,:7]
             # llp_target_state[:,-3:] = target_actions_n 
             # target_actions_n = self._llp.predict(llp_target_state)
-            target_actions = self.genLLPActions(result_states, target_actions)
+            target_actions = self.genLLPActions(result_states, target_actions, normalize=True)
         if "td3_apply_noise_llp" in self.getSettings() and self.getSettings()["td3_apply_noise_llp"]:
             target_actions = target_actions + np.clip(np.random.normal(loc=0, scale=self._noise_scale, size=target_actions.shape), -self._c, self._c)
         values = self._model.getCriticNetwork().predict([states, target_actions], batch_size=states.shape[0])
@@ -706,6 +787,7 @@ class TD3_KERAS(KERASAlgorithm):
             ### Save model design as image
             plot_model(self._model._actor, to_file=fileName+"_actor"+'.svg', show_shapes=True)
             plot_model(self._model._critic, to_file=fileName+"_critic"+'.svg', show_shapes=True)
+            plot_model(self._combined, to_file=fileName+"_combined"+'.svg', show_shapes=True)
         except Exception as inst:
             ### Maybe the needed libraries are not available
             print ("Error saving diagrams for rl models.")

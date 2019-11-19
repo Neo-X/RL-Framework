@@ -35,6 +35,19 @@ class LearningMultiAgent(LearningAgent):
                 settings__["exploration_method"] = self.getSettings()["exploration_method"][m]
             if (type(self.getSettings()["state_normalization"]) is list):
                 settings__["state_normalization"] = self.getSettings()["state_normalization"][m]
+            if (type(self.getSettings()["train_forward_dynamics"]) is list):
+                settings__["train_forward_dynamics"] = self.getSettings()["train_forward_dynamics"][m]
+            if (type(self.getSettings()["agent_name"]) is list):
+                settings__["agent_name"] = self.getSettings()["agent_name"][m]
+            if (type(self.getSettings()["batch_size"]) is list):
+                settings__["batch_size"] = self.getSettings()["batch_size"][m]
+            if (type(self.getSettings()["critic_updates_per_actor_update"]) is list):
+                settings__["critic_updates_per_actor_update"] = self.getSettings()["critic_updates_per_actor_update"][m]
+            if (type(self.getSettings()["clear_exp_mem_on_poli"]) is list):
+                settings__["clear_exp_mem_on_poli"] = self.getSettings()["clear_exp_mem_on_poli"][m]
+            if (type(self.getSettings()["fd_updates_per_actor_update"]) is list):
+                settings__["fd_updates_per_actor_update"] = self.getSettings()["fd_updates_per_actor_update"][m]    
+                
             # LearningAgent(self.getSettings())
             settings__["use_hindsight_relabeling"] = False
             settings__["agent_id"] = m
@@ -285,31 +298,50 @@ class LearningMultiAgent(LearningAgent):
         """
         import numpy as np
         if (skip_num > 1):
+            
+            removes = list(range(len(states__)))
+            removes.reverse()       
+            for tar in removes:
+                # print ("traj length: ", len(states__[tar]))
+                if (len(states__[tar]) < skip_num): ### Sometimes trajectories are too short...
+                    del states__[tar]
+                    del actions__[tar]
+                    del rewards__[tar]
+                    del result_states__[tar]
+                    del falls__[tar]
+                    del _advantage[tar]
+                    del _exp_actions[tar]
+                    del _G_t[tar]
+                    del datas[tar]
+                
             for tar in range(len(states__)):
+                trim = -1
+                if ( (len(states__[tar]) % skip_num) == 0  ):
+                    trim = len(states__[tar])
                 tmp_len = len(states__[tar])
                 split_indices = [i for i  in range(skip_num, tmp_len, skip_num) ]# math.floor(a.shape[axis] / chunk_shape[axis]))]
-                states__tr = states__[tar][:tmp_len][0::skip_num][:-1]
-                if (len(states__tr) == 0): ### Sometimes trajectories are very short...
-                    break
-                result_states__tar =  result_states__[tar][:tmp_len][0::skip_num][:-1]
+                states__tr = states__[tar][:tmp_len][0::skip_num][:trim]
+                
+                result_states__tar =  result_states__[tar][:tmp_len][0::skip_num][:trim]
                 if ("policy_connections" in self.getSettings()):
+                    ### The actions for this policy will have already been replaced with the connectect policy actions.
                     # and (any([model._settings["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ):
                     ### Stack them instead of skipping them
                     # actions___[tar] =  actions__[tar][0::skip_num]
                     # print ("actions__[tar]: ", np.shape(actions___[tar]))
-                    action_split = np.array_split(actions__[tar], split_indices, axis=0)[:-1]
+                    action_split = np.array_split(actions__[tar], split_indices, axis=0)[:trim]
                     actions__[tar] =  [np.array(rs).flatten() for rs in action_split]
                     # print ("actions__[tar] ", actions__[tar])
                     # print ("actions__[tar]: ", np.shape(actions__[tar]))
                     # actions__[tar] =  actions__[tar][0::skip_num]
                     ### stack llp_states as well
                     state_split_index = self.getSettings()["state_split_index"]
-                    llp_state_split = np.array_split(states__[tar], split_indices, axis=0)[:-1]
+                    llp_state_split = np.array_split(states__[tar], split_indices, axis=0)[:trim]
                     llp_state_long =  [np.array(rs)[:,-state_split_index:].flatten() for rs in llp_state_split]
                     states__[tar] =  [np.concatenate((s[:-state_split_index],slp), axis=-1) for s,slp in zip(states__tr, llp_state_long)]
 
                     ### Add to result state as well.
-                    llp_state_split = np.array_split(result_states__[tar], split_indices, axis=0)[:-1]
+                    llp_state_split = np.array_split(result_states__[tar], split_indices, axis=0)[:trim]
                     llp_state_long =  [np.array(rs)[:,-state_split_index:].flatten() for rs in llp_state_split]
                     result_states__[tar] =  [np.concatenate((s[:-state_split_index],slp), axis=-1) for s,slp in zip(result_states__tar, llp_state_long)]
                 else:
@@ -320,16 +352,17 @@ class LearningMultiAgent(LearningAgent):
                 first_split = np.array_split(rewards__[tar], split_indices, axis=0)
                 assert len(rewards__[tar][0::skip_num]) == len(first_split), "len(rewards__[tar][0::skip_num]) == len(first_split): " + str(len(rewards__[tar][0::skip_num])) + " == " + str(len(first_split))
                 ### Average reward over LLP steps.
-                rewards__[tar] =  [[np.mean(rs)] for rs in first_split][:-1]
+                rewards__[tar] =  [[np.mean(rs)] for rs in first_split][:trim]
                 
-                falls__[tar] =  falls__[tar][:tmp_len][0::skip_num][:-1]
-                _advantage[tar] =  _advantage[tar][:tmp_len][0::skip_num][:-1]
-                _exp_actions[tar] =  _exp_actions[tar][:tmp_len][0::skip_num][:-1]
-                _G_t[tar] =  _G_t[tar][:tmp_len][0::skip_num][:-1]
+                falls__[tar] =  falls__[tar][:tmp_len][0::skip_num][:trim]
+                _advantage[tar] =  _advantage[tar][:tmp_len][0::skip_num][:trim]
+                _exp_actions[tar] =  _exp_actions[tar][:tmp_len][0::skip_num][:trim]
+                _G_t[tar] =  _G_t[tar][:tmp_len][0::skip_num][:trim]
                 
                 for key in datas[tar]:
-                    datas[tar][key] = datas[tar][key][:tmp_len][0::skip_num][:-1]
+                    datas[tar][key] = datas[tar][key][:tmp_len][0::skip_num][:trim]
                 
+                # print("np.array(states__[tar]: ", np.array(states__[tar]).shape)
                 path = {"states": np.array(states__[tar]),
                         "reward": np.array(rewards__[tar]),
                         "falls": np.array(falls__[tar]), 
@@ -340,6 +373,7 @@ class LearningMultiAgent(LearningAgent):
                 adv__ = paths["advantage"]
                 _advantage[tar] = adv__
                 
+                assert (np.array(states__[tar]).shape == np.array(result_states__[tar]).shape), "np.array(states__[tar]).shape == np.array(result_states__[tar]).shape: " + str( np.array(states__[tar]).shape) + " == " + str(np.array(result_states__[tar]).shape) 
                 # assert np.ceil(tmp_len/skip_num) == len(states__[tar]), "np.ceil(tmp_len/skip_num) == len(states__[tar])" + str(np.ceil(tmp_len/skip_num)) + " == " + str(len(states__[tar]))            
         
         return  (states__, actions__, rewards__, result_states__, falls__, _advantage, 
@@ -353,6 +387,11 @@ class LearningMultiAgent(LearningAgent):
         goal = states[:,-self._settings["goal_slice_index"]:]
         # print ("old goals: ", goal)
         goals = []
+        
+        actions2 = self.getAgents()[1].getPolicy().predict(states)
+        prob_ = -0.5 * np.sum(np.square(actions2 - actions))
+        probs.append(prob_)
+        goals.append(goal)
 
         num_goals_to_resample = (16 if not "num_goals_to_resample" in self.getSettings() else
                                  self.getSettings()["num_goals_to_resample"])
@@ -364,22 +403,25 @@ class LearningMultiAgent(LearningAgent):
             ### Copy in the new goals
             new_goals = np.array(new_goals)
             states[:,-self._settings["goal_slice_index"]:] = new_goals
+            # print ("new_goals: ", new_goals)
+            # print ("states: ", states)
             
             actions2 = self.getAgents()[1].getPolicy().predict(states)
             ### Distance between action sequence
-            prob_ = np.sum(np.square(actions2 - actions))
+            prob_ = -0.5 * np.sum(np.square(actions2 - actions))
             probs.append(prob_)
             goals.append(new_goals)
             
         
         # print ("probs: ", probs)
-        indx = np.argmin(probs)
+        indx = np.argmax(probs)
         return goals[indx]
         
     def applyHIRO(self, _states, _actions, _rewards, _result_states, _falls, _advantage, 
               _exp_actions, _G_t, datas):
         import numpy as np
-        # print ("Applying HIRO")
+        if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):  
+            print ("Applying HIRO")
         ### Relable trajectory goal to new goals that have higher prob after LLP update
         ### Get the data for both policies
         (states__h, actions__h, rewards__h, result_states__h,
@@ -400,6 +442,7 @@ class LearningMultiAgent(LearningAgent):
             steps_ = int(len(states__l[traj])/self._settings["hlc_timestep"])
             for g in range(steps_):
                 ### get chunk of data
+                # print ("states__l[traj]: ", states__l[traj])
                 statesl = states__l[traj][step:step+self._settings["hlc_timestep"]]
                 actionsl = actions__l[traj][step:step+self._settings["hlc_timestep"]]
                 new_goals = self.sampleGoals(statesl, actionsl)
@@ -493,6 +536,7 @@ class LearningMultiAgent(LearningAgent):
         result_states__ = [state_[agent_num::len(self.getAgents())] for state_ in _result_states]
         if ("policy_connections" in self.getSettings()
             and (any([agent_num == m[1] for m in self.getSettings()["policy_connections"]])) ):
+            ### Replace the state and action data with the other agent data.
             other_agent_id = 1
             actions__ = [state_[other_agent_id::len(self.getAgents())] for state_ in _actions]
             states__llp = [state_[other_agent_id::len(self.getAgents())] for state_ in _states]
@@ -716,7 +760,14 @@ class LearningMultiAgent(LearningAgent):
         act = []
         exp_action = []
         entropy = []
-        for m in range(len(state)):
+        m_ = len(state)
+        if ("perform_multiagent_training" in self.getSettings()):
+            m_ = self.getSettings()['perform_multiagent_training']
+            
+        if ( "use_hrl_logic" in self.getSettings() ### Add LLP state
+             and (self.getSettings()["use_hrl_logic"]) == "full" ):
+            state = self.addHRLData(state)
+        for m in range(m_):
             # by convention the highest levels in the hierarchy come first
             """
             if ( "use_centralized_critic" in self.getSettings()
@@ -736,10 +787,10 @@ class LearningMultiAgent(LearningAgent):
             """
             state_ = np.array(state_)
             if ( "use_hrl_logic" in self.getSettings()
-                 and (self.getSettings()["use_hrl_logic"] == True)
+                 and (self.getSettings()["use_hrl_logic"])
                  and (m == 1) ):
-                # if index is not the highest level policy, which has no goal to concat.
-                # concat on the action of the higher level onto the state
+                ### if index is not the highest level policy, which has no goal to concat.
+                ### concat on the action of the higher level onto the state
                 goal = np.array(self.latest_actions[m - 1][0])
                 """
                 while len(goal.shape) < len(state_.shape):
@@ -812,14 +863,14 @@ class LearningMultiAgent(LearningAgent):
                 state_ = state_tmp 
 
             if ("use_hrl_logic" in self.getSettings()
-                 and (self.getSettings()["use_hrl_logic"] == True) 
-                 and ((time_step == 0) or (time_step % self.time_skips[m] == 0) )):
-                # if this value is true then this level in the hierarchy is active
-                # otherwise use the actions exp actions and entropy from previous steps
-                self.latest_actions[m] = action
-                self.latest_exp_act[m] = exp_act
-                self.latest_entropy[m] = entropy_
+                 and (self.getSettings()["use_hrl_logic"]) 
+                 and ((time_step % self.time_skips[m] != 0) )):
+                ### Skip the steps where the HLP is still active and should not ask for a new action yet
+                pass
             else:
+                ### if this value is true then this level in the hierarchy is active
+                ### otherwise use the actions exp actions and entropy from previous steps
+                # print ("Update action: ", m, " action: ", action)
                 self.latest_actions[m] = action
                 self.latest_exp_act[m] = exp_act
                 self.latest_entropy[m] = entropy_
@@ -840,6 +891,34 @@ class LearningMultiAgent(LearningAgent):
 
         return (act, exp_action, entropy, state_and_goals)
     
+    def addHRLData(self, observation):
+        ### The the state data for the LLP
+        obs = [observation[0]]
+        LLP_state = observation[0][:self.getSettings()['goal_slice_index']]
+        # llp_goal = self.latest_actions[0][0]
+        # state_ = np.concatenate([np.array(state_), goal], -1)
+        # LLP_state = np.concatenate([LLP_state, llp_goal], 0)
+        obs.append(LLP_state)
+        # print ("obs :", obs)
+        return obs
+    
+    def addHRLReward(self, observation, nextObservation, reward_, done, info):
+        ### THe next Observation is not going to have the HRL state structure yet.
+        ### The the state data for the LLP
+        r_ = [[reward_]]
+        LLP_state = nextObservation[0][:self.getSettings()['goal_slice_index']]
+        llp_goal = observation[self.getSettings()['llc_index']][self.getSettings()['goal_slice_index']:]
+        # state_ = np.concatenate([np.array(state_), goal], -1)
+        # print ("observation: ", observation, "LLP_state: ", LLP_state,  " llp_goal", llp_goal)
+        diff = LLP_state-llp_goal
+        reward = -np.sum(np.fabs((diff)))
+        # observation.append(LLP_state)
+        # reward_.append([reward])
+        r_.append([reward])
+        # print("reward_ :", r_)
+        return r_
+        
+        
     def predict_std(self, state, evaluation_=False, p=1.0):
         if self._useLock:
             self._accesLock.acquire()

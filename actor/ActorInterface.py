@@ -1,6 +1,6 @@
 from _ast import Or
 import sys
-from theano.scalar.basic import OR
+# from theano.scalar.basic import OR
 sys.path.append("../characterSimAdapter/")
 
 class ActorInterface(object):

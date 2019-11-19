@@ -478,7 +478,11 @@ class DeepNNKerasAdaptive(ModelInterface):
             elif ( layer_info[i]["layer_type"] == "activation"):
                 network = self.getActivationType(layer_info[i]["activation_type"])(network)      
             elif ( layer_info[i]["layer_type"] == "integrate_actor_part"):
-                network = Concatenate()([network, self._actionInput])          
+                if ("action" in self._slices):
+                    input_act = self._slices["action"]
+                else:
+                    input_act = self._actionInput
+                network = Concatenate()([network, input_act])          
             elif (layer_info[i]["layer_type"] == "Concatenate"):
                 print ("concatenating: ", repr(network))
                 if ("slice_label" in layer_info[i]):
@@ -527,18 +531,27 @@ class DeepNNKerasAdaptive(ModelInterface):
             elif (layer_info[i]["layer_type"] == "slice"):
                 ### Need to make sure to create end slice first to not overwrite network then try and slice from it again...
                 if ("slice_index" in layer_info[i]):
-                    state_length_ = keras.backend.int_shape(network)[1]
+                    
+                    input__ = network
+                    if ("slice_input" in layer_info[i]):
+                        input__ = self._slices[layer_info[i]["slice_input"]]
+                    state_length_ = keras.backend.int_shape(input__)[1]
                     print ("slice, state_length_: ", state_length_)
                     # sys.exit()
                     self._slices[layer_info[i]["slice_label"]] = Lambda(keras_slice, output_shape=(state_length_-layer_info[i]["slice_index"],),
                                        arguments={'begin': layer_info[i]["slice_index"], 
                                                   'end': state_length_},
-                                       name=layer_info[i]["slice_label"])(network)
+                                       name=layer_info[i]["slice_label"])(input__)
                     print ("new slice network shape: ", repr(self._slices[layer_info[i]["slice_label"]]))
-                    network = Lambda(keras_slice, output_shape=(layer_info[i]["slice_index"],),
+                    input__ = Lambda(keras_slice, output_shape=(layer_info[i]["slice_index"],),
                                   arguments={'begin': 0, 'end': layer_info[i]["slice_index"]}
-                                  )(network)
-                    print ("new network shape: ", repr(network))
+                                  )(input__)
+                    if ("slice_input" in layer_info[i]):
+                        self._slices[layer_info[i]["slice_input"]] = input__
+                        print ("new network shape: ", repr(input__))
+                    else:
+                        network = input__
+                        print ("new network shape: ", repr(network))
                     # sys.exit()
                 else:
                     _characterFeatures = Lambda(keras_slice, output_shape=(self._state_length-self._settings['num_terrain_features'],),
@@ -549,6 +562,15 @@ class DeepNNKerasAdaptive(ModelInterface):
                     # sys.exit()
             elif ( layer_info[i]["layer_type"] == "coordconv2d" ):
                   network = CoordinateChannel2D()(network)
+            elif ( layer_info[i]["layer_type"] == "Residual" ):
+                    
+                    print ("*** Residual subnet input shape: ", repr(keras.backend.int_shape(network)))
+                    # subnet = self.createSubNetwork(network, layer_sizes[i][1], isRNN=True)
+                    # subnet = Dense(256)(network)
+                    # subnet = Model(inputs=network, outputs=subnet)
+                    # network_ = Model(inputs=network, outputs=network)
+                    network = keras.layers.Add()([network, input])
+
             elif ( layer_info[i]["layer_type"] == "conv2d" ):
                 network = keras.layers.Conv2D( kernel_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),
                                                  bias_regularizer=regularizers.l2(self._settings['critic_regularization_weight']),

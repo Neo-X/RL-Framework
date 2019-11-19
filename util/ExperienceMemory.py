@@ -284,6 +284,7 @@ class ExperienceMemory(object):
     def insert(self, state, action, nextState, reward, fall=[[0]], G_t=[[0]], exp_action=[[0]], advantage=[[0]], data={}):
         # print "Instert State: " + str(state)
         # state = list(state)
+        # print ("state shape: ", np.array(state).shape)
         if ("use_hack_state_trans" in self.getSettings()
             and (self.getSettings()["use_hack_state_trans"] == True)):
             state = np.array(state)
@@ -514,7 +515,7 @@ class ExperienceMemory(object):
             exp_actions.append(self._exp_action_history[i])
             
             for key in self._data:
-                data[key].append(self._data[key][self._history_update_index])
+                data[key].append(self._data[key][i])
             
         # print c
         # print experience[indices]

@@ -540,8 +540,8 @@ class LearningAgent(AgentInterface):
             if ( "additional_on_policy_training_updates" in self._settings
                  and (self._settings["additional_on_policy_training_updates"] != False)):
                 additional_on_poli_trianing_updates = self._settings["additional_on_policy_training_updates"]
-            if ("perform_multiagent_training" in self._settings): ### Reduce number of updates by agent count
-                additional_on_poli_trianing_updates = additional_on_poli_trianing_updates / self._settings["perform_multiagent_training"]
+            # if ("perform_multiagent_training" in self._settings): ### Reduce number of updates by agent count
+            #     additional_on_poli_trianing_updates = additional_on_poli_trianing_updates / self._settings["perform_multiagent_training"]
             ### The data should be seen ~ 4 times
             additional_on_poli_trianing_updates = int(np.ceil(((self._settings["num_on_policy_rollouts"] * self._settings["max_epoch_length"] * 1) / batch_size_) * additional_on_poli_trianing_updates))
             if (self._settings["print_levels"][self._settings["print_level"]] >= self._settings["print_levels"]['train']):
@@ -1256,10 +1256,11 @@ class LearningAgent(AgentInterface):
             and (any([self.getSettings()["agent_id"] == m[1] for m in self.getSettings()["policy_connections"]])) ))):
             import numpy as np
             state = np.array(state)
+            # print ("state: ", state)
             state = np.concatenate((state, np.zeros((state.shape[0],
                         self.getSettings()["use_hack_state_trans"]-state.shape[1]))), axis=-1)
-            # print ("state: ", state)
             return state
+        
             
         assert s_length == len(state), "before state length: " + str(s_length) + " == " + str(len(state))
         return state
@@ -1357,7 +1358,8 @@ class LearningAgent(AgentInterface):
                 if ( 'keep_seperate_fd_exp_buffer' in self.getSettings() 
                      and (self.getSettings()['keep_seperate_fd_exp_buffer'] == True)):
                      
-                    if (self.getFDExperience() is not None):
+                    if (self.getFDExperience() is not None
+                        and hasattr(self.getFDExperience(), '_state_bounds')):
                         self.getForwardDynamics().setStateBounds(self.getFDExperience().getStateBounds())
                     # self.getFDExperience().setStateBounds(bounds)
                 else:
@@ -1366,7 +1368,7 @@ class LearningAgent(AgentInterface):
                     
     def setActionBounds(self, bounds):
         import numpy as np
-        bounds = np.array(bounds)
+        bounds = np.array(bounds[:,:len(self.getPolicy().getActionBounds()[0])])
         self.getPolicy().setActionBounds(bounds)
         if (self.getExperience() is not None):
             self.getExperience().setActionBounds(bounds)
@@ -1378,7 +1380,8 @@ class LearningAgent(AgentInterface):
                 # self.getFDExperience().setActionBounds(bounds)
                 self.getForwardDynamics().setActionBounds(self.getFDExperience().getActionBounds())
             else:
-                self.getForwardDynamics().setActionBounds(bounds)
+                if ( "fd_action_bounds" not in self.getSettings()):
+                    self.getForwardDynamics().setActionBounds(bounds)   
                 
     def setRewardBounds(self, bounds):
         import numpy as np
@@ -1458,8 +1461,6 @@ class LearningAgent(AgentInterface):
                 if ("keep_seperate_fd_exp_buffer" in self.getSettings()
                     and (self.getSettings()["keep_seperate_fd_exp_buffer"] == True)):
                     self.getFDExperience().saveToFile(directory+getAgentName()+suffix_+"_FD_expBufferInit.hdf5")
-        
-        
         
         suffix_ = suffix
         if ( bestFD == True):

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+pushd /opt/efficient-hrl
+    git pull origin connected_policies
+popd
 pushd /opt/RL-Framework
     git pull origin master
 popd

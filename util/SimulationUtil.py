@@ -31,6 +31,15 @@ def updateSettings(settings1, newSettings):
         settings1[key_] = newSettings[key_]
         
     return settings1
+
+def getAgentNameString(agent_name):
+    out = ""
+    if (type(agent_name) is list):
+        for a in agent_name:
+            out = out + str(agent_name)
+    else:
+        out = agent_name
+    return out
     
 def getGPUBusIndex(index=0):
     import re
@@ -280,6 +289,8 @@ def getBaseDataDirectory(settings):
     return getRootDataDirectory(settings)+"/"+settings["data_folder"]+"/"
 
 def getRootDataDirectory(settings):
+    if (type(settings["agent_name"]) is list):
+        return settings["environment_type"]+"/"+settings["agent_name"][0]
     return settings["environment_type"]+"/"+settings["agent_name"]
 
 def getAgentName(settings=None):
@@ -508,13 +519,15 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
             ### This is faster....
             settings_['load_saved_model'] = False
             # modelClass = my_import(path_)
-            modelAlgorithm = locate(algorihtm_type)
-            if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
-                if ("perform_multiagent_training" in settings):
-                    models = []
-                    assert settings["perform_multiagent_training"] == len(state_bounds)
-                    for m in range(settings["perform_multiagent_training"]):
-                        settings__ = copy.deepcopy(settings_)
+            if ("perform_multiagent_training" in settings):
+                models = []
+                assert settings["perform_multiagent_training"] == len(state_bounds)
+                for m in range(settings["perform_multiagent_training"]):
+                    settings__ = copy.deepcopy(settings_)
+                    if (type(algorihtm_type) is list):
+                        algorihtm_type_ = algorihtm_type_[m]
+                    modelAlgorithm = locate(algorihtm_type)
+                    if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                         settings__["agent_id"] = m
                         settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
                         settings__["policy_network_layer_sizes"] = settings["policy_network_layer_sizes"][m]
@@ -531,16 +544,22 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                         else:
                             model_.loadFrom(directory+getAgentName()+str(m)+"_Best")
                         models.append(model_)
-                    print("Loaded algorithm: ", models)
-                    model = models
-                    if ("policy_connections" in settings):
-                        for c in range(len(settings["policy_connections"])): 
-                            print ("Sending policy ", model[settings["policy_connections"][c][0]],
-                                                            " to policy ",  model[settings["policy_connections"][c][1]])
-                            model[settings["policy_connections"][c][1]].setFrontPolicy(
-                                model[settings["policy_connections"][c][0]])
-                            
-                else:
+                    else:
+                        print ("Unknown learning algorithm type: " + str(algorihtm_type))
+                        raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+                print("Loaded algorithm: ", models)
+                model = models
+                """
+                if ("policy_connections" in settings):
+                    for c in range(len(settings["policy_connections"])): 
+                        print ("Sending policy ", model[settings["policy_connections"][c][0]],
+                                                        " to policy ",  model[settings["policy_connections"][c][1]])
+                        model[settings["policy_connections"][c][1]].setFrontPolicy(
+                            model[settings["policy_connections"][c][0]])
+                """        
+            else:
+                modelAlgorithm = locate(algorihtm_type)
+                if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                     networkModel = createNetworkModel(settings["model_type"], state_bounds, action_bounds, reward_bounds, settings_)
                     print ("networkModel: ", networkModel)
                     model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
@@ -550,11 +569,11 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                         model.loadFrom(directory+getAgentName())
                     else:
                         model.loadFrom(directory+getAgentName()+"_Best")
-                print("Loaded algorithm: ", model)
-                # return model
-            else:
-                print ("Unknown learning algorithm type: " + str(algorihtm_type))
-                raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+                else:
+                    print ("Unknown learning algorithm type: " + str(algorihtm_type))
+                    raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+            print("Loaded algorithm: ", model)
+            # return model
             # sys.exit(2)
         else:
             print ("Loading pre compiled network")
@@ -577,14 +596,16 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
     else:
         from algorithm.AlgorithmInterface import AlgorithmInterface
         # modelClass = my_import(path_)
-        modelAlgorithm = locate(algorihtm_type)
-        if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
-            if ("perform_multiagent_training" in settings):
-                models = []
-                assert settings["perform_multiagent_training"] == len(state_bounds), "settings['perform_multiagent_training]: " + str(settings["perform_multiagent_training"]) +  " ==  len(state_bounds) " + str(len(state_bounds))
-                settings_ = copy.deepcopy(settings)
-                for m in range(settings["perform_multiagent_training"]):
-                    settings__ = copy.deepcopy(settings)
+        if ("perform_multiagent_training" in settings):
+            models = []
+            assert settings["perform_multiagent_training"] == len(state_bounds), "settings['perform_multiagent_training]: " + str(settings["perform_multiagent_training"]) +  " ==  len(state_bounds) " + str(len(state_bounds))
+            settings_ = copy.deepcopy(settings)
+            for m in range(settings["perform_multiagent_training"]):
+                settings__ = copy.deepcopy(settings)
+                if (type(algorihtm_type) is list):
+                    algorihtm_type_ = algorihtm_type[m]
+                modelAlgorithm = locate(algorihtm_type_)
+                if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                     settings__["agent_id"] = m
                     settings__["policy_network_layer_sizes"] = settings["policy_network_layer_sizes"][m]
                     """
@@ -616,21 +637,28 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                           action_bounds=action_bounds[m], reward_bound=reward_bounds[m], settings_=settings__, print_info=print_info))
                     
                     print("Loaded algorithm: ", models)
-                model = models
-                if ("policy_connections" in settings):
-                    for c in range(len(settings["policy_connections"])): 
-                        print ("Sending policy ", model[settings["policy_connections"][c][0]],
-                                                        " to policy ",  model[settings["policy_connections"][c][1]])
-                        model[settings["policy_connections"][c][1]].setFrontPolicy(
-                            model[settings["policy_connections"][c][0]])
-            else:
+                else:
+                    print ("Unknown learning algorithm type: " + str(algorihtm_type))
+                    raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+            model = models
+            """
+            if ("policy_connections" in settings):
+                for c in range(len(settings["policy_connections"])): 
+                    print ("Sending policy ", model[settings["policy_connections"][c][0]],
+                                                    " to policy ",  model[settings["policy_connections"][c][1]])
+                    model[settings["policy_connections"][c][1]].setFrontPolicy(
+                        model[settings["policy_connections"][c][0]])
+            """
+        else:
+            modelAlgorithm = locate(algorihtm_type)
+            if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                 model = modelAlgorithm(networkModel, n_in=len(state_bounds[0]), n_out=len(action_bounds[0]), state_bounds=state_bounds, 
                               action_bounds=action_bounds, reward_bound=reward_bounds, settings_=settings, print_info=print_info)
                 print("Loaded algorithm: ", model)
-            # return model
-        else:
-            print ("Unknown learning algorithm type: " + str(algorihtm_type))
-            raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+            else:
+                print ("Unknown learning algorithm type: " + str(algorihtm_type))
+                raise ValueError("Unknown learning algorithm type: " + str(algorihtm_type))
+        # return model
         # sys.exit(2)
         
     if (settings['load_saved_model'] == "network_and_scales"):
@@ -1331,16 +1359,25 @@ def createNewFDModel(settings, env, model):
     forwardDynamicsModel = None
     if (settings['train_forward_dynamics']):
         if ("perform_multiagent_training" in settings):
+            forwardDynamicsModel = []
             for i in range(settings["perform_multiagent_training"]):
-                forwardDynamicsModel = []
                 actor = createActor(settings['environment_type'], settings, None)
                 settings__ = copy.deepcopy(settings)
                 settings__['state_bounds'] = settings['state_bounds'][i]
                 settings__['action_bounds'] = settings['action_bounds'][i]
+                if ("fd_action_bounds" in settings):
+                    settings__['action_bounds'] = settings['fd_action_bounds'][i]
+                settings__['fd_network_layer_sizes'] = settings['fd_network_layer_sizes'][i]
+                settings__['reward_network_layer_sizes'] = settings['reward_network_layer_sizes'][i]
                 state_bounds = getFDStateSize(settings__)
                 action_bounds = settings__['action_bounds']
                 settings__["agent_id"] = i
-                if ( settings['forward_dynamics_model_type'] == "SingleNet"
+                if  (type(settings['train_forward_dynamics']) is list 
+                    and (settings['train_forward_dynamics'][i] == False)):
+                    forwardDynamicsModel_ = None
+                    forwardDynamicsModel.append(forwardDynamicsModel_)
+                    continue
+                elif ( settings['forward_dynamics_model_type'] == "SingleNet"
                      and (settings['use_single_network'] == True)):
                     print ("Creating forward dynamics network: Using single network model")
                     # settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]

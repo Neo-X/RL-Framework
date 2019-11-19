@@ -285,6 +285,9 @@ def trainModelParallel(inputData):
         settings["experience_length"] = [settings["experience_length"]]
         settings["critic_network_layer_sizes"] = [settings["critic_network_layer_sizes"]]
         settings["policy_network_layer_sizes"] = [settings["policy_network_layer_sizes"]]
+        if (settings["train_forward_dynamics"]):
+            settings["fd_network_layer_sizes"] = [settings["fd_network_layer_sizes"]]
+            settings["reward_network_layer_sizes"] = [settings["reward_network_layer_sizes"]]
         
     print ("Number of agents: ", settings["perform_multiagent_training"])
     # sys.exit()
@@ -377,9 +380,9 @@ def trainModelParallel(inputData):
             (settings["save_experience_memory"] == "continual")):
             
             ### load training data
-            from util.SimulationUtil import getDataDirectory
+            from util.SimulationUtil import getDataDirectory, getAgentNameString
             directory = getDataDirectory(settings)
-            file_name_ = directory+"trainingData_" + str(settings['agent_name']) + ".json"
+            file_name_ = directory+"trainingData_" + str(getAgentNameString(settings['agent_name'])) + ".json"
             print ("loading previous settings file: ", file_name_)
             if os.path.exists(file_name_):
                 fp = open(file_name_, 'r')
@@ -480,7 +483,7 @@ def trainModelParallel(inputData):
         # from model.LearningAgent import LearningMultiAgent, LearningWorker
         from util.SimulationUtil import createEnvironment, logExperimentData, saveData
         from util.SimulationUtil import createRLAgent, createNewFDModel, processBounds
-        from util.SimulationUtil import createActor, getAgentName, updateSettings
+        from util.SimulationUtil import createActor, getAgentName, updateSettings, getAgentNameString
         from util.SimulationUtil import getDataDirectory, createForwardDynamicsModel, createSampler
         from util.utils import current_mem_usage
         
@@ -567,9 +570,6 @@ def trainModelParallel(inputData):
         forwardDynamicsModel = None
         if (settings['train_forward_dynamics']):
             forwardDynamicsModel = createNewFDModel(settings, exp_val, model)
-            # forwardDynamicsModel.setActor(actor)
-            # forwardDynamicsModel.setEnvironment(exp)
-            # forwardDynamicsModel.init(len(state_bounds[0]), len(action_bounds[0]), state_bounds, action_bounds, actor, None, settings)
         
         if ("train_reward_distance_metric" in settings and
             (settings['train_reward_distance_metric'] == True )):
@@ -598,6 +598,13 @@ def trainModelParallel(inputData):
         if ("train_reward_distance_metric" in settings and
             (settings['train_reward_distance_metric'] == True )):
             masterAgent.setRewardModel(rewardModel)
+            
+        if ("policy_connections" in settings):
+            for c in range(len(settings["policy_connections"])): 
+                print ("Sending policy ", model[settings["policy_connections"][c][0]],
+                                                " to policy ",  model[settings["policy_connections"][c][1]])
+                masterAgent.getAgents()[settings["policy_connections"][c][1]].getPolicy().setFrontPolicy(
+                    masterAgent.getAgents()[settings["policy_connections"][c][0]])
         
         print ("masterAgent state bounds: ", masterAgent.getStateBounds())
         print ("state bounds: ", state_bounds)
@@ -688,12 +695,6 @@ def trainModelParallel(inputData):
             print("Reward bounds invalid: ", reward_bounds)
             sys.exit()
         
-        """
-        if action_space_continuous:
-            model = createRLAgent(settings['agent_name'], state_bounds, action_bounds, reward_bounds, settings)
-        else:
-            model = createRLAgent(settings['agent_name'], state_bounds, discrete_actions, reward_bounds, settings)
-        """
         if ( settings['load_saved_model'] or (settings['load_saved_model'] == 'network_and_scales') ): ## Transfer learning
             masterAgent.setStateBounds(state_bounds)
             masterAgent.setRewardBounds(reward_bounds)
@@ -763,7 +764,7 @@ def trainModelParallel(inputData):
                 from NNVisualize import NNVisualize
             
         if settings['visualize_learning']:
-            title = settings['agent_name']
+            title = getAgentNameString(settings['agent_name'])
             k = title.rfind(".") + 1
             if (k > len(title)): ## name does not contain a .
                 k = 0 
@@ -799,7 +800,7 @@ def trainModelParallel(inputData):
             criticLosses = []
             criticRegularizationCosts = [] 
             if (settings['visualize_learning']):
-                title = settings['agent_name']
+                title = getAgentNameString(settings['agent_name'])
                 k = title.rfind(".") + 1
                 if (k > len(title)): ## name does not contain a .
                     k = 0 
@@ -815,7 +816,7 @@ def trainModelParallel(inputData):
             actorLosses = []
             actorRegularizationCosts = []            
             if (settings['visualize_learning']):
-                title = settings['agent_name']
+                title = getAgentNameString(settings['agent_name'])
                 k = title.rfind(".") + 1
                 if (k > len(title)): ## name does not contain a .
                     k = 0 
@@ -1331,7 +1332,7 @@ def trainModelParallel(inputData):
                         print ("Saving BEST current agent: " + str(best_eval))
                     masterAgent.saveTo(directory, bestPolicy=True)
                     
-                fp = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", 'w')
+                fp = open(directory+"trainingData_" + str(getAgentNameString(settings['agent_name'])) + ".json", 'w')
                 # print ("Train data: ", trainData)
                 ## because json does not serialize np.float32 
                 """
@@ -1479,7 +1480,7 @@ def trainModelParallel(inputData):
     masterAgent.saveTo(directory)
     masterAgent.finish()
     
-    f = open(directory+"trainingData_" + str(settings['agent_name']) + ".json", "w")
+    f = open(directory+"trainingData_" + str(getAgentNameString(settings['agent_name'])) + ".json", "w")
     from util.utils import NumpyEncoder 
     json.dump(trainData, f, sort_keys=True, indent=4, cls=NumpyEncoder)
     f.close()

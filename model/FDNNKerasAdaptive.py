@@ -88,7 +88,7 @@ class FDNNKerasAdaptive(DeepNNKerasAdaptive):
             settings_["using_encoder_decoder"] = settings_["using_encoder_decoder_fd"]
         if ("use_decoder_fd" in settings_ ):
             settings_["use_decoder"] = settings_["use_decoder_fd"]
-        
+            
         ### Don't pass this parameter to FD model    
         settings_["use_single_network"] = False
         
