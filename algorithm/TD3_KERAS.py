@@ -283,19 +283,19 @@ class TD3_KERAS(KERASAlgorithm):
             s_llp = keras.layers.core.Lambda(keras_slice, output_shape=(self.getSettings()["goal_slice_index"],),
                         arguments={'begin': 0, 
                         'end': self.getSettings()["goal_slice_index"]})(self._LLP_State)
-            s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)          
+            s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1, name="llp_state_"+str(0))          
             gen_action_ = self._llp(s_llp)
             gen_actions = gen_action_
-            for i in range(self.getSettings()["hlc_timestep"]-1):
+            for i in range(1, self.getSettings()["hlc_timestep"]):
                 s_llp = self._lowerPolicy_FD([s_llp, gen_action_])
                 ### Slice off predicted goal and concat real goal
                 s_llp = keras.layers.core.Lambda(keras_slice, output_shape=(self.getSettings()["goal_slice_index"],),
                         arguments={'begin': 0, 
                         'end': self.getSettings()["goal_slice_index"]})(s_llp)
-                s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1)
+                s_llp = keras.layers.concatenate(inputs=[s_llp, g], axis=-1, name="llp_state_"+str(i))
                 
                 gen_action_ = self._llp(s_llp)
-                gen_actions = keras.layers.concatenate(inputs=[gen_actions, gen_action_], axis=-1)
+                gen_actions = keras.layers.concatenate(inputs=[gen_actions, gen_action_], axis=-1, name="llp_action_"+str(i))
 
             
         else:
