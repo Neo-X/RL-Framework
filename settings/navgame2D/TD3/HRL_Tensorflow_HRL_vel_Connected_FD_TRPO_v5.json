@@ -405,7 +405,6 @@
 							{"layer_type": "Residual", "activation_type": "leaky_rectify" }
 							],
 							[ 
-							{"layer_type": "slice", "slice_index": 2, "slice_label": "hlp_goal"},
 							{"layer_type": "integrate_actor_part"},
 							{"layer_type": "Dense", "units": 64, "use_bias": false},
 							{"layer_type": "activation", "activation_type": "leaky_rectify" },
