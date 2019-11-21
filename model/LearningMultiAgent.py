@@ -45,7 +45,8 @@ class LearningMultiAgent(LearningAgent):
                 settings__["critic_updates_per_actor_update"] = self.getSettings()["critic_updates_per_actor_update"][m]
             if (type(self.getSettings()["clear_exp_mem_on_poli"]) is list):
                 settings__["clear_exp_mem_on_poli"] = self.getSettings()["clear_exp_mem_on_poli"][m]
-            if (type(self.getSettings()["fd_updates_per_actor_update"]) is list):
+            if ("fd_updates_per_actor_update" in self.getSettings() and 
+                (type(self.getSettings()["fd_updates_per_actor_update"]) is list)):
                 settings__["fd_updates_per_actor_update"] = self.getSettings()["fd_updates_per_actor_update"][m]    
                 
             # LearningAgent(self.getSettings())

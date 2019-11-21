@@ -654,9 +654,9 @@ def trainModelParallel(inputData):
             state_bounds__ = getFDStateSize(settings)
             ### Might be some memory expenditure here with a double copy
             masterAgent.setFDExperience(copy.deepcopy(experiencefd))
-            masterAgent.setFDStateBounds(copy.deepcopy(state_bounds__))
-            masterAgent.setFDActionBounds(copy.deepcopy(action_bounds))
-            masterAgent.setFDRewardBounds(copy.deepcopy(reward_bounds))
+            # masterAgent.setFDStateBounds(copy.deepcopy(state_bounds__))
+            # masterAgent.setFDActionBounds(copy.deepcopy(action_bounds))
+            # masterAgent.setFDRewardBounds(copy.deepcopy(reward_bounds))
             
         # print ("masterAgent.getFDExperience().getStateBounds() shape : ", masterAgent.getFDExperience().getStateBounds().shape)
         # sys.exit()
