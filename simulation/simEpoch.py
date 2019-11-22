@@ -187,13 +187,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
                 
             
         # print("exp_action: ", exp_action, " action", action)
-<<<<<<< HEAD
-        observation, reward_, done, info = actor.step(exp,action)
-
-        collision_count=np.add(info["collision"], collision_count)
-        fall_count=np.add(info["falls_sim"], fall_count)
-
-=======
         if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
         and (settings["use_hrl_logic"]) == "full" ):
             observation, reward_, done, info = actor.step(exp,[action[settings["llc_index"]]])
@@ -202,7 +195,6 @@ def simEpoch(actor, exp, model, discount_factor, anchors=None, action_space_cont
             observation, reward_, done, info = actor.step(exp,action)
         # print ("observation", observation)
         # print ("state_", state_)
->>>>>>> master
         infos.append(info)
         if ( "use_hrl_logic" in settings ### Might need to add HLP action to LLP state
         and (settings["use_hrl_logic"]) == "full" ):

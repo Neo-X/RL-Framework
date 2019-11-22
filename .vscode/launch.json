@@ -10,8 +10,24 @@
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal"
-            "args": ["--config=GymMultiChar/algorithm.PPO_KERAS.PPO_KERAS/PD_Biped3D_MutliChar_ScenarioSpace_5_WithObstacles_OnlyVel_SimpleReward_v1/Tensorflow_TRUE-v0_NewLLC_17/_exploration_rate_0.125_0/_0/model.DeepNNKerasAdaptive.DeepNNKerasAdaptive/ScenarioSpace_WithObs_SimpleReward_5_NEWLLC_Hetero_v1.json"]
+//            "args": ["--config=GymMultiChar/algorithm.PPO_KERAS.PPO_KERAS/PD_Biped3D_MutliChar_ScenarioSpace_5_WithObstacles_OnlyVel_SimpleReward_v1/Tensorflow_TRUE-v0_NewLLC_17/_exploration_rate_0.125_0/_0/model.DeepNNKerasAdaptive.DeepNNKerasAdaptive/ScenarioSpace_WithObs_SimpleReward_5_NEWLLC_Hetero_v1.json"]
+            "args": ["--config=settings/terrainRLMultiChar/HLC/TD3/ScenarioSpace_Rugby_WithObs_SimpleReward_NEWLLC_Tensorflow_v5.json"
+            , "--metaConfig=settings/hyperParamTuning/gamay/exploration_rate.json"
+            ,"--meta_sim_samples=2" 
+            ,"--meta_sim_threads=2"
+            ,"--shouldRender=true"
+            ,"--num_rounds=1000"
+            ,"--plot=false" 
+            ,"--on_policy=fast" 
+            ,"--saving_update_freq_num_rounds=1"
+            ,"-p 8"
+            ,"--simulation_timeout=1800"
+            ,"--save_experience_memory=continual"
+            ,"--continue_training=last"
+        ]
+            
 
+//            tuneHyperParameters.py --config=settings/terrainRLMultiChar/HLC/TD3/ScenarioSpace_Rugby_WithObs_SimpleReward_NEWLLC_Tensorflow_v5.json --metaConfig=settings/hyperParamTuning/gamay/exploration_rate.json --meta_sim_samples=2 --meta_sim_threads=2 --shouldRender=true --num_rounds=1000 --plot=false --on_policy=fast --saving_update_freq_num_rounds=1 -p 8 --simulation_timeout=1800 --email_log_data_periodically=true  --save_experience_memory=continual --continue_training=last --experiment_logging="{\"use_comet\": true, \"project_name\": \"deepcrowds\"}"            
         }
     ]
 }
