@@ -525,8 +525,9 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                 for m in range(settings["perform_multiagent_training"]):
                     settings__ = copy.deepcopy(settings_)
                     if (type(algorihtm_type) is list):
-                        algorihtm_type_ = algorihtm_type_[m]
-                    modelAlgorithm = locate(algorihtm_type)
+                        algorihtm_type_ = algorihtm_type[m]
+                    print ("algorihtm_type_: ", algorihtm_type_)
+                    modelAlgorithm = locate(algorihtm_type_)
                     if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                         settings__["agent_id"] = m
                         settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
