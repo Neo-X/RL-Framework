@@ -1,3 +1,3 @@
 #!/bin/bash
 
-ssh -X deepspace9.Banatao.Berkeley.EDU
+ssh -X gberseth@deepspace9.Banatao.Berkeley.EDU
