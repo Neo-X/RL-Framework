@@ -528,7 +528,7 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                         algorihtm_type_ = algorihtm_type_[m]
                     else:
                         algorihtm_type_ = algorihtm_type
-                    modelAlgorithm = locate(algorihtm_type)
+                    modelAlgorithm = locate(algorihtm_type_)
                     if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                         settings__["agent_id"] = m
                         settings__["critic_network_layer_sizes"] = settings["critic_network_layer_sizes"][m]
