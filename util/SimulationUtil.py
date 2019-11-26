@@ -526,6 +526,8 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                     settings__ = copy.deepcopy(settings_)
                     if (type(algorihtm_type) is list):
                         algorihtm_type_ = algorihtm_type_[m]
+                    else:
+                        algorihtm_type_ = algorihtm_type
                     modelAlgorithm = locate(algorihtm_type)
                     if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                         settings__["agent_id"] = m
@@ -604,6 +606,8 @@ def createRLAgent(algorihtm_type, state_bounds, discrete_actions, reward_bounds,
                 settings__ = copy.deepcopy(settings)
                 if (type(algorihtm_type) is list):
                     algorihtm_type_ = algorihtm_type[m]
+                else:
+                    algorihtm_type_ = algorihtm_type 
                 modelAlgorithm = locate(algorihtm_type_)
                 if ( issubclass(modelAlgorithm, AlgorithmInterface)): ## Double check this load will work
                     settings__["agent_id"] = m
