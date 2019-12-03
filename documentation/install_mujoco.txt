@@ -9,3 +9,14 @@ apt-get -y install freeglut3-dev build-essential libx11-dev libxmu-dev libxi-dev
 sudo apt-get install libosmesa6-dev
 
 sudo apt install patchelf
+pip3 install --user Cython
+pip3 install --user lockfile
+pip3 install --user glfw
+
+python experiments/sasha/sap/smap.py —local —gpu
+
+pip3 install --user numpy-stl
+
+pip3 install --user tensorboard_logger
+
+sudo apt-get install ffmpeg

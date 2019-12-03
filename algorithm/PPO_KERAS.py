@@ -73,6 +73,15 @@ class PPO_KERAS(KERASAlgorithm):
                  self._Advantage,
                  self._Anneal
                   ]
+        if ("policy_latent_length" in self.getSettings()):
+            self._PoliAction2 = keras.layers.Input(shape=(self._action_length,), name="PoliAction2")
+            input_ = [self._model.getStateSymbolicVariable(),
+                 self._PoliAction,
+                 self._Advantage,
+                 self._Anneal,
+                 self._model.getResultStateSymbolicVariable(),
+                 self._PoliAction2
+                  ]
         
         if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
             self._model._actor_train = Model(inputs=input_, outputs=[self._model._actor, self._model._critic])
@@ -149,6 +158,21 @@ class PPO_KERAS(KERASAlgorithm):
         ## This does the sum already
         self.__r = (self._prob / self._prob_target)
         self._actLoss_ = (self.__r) * self._Advantage
+        if ("policy_latent_length" in self.getSettings()):
+            ### goal reward
+            self._pi_z = self._q_valsActA[:,-self.getSettings()["policy_latent_length"]:]
+            diff_z = self._model.getResultStateSymbolicVariable() - self._pi_z
+            diff_z = K.sum(K.sqrt(diff_z*diff_z),axis=0)
+            latent_reward = K.exp(diff_z*diff_z * -5.0)
+            ### latent change penalty
+            ### This is kind of tricky because z will be from a distribution so this should
+            ### cause that distribution to colapse
+            self._pi_ss = self._modelTarget.getActorNetwork()(self._model.getResultStateSymbolicVariable())[:,:self._action_length]
+            self._pi_zz = self._pi_ss[:,-self.getSettings()["policy_latent_length"]:]
+            diff_zz = self._pi_z - self._pi_zz
+            ### Mean across row
+            l_cost = K.mean(diff_zz*diff_zz, axis=0)
+            self._actLoss_ = self._actLoss_ + latent_reward + l_cost
         ppo_epsilon = self.getSettings()['kl_divergence_threshold']
         self._actLoss_2 = (K.clip(self.__r, 1.0 - (ppo_epsilon * self._Anneal), 1 + (ppo_epsilon * self._Anneal)), self._Advantage)
         self._actLoss_ = K.minimum(self._actLoss_, self._actLoss_2)
@@ -181,6 +205,48 @@ class PPO_KERAS(KERASAlgorithm):
         lrate = keras.callbacks.LearningRateScheduler(step_decay)
         self._callbacks_list = [lrate]
         
+        def poli_loss_soft(action_old, advantage, anneal, next_state, action_old_next):
+            ## Compute on-policy policy gradient
+            action_old_mean = action_old[:,:self._action_length]
+            if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])):
+                action_old_std = action_old[:,self._action_length:]
+            else:
+                action_old_std = (K.ones_like(action_old_mean)) * self.getSettings()['exploration_rate']
+            
+            def losssoft2(action_true, action_pred):
+                action_true = action_true[:,:self._action_length]
+                action_pred_mean = action_pred[:,:self._action_length]
+                if ( 'use_stochastic_policy' in self.getSettings() and ( self.getSettings()['use_stochastic_policy'])):
+                    action_pred_std = action_pred[:,self._action_length:]
+                else:
+                    action_pred_std = (K.ones_like(action_pred_mean)) * self.getSettings()['exploration_rate']
+                prob = likelihood_keras(action_true, action_pred_mean, action_pred_std, self._action_length)
+                prob_target = likelihood_keras(action_true, action_old_mean, action_old_std, self._action_length)
+                _r = (prob / prob_target)
+                actLoss_ = (_r) * advantage
+                ### goal reward
+                self._pi_z = action_pred[:,-self.getSettings()["policy_latent_length"]:]
+                diff_z = next_state - self._pi_z
+                diff_z = K.sum(K.sqrt(diff_z*diff_z),axis=0)
+                latent_reward = K.exp(diff_z*diff_z * -5.0)
+                ### latent change penalty
+                ### This is kind of tricky because z will be from a distribution so this should
+                ### cause that distribution to colapse
+                self._pi_ss = action_old_next[:,:self._action_length]
+                self._pi_zz = self._pi_ss[:,-self.getSettings()["policy_latent_length"]:]
+                diff_zz = self._pi_z - self._pi_zz
+                ### Mean across row
+                l_cost = K.mean(diff_zz*diff_zz, axis=0)
+                ppo_epsilon = self.getSettings()['kl_divergence_threshold']
+                actLoss_2 = (K.clip(_r, 1.0 - (ppo_epsilon * anneal), 1 + (ppo_epsilon * anneal)), advantage)
+                actLoss_ = K.minimum(actLoss_, actLoss_2)
+                ### Average across action dimensions
+                actLoss = -1.0 * K.mean(actLoss_, axis=-1)
+                ### Average over batch
+                return K.mean(actLoss)
+
+            self.__loss = losssoft2
+            return losssoft2
         def poli_loss(action_old, advantage, anneal):
             ## Compute on-policy policy gradient
             action_old_mean = action_old[:,:self._action_length]
@@ -232,7 +298,17 @@ class PPO_KERAS(KERASAlgorithm):
                         loss_weights=[0.5, 0.5],
                         optimizer=sgd)
         else:
-            self._model._actor_train.compile(
+            if ("policy_latent_length" in self.getSettings()):
+                self._model._actor_train.compile(
+                        loss=[poli_loss_soft(action_old=self._PoliAction,
+                                        advantage=self._Advantage, 
+                                        anneal=self._Anneal,
+                                        next_state=self._model.getResultStateSymbolicVariable(), 
+                                        action_old_next=self._PoliAction2
+                                        )], 
+                        optimizer=sgd)
+            else:
+                self._model._actor_train.compile(
                         loss=[poli_loss(action_old=self._PoliAction,
                                         advantage=self._Advantage, 
                                         anneal=self._Anneal)], 
@@ -255,65 +331,23 @@ class PPO_KERAS(KERASAlgorithm):
                                             self._model.getRewardSymbolicVariable(), 
                                             self._model.getResultStateSymbolicVariable(),
                                             K.learning_phase()], [self._loss])
-        self._get_actor_loss = K.function([self._model.getStateSymbolicVariable(),
+        if ("policy_latent_length" in self.getSettings()):
+            self._get_actor_loss = K.function([self._model.getStateSymbolicVariable(),
                                                  self._model.getActionSymbolicVariable(),
                                                  self._Advantage,
-                                                 self._Anneal  
+                                                 self._Anneal,
+                                                 self._model.getResultStateSymbolicVariable()
+                                                 # ,K.learning_phase()
+                                                 ], [self._actLoss_tmp])
+        else:
+            self._get_actor_loss = K.function([self._model.getStateSymbolicVariable(),
+                                                 self._model.getActionSymbolicVariable(),
+                                                 self._Advantage,
+                                                 self._Anneal,
+                                                 # self._model.getResultStateSymbolicVariable()
                                                  # ,K.learning_phase()
                                                  ], [self._actLoss_tmp])
         print ("build actor updates")
-        """
-        if ("use_single_network" in self.getSettings() and ( self.getSettings()["use_single_network"] == True)):
-            ### Hck for now until I properly support keras optimizers
-            poli_updates = adam_updates(self._actLoss + self._critic_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal)
-            if ("learning_backend" in self.getSettings() and (self.getSettings()["learning_backend"] == "tensorflow")):
-                poli_updates = list(poli_updates)
-                # print ("poli_updates: ", poli_updates)
-            else:
-                poli_updates = poli_updates.items()
-            self.trainPolicy = K.function([self._model.getStateSymbolicVariable(),
-                                                 self._model.getActionSymbolicVariable(),
-                                                 self._model.getResultStateSymbolicVariable(),
-                                                 self._model.getRewardSymbolicVariable(),
-                                                 self._Advantage,
-                                                 self._Anneal  
-                                                 # ,K.learning_phase()
-                                                 ], [self._actLoss, self.__r], 
-                            updates= poli_updates
-                            # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
-                            # ,on_unused_input='warn'
-                            # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
-                            )
-        else:
-            poli_updates = updates= adam_updates(self._actLoss + self._actor_regularization, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal)
-            if ("learning_backend" in self.getSettings() and (self.getSettings()["learning_backend"] == "tensorflow")):
-                poli_updates = list(poli_updates)
-                print ("poli_updates: ", poli_updates)
-            else:
-                poli_updates = poli_updates.items()
-            print("poli_updates: ", poli_updates)
-            self.trainPolicy = K.function([self._model.getStateSymbolicVariable(),
-                                                 self._model.getActionSymbolicVariable(),
-                                                 self._Advantage,
-                                                 self._Anneal  
-                                                 # ,K.learning_phase()
-                                                 ], [self._actLoss, self.__r], 
-                            updates= poli_updates
-                            # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate * self._Anneal).items()
-                            # ,on_unused_input='warn'
-                            # updates= adam_updates(self._actLoss, self._model.getActorNetwork().trainable_weights, learning_rate=self._learning_rate).items()
-                            )
-            self._get_actor_loss = K.function(
-                                                   [self._model.getStateSymbolicVariable(),
-                                                 self._model.getActionSymbolicVariable(),
-                                                 self._Advantage,
-                                                 self._Anneal  
-                                                 # ,K.learning_phase()
-                                                 ],
-                                                 [self._actLoss]
-                                                 # ,on_unused_input='warn'
-                                                 )
-        """
         
         self._r = K.function([self._model.getStateSymbolicVariable(),
                                      self._model.getActionSymbolicVariable(),
@@ -508,7 +542,16 @@ class PPO_KERAS(KERASAlgorithm):
                 else:
                     ### Anneal learning rate
                     action_old = self._modelTarget.getActorNetwork().predict(states)
-                    self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p], actions,
+                    if ("policy_latent_length" in self.getSettings()):
+                        action_old_next = self._modelTarget.getActorNetwork().predict(result_states)
+                        self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p,
+                                                  result_states, action_old_next], actions,
+                          epochs=updates, batch_size=batch_size_,
+                          verbose=0,
+                          )
+                    else:
+                        self._model._actor_train.fit([states, action_old, advantage, (advantage * 0.0) + p,
+                                                  ], actions,
                           epochs=updates, batch_size=batch_size_,
                           verbose=0,
                           )
@@ -538,7 +581,10 @@ class PPO_KERAS(KERASAlgorithm):
     
     def get_actor_loss(self, state, action, reward, nextState, advantage):
         anneal = (np.asarray(advantage) * 0.0) + 1.0
-        return self._get_actor_loss([state, action, advantage, anneal])
+        if ("policy_latent_length" in self.getSettings()):
+            return self._get_actor_loss([state, action, advantage, anneal, nextState])
+        else:
+            return self._get_actor_loss([state, action, advantage, anneal])
     
     def get_critic_regularization(self):
         return self._get_critic_regularization([])
