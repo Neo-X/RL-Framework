@@ -611,6 +611,7 @@ class PPO_KERAS(KERASAlgorithm):
             ### Save model design as image
             plot_model(self._model._actor, to_file=fileName+"_actor"+'.svg', show_shapes=True)
             plot_model(self._model._critic, to_file=fileName+"_critic"+'.svg', show_shapes=True)
+            plot_model(self._model._actor_train, to_file=fileName+"_actor_train"+'.svg', show_shapes=True)
         except Exception as inst:
             ### Maybe the needed libraries are not available
             print ("Error saving diagrams for rl models.")
