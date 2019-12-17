@@ -342,7 +342,6 @@ def trainModelParallel(inputData):
         train_on_validation_set=settings["train_on_validation_set"]
         state_bounds = settings['state_bounds']
         discrete_actions = settings['discrete_actions']
-        num_actions= len(discrete_actions) # number of rows
         print ("Sim config file name: " + str(settings["sim_config_file"]))
         # c = characterSim.Configuration(str(settings["sim_config_file"]))
         # c = characterSim.Configuration("../data/epsilon0Config.ini")
@@ -517,6 +516,7 @@ def trainModelParallel(inputData):
         for i in range(len(action_bounds)):
             # print ("state_bounds[i]: ", state_bounds[i])
             if ((action_bounds[i] != "ask_env")
+                and (isinstance(action_bounds[i], list))
                 and
                 not validBounds(action_bounds[i])):
                 # Check that the action bounds are specified correctly

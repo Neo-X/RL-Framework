@@ -243,7 +243,7 @@ def getDataDirectory(settings):
     return getBaseDataDirectory(settings)+settings["model_type"]+"/"
 
 def processBounds(state_bounds, action_bounds, settings, sim):
-    
+    import gym
     if ((state_bounds == "ask_env")
         or (state_bounds == ["ask_env"])):
         print ("Getting state bounds from environment")
@@ -251,6 +251,7 @@ def processBounds(state_bounds, action_bounds, settings, sim):
         s_max = sim.getEnvironment().observation_space.high
         print (sim.getEnvironment().observation_space.low)
         settings['state_bounds'] = [s_min,s_max]
+        print ("settings['state_bounds']: ", settings['state_bounds'])
         if ("perform_multiagent_training" in settings):
             settings['state_bounds'] = [settings['state_bounds']]
         state_bounds = settings['state_bounds']
@@ -262,10 +263,13 @@ def processBounds(state_bounds, action_bounds, settings, sim):
     if ((action_bounds == "ask_env")
         or (action_bounds == ["ask_env"])):
         print ("Getting action bounds from environment")
-        a_min = sim.getEnvironment()._action_space.low
-        a_max = sim.getEnvironment()._action_space.high
-        print (sim.getEnvironment()._action_space.low)
-        settings['action_bounds'] = [a_min,a_max]
+        if (not isinstance(sim.getEnvironment().action_space, gym.spaces.Discrete)):
+            a_min = sim.getEnvironment()._action_space.low
+            a_max = sim.getEnvironment()._action_space.high
+            print (sim.getEnvironment()._action_space.low)
+            settings['action_bounds'] = [a_min,a_max]
+        else:
+            settings['action_bounds'] = [[-1] * sim.getEnvironment().action_space.n, [1] * sim.getEnvironment().action_space.n]
         if ("perform_multiagent_training" in settings):
             settings['action_bounds'] = [settings['action_bounds']]
         action_bounds = settings['state_bounds']
